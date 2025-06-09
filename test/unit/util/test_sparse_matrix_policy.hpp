@@ -468,7 +468,7 @@ MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<int, OrderingPolicy> testPrintNonZero()
+void testPrintNonZero()
 {
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -490,7 +490,7 @@ MatrixPolicy<int, OrderingPolicy> testPrintNonZero()
 
   matrix.AddToDiagonal(5);
 
-  std::stringstream ss, endline;
+  std::stringstream ss;
   matrix.PrintNonZeroElement(ss);
 
   std::string expected_output =
