@@ -171,7 +171,7 @@ namespace micm
         auto ALU_vector_it = ALU_vector + std::get<0>(aii_nji_nki);
         for (std::size_t i = 0; i < n_cells; ++i)
           *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
-#ifdef __GNUC__
+#ifdef _x_GNUC__
         for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, std::get<1>(aii_nji_nki)); ++i)
           PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + *(aji + i)), L)
         for (std::size_t i = NUM_PREFETCH_L1; i < std::min(NUM_PREFETCH_L2, std::get<1>(aii_nji_nki)); ++i)
@@ -181,7 +181,7 @@ namespace micm
         {
           auto ALU_vector_it = ALU_vector + *aji;
           auto Aii_inverse_it = Aii_inverse.begin();
-#ifdef __GNUC__
+#ifdef _x_GNUC__
           if ((ij + NUM_PREFETCH_L1) < std::get<1>(aii_nji_nki))
             PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + *(aji + NUM_PREFETCH_L1)), L)
           if ((ij + NUM_PREFETCH_L2) < std::get<1>(aii_nji_nki))
@@ -194,7 +194,7 @@ namespace micm
         for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
         {
           const std::size_t aik = std::get<0>(*aik_njk);
-#ifdef __GNUC__
+#ifdef _x_GNUC__
           for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, std::get<1>(*aik_njk)); ++i)
           {
             PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + (ajk_aji + i)->first), L)
@@ -212,7 +212,7 @@ namespace micm
             auto ALU_vector_first_it = ALU_vector + ajk_aji->first;
             auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
             auto ALU_vector_aik_it = ALU_vector + aik;
-#ifdef __GNUC__
+#ifdef _x_GNUC__
             if ((ijk + NUM_PREFETCH_L1) < std::get<1>(*aik_njk))
             {
               PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + (ajk_aji + NUM_PREFETCH_L1)->first), L)
