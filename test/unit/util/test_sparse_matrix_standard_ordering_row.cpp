@@ -89,6 +89,11 @@ TEST(SparseCompressedRowMatrix, Print)
   testPrint<micm::SparseMatrix, StandardOrdering>();
 }
 
+TEST(SparseCompressedRowMatrix, PrintNonZero)
+{
+  testPrintNonZero<micm::SparseMatrix, StandardOrdering>();
+}
+
 TEST(SparseMatrixBuilder, BadConfiguration)
 {
   EXPECT_THROW(

@@ -95,3 +95,11 @@ TEST(SparseVectorCompressedRowMatrix, Print)
   testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
   testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
+
+TEST(SparseVectorCompressedRowMatrix, PrintNonZero)
+{
+  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
