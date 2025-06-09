@@ -214,8 +214,8 @@ namespace micm
             auto ALU_vector_aik_it = ALU_vector + aik;
             if ((ijk + 1) < std::get<1>(*aik_njk))
             {
-              __builtin_prefetch(&*(ALU_vector + (ajk_aji + 1)->first), 1, 3);
-              __builtin_prefetch(&*(ALU_vector + (ajk_aji + 1)->second), 0, 3);
+              __builtin_prefetch(&*(ALU_vector + (ajk_aji + 1)->first), 1, 1);
+              __builtin_prefetch(&*(ALU_vector + (ajk_aji + 1)->second), 0, 1);
             }
 #ifdef _x_GNUC__
             if ((ijk + NUM_PREFETCH_L1) < std::get<1>(*aik_njk))
