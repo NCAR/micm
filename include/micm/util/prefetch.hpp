@@ -8,7 +8,7 @@
 /// @param ptr Pointer to the first element to prefetch
 /// @param size Total number of elements to prefetch
 /// @param rw Read or write operation
-/// @param locality Locality level (1 for L1, 2 for L2, 3 for L3)
+/// @param locality Locality level (3 for L1, 2 for L2, 1 for L3)
 #define PREFETCH_VECTOR(ptr, size, rw, locality) \
   { \
     const std::uint8_t* addr_byte = reinterpret_cast<const std::uint8_t*>(ptr); \
