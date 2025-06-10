@@ -491,7 +491,7 @@ void testPrintNonZero()
   matrix.AddToDiagonal(5);
 
   std::stringstream ss;
-  matrix.PrintNonZeroElement(ss);
+  matrix.PrintNonZeroElements(ss);
 
   std::string expected_output =
     "Block 0\n"
