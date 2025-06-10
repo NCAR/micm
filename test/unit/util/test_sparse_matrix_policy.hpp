@@ -494,24 +494,24 @@ void testPrintNonZero()
   matrix.PrintNonZeroElements(ss);
 
   std::string expected_output =
-    "Block 0\n"
-    "0, 1, 32\n"
-    "1, 1, 7\n"
-    "2, 1, 32\n"
-    "2, 3, 32\n"
-    "3, 2, 32\n"
-    "Block 1\n"
-    "0, 1, 32\n"
-    "1, 1, 9\n"
-    "2, 1, 32\n"
-    "2, 3, 32\n"
-    "3, 2, 32\n"
-    "Block 2\n"
-    "0, 1, 32\n"
-    "1, 1, 11\n"
-    "2, 1, 32\n"
-    "2, 3, 32\n"
-    "3, 2, 32\n";
+      "Block 0\n"
+      "0, 1, 32\n"
+      "1, 1, 7\n"
+      "2, 1, 32\n"
+      "2, 3, 32\n"
+      "3, 2, 32\n"
+      "Block 1\n"
+      "0, 1, 32\n"
+      "1, 1, 9\n"
+      "2, 1, 32\n"
+      "2, 3, 32\n"
+      "3, 2, 32\n"
+      "Block 2\n"
+      "0, 1, 32\n"
+      "1, 1, 11\n"
+      "2, 1, 32\n"
+      "2, 3, 32\n"
+      "3, 2, 32\n";
 
   EXPECT_EQ(ss.str(), expected_output);
 }
