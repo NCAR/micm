@@ -287,6 +287,20 @@ namespace micm
       }
       return os;
     }
+
+    /// @brief Print the sparse matrix with row index, column index, and non-zero value; useful to test other linear algebra libraries
+    /// @param os Output stream to print to, defaults to std::cout
+    void PrintNonZeroElements(std::ostream& os) const
+    {
+      for (std::size_t i = 0; i < number_of_blocks_; ++i)
+      {
+        os << "Block " << i << std::endl;
+        for (std::size_t j = 0; j < block_size_; ++j)
+          for (std::size_t k = 0; k < block_size_; ++k)
+            if (!this->IsZero(j, k)) os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
+          
+      }
+    }
   };
 
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>

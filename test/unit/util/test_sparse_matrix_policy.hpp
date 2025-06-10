@@ -468,6 +468,55 @@ MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+void testPrintNonZero()
+{
+  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(1, 1)
+                     .WithElement(2, 1)
+                     .WithElement(2, 3)
+                     .WithElement(3, 2)
+                     .InitialValue(32)
+                     .SetNumberOfBlocks(3);
+  // 0 X 0 0
+  // 0 X 0 0
+  // 0 X 0 X
+  // 0 0 X 0
+  MatrixPolicy<int, OrderingPolicy> matrix{ builder };
+
+  matrix[0][1][1] = 2;
+  matrix[1][1][1] = 4;
+  matrix[2][1][1] = 6;
+
+  matrix.AddToDiagonal(5);
+
+  std::stringstream ss;
+  matrix.PrintNonZeroElements(ss);
+
+  std::string expected_output =
+    "Block 0\n"
+    "0, 1, 32\n"
+    "1, 1, 7\n"
+    "2, 1, 32\n"
+    "2, 3, 32\n"
+    "3, 2, 32\n"
+    "Block 1\n"
+    "0, 1, 32\n"
+    "1, 1, 9\n"
+    "2, 1, 32\n"
+    "2, 3, 32\n"
+    "3, 2, 32\n"
+    "Block 2\n"
+    "0, 1, 32\n"
+    "1, 1, 11\n"
+    "2, 1, 32\n"
+    "2, 3, 32\n"
+    "3, 2, 32\n";
+
+  EXPECT_EQ(ss.str(), expected_output);
+}
+
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<int, OrderingPolicy> testPrint()
 {
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
