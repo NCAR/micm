@@ -122,7 +122,7 @@ void testDenseMatrix()
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, A.NumberOfBlocks());
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   alu.Fill(0);
   for (std::size_t i = 0; i < A.NumRows(); ++i)
     for (std::size_t j = 0; j < A.NumColumns(); ++j)
@@ -176,7 +176,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, number_of_blocks);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   alu.Fill(0);
   for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
     for (std::size_t i = 0; i < A.NumRows(); ++i)
@@ -243,7 +243,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value, number_of_blocks);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value, false);
   for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
     for (std::size_t i = 0; i < A.NumRows(); ++i)
       for (std::size_t j = 0; j < A.NumColumns(); ++j)
@@ -298,7 +298,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, number_of_blocks);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   alu.Fill(0);
   for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
     for (std::size_t i = 0; i < A.NumRows(); ++i)
@@ -349,8 +349,8 @@ void testMarkowitzReordering()
   auto orig_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(orig_jac);
   auto reordered_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(reordered_jac);
 
-  auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0, orig_jac.NumberOfBlocks());
-  auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0, reordered_jac.NumberOfBlocks());
+  auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0, false);
+  auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0, false);
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;
