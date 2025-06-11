@@ -123,7 +123,7 @@ void testDenseMatrix()
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -176,7 +176,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -242,7 +242,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
   auto lu =
-      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, initial_value);
+      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, initial_value, false);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -295,7 +295,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -345,9 +345,9 @@ void testMarkowitzReordering()
       micm::LuDecomposition::Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(reordered_jac);
 
   auto orig_LU =
-      orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac, 0.0);
+      orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac, 0.0, false);
   auto reordered_LU = reordered_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
-      reordered_jac, 0.0);
+      reordered_jac, 0.0, false);
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;

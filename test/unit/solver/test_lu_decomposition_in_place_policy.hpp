@@ -110,7 +110,7 @@ void testDenseMatrix()
   A[0][2][2] = 8;
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0);
+  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   ALU.Fill(0);
   for (std::size_t i = 0; i < 3; ++i)
     for (std::size_t j = 0; j < 3; ++j)
@@ -150,7 +150,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
       }
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0);
+  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   for (std::size_t i = 0; i < size; ++i)
     for (std::size_t j = 0; j < size; ++j)
       if (!A.IsZero(i, j))
@@ -196,7 +196,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
       }
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, initial_value);
+  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, initial_value, false);
   for (std::size_t i = 0; i < size; ++i)
     for (std::size_t j = 0; j < size; ++j)
       if (!A.IsZero(i, j))
@@ -237,7 +237,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
       A[i_block][i][i] = get_double();
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0);
+  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   ALU.Fill(0);
   for (std::size_t i = 0; i < 6; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
