@@ -31,7 +31,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::size_t n = matrix.NumRows();
-    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, matrix.NumberOfBlocks());
+    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, matrix.NumberOfBlocks(), true);
     for (std::size_t i = 0; i < n; ++i)
     {
       if (ALU.IsZero(i, i))
@@ -78,7 +78,8 @@ namespace micm
   inline SparseMatrixPolicy LuDecompositionDoolittleInPlace::GetLUMatrix(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
-      std::size_t number_of_grid_cells)
+      std::size_t number_of_grid_cells,
+      bool empty_matrix)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -126,7 +127,7 @@ namespace micm
     {
       ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
     }
-    return SparseMatrixPolicy(ALU_builder);
+    return SparseMatrixPolicy(ALU_builder, empty_matrix);
   }
 
   template<class SparseMatrixPolicy>

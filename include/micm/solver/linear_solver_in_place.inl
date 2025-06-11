@@ -27,7 +27,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto lu = lu_decomp_.template GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, matrix.NumberOfBlocks());
+    auto lu = lu_decomp_.template GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, matrix.NumberOfBlocks(), true);
     for (std::size_t i = 0; i < lu.NumRows(); ++i)
     {
       std::size_t nLij = 0;

@@ -79,7 +79,8 @@ namespace micm
     static SparseMatrixPolicy GetLUMatrix(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
-        std::size_t number_of_grid_cells);
+        std::size_t number_of_grid_cells,
+        bool empty_matrix = false);
 
     /// @brief Perform an LU decomposition on a given A matrix.
     ///        All elements of L and U that are zero in A should be set to zero before calling this function.

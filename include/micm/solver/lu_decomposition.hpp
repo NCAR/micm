@@ -16,7 +16,7 @@ namespace micm
   /// @brief Concept for in-place LU decomposition algorithms
   template<class T, class SparseMatrixPolicy>
   concept LuDecompositionInPlaceConcept = requires(T t) {
-    { t.GetLUMatrix(SparseMatrixPolicy{}, 0.0, 1) };
+    { t.GetLUMatrix(SparseMatrixPolicy{}, 0.0, 1, true) };
     { t.Decompose(std::declval<SparseMatrixPolicy&>()) };
   };
   static_assert(
