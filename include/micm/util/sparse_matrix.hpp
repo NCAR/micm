@@ -170,12 +170,21 @@ namespace micm
 
     SparseMatrix() = default;
 
-    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool empty_matrix = false)
+    
+    /// @brief Constructs a SparseMatrix from a given builder and optional indexing mode.
+    ///        Initializes the SparseMatrix using the provided SparseMatrixBuilder, which defines
+    ///        the matrix structure, block size, and non-zero elements. Optionally, the constructor
+    ///        can be used in "indexing only" mode, where the data storage is not allocated.
+    /// @tparam T The type of the matrix elements.
+    /// @tparam OrderingPolicy The policy class that defines the ordering and storage of elements.
+    /// @param builder The builder object containing matrix configuration and initial values.
+    /// @param indexing_only If true, only indexing structures are initialized and data storage is omitted.
+    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
         : OrderingPolicy(builder.number_of_blocks_, builder.block_size_, builder.non_zero_elements_),
           number_of_blocks_(builder.number_of_blocks_),
           block_size_(builder.block_size_),
           number_of_non_zero_elements_per_block_(builder.non_zero_elements_.size()),
-          data_((empty_matrix ? 0 : OrderingPolicy::VectorSize(number_of_blocks_)), builder.initial_value_)
+          data_((indexing_only ? 0 : OrderingPolicy::VectorSize(number_of_blocks_)), builder.initial_value_)
     {
     }
 

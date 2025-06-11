@@ -32,11 +32,11 @@ namespace micm
       this->param_.d_data_ = nullptr;
     }
 
-    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool empty_matrix = false)
-        : SparseMatrix<T, OrderingPolicy>(builder, empty_matrix)
+    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
+        : SparseMatrix<T, OrderingPolicy>(builder, indexing_only)
     {
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      if (! empty_matrix) CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      if (! indexing_only) CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)

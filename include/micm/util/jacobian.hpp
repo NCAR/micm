@@ -16,7 +16,7 @@ namespace micm
       const std::set<std::pair<std::size_t, std::size_t>>& nonzero_jacobian_elements,
       std::size_t number_of_grid_cells,
       std::size_t state_size,
-      bool empty_matrix)
+      bool indexing_only)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -28,6 +28,6 @@ namespace micm
     {
       builder = builder.WithElement(i, i);
     }
-    return SparseMatrixPolicy(builder, empty_matrix);
+    return SparseMatrixPolicy(builder, indexing_only);
   }
 }  // namespace micm

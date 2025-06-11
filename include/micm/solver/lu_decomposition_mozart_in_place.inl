@@ -72,7 +72,7 @@ namespace micm
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
       std::size_t number_of_grid_cells,
-      bool empty_matrix)
+      bool indexing_only)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -100,7 +100,7 @@ namespace micm
     {
       ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
     }
-    return SparseMatrixPolicy(ALU_builder, empty_matrix);
+    return SparseMatrixPolicy(ALU_builder, indexing_only);
   }
 
   template<class SparseMatrixPolicy>

@@ -117,7 +117,7 @@ namespace micm
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
       std::size_t number_of_grid_cells,
-      bool empty_matrix)
+      bool indexing_only)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -162,7 +162,7 @@ namespace micm
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
-    std::pair<LMatrixPolicy, UMatrixPolicy> LU(L_builder, U_builder);
+    std::pair<LMatrixPolicy, UMatrixPolicy> LU(LMatrixPolicy(L_builder, indexing_only), UMatrixPolicy(U_builder, indexing_only));
     return LU;
   }
 
