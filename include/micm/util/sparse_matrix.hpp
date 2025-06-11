@@ -170,12 +170,12 @@ namespace micm
 
     SparseMatrix() = default;
 
-    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
+    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool empty_matrix = false)
         : OrderingPolicy(builder.number_of_blocks_, builder.block_size_, builder.non_zero_elements_),
           number_of_blocks_(builder.number_of_blocks_),
           block_size_(builder.block_size_),
           number_of_non_zero_elements_per_block_(builder.non_zero_elements_.size()),
-          data_(OrderingPolicy::VectorSize(number_of_blocks_), builder.initial_value_)
+          data_((empty_matrix ? 0 : OrderingPolicy::VectorSize(number_of_blocks_)), builder.initial_value_)
     {
     }
 

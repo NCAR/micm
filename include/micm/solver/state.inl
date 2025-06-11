@@ -117,13 +117,13 @@ namespace micm
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, 1, state_size_);
+      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, 1, state_size_, true);
       auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0, number_of_grid_cells);
       jacobian_ = std::move(lu);
     }
     else
     {
-      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_);
+      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, false);
       auto lu =
           LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(jacobian_, 0, number_of_grid_cells);
       auto lower_matrix = std::move(lu.first);
@@ -131,7 +131,6 @@ namespace micm
       lower_matrix_ = lower_matrix;
       upper_matrix_ = upper_matrix;
     }
-
     jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
   }
 

@@ -15,7 +15,8 @@ namespace micm
   SparseMatrixPolicy BuildJacobian(
       const std::set<std::pair<std::size_t, std::size_t>>& nonzero_jacobian_elements,
       std::size_t number_of_grid_cells,
-      std::size_t state_size)
+      std::size_t state_size,
+      bool empty_matrix)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -27,6 +28,6 @@ namespace micm
     {
       builder = builder.WithElement(i, i);
     }
-    return SparseMatrixPolicy(builder);
+    return SparseMatrixPolicy(builder, empty_matrix);
   }
 }  // namespace micm
