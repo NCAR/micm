@@ -117,7 +117,7 @@ namespace micm
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, 1, state_size_, true);
+      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, true);
       auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0, number_of_grid_cells, false);
       jacobian_ = std::move(lu);
     }
