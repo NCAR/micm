@@ -32,7 +32,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::size_t n = matrix.NumRows();
-    auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, matrix.NumberOfBlocks(), true);
+    auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
@@ -98,7 +98,6 @@ namespace micm
   inline std::pair<LMatrixPolicy, UMatrixPolicy> LuDecompositionDoolittle::GetLUMatrices(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
-      std::size_t number_of_grid_cells,
       bool indexing_only)
   {
     MICM_PROFILE_FUNCTION();
@@ -142,12 +141,12 @@ namespace micm
         }
       }
     }
-    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(number_of_grid_cells).InitialValue(initial_value);
+    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(number_of_grid_cells).InitialValue(initial_value);
+    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);

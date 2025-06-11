@@ -121,7 +121,6 @@ namespace micm
     static std::pair<LMatrixPolicy, UMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
-        std::size_t number_of_grid_cells,
         bool indexing_only = false);
 
     /// @brief Perform an LU decomposition on a given A matrix

@@ -375,7 +375,7 @@ namespace micm
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, 1, true);
+      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
       jacobian = std::move(lu);
     }
     rates.SetJacobianFlatIds(jacobian);
