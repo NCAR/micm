@@ -89,6 +89,11 @@ TEST(SparseCompressedColumnMatrix, Print)
   auto matrix = testPrint<micm::SparseMatrix, StandardOrdering>();
 }
 
+TEST(SparseCompressedColumnMatrix, PrintNonZero)
+{
+  testPrintNonZero<micm::SparseMatrix, StandardOrdering>();
+}
+
 TEST(SparseMatrixBuilder, BadConfiguration)
 {
   EXPECT_THROW(
