@@ -151,7 +151,8 @@ namespace micm
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
-    std::pair<LMatrixPolicy, UMatrixPolicy> LU(LMatrixPolicy(L_builder, indexing_only), UMatrixPolicy(U_builder, indexing_only));
+    std::pair<LMatrixPolicy, UMatrixPolicy> LU(
+        LMatrixPolicy(L_builder, indexing_only), UMatrixPolicy(U_builder, indexing_only));
     return LU;
   }
 

@@ -170,7 +170,6 @@ namespace micm
 
     SparseMatrix() = default;
 
-    
     /// @brief Constructs a SparseMatrix from a given builder and optional indexing mode.
     ///        Initializes the SparseMatrix using the provided SparseMatrixBuilder, which defines
     ///        the matrix structure, block size, and non-zero elements. Optionally, the constructor

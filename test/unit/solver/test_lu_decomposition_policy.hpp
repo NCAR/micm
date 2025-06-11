@@ -115,7 +115,8 @@ void testDenseMatrix()
 
   LuDecompositionPolicy lud =
       LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
-  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
+  auto LU =
+      LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
@@ -143,7 +144,8 @@ void testRandomMatrix(std::size_t number_of_blocks)
 
   LuDecompositionPolicy lud =
       LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
-  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
+  auto LU =
+      LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
@@ -213,7 +215,8 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
 
   LuDecompositionPolicy lud =
       LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
-  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
+  auto LU =
+      LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
