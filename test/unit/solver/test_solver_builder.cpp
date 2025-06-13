@@ -120,22 +120,22 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
   auto options = micm::BackwardEulerSolverParameters();
   auto solve = solver.Solve(5, state, options);
 
-  ASSERT_EQ(solve.final_time_, 5);
-  ASSERT_EQ(solve.stats_.function_calls_, 2);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 2);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 2);
-  ASSERT_EQ(solve.stats_.solves_, 2);
+  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.function_calls_, 2);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 2);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 2);
+  EXPECT_EQ(solve.stats_.solves_, 2);
 
   options.small_ = 1.0;
   options.max_number_of_steps_ = 1.0;
 
   solve = solver.Solve(5, state, options);
 
-  ASSERT_EQ(solve.final_time_, 0.03125);
-  ASSERT_EQ(solve.stats_.function_calls_, 6);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 6);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 6);
-  ASSERT_EQ(solve.stats_.solves_, 6);
+  EXPECT_EQ(solve.final_time_, 0.03125);
+  EXPECT_EQ(solve.stats_.function_calls_, 6);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 6);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 6);
+  EXPECT_EQ(solve.stats_.solves_, 6);
 }
 
 TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
@@ -150,11 +150,11 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 
   auto solve = solver.Solve(5, state);
 
-  ASSERT_EQ(solve.final_time_, 5);
-  ASSERT_EQ(solve.stats_.function_calls_, 20);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 10);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 10);
-  ASSERT_EQ(solve.stats_.solves_, 30);
+  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.function_calls_, 18);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 9);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 9);
+  EXPECT_EQ(solve.stats_.solves_, 27);
 
   options.h_min_ = 15.0;
   options.max_number_of_steps_ = 6.0;
@@ -162,12 +162,12 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   state.variables_[0] = { 1.0, 0.0, 0.0 };
   solve = solver.Solve(5, state, options);
 
-  ASSERT_EQ(solve.final_time_, 5);
-  ASSERT_EQ(solve.stats_.function_calls_, 2);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 1);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 1);
-  ASSERT_EQ(solve.stats_.solves_, 3);
+  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.function_calls_, 2);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 1);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 1);
+  EXPECT_EQ(solve.stats_.solves_, 3);
 
-  ASSERT_EQ(solver.solver_parameters_.h_min_, 15.0);
-  ASSERT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
+  EXPECT_EQ(solver.solver_parameters_.h_min_, 15.0);
+  EXPECT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
 }

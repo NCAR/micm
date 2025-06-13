@@ -20,7 +20,7 @@ TEST(RegressionRosenbrock, ThreeStageSolve)
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder);
-  testSolve(solver);
+  testSolve(solver, 1.0e-4);
 }
 
 TEST(RegressionRosenbrock, FourStageSolve)
@@ -52,21 +52,21 @@ TEST(RegressionRosenbrock, VectorSolve)
   {
     auto builder = VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = getChapmanSolver(builder);
-    testSolve(solver);
+    testSolve(solver, 1.0e-4);
   }
   {
     auto builder = VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = getChapmanSolver(builder);
-    testSolve(solver);
+    testSolve(solver, 1.0e-4);
   }
   {
     auto builder = VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = getChapmanSolver(builder);
-    testSolve(solver);
+    testSolve(solver, 1.0e-4);
   }
   {
     auto builder = VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = getChapmanSolver(builder);
-    testSolve(solver);
+    testSolve(solver, 1.0e-4);
   }
 }

@@ -22,20 +22,15 @@ namespace micm
     auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
     auto& K = derived_class_temporary_variables->K_;
     auto& Yerror = derived_class_temporary_variables->Yerror_;
+    const double h_min = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
     const double h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
     const double h_start =
-        parameters.h_start_ == 0.0 ? std::max(parameters.h_min_, DELTA_MIN) : std::min(h_max, parameters.h_start_);
+        parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
+    double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
     SolverStats stats;
 
     double present_time = 0.0;
-    double H = std::min(std::max(std::abs(parameters.h_min_), std::abs(h_start)), std::abs(h_max));
-
-    if (std::abs(H) <= 10 * parameters.round_off_)
-      H = DELTA_MIN;
-
-    // TODO: the logic above this point should be moved to the constructor and should return an error
-    //       if the parameters are invalid (e.g., h_min > h_max or h_start > h_max)
 
     bool reject_last_h = false;
     bool reject_more_h = false;
@@ -151,22 +146,20 @@ namespace micm
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
-          Y.Swap(Ynew);
           result.state_ = SolverState::NaNDetected;
           break;
         }
         else if (std::isinf(error) == 1)
         {
-          Y.Swap(Ynew);
           result.state_ = SolverState::InfDetected;
           break;
         }
-        else if ((error < 1) || (H < parameters.h_min_))
+        else if ((error < 1) || (H < h_min))
         {
           stats.accepted_ += 1;
           present_time = present_time + H;
           Y.Swap(Ynew);
-          Hnew = std::max(parameters.h_min_, std::min(Hnew, h_max));
+          Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
             // No step size increase after a rejected step

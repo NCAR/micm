@@ -53,7 +53,8 @@ namespace micm
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
 
-    static constexpr double DELTA_MIN = 1.0e-6;
+    static constexpr double DEFAULT_H_MIN   = 1.0e-15; // Minimum internal time step relative to overall time step
+    static constexpr double DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
 
     /// @brief Solver parameters typename
     using ParametersType = RosenbrockSolverParameters;
