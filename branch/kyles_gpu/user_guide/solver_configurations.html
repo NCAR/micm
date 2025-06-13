@@ -1,0 +1,1021 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Solver configurations &#8212; MICM v3.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bbe95013" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script src="../_static/documentation_options.js?v=4b578fff"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/solver_configurations';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://ncar.github.io/micm/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v3.4.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="But how fast is it?" href="but_how_fast_is_it.html" />
+    <link rel="prev" title="Multiple Grid Cells" href="multiple_grid_cells.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">MICM v3.4.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../getting_started.html">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../getting_started.html">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation_and_usage.html">Installation and usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rate_constant_tutorial.html">Rate Constants (except user defined ones)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_defined_rate_constant_tutorial.html">User-Defined Rate Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiple_grid_cells.html">Multiple Grid Cells</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Solver configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="but_how_fast_is_it.html">But how fast is it?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="openmp.html">OpenMP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jit.html">A JIT-compiled solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectorized_matrix_solver.html">Vectorized matrix solver</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Solver...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="solver-configurations">
+<span id="id1"></span><h1>Solver configurations<a class="headerlink" href="#solver-configurations" title="Link to this heading">#</a></h1>
+<p>This tutorial will focus on configuring the solver with different stages.
+We will use a simple 3-reaction 3-species mechanism. The setup here is the same in
+<a class="reference internal" href="multiple_grid_cells.html#multiple-grid-cells"><span class="std std-ref">Multiple Grid Cells</span></a>, except only one grid cell is used.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A &amp;\longrightarrow B, &amp;k_{1, \mathrm{user\ defined}} \\
+2B &amp;\longrightarrow B + C, &amp;k_{2, \mathrm{user\ defined}} \\
+B + C &amp;\longrightarrow A + C, \qquad &amp;k_{3, \mathrm{user\ defined}} \\\end{split}\]</div>
+<p>If you’re looking for a copy and paste, choose
+the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;chrono&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/user_defined_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/solver/rosenbrock.hpp&gt;</span>
+
+<span class="c1">// Use our namespace so that this example is easier to read</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">test_solver_type</span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">solver</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.04</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3e7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e4</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r1&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r2&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k2</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r3&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k3</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">272.5</span><span class="p">;</span><span class="w">  </span><span class="c1">// [K]</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">pressure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101253.3</span><span class="p">;</span><span class="w">  </span><span class="c1">// [Pa]</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">air_density</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e6</span><span class="p">;</span><span class="w">    </span><span class="c1">// [mol m-3]</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">temperature</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">air_density_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">air_density</span><span class="p">;</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintHeader</span><span class="p">();</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">SolverStats</span><span class="w"> </span><span class="n">total_stats</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">duration</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">nano</span><span class="o">&gt;</span><span class="w"> </span><span class="n">total_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">nanoseconds</span><span class="o">::</span><span class="n">zero</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+<span class="w">    </span><span class="c1">// so we need to track how much time the solver was able to integrate for and continue</span>
+<span class="w">    </span><span class="c1">// solving until we finish</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">high_resolution_clock</span><span class="o">::</span><span class="n">now</span><span class="p">();</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="k">template</span><span class="w"> </span><span class="n">Solve</span><span class="o">&lt;</span><span class="nb">true</span><span class="o">&gt;</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">high_resolution_clock</span><span class="o">::</span><span class="n">now</span><span class="p">();</span>
+
+<span class="w">      </span><span class="n">total_solve_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">duration_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">nanoseconds</span><span class="o">&gt;</span><span class="p">(</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="p">);</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">function_calls</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">function_calls</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">jacobian_updates</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">jacobian_updates</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">number_of_steps</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">number_of_steps</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">accepted</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">accepted</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">rejected</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">rejected</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">decompositions</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">decompositions</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">solves</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">solves</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">singular</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">singular</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_forcing_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_forcing_time</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_jacobian_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_jacobian_time</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_factor_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_linear_factor_time</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_solve_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_linear_solve_time</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">result_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Total solve time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_solve_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;accepted: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">accepted</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;function_calls: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">function_calls</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;jacobian_updates: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">jacobian_updates</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;number_of_steps: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">number_of_steps</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;accepted: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">accepted</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;rejected: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">rejected</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;decompositions: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">decompositions</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;solves: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">solves</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;singular: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">singular</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_forcing_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_forcing_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_jacobian_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_jacobian_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_linear_factor_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_factor_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_linear_solve_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_solve_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;B&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;C&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Species</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">UserDefinedRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;r1&quot;</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">UserDefinedRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;r2&quot;</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">UserDefinedRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;r3&quot;</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">(</span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Process</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="p">,</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">two_stage</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">two_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">three_stage</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">four_stage</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">four_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">four_stage_da</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">reactions</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">four_stage_differential_algebraic_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">six_stage_da</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">reactions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">six_stage_differential_algebraic_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Two stages: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">test_solver_type</span><span class="p">(</span><span class="n">two_stage</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Three stages: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">test_solver_type</span><span class="p">(</span><span class="n">three_stage</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Four stages: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">test_solver_type</span><span class="p">(</span><span class="n">four_stage</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Four stages differential algebraic: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">test_solver_type</span><span class="p">(</span><span class="n">four_stage_da</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Six stages differential algebraic: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">test_solver_type</span><span class="p">(</span><span class="n">six_stage_da</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="line-by-line-explanation">
+<h2>Line-by-line explanation<a class="headerlink" href="#line-by-line-explanation" title="Link to this heading">#</a></h2>
+<p>There are a total of five different configurations for the Rosenbrock solver. Each corresponds to a different number of stages.
+What each configuration means is beyond the scope of this tutorial. However, references are included for further reading.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Two stage</dt><dd><ul>
+<li><p>An L-stable method, 2 stages, order 2. <span id="id2">[<a class="reference internal" href="../citing_and_bibliography/bibliography.html#id5" title="Ernst Hairer and Gerhard Wanner. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems. Springer, Berlin ; New York, 2nd edition edition, September 1996. ISBN 978-3-540-60452-5.">HW96</a>]</span></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Three stage</dt><dd><ul>
+<li><p>An L-stable method, 3 stages, order 3. <span id="id3">[<a class="reference internal" href="../citing_and_bibliography/bibliography.html#id8" title="A. Sandu, J. G. Verwer, J. G. Blom, E. J. Spee, G. R. Carmichael, and F. A. Potra. Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers. Atmospheric Environment, 31(20):3459–3472, October 1997. doi:10.1016/S1352-2310(97)83212-8.">SVB+97</a>]</span></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Four stage</dt><dd><ul>
+<li><p>An L-stable method, 4 stages, order 4. <span id="id4">[<a class="reference internal" href="../citing_and_bibliography/bibliography.html#id5" title="Ernst Hairer and Gerhard Wanner. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems. Springer, Berlin ; New York, 2nd edition edition, September 1996. ISBN 978-3-540-60452-5.">HW96</a>]</span></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Four stage, differential algebraic</dt><dd><ul>
+<li><p>A stiffly stable method, 4 stages, order 3, <span id="id5">[<a class="reference internal" href="../citing_and_bibliography/bibliography.html#id5" title="Ernst Hairer and Gerhard Wanner. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems. Springer, Berlin ; New York, 2nd edition edition, September 1996. ISBN 978-3-540-60452-5.">HW96</a>]</span></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Six stage, differential algebraic</dt><dd><ul>
+<li><p>Stiffly stable rosenbrock method of order 4 with 6 stages, <span id="id6">[<a class="reference internal" href="../citing_and_bibliography/bibliography.html#id5" title="Ernst Hairer and Gerhard Wanner. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems. Springer, Berlin ; New York, 2nd edition edition, September 1996. ISBN 978-3-540-60452-5.">HW96</a>]</span></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Configuring the rosenbrock solver is as easy as providing the solver with a set of <a class="reference internal" href="../api/index.html#_CPPv4N4micm26RosenbrockSolverParametersE" title="micm::RosenbrockSolverParameters"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::RosenbrockSolverParameters</span></code></a></p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">two_stage</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">two_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">three_stage</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">four_stage</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">four_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">four_stage_da</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">reactions</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">four_stage_differential_algebraic_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">six_stage_da</span><span class="p">{</span><span class="w"> </span><span class="n">system</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">reactions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">six_stage_differential_algebraic_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+</pre></div>
+</div>
+<p>After that, the usage is the same as a regular solver. A templated method was used here to run the same solving code
+for each of the different solver configurations.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">test_solver_type</span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">solver</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.04</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3e7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e4</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r1&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r2&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k2</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r3&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k3</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">272.5</span><span class="p">;</span><span class="w">  </span><span class="c1">// [K]</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">pressure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101253.3</span><span class="p">;</span><span class="w">  </span><span class="c1">// [Pa]</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">air_density</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e6</span><span class="p">;</span><span class="w">    </span><span class="c1">// [mol m-3]</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">temperature</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">air_density_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">air_density</span><span class="p">;</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintHeader</span><span class="p">();</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">SolverStats</span><span class="w"> </span><span class="n">total_stats</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">duration</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">nano</span><span class="o">&gt;</span><span class="w"> </span><span class="n">total_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">nanoseconds</span><span class="o">::</span><span class="n">zero</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+<span class="w">    </span><span class="c1">// so we need to track how much time the solver was able to integrate for and continue</span>
+<span class="w">    </span><span class="c1">// solving until we finish</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">high_resolution_clock</span><span class="o">::</span><span class="n">now</span><span class="p">();</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="k">template</span><span class="w"> </span><span class="n">Solve</span><span class="o">&lt;</span><span class="nb">true</span><span class="o">&gt;</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">high_resolution_clock</span><span class="o">::</span><span class="n">now</span><span class="p">();</span>
+
+<span class="w">      </span><span class="n">total_solve_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">duration_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">nanoseconds</span><span class="o">&gt;</span><span class="p">(</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="p">);</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">function_calls</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">function_calls</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">jacobian_updates</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">jacobian_updates</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">number_of_steps</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">number_of_steps</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">accepted</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">accepted</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">rejected</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">rejected</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">decompositions</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">decompositions</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">solves</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">solves</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">singular</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">singular</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_forcing_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_forcing_time</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_jacobian_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_jacobian_time</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_factor_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_linear_factor_time</span><span class="p">;</span>
+<span class="w">      </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_solve_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">total_linear_solve_time</span><span class="p">;</span>
+
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">result_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Total solve time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_solve_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;accepted: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">accepted</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;function_calls: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">function_calls</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;jacobian_updates: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">jacobian_updates</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;number_of_steps: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">number_of_steps</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;accepted: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">accepted</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;rejected: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">rejected</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;decompositions: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">decompositions</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;solves: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">solves</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;singular: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">singular</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_forcing_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_forcing_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_jacobian_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_jacobian_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_linear_factor_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_factor_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;total_linear_solve_time: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">total_stats</span><span class="p">.</span><span class="n">total_linear_solve_time</span><span class="p">.</span><span class="n">count</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; nanoseconds&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Running this program should give an output similar to this:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Two stages:</span>
+<span class="go">time,         A,         B,         C</span>
+<span class="go">    0,  1.00e+00,  0.00e+00,  0.00e+00</span>
+<span class="go">  200,  5.37e-01,  4.50e-06,  4.63e-01</span>
+<span class="go">  400,  4.51e-01,  3.23e-06,  5.49e-01</span>
+<span class="go">  600,  4.01e-01,  2.64e-06,  5.99e-01</span>
+<span class="go">  800,  3.65e-01,  2.28e-06,  6.35e-01</span>
+<span class="go">1000,  3.38e-01,  2.02e-06,  6.62e-01</span>
+<span class="go">1200,  3.16e-01,  1.83e-06,  6.84e-01</span>
+<span class="go">1400,  2.97e-01,  1.68e-06,  7.03e-01</span>
+<span class="go">1600,  2.82e-01,  1.56e-06,  7.18e-01</span>
+<span class="go">1800,  2.68e-01,  1.46e-06,  7.32e-01</span>
+<span class="go">2000,  2.56e-01,  1.37e-06,  7.44e-01</span>
+<span class="go">Total solve time: 135748 nanoseconds</span>
+<span class="go">accepted: 178</span>
+<span class="go">function_calls: 356</span>
+<span class="go">jacobian_updates: 178</span>
+<span class="go">number_of_steps: 178</span>
+<span class="go">accepted: 178</span>
+<span class="go">rejected: 0</span>
+<span class="go">decompositions: 178</span>
+<span class="go">solves: 356</span>
+<span class="go">singular: 0</span>
+<span class="go">total_forcing_time: 9962 nanoseconds</span>
+<span class="go">total_jacobian_time: 6454 nanoseconds</span>
+<span class="go">total_linear_factor_time: 26835 nanoseconds</span>
+<span class="go">total_linear_solve_time: 12044 nanoseconds</span>
+
+<span class="go">Three stages:</span>
+<span class="go">time,         A,         B,         C</span>
+<span class="go">    0,  1.00e+00,  0.00e+00,  0.00e+00</span>
+<span class="go">  200,  5.35e-01,  4.50e-06,  4.65e-01</span>
+<span class="go">  400,  4.50e-01,  3.23e-06,  5.50e-01</span>
+<span class="go">  600,  4.00e-01,  2.63e-06,  6.00e-01</span>
+<span class="go">  800,  3.64e-01,  2.27e-06,  6.36e-01</span>
+<span class="go">1000,  3.37e-01,  2.01e-06,  6.63e-01</span>
+<span class="go">1200,  3.15e-01,  1.82e-06,  6.85e-01</span>
+<span class="go">1400,  2.96e-01,  1.67e-06,  7.04e-01</span>
+<span class="go">1600,  2.81e-01,  1.55e-06,  7.19e-01</span>
+<span class="go">1800,  2.67e-01,  1.45e-06,  7.33e-01</span>
+<span class="go">2000,  2.55e-01,  1.37e-06,  7.45e-01</span>
+<span class="go">Total solve time: 110002 nanoseconds</span>
+<span class="go">accepted: 127</span>
+<span class="go">function_calls: 254</span>
+<span class="go">jacobian_updates: 127</span>
+<span class="go">number_of_steps: 127</span>
+<span class="go">accepted: 127</span>
+<span class="go">rejected: 0</span>
+<span class="go">decompositions: 127</span>
+<span class="go">solves: 381</span>
+<span class="go">singular: 0</span>
+<span class="go">total_forcing_time: 7421 nanoseconds</span>
+<span class="go">total_jacobian_time: 4295 nanoseconds</span>
+<span class="go">total_linear_factor_time: 19248 nanoseconds</span>
+<span class="go">total_linear_solve_time: 12093 nanoseconds</span>
+
+<span class="go">Four stages:</span>
+<span class="go">time,         A,         B,         C</span>
+<span class="go">    0,  1.00e+00,  0.00e+00,  0.00e+00</span>
+<span class="go">  200,  5.36e-01,  4.49e-06,  4.64e-01</span>
+<span class="go">  400,  4.50e-01,  3.20e-06,  5.50e-01</span>
+<span class="go">  600,  4.00e-01,  2.62e-06,  6.00e-01</span>
+<span class="go">  800,  3.64e-01,  2.26e-06,  6.36e-01</span>
+<span class="go">1000,  3.37e-01,  2.01e-06,  6.63e-01</span>
+<span class="go">1200,  3.15e-01,  1.82e-06,  6.85e-01</span>
+<span class="go">1400,  2.97e-01,  1.67e-06,  7.03e-01</span>
+<span class="go">1600,  2.81e-01,  1.55e-06,  7.19e-01</span>
+<span class="go">1800,  2.67e-01,  1.45e-06,  7.33e-01</span>
+<span class="go">2000,  2.56e-01,  1.37e-06,  7.44e-01</span>
+<span class="go">Total solve time: 127291 nanoseconds</span>
+<span class="go">accepted: 127</span>
+<span class="go">function_calls: 381</span>
+<span class="go">jacobian_updates: 127</span>
+<span class="go">number_of_steps: 127</span>
+<span class="go">accepted: 127</span>
+<span class="go">rejected: 0</span>
+<span class="go">decompositions: 127</span>
+<span class="go">solves: 508</span>
+<span class="go">singular: 0</span>
+<span class="go">total_forcing_time: 9749 nanoseconds</span>
+<span class="go">total_jacobian_time: 4537 nanoseconds</span>
+<span class="go">total_linear_factor_time: 20040 nanoseconds</span>
+<span class="go">total_linear_solve_time: 17923 nanoseconds</span>
+
+<span class="go">Four stages differential algebraic:</span>
+<span class="go">time,         A,         B,         C</span>
+<span class="go">    0,  1.00e+00,  0.00e+00,  0.00e+00</span>
+<span class="go">  200,  5.36e-01,  4.49e-06,  4.64e-01</span>
+<span class="go">  400,  4.51e-01,  3.23e-06,  5.49e-01</span>
+<span class="go">  600,  4.00e-01,  2.63e-06,  6.00e-01</span>
+<span class="go">  800,  3.64e-01,  2.27e-06,  6.36e-01</span>
+<span class="go">1000,  3.37e-01,  2.01e-06,  6.63e-01</span>
+<span class="go">1200,  3.15e-01,  1.82e-06,  6.85e-01</span>
+<span class="go">1400,  2.97e-01,  1.68e-06,  7.03e-01</span>
+<span class="go">1600,  2.81e-01,  1.55e-06,  7.19e-01</span>
+<span class="go">1800,  2.68e-01,  1.45e-06,  7.32e-01</span>
+<span class="go">2000,  2.56e-01,  1.37e-06,  7.44e-01</span>
+<span class="go">Total solve time: 126334 nanoseconds</span>
+<span class="go">accepted: 128</span>
+<span class="go">function_calls: 384</span>
+<span class="go">jacobian_updates: 128</span>
+<span class="go">number_of_steps: 128</span>
+<span class="go">accepted: 128</span>
+<span class="go">rejected: 0</span>
+<span class="go">decompositions: 128</span>
+<span class="go">solves: 512</span>
+<span class="go">singular: 0</span>
+<span class="go">total_forcing_time: 10584 nanoseconds</span>
+<span class="go">total_jacobian_time: 4376 nanoseconds</span>
+<span class="go">total_linear_factor_time: 19792 nanoseconds</span>
+<span class="go">total_linear_solve_time: 17254 nanoseconds</span>
+
+
+<span class="go">Six stages differential algebraic:</span>
+<span class="go">  time,         A,         B,         C</span>
+<span class="go">      0,  1.00e+00,  0.00e+00,  0.00e+00</span>
+<span class="go">    200,  5.36e-01,  4.49e-06,  4.64e-01</span>
+<span class="go">    400,  4.51e-01,  3.22e-06,  5.49e-01</span>
+<span class="go">    600,  4.00e-01,  2.63e-06,  6.00e-01</span>
+<span class="go">    800,  3.64e-01,  2.27e-06,  6.36e-01</span>
+<span class="go">  1000,  3.37e-01,  2.01e-06,  6.63e-01</span>
+<span class="go">  1200,  3.15e-01,  1.82e-06,  6.85e-01</span>
+<span class="go">  1400,  2.97e-01,  1.67e-06,  7.03e-01</span>
+<span class="go">  1600,  2.81e-01,  1.55e-06,  7.19e-01</span>
+<span class="go">  1800,  2.67e-01,  1.45e-06,  7.33e-01</span>
+<span class="go">  2000,  2.56e-01,  1.37e-06,  7.44e-01</span>
+<span class="go">Total solve time: 174959 nanoseconds</span>
+<span class="go">accepted: 127</span>
+<span class="go">function_calls: 762</span>
+<span class="go">jacobian_updates: 127</span>
+<span class="go">number_of_steps: 127</span>
+<span class="go">accepted: 127</span>
+<span class="go">rejected: 0</span>
+<span class="go">decompositions: 127</span>
+<span class="go">solves: 762</span>
+<span class="go">singular: 0</span>
+<span class="go">total_forcing_time: 20743 nanoseconds</span>
+<span class="go">total_jacobian_time: 4497 nanoseconds</span>
+<span class="go">total_linear_factor_time: 20085 nanoseconds</span>
+<span class="go">total_linear_solve_time: 28233 nanoseconds</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="multiple_grid_cells.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Multiple Grid Cells</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="but_how_fast_is_it.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">But how fast is it?</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#line-by-line-explanation">Line-by-line explanation</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/solver_configurations.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2024, NCAR/UCAR.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
