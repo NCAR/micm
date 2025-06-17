@@ -5,6 +5,7 @@
 
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
+#include <micm/process/lambda_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/process/rate_constant.hpp>
