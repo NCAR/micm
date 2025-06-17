@@ -9,7 +9,7 @@
 
 namespace micm
 {
-  struct LamdaRateConstantParameters
+  struct LambdaRateConstantParameters
   {
     /// @brief Label for the reaction used to identify user-defined parameters
     std::string label_;
@@ -21,14 +21,14 @@ namespace micm
   class LambdaRateConstant : public RateConstant
   {
    public:
-    LamdaRateConstantParameters parameters_;
+    LambdaRateConstantParameters parameters_;
 
     /// @brief Default constructor.
     LambdaRateConstant();
 
     /// @brief
     /// @param parameters The data needed to build this class
-    LambdaRateConstant(const LamdaRateConstantParameters& parameters);
+    LambdaRateConstant(const LambdaRateConstantParameters& parameters);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> Clone() const override;
@@ -50,7 +50,7 @@ namespace micm
   {
   }
 
-  inline LambdaRateConstant::LambdaRateConstant(const LamdaRateConstantParameters& parameters)
+  inline LambdaRateConstant::LambdaRateConstant(const LambdaRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }

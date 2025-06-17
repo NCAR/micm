@@ -7,7 +7,7 @@
 TEST(LambdaRateConstant, CalculateWithSystem)
 {
   micm::LambdaRateConstant my_lambda{
-      micm::LamdaRateConstantParameters{
+      micm::LambdaRateConstantParameters{
           .label_ = "test lambda",
           .lambda_function_ = [](const micm::Conditions& conditions) { return 2.0 * conditions.temperature_; }
       }
@@ -17,4 +17,10 @@ TEST(LambdaRateConstant, CalculateWithSystem)
   };
   auto k = my_lambda.Calculate(conditions);
   EXPECT_NEAR(k, 600.0, 0.00001);
+
+  std::vector<double> custom_parameters = { 1.0, 2.0 };
+  auto custom_params_iter = custom_parameters.begin();
+  k = my_lambda.Calculate(conditions, custom_params_iter);
+  EXPECT_NEAR(k, 600.0, 0.00001);
+  EXPECT_EQ(my_lambda.CustomParameters().size(), 0);
 }
