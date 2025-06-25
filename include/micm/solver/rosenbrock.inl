@@ -24,8 +24,7 @@ namespace micm
     auto& Yerror = derived_class_temporary_variables->Yerror_;
     const double h_min = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
     const double h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
-    const double h_start =
-        parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
+    const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
     SolverStats stats;
