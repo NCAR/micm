@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -31,11 +31,11 @@ namespace micm
     double rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
     double safety_factor_{ 0.9 };                                 // safety factor in new step size computation
 
-    double h_min_{ 0.0 };  // step size min [s]
+    double h_min_{ 0.0 };  // step size min [s] (if zero, the solver will use DEFAULT_H_MIN * time_step)
     double h_max_{
       0.0
     };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
-    double h_start_{ 0.0 };  // step size start [s] (if zero, 1.0e-6 will be used, if greater than h_max, h_max will be used)
+    double h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)

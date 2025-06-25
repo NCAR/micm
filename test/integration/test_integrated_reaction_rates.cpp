@@ -1,12 +1,4 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/process.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/phase.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/matrix.hpp>
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 
@@ -45,10 +37,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ r1, r2 })
-                    .SetNumberOfGridCells(1)
                     .Build();
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
 
   state.SetCustomRateParameter("r2", 1.0);
 

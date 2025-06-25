@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
@@ -31,7 +31,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::size_t n = matrix.NumRows();
-    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value);
+    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < n; ++i)
     {
       if (ALU.IsZero(i, i))
@@ -77,7 +77,8 @@ namespace micm
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline SparseMatrixPolicy LuDecompositionDoolittleInPlace::GetLUMatrix(
       const SparseMatrixPolicy& A,
-      typename SparseMatrixPolicy::value_type initial_value)
+      typename SparseMatrixPolicy::value_type initial_value,
+      bool indexing_only)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -125,7 +126,7 @@ namespace micm
     {
       ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
     }
-    return SparseMatrixPolicy(ALU_builder);
+    return SparseMatrixPolicy(ALU_builder, indexing_only);
   }
 
   template<class SparseMatrixPolicy>

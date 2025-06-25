@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -120,7 +120,8 @@ namespace micm
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static std::pair<LMatrixPolicy, UMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
-        typename SparseMatrixPolicy::value_type initial_value);
+        typename SparseMatrixPolicy::value_type initial_value,
+        bool indexing_only = false);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose

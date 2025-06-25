@@ -3,11 +3,6 @@
 #include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
-
 #include <random>
 
 template<class SolverPolicy>
@@ -19,7 +14,7 @@ void testJacobian(SolverPolicy& solver)
 
   micm::ChapmanODESolver fixed_solver{};
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(3);
 
   auto& state_vec = state.variables_.AsVector();
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });

@@ -1,22 +1,18 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
 
-#include <micm/cuda/solver/cuda_solver_builder.hpp>
-#include <micm/cuda/solver/cuda_solver_parameters.hpp>
-#include <micm/cuda/solver/cuda_state.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/GPU.hpp>
 
 #include <gtest/gtest.h>
 
+template<std::size_t L>
+using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
+
 constexpr std::size_t L = 3;
-using builderType = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
-using stateType = micm::CudaState<
-    builderType::DenseMatrixPolicyType,
-    builderType::SparseMatrixPolicyType,
-    builderType::LuDecompositionPolicyType>;
+using builderType = GpuBuilder<L>;
 
 auto two = builderType(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto three = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
@@ -24,11 +20,7 @@ auto four = builderType(micm::RosenbrockSolverParameters::FourStageRosenbrockPar
 auto four_da = builderType(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
 auto six_da = builderType(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
-using builderType1Cell = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, 1>;
-using stateType1Cell = micm::CudaState<
-    builderType1Cell::DenseMatrixPolicyType,
-    builderType1Cell::SparseMatrixPolicyType,
-    builderType::LuDecompositionPolicyType>;
+using builderType1Cell = GpuBuilder<1>;
 
 auto two_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto three_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());

@@ -1,10 +1,4 @@
-#include <micm/process/user_defined_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
+#include <micm/CPU.hpp>
 
 #include <chrono>
 #include <iomanip>
@@ -87,10 +81,9 @@ int main()
   auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
       .SetSystem(system)
       .SetReactions(reactions)
-      .SetNumberOfGridCells(number_of_grid_cells)
       .Build();
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(number_of_grid_cells);
 
   state.SetConcentration(a, { 1.1, 2.1, 3.1 });
   state.SetConcentration(b, { 1.2, 2.2, 3.2 });
@@ -108,10 +101,9 @@ int main()
                                             SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
                                .SetSystem(system)
                                .SetReactions(reactions)
-                               .SetNumberOfGridCells(number_of_grid_cells)
                                .Build();
 
-  auto vectorized_state = vectorized_solver.GetState();
+  auto vectorized_state = vectorized_solver.GetState(number_of_grid_cells);
 
   vectorized_state.SetConcentration(a, { 1.1, 2.1, 3.1 });
   vectorized_state.SetConcentration(b, { 1.2, 2.2, 3.2 });

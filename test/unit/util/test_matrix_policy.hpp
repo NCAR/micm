@@ -110,6 +110,31 @@ const MatrixPolicy<int> testLoopOverConstMatrix()
 }
 
 template<template<class> class MatrixPolicy>
+MatrixPolicy<int> testStrides()
+{
+  MatrixPolicy<int> matrix(3, 4, 0);
+
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
+      matrix.AsVector()[i * matrix.RowStride() + j * matrix.ColumnStride()] = i * 100 + j;
+
+  EXPECT_EQ(matrix[0][0], 0);
+  EXPECT_EQ(matrix[0][1], 1);
+  EXPECT_EQ(matrix[0][2], 2);
+  EXPECT_EQ(matrix[0][3], 3);
+  EXPECT_EQ(matrix[1][0], 100);
+  EXPECT_EQ(matrix[1][1], 101);
+  EXPECT_EQ(matrix[1][2], 102);
+  EXPECT_EQ(matrix[1][3], 103);
+  EXPECT_EQ(matrix[2][0], 200);
+  EXPECT_EQ(matrix[2][1], 201);
+  EXPECT_EQ(matrix[2][2], 202);
+  EXPECT_EQ(matrix[2][3], 203);
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
 MatrixPolicy<double> testConversionToVector()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };

@@ -46,8 +46,6 @@ namespace micm
 
     double absolute_tolerance_{ 1e-3 };
     double relative_tolerance_{ 1e-4 };
-
-    size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
   };
 
   /// @brief An implementation of the Chapman mechnanism solver
@@ -103,9 +101,10 @@ namespace micm
     /// @brief Sets parameters for the solver
     void three_stage_rosenbrock();
 
-    /// Returns a state variable for the Chapman system
+    /// @brief Returns a state variable for the Chapman system
+    /// @param number_of_grid_cells The number of grid cells to solve for
     /// @return State variable for Chapman
-    State<> GetState() const;
+    State<> GetState(const std::size_t number_of_grid_cells) const;
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
@@ -296,16 +295,15 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline State<> ChapmanODESolver::GetState() const
+  inline State<> ChapmanODESolver::GetState(const std::size_t number_of_grid_cells = 1) const
   {
     auto state_parameters = micm::StateParameters{
-      .number_of_grid_cells_ = 1,
       .number_of_rate_constants_ = 7,
       .variable_names_ = species_names(),
       .custom_rate_parameter_labels_ = photolysis_names(),
     };
 
-    return micm::State{ state_parameters };
+    return micm::State{ state_parameters, number_of_grid_cells };
   }
 
   inline ChapmanODESolver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept

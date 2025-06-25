@@ -42,17 +42,17 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   }
   micm::Phase gas_phase{ species };
   micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
-      .number_of_grid_cells_ = n_cells,
-      .number_of_rate_constants_ = n_reactions,
-      .variable_names_{ species_names },
-      .custom_rate_parameter_labels_{},
-  } };
+                                              .number_of_rate_constants_ = n_reactions,
+                                              .variable_names_{ species_names },
+                                              .custom_rate_parameter_labels_{},
+                                          },
+                                          n_cells };
   micm::State<GPUMatrixPolicy> gpu_state{ micm::StateParameters{
-      .number_of_grid_cells_ = n_cells,
-      .number_of_rate_constants_ = n_reactions,
-      .variable_names_{ species_names },
-      .custom_rate_parameter_labels_{},
-  } };
+                                              .number_of_rate_constants_ = n_reactions,
+                                              .variable_names_{ species_names },
+                                              .custom_rate_parameter_labels_{},
+                                          },
+                                          n_cells };
 
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
@@ -129,17 +129,17 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   micm::Phase gas_phase{ species };
 
   micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
-      .number_of_grid_cells_ = n_cells,
-      .number_of_rate_constants_ = n_reactions,
-      .variable_names_{ species_names },
-      .custom_rate_parameter_labels_{},
-  } };
+                                              .number_of_rate_constants_ = n_reactions,
+                                              .variable_names_{ species_names },
+                                              .custom_rate_parameter_labels_{},
+                                          },
+                                          n_cells };
   micm::State<GPUDenseMatrixPolicy> gpu_state{ micm::StateParameters{
-      .number_of_grid_cells_ = n_cells,
-      .number_of_rate_constants_ = n_reactions,
-      .variable_names_{ species_names },
-      .custom_rate_parameter_labels_{},
-  } };
+                                                   .number_of_rate_constants_ = n_reactions,
+                                                   .variable_names_{ species_names },
+                                                   .custom_rate_parameter_labels_{},
+                                               },
+                                               n_cells };
 
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)

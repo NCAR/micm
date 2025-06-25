@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -46,45 +46,33 @@ struct ProcessSetParam
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
-///   each constatnt data member from the class "LuDecompositionDoolittle";
+///   each constant data member from the class "LuDecompositionMozartInPlace";
 /// This struct could be allocated on the host or device;
-struct LuDecomposeDoolittleParam
+struct LuDecomposeMozartInPlaceParam
 {
-  std::pair<std::size_t, std::size_t>* niLU_ = nullptr;
-  char* do_aik_ = nullptr;
-  std::size_t* aik_ = nullptr;
-  std::pair<std::size_t, std::size_t>* uik_nkj_ = nullptr;
-  std::pair<std::size_t, std::size_t>* lij_ujk_ = nullptr;
-  char* do_aki_ = nullptr;
-  std::size_t* aki_ = nullptr;
-  std::pair<std::size_t, std::size_t>* lki_nkj_ = nullptr;
-  std::pair<std::size_t, std::size_t>* lkj_uji_ = nullptr;
-  std::size_t* uii_ = nullptr;
-  std::size_t niLU_size_;
-  std::size_t do_aik_size_;
-  std::size_t aik_size_;
-  std::size_t uik_nkj_size_;
-  std::size_t lij_ujk_size_;
-  std::size_t do_aki_size_;
-  std::size_t aki_size_;
-  std::size_t lki_nkj_size_;
-  std::size_t lkj_uji_size_;
-  std::size_t uii_size_;
+  std::tuple<std::size_t, std::size_t, std::size_t>* aii_nji_nki_ = nullptr;
+  std::size_t* aji_ = nullptr;
+  std::pair<std::size_t, std::size_t>* aik_njk_ = nullptr;
+  std::pair<std::size_t, std::size_t>* ajk_aji_ = nullptr;
+  std::size_t aii_nji_nki_size_;
+  std::size_t aji_size_;
+  std::size_t aik_njk_size_;
+  std::size_t ajk_aji_size_;
 };
 
 /// Alias for the default LU decomposition parameter struct
-using LuDecomposeParam = LuDecomposeDoolittleParam;
+using LuDecomposeParam = LuDecomposeMozartInPlaceParam;
 
 /// This struct holds the (1) pointer to, and (2) size of
-///   each constatnt data member from the class "LinearSolver";
+///   each constatnt data member from the class "LinearSolverInPlace";
 /// This struct could be allocated on the host or device;
-struct LinearSolverParam
+struct LinearSolverInPlaceParam
 {
-  std::pair<std::size_t, std::size_t>* nLij_Lii_ = nullptr;
+  std::size_t* nLij_ = nullptr;
   std::pair<std::size_t, std::size_t>* Lij_yj_ = nullptr;
   std::pair<std::size_t, std::size_t>* nUij_Uii_ = nullptr;
   std::pair<std::size_t, std::size_t>* Uij_xj_ = nullptr;
-  std::size_t nLij_Lii_size_;
+  std::size_t nLij_size_;
   std::size_t Lij_yj_size_;
   std::size_t nUij_Uii_size_;
   std::size_t Uij_xj_size_;

@@ -3,12 +3,6 @@
 #include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
-#include <micm/process/process.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
-
 #include <random>
 
 template<class SolverPolicy>
@@ -16,7 +10,7 @@ void testRateConstants(SolverPolicy& solver)
 {
   micm::ChapmanODESolver fixed_solver{};
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(3);
   auto fixed_state = fixed_solver.GetState();
   const std::vector<std::vector<double>> photo_rates{ { 1.0e-4, 1.0e-5, 1.0e-6 },
                                                       { 3.2e-4, 7.3e-5, 3.2e-6 },
@@ -55,7 +49,7 @@ void testForcing(SolverPolicy& solver)
 
   micm::ChapmanODESolver fixed_solver{};
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(3);
 
   auto& state_vec = state.variables_.AsVector();
   std::generate(begin(state_vec), end(state_vec), [&]() { return dist(engine); });

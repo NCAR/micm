@@ -1,6 +1,4 @@
-#include <micm/process/user_defined_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
+#include <micm/CPU.hpp>
 
 #include <chrono>
 #include <iomanip>
@@ -40,10 +38,9 @@ int main()
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                     .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ r1, r2, r3 })
-                    .SetNumberOfGridCells(number_of_grid_cells)
                     .Build();
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(number_of_grid_cells);
 
   // mol m-3
   state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });

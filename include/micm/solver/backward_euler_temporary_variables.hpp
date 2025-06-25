@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -21,9 +21,9 @@ namespace micm
     BackwardEulerTemporaryVariables& operator=(BackwardEulerTemporaryVariables&& other) = default;
     ~BackwardEulerTemporaryVariables() = default;
 
-    BackwardEulerTemporaryVariables(const auto& state_parameters)
-        : Yn_(state_parameters.number_of_grid_cells_, state_parameters.number_of_species_),
-          forcing_(state_parameters.number_of_grid_cells_, state_parameters.number_of_species_)
+    BackwardEulerTemporaryVariables(const auto& state_parameters, const std::size_t number_of_grid_cells)
+        : Yn_(number_of_grid_cells, state_parameters.number_of_species_),
+          forcing_(number_of_grid_cells, state_parameters.number_of_species_)
     {
     }
   };

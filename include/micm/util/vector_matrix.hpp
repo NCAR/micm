@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -213,6 +213,24 @@ namespace micm
       return y_dim_;
     }
 
+    /// @brief Get the number of elements in the underlying vector between
+    ///        adjacent rows for the same column
+    /// @return The number of elements in the underlying vector between
+    ///         adjacent rows for the same column
+    std::size_t RowStride() const
+    {
+      return 1;
+    }
+
+    /// @brief Get the number of elements in the underlying vector between
+    ///        adjacent columns for the same row
+    /// @return The number of elements in the underlying vector between
+    ///         adjacent columns for the same row
+    std::size_t ColumnStride() const
+    {
+      return L;
+    }
+
     std::size_t NumberOfGroups() const
     {
       return std::ceil(x_dim_ / (double)L);
@@ -358,6 +376,13 @@ namespace micm
       if (other.AsVector().size() != this->data_.size())
         throw std::runtime_error("Both vector matrices must have the same size.");
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
+    void Swap(VectorMatrix &other)
+    {
+      if (other.AsVector().size() != this->data_.size())
+        throw std::runtime_error("Both vector matrices must have the same size.");
+      data_.swap(other.AsVector());
     }
 
     // Print the VectorMatrix to the output stream

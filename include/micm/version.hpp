@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 // clang-format off
 #pragma once
@@ -10,7 +10,7 @@ extern "C" {
 
   inline const char* GetMicmVersion()
   {
-    return "3.8.0";
+    return "3.9.0";
   }
   inline unsigned GetMicmVersionMajor()
   {
@@ -18,7 +18,7 @@ extern "C" {
   }
   inline unsigned GetMicmVersionMinor()
   {
-    return 8+0;
+    return 9+0;
   }
   inline unsigned GetMicmVersionPatch()
   {

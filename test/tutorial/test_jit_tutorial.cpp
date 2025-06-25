@@ -1,10 +1,4 @@
-#include <micm/jit/jit_compiler.hpp>
-#include <micm/jit/solver/jit_rosenbrock.hpp>
-#include <micm/jit/solver/jit_solver_parameters.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/jit/solver/jit_solver_builder.hpp>
-
+#include <micm/JIT.hpp>
 #include <chrono>
 #include <iostream>
 
@@ -18,10 +12,10 @@ template<class T>
 using GroupVectorMatrix = micm::VectorMatrix<T, n_grid_cells>;
 using GroupSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
 
-auto run_solver(auto& solver)
+auto run_solver(auto& solver, const size_t n_grid_cells = 1)
 {
   SolverStats total_stats;
-  State state = solver.GetState();
+  State state = solver.GetState(n_grid_cells);
 
   state.variables_ = 1;
 
@@ -96,14 +90,12 @@ int main(const int argc, const char* argv[])
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(solver_parameters)
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
-                    .SetNumberOfGridCells(n_grid_cells)
                     .Build();
   
   auto start = std::chrono::high_resolution_clock::now();
   auto jit_solver = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, n_grid_cells>(solver_parameters)
                         .SetSystem(chemical_system)
                         .SetReactions(reactions)
-                        .SetNumberOfGridCells(n_grid_cells)
                         .Build();
   auto end = std::chrono::high_resolution_clock::now();
   auto jit_compile_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);

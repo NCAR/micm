@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
@@ -74,7 +74,8 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value);
+    auto lu =
+        lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)

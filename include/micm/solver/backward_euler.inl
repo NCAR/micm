@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 enum class MicmBackwardEulerErrc
 {
@@ -43,7 +43,7 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
+  inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
       double time_step,
       auto& state,
       const BackwardEulerSolverParameters& parameters) const
@@ -76,20 +76,14 @@ namespace micm
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;
 
+    // Ensure Yn starts with the same values as the state variables
+    Yn.Copy(Yn1);
+
     while (t < time_step)
     {
       result.state_ = SolverState::Running;
       bool converged = false;
       std::size_t iterations = 0;
-
-      if (result.stats_.number_of_steps_ == 0)
-      {
-        Yn.Copy(Yn1);
-      }
-      else
-      {
-        Yn1.Copy(Yn);
-      }
 
       do
       {
@@ -167,6 +161,8 @@ namespace micm
         }
         else
         {
+          // if we fail, we need to reset the solution to the last known good solution
+          Yn1.Copy(Yn);
           H *= time_step_reductions[n_convergence_failures++];
         }
       }
@@ -175,7 +171,7 @@ namespace micm
         result.stats_.accepted_++;
         result.state_ = SolverState::Converged;
         t += H;
-        Yn = Yn1;
+        Yn.Copy(Yn1);
 
         // when we accept two solutions in a row, we can increase the time step
         n_successful_integrations++;
@@ -195,7 +191,7 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
@@ -224,7 +220,7 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,

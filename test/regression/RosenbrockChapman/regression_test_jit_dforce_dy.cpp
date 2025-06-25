@@ -8,6 +8,6 @@
 
 TEST(RegressionJitRosenbrock, VectorJacobian)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>();
   testJacobian<>(solver);
 }

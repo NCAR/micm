@@ -23,7 +23,6 @@ COPY . /micm/
 RUN cd /micm \
     && cmake \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-      -DMICM_ENABLE_CUDA=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
       -S.

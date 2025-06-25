@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -32,18 +32,20 @@ namespace micm
       this->param_.d_data_ = nullptr;
     }
 
-    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
-        : SparseMatrix<T, OrderingPolicy>(builder)
+    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
+        : SparseMatrix<T, OrderingPolicy>(builder, indexing_only)
     {
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      if (!indexing_only)
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      if (this->data_.size() != 0)
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
       return *this;
     }
 

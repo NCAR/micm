@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -66,7 +66,8 @@ namespace micm
     {
       this->param_.number_of_grid_cells_ = 0;
       this->param_.number_of_elements_ = this->data_.size();
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      if (this->param_.number_of_elements_ != 0)
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
 
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
@@ -74,7 +75,8 @@ namespace micm
     {
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      if (this->param_.number_of_elements_ != 0)
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
 
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
@@ -98,7 +100,8 @@ namespace micm
       {
         this->param_.number_of_elements_ += inner_vector.size();
       }
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      if (this->param_.number_of_elements_ != 0)
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
 
     CudaDenseMatrix(const CudaDenseMatrix& other)
@@ -209,6 +212,19 @@ namespace micm
         throw std::runtime_error("Both CUDA dense matrices must have the same size.");
       }
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+    }
+
+    // Swap the device data from the other Cuda dense matrix into this one
+    void Swap(CudaDenseMatrix& other)
+    {
+      if (other.param_.number_of_elements_ != this->param_.number_of_elements_)
+      {
+        throw std::runtime_error("Both CUDA dense matrices must have the same size.");
+      }
+      // We don't swap the memory allocated on the host, we just swap the
+      // device pointers. This is because the device memory will be overwrite
+      // the host memory when the device data is copied to the host.
+      std::swap(this->param_.d_data_, other.param_.d_data_);
     }
 
     /// @brief Set every matrix element to a given value on the GPU

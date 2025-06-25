@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -170,12 +170,20 @@ namespace micm
 
     SparseMatrix() = default;
 
-    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
+    /// @brief Constructs a SparseMatrix from a given builder and optional indexing mode.
+    ///        Initializes the SparseMatrix using the provided SparseMatrixBuilder, which defines
+    ///        the matrix structure, block size, and non-zero elements. Optionally, the constructor
+    ///        can be used in "indexing only" mode, where the data storage is not allocated.
+    /// @tparam T The type of the matrix elements.
+    /// @tparam OrderingPolicy The policy class that defines the ordering and storage of elements.
+    /// @param builder The builder object containing matrix configuration and initial values.
+    /// @param indexing_only If true, only indexing structures are initialized and data storage is omitted.
+    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
         : OrderingPolicy(builder.number_of_blocks_, builder.block_size_, builder.non_zero_elements_),
           number_of_blocks_(builder.number_of_blocks_),
           block_size_(builder.block_size_),
           number_of_non_zero_elements_per_block_(builder.non_zero_elements_.size()),
-          data_(OrderingPolicy::VectorSize(number_of_blocks_), builder.initial_value_)
+          data_((indexing_only ? 0 : OrderingPolicy::VectorSize(number_of_blocks_)), builder.initial_value_)
     {
     }
 
@@ -286,6 +294,21 @@ namespace micm
         }
       }
       return os;
+    }
+
+    /// @brief Print the sparse matrix with row index, column index, and non-zero value; useful to test other linear algebra
+    /// libraries
+    /// @param os Output stream to print to, defaults to std::cout
+    void PrintNonZeroElements(std::ostream& os) const
+    {
+      for (std::size_t i = 0; i < number_of_blocks_; ++i)
+      {
+        os << "Block " << i << std::endl;
+        for (std::size_t j = 0; j < block_size_; ++j)
+          for (std::size_t k = 0; k < block_size_; ++k)
+            if (!this->IsZero(j, k))
+              os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
+      }
     }
   };
 

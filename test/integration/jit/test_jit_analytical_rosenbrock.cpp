@@ -1,10 +1,7 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
 
-#include <micm/jit/solver/jit_linear_solver.hpp>
-#include <micm/jit/solver/jit_solver_builder.hpp>
-#include <micm/jit/solver/jit_solver_parameters.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/JIT.hpp>
 
 #include <gtest/gtest.h>
 

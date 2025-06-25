@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 enum class MicmSolverBuilderErrc
@@ -114,35 +114,6 @@ namespace micm
   {
     reactions_ = reactions;
     valid_reactions_ = reactions_.size() > 0;
-    return *this;
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
-  inline SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>&
-  SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>::SetNumberOfGridCells(int number_of_grid_cells)
-  {
-    number_of_grid_cells_ = number_of_grid_cells;
     return *this;
   }
 
@@ -398,12 +369,13 @@ namespace micm
 
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, this->number_of_grid_cells_, number_of_species);
+    // The actual number of grid cells is not needed to construct the various solver objects
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0);
+      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
       jacobian = std::move(lu);
     }
     rates.SetJacobianFlatIds(jacobian);
@@ -412,8 +384,7 @@ namespace micm
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
 
-    StateParameters state_parameters = { .number_of_grid_cells_ = this->number_of_grid_cells_,
-                                         .number_of_species_ = number_of_species,
+    StateParameters state_parameters = { .number_of_species_ = number_of_species,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
@@ -425,7 +396,8 @@ namespace micm
         SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
         state_parameters,
         options,
-        this->reactions_);
+        this->reactions_,
+        this->system_);
   }
 
 }  // namespace micm

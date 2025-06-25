@@ -29,7 +29,7 @@ step will simply copy the header files into the normal location required by your
     $ make test
 
 CMake will allow for setting options such as the installation directory
-with CMAKE_INSTALL_PREFIX, or various build flags such as MICM_BUILD_DOCS, MICM_ENABLE_CUDA, etc.
+with CMAKE_INSTALL_PREFIX, or various build flags such as MICM_BUILD_DOCS, MICM_GPU_TYPE, etc.
 
 Options
 -------

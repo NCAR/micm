@@ -1,12 +1,12 @@
-/* Copyright (C) 2023-2025 National Center for Atmospheric Research
+/* Copyright (C) 2023-2025 University Corporation for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
 
 #include <micm/cuda/process/cuda_process_set.hpp>
-#include <micm/cuda/solver/cuda_linear_solver.hpp>
-#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_linear_solver_in_place.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition_mozart_in_place.hpp>
 #include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
@@ -21,12 +21,15 @@ namespace micm
   ///
   /// GPU solvers only work with vector-ordered matrices
   template<class SolverParametersPolicy, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  using CudaSolverBuilder = SolverBuilder<
+  using CudaSolverBuilderInPlace = SolverBuilder<
       SolverParametersPolicy,
       CudaDenseMatrix<double, L>,
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       CudaProcessSet,
-      CudaLuDecomposition,
-      CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>,
-      CudaState<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
+      CudaLuDecompositionMozartInPlace,
+      CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecompositionMozartInPlace>,
+      CudaState<
+          CudaDenseMatrix<double, L>,
+          CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+          CudaLuDecompositionMozartInPlace>>;
 }  // namespace micm

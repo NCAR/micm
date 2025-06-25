@@ -1,16 +1,4 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/process.hpp>
-#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-#include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/tunneling_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
-#include <micm/solver/backward_euler.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/phase.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/constants.hpp>
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 
@@ -151,7 +139,7 @@ void test_simple_system(
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
 {
-  auto solver = builder.SetNumberOfGridCells(NUM_CELLS).Build();
+  auto solver = builder.Build();
 
   std::vector<double> temperatures = { 272.5, 254.7, 312.6 };
   std::vector<double> pressures = { 101253.3, 100672.5, 101319.8 };
@@ -168,7 +156,7 @@ void test_simple_system(
   }
 
   double time_step = 1.0;
-  auto state = solver.GetState();
+  auto state = solver.GetState(NUM_CELLS);
   auto map = state.variable_map_;
 
   state.SetCustomRateParameters(custom_parameters);
@@ -267,7 +255,7 @@ void test_simple_stiff_system(
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
 {
-  auto solver = builder.SetNumberOfGridCells(NUM_CELLS).Build();
+  auto solver = builder.Build();
 
   std::vector<double> temperatures = { 272.5, 254.7, 312.6 };
   std::vector<double> pressures = { 101253.3, 100672.5, 101319.8 };
@@ -284,7 +272,7 @@ void test_simple_stiff_system(
   }
 
   double time_step = 1.0;
-  auto state = solver.GetState();
+  auto state = solver.GetState(NUM_CELLS);
   auto map = state.variable_map_;
 
   state.SetCustomRateParameters(custom_parameters);
@@ -1356,7 +1344,7 @@ void test_analytical_robertson(
   double pressure = 101253.3;
   double air_density = 1e6;
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
   state.SetRelativeTolerance(1e-10);
   state.SetAbsoluteTolerances(std::vector<double>(3, state.relative_tolerance_ * 1e-2));
 
@@ -1573,7 +1561,7 @@ void test_analytical_oregonator(
     row[2] *= rho_const;
   }
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
 
   state.SetRelativeTolerance(1e-6);
   state.SetAbsoluteTolerances(std::vector<double>(5, state.relative_tolerance_ * 1e-6));
@@ -1754,7 +1742,7 @@ void test_analytical_hires(
       0.004685507242281520 },
   };
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
   state.SetRelativeTolerance(1e-6);
   state.SetAbsoluteTolerances(std::vector<double>(8, state.relative_tolerance_ * 1e-2));
 
@@ -1915,7 +1903,7 @@ void test_analytical_e5(
     { 0.0000000000000000000e-000, 8.8612334976263783420e-023, 8.8612334976263783421e-023, 0.0000000000000000000e-000, 0, 0 }
   };
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
 
   state.SetRelativeTolerance(1e-13);
   state.SetAbsoluteTolerances(std::vector<double>(6, 1e-17));

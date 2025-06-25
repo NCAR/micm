@@ -43,9 +43,7 @@ namespace
 TEST(SolverBuilder, ThrowsMissingSystem)
 {
   EXPECT_THROW(
-      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
-          .SetNumberOfGridCells(1)
-          .Build(),
+      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{}).Build(),
       std::system_error);
 }
 
@@ -54,7 +52,6 @@ TEST(SolverBuilder, ThrowsMissingReactions)
   EXPECT_THROW(
       micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
           .SetSystem(the_system)
-          .SetNumberOfGridCells(1)
           .Build(),
       std::system_error);
   EXPECT_THROW(
@@ -70,7 +67,6 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
   auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                             .SetSystem(the_system)
                             .SetReactions(reactions)
-                            .SetNumberOfGridCells(1)
                             .Build();
 
   constexpr std::size_t L = 4;
@@ -81,8 +77,12 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(micm::BackwardEulerSolverParameters{})
           .SetSystem(the_system)
           .SetReactions(reactions)
-          .SetNumberOfGridCells(1)
           .Build();
+  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
+  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(backward_euler_vector.GetSystem().phases_.size(), the_system.phases_.size());
+  EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
+  EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
 }
 
 TEST(SolverBuilder, CanBuildRosenbrock)
@@ -91,7 +91,6 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                         micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                         .SetSystem(the_system)
                         .SetReactions(reactions)
-                        .SetNumberOfGridCells(1)
                         .Build();
 
   constexpr std::size_t L = 4;
@@ -102,8 +101,13 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                                .SetSystem(the_system)
                                .SetReactions(reactions)
-                               .SetNumberOfGridCells(1)
                                .Build();
+
+  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
+  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(rosenbrock_vector.GetSystem().phases_.size(), the_system.phases_.size());
+  EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
+  EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);
 }
 
 TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
@@ -111,28 +115,27 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
   auto solver = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                     .SetSystem(the_system)
                     .SetReactions(reactions)
-                    .SetNumberOfGridCells(1)
                     .Build();
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
   auto options = micm::BackwardEulerSolverParameters();
   auto solve = solver.Solve(5, state, options);
 
-  ASSERT_EQ(solve.final_time_, 5);
-  ASSERT_EQ(solve.stats_.function_calls_, 2);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 2);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 2);
-  ASSERT_EQ(solve.stats_.solves_, 2);
+  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.function_calls_, 2);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 2);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 2);
+  EXPECT_EQ(solve.stats_.solves_, 2);
 
   options.small_ = 1.0;
   options.max_number_of_steps_ = 1.0;
 
   solve = solver.Solve(5, state, options);
 
-  ASSERT_EQ(solve.final_time_, 0.03125);
-  ASSERT_EQ(solve.stats_.function_calls_, 6);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 6);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 6);
-  ASSERT_EQ(solve.stats_.solves_, 6);
+  EXPECT_EQ(solve.final_time_, 0.03125);
+  EXPECT_EQ(solve.stats_.function_calls_, 6);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 6);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 6);
+  EXPECT_EQ(solve.stats_.solves_, 6);
 }
 
 TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
@@ -141,18 +144,17 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(the_system)
                     .SetReactions(reactions)
-                    .SetNumberOfGridCells(1)
                     .Build();
-  auto state = solver.GetState();
+  auto state = solver.GetState(1);
   state.variables_[0] = { 1.0, 0.0, 0.0 };
 
   auto solve = solver.Solve(5, state);
 
-  ASSERT_EQ(solve.final_time_, 5);
-  ASSERT_EQ(solve.stats_.function_calls_, 20);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 10);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 10);
-  ASSERT_EQ(solve.stats_.solves_, 30);
+  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.function_calls_, 18);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 9);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 9);
+  EXPECT_EQ(solve.stats_.solves_, 27);
 
   options.h_min_ = 15.0;
   options.max_number_of_steps_ = 6.0;
@@ -160,12 +162,12 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   state.variables_[0] = { 1.0, 0.0, 0.0 };
   solve = solver.Solve(5, state, options);
 
-  ASSERT_EQ(solve.final_time_, 5);
-  ASSERT_EQ(solve.stats_.function_calls_, 2);
-  ASSERT_EQ(solve.stats_.jacobian_updates_, 1);
-  ASSERT_EQ(solve.stats_.number_of_steps_, 1);
-  ASSERT_EQ(solve.stats_.solves_, 3);
+  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.function_calls_, 2);
+  EXPECT_EQ(solve.stats_.jacobian_updates_, 1);
+  EXPECT_EQ(solve.stats_.number_of_steps_, 1);
+  EXPECT_EQ(solve.stats_.solves_, 3);
 
-  ASSERT_EQ(solver.solver_parameters_.h_min_, 15.0);
-  ASSERT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
+  EXPECT_EQ(solver.solver_parameters_.h_min_, 15.0);
+  EXPECT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
 }

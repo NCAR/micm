@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # project and version must be on the same line so that the docs can extract it
-project(micm VERSION 3.8.0 LANGUAGES CXX)
+project(micm VERSION 3.9.0 LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -33,10 +33,8 @@ option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
+set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
-set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
-
-include(CMakeDependentOption)
 
 # on ubuntu with clang, an incorrect version of the c++ standard library was being linked
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

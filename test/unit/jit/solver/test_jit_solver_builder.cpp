@@ -45,6 +45,6 @@ TEST(SolverBuilder, CanBuildJitRosenbrock)
                             micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                             .SetSystem(the_system)
                             .SetReactions(reactions)
-                            .SetNumberOfGridCells(L)
                             .Build();
+  auto state = jit_rosenbrock.GetState(L);
 }

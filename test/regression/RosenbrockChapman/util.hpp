@@ -1,14 +1,6 @@
 #pragma once
 
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/process.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/phase.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 
@@ -84,13 +76,12 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 }
 
 template<class SolverBuilderPolicy>
-auto getChapmanSolver(SolverBuilderPolicy& builder, const size_t number_of_grid_cells)
+auto getChapmanSolver(SolverBuilderPolicy& builder)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::move(processes))
-      .SetNumberOfGridCells(number_of_grid_cells)
       .Build();
 }
