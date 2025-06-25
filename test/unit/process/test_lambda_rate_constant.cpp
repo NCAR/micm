@@ -6,12 +6,9 @@
 
 TEST(LambdaRateConstant, CalculateWithSystem)
 {
-  micm::LambdaRateConstant my_lambda{
-      micm::LambdaRateConstantParameters{
-          .label_ = "test lambda",
-          .lambda_function_ = [](const micm::Conditions& conditions) { return 2.0 * conditions.temperature_; }
-      }
-  };
+  micm::LambdaRateConstant my_lambda{ micm::LambdaRateConstantParameters{
+      .label_ = "test lambda",
+      .lambda_function_ = [](const micm::Conditions& conditions) { return 2.0 * conditions.temperature_; } } };
   micm::Conditions conditions = {
     .temperature_ = 300.0  // [K]
   };
