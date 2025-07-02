@@ -18,16 +18,15 @@ namespace micm
     std::unordered_map<std::string, Phase> phases_{};
   };
 
-  /**
-   * @brief A `System` holds all physical information that represents a grid cell.
-   *
-   */
+
+  /// @brief Represents the complete chemical state of a grid cell
+  ///        Includes the gas phase and other associated phases, each with their own set of species.
   class System
   {
    public:
-    /// @brief The gas phase is a micm::Phase and determines what species are present.
+    /// @brief The gas phase, defining a set of species present in the system
     Phase gas_phase_;
-    /// @brief This is a catchall for anything that is not the gas phase.
+    /// @brief Additional phases (e.g., aqueous, aerosol), mapped by name and representing non-gas phase
     std::unordered_map<std::string, Phase> phases_;
 
     /// @brief Default constructor
