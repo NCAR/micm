@@ -44,6 +44,7 @@ extensions = [
   'sphinx_copybutton',
   'sphinx_design',
   'sphinxcontrib.bibtex',
+  'sphinx.ext.intersphinx'
 ]
 
 bibtex_bibfiles = ['references.bib']
@@ -59,6 +60,13 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# -- Link to Intersphinx Mappings ---
+
+intersphinx_mapping = {
+    'musica': ('https://ncar.github.io/musica/', None),
+    'mc': ('https://ncar.github.io/MechanismConfiguration/', None),
+    'mb': ('https://ncar.github.io/music-box/',None)
+}
 
 # -- Options for HTML output -------------------------------------------------
 
