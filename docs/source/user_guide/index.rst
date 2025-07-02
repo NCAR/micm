@@ -2,10 +2,6 @@
 User Guide
 ##########
 
-:ref:`temp:contributing`
-:class:`mb:acom_music_box.music_box.MusicBox`
-
-
 MICM is quite expansive in its capabilities. We've written examples showing many different use cases.
 Hopefully our examples are exhaustive enough to provide you with the tools you need to solve some atmospheric chemistry.
 

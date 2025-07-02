@@ -65,8 +65,7 @@ exclude_patterns = []
 intersphinx_mapping = {
     'musica': ('https://ncar.github.io/musica/', None),
     'mc': ('https://ncar.github.io/MechanismConfiguration/', None),
-    'mb': ('https://ncar.github.io/music-box/',None),
-    'temp': ('http://localhost:8000/', None)
+    'mb': ('https://ncar.github.io/music-box/',None)
 }
 
 # -- Options for HTML output -------------------------------------------------
