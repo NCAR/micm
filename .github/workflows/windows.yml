@@ -56,7 +56,7 @@ jobs:
       run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure
 
   clang:
-    runs-on: windows-2019
+    runs-on: windows-latest
     continue-on-error: true 
     strategy:
       matrix:
