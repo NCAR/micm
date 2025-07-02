@@ -61,7 +61,7 @@ jobs:
     strategy:
       matrix:
         build_type: [Release]
-        version: [14, 15]
+        version: [19.1.0, 20.1.0]
 
     steps:
       - uses: actions/checkout@v4
