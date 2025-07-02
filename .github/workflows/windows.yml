@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   mingw:
-    runs-on: windows-2019
+    runs-on: windows-latest
     strategy:
       matrix:
         build_type: [Release]
@@ -39,7 +39,7 @@ jobs:
           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose
 
   msvc2022:
-    runs-on: windows-2022
+    runs-on: windows-latest
     continue-on-error: true 
     strategy:
       matrix:
@@ -75,7 +75,7 @@ jobs:
         run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure
 
   clang-cl-11:
-    runs-on: windows-2019
+    runs-on: windows-latest
     continue-on-error: true 
     strategy:
       matrix:
