@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/profiler/instrumentation.hpp>
+#include <micm/util/prefetch.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 namespace micm
