@@ -4,8 +4,8 @@
 
 #include <micm/process/rate_constant.hpp>
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace micm
 {
@@ -71,4 +71,4 @@ namespace micm
   {
     return parameters_.lambda_function_(conditions);
   }
-}
+}  // namespace micm
