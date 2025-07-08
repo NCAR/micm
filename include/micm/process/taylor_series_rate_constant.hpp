@@ -90,8 +90,8 @@ namespace micm
     {
       result += parameters_.coefficients_[i] * std::pow(temperature, i);
     }
-    return result * parameters_.A_ * std::exp(parameters_.C_ / temperature) * std::pow(temperature / parameters_.D_, parameters_.B_) *
-           (1.0 + parameters_.E_ * pressure);
+    return result * parameters_.A_ * std::exp(parameters_.C_ / temperature) *
+           std::pow(temperature / parameters_.D_, parameters_.B_) * (1.0 + parameters_.E_ * pressure);
   }
 
 }  // namespace micm
