@@ -73,7 +73,7 @@ TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArugments)
   parameters.coefficients_ = { 12.5, 1.3e-2, 5.2e-4 };  // Taylor series coefficients
   micm::TaylorSeriesRateConstant hox(parameters);
   k = hox.Calculate(conditions);
-  EXPECT_NEAR(k, 3e-11 * std::exp(200 / 301.24) * (12.5 + 1.3e-2 * 301.24 + 5.2e-4 * std::pow(301.24, 2)), 0.01);
+  EXPECT_NEAR(k, 3e-11 * std::exp(-200 / 301.24) * (12.5 + 1.3e-2 * 301.24 + 5.2e-4 * std::pow(301.24, 2)), 1.0e-13);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
