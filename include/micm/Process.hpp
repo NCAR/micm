@@ -10,6 +10,7 @@
 #include <micm/process/process_set.hpp>
 #include <micm/process/rate_constant.hpp>
 #include <micm/process/surface_rate_constant.hpp>
+#include <micm/process/taylor_series_rate_constant.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
