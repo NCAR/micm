@@ -3,6 +3,9 @@
 
 // NOTE: This rate constant is a placeholder for the reaction that handles 
 //       the Henry's Law phase transfer. It will be refined as development moves forward.
+#pragma once
+
+#include <micm/process/rate_constant.hpp>
 
 namespace micm
 {
