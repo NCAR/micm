@@ -40,9 +40,7 @@ namespace micm
 
     /// @brief
     /// @param parameters The data required to build this class
-    inline PhaseTransferRateConstant::PhaseTransferRateConstant()
-      : parameters_()
-    {}
+    PhaseTransferRateConstant();
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> Clone() const override;
@@ -65,4 +63,7 @@ namespace micm
     double Calculate(const Conditions& conditions) const override;
   };
 
+  inline PhaseTransferRateConstant::PhaseTransferRateConstant()
+    : parameters_()
+  {}
 }  // namespace micm
