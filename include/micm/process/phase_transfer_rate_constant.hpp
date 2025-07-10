@@ -64,6 +64,36 @@ namespace micm
   };
 
   inline PhaseTransferRateConstant::PhaseTransferRateConstant()
-    : parameters_()
-  {}
+  {
+    // TODO
+  }
+
+  inline std::unique_ptr<RateConstant> PhaseTransferRateConstant::Clone() const
+  {
+    return std::make_unique<PhaseTransferRateConstant>(*this);
+  }
+
+  inline std::vector<std::string> PhaseTransferRateConstant::CustomParameters() const
+  {
+    return {};
+  }
+
+  inline std::size_t PhaseTransferRateConstant::SizeCustomParameters() const
+  {
+    return 0;
+  }
+
+  inline double PhaseTransferRateConstant::Calculate(const Conditions& conditions) const
+  {
+    return 0.0; // Replace with actual logic
+  }
+
+  inline double PhaseTransferRateConstant::Calculate(
+    const Conditions& conditions,
+    std::vector<double>::const_iterator custom_parameters) const
+  {
+    return 0.0; // Replace with actual logic
+  }
+
+
 }  // namespace micm
