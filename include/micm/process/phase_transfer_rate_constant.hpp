@@ -40,7 +40,9 @@ namespace micm
 
     /// @brief
     /// @param parameters The data required to build this class
-    PhaseTransferRateConstant();
+    inline PhaseTransferRateConstant::PhaseTransferRateConstant()
+      : parameters_()
+    {}
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> Clone() const override;
