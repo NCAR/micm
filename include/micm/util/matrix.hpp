@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/prefetch.hpp>
 
 #include <algorithm>
 #include <cassert>
