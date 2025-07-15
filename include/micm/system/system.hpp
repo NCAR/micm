@@ -16,6 +16,7 @@ namespace micm
   {
     Phase gas_phase_{};
     std::unordered_map<std::string, Phase> phases_{};
+    std::unordered_map<std::string, std::string> others_{};
   };
 
 
@@ -28,21 +29,44 @@ namespace micm
     Phase gas_phase_;
     /// @brief Additional phases (e.g., aqueous, aerosol), mapped by name and representing non-gas phase
     std::unordered_map<std::string, Phase> phases_;
+    /// @brief Tracks non-phase elements (e.g., number concentrations) associated with a model.
+    ///        Elements are mapped using a prefix specific to the model's name and representation.
+    std::unordered_map<std::string, std::string> others_;
 
     /// @brief Default constructor
     System() = default;
 
     /// @brief Parameterized constructor
+    System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases, 
+           const std::unordered_map<std::string, std::string>& others)
+        : gas_phase_(gas_phase),
+          phases_(phases),
+          others_(others)
+    {
+    }
+
+    /// @brief Parameterized constructor
     System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases)
         : gas_phase_(gas_phase),
-          phases_(phases)
+          phases_(phases),
+          others_()
+    {
+    }
+
+    /// @brief Parameterized constructor with move semantics
+    System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases,
+          const std::unordered_map<std::string, std::string>& others)
+        : gas_phase_(std::move(gas_phase)),
+          phases_(std::move(phases)),
+          others_(std::move(others))
     {
     }
 
     /// @brief Parameterized constructor with move semantics
     System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases)
         : gas_phase_(std::move(gas_phase)),
-          phases_(std::move(phases))
+          phases_(std::move(phases)),
+          others_()
     {
     }
 
@@ -55,7 +79,8 @@ namespace micm
     /// @brief Constructor from SystemParameters
     System(const SystemParameters& parameters)
         : gas_phase_(parameters.gas_phase_),
-          phases_(parameters.phases_)
+          phases_(parameters.phases_),
+          others_(parameters.others_)
     {
     }
 
