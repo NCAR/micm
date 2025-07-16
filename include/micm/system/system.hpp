@@ -111,6 +111,8 @@ namespace micm
     {
       state_size += phase.second.StateSize();
     }
+    state_size += others_.size();
+
     return state_size;
   }
 
