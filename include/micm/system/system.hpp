@@ -123,10 +123,14 @@ namespace micm
       const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
     std::vector<std::string> names = gas_phase_.UniqueNames();
-    for (auto& phase : phases_)
+    for (const auto& phase : phases_)
     {
-      for (auto& species_name : phase.second.UniqueNames())
+      for (const auto& species_name : phase.second.UniqueNames())
         names.push_back(phase.first + "." + species_name);
+    }
+    for (const auto& other : others_)
+    {
+      names.push_back(other.first + "." + other.second);
     }
     if (f)
     {
