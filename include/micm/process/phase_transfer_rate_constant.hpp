@@ -9,8 +9,7 @@
 
 namespace micm
 {
-  // TODO - This is based on the implementation in cam-acom-dev and will change 
-  //        as development continues.
+  // TODO - This is based on the implementation in cam-acom-dev
   //
   /// @brief van 't Hoff equation parameters
   /// Defines the temperature dependence of Henry's Law constants using:
@@ -85,15 +84,14 @@ namespace micm
 
   inline double PhaseTransferRateConstant::Calculate(const Conditions& conditions) const
   {
-    return 0.0; // Replace with actual logic
+    return 0.0;
   }
 
   inline double PhaseTransferRateConstant::Calculate(
     const Conditions& conditions,
     std::vector<double>::const_iterator custom_parameters) const
   {
-    return 0.0; // Replace with actual logic
+    return 0.0;
   }
-
 
 }  // namespace micm
