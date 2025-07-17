@@ -224,7 +224,7 @@ namespace micm
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
-    if (variables_.NumRows() != 1)
+    if (variables_.NumRows() != concentration.size())
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
     std::size_t i_species = variable_map_[element];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
