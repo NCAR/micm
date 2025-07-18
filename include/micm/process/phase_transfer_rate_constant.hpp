@@ -1,7 +1,7 @@
 // Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-// NOTE: This rate constant is a placeholder for the reaction that handles 
+// NOTE: This rate constant is a placeholder for the reaction that handles
 //       the Henry's Law phase transfer. It will be refined as development moves forward.
 #pragma once
 
@@ -20,15 +20,16 @@ namespace micm
   ///     - T_ref is the reference temperature.
   struct Van_t_HoffParams
   {
-    double C = 0.0; // mol L-1 || mol2 L-2 || mol L-1 atm-1
-    double T = 0.0; // K
+    double C = 0.0;  // mol L-1 || mol2 L-2 || mol L-1 atm-1
+    double T = 0.0;  // K
 
     Van_t_HoffParams() = default;
 
     Van_t_HoffParams(double C, double T)
-      : C(C), 
-        T(T)
-      {} 
+        : C(C),
+          T(T)
+    {
+    }
   };
 
   /// @brief A rate constant for surface reactions
@@ -88,8 +89,8 @@ namespace micm
   }
 
   inline double PhaseTransferRateConstant::Calculate(
-    const Conditions& conditions,
-    std::vector<double>::const_iterator custom_parameters) const
+      const Conditions& conditions,
+      std::vector<double>::const_iterator custom_parameters) const
   {
     return 0.0;
   }

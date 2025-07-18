@@ -11,7 +11,7 @@ namespace micm
 {
 
   /// @brief Represents a chemical phase (e.g., gaseous, aqueous)
-  ///        Each phase defines a set of species that participate in chemical 
+  ///        Each phase defines a set of species that participate in chemical
   ///        reactions within that phase.
   class Phase
   {
