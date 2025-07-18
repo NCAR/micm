@@ -65,9 +65,9 @@ namespace micm
 {
 
   /// @brief An alias that allows making products easily
-  using Yield = std::pair<micm::Species, double>;
+  using Yield = std::pair<Species, double>;
 
-  inline Yield Yields(const micm::Species& species, double yield)
+  inline Yield Yields(const Species& species, double yield)
   {
     return Yield(species, yield);
   };
@@ -81,9 +81,10 @@ namespace micm
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
-    /// @brief Recalculate the rate constants for each process for the current state
-    /// @param processes The set of processes being solved
-    /// @param state The solver state to update
+    /// @brief Calculates the rate constants for each process for the current state
+    /// @param processes The set of processes for which rate constants are to be calculated
+    /// @param state The current solver state that will be modified with the updated rate constants
+    /// This function is overloaded based on whether DenseMatrixPolicy is vectorizable.
     template<
         class DenseMatrixPolicy,
         class SparseMatrixPolicy,
