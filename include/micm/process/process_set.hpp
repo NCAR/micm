@@ -160,7 +160,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    // For each process, look up each reactant name in variable_map and 
+    // For each process, look up each reactant name in variable_map and
     // store the corresponding index
     for (const auto& process : processes)
     {
@@ -192,7 +192,7 @@ namespace micm
     }
 
     // Set up process information for Jacobian calculations
-  
+
     // The variable_map is sorted by index
     std::vector<std::pair<std::string, std::size_t>> sorted_names(variable_map.begin(), variable_map.end());
     std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
@@ -316,7 +316,7 @@ namespace micm
       {
         double rate = cell_rate_constants[i_rxn];
 
-        // Caculate the reaction rate with the rate constant and concentrations 
+        // Caculate the reaction rate with the rate constant and concentrations
         // of each reactant
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
@@ -328,7 +328,7 @@ namespace micm
         {
           cell_forcing[react_id[i_react]] -= rate;
         }
-        // Add the rate (scaled by yield) to product species 
+        // Add the rate (scaled by yield) to product species
         for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
         {
           cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;

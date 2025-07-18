@@ -19,7 +19,6 @@ namespace micm
     std::unordered_map<std::string, std::string> others_{};
   };
 
-
   /// @brief Represents the complete chemical state of a grid cell
   ///        Includes the gas phase and other associated phases, each with their own set of species.
   class System
@@ -37,8 +36,10 @@ namespace micm
     System() = default;
 
     /// @brief Parameterized constructor
-    System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases, 
-           const std::unordered_map<std::string, std::string>& others)
+    System(
+        const Phase& gas_phase,
+        const std::unordered_map<std::string, Phase>& phases,
+        const std::unordered_map<std::string, std::string>& others)
         : gas_phase_(gas_phase),
           phases_(phases),
           others_(others)
@@ -54,8 +55,10 @@ namespace micm
     }
 
     /// @brief Parameterized constructor with move semantics
-    System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases,
-          const std::unordered_map<std::string, std::string>& others)
+    System(
+        Phase&& gas_phase,
+        std::unordered_map<std::string, Phase>&& phases,
+        const std::unordered_map<std::string, std::string>& others)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
           others_(std::move(others))
