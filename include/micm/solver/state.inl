@@ -162,12 +162,12 @@ namespace micm
       const Species& species,
       double concentration)
   {
-    auto var = variable_map_.find(species.name_);
-    if (var == variable_map_.end())
+    auto it = variable_map_.find(species.name_);
+    if (it == variable_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
     if (variables_.NumRows() != 1)
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
-    variables_[0][variable_map_[species.name_]] = concentration;
+    variables_[0][it->second] = concentration;
   }
 
   template<
@@ -181,12 +181,12 @@ namespace micm
       const Species& species,
       const std::vector<double>& concentration)
   {
-    auto var = variable_map_.find(species.name_);
-    if (var == variable_map_.end())
+    auto it = variable_map_.find(species.name_);
+    if (it == variable_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
     if (variables_.NumRows() != concentration.size())
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
-    std::size_t i_species = variable_map_[species.name_];
+    std::size_t i_species = it->second;
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
   }
@@ -202,12 +202,12 @@ namespace micm
       const std::string& element,
       double concentration)
   {
-    auto var = variable_map_.find(element);
-    if (var == variable_map_.end())
+    auto it = variable_map_.find(element);
+    if (it == variable_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
     if (variables_.NumRows() != 1)
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
-    variables_[0][variable_map_[element]] = concentration;
+    variables_[0][it->second] = concentration;
   }
 
   template<
@@ -221,12 +221,12 @@ namespace micm
       const std::string& element,
       const std::vector<double>& concentration)
   {
-    auto var = variable_map_.find(element);
-    if (var == variable_map_.end())
+    auto it = variable_map_.find(element);
+    if (it == variable_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
     if (variables_.NumRows() != concentration.size())
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
-    std::size_t i_species = variable_map_[element];
+    std::size_t i_species = it->second;
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
   }
