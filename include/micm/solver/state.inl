@@ -191,12 +191,12 @@ namespace micm
       variables_[i][i_species] = concentration[i];
   }
 
-    template<
-    class DenseMatrixPolicy,
-    class SparseMatrixPolicy,
-    class LuDecompositionPolicy,
-    class LMatrixPolicy,
-    class UMatrixPolicy>
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
   inline void
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
       const std::string& element,
@@ -211,11 +211,11 @@ namespace micm
   }
 
   template<
-    class DenseMatrixPolicy,
-    class SparseMatrixPolicy,
-    class LuDecompositionPolicy,
-    class LMatrixPolicy,
-    class UMatrixPolicy>
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
   inline void
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
       const std::string& element,
