@@ -27,6 +27,38 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method with algebraic constraints
+  /// 
+  /// This solver extends the standard backward Euler method to handle Differential Algebraic Equations (DAEs)
+  /// which consist of both differential equations and algebraic constraints.
+  /// 
+  /// The DAE system has the form:
+  /// - Differential equations: dy/dt = f(t, y)
+  /// - Algebraic constraints: 0 = g(t, y)
+  /// 
+  /// Usage example:
+  /// @code
+  /// auto params = micm::BackwardEulerDAESolverParameters();
+  /// 
+  /// // Add a mass conservation constraint: A + B + C = constant
+  /// params.algebraic_constraints_.push_back([initial_mass](double time, 
+  ///     const std::vector<double>& variables, const std::vector<double>& rate_constants) {
+  ///   if (variables.size() >= 3) {
+  ///     double current_mass = variables[0] + variables[1] + variables[2]; // A + B + C
+  ///     return current_mass - initial_mass; // Should be zero for conservation
+  ///   }
+  ///   return 0.0;
+  /// });
+  /// 
+  /// // Add a time-dependent constraint: species A = 2*t
+  /// params.algebraic_constraints_.push_back([](double time, 
+  ///     const std::vector<double>& variables, const std::vector<double>& rate_constants) {
+  ///   if (variables.size() >= 1) {
+  ///     return variables[0] - 2.0 * time; // A should equal 2*time
+  ///   }
+  ///   return 0.0;
+  /// });
+  /// @endcode
+  /// 
   template<class RatesPolicy, class LinearSolverPolicy>
   class AbstractBackwardEulerDAE
   {
