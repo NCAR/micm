@@ -16,4 +16,5 @@ create_standard_test(NAME lu_decomposition_mozart_in_place SOURCES test_lu_decom
 create_standard_test(NAME rosenbrock SOURCES test_rosenbrock.cpp)
 create_standard_test(NAME state SOURCES test_state.cpp)
 create_standard_test(NAME backward_euler SOURCES test_backward_euler.cpp)
+create_standard_test(NAME backward_euler_dae SOURCES test_backward_euler_dae.cpp)
 create_standard_test(NAME solver_builder SOURCES test_solver_builder.cpp)
