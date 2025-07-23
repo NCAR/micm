@@ -98,6 +98,7 @@ namespace micm
         const BackwardEulerDAESolverParameters& parameters,
         std::vector<double>& constraint_values) const;
 
+   public:
     /// @brief Check if algebraic constraints are satisfied
     /// @param constraint_values Vector of constraint values
     /// @param tolerance Tolerance for constraint satisfaction
