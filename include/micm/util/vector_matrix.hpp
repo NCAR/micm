@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/profiler/instrumentation.hpp>
+#include <micm/util/prefetch.hpp>
 #include <micm/util/matrix_error.hpp>
 
 #include <algorithm>

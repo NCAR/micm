@@ -6,6 +6,7 @@
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
+#include <micm/util/prefetch.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cassert>
@@ -456,6 +457,16 @@ namespace micm
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     std::vector<double> d_rate_d_ind(L, 0);
     auto v_rate_constants_begin = v_rate_constants.begin();
+
+    // Prefetch vectors to L3 and L2 cache
+    PREFETCH_VECTOR_L3(prefetch::WRITE, jacobian.AsVector().data(), jacobian.AsVector().size());
+    PREFETCH_VECTOR_L2(prefetch::READ, rate_constants.AsVector().data(), rate_constants.AsVector().size());
+    PREFETCH_VECTOR_L2(prefetch::READ, state_variables.AsVector().data(), state_variables.AsVector().size());
+    
+    // How many loop iterations ahead to prefetch
+    constexpr std::size_t NUM_PREFETCH_L1 = prefetch::L1_CACHE_SIZE / (6 * L * sizeof(double)); // take up 1/6 of L1 cache
+    constexpr std::size_t NUM_PREFETCH_L2 = prefetch::L2_CACHE_SIZE / prefetch::L1_CACHE_SIZE * NUM_PREFETCH_L1;
+    
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {
@@ -470,27 +481,63 @@ namespace micm
       {
         auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (process_info.process_id_ * L);
         d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
+#ifdef _x_GNUC__
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, process_info.number_of_dependent_reactants_); ++i)
+          PREFETCH_VECTOR_L1(prefetch::READ, &*(v_state_variables.begin() + offset_state + (react_id[i] * L)), L)
+        for (std::size_t i = NUM_PREFETCH_L1; i < std::min(NUM_PREFETCH_L2, process_info.number_of_dependent_reactants_ + 1); ++i)
+          PREFETCH_VECTOR_L2(prefetch::READ, &*(v_state_variables.begin() + offset_state + (react_id[i] * L)), L)
+#endif
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
           const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
+#ifdef _x_GNUC__
+          if (i_react + NUM_PREFETCH_L1 < process_info.number_of_dependent_reactants_)
+            PREFETCH_VECTOR_L1(prefetch::READ, &*(v_state_variables.begin() + offset_state + (react_id[i_react + NUM_PREFETCH_L1] * L)), L)
+          if (i_react + NUM_PREFETCH_L2 < process_info.number_of_dependent_reactants_)
+            PREFETCH_VECTOR_L2(prefetch::READ, &*(v_state_variables.begin() + offset_state + (react_id[i_react + NUM_PREFETCH_L2] * L)), L)
+#endif
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
         }
+#ifdef _x_GNUC__
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, process_info.number_of_dependent_reactants_); ++i)
+          PREFETCH_VECTOR_L1(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), L)
+        for (std::size_t i = NUM_PREFETCH_L1; i < std::min(NUM_PREFETCH_L2, process_info.number_of_dependent_reactants_ + 1); ++i)
+          PREFETCH_VECTOR_L2(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), L)
+#endif
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
         {
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
+#ifdef _x_GNUC__
+          if (i_dep + NUM_PREFETCH_L1 < process_info.number_of_dependent_reactants_ + 1)
+            PREFETCH_VECTOR_L1(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH_L1)), L)
+          if (i_dep + NUM_PREFETCH_L2 < process_info.number_of_dependent_reactants_ + 1)
+            PREFETCH_VECTOR_L2(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH_L2)), L)
+#endif
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
           ++flat_id;
         }
+#ifdef _x_GNUC__
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, process_info.number_of_products_); ++i)
+          PREFETCH_VECTOR_L1(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), L)
+        for (std::size_t i = NUM_PREFETCH_L1; i < std::min(NUM_PREFETCH_L2, process_info.number_of_products_); ++i)
+          PREFETCH_VECTOR_L2(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), L)
+#endif
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
         {
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto yield_value = yield[i_dep];
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
+#ifdef _x_GNUC__
+          if (i_dep + NUM_PREFETCH_L1 < process_info.number_of_products_)
+            PREFETCH_VECTOR_L1(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH_L1)), L)
+          if (i_dep + NUM_PREFETCH_L2 < process_info.number_of_products_)
+            PREFETCH_VECTOR_L2(prefetch::WRITE, &*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH_L2)), L)
+#endif
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) -= yield_value * *(v_d_rate_d_ind_it++);
           ++flat_id;
