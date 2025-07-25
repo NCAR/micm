@@ -63,9 +63,13 @@ namespace micm
     /// @brief Process information for use in setting Jacobian elements
     struct ProcessInfo
     {
+      /// @brief The index of the process (reaction) in the list of all processes
       std::size_t process_id_;
+      /// @brief The variable (species) index with respect to which the Jacobian derivative is taken
       std::size_t independent_id_;
+      /// @brief The number of other reactants (excluding the independent one) in this process
       std::size_t number_of_dependent_reactants_;
+      /// @brief The number of products in this process
       std::size_t number_of_products_;
     };
 
@@ -107,7 +111,7 @@ namespace micm
     /// @brief Adds forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
-    /// @param forcing Forcing terms for each state variable (grid cell, state variable)
+    /// @param forcing Forcing terms for each state variable (grid cell, state variable)                                                )
     template<typename DenseMatrixPolicy>
       requires(!VectorizableDense<DenseMatrixPolicy>)
     void AddForcingTerms(
@@ -220,23 +224,30 @@ namespace micm
           {
             if (reactant.IsParameterized())
               continue;  // Skip reactants that are parameterizations
-            if (variable_map.count(reactant.name_) < 1)
+
+            auto idx_it = variable_map.find(reactant.name_);
+            if (idx_it == variable_map.end())
               throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
-            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
+
+            // Skip the first occurrence of the independent variable
+            if (idx_it->second == independent_variable.second && !found)
             {
               found = true;
               continue;
             }
-            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+            jacobian_reactant_ids_.push_back(idx_it->second);
             ++info.number_of_dependent_reactants_;
           }
           for (const auto& product : process.products_)
           {
             if (product.first.IsParameterized())
               continue;  // Skip products that are parameterizations
-            if (variable_map.count(product.first.name_) < 1)
+
+            auto idx_it = variable_map.find(product.first.name_);
+            if (idx_it == variable_map.end())
               throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
-            jacobian_product_ids_.push_back(variable_map.at(product.first.name_));
+
+            jacobian_product_ids_.push_back(idx_it->second);
             jacobian_yields_.push_back(product.second);
             ++info.number_of_products_;
           }

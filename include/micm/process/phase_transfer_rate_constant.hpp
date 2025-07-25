@@ -85,14 +85,14 @@ namespace micm
 
   inline double PhaseTransferRateConstant::Calculate(const Conditions& conditions) const
   {
-    return 0.0;
+    return 1.0;
   }
 
   inline double PhaseTransferRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    return 0.0;
+    return 1.0;
   }
 
 }  // namespace micm
