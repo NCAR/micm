@@ -16,7 +16,7 @@ namespace micm
   {
     Phase gas_phase_{};
     std::unordered_map<std::string, Phase> phases_{};
-    std::unordered_map<std::string, std::string> others_{};
+    std::vector<std::string> custom_variables_{};
   };
 
   /// @brief Represents the complete chemical state of a grid cell
@@ -28,9 +28,9 @@ namespace micm
     Phase gas_phase_;
     /// @brief Additional phases (e.g., aqueous, aerosol), mapped by name and representing non-gas phase
     std::unordered_map<std::string, Phase> phases_;
-    /// @brief Tracks non-phase elements (e.g., number concentrations) associated with a model.
-    ///        Elements are mapped using a prefix specific to the model's name and representation.
-    std::unordered_map<std::string, std::string> others_;
+    /// @brief Non-phase elements (e.g., number concentrations) that are time-varying and 
+    ///        involved in the model's numerical solution.
+    std::vector<std::string> custom_variables_;
 
     /// @brief Default constructor
     System() = default;
@@ -39,10 +39,10 @@ namespace micm
     System(
         const Phase& gas_phase,
         const std::unordered_map<std::string, Phase>& phases,
-        const std::unordered_map<std::string, std::string>& others)
+        const std::vector<std::string>& custom_variables)
         : gas_phase_(gas_phase),
           phases_(phases),
-          others_(others)
+          custom_variables_(custom_variables)
     {
     }
 
@@ -50,7 +50,7 @@ namespace micm
     System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases)
         : gas_phase_(gas_phase),
           phases_(phases),
-          others_()
+          custom_variables_()
     {
     }
 
@@ -58,10 +58,10 @@ namespace micm
     System(
         Phase&& gas_phase,
         std::unordered_map<std::string, Phase>&& phases,
-        std::unordered_map<std::string, std::string>&& others)
+        std::vector<std::string>&& custom_variables)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
-          others_(std::move(others))
+          custom_variables_(std::move(custom_variables))
     {
     }
 
@@ -69,7 +69,7 @@ namespace micm
     System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
-          others_()
+          custom_variables_()
     {
     }
 
@@ -83,7 +83,7 @@ namespace micm
     System(const SystemParameters& parameters)
         : gas_phase_(parameters.gas_phase_),
           phases_(parameters.phases_),
-          others_(parameters.others_)
+          custom_variables_(parameters.custom_variables_)
     {
     }
 
@@ -114,7 +114,7 @@ namespace micm
     {
       state_size += phase.second.StateSize();
     }
-    state_size += others_.size();
+    state_size += custom_variables_.size();
 
     return state_size;
   }
@@ -127,16 +127,32 @@ namespace micm
   inline std::vector<std::string> System::UniqueNames(
       const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
-    std::vector<std::string> names = gas_phase_.UniqueNames();
+    std::size_t num_elements = gas_phase_.species_.size();
+    for (const auto& phase : phases_)
+    {
+      num_elements += phase.second.species_.size();
+    }
+    num_elements += custom_variables_.size();
+
+    // Collect all names: gas phase, phase species, and custom variables
+    std::vector<std::string> names;
+    names.reserve(num_elements);
+  
+    // Add gas phase species
+    std::vector<std::string> gas_names = gas_phase_.UniqueNames();
+    names.insert(names.end(), gas_names.begin(), gas_names.end());
+
+    // Add phase species with phase prefix
     for (const auto& phase : phases_)
     {
       for (const auto& species_name : phase.second.UniqueNames())
         names.push_back(phase.first + "." + species_name);
     }
-    for (const auto& other : others_)
-    {
-      names.push_back(other.first + "." + other.second);
-    }
+
+    // Add custom variables
+    names.insert(names.end(), custom_variables_.begin(), custom_variables_.end());
+
+    // Apply custom ordering or transformation if provided
     if (f)
     {
       const auto orig_names = names;
