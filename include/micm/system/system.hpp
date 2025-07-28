@@ -58,7 +58,7 @@ namespace micm
     System(
         Phase&& gas_phase,
         std::unordered_map<std::string, Phase>&& phases,
-        const std::unordered_map<std::string, std::string>& others)
+        std::unordered_map<std::string, std::string>&& others)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
           others_(std::move(others))

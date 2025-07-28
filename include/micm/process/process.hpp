@@ -74,12 +74,14 @@ namespace micm
 
   class ProcessBuilder;
 
-  struct Process
+  class Process
   {
+   public:
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
+    std::vector<Phase> phases_;
 
     /// @brief Calculates the rate constants for each process for the current state
     /// @param processes The set of processes for which rate constants are to be calculated
@@ -147,6 +149,8 @@ namespace micm
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
+    std::vector<Phase> phases_;
+
     friend struct Process;
 
    public:
@@ -158,6 +162,7 @@ namespace micm
     ProcessBuilder& SetProducts(const std::vector<Yield>& products);
     ProcessBuilder& SetRateConstant(const RateConstant& rate_constant);
     ProcessBuilder& SetPhase(const Phase& phase);
+    ProcessBuilder& SetPhase(const std::vector<Phase>& phases);
   };
 
   template<
@@ -278,4 +283,11 @@ namespace micm
     phase_ = phase;
     return *this;
   }
+
+  inline ProcessBuilder& ProcessBuilder::SetPhase(const std::vector<Phase>& phases)
+  {
+    phases_ = phases;
+    return *this;
+  }
+
 }  // namespace micm

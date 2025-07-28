@@ -49,9 +49,9 @@ namespace micm
 
     /// @brief The number of grid cells stored in the state
     std::size_t number_of_grid_cells_{ 1 };
-    /// @brief The concentration of chemicals, varies through time
+    /// @brief The concentration of chemicals for all species, varying over time and grid cells
     DenseMatrixPolicy variables_;
-    /// @brief Rate paramters particular to user-defined rate constants, may vary in time
+    /// @brief Rate parameters associated with user-defined rate constants that may vary in time
     DenseMatrixPolicy custom_rate_parameters_;
     /// @brief The reaction rates, may vary in time
     DenseMatrixPolicy rate_constants_;
@@ -63,7 +63,7 @@ namespace micm
     /// @brief Immutable data required for the state
     std::map<std::string, std::size_t> variable_map_;
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
-    std::vector<std::string> variable_names_{};
+    std::vector<std::string> variable_names_;
     LMatrixPolicy lower_matrix_;
     UMatrixPolicy upper_matrix_;
     std::size_t state_size_;

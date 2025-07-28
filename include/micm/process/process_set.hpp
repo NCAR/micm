@@ -88,7 +88,7 @@ namespace micm
     /// @brief Default constructor
     ProcessSet() = default;
 
-    /// @brief Constructs a ProcessSet by mapping species in each process to their corresponding indices
+    /// @brief Constructs a ProcessSet by mapping species in each process to their corresponding indices.
     ///        Initializes internal data structures related to a set of processes, mapping them to variable indices
     ///        using a provided variable_map. Also prepares the data needed for computing Jacobian contributions.
     /// @param processes A list of processes, each with reactants and products
