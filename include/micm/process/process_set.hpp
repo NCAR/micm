@@ -178,12 +178,12 @@ namespace micm
       // Store product indices and yields
       for (const auto& product : process.products_)
       {
-        if (product.first.IsParameterized())
+        if (product.species_.IsParameterized())
           continue;  // Skip products that are parameterizations
-        if (variable_map.count(product.first.name_) < 1)
-          throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
-        product_ids_.push_back(variable_map.at(product.first.name_));
-        yields_.push_back(product.second);
+        if (variable_map.count(product.species_.name_) < 1)
+          throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.species_.name_);
+        product_ids_.push_back(variable_map.at(product.species_.name_));
+        yields_.push_back(product.coefficient_);
         ++number_of_products;
       }
       // Record how many reactants and products were processed for each process
@@ -232,12 +232,12 @@ namespace micm
           }
           for (const auto& product : process.products_)
           {
-            if (product.first.IsParameterized())
+            if (product.species_.IsParameterized())
               continue;  // Skip products that are parameterizations
-            if (variable_map.count(product.first.name_) < 1)
-              throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
-            jacobian_product_ids_.push_back(variable_map.at(product.first.name_));
-            jacobian_yields_.push_back(product.second);
+            if (variable_map.count(product.species_.name_) < 1)
+              throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.species_.name_);
+            jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
+            jacobian_yields_.push_back(product.coefficient_);
             ++info.number_of_products_;
           }
           jacobian_process_info_.push_back(info);
@@ -511,7 +511,7 @@ namespace micm
       for (const auto& reactant : process.reactants_)
         used_species.insert(reactant.name_);
       for (const auto& product : process.products_)
-        used_species.insert(product.first.name_);
+        used_species.insert(product.species_.name_);
     }
     return used_species;
   }

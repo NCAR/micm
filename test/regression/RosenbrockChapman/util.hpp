@@ -7,8 +7,6 @@
 #include <utility>
 #include <vector>
 
-using yields = std::pair<micm::Species, double>;
-
 micm::Phase createGasPhase()
 {
   auto o = micm::Species("O");
@@ -29,46 +27,46 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
   micm::Process r1 =
       micm::Process::Create()
           .SetReactants({ micm::Species("O1D"), micm::Species("N2") })
-          .SetProducts({ Yields(micm::Species("O"), 1), Yields(micm::Species("N2"), 1) })
+          .SetProducts({ micm::Yield(micm::Species("O"), 1), micm::Yield(micm::Species("N2"), 1) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 }))
           .SetPhase(gas_phase);
 
   micm::Process r2 =
       micm::Process::Create()
           .SetReactants({ micm::Species("O1D"), micm::Species("O2") })
-          .SetProducts({ Yields(micm::Species("O"), 1), Yields(micm::Species("O2"), 1) })
+          .SetProducts({ micm::Yield(micm::Species("O"), 1), micm::Yield(micm::Species("O2"), 1) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 }))
           .SetPhase(gas_phase);
 
   micm::Process r3 =
       micm::Process::Create()
           .SetReactants({ micm::Species("O"), micm::Species("O3") })
-          .SetProducts({ Yields(micm::Species("O2"), 2) })
+          .SetProducts({ micm::Yield(micm::Species("O2"), 2) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 }))
           .SetPhase(gas_phase);
 
   micm::Process r4 =
       micm::Process::Create()
           .SetReactants({ micm::Species("O"), micm::Species("O2"), micm::Species("M") })
-          .SetProducts({ Yields(micm::Species("O3"), 1), Yields(micm::Species("M"), 1) })
+          .SetProducts({ micm::Yield(micm::Species("O3"), 1), micm::Yield(micm::Species("M"), 1) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 }))
           .SetPhase(gas_phase);
 
   micm::Process photo_1 = micm::Process::Create()
                               .SetReactants({ micm::Species("O2") })
-                              .SetProducts({ Yields(micm::Species("O"), 2) })
+                              .SetProducts({ micm::Yield(micm::Species("O"), 2) })
                               .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
                               .SetPhase(gas_phase);
 
   micm::Process photo_2 = micm::Process::Create()
                               .SetReactants({ micm::Species("O3") })
-                              .SetProducts({ Yields(micm::Species("O1D"), 1), Yields(micm::Species("O2"), 1) })
+                              .SetProducts({ micm::Yield(micm::Species("O1D"), 1), micm::Yield(micm::Species("O2"), 1) })
                               .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
                               .SetPhase(gas_phase);
 
   micm::Process photo_3 = micm::Process::Create()
                               .SetReactants({ micm::Species("O3") })
-                              .SetProducts({ Yields(micm::Species("O"), 1), Yields(micm::Species("O2"), 1) })
+                              .SetProducts({ micm::Yield(micm::Species("O"), 1), micm::Yield(micm::Species("O2"), 1) })
                               .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
                               .SetPhase(gas_phase);
 

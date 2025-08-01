@@ -17,19 +17,19 @@ int main()
 
   Process r1 = Process::Create()
                    .SetReactants({ a })
-                   .SetProducts({ Yields(b, 1) })
+                   .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
                    .SetPhase(gas_phase);
 
   Process r2 = Process::Create()
                    .SetReactants({ b, b })
-                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(b, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
                    .SetPhase(gas_phase);
 
   Process r3 = Process::Create()
                    .SetReactants({ b, c })
-                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(a, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
                    .SetPhase(gas_phase);
 
