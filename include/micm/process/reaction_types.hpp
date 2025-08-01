@@ -25,10 +25,16 @@ namespace micm
           coefficient_(coefficient)
     {
     }
+
+    Yield(const Species& species)
+        : species_(species),
+          coefficient_(1.0)
+    {
+    }
   };
 
   /// @brief Represents a homogeneous or single-phase reaction with phase-specific
-  ///        reactants, products, and a rate constant
+  ///        reactants, products and a rate constant
   struct PhaseReaction
   {
     Phase phase_;
