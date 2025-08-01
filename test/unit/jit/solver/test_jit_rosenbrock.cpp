@@ -5,6 +5,7 @@
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/reaction_types.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -59,19 +60,19 @@ TEST(JitRosenbrockSolver, MultipleInstances)
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ a })
-                         .SetProducts({ Yield(b, 1) })
+                         .SetProducts({ micm::Yield(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
                          .SetReactants({ b, b })
-                         .SetProducts({ Yield(b, 1), Yield(c, 1) })
+                         .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create()
                          .SetReactants({ b, c })
-                         .SetProducts({ Yield(a, 1), Yield(c, 1) })
+                         .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase);
 
