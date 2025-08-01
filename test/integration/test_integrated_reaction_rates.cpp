@@ -5,8 +5,6 @@
 #include <utility>
 #include <vector>
 
-using yields = std::pair<micm::Species, double>;
-
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
 TEST(ChapmanIntegration, CanBuildChapmanSystem)
@@ -21,14 +19,14 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ a })
-                         .SetProducts({ Yields(b, 1), Yields(irr_1, 1) })
+                         .SetProducts({ micm::Yield(b, 1), micm::Yield(irr_1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
                          .SetPhase(gas_phase);
 
   micm::Process r2 =
       micm::Process::Create()
           .SetReactants({ b })
-          .SetProducts({ Yields(c, 1), Yields(irr_2, 1) })
+          .SetProducts({ micm::Yield(c, 1), micm::Yield(irr_2, 1) })
           .SetRateConstant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
           .SetPhase(gas_phase);
 

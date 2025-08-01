@@ -5,6 +5,7 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/rate_constant.hpp>
+#include <micm/process/reaction_types.hpp>
 #include <micm/process/surface_rate_constant.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
@@ -63,14 +64,6 @@ inline std::error_code make_error_code(MicmProcessErrc e)
 
 namespace micm
 {
-
-  /// @brief An alias that allows making products easily
-  using Yield = std::pair<Species, double>;
-
-  inline Yield Yields(const Species& species, double yield)
-  {
-    return Yield(species, yield);
-  };
 
   class ProcessBuilder;
 
