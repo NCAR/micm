@@ -27,6 +27,8 @@ namespace micm
     Phase& operator=(const Phase&) = default;
     Phase& operator=(Phase&&) noexcept = default;
 
+    virtual ~Phase() = default;
+
     /// @brief Create a phase with a set of species
     Phase(const std::vector<Species>& species)
         : name_(),
@@ -42,13 +44,13 @@ namespace micm
     }
 
     /// @brief Returns the number of non-parameterized species
-    std::size_t StateSize() const
+    virtual std::size_t StateSize() const
     {
       return std::count_if(species_.begin(), species_.end(), [](const Species& s) { return !s.IsParameterized(); });
     }
 
     /// @brief Returns a set of unique names for each non-parameterized species
-    std::vector<std::string> UniqueNames() const
+    virtual std::vector<std::string> UniqueNames() const
     {
       std::vector<std::string> names{};
       for (const auto& species : species_)
