@@ -30,13 +30,13 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ foo, baz })
-                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
                          .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
   micm::Process r2 = micm::Process::Create()
                          .SetReactants({ bar })
-                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
                          .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 

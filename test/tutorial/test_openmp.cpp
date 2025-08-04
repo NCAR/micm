@@ -73,19 +73,19 @@ int main()
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ a })
-                         .SetProducts({ Yields(b, 1) })
+                         .SetProducts({ micm::Yield(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
                          .SetReactants({ b, b })
-                         .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                         .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create()
                          .SetReactants({ b, c })
-                         .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                         .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase);
 
