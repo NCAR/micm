@@ -33,24 +33,20 @@ namespace micm
     }
   };
 
-  /// @brief Represents a homogeneous or single-phase reaction with phase-specific
-  ///        reactants, products and a rate constant
+  /// @brief Represents a homogeneous or single-phase reaction with reactants, products 
+  ///        and a rate constant
   struct PhaseReaction
   {
-    Phase phase_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
   };
 
-  /// @brief Represents a phase-transfer reaction where reactants move from one phase to another,
+  /// @brief Represents a phase-transfer process where reactants move from one phase to another,
   ///        producing products in the destination phase
-  struct PhaseTransferReaction
+  struct PhaseTransferProcess
   {
-    Phase source_phase_;
-    Phase destination_phase_;
-    std::vector<Species> reactants_;
-    std::vector<Yield> products_;
+    std::vector<Phase> participants_;
     std::unique_ptr<RateConstant> rate_constant_;
   };
 
