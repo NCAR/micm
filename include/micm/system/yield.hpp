@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 
@@ -31,23 +31,6 @@ namespace micm
           coefficient_(1.0)
     {
     }
-  };
-
-  /// @brief Represents a homogeneous or single-phase reaction with reactants, products 
-  ///        and a rate constant
-  struct PhaseReaction
-  {
-    std::vector<Species> reactants_;
-    std::vector<Yield> products_;
-    std::unique_ptr<RateConstant> rate_constant_;
-  };
-
-  /// @brief Represents a phase-transfer process where reactants move from one phase to another,
-  ///        producing products in the destination phase
-  struct PhaseTransferProcess
-  {
-    std::vector<Phase> participants_;
-    std::unique_ptr<RateConstant> rate_constant_;
   };
 
 }  // namespace micm
