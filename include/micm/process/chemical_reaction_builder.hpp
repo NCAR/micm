@@ -79,12 +79,10 @@ namespace micm
     /// @return A Process containing the constructed ChemicalReaction
     Process Build()
     {
-      ChemicalReaction reaction(
-        std::move(phase_name_),
-        std::move(reactants_),
-        std::move(products_),
-        std::move(rate_constant_)
-      );
+      ChemicalReaction reaction(std::move(phase_name_),
+                                std::move(reactants_),
+                                std::move(products_),
+                                std::move(rate_constant_));
       return Process(std::move(reaction));
     }
 

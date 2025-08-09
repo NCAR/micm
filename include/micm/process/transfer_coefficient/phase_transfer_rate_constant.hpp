@@ -5,7 +5,7 @@
 //       the Henry's Law phase transfer. It will be refined as development moves forward.
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
 
 namespace micm
 {
