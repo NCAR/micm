@@ -9,23 +9,21 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 #include <variant>
-
+#include <vector>
 
 namespace micm
 {
 
   class ChemicalReactionBuilder
   {
-  private:
+   private:
     std::string phase_name_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
 
-  public:
-
+   public:
     /// @brief Sets the phase name for the chemical reaction (e.g., "gas", "aqueous")
     /// @param phase A string representing the phase in which the reaction occurs
     /// @return Reference to the builder
@@ -79,13 +77,10 @@ namespace micm
     /// @return A Process containing the constructed ChemicalReaction
     Process Build()
     {
-      ChemicalReaction reaction(std::move(phase_name_),
-                                std::move(reactants_),
-                                std::move(products_),
-                                std::move(rate_constant_));
+      ChemicalReaction reaction(
+          std::move(phase_name_), std::move(reactants_), std::move(products_), std::move(rate_constant_));
       return Process(std::move(reaction));
     }
-
   };
 
 }  // namespace micm

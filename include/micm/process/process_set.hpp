@@ -164,11 +164,11 @@ namespace micm
     // store the corresponding index
     for (const auto& process : processes)
     {
-      if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_)) 
+      if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
       {
         std::size_t number_of_reactants = 0;
         std::size_t number_of_products = 0;
-        for (const auto& reactant : reaction->reactants_) 
+        for (const auto& reactant : reaction->reactants_)
         {
           if (reactant.IsParameterized())
             continue;  // Skip reactants that are parameterizations
@@ -178,7 +178,7 @@ namespace micm
           ++number_of_reactants;
         }
         // Store product indices and yields
-        for (const auto& product : reaction->products_) 
+        for (const auto& product : reaction->products_)
         {
           if (product.species_.IsParameterized())
             continue;  // Skip products that are parameterizations
@@ -208,44 +208,44 @@ namespace micm
       {
         const auto& process = processes[i_process];
         if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
-        for (const auto& ind_reactant : reaction->reactants_)
-        {
-          if (ind_reactant.name_ != independent_variable.first)
-            continue;
-          ProcessInfo info;
-          info.process_id_ = i_process;
-          info.independent_id_ = independent_variable.second;
-          info.number_of_dependent_reactants_ = 0;
-          info.number_of_products_ = 0;
-
-          // Collect other (dependent) reactants and products
-          bool found = false;
-          for (const auto& reactant : reaction->reactants_)
+          for (const auto& ind_reactant : reaction->reactants_)
           {
-            if (reactant.IsParameterized())
-              continue;  // Skip reactants that are parameterizations
-            if (variable_map.count(reactant.name_) < 1)
-              throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
-            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
-            {
-              found = true;
+            if (ind_reactant.name_ != independent_variable.first)
               continue;
+            ProcessInfo info;
+            info.process_id_ = i_process;
+            info.independent_id_ = independent_variable.second;
+            info.number_of_dependent_reactants_ = 0;
+            info.number_of_products_ = 0;
+
+            // Collect other (dependent) reactants and products
+            bool found = false;
+            for (const auto& reactant : reaction->reactants_)
+            {
+              if (reactant.IsParameterized())
+                continue;  // Skip reactants that are parameterizations
+              if (variable_map.count(reactant.name_) < 1)
+                throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
+              if (variable_map.at(reactant.name_) == independent_variable.second && !found)
+              {
+                found = true;
+                continue;
+              }
+              jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+              ++info.number_of_dependent_reactants_;
             }
-            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
-            ++info.number_of_dependent_reactants_;
+            for (const auto& product : reaction->products_)
+            {
+              if (product.species_.IsParameterized())
+                continue;  // Skip products that are parameterizations
+              if (variable_map.count(product.species_.name_) < 1)
+                throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.species_.name_);
+              jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
+              jacobian_yields_.push_back(product.coefficient_);
+              ++info.number_of_products_;
+            }
+            jacobian_process_info_.push_back(info);
           }
-          for (const auto& product : reaction->products_)
-          {
-            if (product.species_.IsParameterized())
-              continue;  // Skip products that are parameterizations
-            if (variable_map.count(product.species_.name_) < 1)
-              throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.species_.name_);
-            jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
-            jacobian_yields_.push_back(product.coefficient_);
-            ++info.number_of_products_;
-          }
-          jacobian_process_info_.push_back(info);
-        }
       }
     }
   };
@@ -512,13 +512,13 @@ namespace micm
     std::set<std::string> used_species;
     for (const auto& process : processes)
     {
-      if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_)) 
+      if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
       {
-        for (const auto& reactant : reaction->reactants_) 
-        { 
+        for (const auto& reactant : reaction->reactants_)
+        {
           used_species.insert(reactant.name_);
         }
-        for (const auto& product : reaction->products_) 
+        for (const auto& product : reaction->products_)
         {
           used_species.insert(product.species_.name_);
         }

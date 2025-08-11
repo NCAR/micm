@@ -1,5 +1,5 @@
-#include <micm/process/process.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/process.hpp>
 
 #include <gtest/gtest.h>
 

@@ -295,7 +295,7 @@ namespace micm
   }
 
   inline JitFunctionBuilder::JitFunctionBuilder(JitCompiler& compiler)
-      : compiler_(&compiler){};
+      : compiler_(&compiler) { };
 
   inline JitFunctionBuilder& JitFunctionBuilder::SetName(const std::string& name)
   {

@@ -4,7 +4,7 @@
 #include <micm/jit/solver/jit_rosenbrock.hpp>
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
-#include <micm/process/process_types.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>

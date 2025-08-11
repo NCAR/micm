@@ -322,11 +322,11 @@ namespace micm
 
     for (const auto& reaction : reactions_)
     {
-      if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_)) 
+      if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
       {
-        for (auto& label : process->rate_constant_->CustomParameters()) 
+        for (auto& label : process->rate_constant_->CustomParameters())
         {
-          param_labels.push_back(label); 
+          param_labels.push_back(label);
         }
       }
     }

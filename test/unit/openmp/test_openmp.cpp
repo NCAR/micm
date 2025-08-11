@@ -1,5 +1,7 @@
 #include "run_solver.hpp"
 
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 

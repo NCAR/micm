@@ -1,6 +1,6 @@
-#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
@@ -44,8 +44,12 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }))
                          .Build();
 
-  micm::Process r3 = micm::ChemicalReactionBuilder().SetReactants({ quz }).SetProducts({}).SetPhaseName("gas").SetRateConstant(
-      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 })).Build();
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ quz })
+                         .SetProducts({})
+                         .SetPhaseName("gas")
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }))
+                         .Build();
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })

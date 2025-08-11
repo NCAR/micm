@@ -2,19 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/system/yield.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/system/yield.hpp>
 #include <micm/util/error.hpp>
 
 #include <memory>
 #include <utility>
-#include <vector>
 #include <variant>
-
+#include <vector>
 
 namespace micm
 {
@@ -23,7 +22,7 @@ namespace micm
   ///        reactants, products and a rate constant
   class ChemicalReaction
   {
-  public:
+   public:
     std::string phase_name_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
@@ -32,26 +31,29 @@ namespace micm
     ChemicalReaction(ChemicalReaction&&) noexcept = default;
     ChemicalReaction& operator=(ChemicalReaction&&) noexcept = default;
 
-    ChemicalReaction(std::string phase,
-                     std::vector<Species> reactants,
-                     std::vector<Yield> products,
-                     std::unique_ptr<RateConstant> rate_constant)
-      : phase_name_(std::move(phase)),
-        reactants_(std::move(reactants)),
-        products_(std::move(products)),
-        rate_constant_(std::move(rate_constant))
-    {}
+    ChemicalReaction(
+        std::string phase,
+        std::vector<Species> reactants,
+        std::vector<Yield> products,
+        std::unique_ptr<RateConstant> rate_constant)
+        : phase_name_(std::move(phase)),
+          reactants_(std::move(reactants)),
+          products_(std::move(products)),
+          rate_constant_(std::move(rate_constant))
+    {
+    }
 
     ChemicalReaction(const ChemicalReaction& other)
-      : phase_name_(other.phase_name_),
-        reactants_(other.reactants_),
-        products_(other.products_),
-        rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr)
-    {}
+        : phase_name_(other.phase_name_),
+          reactants_(other.reactants_),
+          products_(other.products_),
+          rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr)
+    {
+    }
 
     ChemicalReaction& operator=(const ChemicalReaction& other)
     {
-      if (this != &other) 
+      if (this != &other)
       {
         phase_name_ = other.phase_name_;
         reactants_ = other.reactants_;

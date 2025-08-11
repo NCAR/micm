@@ -7,13 +7,12 @@
 #include <memory>
 #include <utility>
 
-
 namespace micm
 {
 
   class TransferCoefficient
   {
-  public:
+   public:
     virtual ~TransferCoefficient() = default;
 
     virtual std::unique_ptr<TransferCoefficient> Clone() const = 0;
@@ -30,7 +29,6 @@ namespace micm
     {
       return 0.0;
     }
-
   };
 
 }  // namespace micm

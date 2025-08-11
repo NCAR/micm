@@ -1,5 +1,5 @@
-#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>

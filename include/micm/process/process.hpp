@@ -11,9 +11,8 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 #include <variant>
-
+#include <vector>
 
 enum class MicmProcessErrc
 {
@@ -60,17 +59,17 @@ namespace micm
 
   class Process
   {
-  public:
+   public:
     using ProcessVariant = std::variant<ChemicalReaction, PhaseTransferProcess>;
 
     ProcessVariant process_;
 
     template<typename T>
-    requires std::same_as<std::decay_t<T>, ChemicalReaction> ||
-             std::same_as<std::decay_t<T>, PhaseTransferProcess>
+      requires std::same_as<std::decay_t<T>, ChemicalReaction> || std::same_as<std::decay_t<T>, PhaseTransferProcess>
     Process(T&& process)
-      : process_(std::forward<T>(process))
-    {}
+        : process_(std::forward<T>(process))
+    {
+    }
 
     /// @brief TODO - Temporary wrapper for rate constant calculation
     ///        Calls ChemicalReaction::CalculateRateConstants for all ChemicalReaction processes

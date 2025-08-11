@@ -3,27 +3,27 @@
 #pragma once
 
 #include <micm/process/phase_transfer_process.hpp>
-#include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
 #include <micm/system/species.hpp>
 
 #include <memory>
 #include <utility>
-#include <vector>
 #include <variant>
+#include <vector>
 
 namespace micm
 {
 
   class PhaseTransferProcessBuilder
   {
-  private:
+   private:
     std::vector<SpeciesInPhase> origin_species_;
     std::vector<SpeciesInPhase> destination_species_;
     SpeciesInPhase solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
 
-  public:
+   public:
     PhaseTransferProcessBuilder& SetOriginSpecies(const std::vector<SpeciesInPhase>& origin_species)
     {
       origin_species_ = origin_species;
@@ -57,13 +57,10 @@ namespace micm
     /// @brief Build the phase transfer process and wrap in Process
     Process Build()
     {
-      PhaseTransferProcess process(std::move(origin_species_),
-                                   std::move(destination_species_),
-                                   std::move(solvent_),
-                                   std::move(coefficient_));
+      PhaseTransferProcess process(
+          std::move(origin_species_), std::move(destination_species_), std::move(solvent_), std::move(coefficient_));
       return Process(std::move(process));
     }
-
   };
 
 }  // namespace micm

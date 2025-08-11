@@ -25,7 +25,7 @@ namespace micm
     FuncPtr solve_function_ = nullptr;
 
    public:
-    JitLinearSolver(){};
+    JitLinearSolver() { };
 
     JitLinearSolver(const JitLinearSolver&) = delete;
     JitLinearSolver& operator=(const JitLinearSolver&) = delete;

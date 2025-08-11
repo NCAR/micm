@@ -1,18 +1,17 @@
-#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
-#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
-#include <micm/process/rate_constant/surface_rate_constant.hpp>
-#include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/phase_transfer_process_builder.hpp>
 #include <micm/process/process.hpp>
-
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/surface_rate_constant.hpp>
+#include <micm/process/rate_constant/user_defined_rate_constant.hpp>
+#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 #include <random>
-using namespace micm; 
+using namespace micm;
 
 template<class DenseMatrixPolicy>
 void testProcessUpdateState(const std::size_t number_of_grid_cells)
@@ -31,9 +30,9 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   std::vector<Process> processes = { r1, r2, r3 };
 
   std::vector<std::string> param_labels{};
-  for (const auto& process : processes) 
+  for (const auto& process : processes)
   {
-    if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_)) 
+    if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
     {
       for (const auto& label : reaction->rate_constant_->CustomParameters())
       {
@@ -42,11 +41,11 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     }
   }
   State<DenseMatrixPolicy> state{ StateParameters{
-                                            .number_of_rate_constants_ = processes.size(),
-                                            .variable_names_ = { "foo", "bar'" },
-                                            .custom_rate_parameter_labels_ = param_labels,
-                                        },
-                                        number_of_grid_cells };
+                                      .number_of_rate_constants_ = processes.size(),
+                                      .variable_names_ = { "foo", "bar'" },
+                                      .custom_rate_parameter_labels_ = param_labels,
+                                  },
+                                  number_of_grid_cells };
 
   DenseMatrixPolicy expected_rate_constants(number_of_grid_cells, 3, 0.0);
   std::vector<double> params = { 0.0, 0.0, 0.0 };
@@ -62,7 +61,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     params[2] = get_double() * 1.0e-2;
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = params[0];
     state.custom_rate_parameters_[i_cell]
-                                [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
+                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
         params[1];
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
     std::vector<double>::const_iterator param_iter = params.begin();
@@ -108,40 +107,52 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
 {
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
-      .SetPhaseName("gas")
-      .SetReactants({ Species("O3"), Species("NO") })
-      .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
-      .SetRateConstant(ArrheniusRateConstant(/* ... */))
-      .Build();
+                                  .SetPhaseName("gas")
+                                  .SetReactants({ Species("O3"), Species("NO") })
+                                  .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
+                                  .SetRateConstant(ArrheniusRateConstant(/* ... */))
+                                  .Build();
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-      .SetOriginSpecies({ SpeciesInPhase("gas", Species("SO2")) })
-      .SetDestinationSpecies({ SpeciesInPhase("aqueous", Species("SO2")) })
-      .SetSolvent( SpeciesInPhase("aqueous", Species("H2O")) )
-      .SetTransferCoefficient(TestTransferCoefficient(/* ... */))
-      .Build();
+                               .SetOriginSpecies({ SpeciesInPhase("gas", Species("SO2")) })
+                               .SetDestinationSpecies({ SpeciesInPhase("aqueous", Species("SO2")) })
+                               .SetSolvent(SpeciesInPhase("aqueous", Species("H2O")))
+                               .SetTransferCoefficient(TestTransferCoefficient(/* ... */))
+                               .Build();
 
   // Check that the first process is a ChemicalReaction
-  std::visit([](auto&& value) {
-    using T = std::decay_t<decltype(value)>;
-    if constexpr (std::is_same_v<T, ChemicalReaction>) {
-        EXPECT_EQ(value.phase_name_, "gas");
-    } else {
-        FAIL() << "Expected ChemicalReaction, got different type";
-    }
-  }, chemical_reaction.process_);
+  std::visit(
+      [](auto&& value)
+      {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, ChemicalReaction>)
+        {
+          EXPECT_EQ(value.phase_name_, "gas");
+        }
+        else
+        {
+          FAIL() << "Expected ChemicalReaction, got different type";
+        }
+      },
+      chemical_reaction.process_);
 
   // Check that the second process is a PhaseTransferProcess
-  std::visit([](auto&& value) {
-    using T = std::decay_t<decltype(value)>;
-    if constexpr (std::is_same_v<T, PhaseTransferProcess>) {
-        ASSERT_FALSE(value.destination_species_.empty());
-        EXPECT_EQ(value.destination_species_[0].phase_name_, "aqueous");
-    } else {
-        FAIL() << "Expected PhaseTransferProcess, got different type";
-    }
-  }, phase_transfer.process_);
+  std::visit(
+      [](auto&& value)
+      {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, PhaseTransferProcess>)
+        {
+          ASSERT_FALSE(value.destination_species_.empty());
+          EXPECT_EQ(value.destination_species_[0].phase_name_, "aqueous");
+        }
+        else
+        {
+          FAIL() << "Expected PhaseTransferProcess, got different type";
+        }
+      },
+      phase_transfer.process_);
 }
 
 // TODO (Jiwon): This should throw, but currently does not.
