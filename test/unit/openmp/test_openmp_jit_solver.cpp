@@ -5,6 +5,8 @@
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 
 #include <gtest/gtest.h>
 #include <omp.h>

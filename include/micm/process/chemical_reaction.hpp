@@ -18,8 +18,8 @@
 namespace micm
 {
 
-  /// @brief Represents a homogeneous or single-phase chemical reaction with
-  ///        reactants, products and a rate constant
+  /// @brief Represents a homogeneous chemical reaction with reactants,
+  ///        products and a rate constant
   class ChemicalReaction
   {
    public:
