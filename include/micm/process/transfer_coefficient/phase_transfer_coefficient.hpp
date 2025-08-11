@@ -1,3 +1,5 @@
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <memory>
@@ -6,6 +8,7 @@
 
 namespace micm
 {
+  // TODO - class TestTransferCoefficient is a placeholder and will be further developed.
   class TestTransferCoefficient : public TransferCoefficient
   {
   public:
