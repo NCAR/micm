@@ -100,6 +100,7 @@ To solve this system save the following code in a file named `foo_chem.cpp`:
 
 ```c++
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 
