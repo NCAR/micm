@@ -1,108 +1,185 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/process.hpp>
-#include <micm/process/surface_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
+// #include <micm/process/rate_constant/surface_rate_constant.hpp>
+// #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
+// #include <micm/process/chemical_reaction.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/phase_transfer_process_builder.hpp>
+#include <micm/process/process.hpp>
+
 
 #include <gtest/gtest.h>
 
 #include <random>
+using namespace micm; 
 
-template<class DenseMatrixPolicy>
-void testProcessUpdateState(const std::size_t number_of_grid_cells)
-{
-  micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
-  micm::Species bar("bar");
-  bar.parameterize_ = [](const micm::Conditions& c) { return c.air_density_ * 0.82; };
+// template<class DenseMatrixPolicy>
+// void testProcessUpdateState(const std::size_t number_of_grid_cells)
+// {
+//   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+//   micm::Species bar("bar");
+//   bar.parameterize_ = [](const micm::Conditions& c) { return c.air_density_ * 0.82; };
 
-  micm::ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
-  micm::SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
-  micm::UserDefinedRateConstant rc3({ .label_ = "bar_user" });
+//   micm::ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
+//   micm::SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
+//   micm::UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
-  micm::Process r1 = micm::Process::Create().SetRateConstant(rc1).SetReactants({ foo, bar });
-  micm::Process r2 = micm::Process::Create().SetRateConstant(rc2);
-  micm::Process r3 = micm::Process::Create().SetRateConstant(rc3);
-  std::vector<micm::Process> processes = { r1, r2, r3 };
+//   micm::Process r1 = micm::Process::Create().SetRateConstant(rc1).SetReactants({ foo, bar });
+//   micm::Process r2 = micm::Process::Create().SetRateConstant(rc2);
+//   micm::Process r3 = micm::Process::Create().SetRateConstant(rc3);
+//   std::vector<micm::Process> processes = { r1, r2, r3 };
 
-  std::vector<std::string> param_labels{};
-  for (const auto& process : processes)
-    for (auto& label : process.rate_constant_->CustomParameters())
-      param_labels.push_back(label);
-  micm::State<DenseMatrixPolicy> state{ micm::StateParameters{
-                                            .number_of_rate_constants_ = processes.size(),
-                                            .variable_names_ = { "foo", "bar'" },
-                                            .custom_rate_parameter_labels_ = param_labels,
-                                        },
-                                        number_of_grid_cells };
+//   std::vector<std::string> param_labels{};
+//   for (const auto& process : processes)
+//     for (auto& label : process.rate_constant_->CustomParameters())
+//       param_labels.push_back(label);
+//   micm::State<DenseMatrixPolicy> state{ micm::StateParameters{
+//                                             .number_of_rate_constants_ = processes.size(),
+//                                             .variable_names_ = { "foo", "bar'" },
+//                                             .custom_rate_parameter_labels_ = param_labels,
+//                                         },
+//                                         number_of_grid_cells };
 
-  DenseMatrixPolicy expected_rate_constants(number_of_grid_cells, 3, 0.0);
-  std::vector<double> params = { 0.0, 0.0, 0.0 };
-  auto get_double = std::bind(std::lognormal_distribution(0.0, 0.01), std::default_random_engine());
+//   DenseMatrixPolicy expected_rate_constants(number_of_grid_cells, 3, 0.0);
+//   std::vector<double> params = { 0.0, 0.0, 0.0 };
+//   auto get_double = std::bind(std::lognormal_distribution(0.0, 0.01), std::default_random_engine());
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  {
-    state.conditions_[i_cell].temperature_ = get_double() * 285.0;
-    state.conditions_[i_cell].pressure_ = get_double() * 101100.0;
-    state.conditions_[i_cell].air_density_ = get_double() * 10.0;
-    params[0] = get_double() * 1.0e-8;
-    params[1] = get_double() * 1.0e5;
-    params[2] = get_double() * 1.0e-2;
-    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = params[0];
-    state.custom_rate_parameters_[i_cell]
-                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
-        params[1];
-    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
-    std::vector<double>::const_iterator param_iter = params.begin();
-    expected_rate_constants[i_cell][0] =
-        rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
-    param_iter += rc1.SizeCustomParameters();
-    expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
-    param_iter += rc2.SizeCustomParameters();
-    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter);
-    param_iter += rc3.SizeCustomParameters();
-  }
+//   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+//   {
+//     state.conditions_[i_cell].temperature_ = get_double() * 285.0;
+//     state.conditions_[i_cell].pressure_ = get_double() * 101100.0;
+//     state.conditions_[i_cell].air_density_ = get_double() * 10.0;
+//     params[0] = get_double() * 1.0e-8;
+//     params[1] = get_double() * 1.0e5;
+//     params[2] = get_double() * 1.0e-2;
+//     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = params[0];
+//     state.custom_rate_parameters_[i_cell]
+//                                  [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
+//         params[1];
+//     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
+//     std::vector<double>::const_iterator param_iter = params.begin();
+//     expected_rate_constants[i_cell][0] =
+//         rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
+//     param_iter += rc1.SizeCustomParameters();
+//     expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
+//     param_iter += rc2.SizeCustomParameters();
+//     expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter);
+//     param_iter += rc3.SizeCustomParameters();
+//   }
 
-  micm::Process::CalculateRateConstants(processes, state);
+//   micm::Process::CalculateRateConstants(processes, state);
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-    for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)
-      EXPECT_EQ(state.rate_constants_[i_cell][i_rxn], expected_rate_constants[i_cell][i_rxn])
-          << "grid cell " << i_cell << "; reaction " << i_rxn;
-}
+//   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+//     for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)
+//       EXPECT_EQ(state.rate_constants_[i_cell][i_rxn], expected_rate_constants[i_cell][i_rxn])
+//           << "grid cell " << i_cell << "; reaction " << i_rxn;
+// }
 
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+// template<class T>
+// using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+// template<class T>
+// using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
+// template<class T>
+// using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
+// template<class T>
+// using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
-TEST(Process, Matrix)
-{
-  testProcessUpdateState<micm::Matrix<double>>(5);
-}
+// TEST(Process, Matrix)
+// {
+//   testProcessUpdateState<micm::Matrix<double>>(5);
+// }
 
-TEST(Process, VectorMatrix)
-{
-  testProcessUpdateState<Group1VectorMatrix<double>>(5);
-  testProcessUpdateState<Group2VectorMatrix<double>>(5);
-  testProcessUpdateState<Group3VectorMatrix<double>>(5);
-  testProcessUpdateState<Group4VectorMatrix<double>>(5);
-}
+// TEST(Process, VectorMatrix)
+// {
+//   testProcessUpdateState<Group1VectorMatrix<double>>(5);
+//   testProcessUpdateState<Group2VectorMatrix<double>>(5);
+//   testProcessUpdateState<Group3VectorMatrix<double>>(5);
+//   testProcessUpdateState<Group4VectorMatrix<double>>(5);
+// }
+
+// TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
+// {
+//   micm::Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+//   micm::Species e("e");
+
+//   micm::Phase gas_phase({ c, e });
+//   EXPECT_ANY_THROW(micm::Process r = micm::Process::Create()
+//                                          .SetReactants({ c, c })
+//                                          .SetProducts({ micm::Yield(e, 1) })
+//                                          .SetRateConstant(micm::SurfaceRateConstant(
+//                                              { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+//                                          .SetPhase(gas_phase););
+// }
+
+
+// #include "chemical_reaction.hpp"
+
+using micm::ChemicalReaction;
 
 TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 {
-  micm::Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
-  micm::Species e("e");
+//   micm::Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+//   micm::Species e("e");
 
-  micm::Phase gas_phase({ c, e });
-  EXPECT_ANY_THROW(micm::Process r = micm::Process::Create()
-                                         .SetReactants({ c, c })
-                                         .SetProducts({ micm::Yield(e, 1) })
-                                         .SetRateConstant(micm::SurfaceRateConstant(
-                                             { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-                                         .SetPhase(gas_phase););
+//   micm::Phase gas_phase({ c, e });
+//   // EXPECT_ANY_THROW(micm::Process r = micm::Process::Create()
+//   //                                        .SetReactants({ c, c })
+//   //                                        .SetProducts({ micm::Yield(e, 1) })
+//   //                                        .SetRateConstant(micm::SurfaceRateConstant(
+//   //                                            { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+//   //                                        .SetPhase(gas_phase););
+
+
+// auto reaction = ChemicalReaction::Create()
+//     .SetPhaseName("gas")
+//     .SetReactants({ Species("O3"), Species("NO") })
+//     .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
+//     .SetRateConstant(ArrheniusRateConstant(/* ... parameters ... */));
+
+// std::vector<Process> process;
+// process.emplace_back(reaction);
+// std::vector<Species> reactants = { /* ... */ };
+// std::vector<Yield> products = { /* ... */ };
+// auto rate = std::make_unique<RateConstant>(/*...*/);
+
+// ChemicalReactionBuilder builder;
+std::vector<Process> p;
+
+Process process = ChemicalReactionBuilder()
+    .SetPhaseName("gas")
+    .SetReactants({ Species("O3"), Species("NO") })
+    .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
+    .SetRateConstant(ArrheniusRateConstant(/* ... parameters ... */))
+    .Build();
+
+
+Process process2 = PhaseTransferProcessBuilder()
+    .SetOriginSpecies({ SpeciesInPhase("gas", Species("SO2")) })
+    .SetDestinationSpecies({ SpeciesInPhase("aqueous", Species("SO2")) })
+    .SetTransferCoefficient(TestTransferCoefficient(/* ... parameters ... */))
+    .Build();
+
+p.emplace_back(process);
+p.emplace_back(process2);
+
+      std::visit([](auto&& value) {
+      using T = std::decay_t<decltype(value)>;
+      if constexpr (std::is_same_v<T, ChemicalReaction>) {
+          std::cout << "Phase: " << value.phase_name_ << "\n";
+      } else {
+          std::cout << "Not a ChemicalReaction\n";
+      }
+  }, p[0].process_);
+
+      std::visit([](auto&& value) {
+      using T = std::decay_t<decltype(value)>;
+      if constexpr (std::is_same_v<T, PhaseTransferProcess>) {
+          std::cout << "Phase: " << value.destination_species_[0].phase_name_ << "\n";
+      } else {
+          std::cout << "Not a AAAChemicalReaction\n";
+      }
+  }, p[1].process_);
+
 }

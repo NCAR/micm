@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/lambda_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+// #include <micm/process/branched_rate_constant.hpp>
+// #include <micm/process/lambda_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/process/process_types.hpp>
-#include <micm/process/surface_rate_constant.hpp>
-#include <micm/process/taylor_series_rate_constant.hpp>
-#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-#include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/tunneling_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
+// #include <micm/process/surface_rate_constant.hpp>
+// #include <micm/process/taylor_series_rate_constant.hpp>
+// #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
+// #include <micm/process/troe_rate_constant.hpp>
+// #include <micm/process/tunneling_rate_constant.hpp>
+// #include <micm/process/user_defined_rate_constant.hpp>
