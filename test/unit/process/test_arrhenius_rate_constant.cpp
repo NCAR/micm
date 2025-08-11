@@ -1,4 +1,4 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 

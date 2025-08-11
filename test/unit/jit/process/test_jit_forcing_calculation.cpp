@@ -35,16 +35,23 @@ TEST(JitProcessSet, ForcingFunction)
       micm::StateParameters{ .number_of_rate_constants_ = 3, .variable_names_{ "A", "B", "C", "D", "E", "F" } },
       NUM_GRID_CELLS);
 
-  micm::Process r1 =
-      micm::Process::Create().SetReactants({ a, b }).SetProducts({ micm::Yield{ d, 3.2 } }).SetPhase(gas_phase);
+  micm::Process r1 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ a, b })
+                         .SetProducts({ micm::Yield{ d, 3.2 } })
+                         .SetPhaseName("gas")
+                         .Build();
 
-  micm::Process r2 = micm::Process::Create()
+  micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ e, c })
                          .SetProducts({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
-  micm::Process r3 =
-      micm::Process::Create().SetReactants({ c, b }).SetProducts({ micm::Yield{ a, 1.0 } }).SetPhase(gas_phase);
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ c, b })
+                         .SetProducts({ micm::Yield{ a, 1.0 } })
+                         .SetPhaseName("gas")
+                         .Build();
 
   std::vector<micm::Process> processes{ r1, r2, r3 };
 

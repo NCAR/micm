@@ -50,7 +50,7 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   {
     double elapsed_solve_time = 0;
     solver.CalculateRateConstants(state);
-    
+
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
@@ -71,30 +71,34 @@ int main()
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::Yield(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
-  micm::Process r2 = micm::Process::Create()
+  micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
                          .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
-  micm::Process r3 = micm::Process::Create()
+  micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
                          .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
   auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   std::vector<std::vector<double>> results(n_threads);
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
                     .Build();

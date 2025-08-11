@@ -1,4 +1,5 @@
 #include <micm/JIT.hpp>
+
 #include <chrono>
 #include <iostream>
 
@@ -71,17 +72,19 @@ int main(const int argc, const char* argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::Create()
+  Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
                    .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .SetPhase(gas_phase);
+                   .SetPhaseName("gas")
+                   .Build();
 
-  Process r2 = Process::Create()
+  Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
                    .SetProducts({ Yield(baz, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .SetPhase(gas_phase);
+                   .SetPhaseName("gas")
+                   .Build();
 
   std::vector<Process> reactions{ r1, r2 };
 
@@ -91,7 +94,7 @@ int main(const int argc, const char* argv[])
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
                     .Build();
-  
+
   auto start = std::chrono::high_resolution_clock::now();
   auto jit_solver = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, n_grid_cells>(solver_parameters)
                         .SetSystem(chemical_system)

@@ -4,8 +4,8 @@
 #include <micm/jit/solver/jit_rosenbrock.hpp>
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
-#include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/process_types.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -58,23 +58,26 @@ TEST(JitRosenbrockSolver, MultipleInstances)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::Yield(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
-  micm::Process r2 = micm::Process::Create()
+  micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
                          .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
-  micm::Process r3 = micm::Process::Create()
+  micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
                          .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
   auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });

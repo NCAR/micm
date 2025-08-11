@@ -43,8 +43,8 @@ Adding the custom rate constant is quite simple. Include the header file:
 
 .. code-block:: diff
 
-  #include <micm/process/arrhenius_rate_constant.hpp>
-  #include <micm/process/branched_rate_constant.hpp>
+  #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+  #include <micm/process/rate_constant/branched_rate_constant.hpp>
   #include <micm/process/surface_rate_constant.hpp>
   #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
   #include <micm/process/troe_rate_constant.hpp>
@@ -65,26 +65,26 @@ Then setup the reaction which will use this rate constant:
                       .SetReactants({ f })
                       .SetProducts({ Yield(g, 1) })
                       .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
-                      .SetPhase("gas")
+                      .SetPhaseName("gas")
                       .Build();
 
       + Process r8 = ChemicalReactionBuilder()
       +                 .SetReactants({ c })
       +                 .SetProducts({ Yield(g, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
-      +                 .SetPhase("gas")
+      +                 .SetPhaseName("gas")
                         .Build();
 
       + Process r9 = ChemicalReactionBuilder()
       +                 .SetProducts({ Yield(a, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
-      +                 .SetPhase("gas");
+      +                 .SetPhaseName("gas");
                         .Build();
 
       + Process r10 = ChemicalReactionBuilder()
       +                 .SetReactants({ b })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
-      +                 .SetPhase("gas");
+      +                 .SetPhaseName("gas");
                         .Build();
 
       auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
