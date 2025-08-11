@@ -72,9 +72,8 @@ namespace micm
       : process_(std::forward<T>(process))
     {}
 
-    /// @brief Temporary dispatcher for rate constant calculation.
-    ///        Calls ChemicalReaction::CalculateRateConstants for all ChemicalReaction processes.
-    ///        PhaseTransferProcess support will be added in future refactoring.
+    /// @brief TODO - Temporary wrapper for rate constant calculation
+    ///        Calls ChemicalReaction::CalculateRateConstants for all ChemicalReaction processes
     template<
         class DenseMatrixPolicy,
         class SparseMatrixPolicy,

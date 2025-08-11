@@ -1,4 +1,6 @@
 #include <micm/process/process_set.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver_builder.hpp>

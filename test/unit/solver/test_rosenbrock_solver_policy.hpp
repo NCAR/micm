@@ -1,4 +1,6 @@
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/process.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>

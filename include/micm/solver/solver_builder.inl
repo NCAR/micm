@@ -319,10 +319,17 @@ namespace micm
       StatePolicy>::GetCustomParameterLabels() const
   {
     std::vector<std::string> param_labels{};
+
     for (const auto& reaction : reactions_)
-      if (reaction.rate_constant_)
-        for (auto& label : reaction.rate_constant_->CustomParameters())
-          param_labels.push_back(label);
+    {
+      if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_)) 
+      {
+        for (auto& label : process->rate_constant_->CustomParameters()) 
+        {
+          param_labels.push_back(label); 
+        }
+      }
+    }
     return param_labels;
   }
 
