@@ -72,6 +72,33 @@ namespace micm
       : process_(std::forward<T>(process))
     {}
 
+    /// @brief Temporary dispatcher for rate constant calculation.
+    ///        Calls ChemicalReaction::CalculateRateConstants for all ChemicalReaction processes.
+    ///        PhaseTransferProcess support will be added in future refactoring.
+    template<
+        class DenseMatrixPolicy,
+        class SparseMatrixPolicy,
+        class LuDecompositionPolicy,
+        class LMatrixPolicy,
+        class UMatrixPolicy>
+    static void CalculateRateConstants(
+        const std::vector<Process>& processes,
+        State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state)
+    {
+      // Collect ChemicalReaction objects
+      std::vector<ChemicalReaction> reactions;
+      for (const auto& process : processes)
+      {
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          reactions.push_back(*reaction);
+        }
+        // PhaseTransferProcess support can be added here in the future
+      }
+
+      // Call ChemicalReaction rate constant calculation
+      ChemicalReaction::CalculateRateConstants(reactions, state);
+    }
   };
 
 }  // namespace micm
