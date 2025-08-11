@@ -20,6 +20,7 @@ namespace micm
   private:
     std::vector<SpeciesInPhase> origin_species_;
     std::vector<SpeciesInPhase> destination_species_;
+    SpeciesInPhase solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
 
   public:
@@ -32,6 +33,12 @@ namespace micm
     PhaseTransferProcessBuilder& SetDestinationSpecies(const std::vector<SpeciesInPhase>& destination_species)
     {
       destination_species_ = destination_species;
+      return *this;
+    }
+
+    PhaseTransferProcessBuilder& SetSolvent(const SpeciesInPhase& solvent)
+    {
+      solvent_ = solvent;
       return *this;
     }
 
@@ -52,6 +59,7 @@ namespace micm
     {
       PhaseTransferProcess process(std::move(origin_species_),
                                    std::move(destination_species_),
+                                   std::move(solvent_),
                                    std::move(coefficient_));
       return Process(std::move(process));
     }

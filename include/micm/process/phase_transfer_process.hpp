@@ -36,6 +36,7 @@ namespace micm
   public:
     std::vector<SpeciesInPhase> origin_species_;
     std::vector<SpeciesInPhase> destination_species_;
+    SpeciesInPhase solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
 
     PhaseTransferProcess(PhaseTransferProcess&&) noexcept = default;
@@ -43,15 +44,18 @@ namespace micm
 
     PhaseTransferProcess(std::vector<SpeciesInPhase> origin_species,
                          std::vector<SpeciesInPhase> destination_species,
+                         SpeciesInPhase solvent,
                          std::unique_ptr<TransferCoefficient> coefficient)
       : origin_species_(std::move(origin_species)),
         destination_species_(std::move(destination_species)),
+        solvent_(std::move(solvent)),
         coefficient_(std::move(coefficient))
     {}
 
     PhaseTransferProcess(const PhaseTransferProcess& other)
       : origin_species_(other.origin_species_),
         destination_species_(other.destination_species_),
+        solvent_(other.solvent_),
         coefficient_(other.coefficient_ ? other.coefficient_->Clone() : nullptr)
     {}
 
@@ -61,6 +65,7 @@ namespace micm
       {
         origin_species_ = other.origin_species_;
         destination_species_ = other.destination_species_;
+        solvent_ = other.solvent_;
         coefficient_ = other.coefficient_ ? other.coefficient_->Clone() : nullptr;
       }
 
