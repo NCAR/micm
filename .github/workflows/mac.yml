@@ -44,7 +44,6 @@ jobs:
       matrix:
         compiler:
           - { cpp: g++-14, c: gcc-14}
-          - { cpp: g++-12, c: gcc-12}
           - { cpp: clang++, c: clang}
         build_type: [Release]
     env:
@@ -53,6 +52,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
 
       - name: Run Cmake 
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
