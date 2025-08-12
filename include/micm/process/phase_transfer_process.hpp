@@ -13,6 +13,7 @@
 namespace micm
 {
 
+  /// @brief Associates a Species object with its corresponding phase name
   struct SpeciesInPhase
   {
     std::string phase_name_;
@@ -27,8 +28,7 @@ namespace micm
     }
   };
 
-  /// @brief Represents a phase-transfer process where reactants move from one phase to another,
-  ///        producing products in the destination phase
+  /// @brief Represents a phase-transfer process where species moves from one phase to another
   class PhaseTransferProcess
   {
    public:
