@@ -33,6 +33,7 @@ namespace micm
   };
 
   // TODO - class PhaseTransferCoefficient is a placeholder and will be further developed.
+  //        issue: https://github.com/NCAR/micm/issues/811
   class PhaseTransferCoefficient : public TransferCoefficient
   {
    public:

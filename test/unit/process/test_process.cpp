@@ -158,6 +158,7 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
 // TODO (Jiwon): This should throw, but currently does not.
 //               I don't think the base class Process should know about a derived-class's specific condition.
 //               Feels like a design issue — will revisit later. Commented out for now.
+//               issue: https://github.com/NCAR/micm/issues/810
 // TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 // {
 //   Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });

@@ -73,6 +73,7 @@ namespace micm
 
     /// @brief TODO - Temporary wrapper for rate constant calculation
     ///        Calls ChemicalReaction::CalculateRateConstants for all ChemicalReaction processes
+    ///        issue - https://github.com/NCAR/micm/issues/812
     template<
         class DenseMatrixPolicy,
         class SparseMatrixPolicy,
