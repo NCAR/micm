@@ -94,7 +94,6 @@ namespace micm
         // PhaseTransferProcess support can be added here in the future
       }
 
-      // Call ChemicalReaction rate constant calculation
       ChemicalReaction::CalculateRateConstants(reactions, state);
     }
   };
