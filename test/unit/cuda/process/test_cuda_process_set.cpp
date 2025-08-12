@@ -1,8 +1,8 @@
 #include <micm/cuda/process/cuda_process_set.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/process/process_set.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>

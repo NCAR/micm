@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <memory>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
 #include <micm/system/conditions.hpp>
+
+#include <memory>
 
 namespace micm
 {
@@ -34,7 +35,7 @@ namespace micm
   // TODO - class PhaseTransferCoefficient is a placeholder and will be further developed.
   class PhaseTransferCoefficient : public TransferCoefficient
   {
-  public:
+   public:
     PhaseTransferCoefficient() = default;
 
     virtual ~PhaseTransferCoefficient() = default;
@@ -54,4 +55,4 @@ namespace micm
       return 1.0;
     }
   };
-}
+}  // namespace micm

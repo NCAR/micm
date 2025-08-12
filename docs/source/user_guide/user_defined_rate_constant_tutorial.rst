@@ -73,19 +73,19 @@ Then setup the reaction which will use this rate constant:
       +                 .SetProducts({ Yield(g, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
       +                 .SetPhaseName("gas")
-                        .Build();
+      +                 .Build();
 
       + Process r9 = ChemicalReactionBuilder()
       +                 .SetProducts({ Yield(a, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
-      +                 .SetPhaseName("gas");
-                        .Build();
+      +                 .SetPhaseName("gas")
+      +                 .Build();
 
       + Process r10 = ChemicalReactionBuilder()
       +                 .SetReactants({ b })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
-      +                 .SetPhaseName("gas");
-                        .Build();
+      +                 .SetPhaseName("gas")
+      +                 .Build();
 
       auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
       - auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
