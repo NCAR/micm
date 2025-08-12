@@ -3,7 +3,7 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/property_keys.hpp>

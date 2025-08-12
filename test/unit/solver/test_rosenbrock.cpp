@@ -1,6 +1,6 @@
 #include "test_rosenbrock_solver_policy.hpp"
 
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
@@ -92,11 +92,12 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo })
                          .SetProducts({ micm::Yield(bar, 1) })
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
+                         .SetPhaseName("gas")
+                         .Build();
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {

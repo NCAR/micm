@@ -1,6 +1,7 @@
 #include <micm/cuda/process/cuda_process_set.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
@@ -69,7 +70,8 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     {
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
+    processes.push_back(
+        micm::ChemicalReactionBuilder().SetReactants(reactants).SetProducts(products).SetPhaseName("gas").Build());
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -156,7 +158,8 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     {
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
+    processes.push_back(
+        micm::ChemicalReactionBuilder().SetReactants(reactants).SetProducts(products).SetPhaseName("gas").Build());
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };

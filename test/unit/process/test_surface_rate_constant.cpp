@@ -1,4 +1,4 @@
-#include <micm/process/surface_rate_constant.hpp>
+#include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 

@@ -17,18 +17,20 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, irr_1, irr_2 } };
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::Yield(b, 1), micm::Yield(irr_1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
-                         .SetPhase(gas_phase);
+                         .SetPhaseName("gas")
+                         .Build();
 
   micm::Process r2 =
-      micm::Process::Create()
+      micm::ChemicalReactionBuilder()
           .SetReactants({ b })
           .SetProducts({ micm::Yield(c, 1), micm::Yield(irr_2, 1) })
           .SetRateConstant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
-          .SetPhase(gas_phase);
+          .SetPhaseName("gas")
+          .Build();
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 

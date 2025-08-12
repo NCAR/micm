@@ -1,4 +1,4 @@
-#include <micm/process/branched_rate_constant.hpp>
+#include <micm/process/rate_constant/branched_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
