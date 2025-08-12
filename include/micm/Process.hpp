@@ -19,5 +19,5 @@
 #include <micm/process/rate_constant/troe_rate_constant.hpp>
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/process/transfer_coefficient/phase_transfer_rate_constant.hpp>
+#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>

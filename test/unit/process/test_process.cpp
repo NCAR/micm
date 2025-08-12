@@ -4,6 +4,7 @@
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
+#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -117,7 +118,7 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
                                .SetOriginSpecies({ SpeciesInPhase("gas", Species("SO2")) })
                                .SetDestinationSpecies({ SpeciesInPhase("aqueous", Species("SO2")) })
                                .SetSolvent(SpeciesInPhase("aqueous", Species("H2O")))
-                               .SetTransferCoefficient(TestTransferCoefficient())
+                               .SetTransferCoefficient(PhaseTransferCoefficient())
                                .Build();
 
   // Check that the first process is a ChemicalReaction
