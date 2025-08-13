@@ -144,7 +144,6 @@ MatrixPolicy<double, OrderingPolicy> testSingleBlockMatrix()
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(3, 2)
-                     .WithElement(0, 1)
                      .WithElement(2, 3)
                      .WithElement(1, 1)
                      .WithElement(2, 1);
@@ -332,6 +331,9 @@ MatrixPolicy<double, OrderingPolicy> testMultiBlockMatrix()
   matrix[43][3][2] = 29;
   EXPECT_EQ(matrix[43][3][2], 29);
 
+  matrix[33][2][3] = 79;
+  EXPECT_EQ(matrix[33][2][3], 79);
+  
   matrix[2][2][3] = 64;
   EXPECT_EQ(matrix[2][2][3], 64);
 
