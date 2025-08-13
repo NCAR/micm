@@ -139,9 +139,9 @@ MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
+MatrixPolicy<double, OrderingPolicy> testSingleBlockMatrix()
 {
-  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(3, 2)
                      .WithElement(0, 1)
@@ -156,7 +156,7 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
     EXPECT_EQ(builder.NumberOfElements(), 5);
   }
 
-  MatrixPolicy<int, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
   {
     auto diagonal_ids = matrix.DiagonalIndices(0);
@@ -240,7 +240,6 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(3, 2)
-                     .WithElement(0, 1)
                      .WithElement(2, 3)
                      .WithElement(1, 1)
                      .WithElement(2, 1);
@@ -305,31 +304,33 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
+MatrixPolicy<double, OrderingPolicy> testMultiBlockMatrix()
 {
-  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(3, 2)
-                     .WithElement(0, 1)
                      .WithElement(2, 3)
                      .WithElement(1, 1)
                      .WithElement(2, 1)
                      .InitialValue(24)
-                     .SetNumberOfBlocks(3);
+                     .SetNumberOfBlocks(53);
   // 0 X 0 0
   // 0 X 0 0
   // 0 X 0 X
   // 0 0 X 0
 
-  EXPECT_EQ(builder.NumberOfElements(), 5 * 3);
+  EXPECT_EQ(builder.NumberOfElements(), 5 * 53);
 
-  MatrixPolicy<int, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 5);
 
   EXPECT_EQ(matrix[0][2][1], 24);
   matrix[0][2][1] = 45;
   EXPECT_EQ(matrix[0][2][1], 45);
+
+  matrix[43][3][2] = 29;
+  EXPECT_EQ(matrix[43][3][2], 29);
 
   matrix[2][2][3] = 64;
   EXPECT_EQ(matrix[2][2][3], 64);
@@ -357,7 +358,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 0, 2); } catch (const std::system_error& e) {
+      try { std::size_t elem = matrix.VectorIndex(54, 0, 2); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
@@ -387,7 +388,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { matrix[3][0][0] = 2; } catch (const std::system_error& e) {
+      try { matrix[53][0][0] = 2; } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
