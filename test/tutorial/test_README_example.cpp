@@ -19,14 +19,14 @@ int main(const int argc, const char *argv[])
                    .SetReactants({ foo })
                    .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
                    .SetProducts({ Yield(baz, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   std::vector<Process> reactions{ r1, r2 };

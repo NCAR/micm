@@ -23,7 +23,7 @@ namespace micm
   class ChemicalReaction
   {
    public:
-    std::string phase_name_;
+    Phase phase_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
@@ -32,11 +32,11 @@ namespace micm
     ChemicalReaction& operator=(ChemicalReaction&&) noexcept = default;
 
     ChemicalReaction(
-        std::string phase,
+        Phase phase,
         std::vector<Species> reactants,
         std::vector<Yield> products,
         std::unique_ptr<RateConstant> rate_constant)
-        : phase_name_(std::move(phase)),
+        : phase_(std::move(phase)),
           reactants_(std::move(reactants)),
           products_(std::move(products)),
           rate_constant_(std::move(rate_constant))
@@ -44,7 +44,7 @@ namespace micm
     }
 
     ChemicalReaction(const ChemicalReaction& other)
-        : phase_name_(other.phase_name_),
+        : phase_(other.phase_),
           reactants_(other.reactants_),
           products_(other.products_),
           rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr)
@@ -55,7 +55,7 @@ namespace micm
     {
       if (this != &other)
       {
-        phase_name_ = other.phase_name_;
+        phase_ = other.phase_;
         reactants_ = other.reactants_;
         products_ = other.products_;
         rate_constant_ = other.rate_constant_ ? other.rate_constant_->Clone() : nullptr;

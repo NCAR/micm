@@ -65,26 +65,26 @@ Then setup the reaction which will use this rate constant:
                       .SetReactants({ f })
                       .SetProducts({ Yield(g, 1) })
                       .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
-                      .SetPhaseName("gas")
+                      .SetPhase(gas_phase)
                       .Build();
 
       + Process r8 = ChemicalReactionBuilder()
       +                 .SetReactants({ c })
       +                 .SetProducts({ Yield(g, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
-      +                 .SetPhaseName("gas")
+      +                 .SetPhase(gas_phase)
       +                 .Build();
 
       + Process r9 = ChemicalReactionBuilder()
       +                 .SetProducts({ Yield(a, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
-      +                 .SetPhaseName("gas")
+      +                 .SetPhase(gas_phase)
       +                 .Build();
 
       + Process r10 = ChemicalReactionBuilder()
       +                 .SetReactants({ b })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
-      +                 .SetPhaseName("gas")
+      +                 .SetPhase(gas_phase)
       +                 .Build();
 
       auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });

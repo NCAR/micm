@@ -27,27 +27,33 @@ void testProcessSet()
 
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_rate_constants_ = 3,
-                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } },
+                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 
       2);
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{foo, bar, baz, quz, quuz, corge } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })
                          .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar, qux })
                          .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r3 = micm::ChemicalReactionBuilder().SetReactants({ quz }).SetProducts({}).SetPhaseName("gas").Build();
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                          .SetReactants({ quz })
+                          .SetProducts({})
+                          .SetPhase(gas_phase)
+                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ baz, qux })
                          .SetProducts({ micm::Yield(bar, 1), micm::Yield(quz, 2.5) })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
@@ -162,7 +168,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     species.push_back(micm::Species{ std::to_string(i) });
     species_names.push_back(std::to_string(i));
   }
-
+  micm::Phase gas_phase{ species };
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
                                                                 .number_of_rate_constants_ = n_reactions,
                                                                 .variable_names_{ species_names },
@@ -183,7 +189,11 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     {
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
-    auto proc = micm::ChemicalReactionBuilder().SetReactants(reactants).SetProducts(products).SetPhaseName("gas").Build();
+    auto proc = micm::ChemicalReactionBuilder()
+                    .SetReactants(reactants)
+                    .SetProducts(products)
+                    .SetPhase(gas_phase)
+                    .Build();
     processes.push_back(proc);
   }
   RatesPolicy set = RatesPolicy(processes, state.variable_map_);

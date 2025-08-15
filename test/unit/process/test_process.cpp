@@ -20,13 +20,15 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Species bar("bar");
   bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
 
+  Phase gas_phase {std::vector<micm::Species>{ foo, bar } };
+
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
   SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
   UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
-  Process r1 = ChemicalReactionBuilder().SetRateConstant(rc1).SetReactants({ foo, bar }).Build();
-  Process r2 = ChemicalReactionBuilder().SetRateConstant(rc2).Build();
-  Process r3 = ChemicalReactionBuilder().SetRateConstant(rc3).Build();
+  Process r1 = ChemicalReactionBuilder().SetPhase(gas_phase).SetRateConstant(rc1).SetReactants({ foo, bar }).Build();
+  Process r2 = ChemicalReactionBuilder().SetPhase(gas_phase).SetRateConstant(rc2).Build();
+  Process r3 = ChemicalReactionBuilder().SetPhase(gas_phase).SetRateConstant(rc3).Build();
   std::vector<Process> processes = { r1, r2, r3 };
 
   std::vector<std::string> param_labels{};
@@ -105,9 +107,17 @@ TEST(Process, VectorMatrix)
 
 TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
 {
+
+  auto O3 = Species("O3");
+  auto NO = Species("NO");
+  auto NO2 = Species("NO2");
+  auto O2 = Species("O2");
+  
+  Phase gas_phase{ std::vector<Species>{ O3, NO, NO2, O2 } };
+
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
-                                  .SetPhaseName("gas")
+                                  .SetPhase(gas_phase)
                                   .SetReactants({ Species("O3"), Species("NO") })
                                   .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
                                   .SetRateConstant(ArrheniusRateConstant())
@@ -128,7 +138,7 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, ChemicalReaction>)
         {
-          EXPECT_EQ(value.phase_name_, "gas");
+          EXPECT_EQ(value.phase_.name_, "gas");
         }
         else
         {
@@ -165,7 +175,7 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
 //   Species e("e");
 
 //   EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-//                                          .SetPhaseName("gas")
+//                                          .SetPhase(gas_phase)
 //                                          .SetReactants({ c, c })
 //                                          .SetProducts({ Yield(e, 1) })
 //                                          .SetRateConstant(SurfaceRateConstant(

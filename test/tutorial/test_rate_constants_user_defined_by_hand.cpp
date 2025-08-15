@@ -30,7 +30,7 @@ int main(const int argc, const char* argv[])
                    .SetReactants({ a })
                    .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-4, .B_ = 0, .C_ = 110 }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   // a branched reaction has two output pathways
@@ -42,7 +42,7 @@ int main(const int argc, const char* argv[])
                    .SetReactants({ b })
                    .SetProducts({ Yield(c, 1) })
                    .SetRateConstant(BranchedRateConstant(branched_params))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   branched_params.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
@@ -50,7 +50,7 @@ int main(const int argc, const char* argv[])
                    .SetReactants({ b })
                    .SetProducts({ Yield(d, 1) })
                    .SetRateConstant(BranchedRateConstant(branched_params))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   // A surface rate constant also needs to know the effective radius and particle number concentration
@@ -59,7 +59,7 @@ int main(const int argc, const char* argv[])
                    .SetReactants({ c })
                    .SetProducts({ Yield(e, 1) })
                    .SetRateConstant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r5 = ChemicalReactionBuilder()
@@ -73,7 +73,7 @@ int main(const int argc, const char* argv[])
                                                                             .kinf_C_ = 402.1,
                                                                             .Fc_ = 0.9,
                                                                             .N_ = 1.2 }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   // to have a stoichiemetric coefficient of more than one for reactants,
@@ -90,33 +90,33 @@ int main(const int argc, const char* argv[])
                                               .kinf_C_ = 24.0,
                                               .Fc_ = 0.9,
                                               .N_ = 0.8 }))
-          .SetPhaseName("gas")
+          .SetPhase(gas_phase)
           .Build();
 
   Process r7 = ChemicalReactionBuilder()
                    .SetReactants({ f })
                    .SetProducts({ Yield(g, 1) })
                    .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r8 = ChemicalReactionBuilder()
                    .SetReactants({ c })
                    .SetProducts({ Yield(g, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "my photolysis rate" }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r9 = ChemicalReactionBuilder()
                    .SetProducts({ Yield(a, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "my emission rate" }))
-                   .SetPhaseName("gas")
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r10 = ChemicalReactionBuilder()
                     .SetReactants({ b })
                     .SetRateConstant(UserDefinedRateConstant({ .label_ = "my loss rate" }))
-                    .SetPhaseName("gas")
+                    .SetPhase(gas_phase)
                     .Build();
 
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });

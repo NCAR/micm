@@ -33,21 +33,21 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })
                          .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar })
                          .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }))
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ quz })
                          .SetProducts({})
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }))
                          .Build();
 

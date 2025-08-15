@@ -21,7 +21,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                          .SetReactants({ a })
                          .SetProducts({ micm::Yield(b, 1), micm::Yield(irr_1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 =
@@ -29,7 +29,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
           .SetReactants({ b })
           .SetProducts({ micm::Yield(c, 1), micm::Yield(irr_2, 1) })
           .SetRateConstant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
-          .SetPhaseName("gas")
+          .SetPhase(gas_phase)
           .Build();
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();

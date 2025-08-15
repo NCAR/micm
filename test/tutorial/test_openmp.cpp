@@ -75,21 +75,21 @@ int main()
                          .SetReactants({ a })
                          .SetProducts({ micm::Yield(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
                          .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
                          .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };

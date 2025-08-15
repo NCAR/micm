@@ -57,7 +57,7 @@ void test_analytical_surface_rxn(
                                       .SetReactants({ foo })
                                       .SetProducts({ micm::Yield(bar, bar_yield), micm::Yield(baz, baz_yield) })
                                       .SetRateConstant(surface)
-                                      .SetPhaseName("gas")
+                                      .SetPhase(gas_phase)
                                       .Build();
 
   auto reactions = std::vector<micm::Process>{ surface_process };

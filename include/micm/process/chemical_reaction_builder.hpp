@@ -5,6 +5,7 @@
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
 #include <micm/system/species.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/system/yield.hpp>
 
 #include <memory>
@@ -18,7 +19,7 @@ namespace micm
   class ChemicalReactionBuilder
   {
    private:
-    std::string phase_name_;
+    Phase phase_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
@@ -27,9 +28,9 @@ namespace micm
     /// @brief Sets the phase name for the chemical reaction (e.g., "gas", "aqueous")
     /// @param phase A string representing the phase in which the reaction occurs
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetPhaseName(const std::string& phase)
+    ChemicalReactionBuilder& SetPhase(const Phase& phase)
     {
-      phase_name_ = phase;
+      phase_ = phase;
       return *this;
     }
 
@@ -78,7 +79,7 @@ namespace micm
     Process Build()
     {
       ChemicalReaction reaction(
-          std::move(phase_name_), std::move(reactants_), std::move(products_), std::move(rate_constant_));
+          std::move(phase_), std::move(reactants_), std::move(products_), std::move(rate_constant_));
       return Process(std::move(reaction));
     }
   };

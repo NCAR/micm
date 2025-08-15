@@ -96,7 +96,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
                          .SetReactants({ foo })
                          .SetProducts({ micm::Yield(bar, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)

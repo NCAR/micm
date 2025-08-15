@@ -39,19 +39,19 @@ TEST(JitProcessSet, ForcingFunction)
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a, b })
                          .SetProducts({ micm::Yield{ d, 3.2 } })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ e, c })
                          .SetProducts({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ c, b })
                          .SetProducts({ micm::Yield{ a, 1.0 } })
-                         .SetPhaseName("gas")
+                         .SetPhase(gas_phase)
                          .Build();
 
   std::vector<micm::Process> processes{ r1, r2, r3 };

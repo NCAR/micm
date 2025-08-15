@@ -29,7 +29,7 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
           .SetReactants({ micm::Species("O1D"), micm::Species("N2") })
           .SetProducts({ micm::Yield(micm::Species("O"), 1), micm::Yield(micm::Species("N2"), 1) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 }))
-          .SetPhaseName("gas")
+          .SetPhase(gas_phase)
           .Build();
 
   micm::Process r2 =
@@ -37,7 +37,7 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
           .SetReactants({ micm::Species("O1D"), micm::Species("O2") })
           .SetProducts({ micm::Yield(micm::Species("O"), 1), micm::Yield(micm::Species("O2"), 1) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 }))
-          .SetPhaseName("gas")
+          .SetPhase(gas_phase)
           .Build();
 
   micm::Process r3 =
@@ -45,7 +45,7 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
           .SetReactants({ micm::Species("O"), micm::Species("O3") })
           .SetProducts({ micm::Yield(micm::Species("O2"), 2) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 }))
-          .SetPhaseName("gas")
+          .SetPhase(gas_phase)
           .Build();
 
   micm::Process r4 =
@@ -53,28 +53,28 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
           .SetReactants({ micm::Species("O"), micm::Species("O2"), micm::Species("M") })
           .SetProducts({ micm::Yield(micm::Species("O3"), 1), micm::Yield(micm::Species("M"), 1) })
           .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 }))
-          .SetPhaseName("gas")
+          .SetPhase(gas_phase)
           .Build();
 
   micm::Process photo_1 = micm::ChemicalReactionBuilder()
                               .SetReactants({ micm::Species("O2") })
                               .SetProducts({ micm::Yield(micm::Species("O"), 2) })
                               .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
-                              .SetPhaseName("gas")
+                              .SetPhase(gas_phase)
                               .Build();
 
   micm::Process photo_2 = micm::ChemicalReactionBuilder()
                               .SetReactants({ micm::Species("O3") })
                               .SetProducts({ micm::Yield(micm::Species("O1D"), 1), micm::Yield(micm::Species("O2"), 1) })
                               .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
-                              .SetPhaseName("gas")
+                              .SetPhase(gas_phase)
                               .Build();
 
   micm::Process photo_3 = micm::ChemicalReactionBuilder()
                               .SetReactants({ micm::Species("O3") })
                               .SetProducts({ micm::Yield(micm::Species("O"), 1), micm::Yield(micm::Species("O2"), 1) })
                               .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
-                              .SetPhaseName("gas")
+                              .SetPhase(gas_phase)
                               .Build();
 
   return { photo_1, photo_2, photo_3, r1, r2, r3, r4 };
