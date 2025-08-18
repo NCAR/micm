@@ -3,6 +3,7 @@
 
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_column.hpp>
+
 #include <gtest/gtest.h>
 
 /* Below are the policy tests on the CPU */
@@ -227,7 +228,9 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
 TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 {
   const std::size_t cuda_matrix_vector_length = 37;
-  auto matrix = testSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
+  auto matrix = testSingleBlockMatrix<
+      micm::CudaSparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -247,7 +250,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 2; // in this example, 2 refers to matrix[2,1] which is non-zero
+  std::size_t elem_id = 2;  // in this example, 2 refers to matrix[2,1] which is non-zero
   micm::cuda::AddOneElementDriver(param, elem_id, 0, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
@@ -257,7 +260,9 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
 {
   const std::size_t cuda_matrix_vector_length = 1;
-  auto matrix = testMultiBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
+  auto matrix = testMultiBlockMatrix<
+      micm::CudaSparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
@@ -275,7 +280,7 @@ TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 4; // in this example, 4 refers to matrix[2,3] which is non-zero
+  std::size_t elem_id = 4;  // in this example, 4 refers to matrix[2,3] which is non-zero
   std::size_t grid_id = 33;
   micm::cuda::AddOneElementDriver(param, elem_id, grid_id, cuda_matrix_vector_length);
   matrix.CopyToHost();

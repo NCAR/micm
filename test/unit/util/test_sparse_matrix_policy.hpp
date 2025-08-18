@@ -333,7 +333,7 @@ MatrixPolicy<double, OrderingPolicy> testMultiBlockMatrix()
 
   matrix[33][2][3] = 79;
   EXPECT_EQ(matrix[33][2][3], 79);
-  
+
   matrix[2][2][3] = 64;
   EXPECT_EQ(matrix[2][2][3], 64);
 
