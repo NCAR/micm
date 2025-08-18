@@ -39,7 +39,6 @@ namespace micm
       {
         d_data[offset] += 1;
       }
-      // printf("AddOneElement: d_data = %f\n", d_data[tid]);
     }
 
     void AddOneDriver(CudaMatrixParam& param)
