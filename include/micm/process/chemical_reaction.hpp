@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/process/process_error.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
@@ -23,42 +24,73 @@ namespace micm
   class ChemicalReaction
   {
    public:
-    Phase phase_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
+    const Phase* phase_;
 
     ChemicalReaction(ChemicalReaction&&) noexcept = default;
     ChemicalReaction& operator=(ChemicalReaction&&) noexcept = default;
 
     ChemicalReaction(
-        Phase phase,
         std::vector<Species> reactants,
         std::vector<Yield> products,
-        std::unique_ptr<RateConstant> rate_constant)
-        : phase_(std::move(phase)),
-          reactants_(std::move(reactants)),
+        std::unique_ptr<RateConstant> rate_constant,
+        const Phase* phase)
+        : reactants_(std::move(reactants)),
           products_(std::move(products)),
-          rate_constant_(std::move(rate_constant))
+          rate_constant_(std::move(rate_constant)),
+          phase_(phase)
     {
+      if (!rate_constant)
+      {
+        std::string msg = "Rate Constant pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
+      }
+      if (!phase_)
+      {
+        std::string msg = "Phase pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
+      }
     }
 
     ChemicalReaction(const ChemicalReaction& other)
-        : phase_(other.phase_),
-          reactants_(other.reactants_),
+        : reactants_(other.reactants_),
           products_(other.products_),
-          rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr)
+          rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr),
+          phase_(other.phase_)
     {
+      if (!rate_constant)
+      {
+        std::string msg = "Rate Constant pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
+      }
+      if (!phase_)
+      {
+        std::string msg = "Phase pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
+      }
     }
 
     ChemicalReaction& operator=(const ChemicalReaction& other)
     {
       if (this != &other)
       {
-        phase_ = other.phase_;
+        if (!other.rate_constant_)
+        {
+          std::string msg = "Rate Constant pointer cannot be null.";
+          throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
+        }
+        if (!other.phase_)
+        {
+          std::string msg = "Phase pointer cannot be null.";
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
+        }
+
         reactants_ = other.reactants_;
         products_ = other.products_;
-        rate_constant_ = other.rate_constant_ ? other.rate_constant_->Clone() : nullptr;
+        rate_constant_ = other.rate_constant_->Clone();
+        phase_= other.phase_;
       }
 
       return *this;

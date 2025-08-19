@@ -4,6 +4,7 @@
 
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/process_error.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/yield.hpp>
@@ -19,36 +20,27 @@ namespace micm
   class ChemicalReactionBuilder
   {
    private:
-    Phase phase_;
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
+    const Phase* phase_;
 
    public:
-    /// @brief Sets the phase name for the chemical reaction (e.g., "gas", "aqueous")
-    /// @param phase A string representing the phase in which the reaction occurs
-    /// @return Reference to the builder
-    ChemicalReactionBuilder& SetPhase(const Phase& phase)
-    {
-      phase_ = phase;
-      return *this;
-    }
-
     /// @brief Sets the list of reactant species involved in the chemical reaction
     /// @param reactants A vector of Species objects representing the reactants
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetReactants(const std::vector<Species>& reactants)
+    ChemicalReactionBuilder& SetReactants(std::vector<Species> reactants)
     {
-      reactants_ = reactants;
+      reactants_ = std::move(reactants);
       return *this;
     }
 
     /// @brief Sets the list of product species and their yields for the chemical reaction
     /// @param products A vector of Yield objects representing the products
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetProducts(const std::vector<Yield>& products)
+    ChemicalReactionBuilder& SetProducts(const std::vector<Yield> products)
     {
-      products_ = products;
+      products_ = std::move(products);
       return *this;
     }
 
@@ -69,7 +61,26 @@ namespace micm
     ///@return Reference to the builder
     ChemicalReactionBuilder& SetRateConstant(std::unique_ptr<RateConstant> rate_constant)
     {
+      if (!rate_constant)
+      {
+        std::string msg = "Rate Constant pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
+      }
       rate_constant_ = std::move(rate_constant);
+      return *this;
+    }
+
+    /// @brief Sets the phase name for the chemical reaction (e.g., "gas", "aqueous")
+    /// @param phase A string representing the phase in which the reaction occurs
+    /// @return Reference to the builder
+    ChemicalReactionBuilder& SetPhase(const Phase* phase)
+    {
+      if (!phase)
+      {
+        std::string msg = "Phase pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
+      }
+      phase_ = phase;
       return *this;
     }
 
@@ -78,8 +89,22 @@ namespace micm
     /// @return A Process containing the constructed ChemicalReaction
     Process Build()
     {
+      if (!rate_constant_)
+      {
+        std::string msg = "Rate Constant pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
+      }
+      if (!phase_)
+      {
+        std::string msg = "Phase pointer cannot be null.";
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
+      }
+
       ChemicalReaction reaction(
-          std::move(phase_), std::move(reactants_), std::move(products_), std::move(rate_constant_));
+          std::move(reactants_), 
+          std::move(products_), 
+          std::move(rate_constant_),
+          phase_);
       return Process(std::move(reaction));
     }
   };
