@@ -42,16 +42,7 @@ namespace micm
           rate_constant_(std::move(rate_constant)),
           phase_(phase)
     {
-      if (!rate_constant)
-      {
-        std::string msg = "Rate Constant pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
-      }
-      if (!phase_)
-      {
-        std::string msg = "Phase pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
-      }
+      Validate();
     }
 
     ChemicalReaction(const ChemicalReaction& other)
@@ -60,16 +51,7 @@ namespace micm
           rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr),
           phase_(other.phase_)
     {
-      if (!rate_constant)
-      {
-        std::string msg = "Rate Constant pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
-      }
-      if (!phase_)
-      {
-        std::string msg = "Phase pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
-      }
+      Validate();
     }
 
     ChemicalReaction& operator=(const ChemicalReaction& other)
@@ -77,20 +59,15 @@ namespace micm
       if (this != &other)
       {
         if (!other.rate_constant_)
-        {
-          std::string msg = "Rate Constant pointer cannot be null.";
-          throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
-        }
+          throw std::system_error(
+              make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
         if (!other.phase_)
-        {
-          std::string msg = "Phase pointer cannot be null.";
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
-        }
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
 
         reactants_ = other.reactants_;
         products_ = other.products_;
         rate_constant_ = other.rate_constant_->Clone();
-        phase_= other.phase_;
+        phase_ = other.phase_;
       }
 
       return *this;
@@ -121,6 +98,18 @@ namespace micm
     static void CalculateRateConstants(
         const std::vector<ChemicalReaction>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state);
+
+   private:
+    void Validate() const
+    {
+      if (!rate_constant_)
+        throw std::system_error(
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+      if (!phase_)
+        throw std::system_error(
+            make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
+    }
+
   };
 
   template<

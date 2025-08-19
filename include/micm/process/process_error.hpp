@@ -10,9 +10,10 @@
 enum class MicmProcessErrc
 {
   ReactantDoesNotExist = MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
-  ProductDoesNotExist  = MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST,
+  ProductDoesNotExist = MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST,
+  PhaseIsNotSet = MICM_PROCESS_ERROR_CODE_PHASE_IS_NOT_SET,
   RateConstantIsNotSet = MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
-  PhaseIsNotSet        = MICM_PROCESS_ERROR_CODE_PHASE_IS_NOT_SET,
+  TransferCoefficientIsNotSet = MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
 };
 
 namespace std
@@ -23,11 +24,10 @@ namespace std
   };
 }  // namespace std
 
-
 class MicmProcessErrorCategory : public std::error_category
 {
-  public:
-  const char *name() const noexcept override
+ public:
+  const char* name() const noexcept override
   {
     return MICM_ERROR_CATEGORY_PROCESS;
   }
@@ -37,9 +37,9 @@ class MicmProcessErrorCategory : public std::error_category
     switch (static_cast<MicmProcessErrc>(ev))
     {
       case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
-      case MicmProcessErrc::ProductDoesNotExist:  return "Product does not exist";
+      case MicmProcessErrc::ProductDoesNotExist: return "Product does not exist";
       case MicmProcessErrc::RateConstantIsNotSet: return "Rate constant is not set";
-      case MicmProcessErrc::PhaseIsNotSet:        return "Phase is not set";
+      case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
       default: return "Unknown error";
     }
   }

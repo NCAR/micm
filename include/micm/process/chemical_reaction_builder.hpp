@@ -5,8 +5,8 @@
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_error.hpp>
-#include <micm/system/species.hpp>
 #include <micm/system/phase.hpp>
+#include <micm/system/species.hpp>
 #include <micm/system/yield.hpp>
 
 #include <memory>
@@ -23,6 +23,7 @@ namespace micm
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
+    /// @brief Builder does not take ownership of phase
     const Phase* phase_;
 
    public:
@@ -38,7 +39,7 @@ namespace micm
     /// @brief Sets the list of product species and their yields for the chemical reaction
     /// @param products A vector of Yield objects representing the products
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetProducts(const std::vector<Yield> products)
+    ChemicalReactionBuilder& SetProducts(std::vector<Yield> products)
     {
       products_ = std::move(products);
       return *this;
@@ -61,11 +62,10 @@ namespace micm
     ///@return Reference to the builder
     ChemicalReactionBuilder& SetRateConstant(std::unique_ptr<RateConstant> rate_constant)
     {
-      if (!rate_constant)
-      {
-        std::string msg = "Rate Constant pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
-      }
+      if (!rate_constant_)
+        throw std::system_error(
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+
       rate_constant_ = std::move(rate_constant);
       return *this;
     }
@@ -75,11 +75,9 @@ namespace micm
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetPhase(const Phase* phase)
     {
-      if (!phase)
-      {
-        std::string msg = "Phase pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
-      }
+      if (!phase_)
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
+
       phase_ = phase;
       return *this;
     }
@@ -90,21 +88,12 @@ namespace micm
     Process Build()
     {
       if (!rate_constant_)
-      {
-        std::string msg = "Rate Constant pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::RateConstantIsNotSet), msg);
-      }
+        throw std::system_error(
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
       if (!phase_)
-      {
-        std::string msg = "Phase pointer cannot be null.";
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), msg);
-      }
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
 
-      ChemicalReaction reaction(
-          std::move(reactants_), 
-          std::move(products_), 
-          std::move(rate_constant_),
-          phase_);
+      ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));
     }
   };

@@ -13,64 +13,93 @@
 namespace micm
 {
 
-  /// @brief Associates a Species object with its corresponding phase name
-  struct SpeciesInPhase
-  {
-    std::string phase_name_;
-    Species species_;
-
-    SpeciesInPhase() = default;
-
-    SpeciesInPhase(const std::string& phase_name, const Species& species)
-        : phase_name_(phase_name),
-          species_(species)
-    {
-    }
-  };
-
   /// @brief Represents a phase-transfer process where species moves from one phase to another
   class PhaseTransferProcess
   {
    public:
-    std::vector<SpeciesInPhase> origin_species_;
-    std::vector<SpeciesInPhase> destination_species_;
-    SpeciesInPhase solvent_;
+    const Phase* gas_phase_;
+    const Phase* condensed_phase_;
+    const Phase* solvent_phase_;
+    std::vector<Species> gas_species_;
+    std::vector<Yield> condensed_species_;
+    Species solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
 
     PhaseTransferProcess(PhaseTransferProcess&&) noexcept = default;
     PhaseTransferProcess& operator=(PhaseTransferProcess&&) noexcept = default;
 
     PhaseTransferProcess(
-        std::vector<SpeciesInPhase> origin_species,
-        std::vector<SpeciesInPhase> destination_species,
-        SpeciesInPhase solvent,
+        const Phase* gas_phase,
+        const Phase* condensed_phase,
+        const Phase* solvent_phase,
+        std::vector<Species> gas_species,
+        std::vector<Yield> condensed_species,
+        Species solvent,
         std::unique_ptr<TransferCoefficient> coefficient)
-        : origin_species_(std::move(origin_species)),
-          destination_species_(std::move(destination_species)),
+        : gas_phase_(gas_phase),
+          condensed_phase_(condensed_phase),
+          solvent_phase_(solvent_phase),
+          gas_species_(std::move(gas_species)),
+          condensed_species_(std::move(condensed_species)),
           solvent_(std::move(solvent)),
           coefficient_(std::move(coefficient))
     {
+      Validate();
     }
 
     PhaseTransferProcess(const PhaseTransferProcess& other)
-        : origin_species_(other.origin_species_),
-          destination_species_(other.destination_species_),
+        : gas_phase_(other.gas_phase_),
+          condensed_phase_(other.condensed_phase_),
+          solvent_phase_(other.solvent_phase_),
+          gas_species_(other.gas_species_),
+          condensed_species_(other.condensed_species_),
           solvent_(other.solvent_),
           coefficient_(other.coefficient_ ? other.coefficient_->Clone() : nullptr)
     {
+      Validate();
     }
 
     PhaseTransferProcess& operator=(const PhaseTransferProcess& other)
     {
       if (this != &other)
       {
-        origin_species_ = other.origin_species_;
-        destination_species_ = other.destination_species_;
+        if (!other.gas_phase_)
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas phase pointer cannot be null.");
+        if (!other.condensed_phase_)
+          throw std::system_error(
+              make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed phase pointer cannot be null.");
+        if (!other.solvent_phase_)
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent phase pointer cannot be null.");
+        if (!other.coefficient_)
+          throw std::system_error(
+              make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+              "Phase Transfer Coefficient pointer cannot be null.");
+
+        gas_phase_ = other.gas_phase_;
+        condensed_phase_ = other.condensed_phase_;
+        solvent_phase_ = other.solvent_phase_;
+        gas_species_ = other.gas_species_;
+        condensed_species_ = other.condensed_species_;
         solvent_ = other.solvent_;
-        coefficient_ = other.coefficient_ ? other.coefficient_->Clone() : nullptr;
+        coefficient_ = other.coefficient_->Clone();
       }
 
       return *this;
+    }
+
+   private:
+    void Validate() const
+    {
+      if (!gas_phase_)
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas phase pointer cannot be null.");
+      if (!condensed_phase_)
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed phase pointer cannot be null.");
+      if (!solvent_phase_)
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent phase pointer cannot be null.");
+      if (!coefficient_)
+        throw std::system_error(
+            make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+            "Phase Transfer Coefficient pointer cannot be null.");
     }
   };
 
