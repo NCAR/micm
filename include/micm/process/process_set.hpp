@@ -11,47 +11,6 @@
 #include <cassert>
 #include <vector>
 
-enum class MicmProcessSetErrc
-{
-  ReactantDoesNotExist = MICM_PROCESS_SET_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
-  ProductDoesNotExist = MICM_PROCESS_SET_ERROR_CODE_PRODUCT_DOES_NOT_EXIST
-};
-
-namespace std
-{
-  template<>
-  struct is_error_condition_enum<MicmProcessSetErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmProcessSetErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return MICM_ERROR_CATEGORY_PROCESS_SET;
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmProcessSetErrc>(ev))
-      {
-        case MicmProcessSetErrc::ReactantDoesNotExist: return "Reactant does not exist";
-        case MicmProcessSetErrc::ProductDoesNotExist: return "Product does not exist";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const MicmProcessSetErrorCategory MICM_PROCESS_SET_ERROR{};
-}  // namespace
-
-inline std::error_code make_error_code(MicmProcessSetErrc e)
-{
-  return { static_cast<int>(e), MICM_PROCESS_SET_ERROR };
-}
 
 namespace micm
 {

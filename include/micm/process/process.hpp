@@ -14,46 +14,6 @@
 #include <variant>
 #include <vector>
 
-enum class MicmProcessErrc
-{
-  TooManyReactantsForSurfaceReaction = MICM_PROCESS_ERROR_CODE_TOO_MANY_REACTANTS_FOR_SURFACE_REACTION
-};
-
-namespace std
-{
-  template<>
-  struct is_error_condition_enum<MicmProcessErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmProcessErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return MICM_ERROR_CATEGORY_PROCESS;
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmProcessErrc>(ev))
-      {
-        case MicmProcessErrc::TooManyReactantsForSurfaceReaction: return "A surface reaction can only have one reactant";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const MicmProcessErrorCategory MICM_PROCESS_ERROR{};
-}  // namespace
-
-inline std::error_code make_error_code(MicmProcessErrc e)
-{
-  return { static_cast<int>(e), MICM_PROCESS_ERROR };
-}
-
 namespace micm
 {
 
