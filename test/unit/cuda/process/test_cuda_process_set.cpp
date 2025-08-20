@@ -3,6 +3,7 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -42,6 +43,8 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
+  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+
   micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
                                               .number_of_rate_constants_ = n_reactions,
                                               .variable_names_{ species_names },
@@ -71,7 +74,12 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
     processes.push_back(
-        micm::ChemicalReactionBuilder().SetReactants(reactants).SetProducts(products).SetPhase(&gas_phase).Build());
+        micm::ChemicalReactionBuilder()
+          .SetReactants(reactants)
+          .SetProducts(products)
+          .SetPhase(&gas_phase)
+          .SetRateConstant(arrhenius_rate_constant)
+          .Build());
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -129,6 +137,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
+  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
 
   micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
                                               .number_of_rate_constants_ = n_reactions,
@@ -159,7 +168,12 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
     processes.push_back(
-        micm::ChemicalReactionBuilder().SetReactants(reactants).SetProducts(products).SetPhase(&gas_phase).Build());
+        micm::ChemicalReactionBuilder()
+          .SetReactants(reactants)
+          .SetProducts(products)
+          .SetRateConstant(arrhenius_rate_constant)
+          .SetPhase(&gas_phase)
+          .Build());
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
