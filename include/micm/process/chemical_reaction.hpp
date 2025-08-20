@@ -62,7 +62,7 @@ namespace micm
           throw std::system_error(
               make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
         if (!other.phase_)
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
 
         reactants_ = other.reactants_;
         products_ = other.products_;
@@ -107,7 +107,7 @@ namespace micm
             make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
       if (!phase_)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
+            make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
     }
 
   };

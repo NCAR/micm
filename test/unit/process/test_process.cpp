@@ -20,15 +20,25 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Species bar("bar");
   bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
 
-  Phase gas_phase {std::vector<micm::Species>{ foo, bar } };
+  Phase gas_phase { "gas", std::vector<micm::Species>{ foo, bar } };
 
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
   SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
   UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
-  Process r1 = ChemicalReactionBuilder().SetPhase(gas_phase).SetRateConstant(rc1).SetReactants({ foo, bar }).Build();
-  Process r2 = ChemicalReactionBuilder().SetPhase(gas_phase).SetRateConstant(rc2).Build();
-  Process r3 = ChemicalReactionBuilder().SetPhase(gas_phase).SetRateConstant(rc3).Build();
+  Process r1 = ChemicalReactionBuilder()
+                  .SetReactants({ foo, bar })
+                  .SetRateConstant(rc1)
+                  .SetPhase(&gas_phase)
+                  .Build();
+  Process r2 = ChemicalReactionBuilder()
+                  .SetRateConstant(rc2)
+                  .SetPhase(&gas_phase)
+                  .Build();
+  Process r3 = ChemicalReactionBuilder()
+                  .SetRateConstant(rc3)
+                  .SetPhase(&gas_phase)
+                  .Build();
   std::vector<Process> processes = { r1, r2, r3 };
 
   std::vector<std::string> param_labels{};
@@ -105,31 +115,35 @@ TEST(Process, VectorMatrix)
   testProcessUpdateState<Group4VectorMatrix<double>>(5);
 }
 
-TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
+TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 {
-
   auto O3 = Species("O3");
   auto NO = Species("NO");
   auto NO2 = Species("NO2");
   auto O2 = Species("O2");
-  
-  Phase gas_phase{ std::vector<Species>{ O3, NO, NO2, O2 } };
+  auto CO2 = Species{ "CO2" };
+  auto H2O = Species{ "H2O" };
+  auto Hplus = Species{ "H+" };
+  auto CO32minus = Species{ "CO32-" };
+
+  Phase gas_phase{ "gas", std::vector<Species>{ O3, NO, NO2, O2 } };
+  Phase aqueous_phase{ "aqueous", std::vector<Species>{ CO2, H2O, Hplus, CO32minus } };
 
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
-                                  .SetPhase(gas_phase)
                                   .SetReactants({ Species("O3"), Species("NO") })
                                   .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
                                   .SetRateConstant(ArrheniusRateConstant())
+                                  .SetPhase(&gas_phase)
                                   .Build();
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                               .SetOriginSpecies({ SpeciesInPhase("gas", Species("SO2")) })
-                               .SetDestinationSpecies({ SpeciesInPhase("aqueous", Species("SO2")) })
-                               .SetSolvent(SpeciesInPhase("aqueous", Species("H2O")))
-                               .SetTransferCoefficient(PhaseTransferCoefficient())
-                               .Build();
+                              .SetGasSpecies( &gas_phase, { CO2 } )
+                              .SetCondensedSpecies( &aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
+                              .SetSolvent( &aqueous_phase, H2O )
+                              .SetTransferCoefficient(PhaseTransferCoefficient())
+                              .Build();
 
   // Check that the first process is a ChemicalReaction
   std::visit(
@@ -138,7 +152,9 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, ChemicalReaction>)
         {
-          EXPECT_EQ(value.phase_.name_, "gas");
+          EXPECT_EQ(value.reactants_.size(), 2);
+          EXPECT_EQ(value.products_[0].species_.name_, "NO2");
+          EXPECT_EQ(value.phase_->name_, "gas");
         }
         else
         {
@@ -154,8 +170,13 @@ TEST(Process, DifferentiatesChemicalReactionAndPhaseTransfer)
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, PhaseTransferProcess>)
         {
-          ASSERT_FALSE(value.destination_species_.empty());
-          EXPECT_EQ(value.destination_species_[0].phase_name_, "aqueous");
+          EXPECT_EQ(value.gas_phase_->name_, "gas");
+          EXPECT_EQ(value.condensed_phase_->name_, "aqueous");
+          EXPECT_EQ(value.solvent_phase_->name_, "aqueous");
+          EXPECT_EQ(value.gas_species_.size(), 1);
+          EXPECT_EQ(value.condensed_species_.size(), 2);
+          EXPECT_EQ(value.solvent_.name_, "H2O");
+          EXPECT_EQ(value.condensed_species_[0].coefficient_, 2.0);
         }
         else
         {

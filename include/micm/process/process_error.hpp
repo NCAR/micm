@@ -38,6 +38,7 @@ class MicmProcessErrorCategory : public std::error_category
     {
       case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
       case MicmProcessErrc::ProductDoesNotExist: return "Product does not exist";
+      case MicmProcessErrc::PhaseIsNotSet: return "Phase is not set";
       case MicmProcessErrc::RateConstantIsNotSet: return "Rate constant is not set";
       case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
       default: return "Unknown error";

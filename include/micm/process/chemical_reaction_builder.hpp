@@ -62,7 +62,7 @@ namespace micm
     ///@return Reference to the builder
     ChemicalReactionBuilder& SetRateConstant(std::unique_ptr<RateConstant> rate_constant)
     {
-      if (!rate_constant_)
+      if (!rate_constant)
         throw std::system_error(
             make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
 
@@ -75,8 +75,8 @@ namespace micm
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetPhase(const Phase* phase)
     {
-      if (!phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
+      if (!phase)
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
 
       phase_ = phase;
       return *this;
@@ -91,7 +91,7 @@ namespace micm
         throw std::system_error(
             make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
       if (!phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null.");
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
 
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));

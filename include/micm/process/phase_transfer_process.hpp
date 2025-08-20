@@ -64,12 +64,12 @@ namespace micm
       if (this != &other)
       {
         if (!other.gas_phase_)
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas phase pointer cannot be null.");
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas Phase pointer cannot be null");
         if (!other.condensed_phase_)
           throw std::system_error(
-              make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed phase pointer cannot be null.");
+              make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed Phase pointer cannot be null");
         if (!other.solvent_phase_)
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent phase pointer cannot be null.");
+          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent Phase pointer cannot be null");
         if (!other.coefficient_)
           throw std::system_error(
               make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
@@ -91,11 +91,11 @@ namespace micm
     void Validate() const
     {
       if (!gas_phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas phase pointer cannot be null.");
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas Phase pointer cannot be null");
       if (!condensed_phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed phase pointer cannot be null.");
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed Phase pointer cannot be null");
       if (!solvent_phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent phase pointer cannot be null.");
+        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent Phase pointer cannot be null");
       if (!coefficient_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
