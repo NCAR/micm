@@ -73,7 +73,7 @@ namespace micm
         if (!other.coefficient_)
           throw std::system_error(
               make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
-              "Phase Transfer Coefficient pointer cannot be null.");
+              "Phase Transfer Coefficient pointer cannot be null");
 
         gas_phase_ = other.gas_phase_;
         condensed_phase_ = other.condensed_phase_;
@@ -99,7 +99,7 @@ namespace micm
       if (!coefficient_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
-            "Phase Transfer Coefficient pointer cannot be null.");
+            "Phase Transfer Coefficient pointer cannot be null");
     }
   };
 

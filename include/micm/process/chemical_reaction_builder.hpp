@@ -23,7 +23,6 @@ namespace micm
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
-    /// @brief Builder does not take ownership of phase
     const Phase* phase_;
 
    public:
@@ -60,19 +59,22 @@ namespace micm
     ///       This method avoids cloning and takes ownership of the provided unique_ptr.
     ///@param rate_constant A unique_ptr to a RateConstant
     ///@return Reference to the builder
+    /// @throws std::system_error if the provided rate constant pointer is null
     ChemicalReactionBuilder& SetRateConstant(std::unique_ptr<RateConstant> rate_constant)
     {
       if (!rate_constant)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
 
       rate_constant_ = std::move(rate_constant);
       return *this;
     }
 
-    /// @brief Sets the phase name for the chemical reaction (e.g., "gas", "aqueous")
-    /// @param phase A string representing the phase in which the reaction occurs
+    /// @brief Sets the phase in which the chemical reaction occurs (e.g., gas, aqueous)
+    /// @param phase Pointer to a Phase object representing the reaction phase
+    ///              Must not be null.
     /// @return Reference to the builder
+    /// @throws std::system_error if the provided phase pointer is null
     ChemicalReactionBuilder& SetPhase(const Phase* phase)
     {
       if (!phase)
@@ -89,7 +91,7 @@ namespace micm
     {
       if (!rate_constant_)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
       if (!phase_)
         throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
 

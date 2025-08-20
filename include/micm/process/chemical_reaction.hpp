@@ -20,7 +20,7 @@ namespace micm
 {
 
   /// @brief Represents a homogeneous chemical reaction with reactants,
-  ///        products and a rate constant
+  ///        products, a rate constant and phase
   class ChemicalReaction
   {
    public:
@@ -60,7 +60,7 @@ namespace micm
       {
         if (!other.rate_constant_)
           throw std::system_error(
-              make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+              make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
         if (!other.phase_)
           throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
 
@@ -104,7 +104,7 @@ namespace micm
     {
       if (!rate_constant_)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
       if (!phase_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");

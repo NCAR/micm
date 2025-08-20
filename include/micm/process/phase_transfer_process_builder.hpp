@@ -29,9 +29,12 @@ namespace micm
     std::unique_ptr<TransferCoefficient> coefficient_;
 
    public:
+
     /// @brief Sets the species in the gas phase
-    /// @param origin_species A vector of Species representing the origin phase species
+    /// @param phase Pointer to the Phase object representing the gas phase. Must not be null.
+    /// @param species A vector of Species representing the species in the gas phase
     /// @return Reference to the builder
+    /// @throws std::system_error if the provided phase pointer is null
     PhaseTransferProcessBuilder& SetGasSpecies(const Phase* phase, std::vector<Species> species)
     {
       if (!phase)
@@ -42,9 +45,11 @@ namespace micm
       return *this;
     }
 
-    /// @brief Sets the species in the destination phase
-    /// @param destination_species A vector of Species representing the destination phase species
+    /// @brief Sets the species in the condensed phase
+    /// @param phase Pointer to the Phase object representing the condensed phase. Must not be null.
+    /// @param condensed_species A vector of Yield representing the products
     /// @return Reference to the builder
+    /// @throws std::system_error if the provided phase pointer is null
     PhaseTransferProcessBuilder& SetCondensedSpecies(const Phase* phase, std::vector<Yield> condensed_species)
     {
       if (!phase)
@@ -56,8 +61,10 @@ namespace micm
     }
 
     /// @brief Sets the solvent involved in the phase transfer process
+    /// @param phase Pointer to the Phase object representing the solvent phase. Must not be null.
     /// @param solvent A Species object representing the solvent
     /// @return Reference to the builder
+    /// @throws std::system_error if the provided phase pointer is null
     PhaseTransferProcessBuilder& SetSolvent(const Phase* phase, Species solvent)
     {
       if (!phase)
@@ -86,7 +93,7 @@ namespace micm
       if (!coefficient_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
-            "Phase Transfer Coefficient pointer cannot be null.");
+            "Phase Transfer Coefficient pointer cannot be null");
 
       coefficient_ = std::move(coefficient);
       return *this;
@@ -105,7 +112,7 @@ namespace micm
       if (!coefficient_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
-            "Phase Transfer Coefficient pointer cannot be null.");
+            "Phase Transfer Coefficient pointer cannot be null");
 
       PhaseTransferProcess process(
           gas_phase_,
