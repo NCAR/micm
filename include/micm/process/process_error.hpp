@@ -36,11 +36,13 @@ class MicmProcessErrorCategory : public std::error_category
   {
     switch (static_cast<MicmProcessErrc>(ev))
     {
-      case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
-      case MicmProcessErrc::ProductDoesNotExist: return "Product does not exist";
       case MicmProcessErrc::PhaseIsNotSet: return "Phase is not set";
       case MicmProcessErrc::RateConstantIsNotSet: return "Rate constant is not set";
       case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
+      case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
+      case MicmProcessErrc::ProductDoesNotExist: return "Product does not exist";
+      // TODO - issue: https://github.com/NCAR/micm/issues/810
+      // case MicmProcessErrc::TooManyReactantsForSurfaceReaction: return "A surface reaction can only have one reactant";
       default: return "Unknown error";
     }
   }
