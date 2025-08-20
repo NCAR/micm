@@ -129,20 +129,20 @@ void test_flow_tube(
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ soa1 })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase)
+                         .SetPhase(&gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ soa2 })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase)
+                         .SetPhase(&gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ apinene, o3 })
                          .SetProducts({ micm::Yield(soa1, 0.18), micm::Yield(soa2, 0.09) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 8.8e-17 * MOLES_M3_TO_MOLECULES_CM3 }))
-                         .SetPhase(gas_phase)
+                         .SetPhase(&gas_phase)
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };

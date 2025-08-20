@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/process_error.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
@@ -132,7 +133,7 @@ namespace micm
           if (reactant.IsParameterized())
             continue;  // Skip reactants that are parameterizations
           if (variable_map.count(reactant.name_) < 1)
-            throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
+            throw std::system_error(make_error_code(MicmProcessErrc::ReactantDoesNotExist), reactant.name_);
           reactant_ids_.push_back(variable_map.at(reactant.name_));
           ++number_of_reactants;
         }
@@ -142,7 +143,7 @@ namespace micm
           if (product.species_.IsParameterized())
             continue;  // Skip products that are parameterizations
           if (variable_map.count(product.species_.name_) < 1)
-            throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.species_.name_);
+            throw std::system_error(make_error_code(MicmProcessErrc::ProductDoesNotExist), product.species_.name_);
           product_ids_.push_back(variable_map.at(product.species_.name_));
           yields_.push_back(product.coefficient_);
           ++number_of_products;
@@ -184,7 +185,7 @@ namespace micm
               if (reactant.IsParameterized())
                 continue;  // Skip reactants that are parameterizations
               if (variable_map.count(reactant.name_) < 1)
-                throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
+                throw std::system_error(make_error_code(MicmProcessErrc::ReactantDoesNotExist), reactant.name_);
               if (variable_map.at(reactant.name_) == independent_variable.second && !found)
               {
                 found = true;
@@ -198,7 +199,7 @@ namespace micm
               if (product.species_.IsParameterized())
                 continue;  // Skip products that are parameterizations
               if (variable_map.count(product.species_.name_) < 1)
-                throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.species_.name_);
+                throw std::system_error(make_error_code(MicmProcessErrc::ProductDoesNotExist), product.species_.name_);
               jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
               jacobian_yields_.push_back(product.coefficient_);
               ++info.number_of_products_;

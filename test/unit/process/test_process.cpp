@@ -196,7 +196,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 //   Species e("e");
 
 //   EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-//                                          .SetPhase(gas_phase)
+//                                          .SetPhase(&gas_phase)
 //                                          .SetReactants({ c, c })
 //                                          .SetProducts({ Yield(e, 1) })
 //                                          .SetRateConstant(SurfaceRateConstant(
