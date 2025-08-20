@@ -8,6 +8,7 @@
 
 #include <micm/jit/process/jit_process_set.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -31,6 +32,7 @@ TEST(JitProcessSet, ForcingFunction)
   auto f = micm::Species("F");
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, d, e, f } };
+  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
 
   micm::State<ForcingTestVectorMatrix, ForcingTestSparseVectorMatrix> state(
       micm::StateParameters{ .number_of_rate_constants_ = 3, .variable_names_{ "A", "B", "C", "D", "E", "F" } },
@@ -39,18 +41,21 @@ TEST(JitProcessSet, ForcingFunction)
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a, b })
                          .SetProducts({ micm::Yield{ d, 3.2 } })
+                         .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(&gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ e, c })
                          .SetProducts({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
+                         .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(&gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ c, b })
                          .SetProducts({ micm::Yield{ a, 1.0 } })
+                         .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(&gas_phase)
                          .Build();
 
