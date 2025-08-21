@@ -7,29 +7,29 @@
 
 /* Below are the policy tests on the CPU */
 
-TEST(SparseVectorCompressedRowMatrix, ZeroMatrix)
+TEST(SparseVectorCompressedColumnMatrix, ZeroMatrix)
 {
   testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
 }
 
-TEST(SparseVectorCompressedRowMatrix, ConstZeroMatrix)
+TEST(SparseVectorCompressedColumnMatrix, ConstZeroMatrix)
 {
   testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
-TEST(SparseVectorCompressedRowMatrix, SetScalar)
+TEST(SparseVectorCompressedColumnMatrix, SetScalar)
 {
   testSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
-TEST(SparseVectorCompressedRowMatrix, AddToDiagonal)
+TEST(SparseVectorCompressedColumnMatrix, AddToDiagonal)
 {
   testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
   testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
   testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
-TEST(SparseVectorCompressedRowMatrix, Print)
+TEST(SparseVectorCompressedColumnMatrix, Print)
 {
   testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
   testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
@@ -37,7 +37,7 @@ TEST(SparseVectorCompressedRowMatrix, Print)
   testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
-TEST(SparseVectorCompressedRowMatrix, PrintNonZero)
+TEST(SparseVectorCompressedColumnMatrix, PrintNonZero)
 {
   testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
   testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
@@ -224,10 +224,12 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 }
 
-TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
+template <std::size_t cuda_matrix_vector_length>
+void TestSingleBlockMatrixAddOneElement()
 {
-  const std::size_t cuda_matrix_vector_length = 37; // 4, 32, 37, 65
-  auto matrix = testSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
+  auto matrix = testSingleBlockMatrix<
+      micm::CudaSparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -254,10 +256,20 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
   EXPECT_EQ(matrix[0][2][1], 46);
 }
 
-TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
+TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 {
-  const std::size_t cuda_matrix_vector_length = 37;
-  auto matrix = testMultiBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
+  TestSingleBlockMatrixAddOneElement<3>();
+  TestSingleBlockMatrixAddOneElement<32>();
+  TestSingleBlockMatrixAddOneElement<37>();
+  TestSingleBlockMatrixAddOneElement<65>();
+}
+
+template <std::size_t cuda_matrix_vector_length>
+void TestMultiBlockMatrixAddOneElement()
+{
+  auto matrix = testMultiBlockMatrix<
+      micm::CudaSparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
@@ -281,4 +293,12 @@ TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
   matrix.CopyToHost();
 
   EXPECT_EQ(matrix[grid_id][2][3], 80);
+}
+
+TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
+{
+  TestMultiBlockMatrixAddOneElement<3>();
+  TestMultiBlockMatrixAddOneElement<32>();
+  TestMultiBlockMatrixAddOneElement<37>();
+  TestMultiBlockMatrixAddOneElement<65>();
 }

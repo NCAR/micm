@@ -709,12 +709,11 @@ TEST(CudaDenseMatrix, TestMin)
   EXPECT_EQ(matrix[1][2], 1.0);
 }
 
-TEST(CudaDenseMatrix, SingleBlockMatrixAddOneElement)
+template <std::size_t cuda_matrix_vector_length>
+void TestSingleBlockMatrixAddOneElement()
 {
-  const std::size_t cuda_matrix_vector_length = 37;
   const std::size_t number_of_grid_cells = 1;
   const std::size_t number_of_columns = 43;
-  // For MICM vector matrix class, the first dimension is the fast-varying one regardless dense/sparse, CSR/CSC, etc
   auto matrix = micm::CudaDenseMatrix<double, cuda_matrix_vector_length>(number_of_grid_cells, number_of_columns, 79.0);
 
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
@@ -731,9 +730,18 @@ TEST(CudaDenseMatrix, SingleBlockMatrixAddOneElement)
   EXPECT_EQ(matrix[row_id][col_id], 80);
 }
 
-TEST(CudaDenseMatrix, MultiBlockMatrixAddOneElement)
+TEST(CudaDenseMatrix, SingleBlockMatrixAddOneElement)
 {
-  const std::size_t cuda_matrix_vector_length = 37;
+  TestSingleBlockMatrixAddOneElement<1>();
+  TestSingleBlockMatrixAddOneElement<4>();
+  TestSingleBlockMatrixAddOneElement<32>();
+  TestSingleBlockMatrixAddOneElement<37>();
+  TestSingleBlockMatrixAddOneElement<65>();
+}
+
+template <std::size_t cuda_matrix_vector_length>
+void TestMultiBlockMatrixAddOneElement()
+{
   const std::size_t number_of_grid_cells = 79;
   const std::size_t number_of_columns = 13;
   // For MICM vector matrix class, the first dimension is the fast-varying one regardless dense/sparse, CSR/CSC, etc
@@ -751,4 +759,13 @@ TEST(CudaDenseMatrix, MultiBlockMatrixAddOneElement)
   matrix.CopyToHost();
 
   EXPECT_EQ(matrix[row_id][col_id], 55);
+}
+
+TEST(CudaDenseMatrix, MultiBlockMatrixAddOneElement)
+{
+  TestMultiBlockMatrixAddOneElement<4>();
+  TestMultiBlockMatrixAddOneElement<32>();
+  TestMultiBlockMatrixAddOneElement<37>();
+  TestMultiBlockMatrixAddOneElement<65>();
+  TestMultiBlockMatrixAddOneElement<87>();
 }

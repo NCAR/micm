@@ -224,9 +224,9 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 }
 
-TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
+template <std::size_t cuda_matrix_vector_length>
+void TestSingleBlockMatrixAddOneElement()
 {
-  const std::size_t cuda_matrix_vector_length = 37;
   auto matrix = testSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 
   {
@@ -254,9 +254,17 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
   EXPECT_EQ(matrix[0][2][1], 46);
 }
 
-TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
+TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 {
-  const std::size_t cuda_matrix_vector_length = 37;
+  TestSingleBlockMatrixAddOneElement<3>();
+  TestSingleBlockMatrixAddOneElement<32>();
+  TestSingleBlockMatrixAddOneElement<37>();
+  TestSingleBlockMatrixAddOneElement<65>();
+}
+
+template <std::size_t cuda_matrix_vector_length>
+void TestMultiBlockMatrixAddOneElement()
+{
   auto matrix = testMultiBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 
   {
@@ -281,4 +289,12 @@ TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
   matrix.CopyToHost();
 
   EXPECT_EQ(matrix[grid_id][3][2], 30);
+}
+
+TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
+{
+  TestMultiBlockMatrixAddOneElement<3>();
+  TestMultiBlockMatrixAddOneElement<32>();
+  TestMultiBlockMatrixAddOneElement<37>();
+  TestMultiBlockMatrixAddOneElement<65>();
 }
