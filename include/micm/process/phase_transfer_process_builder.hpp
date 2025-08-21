@@ -31,7 +31,7 @@ namespace micm
    public:
 
     /// @brief Sets the species in the gas phase
-    /// @param phase The Phase object representing the gas phase
+    /// @param phase Phase object representing the gas phase
     /// @param species A vector of Species representing the species in the gas phase
     /// @return Reference to the builder
     PhaseTransferProcessBuilder& SetGasSpecies(const Phase& phase, std::vector<Species> species)
@@ -42,7 +42,7 @@ namespace micm
     }
 
     /// @brief Sets the species in the condensed phase
-    /// @param phase The Phase object representing the condensed phase
+    /// @param phase Phase object representing the condensed phase
     /// @param condensed_species A vector of Yield representing the products
     /// @return Reference to the builder
     PhaseTransferProcessBuilder& SetCondensedSpecies(const Phase& phase, std::vector<Yield> condensed_species)
@@ -53,7 +53,7 @@ namespace micm
     }
 
     /// @brief Sets the solvent involved in the phase transfer process
-    /// @param phase The Phase object representing the solvent phase
+    /// @param phase Phase object representing the solvent phase
     /// @param solvent A Species object representing the solvent
     /// @return Reference to the builder
     PhaseTransferProcessBuilder& SetSolvent(const Phase& phase, Species solvent)
