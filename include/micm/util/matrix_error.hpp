@@ -19,7 +19,7 @@ enum class MicmMatrixErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmMatrixErrc> : true_type
+  struct is_error_code_enum<MicmMatrixErrc> : true_type
   {
   };
 }  // namespace std

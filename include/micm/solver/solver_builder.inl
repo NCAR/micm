@@ -13,7 +13,7 @@ enum class MicmSolverBuilderErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmSolverBuilderErrc> : true_type
+  struct is_error_code_enum<MicmSolverBuilderErrc> : true_type
   {
   };
 }  // namespace std

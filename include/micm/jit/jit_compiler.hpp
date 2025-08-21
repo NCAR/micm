@@ -45,7 +45,7 @@ enum class MicmJitErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmJitErrc> : true_type
+  struct is_error_code_enum<MicmJitErrc> : true_type
   {
   };
 }  // namespace std

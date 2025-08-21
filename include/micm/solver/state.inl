@@ -13,7 +13,7 @@ enum class MicmStateErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmStateErrc> : true_type
+  struct is_error_code_enum<MicmStateErrc> : true_type
   {
   };
 }  // namespace std
