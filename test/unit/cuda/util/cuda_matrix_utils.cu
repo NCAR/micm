@@ -34,7 +34,7 @@ namespace micm
       std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       std::size_t local_tid = tid % cuda_matrix_vector_length;
       std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
-      std::size_t offset = group_id * number_of_non_zeros * cuda_matrix_vector_length + elem_id * cuda_matrix_vector_length + local_tid;
+      const std::size_t offset = group_id * number_of_non_zeros * cuda_matrix_vector_length + elem_id * cuda_matrix_vector_length + local_tid;
       if (tid == grid_id)
       {
         d_data[offset] += 1;
@@ -46,7 +46,7 @@ namespace micm
       std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       std::size_t local_tid = tid % cuda_matrix_vector_length;
       std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
-      const std::size_t offset = group_id * number_of_columns * cuda_matrix_vector_length + local_tid * col_id + local_tid;
+      const std::size_t offset = group_id * number_of_columns * cuda_matrix_vector_length + col_id * cuda_matrix_vector_length + local_tid;
       if (tid == row_id)
       {
         d_data[offset] += 1;
@@ -60,6 +60,10 @@ namespace micm
 
     void SparseMatrixAddOneElementDriver(CudaMatrixParam& param, std::size_t elem_id, std::size_t grid_id, const std::size_t cuda_matrix_vector_length)
     {
+      if (grid_id >= param.number_of_grid_cells_)
+      {
+        throw std::runtime_error("grid_id out of bounds in SparseMatrixAddOneElementDriver");
+      }
       const std::size_t number_of_groups = std::ceil(static_cast<double>(param.number_of_grid_cells_) / cuda_matrix_vector_length);
       const std::size_t number_of_non_zeros = param.number_of_elements_ / number_of_groups / cuda_matrix_vector_length;
       const std::size_t number_of_blocks = (param.number_of_grid_cells_ + 31) / 32;
@@ -72,8 +76,10 @@ namespace micm
       {
         throw std::runtime_error("row_id out of bounds in DenseMatrixAddOneElementDriver");
       }
-      const std::size_t number_of_columns = param.number_of_elements_ / param.number_of_grid_cells_;
-      DenseMatrixAddOneElement<<<param.number_of_grid_cells_, 32>>>(param.d_data_, number_of_columns, row_id, col_id, cuda_matrix_vector_length);
+      const std::size_t number_of_groups = std::ceil(static_cast<double>(param.number_of_grid_cells_) / cuda_matrix_vector_length);
+      const std::size_t number_of_columns = param.number_of_elements_ / number_of_groups / cuda_matrix_vector_length;
+      const std::size_t number_of_blocks = (param.number_of_grid_cells_ + 31) / 32;
+      DenseMatrixAddOneElement<<<number_of_blocks, 32>>>(param.d_data_, number_of_columns, row_id, col_id, cuda_matrix_vector_length);
     }
   }  // namespace cuda
 }  // namespace micm
