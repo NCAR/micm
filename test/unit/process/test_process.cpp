@@ -190,16 +190,17 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 //               I don't think the base class Process should know about a derived-class's specific condition.
 //               Feels like a design issue — will revisit later. Commented out for now.
 //               issue: https://github.com/NCAR/micm/issues/810
-// TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
-// {
-//   Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
-//   Species e("e");
+TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
+{
+  Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+  Species e("e");
+  Phase gas_phase { "gas", std::vector<micm::Species>{ c, e } };
 
-//   EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-//                                          .SetPhase(&gas_phase)
-//                                          .SetReactants({ c, c })
-//                                          .SetProducts({ Yield(e, 1) })
-//                                          .SetRateConstant(SurfaceRateConstant(
-//                                              { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-//                                          .Build(););
-// }
+  EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
+                                  .SetReactants({ c, c })
+                                  .SetProducts({ Yield(e, 1) })
+                                  .SetRateConstant(SurfaceRateConstant(
+                                      { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+                                  .SetPhase(&gas_phase)
+                                  .Build(););
+}

@@ -4,6 +4,7 @@
 
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/process_error.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
@@ -95,9 +96,29 @@ namespace micm
       if (!phase_)
         throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
 
+      ValidateRateConstantConditions();
+
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));
     }
+
+   private:
+    /// @brief Validates that the selected rate constant follows any chemical or structural constraints
+    /// @throws std::system_error If the constraints for the specific rate constant are violated
+    void ValidateRateConstantConditions() const
+    {
+      // SurfaceRateConstant must be used with a single reactant
+      if (auto* surface_rc = dynamic_cast<SurfaceRateConstant*>(rate_constant_.get()))
+      {
+        if (reactants_.size() != 1)
+        {
+          throw std::system_error(
+              make_error_code(MicmProcessErrc::SurfaceReactionRequiresSingleReactant),
+              "Reactants size: " + std::to_string(reactants_.size()));
+        }
+      }
+    }
+
   };
 
 }  // namespace micm

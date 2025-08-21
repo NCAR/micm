@@ -14,6 +14,7 @@ enum class MicmProcessErrc
   PhaseIsNotSet = MICM_PROCESS_ERROR_CODE_PHASE_IS_NOT_SET,
   RateConstantIsNotSet = MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
   TransferCoefficientIsNotSet = MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
+  SurfaceReactionRequiresSingleReactant = MICM_PROCESS_ERROR_CODE_TOO_MANY_REACTANTS_FOR_SURFACE_REACTION,
 };
 
 namespace std
@@ -41,8 +42,7 @@ class MicmProcessErrorCategory : public std::error_category
       case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
       case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
       case MicmProcessErrc::ProductDoesNotExist: return "Product does not exist";
-      // TODO - issue: https://github.com/NCAR/micm/issues/810
-      // case MicmProcessErrc::TooManyReactantsForSurfaceReaction: return "A surface reaction can only have one reactant";
+      case MicmProcessErrc::SurfaceReactionRequiresSingleReactant: return "A surface reaction can only have one reactant";
       default: return "Unknown error";
     }
   }
