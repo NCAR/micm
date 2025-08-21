@@ -29,15 +29,15 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Process r1 = ChemicalReactionBuilder()
                   .SetReactants({ foo, bar })
                   .SetRateConstant(rc1)
-                  .SetPhase(&gas_phase)
+                  .SetPhase(gas_phase)
                   .Build();
   Process r2 = ChemicalReactionBuilder()
                   .SetRateConstant(rc2)
-                  .SetPhase(&gas_phase)
+                  .SetPhase(gas_phase)
                   .Build();
   Process r3 = ChemicalReactionBuilder()
                   .SetRateConstant(rc3)
-                  .SetPhase(&gas_phase)
+                  .SetPhase(gas_phase)
                   .Build();
   std::vector<Process> processes = { r1, r2, r3 };
 
@@ -134,14 +134,14 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
                                   .SetReactants({ Species("O3"), Species("NO") })
                                   .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
                                   .SetRateConstant(ArrheniusRateConstant())
-                                  .SetPhase(&gas_phase)
+                                  .SetPhase(gas_phase)
                                   .Build();
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                              .SetGasSpecies( &gas_phase, { CO2 } )
-                              .SetCondensedSpecies( &aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
-                              .SetSolvent( &aqueous_phase, H2O )
+                              .SetGasSpecies( gas_phase, { CO2 } )
+                              .SetCondensedSpecies( aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
+                              .SetSolvent( aqueous_phase, H2O )
                               .SetTransferCoefficient(PhaseTransferCoefficient())
                               .Build();
 
@@ -154,7 +154,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
         {
           EXPECT_EQ(value.reactants_.size(), 2);
           EXPECT_EQ(value.products_[0].species_.name_, "NO2");
-          EXPECT_EQ(value.phase_->name_, "gas");
+          EXPECT_EQ(value.phase_.name_, "gas");
         }
         else
         {
@@ -170,9 +170,9 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, PhaseTransferProcess>)
         {
-          EXPECT_EQ(value.gas_phase_->name_, "gas");
-          EXPECT_EQ(value.condensed_phase_->name_, "aqueous");
-          EXPECT_EQ(value.solvent_phase_->name_, "aqueous");
+          EXPECT_EQ(value.gas_phase_.name_, "gas");
+          EXPECT_EQ(value.condensed_phase_.name_, "aqueous");
+          EXPECT_EQ(value.solvent_phase_.name_, "aqueous");
           EXPECT_EQ(value.gas_species_.size(), 1);
           EXPECT_EQ(value.condensed_species_.size(), 2);
           EXPECT_EQ(value.solvent_.name_, "H2O");
@@ -186,6 +186,94 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
       phase_transfer.process_);
 }
 
+TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
+{
+  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+  Species bar("bar");
+  bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
+
+  Phase gas_phase { "gas", std::vector<micm::Species>{ foo, bar } };
+  ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
+
+  Process reaction = ChemicalReactionBuilder()
+                      .SetReactants({ foo, bar })
+                      .SetRateConstant(rc1)
+                      .SetPhase(gas_phase)
+                      .Build();
+
+  // Assign original to copy
+  Process copy_reaction = reaction;
+
+  std::visit(
+    [](auto&& copy, auto&& original)
+    {
+      using T = std::decay_t<decltype(copy)>;
+      using U = std::decay_t<decltype(original)>;
+      if constexpr (std::is_same_v<T, ChemicalReaction> && std::is_same_v<U, ChemicalReaction>)
+      {
+        EXPECT_EQ(copy.reactants_[0].name_, original.reactants_[0].name_);
+        EXPECT_EQ(copy.products_.size(), original.products_.size());
+        EXPECT_EQ(copy.phase_.name_, original.phase_.name_);
+        EXPECT_NE(copy.rate_constant_.get(), original.rate_constant_.get());
+      }
+      else
+      {
+        FAIL() << "Expected both variants to hold ChemicalReaction";
+      }
+    },
+    copy_reaction.process_,
+    reaction.process_);
+}
+
+TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
+{
+  auto O3 = Species("O3");
+  auto NO = Species("NO");
+  auto NO2 = Species("NO2");
+  auto O2 = Species("O2");
+  auto CO2 = Species{ "CO2" };
+  auto H2O = Species{ "H2O" };
+  auto Hplus = Species{ "H+" };
+  auto CO32minus = Species{ "CO32-" };
+
+  Phase gas_phase{ "gas", std::vector<Species>{ O3, NO, NO2, O2 } };
+  Phase aqueous_phase{ "aqueous", std::vector<Species>{ CO2, H2O, Hplus, CO32minus } };
+
+  // Build a PhaseTransferProcess
+  Process phase_transfer = PhaseTransferProcessBuilder()
+                              .SetGasSpecies( gas_phase, { CO2 } )
+                              .SetCondensedSpecies( aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
+                              .SetSolvent( aqueous_phase, H2O )
+                              .SetTransferCoefficient(PhaseTransferCoefficient())
+                              .Build();
+
+  // Assign original to copy
+  Process copy_process = phase_transfer;
+
+  std::visit(
+    [](auto&& copy, auto&& original)
+    {
+      using T = std::decay_t<decltype(copy)>;
+      using U = std::decay_t<decltype(original)>;
+      if constexpr (std::is_same_v<T, PhaseTransferProcess> && std::is_same_v<U, PhaseTransferProcess>)
+      {
+        EXPECT_EQ(copy.gas_phase_.name_, original.gas_phase_.name_);
+        EXPECT_EQ(copy.condensed_phase_.name_, original.condensed_phase_.name_);
+        EXPECT_EQ(copy.solvent_phase_.name_, original.solvent_phase_.name_);
+        EXPECT_EQ(copy.gas_species_[0].name_, original.gas_species_[0].name_); 
+        EXPECT_EQ(copy.condensed_species_[1].species_.name_, original.condensed_species_[1].species_.name_);
+        EXPECT_EQ(copy.solvent_.name_, original.solvent_.name_);
+        EXPECT_NE(copy.coefficient_.get(), original.coefficient_.get());
+      }
+      else
+      {
+        FAIL() << "Expected both variants to hold PhaseTransferProcess";
+      }
+    },
+    copy_process.process_,
+    phase_transfer.process_);
+}
+
 // TODO (Jiwon): This should throw, but currently does not.
 //               I don't think the base class Process should know about a derived-class's specific condition.
 //               Feels like a design issue — will revisit later. Commented out for now.
@@ -196,7 +284,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 //   Species e("e");
 
 //   EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-//                                          .SetPhase(&gas_phase)
+//                                          .SetPhase(gas_phase)
 //                                          .SetReactants({ c, c })
 //                                          .SetProducts({ Yield(e, 1) })
 //                                          .SetRateConstant(SurfaceRateConstant(

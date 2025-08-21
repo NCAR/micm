@@ -24,21 +24,21 @@ TEST(OpenMP, OneSolverManyStates)
                          .SetReactants({ a })
                          .SetProducts({ Yield(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
                          .SetProducts({ Yield(b, 1), Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
                          .SetProducts({ Yield(a, 1), Yield(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };

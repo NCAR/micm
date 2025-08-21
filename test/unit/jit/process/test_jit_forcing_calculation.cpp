@@ -42,21 +42,21 @@ TEST(JitProcessSet, ForcingFunction)
                          .SetReactants({ a, b })
                          .SetProducts({ micm::Yield{ d, 3.2 } })
                          .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ e, c })
                          .SetProducts({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
                          .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ c, b })
                          .SetProducts({ micm::Yield{ a, 1.0 } })
                          .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   std::vector<micm::Process> processes{ r1, r2, r3 };

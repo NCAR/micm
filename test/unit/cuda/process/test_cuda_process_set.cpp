@@ -77,7 +77,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
         micm::ChemicalReactionBuilder()
           .SetReactants(reactants)
           .SetProducts(products)
-          .SetPhase(&gas_phase)
+          .SetPhase(gas_phase)
           .SetRateConstant(arrhenius_rate_constant)
           .Build());
   }
@@ -172,7 +172,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
           .SetReactants(reactants)
           .SetProducts(products)
           .SetRateConstant(arrhenius_rate_constant)
-          .SetPhase(&gas_phase)
+          .SetPhase(gas_phase)
           .Build());
   }
 
