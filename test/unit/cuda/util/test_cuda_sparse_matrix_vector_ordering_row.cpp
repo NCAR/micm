@@ -3,6 +3,7 @@
 
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
+
 #include <gtest/gtest.h>
 
 /* Below are the policy tests on the CPU */
@@ -228,7 +229,7 @@ template <std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
   auto matrix = testSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
-
+  
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 4 * cuda_matrix_vector_length);
@@ -247,7 +248,7 @@ void TestSingleBlockMatrixAddOneElement()
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 2; // in this example, 2 refers to matrix[2,1] which is non-zero
+  std::size_t elem_id = 2; // in this example, 2 refers to matrix[2][1] which is non-zero
   micm::cuda::SparseMatrixAddOneElementDriver(param, elem_id, 0, cuda_matrix_vector_length);
   matrix.CopyToHost();
 

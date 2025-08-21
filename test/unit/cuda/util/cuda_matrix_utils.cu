@@ -1,4 +1,5 @@
 #include "cuda_matrix_utils.cuh"
+
 #include <cstdio>
 #include <iostream>
 
@@ -34,7 +35,8 @@ namespace micm
       std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       std::size_t local_tid = tid % cuda_matrix_vector_length;
       std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
-      const std::size_t offset = group_id * number_of_non_zeros * cuda_matrix_vector_length + elem_id * cuda_matrix_vector_length + local_tid;
+      const std::size_t offset =
+          group_id * number_of_non_zeros * cuda_matrix_vector_length + elem_id * cuda_matrix_vector_length + local_tid;
       if (tid == grid_id)
       {
         d_data[offset] += 1;
