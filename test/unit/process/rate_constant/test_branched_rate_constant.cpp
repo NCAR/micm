@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+constexpr double TOLERANCE = 1e-13;
+
 TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
 {
   double temperature = 301.24;
@@ -24,7 +26,7 @@ TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
   b = 0.43 * std::pow((temperature / 298.0), -8.0);
   double A = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
 
-  EXPECT_NEAR(k, 1.2 * std::exp(-204.3 / temperature) * (z / (z + A)), 1.0e-8);
+  EXPECT_NEAR(k, 1.2 * std::exp(-204.3 / temperature) * (z / (z + A)), TOLERANCE);
 }
 
 TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArugments)
@@ -46,5 +48,5 @@ TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArugments)
   b = 0.43 * std::pow((temperature / 298.0), -8.0);
   double A = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
 
-  EXPECT_NEAR(k, 1.2 * std::exp(-204.3 / temperature) * (A / (z + A)), 1.0e-8);
+  EXPECT_NEAR(k, 1.2 * std::exp(-204.3 / temperature) * (A / (z + A)), TOLERANCE);
 }

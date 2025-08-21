@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+constexpr double TOLERANCE = 1e-13;
+
 TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArugments)
 {
   micm::Conditions conditions{

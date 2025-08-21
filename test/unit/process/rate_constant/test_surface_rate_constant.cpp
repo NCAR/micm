@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+constexpr double TOLERANCE = 1e-13;
+
 TEST(SurfaceRateConstant, CalculateDefaultProbability)
 {
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
@@ -26,7 +28,7 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
   auto k = surface.Calculate(state.conditions_[0], params);
   double k_test = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                   (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * micm::constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025))));
-  EXPECT_NEAR(k, k_test, k_test * 1.0e-10);
+  EXPECT_NEAR(k, k_test, k_test * TOLERANCE);
 }
 
 TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
@@ -50,5 +52,5 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
   auto k = surface.Calculate(state.conditions_[0], params);
   double k_test = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                   (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * micm::constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));
-  EXPECT_NEAR(k, k_test, k_test * 1.0e-10);
+  EXPECT_NEAR(k, k_test, k_test * TOLERANCE);
 }
