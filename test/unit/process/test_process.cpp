@@ -29,15 +29,15 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Process r1 = ChemicalReactionBuilder()
                   .SetReactants({ foo, bar })
                   .SetRateConstant(rc1)
-                  .SetPhase(&gas_phase)
+                  .SetPhase(gas_phase)
                   .Build();
   Process r2 = ChemicalReactionBuilder()
                   .SetRateConstant(rc2)
-                  .SetPhase(&gas_phase)
+                  .SetPhase(gas_phase)
                   .Build();
   Process r3 = ChemicalReactionBuilder()
                   .SetRateConstant(rc3)
-                  .SetPhase(&gas_phase)
+                  .SetPhase(gas_phase)
                   .Build();
   std::vector<Process> processes = { r1, r2, r3 };
 
@@ -134,14 +134,14 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
                                   .SetReactants({ Species("O3"), Species("NO") })
                                   .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
                                   .SetRateConstant(ArrheniusRateConstant())
-                                  .SetPhase(&gas_phase)
+                                  .SetPhase(gas_phase)
                                   .Build();
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                              .SetGasSpecies( &gas_phase, { CO2 } )
-                              .SetCondensedSpecies( &aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
-                              .SetSolvent( &aqueous_phase, H2O )
+                              .SetGasSpecies( gas_phase, { CO2 } )
+                              .SetCondensedSpecies( aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
+                              .SetSolvent( aqueous_phase, H2O )
                               .SetTransferCoefficient(PhaseTransferCoefficient())
                               .Build();
 
@@ -154,7 +154,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
         {
           EXPECT_EQ(value.reactants_.size(), 2);
           EXPECT_EQ(value.products_[0].species_.name_, "NO2");
-          EXPECT_EQ(value.phase_->name_, "gas");
+          EXPECT_EQ(value.phase_.name_, "gas");
         }
         else
         {
@@ -170,9 +170,9 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, PhaseTransferProcess>)
         {
-          EXPECT_EQ(value.gas_phase_->name_, "gas");
-          EXPECT_EQ(value.condensed_phase_->name_, "aqueous");
-          EXPECT_EQ(value.solvent_phase_->name_, "aqueous");
+          EXPECT_EQ(value.gas_phase_.name_, "gas");
+          EXPECT_EQ(value.condensed_phase_.name_, "aqueous");
+          EXPECT_EQ(value.solvent_phase_.name_, "aqueous");
           EXPECT_EQ(value.gas_species_.size(), 1);
           EXPECT_EQ(value.condensed_species_.size(), 2);
           EXPECT_EQ(value.solvent_.name_, "H2O");
@@ -196,7 +196,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 //   Species e("e");
 
 //   EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-//                                          .SetPhase(&gas_phase)
+//                                          .SetPhase(gas_phase)
 //                                          .SetReactants({ c, c })
 //                                          .SetProducts({ Yield(e, 1) })
 //                                          .SetRateConstant(SurfaceRateConstant(

@@ -59,21 +59,21 @@ int main()
                    .SetReactants({ a })
                    .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .SetPhase(&gas_phase)
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
                    .SetProducts({ Yield(b, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .SetPhase(&gas_phase)
+                   .SetPhase(gas_phase)
                    .Build();
 
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
                    .SetProducts({ Yield(a, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .SetPhase(&gas_phase)
+                   .SetPhase(gas_phase)
                    .Build();
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();

@@ -25,7 +25,7 @@ namespace
                          .SetReactants({ a })
                          .SetProducts({ micm::Yield(b, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
@@ -33,7 +33,7 @@ namespace
                          .SetProducts({ micm::Yield(c, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant(
                              micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   auto the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });

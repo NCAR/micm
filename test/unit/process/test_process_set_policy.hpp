@@ -38,28 +38,28 @@ void testProcessSet()
                          .SetReactants({ foo, baz })
                          .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
                          .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar, qux })
                          .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
                          .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                           .SetReactants({ quz })
                           .SetProducts({})
                           .SetRateConstant(arrhenius_rate_constant)
-                          .SetPhase(&gas_phase)
+                          .SetPhase(gas_phase)
                           .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ baz, qux })
                          .SetProducts({ micm::Yield(bar, 1), micm::Yield(quz, 2.5) })
                          .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(&gas_phase)
+                         .SetPhase(gas_phase)
                          .Build();
 
   auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
@@ -200,7 +200,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
                     .SetReactants(reactants)
                     .SetProducts(products)
                     .SetRateConstant(arrhenius_rate_constant)
-                    .SetPhase(&gas_phase)
+                    .SetPhase(gas_phase)
                     .Build();
     processes.push_back(proc);
   }

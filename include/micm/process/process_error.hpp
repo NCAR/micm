@@ -11,7 +11,6 @@ enum class MicmProcessErrc
 {
   ReactantDoesNotExist = MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
   ProductDoesNotExist = MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST,
-  PhaseIsNotSet = MICM_PROCESS_ERROR_CODE_PHASE_IS_NOT_SET,
   RateConstantIsNotSet = MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
   TransferCoefficientIsNotSet = MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
 };
@@ -36,7 +35,6 @@ class MicmProcessErrorCategory : public std::error_category
   {
     switch (static_cast<MicmProcessErrc>(ev))
     {
-      case MicmProcessErrc::PhaseIsNotSet: return "Phase is not set";
       case MicmProcessErrc::RateConstantIsNotSet: return "Rate constant is not set";
       case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
       case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
