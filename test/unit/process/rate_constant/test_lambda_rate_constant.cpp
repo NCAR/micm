@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+constexpr double TOLERANCE = 1e-13;
+
 TEST(LambdaRateConstant, CalculateWithSystem)
 {
   micm::LambdaRateConstant my_lambda{ micm::LambdaRateConstantParameters{
@@ -13,11 +15,12 @@ TEST(LambdaRateConstant, CalculateWithSystem)
     .temperature_ = 300.0  // [K]
   };
   auto k = my_lambda.Calculate(conditions);
-  EXPECT_NEAR(k, 600.0, 0.00001);
+  double expected = 600.0;
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   std::vector<double> custom_parameters = { 1.0, 2.0 };
   auto custom_params_iter = custom_parameters.begin();
   k = my_lambda.Calculate(conditions, custom_params_iter);
-  EXPECT_NEAR(k, 600.0, 0.00001);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
   EXPECT_EQ(my_lambda.CustomParameters().size(), 0);
 }
