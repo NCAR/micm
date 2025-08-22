@@ -136,14 +136,14 @@ namespace micm
         properties_double_(other.properties_double_),
         properties_int_(other.properties_int_),
         properties_bool_(other.properties_bool_),
-        parameterize_(other.parameterize_) { };
+        parameterize_(other.parameterize_){};
 
   inline Species::Species(const std::string& name)
-      : name_(name) { };
+      : name_(name){};
 
   inline Species::Species(const std::string& name, const std::map<std::string, double>& properties)
       : name_(name),
-        properties_double_(properties) { };
+        properties_double_(properties){};
 
   inline bool Species::IsParameterized() const
   {

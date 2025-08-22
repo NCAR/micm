@@ -43,9 +43,15 @@ namespace micm
   /// Concept for Cuda Matrix
   template<typename MatrixType>
   concept CudaMatrix = requires(MatrixType t) {
-    { t.CopyToDevice() } -> std::same_as<void>;
-    { t.CopyToHost() } -> std::same_as<void>;
-    { t.AsDeviceParam() } -> std::same_as<CudaMatrixParam>;
+    {
+      t.CopyToDevice()
+    } -> std::same_as<void>;
+    {
+      t.CopyToHost()
+    } -> std::same_as<void>;
+    {
+      t.AsDeviceParam()
+    } -> std::same_as<CudaMatrixParam>;
   };
 
   template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
