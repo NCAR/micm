@@ -1,6 +1,6 @@
 #include <micm/process/chemical_reaction_builder.hpp>
-#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 
 #include <gtest/gtest.h>
 
@@ -31,7 +31,7 @@ void testProcessSet()
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 
       2);
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{foo, bar, baz, quz, quuz, corge } };
+  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz, corge } };
   micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
@@ -49,11 +49,11 @@ void testProcessSet()
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
-                          .SetReactants({ quz })
-                          .SetProducts({})
-                          .SetRateConstant(arrhenius_rate_constant)
-                          .SetPhase(gas_phase)
-                          .Build();
+                         .SetReactants({ quz })
+                         .SetProducts({})
+                         .SetRateConstant(arrhenius_rate_constant)
+                         .SetPhase(gas_phase)
+                         .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ baz, qux })
