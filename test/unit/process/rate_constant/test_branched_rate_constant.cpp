@@ -25,8 +25,8 @@ TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
   a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
   b = 0.43 * std::pow((temperature / 298.0), -8.0);
   double A = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
-
-  EXPECT_NEAR(k, 1.2 * std::exp(-204.3 / temperature) * (z / (z + A)), TOLERANCE);
+  double expected = 1.2 * std::exp(-204.3 / temperature) * (z / (z + A));
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
 TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArugments)
@@ -47,6 +47,6 @@ TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArugments)
   a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
   b = 0.43 * std::pow((temperature / 298.0), -8.0);
   double A = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
-
-  EXPECT_NEAR(k, 1.2 * std::exp(-204.3 / temperature) * (A / (z + A)), TOLERANCE);
+  double expected = 1.2 * std::exp(-204.3 / temperature) * (A / (z + A));
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

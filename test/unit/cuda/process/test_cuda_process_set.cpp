@@ -73,13 +73,12 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     {
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(
-        micm::ChemicalReactionBuilder()
-          .SetReactants(reactants)
-          .SetProducts(products)
-          .SetPhase(gas_phase)
-          .SetRateConstant(arrhenius_rate_constant)
-          .Build());
+    processes.push_back(micm::ChemicalReactionBuilder()
+                            .SetReactants(reactants)
+                            .SetProducts(products)
+                            .SetPhase(gas_phase)
+                            .SetRateConstant(arrhenius_rate_constant)
+                            .Build());
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -167,13 +166,12 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     {
       products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(
-        micm::ChemicalReactionBuilder()
-          .SetReactants(reactants)
-          .SetProducts(products)
-          .SetRateConstant(arrhenius_rate_constant)
-          .SetPhase(gas_phase)
-          .Build());
+    processes.push_back(micm::ChemicalReactionBuilder()
+                            .SetReactants(reactants)
+                            .SetProducts(products)
+                            .SetRateConstant(arrhenius_rate_constant)
+                            .SetPhase(gas_phase)
+                            .Build());
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };

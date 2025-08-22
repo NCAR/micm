@@ -20,7 +20,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Species bar("bar");
   bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
 
-  Phase gas_phase { "gas", std::vector<micm::Species>{ foo, bar } };
+  Phase gas_phase{ "gas", std::vector<micm::Species>{ foo, bar } };
 
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
   SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
@@ -32,10 +32,12 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
                   .SetPhase(gas_phase)
                   .Build();
   Process r2 = ChemicalReactionBuilder()
+                  .SetReactants({ foo })
                   .SetRateConstant(rc2)
                   .SetPhase(gas_phase)
                   .Build();
   Process r3 = ChemicalReactionBuilder()
+                  .SetReactants({ bar })
                   .SetRateConstant(rc3)
                   .SetPhase(gas_phase)
                   .Build();
@@ -72,19 +74,17 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     params[1] = get_double() * 1.0e5;
     params[2] = get_double() * 1.0e-2;
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = params[0];
-    state.custom_rate_parameters_[i_cell]
-                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
-        params[1];
+    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] = params[1];
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
     std::vector<double>::const_iterator param_iter = params.begin();
-    expected_rate_constants[i_cell][0] =
-        rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
+    expected_rate_constants[i_cell][0] = rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc1.SizeCustomParameters();
     expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
     param_iter += rc2.SizeCustomParameters();
-    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter);
+    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc3.SizeCustomParameters();
   }
+
   Process::CalculateRateConstants(processes, state);
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
@@ -139,11 +139,11 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                              .SetGasSpecies( gas_phase, { CO2 } )
-                              .SetCondensedSpecies( aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
-                              .SetSolvent( aqueous_phase, H2O )
-                              .SetTransferCoefficient(PhaseTransferCoefficient())
-                              .Build();
+                               .SetGasSpecies(gas_phase, { CO2 })
+                               .SetCondensedSpecies(aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) })
+                               .SetSolvent(aqueous_phase, H2O)
+                               .SetTransferCoefficient(PhaseTransferCoefficient())
+                               .Build();
 
   // Check that the first process is a ChemicalReaction
   std::visit(
@@ -192,37 +192,33 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
   Species bar("bar");
   bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
 
-  Phase gas_phase { "gas", std::vector<micm::Species>{ foo, bar } };
+  Phase gas_phase{ "gas", std::vector<micm::Species>{ foo, bar } };
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
 
-  Process reaction = ChemicalReactionBuilder()
-                      .SetReactants({ foo, bar })
-                      .SetRateConstant(rc1)
-                      .SetPhase(gas_phase)
-                      .Build();
+  Process reaction = ChemicalReactionBuilder().SetReactants({ foo, bar }).SetRateConstant(rc1).SetPhase(gas_phase).Build();
 
   // Assign original to copy
   Process copy_reaction = reaction;
 
   std::visit(
-    [](auto&& copy, auto&& original)
-    {
-      using T = std::decay_t<decltype(copy)>;
-      using U = std::decay_t<decltype(original)>;
-      if constexpr (std::is_same_v<T, ChemicalReaction> && std::is_same_v<U, ChemicalReaction>)
+      [](auto&& copy, auto&& original)
       {
-        EXPECT_EQ(copy.reactants_[0].name_, original.reactants_[0].name_);
-        EXPECT_EQ(copy.products_.size(), original.products_.size());
-        EXPECT_EQ(copy.phase_.name_, original.phase_.name_);
-        EXPECT_NE(copy.rate_constant_.get(), original.rate_constant_.get());
-      }
-      else
-      {
-        FAIL() << "Expected both variants to hold ChemicalReaction";
-      }
-    },
-    copy_reaction.process_,
-    reaction.process_);
+        using T = std::decay_t<decltype(copy)>;
+        using U = std::decay_t<decltype(original)>;
+        if constexpr (std::is_same_v<T, ChemicalReaction> && std::is_same_v<U, ChemicalReaction>)
+        {
+          EXPECT_EQ(copy.reactants_[0].name_, original.reactants_[0].name_);
+          EXPECT_EQ(copy.products_.size(), original.products_.size());
+          EXPECT_EQ(copy.phase_.name_, original.phase_.name_);
+          EXPECT_NE(copy.rate_constant_.get(), original.rate_constant_.get());
+        }
+        else
+        {
+          FAIL() << "Expected both variants to hold ChemicalReaction";
+        }
+      },
+      copy_reaction.process_,
+      reaction.process_);
 }
 
 TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
@@ -241,53 +237,50 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                              .SetGasSpecies( gas_phase, { CO2 } )
-                              .SetCondensedSpecies( aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) } )
-                              .SetSolvent( aqueous_phase, H2O )
-                              .SetTransferCoefficient(PhaseTransferCoefficient())
-                              .Build();
+                               .SetGasSpecies(gas_phase, { CO2 })
+                               .SetCondensedSpecies(aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) })
+                               .SetSolvent(aqueous_phase, H2O)
+                               .SetTransferCoefficient(PhaseTransferCoefficient())
+                               .Build();
 
   // Assign original to copy
   Process copy_process = phase_transfer;
 
   std::visit(
-    [](auto&& copy, auto&& original)
-    {
-      using T = std::decay_t<decltype(copy)>;
-      using U = std::decay_t<decltype(original)>;
-      if constexpr (std::is_same_v<T, PhaseTransferProcess> && std::is_same_v<U, PhaseTransferProcess>)
+      [](auto&& copy, auto&& original)
       {
-        EXPECT_EQ(copy.gas_phase_.name_, original.gas_phase_.name_);
-        EXPECT_EQ(copy.condensed_phase_.name_, original.condensed_phase_.name_);
-        EXPECT_EQ(copy.solvent_phase_.name_, original.solvent_phase_.name_);
-        EXPECT_EQ(copy.gas_species_[0].name_, original.gas_species_[0].name_); 
-        EXPECT_EQ(copy.condensed_species_[1].species_.name_, original.condensed_species_[1].species_.name_);
-        EXPECT_EQ(copy.solvent_.name_, original.solvent_.name_);
-        EXPECT_NE(copy.coefficient_.get(), original.coefficient_.get());
-      }
-      else
-      {
-        FAIL() << "Expected both variants to hold PhaseTransferProcess";
-      }
-    },
-    copy_process.process_,
-    phase_transfer.process_);
+        using T = std::decay_t<decltype(copy)>;
+        using U = std::decay_t<decltype(original)>;
+        if constexpr (std::is_same_v<T, PhaseTransferProcess> && std::is_same_v<U, PhaseTransferProcess>)
+        {
+          EXPECT_EQ(copy.gas_phase_.name_, original.gas_phase_.name_);
+          EXPECT_EQ(copy.condensed_phase_.name_, original.condensed_phase_.name_);
+          EXPECT_EQ(copy.solvent_phase_.name_, original.solvent_phase_.name_);
+          EXPECT_EQ(copy.gas_species_[0].name_, original.gas_species_[0].name_);
+          EXPECT_EQ(copy.condensed_species_[1].species_.name_, original.condensed_species_[1].species_.name_);
+          EXPECT_EQ(copy.solvent_.name_, original.solvent_.name_);
+          EXPECT_NE(copy.coefficient_.get(), original.coefficient_.get());
+        }
+        else
+        {
+          FAIL() << "Expected both variants to hold PhaseTransferProcess";
+        }
+      },
+      copy_process.process_,
+      phase_transfer.process_);
 }
 
-// TODO (Jiwon): This should throw, but currently does not.
-//               I don't think the base class Process should know about a derived-class's specific condition.
-//               Feels like a design issue — will revisit later. Commented out for now.
-//               issue: https://github.com/NCAR/micm/issues/810
-// TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
-// {
-//   Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
-//   Species e("e");
+TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
+{
+  Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+  Species e("e");
+  Phase gas_phase { "gas", std::vector<micm::Species>{ c, e } };
 
-//   EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-//                                          .SetPhase(gas_phase)
-//                                          .SetReactants({ c, c })
-//                                          .SetProducts({ Yield(e, 1) })
-//                                          .SetRateConstant(SurfaceRateConstant(
-//                                              { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-//                                          .Build(););
-// }
+  EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
+                                  .SetReactants({ c, c })
+                                  .SetProducts({ Yield(e, 1) })
+                                  .SetRateConstant(SurfaceRateConstant(
+                                      { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+                                  .SetPhase(gas_phase)
+                                  .Build(););
+}

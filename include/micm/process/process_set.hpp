@@ -12,7 +12,6 @@
 #include <cassert>
 #include <vector>
 
-
 namespace micm
 {
 

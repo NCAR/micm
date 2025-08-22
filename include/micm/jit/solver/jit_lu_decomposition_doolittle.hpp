@@ -22,7 +22,7 @@ namespace micm
     FuncPtr decompose_function_ = nullptr;
 
    public:
-    JitLuDecompositionDoolittle() { };
+    JitLuDecompositionDoolittle(){};
 
     JitLuDecompositionDoolittle(const JitLuDecompositionDoolittle &) = delete;
     JitLuDecompositionDoolittle &operator=(const JitLuDecompositionDoolittle &) = delete;
