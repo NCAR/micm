@@ -225,13 +225,11 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 }
 
-TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
+template <std::size_t cuda_matrix_vector_length>
+void TestSingleBlockMatrixAddOneElement()
 {
-  const std::size_t cuda_matrix_vector_length = 37;
-  auto matrix = testSingleBlockMatrix<
-      micm::CudaSparseMatrix,
-      micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
-
+  auto matrix = testSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
+  
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 4 * cuda_matrix_vector_length);
@@ -250,19 +248,25 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 2;  // in this example, 2 refers to matrix[2,1] which is non-zero
-  micm::cuda::AddOneElementDriver(param, elem_id, 0, cuda_matrix_vector_length);
+  std::size_t elem_id = 2; // in this example, 2 refers to matrix[2][1] which is non-zero
+  micm::cuda::SparseMatrixAddOneElementDriver(param, elem_id, 0, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][2][1], 46);
 }
 
-TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
+TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 {
-  const std::size_t cuda_matrix_vector_length = 1;
-  auto matrix = testMultiBlockMatrix<
-      micm::CudaSparseMatrix,
-      micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
+  TestSingleBlockMatrixAddOneElement<3>();
+  TestSingleBlockMatrixAddOneElement<32>();
+  TestSingleBlockMatrixAddOneElement<37>();
+  TestSingleBlockMatrixAddOneElement<65>();
+}
+
+template <std::size_t cuda_matrix_vector_length>
+void TestMultiBlockMatrixAddOneElement()
+{
+  auto matrix = testMultiBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
@@ -270,7 +274,7 @@ TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
     auto idx = 40;
     elem = matrix.VectorIndex(idx, 2, 3);
     auto a = std::floor(static_cast<double>(idx) / cuda_matrix_vector_length);
-    auto b = matrix.VectorIndex(0, 2, 3);
+    auto b = matrix.VectorIndex(0, 2, 3) / cuda_matrix_vector_length;
     auto c = idx % cuda_matrix_vector_length;
     EXPECT_EQ(elem, 5 * cuda_matrix_vector_length * a + b * cuda_matrix_vector_length + c);
   }
@@ -280,10 +284,18 @@ TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 4;  // in this example, 4 refers to matrix[3,2] which is non-zero
+  std::size_t elem_id = 4; // in this example, 4 refers to matrix[3][2] which is non-zero
   std::size_t grid_id = 43;
-  micm::cuda::AddOneElementDriver(param, elem_id, grid_id, cuda_matrix_vector_length);
+  micm::cuda::SparseMatrixAddOneElementDriver(param, elem_id, grid_id, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
   EXPECT_EQ(matrix[grid_id][3][2], 30);
+}
+
+TEST(CudaSparseMatrix, MultiBlockMatrixAddOneElement)
+{
+  TestMultiBlockMatrixAddOneElement<3>();
+  TestMultiBlockMatrixAddOneElement<32>();
+  TestMultiBlockMatrixAddOneElement<37>();
+  TestMultiBlockMatrixAddOneElement<65>();
 }
