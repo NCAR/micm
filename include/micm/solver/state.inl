@@ -3,17 +3,17 @@
 
 enum class MicmStateErrc
 {
-  UnknownSpecies = 1,                                                   // Unknown species
-  UnknownRateConstantParameter = 2,                                     // Unknown rate constant parameter
-  IncorrectNumberOfConcentrationValuesForMultiGridcellState = 3,        // Incorrect number of concentration values
-  IncorrectNumberOfCustomRateParameterValues = 4,                       // Incorrect number of custom rate parameter values
-  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = 5,  // Incorrect number of grid cells
+  UnknownSpecies = MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES,
+  UnknownRateConstantParameter = MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER,
+  IncorrectNumberOfConcentrationValuesForMultiGridcellState = MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+  IncorrectNumberOfCustomRateParameterValues = MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
+  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
 };
 
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmStateErrc> : true_type
+  struct is_error_code_enum<MicmStateErrc> : true_type
   {
   };
 }  // namespace std

@@ -20,7 +20,7 @@ enum class MicmRateConstantErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmRateConstantErrc> : true_type
+  struct is_error_code_enum<MicmRateConstantErrc> : true_type
   {
   };
 }  // namespace std
