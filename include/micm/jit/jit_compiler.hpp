@@ -67,6 +67,7 @@ namespace
           return "Invalid matrix for JIT compiled operation. Ensure matrix is Vector-ordered with vector dimension equal to "
                  "the nubmer of grid cells.";
         case MicmJitErrc::MissingJitFunction: return "Missing JIT-compiled function";
+        case MicmJitErrc::FailedToBuild: return "JIT compilation failed";
         default: return "Unknown error";
       }
     }

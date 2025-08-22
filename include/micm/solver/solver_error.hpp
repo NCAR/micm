@@ -14,7 +14,6 @@ enum class MicmSolverErrc
   MissingProcesses = MICM_SOLVER_ERROR_CODE_MISSING_PROCESSES,
   MissingChemicalSpecies = MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES,
   InvalidToleranceSize = MICM_SOLVER_ERROR_CODE_INVALID_TOLERANCE_SIZE,
-  FailedToConverge = MICM_SOLVER_ERROR_CODE_FAILED_TO_CONVERGE,
 };
 
 namespace std
