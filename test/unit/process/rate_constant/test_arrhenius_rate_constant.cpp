@@ -14,7 +14,7 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
   };
 
   auto k = zero.Calculate(conditions);
-  double expected = 1; 
+  double expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;
@@ -28,7 +28,7 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
   parameters.A_ = 2.2e-10;
   micm::ArrheniusRateConstant o1d(parameters);
   k = o1d.Calculate(conditions);
-  expected = 2.2e-10; 
+  expected = 2.2e-10;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // O + HO2 -> OH + O2
