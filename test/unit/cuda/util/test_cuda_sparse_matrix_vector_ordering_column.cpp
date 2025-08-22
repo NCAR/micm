@@ -225,7 +225,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 }
 
-template <std::size_t cuda_matrix_vector_length>
+template<std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
   auto matrix = testSingleBlockMatrix<
@@ -250,7 +250,7 @@ void TestSingleBlockMatrixAddOneElement()
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 2; // in this example, 2 refers to matrix[2][1] which is non-zero
+  std::size_t elem_id = 2;  // in this example, 2 refers to matrix[2][1] which is non-zero
   micm::cuda::SparseMatrixAddOneElementDriver(param, elem_id, 0, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
@@ -265,7 +265,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
   TestSingleBlockMatrixAddOneElement<65>();
 }
 
-template <std::size_t cuda_matrix_vector_length>
+template<std::size_t cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
   auto matrix = testMultiBlockMatrix<
