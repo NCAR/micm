@@ -19,7 +19,7 @@ namespace micm
     LinearSolverInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLinearSolverInPlace() { };
+    CudaLinearSolverInPlace(){};
 
     CudaLinearSolverInPlace(const CudaLinearSolverInPlace&) = delete;
     CudaLinearSolverInPlace& operator=(const CudaLinearSolverInPlace&) = delete;
@@ -46,7 +46,7 @@ namespace micm
         : CudaLinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
-              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }) {};
+              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
 
     CudaLinearSolverInPlace(
         const SparseMatrixPolicy& matrix,
