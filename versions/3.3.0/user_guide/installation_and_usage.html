@@ -1,0 +1,772 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Installation and usage &#8212; MICM v3.3.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bbe95013" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=bd9e20870c6007c4c509" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=bd9e20870c6007c4c509"></script>
+
+    <script src="../_static/documentation_options.js?v=c50c7e31"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/installation_and_usage';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://ncar.github.io/micm/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v3.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Rate Constants (except user defined ones)" href="rate_constant_tutorial.html" />
+    <link rel="prev" title="User Guide" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <header>
+  
+    <div class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">MICM v3.3.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../getting_started.html">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </div>
+  
+  </header>
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../getting_started.html">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Installation and usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rate_constant_tutorial.html">Rate Constants (except user defined ones)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_defined_rate_constant_tutorial.html">User-Defined Rate Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiple_grid_cells.html">Multiple Grid Cells</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solver_configurations.html">Solver configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="but_how_fast_is_it.html">But how fast is it?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="openmp.html">OpenMP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jit.html">A JIT-compiled solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectorized_matrix_solver.html">Vectorized matrix solver</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Installation...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="installation-and-usage">
+<span id="id1"></span><h1>Installation and usage<a class="headerlink" href="#installation-and-usage" title="Link to this heading">#</a></h1>
+<p>This tutorial is going to focus <strong>only</strong> and how to install micm and/or include it
+into your project in multiple different ways. Any API specific details will be elided and will be covered
+in another tutorial.</p>
+<section id="github-codespace">
+<h2>Github codespace<a class="headerlink" href="#github-codespace" title="Link to this heading">#</a></h2>
+<p>If you want to play around with micm without figuring out how to include it in your local setup, this is the <strong>easiest</strong>
+option. Github codespaces offers a cloud-hosted version of Visual Studio Code configured to work with specific projects.
+We’ve set one up for micm. It’ll allow you to instantly run the tests and make changes. Please note that there is a cap on
+the number of hours your personal github account has each month. Follow these instructions to see your
+<a class="reference external" href="https://docs.github.com/en/billing/managing-billing-for-github-codespaces/viewing-your-github-codespaces-usage">github codespace usage</a>.
+At the time of this writing, there was a maximum of 120 core-houres allowed for github codespaces for free accounts.</p>
+<p>To set this up, on the github page for <a class="reference external" href="https://github.com/NCAR/micm">micm</a>, poke on the green code button and choose the
+codespaces tab and select “create codespace on main”. This will open up a new tab and start building a cloud environment
+running an instance of VSCode with the micm repository displayed and all of the tests prebuilt.</p>
+<img alt="../_images/codespaces.png" src="../_images/codespaces.png" />
+<p>The first time that you open up a codespace, it will spend some time building the image and then compiling the test files.
+Onces that’s done, you can move into the build direcotry and run the tests.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>build
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</section>
+<section id="installing">
+<h2>Installing<a class="headerlink" href="#installing" title="Link to this heading">#</a></h2>
+<section id="from-an-archive">
+<h3>From an archive<a class="headerlink" href="#from-an-archive" title="Link to this heading">#</a></h3>
+<p>All versions of micm are associated with a github <a class="reference external" href="https://github.com/NCAR/micm/releases">release</a>.
+Each release includes a tarall and zip that you can use to grab the code.</p>
+<p>Find a release of micm that you want to build and download that archive. You can either do this with the browser by
+poking on the desired file or with the commands below.</p>
+<p>If you intend to use cmake to install micm, you can choose the install location when you configure
+cmake: <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-D</span> <span class="pre">CMAKE_INSTALL_PREFIX=/Users/me/Documents</span> <span class="pre">..</span></code>.</p>
+<section id="zip">
+<h4>Zip<a class="headerlink" href="#zip" title="Link to this heading">#</a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://github.com/NCAR/micm/archive/refs/tags/v3.2.0.zip
+unzip<span class="w"> </span>v3.2.0.zip
+<span class="nb">cd</span><span class="w"> </span>micm-3.2.0
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">8</span>
+make<span class="w"> </span><span class="nb">test</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="tarball">
+<h4>Tarball<a class="headerlink" href="#tarball" title="Link to this heading">#</a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://github.com/NCAR/micm/archive/refs/tags/v3.2.0.tar.gz
+tar<span class="w"> </span>-xf<span class="w"> </span>v3.2.0.tar.gz
+<span class="nb">cd</span><span class="w"> </span>micm-3.2.0
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">8</span>
+make<span class="w"> </span><span class="nb">test</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cloning-from-github">
+<h3>Cloning from github<a class="headerlink" href="#cloning-from-github" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/NCAR/micm.git
+<span class="nb">cd</span><span class="w"> </span>micm
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">8</span>
+make<span class="w"> </span><span class="nb">test</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="usage-after-installation">
+<h3>Usage after installation<a class="headerlink" href="#usage-after-installation" title="Link to this heading">#</a></h3>
+<p>micm installs itself in a location typical on your system, like <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>. It does so under it’s own
+directory with the version appended, e.g. <code class="docutils literal notranslate"><span class="pre">/usr/local/micm-3.2.0</span></code>. It installs header files and files suitable
+for use with cmake’s <a class="reference external" href="https://cmake.org/cmake/help/latest/command/find_package.html">find_package</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ tree /usr/local/micm-3.2.0 -L 2
+/usr/local/micm-3.2.0
+├── cmake
+│   ├── micmConfig.cmake
+│   ├── micmConfigVersion.cmake
+│   └── micm_Exports.cmake
+└── include
+    └── micm
+</pre></div>
+</div>
+<p>micm only installs its header and cmake files. If you intend to use any of the additional features of micm
+like JIT compiling or json parsing, you’ll need to have it’s dependencies installed.</p>
+<section id="specify-include-path">
+<h4>Specify include path<a class="headerlink" href="#specify-include-path" title="Link to this heading">#</a></h4>
+<p>To compile micm code, it’s as simple as adding the include path to your compile command <code class="docutils literal notranslate"><span class="pre">-I/usr/local/micm-3.2.0/include</span></code>
+or <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">CPPFLAGS=&quot;-I/usr/local/micm-3.2.0/include&quot;</span></code>. If you changed the install location when configuring cmake, you’ll
+need to set that path instead.</p>
+</section>
+</section>
+</section>
+<section id="cmake">
+<h2>Cmake<a class="headerlink" href="#cmake" title="Link to this heading">#</a></h2>
+<p>micm is developed with cmake support. This makes the inclusion of micm into projects that use cmake especially easy.</p>
+<section id="id2">
+<h3>find_package<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<p>This assumes you have micm installed using one of the methods above.</p>
+<p>The cmake files installed with micm allow you to ask cmake to take care of finding and setting the include paths for you
+in a cmake project. Using micm with <a class="reference external" href="https://cmake.org/cmake/help/latest/command/find_package.html">find_package</a>
+is as simple as adding this line to your cmake project and linking
+your target to micm. You will need to change the version accordingly.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">micm</span><span class="w"> </span><span class="s">3.2.0</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">my_target</span><span class="w"> </span><span class="s">my_target.cpp</span><span class="p">)</span>
+
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_target</span>
+<span class="w">  </span><span class="s">PUBLIC</span>
+<span class="w">    </span><span class="s">musica::micm</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fetch-content">
+<h3>Fetch content<a class="headerlink" href="#fetch-content" title="Link to this heading">#</a></h3>
+<p>If you can use cmake 3.11+, the easiest way to include micm is with the
+<a class="reference external" href="https://cmake.org/cmake/help/latest/module/FetchContent.html">FetchContent  module</a>.
+If you must use a lower version, you’ll either need to install the files on your system, or properly set
+the include flags of your cmake project to point to the micm header files if you don’t need GPU support.
+You may also want to look into <a class="reference external" href="https://cmake.org/cmake/help/latest/module/ExternalProject.html">ExternalProject</a>.</p>
+<p>To use micm with fetch content, you’ll need to include the module and point it to the micm repository and a commit
+or tag that you want to use. Then you make the content available and link your cmake target to micm.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
+
+<span class="nb">FetchContent_Declare</span><span class="p">(</span><span class="s">micm</span>
+<span class="w">  </span><span class="s">GIT_REPOSITORY</span><span class="w"> </span><span class="s">https://github.com/NCAR/micm.git</span>
+<span class="w">  </span><span class="s">GIT_TAG</span><span class="w">        </span><span class="s">0996e5848b097e77ccbb2819f22c49844154f3e3</span>
+<span class="p">)</span>
+
+<span class="nb">FetchContent_MakeAvailable</span><span class="p">(</span><span class="s">micm</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">my_target</span><span class="w"> </span><span class="s">my_target.cpp</span><span class="p">)</span>
+
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_target</span>
+<span class="w">  </span><span class="s">PUBLIC</span>
+<span class="w">    </span><span class="s">musica::micm</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="debugging">
+<span id="id4"></span><h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading">#</a></h2>
+<p>If you find yourself needing to debug the internals of micm, you don’t have to stick to print statements.</p>
+<p>Luckily, cmake will generate projects for the major IDEs.</p>
+<section id="vs-code">
+<h3>VS Code<a class="headerlink" href="#vs-code" title="Link to this heading">#</a></h3>
+<p>At this time, the easiest way to work in VS Code is to build micm yourself with cmake on the command line and use print
+statements. Feel free to submit a PR with instructions for setting up visual studio code for debugging micm.</p>
+</section>
+<section id="xcode">
+<h3>Xcode<a class="headerlink" href="#xcode" title="Link to this heading">#</a></h3>
+<p>On macOS, you’ll want to use xcode. You can ask cmake to generate an xcode project file for you.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">xcode</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">xcode</span>
+<span class="n">cmake</span> <span class="o">-</span><span class="n">G</span> <span class="n">Xcode</span> <span class="o">..</span>
+</pre></div>
+</div>
+<p>After this completes, there will be a file called micm.xcodeproj that you can open with Xcode. Select a target you want to build
+and start debugging. Further use of xcode is beyond the scope of this documentation.</p>
+</section>
+<section id="visual-studio">
+<h3>Visual Studio<a class="headerlink" href="#visual-studio" title="Link to this heading">#</a></h3>
+<p>On windows, you’ll want to use Visual Studio. You can ask cmake to generate an xcode project file for you.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">xcode</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">xcode</span>
+<span class="n">cmake</span> <span class="o">-</span><span class="n">G</span> <span class="s2">&quot;Visual Studio 17 2022&quot;</span> <span class="o">..</span>
+</pre></div>
+</div>
+<p>After this completes, there will be a file called micm.sln that you can open with Visual Studio.
+Select a target you want to build and start debugging.
+Further use of Visual Studio is beyond the scope of this documentation.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="rate_constant_tutorial.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Rate Constants (except user defined ones)</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#github-codespace">Github codespace</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing">Installing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-an-archive">From an archive</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#zip">Zip</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tarball">Tarball</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cloning-from-github">Cloning from github</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-after-installation">Usage after installation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-include-path">Specify include path</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cmake">Cmake</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">find_package</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fetch-content">Fetch content</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debugging">Debugging</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vs-code">VS Code</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#xcode">Xcode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#visual-studio">Visual Studio</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/installation_and_usage.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=bd9e20870c6007c4c509"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2024, NCAR/UCAR.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
