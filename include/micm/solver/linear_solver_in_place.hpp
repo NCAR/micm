@@ -46,7 +46,7 @@ namespace micm
 
    public:
     /// @brief default constructor
-    LinearSolverInPlace() { };
+    LinearSolverInPlace(){};
 
     LinearSolverInPlace(const LinearSolverInPlace&) = delete;
     LinearSolverInPlace& operator=(const LinearSolverInPlace&) = delete;
