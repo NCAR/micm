@@ -74,26 +74,21 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     params[1] = get_double() * 1.0e5;
     params[2] = get_double() * 1.0e-2;
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = params[0];
-    state.custom_rate_parameters_[i_cell]
-                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
-        params[1];
+    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] = params[1];
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
     std::vector<double>::const_iterator param_iter = params.begin();
-    expected_rate_constants[i_cell][0] =
-        rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
+    expected_rate_constants[i_cell][0] = rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc1.SizeCustomParameters();
     expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
     param_iter += rc2.SizeCustomParameters();
-    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter);
+    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc3.SizeCustomParameters();
   }
 
   Process::CalculateRateConstants(processes, state);
   std::cout << "processes size: " << processes.size() << std::endl;
-  // for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  //   for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)
-  for (std::size_t i_cell = 0; i_cell < 1; ++i_cell)
-    for (std::size_t i_rxn = 2; i_rxn < 3; ++i_rxn)
+  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+    for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)
       EXPECT_EQ(state.rate_constants_[i_cell][i_rxn], expected_rate_constants[i_cell][i_rxn])
           << "grid cell " << i_cell << "; reaction " << i_rxn;
 }
@@ -191,10 +186,6 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
       phase_transfer.process_);
 }
 
-// TODO (Jiwon): This should throw, but currently does not.
-//               I don't think the base class Process should know about a derived-class's specific condition.
-//               Feels like a design issue — will revisit later. Commented out for now.
-//               issue: https://github.com/NCAR/micm/issues/810
 TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 {
   Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
