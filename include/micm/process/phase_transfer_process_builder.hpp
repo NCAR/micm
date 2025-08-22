@@ -29,7 +29,6 @@ namespace micm
     std::unique_ptr<TransferCoefficient> coefficient_;
 
    public:
-
     /// @brief Sets the species in the gas phase
     /// @param phase Phase object representing the gas phase
     /// @param species A vector of Species representing the species in the gas phase

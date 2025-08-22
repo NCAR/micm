@@ -18,7 +18,7 @@ namespace micm
     LuDecomposeMozartInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLuDecompositionMozartInPlace() { };
+    CudaLuDecompositionMozartInPlace(){};
 
     CudaLuDecompositionMozartInPlace(const CudaLuDecompositionMozartInPlace&) = delete;
     CudaLuDecompositionMozartInPlace& operator=(const CudaLuDecompositionMozartInPlace&) = delete;

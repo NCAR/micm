@@ -61,7 +61,7 @@ namespace micm
   {
    public:
     /// @brief Virtual destructor
-    virtual ~RateConstant() { };
+    virtual ~RateConstant(){};
 
     /// @brief Deep copy
     virtual std::unique_ptr<RateConstant> Clone() const = 0;
