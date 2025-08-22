@@ -26,9 +26,9 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
   EXPECT_EQ(surface.CustomParameters()[0], "foo.effective radius [m]");
   EXPECT_EQ(surface.CustomParameters()[1], "foo.particle number concentration [# m-3]");
   auto k = surface.Calculate(state.conditions_[0], params);
-  double k_test = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
+  double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                   (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * micm::constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025))));
-  EXPECT_NEAR(k, k_test, k_test * TOLERANCE);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
 TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
@@ -50,7 +50,7 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
   EXPECT_EQ(surface.CustomParameters()[0], "foo.effective radius [m]");
   EXPECT_EQ(surface.CustomParameters()[1], "foo.particle number concentration [# m-3]");
   auto k = surface.Calculate(state.conditions_[0], params);
-  double k_test = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
+  double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                   (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * micm::constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));
-  EXPECT_NEAR(k, k_test, k_test * TOLERANCE);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
