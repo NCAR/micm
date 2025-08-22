@@ -1,9 +1,4 @@
 ################################################################################
-# Test utilities
-
-include(test_util)
-
-################################################################################
 # Tests
 
 create_standard_test(NAME jit_linear_solver SOURCES test_jit_linear_solver.cpp)

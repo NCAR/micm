@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+constexpr double TOLERANCE = 1e-13;
+
 TEST(ArrheniusRateConstant, CalculateWithSystem)
 {
   micm::ArrheniusRateConstant zero{};
@@ -12,34 +14,38 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
   };
 
   auto k = zero.Calculate(conditions);
-  EXPECT_NEAR(k, 1, 0.01);
+  double expected = 1; 
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;
-  parameters.A_ = 1;
+  parameters.A_ = expected;
 
   micm::ArrheniusRateConstant basic(parameters);
   k = basic.Calculate(conditions);
-  EXPECT_NEAR(k, 1, 0.01);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
   parameters.A_ = 2.2e-10;
   micm::ArrheniusRateConstant o1d(parameters);
   k = o1d.Calculate(conditions);
-  EXPECT_NEAR(k, 2.2e-10, 0.01);
+  expected = 2.2e-10; 
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // O + HO2 -> OH + O2
   parameters.A_ = 3e-11;
   parameters.C_ = -200;
   micm::ArrheniusRateConstant hox(parameters);
   k = hox.Calculate(conditions);
-  EXPECT_NEAR(k, 3e-11 * std::exp(-200 / 301.24), 0.01);
+  expected = 3e-11 * std::exp(-200 / 301.24);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
   micm::ArrheniusRateConstant clox(parameters);
   k = clox.Calculate(conditions);
-  EXPECT_NEAR(k, 2.6e-12 * std::exp(-350 / 301.24), 0.01);
+  expected = 2.6e-12 * std::exp(-350 / 301.24);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
 TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments)
@@ -50,32 +56,36 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments)
 
   micm::ArrheniusRateConstant zero{};
   auto k = zero.Calculate(conditions);
-  EXPECT_NEAR(k, 1, 0.01);
+  double expected = 1;
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 1;
 
   micm::ArrheniusRateConstant basic(parameters);
   k = basic.Calculate(conditions);
-  EXPECT_NEAR(k, 1, 0.01);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
   parameters.A_ = 2.2e-10;
   micm::ArrheniusRateConstant o1d(parameters);
   k = o1d.Calculate(conditions);
-  EXPECT_NEAR(k, 2.2e-10, 0.01);
+  expected = 2.2e-10;
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // O + HO2 -> OH + O2
   parameters.A_ = 3e-11;
   parameters.C_ = -200;
   micm::ArrheniusRateConstant hox(parameters);
   k = hox.Calculate(conditions);
-  EXPECT_NEAR(k, 3e-11 * std::exp(200 / 301.24), 0.01);
+  expected = 3e-11 * std::exp(-200 / 301.24);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
   micm::ArrheniusRateConstant clox(parameters);
   k = clox.Calculate(conditions);
-  EXPECT_NEAR(k, 2.6e-12 * std::exp(-350 / 301.24), 0.01);
+  expected = 2.6e-12 * std::exp(-350 / 301.24);
+  EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

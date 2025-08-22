@@ -19,15 +19,14 @@
 namespace micm
 {
 
-  /// @brief Represents a homogeneous chemical reaction with reactants,
-  ///        products, a rate constant and phase
+  /// @brief Represents a chemical reaction with reactants, products, rate constant and phase
   class ChemicalReaction
   {
    public:
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
     std::unique_ptr<RateConstant> rate_constant_;
-    const Phase* phase_;
+    Phase phase_;
 
     ChemicalReaction(ChemicalReaction&&) noexcept = default;
     ChemicalReaction& operator=(ChemicalReaction&&) noexcept = default;
@@ -36,7 +35,7 @@ namespace micm
         std::vector<Species> reactants,
         std::vector<Yield> products,
         std::unique_ptr<RateConstant> rate_constant,
-        const Phase* phase)
+        const Phase& phase)
         : reactants_(std::move(reactants)),
           products_(std::move(products)),
           rate_constant_(std::move(rate_constant)),
@@ -60,9 +59,8 @@ namespace micm
       {
         if (!other.rate_constant_)
           throw std::system_error(
-              make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
-        if (!other.phase_)
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
+              make_error_code(MicmProcessErrc::RateConstantIsNotSet),
+              "Cannot copy from a ChemicalReaction with null rate constant");
 
         reactants_ = other.reactants_;
         products_ = other.products_;
@@ -105,11 +103,7 @@ namespace micm
       if (!rate_constant_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
-      if (!phase_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::PhaseIsNotSet), "Phase pointer cannot be null");
     }
-
   };
 
   template<

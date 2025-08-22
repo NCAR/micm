@@ -1,9 +1,4 @@
 ################################################################################
-# Test utilities
-
-include(test_util)
-
-################################################################################
 # Tests
 
 create_standard_test(NAME chapman_integration SOURCES test_chapman_integration.cpp)

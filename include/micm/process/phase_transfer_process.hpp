@@ -17,9 +17,9 @@ namespace micm
   class PhaseTransferProcess
   {
    public:
-    const Phase* gas_phase_;
-    const Phase* condensed_phase_;
-    const Phase* solvent_phase_;
+    Phase gas_phase_;
+    Phase condensed_phase_;
+    Phase solvent_phase_;
     std::vector<Species> gas_species_;
     std::vector<Yield> condensed_species_;
     Species solvent_;
@@ -29,9 +29,9 @@ namespace micm
     PhaseTransferProcess& operator=(PhaseTransferProcess&&) noexcept = default;
 
     PhaseTransferProcess(
-        const Phase* gas_phase,
-        const Phase* condensed_phase,
-        const Phase* solvent_phase,
+        const Phase& gas_phase,
+        const Phase& condensed_phase,
+        const Phase& solvent_phase,
         std::vector<Species> gas_species,
         std::vector<Yield> condensed_species,
         Species solvent,
@@ -63,17 +63,10 @@ namespace micm
     {
       if (this != &other)
       {
-        if (!other.gas_phase_)
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas Phase pointer cannot be null");
-        if (!other.condensed_phase_)
-          throw std::system_error(
-              make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed Phase pointer cannot be null");
-        if (!other.solvent_phase_)
-          throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent Phase pointer cannot be null");
         if (!other.coefficient_)
           throw std::system_error(
               make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
-              "Phase Transfer Coefficient pointer cannot be null");
+              "Cannot copy from a PhaseTransferProcess with null coefficient");
 
         gas_phase_ = other.gas_phase_;
         condensed_phase_ = other.condensed_phase_;
@@ -90,12 +83,6 @@ namespace micm
    private:
     void Validate() const
     {
-      if (!gas_phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Gas Phase pointer cannot be null");
-      if (!condensed_phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Condensed Phase pointer cannot be null");
-      if (!solvent_phase_)
-        throw std::system_error(make_error_code(MicmProcessErrc::PhaseIsNotSet), "Solvent Phase pointer cannot be null");
       if (!coefficient_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
