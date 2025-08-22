@@ -1,60 +1,6 @@
 // Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-enum class MicmSolverBuilderErrc
-{
-  UnusedSpecies = 1,           // Unused species present in the chemical system
-  MissingChemicalSystem = 2,   // Missing chemical system
-  MissingReactions = 3,        // Missing processes
-  MissingChemicalSpecies = 4,  // Missing chemical species
-  InvalidToleranceSize = 5     // Invalid tolerance size
-};
-
-namespace std
-{
-  template<>
-  struct is_error_code_enum<MicmSolverBuilderErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class SolverBuilderErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return "MICM Solver Builder";
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmSolverBuilderErrc>(ev))
-      {
-        case MicmSolverBuilderErrc::UnusedSpecies:
-          return "Unused species present in the chemical system. Use the ignore_unused_species_ parameter to allow unused "
-                 "species in the solve.";
-        case MicmSolverBuilderErrc::MissingChemicalSystem:
-          return "Missing chemical system. Use the SetSystem function to set the chemical system.";
-        case MicmSolverBuilderErrc::MissingReactions:
-          return "Missing reactions. Use the SetReactions function to set the processes.";
-        case MicmSolverBuilderErrc::MissingChemicalSpecies: return "Provided chemical system contains no species.";
-        case MicmSolverBuilderErrc::InvalidToleranceSize:
-          return "Provided tolerances do not match the number of species in the chemical system. Either provide none and "
-                 "allow defaults to be set or pass in a number equal to the number of chemical species.";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const SolverBuilderErrorCategory solverBuilderErrorCategory{};
-}  // namespace
-
-inline std::error_code make_error_code(MicmSolverBuilderErrc e)
-{
-  return { static_cast<int>(e), solverBuilderErrorCategory };
-}
-
 namespace micm
 {
   template<
@@ -213,7 +159,7 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw std::system_error(make_error_code(MicmSolverBuilderErrc::UnusedSpecies), err_msg);
+      throw std::system_error(make_error_code(MicmSolverErrc::UnusedSpecies), err_msg);
     }
   }
 
@@ -356,11 +302,11 @@ namespace micm
 
     if (!valid_system_)
     {
-      throw std::system_error(make_error_code(MicmSolverBuilderErrc::MissingChemicalSystem), "Missing chemical system.");
+      throw std::system_error(make_error_code(MicmSolverErrc::MissingChemicalSystem), "Missing chemical system.");
     }
     if (!valid_reactions_)
     {
-      throw std::system_error(make_error_code(MicmSolverBuilderErrc::MissingReactions), "Missing reactions.");
+      throw std::system_error(make_error_code(MicmSolverErrc::MissingProcesses), "Missing processes.");
     }
     using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
     auto species_map = this->GetSpeciesMap();
@@ -369,7 +315,7 @@ namespace micm
     if (number_of_species == 0)
     {
       throw std::system_error(
-          make_error_code(MicmSolverBuilderErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
+          make_error_code(MicmSolverErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
     }
 
     this->UnusedSpeciesCheck();
