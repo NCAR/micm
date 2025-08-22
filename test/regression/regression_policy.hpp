@@ -106,9 +106,9 @@ void test_flow_tube(
     BuilderPolicy builder,
     std::string expected_results_path,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * SOA1 ->                                , k1 = 0.01
@@ -126,21 +126,24 @@ void test_flow_tube(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ soa1, soa2, apinene, o3 } };
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ soa1 })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase);
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r2 = micm::Process::Create()
+  micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ soa2 })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase);
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r3 = micm::Process::Create()
+  micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ apinene, o3 })
                          .SetProducts({ micm::Yield(soa1, 0.18), micm::Yield(soa2, 0.09) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 8.8e-17 * MOLES_M3_TO_MOLECULES_CM3 }))
-                         .SetPhase(gas_phase);
+                         .SetPhase(gas_phase)
+                         .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
   auto solver = builder.SetReorderState(false)

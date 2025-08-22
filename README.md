@@ -99,7 +99,8 @@ The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM docu
 To solve this system save the following code in a file named `foo_chem.cpp`:
 
 ```c++
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 
@@ -118,17 +119,19 @@ int main(const int argc, const char *argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::Create()
+  Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
                    .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r2 = Process::Create()
+  Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
                    .SetProducts({ Yield(baz, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
   std::vector<Process> reactions{ r1, r2 };
 
