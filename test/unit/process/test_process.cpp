@@ -281,6 +281,6 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
                                   .SetProducts({ Yield(e, 1) })
                                   .SetRateConstant(SurfaceRateConstant(
                                       { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-                                  .SetPhase(&gas_phase)
+                                  .SetPhase(gas_phase)
                                   .Build(););
 }
