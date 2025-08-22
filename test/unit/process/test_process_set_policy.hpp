@@ -4,7 +4,6 @@
 
 #include <random>
 
-using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
 void compare_pair(const index_pair& a, const index_pair& b)
@@ -34,19 +33,19 @@ void testProcessSet()
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ foo, baz })
-                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
                          .SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
                          .SetReactants({ bar, qux })
-                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
                          .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 
   micm::Process r4 = micm::Process::Create()
                          .SetReactants({ baz, qux })
-                         .SetProducts({ Yields(bar, 1), Yields(quz, 2.5) })
+                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quz, 2.5) })
                          .SetPhase(gas_phase);
 
   auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
@@ -177,10 +176,10 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<yields> products{};
+    std::vector<micm::Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
     auto proc = micm::Process(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
     processes.push_back(proc);

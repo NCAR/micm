@@ -16,4 +16,5 @@ add_library(cuda_gtest_main STATIC cuda_gtest_main.cpp)
 target_link_libraries(cuda_gtest_main PUBLIC gtest micm)
 
 create_standard_test(NAME cuda_dense_matrix SOURCES test_cuda_dense_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils IS_CUDA_TEST)
-create_standard_test(NAME cuda_sparse_matrix SOURCES test_cuda_sparse_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils IS_CUDA_TEST)
+create_standard_test(NAME cuda_sparse_matrix_vector_ordering_row SOURCES test_cuda_sparse_matrix_vector_ordering_row.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils IS_CUDA_TEST)
+create_standard_test(NAME cuda_sparse_matrix_vector_ordering_column SOURCES test_cuda_sparse_matrix_vector_ordering_column.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils IS_CUDA_TEST)

@@ -101,7 +101,7 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
   micm::Phase gas_phase({ c, e });
   EXPECT_ANY_THROW(micm::Process r = micm::Process::Create()
                                          .SetReactants({ c, c })
-                                         .SetProducts({ Yields(e, 1) })
+                                         .SetProducts({ micm::Yield(e, 1) })
                                          .SetRateConstant(micm::SurfaceRateConstant(
                                              { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
                                          .SetPhase(gas_phase););

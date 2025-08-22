@@ -28,7 +28,7 @@ int main(const int argc, const char* argv[])
 
   Process r1 = Process::Create()
                    .SetReactants({ a })
-                   .SetProducts({ Yields(b, 1) })
+                   .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-4, .B_ = 0, .C_ = 110 }))
                    .SetPhase(gas_phase);
 
@@ -39,14 +39,14 @@ int main(const int argc, const char* argv[])
 
   Process r2 = Process::Create()
                    .SetReactants({ b })
-                   .SetProducts({ Yields(c, 1) })
+                   .SetProducts({ Yield(c, 1) })
                    .SetRateConstant(BranchedRateConstant(branched_params))
                    .SetPhase(gas_phase);
 
   branched_params.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
   Process r3 = Process::Create()
                    .SetReactants({ b })
-                   .SetProducts({ Yields(d, 1) })
+                   .SetProducts({ Yield(d, 1) })
                    .SetRateConstant(BranchedRateConstant(branched_params))
                    .SetPhase(gas_phase);
 
@@ -54,13 +54,13 @@ int main(const int argc, const char* argv[])
   // we will set those later
   Process r4 = Process::Create()
                    .SetReactants({ c })
-                   .SetProducts({ Yields(e, 1) })
+                   .SetProducts({ Yield(e, 1) })
                    .SetRateConstant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
                    .SetPhase(gas_phase);
 
   Process r5 = Process::Create()
                    .SetReactants({ d })
-                   .SetProducts({ Yields(f, 2) })
+                   .SetProducts({ Yield(f, 2) })
                    .SetRateConstant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
                                                                           .k0_B_ = 2.3,
                                                                           .k0_C_ = 302.3,
@@ -75,7 +75,7 @@ int main(const int argc, const char* argv[])
   // list the reactant that many times
   Process r6 = Process::Create()
                    .SetReactants({ e, e })
-                   .SetProducts({ Yields(g, 1) })
+                   .SetProducts({ Yield(g, 1) })
                    .SetRateConstant(TroeRateConstant({ .k0_A_ = 1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
                                                      .k0_B_ = 167.0,
                                                      .k0_C_ = 3.0,
@@ -88,18 +88,18 @@ int main(const int argc, const char* argv[])
 
   Process r7 = Process::Create()
                    .SetReactants({ f })
-                   .SetProducts({ Yields(g, 1) })
+                   .SetProducts({ Yield(g, 1) })
                    .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                    .SetPhase(gas_phase);
 
   Process r8 = Process::Create()
                    .SetReactants({ c })
-                   .SetProducts({ Yields(g, 1) })
+                   .SetProducts({ Yield(g, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "my photolysis rate" }))
                    .SetPhase(gas_phase);
 
   Process r9 = Process::Create()
-                   .SetProducts({ Yields(a, 1) })
+                   .SetProducts({ Yield(a, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "my emission rate" }))
                    .SetPhase(gas_phase);
 
