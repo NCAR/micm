@@ -14,7 +14,7 @@ TEST(JitFunction, SimpleInt32Function)
   func.builder_->CreateRet(ret_val);
 
   auto func_target = func.Generate();
-  int32_t (*func_ptr)(int32_t, int32_t) = (int32_t (*)(int32_t, int32_t))(intptr_t)func_target.second;
+  int32_t (*func_ptr)(int32_t, int32_t) = (int32_t(*)(int32_t, int32_t))(intptr_t)func_target.second;
   EXPECT_EQ(12, func_ptr(8, 4));
   EXPECT_EQ(-4, func_ptr(-8, 4));
   EXPECT_EQ(92, func_ptr(80, 12));
@@ -31,7 +31,7 @@ TEST(JitFunction, SimpleInt64Function)
   llvm::Value *ret_val = func.builder_->CreateNSWAdd(func.arguments_[0].ptr_, func.arguments_[1].ptr_, "add args");
   func.builder_->CreateRet(ret_val);
   auto func_target = func.Generate();
-  int64_t (*func_ptr)(int64_t, int64_t) = (int64_t (*)(int64_t, int64_t))(intptr_t)func_target.second;
+  int64_t (*func_ptr)(int64_t, int64_t) = (int64_t(*)(int64_t, int64_t))(intptr_t)func_target.second;
   EXPECT_EQ(12l, func_ptr(8l, 4l));
   EXPECT_EQ(-4l, func_ptr(-8l, 4l));
   EXPECT_EQ(92l, func_ptr(80l, 12l));
@@ -106,7 +106,7 @@ TEST(JitFunction, SimpleInt32PtrFunction)
   func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Int32, sum);
   func.builder_->CreateRet(sum);
   auto func_target = func.Generate();
-  int32_t (*func_ptr)(int32_t *, int32_t *) = (int32_t (*)(int32_t *, int32_t *))(intptr_t)func_target.second;
+  int32_t (*func_ptr)(int32_t *, int32_t *) = (int32_t(*)(int32_t *, int32_t *))(intptr_t)func_target.second;
   int32_t a[] = { 9, 4, 33 };
   int32_t b[] = { 4, 21, 2, 42 };
   EXPECT_EQ(35, func_ptr(a, b));
@@ -137,7 +137,7 @@ TEST(JitFunction, SimpleInt64PtrFunction)
   func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Int64, sum);
   func.builder_->CreateRet(sum);
   auto func_target = func.Generate();
-  int64_t (*func_ptr)(int64_t *, int64_t *) = (int64_t (*)(int64_t *, int64_t *))(intptr_t)func_target.second;
+  int64_t (*func_ptr)(int64_t *, int64_t *) = (int64_t(*)(int64_t *, int64_t *))(intptr_t)func_target.second;
   int64_t a[] = { 9l, 4l, 33l };
   int64_t b[] = { 4l, 21l, 2l, 42l };
   EXPECT_EQ(35l, func_ptr(a, b));
@@ -228,7 +228,7 @@ TEST(JitFunction, SimpleLoop)
   ret_val->addIncoming(next_val, loop.block_);
   func.builder_->CreateRet(ret_val);
   auto func_target = func.Generate();
-  int32_t (*func_ptr)() = (int32_t (*)())(intptr_t)func_target.second;
+  int32_t (*func_ptr)() = (int32_t(*)())(intptr_t)func_target.second;
   EXPECT_EQ(10, func_ptr());
   func.exit_on_error_(func_target.first->remove());
 }
@@ -245,7 +245,7 @@ TEST(JitFunction, MultipleFunctions)
       foo_func.arguments_[0].ptr_, llvm::ConstantInt::get(*(foo_func.context_), llvm::APInt(32, 10)), "add args");
   foo_func.builder_->CreateRet(foo_ret_val);
   auto foo_target = foo_func.Generate();
-  int32_t (*foo_func_ptr)(int) = (int32_t (*)(int))(intptr_t)foo_target.second;
+  int32_t (*foo_func_ptr)(int) = (int32_t(*)(int))(intptr_t)foo_target.second;
   micm::JitFunction bar_func = micm::JitFunction::Create()
                                    .SetName("bar")
                                    .SetArguments({ { "arg", micm::JitType::Int32 } })
@@ -254,7 +254,7 @@ TEST(JitFunction, MultipleFunctions)
       bar_func.arguments_[0].ptr_, llvm::ConstantInt::get(*(bar_func.context_), llvm::APInt(32, 100)), "add args");
   bar_func.builder_->CreateRet(bar_ret_val);
   auto bar_target = bar_func.Generate();
-  int32_t (*bar_func_ptr)(int) = (int32_t (*)(int))(intptr_t)bar_target.second;
+  int32_t (*bar_func_ptr)(int) = (int32_t(*)(int))(intptr_t)bar_target.second;
   EXPECT_EQ(32, foo_func_ptr(22));
   EXPECT_EQ(102, bar_func_ptr(2));
   EXPECT_EQ(254, bar_func_ptr(foo_func_ptr(144)));
@@ -303,7 +303,7 @@ TEST(JitFunction, LocalArray)
   func.builder_->CreateRet(ret_val);
 
   auto foo_target = func.Generate();
-  int64_t (*func_ptr)(int) = (int64_t (*)(int))(intptr_t)foo_target.second;
+  int64_t (*func_ptr)(int) = (int64_t(*)(int))(intptr_t)foo_target.second;
   EXPECT_EQ(20, func_ptr(4));
   EXPECT_EQ(5, func_ptr(1));
   func.exit_on_error_(foo_target.first->remove());
@@ -322,7 +322,7 @@ TEST(JitFunction, SameNameFunctions)
   func1.builder_->CreateRet(ret_val);
 
   auto func1_target = func1.Generate();
-  int32_t (*func1_ptr)(int32_t) = (int32_t (*)(int32_t))(intptr_t)func1_target.second;
+  int32_t (*func1_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func1_target.second;
 
   micm::JitFunction func2 = micm::JitFunction::Create()
                                 .SetName("foobar")
@@ -333,7 +333,7 @@ TEST(JitFunction, SameNameFunctions)
   func2.builder_->CreateRet(ret_val);
 
   auto func2_target = func2.Generate();
-  int32_t (*func2_ptr)(int32_t) = (int32_t (*)(int32_t))(intptr_t)func2_target.second;
+  int32_t (*func2_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func2_target.second;
 
   micm::JitFunction func3 = micm::JitFunction::Create()
                                 .SetName("foobar")
@@ -344,7 +344,7 @@ TEST(JitFunction, SameNameFunctions)
   func3.builder_->CreateRet(ret_val);
 
   auto func3_target = func3.Generate();
-  int32_t (*func3_ptr)(int32_t) = (int32_t (*)(int32_t))(intptr_t)func3_target.second;
+  int32_t (*func3_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func3_target.second;
 
   EXPECT_EQ(10, func1_ptr(8));
   EXPECT_EQ(-6, func1_ptr(-8));

@@ -83,7 +83,7 @@ namespace micm
 
    private:
     /// @brief Validates that the selected rate constant follows any chemical or structural constraints
-    /// @throws std::system_error If the constraints for the specific rate constant are violated
+    /// @throws std::system_error if the constraints for the specific rate constant are violated
     void ValidateRateConstantConditions() const
     {
       // SurfaceRateConstant must be used with a single reactant

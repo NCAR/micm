@@ -18,12 +18,8 @@ namespace micm
   /// @brief Concept for in-place linear solver algorithms
   template<class T, class DenseMatrixPolicy, class SparseMatrixPolicy>
   concept LinearSolverInPlaceConcept = requires(T t) {
-    {
-      t.Factor(std::declval<SparseMatrixPolicy&>())
-    } -> std::same_as<void>;
-    {
-      t.Solve(std::declval<DenseMatrixPolicy&>(), std::declval<SparseMatrixPolicy>())
-    } -> std::same_as<void>;
+    { t.Factor(std::declval<SparseMatrixPolicy&>()) } -> std::same_as<void>;
+    { t.Solve(std::declval<DenseMatrixPolicy&>(), std::declval<SparseMatrixPolicy>()) } -> std::same_as<void>;
   };
   static_assert(
       LinearSolverInPlaceConcept<LinearSolverInPlace<StandardSparseMatrix>, StandardDenseMatrix, StandardSparseMatrix>,

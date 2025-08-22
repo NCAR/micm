@@ -28,7 +28,7 @@ void testProcessSet()
 
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_rate_constants_ = 3,
-                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 
+                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } },
       2);
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz, corge } };
