@@ -85,8 +85,8 @@ namespace micm
       std::vector<double>::const_iterator custom_parameters) const
   {
     const double mean_free_speed = std::sqrt(mean_free_speed_factor_ * conditions.temperature_);
-    const double radius = *(custom_parameters++);
-    const double number = *(custom_parameters);
+    const double radius = custom_parameters[0];
+    const double number = custom_parameters[1];
     double val = (double)4.0 * number * M_PI * radius * radius /
                  (radius / diffusion_coefficient_ + 4.0 / (mean_free_speed * parameters_.reaction_probability_));
     return val;
