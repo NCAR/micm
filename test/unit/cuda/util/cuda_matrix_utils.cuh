@@ -6,10 +6,15 @@ namespace micm
   {
     void SquareDriver(CudaMatrixParam& param);
     void AddOneDriver(CudaMatrixParam& param);
-    void AddOneElementDriver(
+    void SparseMatrixAddOneElementDriver(
         CudaMatrixParam& param,
         std::size_t elem_id,
         std::size_t grid_id,
+        const std::size_t cuda_matrix_vector_length);
+    void DenseMatrixAddOneElementDriver(
+        CudaMatrixParam& param,
+        std::size_t row_id,
+        std::size_t col_id,
         const std::size_t cuda_matrix_vector_length);
   }  // namespace cuda
 }  // namespace micm

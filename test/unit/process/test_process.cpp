@@ -26,21 +26,9 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
   UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
-  Process r1 = ChemicalReactionBuilder()
-                  .SetReactants({ foo, bar })
-                  .SetRateConstant(rc1)
-                  .SetPhase(gas_phase)
-                  .Build();
-  Process r2 = ChemicalReactionBuilder()
-                  .SetReactants({ foo })
-                  .SetRateConstant(rc2)
-                  .SetPhase(gas_phase)
-                  .Build();
-  Process r3 = ChemicalReactionBuilder()
-                  .SetReactants({ bar })
-                  .SetRateConstant(rc3)
-                  .SetPhase(gas_phase)
-                  .Build();
+  Process r1 = ChemicalReactionBuilder().SetReactants({ foo, bar }).SetRateConstant(rc1).SetPhase(gas_phase).Build();
+  Process r2 = ChemicalReactionBuilder().SetReactants({ foo }).SetRateConstant(rc2).SetPhase(gas_phase).Build();
+  Process r3 = ChemicalReactionBuilder().SetReactants({ bar }).SetRateConstant(rc3).SetPhase(gas_phase).Build();
   std::vector<Process> processes = { r1, r2, r3 };
 
   std::vector<std::string> param_labels{};
@@ -81,7 +69,8 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     param_iter += rc1.SizeCustomParameters();
     expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
     param_iter += rc2.SizeCustomParameters();
-    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
+    expected_rate_constants[i_cell][2] =
+        rc3.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc3.SizeCustomParameters();
   }
 
@@ -274,13 +263,13 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 {
   Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
   Species e("e");
-  Phase gas_phase { "gas", std::vector<micm::Species>{ c, e } };
+  Phase gas_phase{ "gas", std::vector<micm::Species>{ c, e } };
 
-  EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-                                  .SetReactants({ c, c })
-                                  .SetProducts({ Yield(e, 1) })
-                                  .SetRateConstant(SurfaceRateConstant(
-                                      { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-                                  .SetPhase(gas_phase)
-                                  .Build(););
+  EXPECT_ANY_THROW(
+      Process r = ChemicalReactionBuilder()
+                      .SetReactants({ c, c })
+                      .SetProducts({ Yield(e, 1) })
+                      .SetRateConstant(SurfaceRateConstant({ .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+                      .SetPhase(gas_phase)
+                      .Build(););
 }
