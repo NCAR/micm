@@ -32,9 +32,9 @@ TEST(CudaLuDecompositionMozartInPlace, AgnosticToInitialValue)
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(1, value);
-    testExtremeValueInitialization<Group100CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(100, value);
-    testExtremeValueInitialization<Group1000CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(1000, value);
-    testExtremeValueInitialization<Group100000CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(100000, value);
+    testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(2, value);
+    testExtremeValueInitialization<Group100CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(200, value);
+    testExtremeValueInitialization<Group1000CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(2000, value);
+    testExtremeValueInitialization<Group100000CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(200000, value);
   }
 }

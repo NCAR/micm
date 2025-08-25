@@ -58,6 +58,7 @@ namespace micm
       hoststruct.aji_size_ = this->aji_.size();
       hoststruct.aik_njk_size_ = this->aik_njk_.size();
       hoststruct.ajk_aji_size_ = this->ajk_aji_.size();
+      hoststruct.number_of_non_zeros_ = matrix.GroupSize() / SparseMatrixPolicy::GroupVectorSize();
 
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);

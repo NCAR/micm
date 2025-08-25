@@ -58,6 +58,7 @@ struct LuDecomposeMozartInPlaceParam
   std::size_t aji_size_;
   std::size_t aik_njk_size_;
   std::size_t ajk_aji_size_;
+  std::size_t number_of_non_zeros_;
 };
 
 /// Alias for the default LU decomposition parameter struct
@@ -85,6 +86,7 @@ struct CudaMatrixParam
   double* d_data_ = nullptr;
   std::size_t number_of_elements_;
   std::size_t number_of_grid_cells_;
+  std::size_t vector_length_;
 };
 
 /// This struct holds (1) pointer to, and (2) size of
