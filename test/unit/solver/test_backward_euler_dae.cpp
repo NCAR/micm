@@ -36,6 +36,14 @@ namespace
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
+TEST(BackwardEulerDAE, CanBuild)
+{
+  auto params = micm::BackwardEulerSolverParameters();
+
+  auto builder = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(params);
+  builder.SetSystem(the_system);
+}
+
 TEST(BackwardEulerDAE, CanCallSolve)
 {
   auto params = micm::BackwardEulerSolverParameters();
