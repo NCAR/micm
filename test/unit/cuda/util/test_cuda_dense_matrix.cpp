@@ -709,7 +709,7 @@ TEST(CudaDenseMatrix, TestMin)
   EXPECT_EQ(matrix[1][2], 1.0);
 }
 
-template <std::size_t cuda_matrix_vector_length>
+template<std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
   const std::size_t number_of_grid_cells = 1;
@@ -739,7 +739,7 @@ TEST(CudaDenseMatrix, SingleBlockMatrixAddOneElement)
   TestSingleBlockMatrixAddOneElement<65>();
 }
 
-template <std::size_t cuda_matrix_vector_length>
+template<std::size_t cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
   const std::size_t number_of_grid_cells = 79;
