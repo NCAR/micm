@@ -1,44 +1,5 @@
 // Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-enum class MicmBackwardEulerErrc
-{
-  FailedToConverge = 1
-};
-
-namespace std
-{
-  template<>
-  struct is_error_condition_enum<MicmBackwardEulerErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class BackwardEulerErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return "MICM BackwardEuler";
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmBackwardEulerErrc>(ev))
-      {
-        case MicmBackwardEulerErrc::FailedToConverge: return "Failed to converge";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const BackwardEulerErrorCategory backwardEulerErrorCategory{};
-}  // namespace
-
-inline std::error_code make_error_code(MicmBackwardEulerErrc e)
-{
-  return { static_cast<int>(e), backwardEulerErrorCategory };
-}
 
 namespace micm
 {
