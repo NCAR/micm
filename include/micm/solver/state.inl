@@ -7,7 +7,8 @@ enum class MicmStateErrc
   UnknownRateConstantParameter = MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER,
   IncorrectNumberOfConcentrationValuesForMultiGridcellState = MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
   IncorrectNumberOfCustomRateParameterValues = MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
-  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
+  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState =
+      MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
 };
 
 namespace std

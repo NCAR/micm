@@ -62,10 +62,13 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     params[1] = get_double() * 1.0e5;
     params[2] = get_double() * 1.0e-2;
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = params[0];
-    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] = params[1];
+    state.custom_rate_parameters_[i_cell]
+                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
+        params[1];
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
     std::vector<double>::const_iterator param_iter = params.begin();
-    expected_rate_constants[i_cell][0] = rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
+    expected_rate_constants[i_cell][0] =
+        rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc1.SizeCustomParameters();
     expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
     param_iter += rc2.SizeCustomParameters();

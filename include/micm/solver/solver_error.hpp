@@ -38,15 +38,14 @@ class MicmSolverErrorCategory : public std::error_category
     {
       case MicmSolverErrc::UnusedSpecies:
         return "Unused species present in the chemical system. Use the ignore_unused_species_ parameter to allow unused "
-                "species in the solve.";
+               "species in the solve.";
       case MicmSolverErrc::MissingChemicalSystem:
         return "Missing chemical system. Use the SetSystem function to set the chemical system.";
-      case MicmSolverErrc::MissingProcesses:
-        return "Missing processes. Use the SetReactions function to set the processes.";
+      case MicmSolverErrc::MissingProcesses: return "Missing processes. Use the SetReactions function to set the processes.";
       case MicmSolverErrc::MissingChemicalSpecies: return "Provided chemical system contains no species.";
       case MicmSolverErrc::InvalidToleranceSize:
         return "Provided tolerances do not match the number of species in the chemical system. Either provide none and "
-                "allow defaults to be set or pass in a number equal to the number of chemical species.";
+               "allow defaults to be set or pass in a number equal to the number of chemical species.";
       default: return "Unknown error";
     }
   }
