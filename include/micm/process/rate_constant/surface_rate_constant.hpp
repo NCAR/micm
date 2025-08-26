@@ -72,7 +72,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
+    return std::make_unique<SurfaceRateConstant>(*this);
   }
 
   inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const

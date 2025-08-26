@@ -64,7 +64,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> UserDefinedRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new UserDefinedRateConstant{ *this } };
+    return std::make_unique<UserDefinedRateConstant>(*this);
   }
 
   inline double UserDefinedRateConstant::Calculate(const Conditions& conditions) const

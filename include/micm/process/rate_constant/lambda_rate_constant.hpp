@@ -57,7 +57,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> LambdaRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new LambdaRateConstant{ *this } };
+    return std::make_unique<LambdaRateConstant>(*this);
   }
 
   inline double LambdaRateConstant::Calculate(
