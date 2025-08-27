@@ -75,7 +75,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> TroeRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new TroeRateConstant{ *this } };
+    return std::make_unique<TroeRateConstant>(*this);
   }
 
   inline double TroeRateConstant::Calculate(const Conditions& conditions) const

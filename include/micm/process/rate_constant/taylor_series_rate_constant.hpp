@@ -68,7 +68,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> TaylorSeriesRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new TaylorSeriesRateConstant{ *this } };
+    return std::make_unique<TaylorSeriesRateConstant>(*this);
   }
 
   inline double TaylorSeriesRateConstant::Calculate(

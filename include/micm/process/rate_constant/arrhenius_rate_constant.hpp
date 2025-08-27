@@ -66,7 +66,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> ArrheniusRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
+    return std::make_unique<ArrheniusRateConstant>(*this);
   }
 
   inline double ArrheniusRateConstant::Calculate(

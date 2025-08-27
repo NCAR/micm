@@ -64,7 +64,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> TunnelingRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new TunnelingRateConstant{ *this } };
+    return std::make_unique<TunnelingRateConstant>(*this);
   }
 
   inline double TunnelingRateConstant::Calculate(const Conditions& conditions) const

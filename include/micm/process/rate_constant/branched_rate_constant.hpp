@@ -86,7 +86,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> BranchedRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new BranchedRateConstant{ *this } };
+    return std::make_unique<BranchedRateConstant>(*this);
   }
 
   inline double BranchedRateConstant::Calculate(

@@ -76,7 +76,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> TernaryChemicalActivationRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new TernaryChemicalActivationRateConstant{ *this } };
+    return std::make_unique<TernaryChemicalActivationRateConstant>(*this);
   }
 
   inline double TernaryChemicalActivationRateConstant::Calculate(const Conditions& conditions) const
