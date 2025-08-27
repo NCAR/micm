@@ -3,7 +3,7 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/property_keys.hpp>
@@ -72,7 +72,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
+    return std::make_unique<SurfaceRateConstant>(*this);
   }
 
   inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const

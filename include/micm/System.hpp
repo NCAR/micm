@@ -7,3 +7,4 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
+#include <micm/system/yield.hpp>

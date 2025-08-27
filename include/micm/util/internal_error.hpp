@@ -18,7 +18,7 @@ enum class MicmInternalErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmInternalErrc> : true_type
+  struct is_error_code_enum<MicmInternalErrc> : true_type
   {
   };
 }  // namespace std

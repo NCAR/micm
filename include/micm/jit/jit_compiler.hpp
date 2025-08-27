@@ -45,7 +45,7 @@ enum class MicmJitErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmJitErrc> : true_type
+  struct is_error_code_enum<MicmJitErrc> : true_type
   {
   };
 }  // namespace std
@@ -67,6 +67,7 @@ namespace
           return "Invalid matrix for JIT compiled operation. Ensure matrix is Vector-ordered with vector dimension equal to "
                  "the nubmer of grid cells.";
         case MicmJitErrc::MissingJitFunction: return "Missing JIT-compiled function";
+        case MicmJitErrc::FailedToBuild: return "JIT compilation failed";
         default: return "Unknown error";
       }
     }

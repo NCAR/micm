@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 
 #include <cmath>
 
 namespace micm
 {
 
-  struct TroeRateConstantParameters
+  struct TernaryChemicalActivationRateConstantParameters
   {
     /// @brief low-pressure pre-exponential factor
     double k0_A_ = 1.0;
@@ -23,24 +23,24 @@ namespace micm
     double kinf_B_ = 0.0;
     /// @brief high-pressure exponential factor
     double kinf_C_ = 0.0;
-    /// @brief Troe F_c parameter
+    /// @brief TernaryChemicalActivation F_c parameter
     double Fc_ = 0.6;
-    /// @brief Troe N parameter
+    /// @brief TernaryChemicalActivation N parameter
     double N_ = 1.0;
   };
 
-  /// @brief A Troe rate constant
-  class TroeRateConstant : public RateConstant
+  /// @brief A TernaryChemicalActivation rate constant
+  class TernaryChemicalActivationRateConstant : public RateConstant
   {
    public:
-    const TroeRateConstantParameters parameters_;
+    const TernaryChemicalActivationRateConstantParameters parameters_;
 
     /// @brief Default constructor
-    TroeRateConstant();
+    TernaryChemicalActivationRateConstant();
 
     /// @brief An explicit constructor
     /// @param parameters A set of troe rate constants
-    TroeRateConstant(const TroeRateConstantParameters& parameters);
+    TernaryChemicalActivationRateConstant(const TernaryChemicalActivationRateConstantParameters& parameters);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> Clone() const override;
@@ -63,41 +63,45 @@ namespace micm
     double Calculate(const double& temperature, const double& air_number_density) const;
   };
 
-  inline TroeRateConstant::TroeRateConstant()
+  inline TernaryChemicalActivationRateConstant::TernaryChemicalActivationRateConstant()
       : parameters_()
   {
   }
 
-  inline TroeRateConstant::TroeRateConstant(const TroeRateConstantParameters& parameters)
+  inline TernaryChemicalActivationRateConstant::TernaryChemicalActivationRateConstant(
+      const TernaryChemicalActivationRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }
 
-  inline std::unique_ptr<RateConstant> TroeRateConstant::Clone() const
+  inline std::unique_ptr<RateConstant> TernaryChemicalActivationRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new TroeRateConstant{ *this } };
+    return std::make_unique<TernaryChemicalActivationRateConstant>(*this);
   }
 
-  inline double TroeRateConstant::Calculate(const Conditions& conditions) const
+  inline double TernaryChemicalActivationRateConstant::Calculate(const Conditions& conditions) const
   {
-    return Calculate(conditions.temperature_, conditions.air_density_);
+    double val = Calculate(conditions.temperature_, conditions.air_density_);
+    return val;
   }
 
-  inline double TroeRateConstant::Calculate(
+  inline double TernaryChemicalActivationRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    return Calculate(conditions.temperature_, conditions.air_density_);
+    double val = Calculate(conditions.temperature_, conditions.air_density_);
+    return val;
   }
 
-  inline double TroeRateConstant::Calculate(const double& temperature, const double& air_number_density) const
+  inline double TernaryChemicalActivationRateConstant::Calculate(const double& temperature, const double& air_number_density)
+      const
   {
     double k0 =
         parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * std::pow(temperature / 300.0, parameters_.k0_B_);
     double kinf = parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) *
                   std::pow(temperature / 300.0, parameters_.kinf_B_);
 
-    return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
+    return k0 / (1.0 + k0 * air_number_density / kinf) *
            std::pow(
                parameters_.Fc_, parameters_.N_ / (parameters_.N_ + std::pow(std::log10(k0 * air_number_density / kinf), 2)));
   }

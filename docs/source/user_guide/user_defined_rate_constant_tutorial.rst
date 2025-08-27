@@ -42,14 +42,14 @@ Line-by-line explanation
 Adding the custom rate constant is quite simple. Include the header file:
 
 .. code-block:: diff
-
-  #include <micm/process/arrhenius_rate_constant.hpp>
-  #include <micm/process/branched_rate_constant.hpp>
-  #include <micm/process/surface_rate_constant.hpp>
-  #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-  #include <micm/process/troe_rate_constant.hpp>
-  #include <micm/process/tunneling_rate_constant.hpp>
-  + #include <micm/process/user_defined_rate_constant.hpp>
+  #include <micm/process/chemical_reaction_builder.hpp>
+  #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+  #include <micm/process/rate_constant/branched_rate_constant.hpp>
+  #include <micm/process/rate_constant/surface_rate_constant.hpp>
+  #include <micm/process/rate_constant/ternary_chemical_activation_rate_constant.hpp>
+  #include <micm/process/rate_constant/troe_rate_constant.hpp>
+  #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
+  + #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
   #include <micm/solver/rosenbrock.hpp>
 
 
@@ -61,27 +61,31 @@ Then setup the reaction which will use this rate constant:
 
     .. code-block:: diff
 
-      Process r7 = Process::Create()
+      Process r7 = ChemicalReactionBuilder()
                       .SetReactants({ f })
                       .SetProducts({ Yield(g, 1) })
                       .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
-                      .SetPhase(gas_phase);
+                      .SetPhase(gas_phase)
+                      .Build();
 
-      + Process r8 = Process::Create()
+      + Process r8 = ChemicalReactionBuilder()
       +                 .SetReactants({ c })
       +                 .SetProducts({ Yield(g, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
-      +                 .SetPhase(gas_phase);
+      +                 .SetPhase(gas_phase)
+      +                 .Build();
 
-      + Process r9 = Process::Create()
+      + Process r9 = ChemicalReactionBuilder()
       +                 .SetProducts({ Yield(a, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
-      +                 .SetPhase(gas_phase);
+      +                 .SetPhase(gas_phase)
+      +                 .Build();
 
-      + Process r10 = Process::Create()
+      + Process r10 = ChemicalReactionBuilder()
       +                 .SetReactants({ b })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
-      +                 .SetPhase(gas_phase);
+      +                 .SetPhase(gas_phase)
+      +                 .Build();
 
       auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
       - auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };

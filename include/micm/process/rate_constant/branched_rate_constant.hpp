@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/util/constants.hpp>
 
 #include <cmath>
@@ -86,7 +86,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> BranchedRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new BranchedRateConstant{ *this } };
+    return std::make_unique<BranchedRateConstant>(*this);
   }
 
   inline double BranchedRateConstant::Calculate(

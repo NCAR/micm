@@ -1,4 +1,4 @@
-#include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 

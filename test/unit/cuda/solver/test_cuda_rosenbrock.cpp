@@ -1,7 +1,7 @@
 #include "../../solver/test_rosenbrock_solver_policy.hpp"
 
 #include <micm/GPU.hpp>
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
