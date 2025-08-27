@@ -4,8 +4,8 @@
 
 #include <micm/process/process_error.hpp>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
-#include <micm/system/species.hpp>
 #include <micm/system/phase.hpp>
+#include <micm/system/species.hpp>
 #include <micm/system/yield.hpp>
 
 #include <memory>
