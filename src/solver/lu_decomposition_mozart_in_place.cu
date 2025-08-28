@@ -22,11 +22,12 @@ namespace micm
 
       double* __restrict__ d_ALU = ALU_param.d_data_;
       const size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
-      const std::size_t local_tid = tid % ALU_param.vector_length_;
-      const std::size_t group_id = std::floor(static_cast<double>(tid) / ALU_param.vector_length_);
+      const size_t cuda_matrix_vector_length = ALU_param.vector_length_;
+      const std::size_t local_tid = tid % cuda_matrix_vector_length;
+      const std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
 
       // Shift the index for different groups
-      d_ALU = d_ALU + group_id * devstruct.number_of_non_zeros_ * ALU_param.vector_length_;
+      d_ALU = d_ALU + group_id * devstruct.number_of_non_zeros_ * cuda_matrix_vector_length;
 
       if (tid < number_of_grid_cells)
       {
