@@ -31,7 +31,7 @@ namespace micm
    public:
     /// @brief Sets the species in the gas phase
     /// @param phase Phase object representing the gas phase
-    /// @param species A vector of Species representing the species in the gas phase
+    /// @param species Species object in the gas phase
     /// @return Reference to the builder
     PhaseTransferProcessBuilder& SetGasSpecies(const Phase& phase, Species species)
     {
