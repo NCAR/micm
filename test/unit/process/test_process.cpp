@@ -131,7 +131,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                               .SetGasSpecies(gas_phase, { CO2 })
+                               .SetGasSpecies(gas_phase, CO2)
                                .SetCondensedSpecies(aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) })
                                .SetSolvent(aqueous_phase, H2O)
                                .SetTransferCoefficient(PhaseTransferCoefficient())
@@ -165,7 +165,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
           EXPECT_EQ(value.gas_phase_.name_, "gas");
           EXPECT_EQ(value.condensed_phase_.name_, "aqueous");
           EXPECT_EQ(value.solvent_phase_.name_, "aqueous");
-          EXPECT_EQ(value.gas_species_.size(), 1);
+          EXPECT_EQ(value.gas_species_.name_, "CO2");
           EXPECT_EQ(value.condensed_species_.size(), 2);
           EXPECT_EQ(value.solvent_.name_, "H2O");
           EXPECT_EQ(value.condensed_species_[0].coefficient_, 2.0);
@@ -248,7 +248,7 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
           EXPECT_EQ(copy.gas_phase_.name_, original.gas_phase_.name_);
           EXPECT_EQ(copy.condensed_phase_.name_, original.condensed_phase_.name_);
           EXPECT_EQ(copy.solvent_phase_.name_, original.solvent_phase_.name_);
-          EXPECT_EQ(copy.gas_species_[0].name_, original.gas_species_[0].name_);
+          EXPECT_EQ(copy.gas_species_.name_, original.gas_species_.name_);
           EXPECT_EQ(copy.condensed_species_[1].species_.name_, original.condensed_species_[1].species_.name_);
           EXPECT_EQ(copy.solvent_.name_, original.solvent_.name_);
           EXPECT_NE(copy.coefficient_.get(), original.coefficient_.get());
