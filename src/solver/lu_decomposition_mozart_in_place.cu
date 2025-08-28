@@ -155,7 +155,6 @@ namespace micm
     {
       // Launch the CUDA kernel for LU decomposition
       std::size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      std::size_t number_of_groups = std::ceil(static_cast<double>(ALU_param.number_of_grid_cells_) / ALU_param.vector_length_);
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           ALU_param, devstruct);
     }  // end of DecomposeKernelDriver
