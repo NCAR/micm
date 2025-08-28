@@ -77,6 +77,7 @@ struct LinearSolverInPlaceParam
   std::size_t Lij_yj_size_;
   std::size_t nUij_Uii_size_;
   std::size_t Uij_xj_size_;
+  std::size_t number_of_non_zeros_;
 };
 
 /// This struct holds (1) pointer to, and (2) size of
