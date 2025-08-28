@@ -23,7 +23,7 @@ namespace micm
     Phase gas_phase_;
     Phase condensed_phase_;
     Phase solvent_phase_;
-    std::vector<Species> gas_species_;
+    Species gas_species_;
     std::vector<Yield> condensed_species_;
     Species solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
@@ -33,7 +33,7 @@ namespace micm
     /// @param phase Phase object representing the gas phase
     /// @param species A vector of Species representing the species in the gas phase
     /// @return Reference to the builder
-    PhaseTransferProcessBuilder& SetGasSpecies(const Phase& phase, std::vector<Species> species)
+    PhaseTransferProcessBuilder& SetGasSpecies(const Phase& phase, Species species)
     {
       gas_phase_ = phase;
       gas_species_ = std::move(species);
