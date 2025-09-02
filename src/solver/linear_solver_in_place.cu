@@ -14,7 +14,7 @@ namespace micm
     SolveKernel(CudaMatrixParam x_param, const CudaMatrixParam ALU_param, const LinearSolverInPlaceParam devstruct)
     {
       // Calculate global thread ID
-      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
       const std::size_t* const __restrict__ d_nLij = devstruct.nLij_;
@@ -24,11 +24,19 @@ namespace micm
       const std::size_t d_nLij_size = devstruct.nLij_size_;
       const std::size_t d_nUij_Uii_size = devstruct.nUij_Uii_size_;
 
-      const double* const __restrict__ d_ALU = ALU_param.d_data_;
-      double* const d_x = x_param.d_data_;
-      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
+      double* __restrict__ d_ALU = ALU_param.d_data_;
+      double* d_x = x_param.d_data_;
       const std::size_t number_of_grid_cells = x_param.number_of_grid_cells_;
       const std::size_t number_of_elements = x_param.number_of_elements_;
+      const std::size_t cuda_matrix_vector_length = ALU_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t local_tid = tid % cuda_matrix_vector_length;
+      const std::size_t group_id = tid / cuda_matrix_vector_length;
+
+      // Shift the index for different groups
+      d_ALU = d_ALU + group_id * ALU_param.number_of_elements_ / number_of_groups;
+      d_x = d_x + group_id * x_param.number_of_elements_ / number_of_groups;
+      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
 
       if (tid < number_of_grid_cells)
       {
@@ -40,32 +48,32 @@ namespace micm
             for (auto j = 0; j < j_lim; ++j)
             {
               const std::size_t d_Lij_yj_first = (*d_Lij_yj).first;
-              const std::size_t d_Lij_yj_second_times_ncells = (*d_Lij_yj).second * number_of_grid_cells;
+              const std::size_t d_Lij_yj_second_times_vector_length = (*d_Lij_yj).second * cuda_matrix_vector_length;
               auto d_ALU_ptr = d_ALU + d_Lij_yj_first;
-              auto d_x_ptr = d_x + d_Lij_yj_second_times_ncells;
-              d_y[tid] -= d_ALU_ptr[tid] * d_x_ptr[tid];
+              auto d_x_ptr = d_x + d_Lij_yj_second_times_vector_length;
+              d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
               ++d_Lij_yj;
             }
-            d_y += number_of_grid_cells;
+            d_y += cuda_matrix_vector_length;
           }
         }
         // Backward Substitution
         {
           // d_y will be x_elem in the CPU implementation
-          d_y = d_x + number_of_elements - number_of_grid_cells;
+          d_y = d_x + x_param.number_of_elements_ / number_of_groups - cuda_matrix_vector_length;
           for (auto i = 0; i < d_nUij_Uii_size; ++i)
           {
             const std::size_t j_lim = d_nUij_Uii[i].first;
             for (auto j = 0; j < j_lim; ++j)
             {
               auto d_ALU_ptr = d_ALU + (*d_Uij_xj).first;
-              auto d_x_ptr = d_x + (*d_Uij_xj).second * number_of_grid_cells;
-              d_y[tid] -= d_ALU_ptr[tid] * d_x_ptr[tid];
+              auto d_x_ptr = d_x + (*d_Uij_xj).second * cuda_matrix_vector_length;
+              d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
               ++d_Uij_xj;
             }
             auto d_ALU_ptr = d_ALU + d_nUij_Uii[i].second;
-            d_y[tid] /= d_ALU_ptr[tid];
-            d_y -= number_of_grid_cells;
+            d_y[local_tid] /= d_ALU_ptr[local_tid];
+            d_y -= cuda_matrix_vector_length;
           }
         }
       }
@@ -137,6 +145,7 @@ namespace micm
       devstruct.Lij_yj_size_ = hoststruct.Lij_yj_size_;
       devstruct.nUij_Uii_size_ = hoststruct.nUij_Uii_size_;
       devstruct.Uij_xj_size_ = hoststruct.Uij_xj_size_;
+      devstruct.number_of_non_zeros_ = hoststruct.number_of_non_zeros_;
 
       return devstruct;
     }
@@ -162,7 +171,7 @@ namespace micm
     void
     SolveKernelDriver(CudaMatrixParam& x_param, const CudaMatrixParam& ALU_param, const LinearSolverInPlaceParam& devstruct)
     {
-      size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      std::size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           x_param, ALU_param, devstruct);
     }

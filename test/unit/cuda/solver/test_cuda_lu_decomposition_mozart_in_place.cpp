@@ -14,7 +14,8 @@
 #include <random>
 #include <vector>
 
-using Group1CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group3CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
 using Group27CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<27>>;
 using Group32CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<32>>;
 using Group43CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<43>>;
@@ -30,6 +31,7 @@ using Group1130CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMat
 TEST(CudaLuDecompositionMozartInPlace, RandomMatrixVectorOrdering)
 {
   testRandomMatrix<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group3CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
   testRandomMatrix<Group27CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
   testRandomMatrix<Group32CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
   testRandomMatrix<Group43CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
@@ -49,6 +51,7 @@ TEST(CudaLuDecompositionMozartInPlace, AgnosticToInitialValue)
   for (auto& value : initial_values)
   {
     testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group3CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
     testExtremeValueInitialization<Group27CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
     testExtremeValueInitialization<Group32CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
     testExtremeValueInitialization<Group43CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
