@@ -57,36 +57,98 @@ TEST(CudaLinearSolverInPlace, DenseMatrixVectorOrderingPolicy)
 
 TEST(CudaLinearSolverInPlace, RandomMatrixVectorOrderingPolicy)
 {
-    testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(400);
-    testRandomMatrix<Group3CudaDenseMatrix, Group3CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group3CudaSparseMatrix>>(400);
-    testRandomMatrix<Group27CudaDenseMatrix, Group27CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group27CudaSparseMatrix>>(400);
-    testRandomMatrix<Group32CudaDenseMatrix, Group32CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group32CudaSparseMatrix>>(400);
-    testRandomMatrix<Group43CudaDenseMatrix, Group43CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group43CudaSparseMatrix>>(400);
-    testRandomMatrix<Group77CudaDenseMatrix, Group77CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group77CudaSparseMatrix>>(400);
-    testRandomMatrix<Group113CudaDenseMatrix, Group113CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group113CudaSparseMatrix>>(400);
-    testRandomMatrix<Group193CudaDenseMatrix, Group193CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group193CudaSparseMatrix>>(400);
-    testRandomMatrix<Group281CudaDenseMatrix, Group281CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group281CudaSparseMatrix>>(400);
-    testRandomMatrix<Group472CudaDenseMatrix, Group472CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group472CudaSparseMatrix>>(400);
-    testRandomMatrix<Group512CudaDenseMatrix, Group512CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group512CudaSparseMatrix>>(400);
-    testRandomMatrix<Group739CudaDenseMatrix, Group739CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group739CudaSparseMatrix>>(400);
-    testRandomMatrix<Group1130CudaDenseMatrix, Group1130CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1130CudaSparseMatrix>>(400);
+  testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(
+      400);
+  testRandomMatrix<Group3CudaDenseMatrix, Group3CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group3CudaSparseMatrix>>(
+      400);
+  testRandomMatrix<Group27CudaDenseMatrix, Group27CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group27CudaSparseMatrix>>(
+      400);
+  testRandomMatrix<Group32CudaDenseMatrix, Group32CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group32CudaSparseMatrix>>(
+      400);
+  testRandomMatrix<Group43CudaDenseMatrix, Group43CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group43CudaSparseMatrix>>(
+      400);
+  testRandomMatrix<Group77CudaDenseMatrix, Group77CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group77CudaSparseMatrix>>(
+      400);
+  testRandomMatrix<
+      Group113CudaDenseMatrix,
+      Group113CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group113CudaSparseMatrix>>(400);
+  testRandomMatrix<
+      Group193CudaDenseMatrix,
+      Group193CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group193CudaSparseMatrix>>(400);
+  testRandomMatrix<
+      Group281CudaDenseMatrix,
+      Group281CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group281CudaSparseMatrix>>(400);
+  testRandomMatrix<
+      Group472CudaDenseMatrix,
+      Group472CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group472CudaSparseMatrix>>(400);
+  testRandomMatrix<
+      Group512CudaDenseMatrix,
+      Group512CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group512CudaSparseMatrix>>(400);
+  testRandomMatrix<
+      Group739CudaDenseMatrix,
+      Group739CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group739CudaSparseMatrix>>(400);
+  testRandomMatrix<
+      Group1130CudaDenseMatrix,
+      Group1130CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group1130CudaSparseMatrix>>(400);
 }
 
 TEST(CudaLinearSolverInPlace, DiagonalMatrixVectorOrderingPolicy)
 {
-    testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group3CudaDenseMatrix, Group3CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group3CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group27CudaDenseMatrix, Group27CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group27CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group32CudaDenseMatrix, Group32CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group32CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group43CudaDenseMatrix, Group43CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group43CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group77CudaDenseMatrix, Group77CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group77CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group113CudaDenseMatrix, Group113CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group113CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group193CudaDenseMatrix, Group193CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group193CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group281CudaDenseMatrix, Group281CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group281CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group472CudaDenseMatrix, Group472CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group472CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group512CudaDenseMatrix, Group512CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group512CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group739CudaDenseMatrix, Group739CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group739CudaSparseMatrix>>(400);
-    testDiagonalMatrix<Group1130CudaDenseMatrix, Group1130CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1130CudaSparseMatrix>>(400);
+  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(
+      400);
+  testDiagonalMatrix<Group3CudaDenseMatrix, Group3CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group3CudaSparseMatrix>>(
+      400);
+  testDiagonalMatrix<
+      Group27CudaDenseMatrix,
+      Group27CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group27CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group32CudaDenseMatrix,
+      Group32CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group32CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group43CudaDenseMatrix,
+      Group43CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group43CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group77CudaDenseMatrix,
+      Group77CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group77CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group113CudaDenseMatrix,
+      Group113CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group113CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group193CudaDenseMatrix,
+      Group193CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group193CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group281CudaDenseMatrix,
+      Group281CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group281CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group472CudaDenseMatrix,
+      Group472CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group472CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group512CudaDenseMatrix,
+      Group512CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group512CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group739CudaDenseMatrix,
+      Group739CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group739CudaSparseMatrix>>(400);
+  testDiagonalMatrix<
+      Group1130CudaDenseMatrix,
+      Group1130CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group1130CudaSparseMatrix>>(400);
 }
 
 TEST(CudaLinearSolverInPlace, AgnosticToInitialValue)
