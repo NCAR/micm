@@ -48,9 +48,9 @@ namespace micm
             for (auto j = 0; j < j_lim; ++j)
             {
               const std::size_t d_Lij_yj_first = (*d_Lij_yj).first;
-              const std::size_t d_Lij_yj_second_times_vlens = (*d_Lij_yj).second * cuda_matrix_vector_length;
+              const std::size_t d_Lij_yj_second_times_vector_length = (*d_Lij_yj).second * cuda_matrix_vector_length;
               auto d_ALU_ptr = d_ALU + d_Lij_yj_first;
-              auto d_x_ptr = d_x + d_Lij_yj_second_times_vlens;
+              auto d_x_ptr = d_x + d_Lij_yj_second_times_vector_length;
               d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
               ++d_Lij_yj;
             }

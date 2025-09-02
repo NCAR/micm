@@ -19,6 +19,7 @@
 
 using FloatingPointType = double;
 
+using Group1CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1>;
 using Group3CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 3>;
 using Group27CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 27>;
 using Group32CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 32>;
@@ -32,6 +33,7 @@ using Group512CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 512>;
 using Group739CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 739>;
 using Group1130CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1130>;
 
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
 using Group3CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<3>>;
 using Group27CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<27>>;
 using Group32CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<32>>;
@@ -55,6 +57,7 @@ TEST(CudaLinearSolverInPlace, DenseMatrixVectorOrderingPolicy)
 
 TEST(CudaLinearSolverInPlace, RandomMatrixVectorOrderingPolicy)
 {
+    testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(400);
     testRandomMatrix<Group3CudaDenseMatrix, Group3CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group3CudaSparseMatrix>>(400);
     testRandomMatrix<Group27CudaDenseMatrix, Group27CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group27CudaSparseMatrix>>(400);
     testRandomMatrix<Group32CudaDenseMatrix, Group32CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group32CudaSparseMatrix>>(400);
@@ -71,6 +74,7 @@ TEST(CudaLinearSolverInPlace, RandomMatrixVectorOrderingPolicy)
 
 TEST(CudaLinearSolverInPlace, DiagonalMatrixVectorOrderingPolicy)
 {
+    testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(400);
     testDiagonalMatrix<Group3CudaDenseMatrix, Group3CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group3CudaSparseMatrix>>(400);
     testDiagonalMatrix<Group27CudaDenseMatrix, Group27CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group27CudaSparseMatrix>>(400);
     testDiagonalMatrix<Group32CudaDenseMatrix, Group32CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group32CudaSparseMatrix>>(400);
@@ -90,6 +94,10 @@ TEST(CudaLinearSolverInPlace, AgnosticToInitialValue)
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
   {
+    testExtremeInitialValue<
+        Group1CudaDenseMatrix,
+        Group1CudaSparseMatrix,
+        micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(400, initial_value);
     testExtremeInitialValue<
         Group3CudaDenseMatrix,
         Group3CudaSparseMatrix,
