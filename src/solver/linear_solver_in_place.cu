@@ -31,7 +31,7 @@ namespace micm
       const std::size_t cuda_matrix_vector_length = ALU_param.vector_length_;
       const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
       const std::size_t local_tid = tid % cuda_matrix_vector_length;
-      const std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
+      const std::size_t group_id = tid / cuda_matrix_vector_length;
 
       // Shift the index for different groups
       d_ALU = d_ALU + group_id * ALU_param.number_of_elements_ / number_of_groups;
