@@ -225,9 +225,51 @@ using Group10000SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatr
 using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<double, 10000>;
 using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<10000>>;
 
+using FloatingPointType = double;
+
+using Group1CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1>;
+using Group3CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 3>;
+// using Group27CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 27>;
+// using Group32CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 32>;
+// using Group43CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 43>;
+// using Group77CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 77>;
+// using Group113CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 113>;
+// using Group193CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 193>;
+// using Group281CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 281>;
+// using Group472CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 472>;
+// using Group512CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 512>;
+// using Group739CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 739>;
+// using Group1130CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1130>;
+
+// using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;
+using Group3VectorMatrix = micm::VectorMatrix<FloatingPointType, 3>;
+// using Group27VectorMatrix = micm::VectorMatrix<FloatingPointType, 27>;
+// using Group32VectorMatrix = micm::VectorMatrix<FloatingPointType, 32>;
+// using Group43VectorMatrix = micm::VectorMatrix<FloatingPointType, 43>;
+// using Group77VectorMatrix = micm::VectorMatrix<FloatingPointType, 77>;
+// using Group113VectorMatrix = micm::VectorMatrix<FloatingPointType, 113>;
+// using Group193VectorMatrix = micm::VectorMatrix<FloatingPointType, 193>;
+// using Group281VectorMatrix = micm::VectorMatrix<FloatingPointType, 281>;
+// using Group472VectorMatrix = micm::VectorMatrix<FloatingPointType, 472>;
+// using Group512VectorMatrix = micm::VectorMatrix<FloatingPointType, 512>;
+// using Group739VectorMatrix = micm::VectorMatrix<FloatingPointType, 739>;
+// using Group1130VectorMatrix = micm::VectorMatrix<FloatingPointType, 1130>;
+
 TEST(RandomCudaProcessSet, Forcing)
 {
-  testRandomSystemAddForcingTerms<Group10000VectorMatrix, Group10000CudaDenseMatrix>(10000, 500, 400);
+  // testRandomSystemAddForcingTerms<Group1VectorMatrix, Group1CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group3VectorMatrix, Group3CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group27VectorMatrix, Group27CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group32VectorMatrix, Group32CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group43VectorMatrix, Group43CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group77VectorMatrix, Group77CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group113VectorMatrix, Group113CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group193VectorMatrix, Group193CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group281VectorMatrix, Group281CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group472VectorMatrix, Group472CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group512VectorMatrix, Group512CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group739VectorMatrix, Group739CudaDenseMatrix>(404, 500, 400);
+  // testRandomSystemAddForcingTerms<Group1130VectorMatrix, Group1130CudaDenseMatrix>(404, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {

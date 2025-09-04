@@ -15,21 +15,38 @@ namespace micm
         const ProcessSetParam devstruct)
     {
       // Calculate global thread ID
-      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
       size_t react_id_offset, prod_id_offset, yield_offset;
-      const size_t* const __restrict__ d_number_of_reactants = devstruct.number_of_reactants_;
-      const size_t* const __restrict__ d_reactant_ids = devstruct.reactant_ids_;
-      const size_t* const __restrict__ d_number_of_products = devstruct.number_of_products_;
-      const size_t* const __restrict__ d_product_ids = devstruct.product_ids_;
+      const std::size_t* const __restrict__ d_number_of_reactants = devstruct.number_of_reactants_;
+      const std::size_t* const __restrict__ d_reactant_ids = devstruct.reactant_ids_;
+      const std::size_t* const __restrict__ d_number_of_products = devstruct.number_of_products_;
+      const std::size_t* const __restrict__ d_product_ids = devstruct.product_ids_;
       const double* const __restrict__ d_yields = devstruct.yields_;
-      const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
-      const size_t number_of_reactions =
-          rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
-      const double* const __restrict__ d_rate_constants = rate_constants_param.d_data_;
-      const double* const __restrict__ d_state_variables = state_variables_param.d_data_;
-      double* const __restrict__ d_forcing = forcing_param.d_data_;
+      const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+      double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
+      double* __restrict__ d_state_variables = state_variables_param.d_data_;
+      double* __restrict__ d_forcing = forcing_param.d_data_;
+
+      const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t local_tid = tid % cuda_matrix_vector_length;
+      const std::size_t group_id = tid / cuda_matrix_vector_length;
+      const std::size_t number_of_reactions =
+          rate_constants_param.number_of_elements_ / number_of_groups / cuda_matrix_vector_length;
+
+      if (tid == 1) printf("cuda_matrix_vector_length = %d\n", cuda_matrix_vector_length);
+      if (tid == 1) printf("number_of_groups = %d\n", number_of_groups);
+      if (tid == 1) printf("local_tid = %d\n", local_tid);
+      if (tid == 1) printf("group_id = %d\n", group_id);
+      if (tid == 1) printf("number_of_grid_cells = %d\n", number_of_grid_cells);
+      if (tid == 1) printf("number_of_reactions = %d\n", number_of_reactions);
+      if (tid == 1) printf("rate_constants_param.number_of_elements_ = %d\n", rate_constants_param.number_of_elements_);
+
+      d_rate_constants += group_id * rate_constants_param.number_of_elements_ / number_of_groups;
+      d_state_variables += group_id * state_variables_param.number_of_elements_ / number_of_groups;
+      d_forcing += group_id * forcing_param.number_of_elements_ / number_of_groups;
 
       if (tid < number_of_grid_cells)
       {
@@ -38,18 +55,20 @@ namespace micm
         yield_offset = 0;
         for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
         {
-          double rate = d_rate_constants[(i_rxn * number_of_grid_cells) + tid];
-          for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
+          double rate = d_rate_constants[(i_rxn * cuda_matrix_vector_length) + local_tid];
+          const std::size_t number_of_reactants = d_number_of_reactants[i_rxn];
+          for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
           {
-            rate *= d_state_variables[(d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells) + tid];
+            rate *= d_state_variables[(d_reactant_ids[react_id_offset + i_react] * cuda_matrix_vector_length) + local_tid];
           }
-          for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
+          for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
           {
-            d_forcing[(d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells) + tid] -= rate;
+            d_forcing[(d_reactant_ids[react_id_offset + i_react] * cuda_matrix_vector_length) + local_tid] -= rate;
           }
-          for (std::size_t i_prod = 0; i_prod < d_number_of_products[i_rxn]; ++i_prod)
+          const std::size_t number_of_products = d_number_of_products[i_rxn];
+          for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
           {
-            size_t index = d_product_ids[prod_id_offset + i_prod] * number_of_grid_cells + tid;
+            size_t index = d_product_ids[prod_id_offset + i_prod] * cuda_matrix_vector_length + local_tid;
             d_forcing[index] += d_yields[yield_offset + i_prod] * rate;
           }
           react_id_offset += d_number_of_reactants[i_rxn];
