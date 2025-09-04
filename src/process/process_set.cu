@@ -25,8 +25,8 @@ namespace micm
       const std::size_t* const __restrict__ d_product_ids = devstruct.product_ids_;
       const double* const __restrict__ d_yields = devstruct.yields_;
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
-      double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
-      double* __restrict__ d_state_variables = state_variables_param.d_data_;
+      const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
+      const double* __restrict__ d_state_variables = state_variables_param.d_data_;
       double* __restrict__ d_forcing = forcing_param.d_data_;
 
       const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
@@ -35,14 +35,6 @@ namespace micm
       const std::size_t group_id = tid / cuda_matrix_vector_length;
       const std::size_t number_of_reactions =
           rate_constants_param.number_of_elements_ / number_of_groups / cuda_matrix_vector_length;
-
-      if (tid == 1) printf("cuda_matrix_vector_length = %d\n", cuda_matrix_vector_length);
-      if (tid == 1) printf("number_of_groups = %d\n", number_of_groups);
-      if (tid == 1) printf("local_tid = %d\n", local_tid);
-      if (tid == 1) printf("group_id = %d\n", group_id);
-      if (tid == 1) printf("number_of_grid_cells = %d\n", number_of_grid_cells);
-      if (tid == 1) printf("number_of_reactions = %d\n", number_of_reactions);
-      if (tid == 1) printf("rate_constants_param.number_of_elements_ = %d\n", rate_constants_param.number_of_elements_);
 
       d_rate_constants += group_id * rate_constants_param.number_of_elements_ / number_of_groups;
       d_state_variables += group_id * state_variables_param.number_of_elements_ / number_of_groups;
@@ -98,9 +90,20 @@ namespace micm
       const size_t* const __restrict__ d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
       const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
-      const double* const __restrict__ d_rate_constants = rate_constants_param.d_data_;
-      const double* const __restrict__ d_state_variables = state_variables_param.d_data_;
-      double* const __restrict__ d_jacobian = jacobian_param.d_data_;
+      const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
+      const double* __restrict__ d_state_variables = state_variables_param.d_data_;
+      double* __restrict__ d_jacobian = jacobian_param.d_data_;
+
+      const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t local_tid = tid % cuda_matrix_vector_length;
+      const std::size_t group_id = tid / cuda_matrix_vector_length;
+      const std::size_t number_of_reactions =
+          rate_constants_param.number_of_elements_ / number_of_groups / cuda_matrix_vector_length;
+
+      d_rate_constants += group_id * rate_constants_param.number_of_elements_ / number_of_groups;
+      d_state_variables += group_id * state_variables_param.number_of_elements_ / number_of_groups;
+      d_jacobian += group_id * jacobian_param.number_of_elements_ / number_of_groups;
 
       if (tid < number_of_grid_cells)
       {
@@ -109,20 +112,20 @@ namespace micm
         {
           const ProcessInfoParam& process_info = d_jacobian_process_info[i_proc];
           // Calculate d_rate/d_ind
-          double d_rate_d_ind = d_rate_constants[(process_info.process_id_ * number_of_grid_cells) + tid];
+          double d_rate_d_ind = d_rate_constants[(process_info.process_id_ * cuda_matrix_vector_length) + local_tid];
           for (size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
           {
-            d_rate_d_ind *= d_state_variables[(d_reactant_ids[react_ids_offset + i_react] * number_of_grid_cells) + tid];
+            d_rate_d_ind *= d_state_variables[(d_reactant_ids[react_ids_offset + i_react] * cuda_matrix_vector_length) + local_tid];
           }
           for (size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
           {
-            size_t jacobian_idx = d_jacobian_flat_ids[flat_id_offset] + tid;
+            size_t jacobian_idx = d_jacobian_flat_ids[flat_id_offset] + local_tid;
             d_jacobian[jacobian_idx] += d_rate_d_ind;
             flat_id_offset++;
           }
           for (size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
           {
-            size_t jacobian_idx = d_jacobian_flat_ids[flat_id_offset] + tid;
+            size_t jacobian_idx = d_jacobian_flat_ids[flat_id_offset] + local_tid;
             d_jacobian[jacobian_idx] -= d_yields[yields_offset + i_dep] * d_rate_d_ind;
             flat_id_offset++;
           }

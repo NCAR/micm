@@ -107,16 +107,13 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   // CPU function call
   cpu_set.AddForcingTerms<CPUMatrixPolicy>(cpu_rate_constants, cpu_state.variables_, cpu_forcing);
 
-  // checking accuracy with comparison between CPU and GPU result
-  std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector();
-  std::vector<double> gpu_forcing_vector = gpu_forcing.AsVector();
-
-  for (int i = 0; i < cpu_forcing_vector.size(); i++)
-  {
-    double a = cpu_forcing_vector[i];
-    double b = gpu_forcing_vector[i];
-    EXPECT_LT(std::abs((a - b) / a), 1.e-11);
-  }
+  for (int i = 0; i < n_cells; i++)
+    for (int j = 0; j < n_species; j++)
+    {
+      double a = cpu_forcing[i][j];
+      double b = gpu_forcing[i][j];
+      EXPECT_LT(std::abs((a - b) / a), 1.e-11);
+    }
 }
 
 template<class CPUMatrixPolicy, class CPUSparseMatrixPolicy, class GPUDenseMatrixPolicy, class GPUSparseMatrixPolicy>
@@ -208,74 +205,159 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   gpu_set.SubtractJacobianTerms(gpu_rate_constants, gpu_state.variables_, gpu_jacobian);
   gpu_jacobian.CopyToHost();
 
-  // checking accuracy of jacobian between CPU and GPU
-  std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector();
-  std::vector<double> gpu_jacobian_vector = gpu_jacobian.AsVector();
 
-  for (int i = 0; i < cpu_jacobian_vector.size(); i++)
-  {
-    double a = cpu_jacobian_vector[i];
-    double b = gpu_jacobian_vector[i];
-    EXPECT_LT(std::abs((a - b) / a), 2.e-10);
-  }
+  for (int i = 0; i < n_cells; i++)
+    for (int j = 0; j < n_species; j++)
+      for (int k = 0; k < n_species; k++)
+      {
+        if (cpu_jacobian.IsZero(j, k))
+          continue;
+        ASSERT_TRUE(!gpu_jacobian.IsZero(j, k));
+        double a = cpu_jacobian[i][j][k];
+        double b = gpu_jacobian[i][j][k];
+        EXPECT_LT(std::abs((a - b) / a), 2.e-10);
+      }
 }
-
-using Group10000VectorMatrix = micm::VectorMatrix<double, 10000>;
-using Group10000SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<10000>>;
-using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<double, 10000>;
-using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<10000>>;
 
 using FloatingPointType = double;
 
 using Group1CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1>;
 using Group3CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 3>;
-// using Group27CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 27>;
-// using Group32CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 32>;
-// using Group43CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 43>;
-// using Group77CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 77>;
-// using Group113CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 113>;
-// using Group193CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 193>;
-// using Group281CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 281>;
-// using Group472CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 472>;
-// using Group512CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 512>;
-// using Group739CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 739>;
-// using Group1130CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1130>;
+using Group27CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 27>;
+using Group32CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 32>;
+using Group43CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 43>;
+using Group77CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 77>;
+using Group113CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 113>;
+using Group193CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 193>;
+using Group281CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 281>;
+using Group472CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 472>;
+using Group512CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 512>;
+using Group739CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 739>;
+using Group1130CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1130>;
 
-// using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group3CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group27CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<27>>;
+using Group32CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<32>>;
+using Group43CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<43>>;
+using Group77CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<77>>;
+using Group113CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<113>>;
+using Group193CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<193>>;
+using Group281CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<281>>;
+using Group472CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<472>>;
+using Group512CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<512>>;
+using Group739CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<739>>;
+using Group1130CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1130>>;
+
+using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;
 using Group3VectorMatrix = micm::VectorMatrix<FloatingPointType, 3>;
-// using Group27VectorMatrix = micm::VectorMatrix<FloatingPointType, 27>;
-// using Group32VectorMatrix = micm::VectorMatrix<FloatingPointType, 32>;
-// using Group43VectorMatrix = micm::VectorMatrix<FloatingPointType, 43>;
-// using Group77VectorMatrix = micm::VectorMatrix<FloatingPointType, 77>;
-// using Group113VectorMatrix = micm::VectorMatrix<FloatingPointType, 113>;
-// using Group193VectorMatrix = micm::VectorMatrix<FloatingPointType, 193>;
-// using Group281VectorMatrix = micm::VectorMatrix<FloatingPointType, 281>;
-// using Group472VectorMatrix = micm::VectorMatrix<FloatingPointType, 472>;
-// using Group512VectorMatrix = micm::VectorMatrix<FloatingPointType, 512>;
-// using Group739VectorMatrix = micm::VectorMatrix<FloatingPointType, 739>;
-// using Group1130VectorMatrix = micm::VectorMatrix<FloatingPointType, 1130>;
+using Group27VectorMatrix = micm::VectorMatrix<FloatingPointType, 27>;
+using Group32VectorMatrix = micm::VectorMatrix<FloatingPointType, 32>;
+using Group43VectorMatrix = micm::VectorMatrix<FloatingPointType, 43>;
+using Group77VectorMatrix = micm::VectorMatrix<FloatingPointType, 77>;
+using Group113VectorMatrix = micm::VectorMatrix<FloatingPointType, 113>;
+using Group193VectorMatrix = micm::VectorMatrix<FloatingPointType, 193>;
+using Group281VectorMatrix = micm::VectorMatrix<FloatingPointType, 281>;
+using Group472VectorMatrix = micm::VectorMatrix<FloatingPointType, 472>;
+using Group512VectorMatrix = micm::VectorMatrix<FloatingPointType, 512>;
+using Group739VectorMatrix = micm::VectorMatrix<FloatingPointType, 739>;
+using Group1130VectorMatrix = micm::VectorMatrix<FloatingPointType, 1130>;
+
+using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group27SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<27>>;
+using Group32SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<32>>;
+using Group43SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<43>>;
+using Group77SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<77>>;
+using Group113SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<113>>;
+using Group193SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<193>>;
+using Group281SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<281>>;
+using Group472SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<472>>;
+using Group512SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<512>>;
+using Group739SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<739>>;
+using Group1130SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1130>>;
 
 TEST(RandomCudaProcessSet, Forcing)
 {
-  // testRandomSystemAddForcingTerms<Group1VectorMatrix, Group1CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group1VectorMatrix, Group1CudaDenseMatrix>(404, 500, 400);
   testRandomSystemAddForcingTerms<Group3VectorMatrix, Group3CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group27VectorMatrix, Group27CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group32VectorMatrix, Group32CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group43VectorMatrix, Group43CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group77VectorMatrix, Group77CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group113VectorMatrix, Group113CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group193VectorMatrix, Group193CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group281VectorMatrix, Group281CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group472VectorMatrix, Group472CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group512VectorMatrix, Group512CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group739VectorMatrix, Group739CudaDenseMatrix>(404, 500, 400);
-  // testRandomSystemAddForcingTerms<Group1130VectorMatrix, Group1130CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group27VectorMatrix, Group27CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group32VectorMatrix, Group32CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group43VectorMatrix, Group43CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group77VectorMatrix, Group77CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group113VectorMatrix, Group113CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group193VectorMatrix, Group193CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group281VectorMatrix, Group281CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group472VectorMatrix, Group472CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group512VectorMatrix, Group512CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group739VectorMatrix, Group739CudaDenseMatrix>(404, 500, 400);
+  testRandomSystemAddForcingTerms<Group1130VectorMatrix, Group1130CudaDenseMatrix>(404, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
   testRandomSystemSubtractJacobianTerms<
-      Group10000VectorMatrix,
-      Group10000SparseVectorMatrix,
-      Group10000CudaDenseMatrix,
-      Group10000CudaSparseMatrix>(10000, 500, 400);
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      Group1CudaDenseMatrix,
+      Group1CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      Group3CudaDenseMatrix,
+      Group3CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group27VectorMatrix,
+      Group27SparseVectorMatrix,
+      Group27CudaDenseMatrix,
+      Group27CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group32VectorMatrix,
+      Group32SparseVectorMatrix,
+      Group32CudaDenseMatrix,
+      Group32CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group43VectorMatrix,
+      Group43SparseVectorMatrix,
+      Group43CudaDenseMatrix,
+      Group43CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group77VectorMatrix,
+      Group77SparseVectorMatrix,
+      Group77CudaDenseMatrix,
+      Group77CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group113VectorMatrix,
+      Group113SparseVectorMatrix,
+      Group113CudaDenseMatrix,
+      Group113CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group193VectorMatrix,
+      Group193SparseVectorMatrix,
+      Group193CudaDenseMatrix,
+      Group193CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group281VectorMatrix,
+      Group281SparseVectorMatrix,
+      Group281CudaDenseMatrix,
+      Group281CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group472VectorMatrix,
+      Group472SparseVectorMatrix,
+      Group472CudaDenseMatrix,
+      Group472CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group512VectorMatrix,
+      Group512SparseVectorMatrix,
+      Group512CudaDenseMatrix,
+      Group512CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group739VectorMatrix,
+      Group739SparseVectorMatrix,
+      Group739CudaDenseMatrix,
+      Group739CudaSparseMatrix>(404, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group1130VectorMatrix,
+      Group1130SparseVectorMatrix,
+      Group1130CudaDenseMatrix,
+      Group1130CudaSparseMatrix>(404, 500, 400);
 }
