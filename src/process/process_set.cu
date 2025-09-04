@@ -56,8 +56,7 @@ namespace micm
           const std::size_t number_of_products = d_number_of_products[i_rxn];
           for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
           {
-            std::size_t index = d_product_ids[i_prod] * cuda_matrix_vector_length + local_tid;
-            d_forcing[index] += d_yields[i_prod] * rate;
+            d_forcing[d_product_ids[i_prod] * cuda_matrix_vector_length + local_tid] += d_yields[i_prod] * rate;
           }
           d_reactant_ids += d_number_of_reactants[i_rxn];
           d_product_ids += d_number_of_products[i_rxn];
@@ -110,8 +109,7 @@ namespace micm
           }
           for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
           {
-            std::size_t jacobian_idx = *d_jacobian_flat_ids + local_tid;
-            d_jacobian[jacobian_idx] += d_rate_d_ind;
+            d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
             ++d_jacobian_flat_ids;
           }
           for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)

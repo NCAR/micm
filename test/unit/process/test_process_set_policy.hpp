@@ -14,6 +14,24 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
+template<class MatrixPolicy>
+void CopyToDevice(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
+                })
+    matrix.CopyToDevice();
+}
+
+template<class MatrixPolicy>
+void CopyToHost(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  { matrix.CopyToHost() } -> std::same_as<void>;
+                })
+    matrix.CopyToHost();
+}
+
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
 void testProcessSet()
 {
@@ -87,9 +105,18 @@ void testProcessSet()
   rate_constants[0] = { 10.0, 20.0 * 70.0 * 0.72, 30.0, 40.0 * 70.0 * 0.72 };
   rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72 };
 
+  // Copy input-only variables to the device
+  CopyToDevice<DenseMatrixPolicy>(rate_constants);
+  CopyToDevice<DenseMatrixPolicy>(state.variables_);
+
   DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
+  CopyToDevice<DenseMatrixPolicy>(forcing);
+
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+
+  CopyToHost<DenseMatrixPolicy>(forcing);
+
   EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
   EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
   EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
@@ -130,7 +157,13 @@ void testProcessSet()
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
+
+  CopyToDevice<SparseMatrixPolicy>(jacobian);
+
   set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
+
+  CopyToHost<SparseMatrixPolicy>(jacobian);
+
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
   EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
@@ -214,5 +247,9 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     elem = get_double();
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
 
+  CopyToDevice<DenseMatrixPolicy>(forcing);
+
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+
+  CopyToHost<DenseMatrixPolicy>(forcing);
 }
