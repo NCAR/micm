@@ -78,3 +78,20 @@ TEST(System, ConstructorWithParameterizedSpecies)
   EXPECT_EQ(reordered_names[4], names[5]);
   EXPECT_EQ(reordered_names[5], names[4]);
 }
+
+TEST(System, OthersIsStoredAndAccessible)
+{
+  micm::SystemParameters params;
+  params.others_["modal.aitken"] = "number_concentration";
+  params.others_["modal.accumulation"] = "number_concentration";
+
+  micm::System sys(params);
+
+  ASSERT_EQ(sys.others_.size(), 2);
+  EXPECT_EQ(sys.others_.at("modal.aitken"), "number_concentration");
+  EXPECT_EQ(sys.others_.at("modal.accumulation"), "number_concentration");
+
+  auto names = sys.UniqueNames();
+  EXPECT_NE(std::find(names.begin(), names.end(), "modal.aitken.number_concentration"), names.end());
+  EXPECT_NE(std::find(names.begin(), names.end(), "modal.accumulation.number_concentration"), names.end());
+}

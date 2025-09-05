@@ -63,18 +63,18 @@ Then setup the reaction which will use this rate constant:
 
       Process r7 = Process::Create()
                       .SetReactants({ f })
-                      .SetProducts({ Yields(g, 1) })
+                      .SetProducts({ Yield(g, 1) })
                       .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                       .SetPhase(gas_phase);
 
       + Process r8 = Process::Create()
       +                 .SetReactants({ c })
-      +                 .SetProducts({ Yields(g, 1) })
+      +                 .SetProducts({ Yield(g, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
       +                 .SetPhase(gas_phase);
 
       + Process r9 = Process::Create()
-      +                 .SetProducts({ Yields(a, 1) })
+      +                 .SetProducts({ Yield(a, 1) })
       +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
       +                 .SetPhase(gas_phase);
 

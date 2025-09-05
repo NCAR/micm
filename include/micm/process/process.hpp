@@ -5,6 +5,7 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/rate_constant.hpp>
+#include <micm/process/reaction_types.hpp>
 #include <micm/process/surface_rate_constant.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
@@ -64,14 +65,6 @@ inline std::error_code make_error_code(MicmProcessErrc e)
 namespace micm
 {
 
-  /// @brief An alias that allows making products easily
-  using Yield = std::pair<micm::Species, double>;
-
-  inline Yield Yields(const micm::Species& species, double yield)
-  {
-    return Yield(species, yield);
-  };
-
   class ProcessBuilder;
 
   struct Process
@@ -81,9 +74,10 @@ namespace micm
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
-    /// @brief Recalculate the rate constants for each process for the current state
-    /// @param processes The set of processes being solved
-    /// @param state The solver state to update
+    /// @brief Calculates the rate constants for each process for the current state
+    /// @param processes The set of processes for which rate constants are to be calculated
+    /// @param state The current solver state that will be modified with the updated rate constants
+    /// This function is overloaded based on whether DenseMatrixPolicy is vectorizable.
     template<
         class DenseMatrixPolicy,
         class SparseMatrixPolicy,
