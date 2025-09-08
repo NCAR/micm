@@ -27,7 +27,7 @@ namespace micm
       const std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
 
       // Shift the index for different groups
-      d_ALU = d_ALU + group_id * devstruct.number_of_non_zeros_ * cuda_matrix_vector_length;
+      d_ALU += group_id * devstruct.number_of_non_zeros_ * cuda_matrix_vector_length;
 
       if (tid < number_of_grid_cells)
       {

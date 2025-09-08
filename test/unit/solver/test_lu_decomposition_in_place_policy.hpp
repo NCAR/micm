@@ -7,7 +7,7 @@
 #include <random>
 
 template<class MatrixPolicy>
-void CopyToDevice(MatrixPolicy& matrix)
+void CheckCopyToDevice(MatrixPolicy& matrix)
 {
   if constexpr (requires {
                   { matrix.CopyToDevice() } -> std::same_as<void>;
@@ -16,7 +16,7 @@ void CopyToDevice(MatrixPolicy& matrix)
 }
 
 template<class MatrixPolicy>
-void CopyToHost(MatrixPolicy& matrix)
+void CheckCopyToHost(MatrixPolicy& matrix)
 {
   if constexpr (requires {
                   { matrix.CopyToHost() } -> std::same_as<void>;
@@ -157,11 +157,11 @@ void testRandomMatrix(std::size_t number_of_blocks)
         for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
           ALU[i_block][i][j] = A[i_block][i][j];
 
-  CopyToDevice<SparseMatrixPolicy>(ALU);
+  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
 
   lud.template Decompose<SparseMatrixPolicy>(ALU);
 
-  CopyToHost<SparseMatrixPolicy>(ALU);
+  CheckCopyToHost<SparseMatrixPolicy>(ALU);
 
   check_results<double, SparseMatrixPolicy>(
       A, ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-12); });
@@ -211,11 +211,11 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
             ALU[i_block][i][j] = 0;
       }
 
-  CopyToDevice<SparseMatrixPolicy>(ALU);
+  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
 
   lud.template Decompose<SparseMatrixPolicy>(ALU);
 
-  CopyToHost<SparseMatrixPolicy>(ALU);
+  CheckCopyToHost<SparseMatrixPolicy>(ALU);
 
   check_results<double, SparseMatrixPolicy>(
       A, ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-12); });

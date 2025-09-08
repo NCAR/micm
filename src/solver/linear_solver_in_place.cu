@@ -35,8 +35,8 @@ namespace micm
       const std::size_t group_id = tid / cuda_matrix_vector_length;
 
       // Shift the index for different groups
-      d_ALU = d_ALU + group_id * ALU_param.number_of_elements_ / number_of_groups;
-      d_x = d_x + group_id * x_param.number_of_elements_ / number_of_groups;
+      d_ALU += group_id * ALU_param.number_of_elements_ / number_of_groups;
+      d_x += group_id * x_param.number_of_elements_ / number_of_groups;
       double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
 
       if (tid < number_of_grid_cells)
