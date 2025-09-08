@@ -15,7 +15,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
 }
 
 template<class MatrixPolicy>
-void CopyToDevice(MatrixPolicy& matrix)
+void CheckCopyToDevice(MatrixPolicy& matrix)
 {
   if constexpr (requires {
                   { matrix.CopyToDevice() } -> std::same_as<void>;
@@ -24,7 +24,7 @@ void CopyToDevice(MatrixPolicy& matrix)
 }
 
 template<class MatrixPolicy>
-void CopyToHost(MatrixPolicy& matrix)
+void CheckCopyToHost(MatrixPolicy& matrix)
 {
   if constexpr (requires {
                   { matrix.CopyToHost() } -> std::same_as<void>;
@@ -106,16 +106,16 @@ void testProcessSet()
   rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72 };
 
   // Copy input-only variables to the device
-  CopyToDevice<DenseMatrixPolicy>(rate_constants);
-  CopyToDevice<DenseMatrixPolicy>(state.variables_);
+  CheckCopyToDevice<DenseMatrixPolicy>(rate_constants);
+  CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
 
   DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
-  CopyToDevice<DenseMatrixPolicy>(forcing);
+  CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
 
-  CopyToHost<DenseMatrixPolicy>(forcing);
+  CheckCopyToHost<DenseMatrixPolicy>(forcing);
 
   EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
   EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
@@ -158,11 +158,11 @@ void testProcessSet()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  CopyToDevice<SparseMatrixPolicy>(jacobian);
+  CheckCopyToDevice<SparseMatrixPolicy>(jacobian);
 
   set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
 
-  CopyToHost<SparseMatrixPolicy>(jacobian);
+  CheckCopyToHost<SparseMatrixPolicy>(jacobian);
 
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
@@ -247,9 +247,9 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     elem = get_double();
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
 
-  CopyToDevice<DenseMatrixPolicy>(forcing);
+  CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
 
-  CopyToHost<DenseMatrixPolicy>(forcing);
+  CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }
