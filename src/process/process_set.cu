@@ -29,7 +29,8 @@ namespace micm
       double* __restrict__ d_forcing = forcing_param.d_data_;
 
       const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
-      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t number_of_groups =
+          (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
       const std::size_t local_tid = tid % cuda_matrix_vector_length;
       const std::size_t group_id = tid / cuda_matrix_vector_length;
       const std::size_t number_of_reactions =
@@ -87,7 +88,8 @@ namespace micm
       double* __restrict__ d_jacobian = jacobian_param.d_data_;
 
       const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
-      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t number_of_groups =
+          (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
       const std::size_t local_tid = tid % cuda_matrix_vector_length;
       const std::size_t group_id = tid / cuda_matrix_vector_length;
 
