@@ -71,11 +71,11 @@ TEST(CudaProcessSet, CudaMatrix)
   testProcessSet<Group32CudaDenseMatrix, Group32CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group43CudaDenseMatrix, Group43CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group77CudaDenseMatrix, Group77CudaSparseMatrix, micm::CudaProcessSet>();
+  testProcessSet<Group113CudaDenseMatrix, Group113CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group193CudaDenseMatrix, Group193CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group281CudaDenseMatrix, Group281CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group472CudaDenseMatrix, Group472CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group512CudaDenseMatrix, Group512CudaSparseMatrix, micm::CudaProcessSet>();
-  testProcessSet<Group113CudaDenseMatrix, Group113CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group739CudaDenseMatrix, Group739CudaSparseMatrix, micm::CudaProcessSet>();
   testProcessSet<Group1130CudaDenseMatrix, Group1130CudaSparseMatrix, micm::CudaProcessSet>();
 }
