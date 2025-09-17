@@ -15,27 +15,31 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::Create()
+  Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
-                   .SetProducts({ Yields(b, 1) })
+                   .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r2 = Process::Create()
+  Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
-                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(b, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r3 = Process::Create()
+  Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
-                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(a, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
   const std::size_t number_of_grid_cells = 3;
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                     .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ r1, r2, r3 })
                     .Build();

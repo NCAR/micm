@@ -21,7 +21,7 @@ enum class MicmSpeciesErrc
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmSpeciesErrc> : true_type
+  struct is_error_code_enum<MicmSpeciesErrc> : true_type
   {
   };
 }  // namespace std

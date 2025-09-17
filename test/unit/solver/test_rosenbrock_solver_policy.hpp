@@ -1,4 +1,6 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/process.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
@@ -28,20 +30,26 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })
-                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
+                         .Build();
 
-  micm::Process r2 = micm::Process::Create()
+  micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar })
-                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }))
+                         .Build();
 
-  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
-      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ quz })
+                         .SetProducts({})
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }))
+                         .Build();
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })

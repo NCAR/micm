@@ -3,17 +3,18 @@
 
 enum class MicmStateErrc
 {
-  UnknownSpecies = 1,                                                   // Unknown species
-  UnknownRateConstantParameter = 2,                                     // Unknown rate constant parameter
-  IncorrectNumberOfConcentrationValuesForMultiGridcellState = 3,        // Incorrect number of concentration values
-  IncorrectNumberOfCustomRateParameterValues = 4,                       // Incorrect number of custom rate parameter values
-  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = 5,  // Incorrect number of grid cells
+  UnknownSpecies = MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES,
+  UnknownRateConstantParameter = MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER,
+  IncorrectNumberOfConcentrationValuesForMultiGridcellState = MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+  IncorrectNumberOfCustomRateParameterValues = MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
+  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState =
+      MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
 };
 
 namespace std
 {
   template<>
-  struct is_error_condition_enum<MicmStateErrc> : true_type
+  struct is_error_code_enum<MicmStateErrc> : true_type
   {
   };
 }  // namespace std
@@ -187,6 +188,46 @@ namespace micm
     if (variables_.NumRows() != concentration.size())
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
     std::size_t i_species = variable_map_[species.name_];
+    for (std::size_t i = 0; i < variables_.NumRows(); ++i)
+      variables_[i][i_species] = concentration[i];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+      const std::string& element,
+      double concentration)
+  {
+    auto var = variable_map_.find(element);
+    if (var == variable_map_.end())
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
+    if (variables_.NumRows() != 1)
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
+    variables_[0][variable_map_[element]] = concentration;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+      const std::string& element,
+      const std::vector<double>& concentration)
+  {
+    auto var = variable_map_.find(element);
+    if (var == variable_map_.end())
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
+    if (variables_.NumRows() != concentration.size())
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
+    std::size_t i_species = variable_map_[element];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
   }

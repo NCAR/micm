@@ -55,33 +55,33 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::Create()
+  Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
-                   .SetProducts({ Yields(b, 1) })
+                   .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r2 = Process::Create()
+  Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
-                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(b, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r3 = Process::Create()
+  Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
-                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(a, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const std::size_t number_of_grid_cells = 3;
 
-  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
-      .SetSystem(system)
-      .SetReactions(reactions)
-      .Build();
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetSystem(system).SetReactions(reactions).Build();
 
   auto state = solver.GetState(number_of_grid_cells);
 
@@ -96,9 +96,10 @@ int main()
 
   std::cout << std::endl;
 
-  auto vectorized_solver = CpuSolverBuilder<RosenbrockSolverParameters,
-                                            VectorMatrix<double, 3>,
-                                            SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
+  auto vectorized_solver = CpuSolverBuilder<
+                               RosenbrockSolverParameters,
+                               VectorMatrix<double, 3>,
+                               SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
                                .SetSystem(system)
                                .SetReactions(reactions)
                                .Build();

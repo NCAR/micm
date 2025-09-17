@@ -1,6 +1,6 @@
 #pragma once
 
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 
 #include <algorithm>

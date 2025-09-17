@@ -16,34 +16,60 @@ namespace micm
   {
     Phase gas_phase_{};
     std::unordered_map<std::string, Phase> phases_{};
+    std::unordered_map<std::string, std::string> others_{};
   };
 
-  /**
-   * @brief A `System` holds all physical information that represents a grid cell.
-   *
-   */
+  /// @brief Represents the complete chemical state of a grid cell
+  ///        Includes the gas phase and other associated phases, each with their own set of species.
   class System
   {
    public:
-    /// @brief The gas phase is a micm::Phase and determines what species are present.
+    /// @brief The gas phase, defining a set of species present in the system
     Phase gas_phase_;
-    /// @brief This is a catchall for anything that is not the gas phase.
+    /// @brief Additional phases (e.g., aqueous, aerosol), mapped by name and representing non-gas phase
     std::unordered_map<std::string, Phase> phases_;
+    /// @brief Tracks non-phase elements (e.g., number concentrations) associated with a model.
+    ///        Elements are mapped using a prefix specific to the model's name and representation.
+    std::unordered_map<std::string, std::string> others_;
 
     /// @brief Default constructor
     System() = default;
 
     /// @brief Parameterized constructor
+    System(
+        const Phase& gas_phase,
+        const std::unordered_map<std::string, Phase>& phases,
+        const std::unordered_map<std::string, std::string>& others)
+        : gas_phase_(gas_phase),
+          phases_(phases),
+          others_(others)
+    {
+    }
+
+    /// @brief Parameterized constructor
     System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases)
         : gas_phase_(gas_phase),
-          phases_(phases)
+          phases_(phases),
+          others_()
+    {
+    }
+
+    /// @brief Parameterized constructor with move semantics
+    System(
+        Phase&& gas_phase,
+        std::unordered_map<std::string, Phase>&& phases,
+        const std::unordered_map<std::string, std::string>& others)
+        : gas_phase_(std::move(gas_phase)),
+          phases_(std::move(phases)),
+          others_(std::move(others))
     {
     }
 
     /// @brief Parameterized constructor with move semantics
     System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases)
         : gas_phase_(std::move(gas_phase)),
-          phases_(std::move(phases))
+          phases_(std::move(phases)),
+          others_()
     {
     }
 
@@ -56,7 +82,8 @@ namespace micm
     /// @brief Constructor from SystemParameters
     System(const SystemParameters& parameters)
         : gas_phase_(parameters.gas_phase_),
-          phases_(parameters.phases_)
+          phases_(parameters.phases_),
+          others_(parameters.others_)
     {
     }
 
@@ -87,6 +114,8 @@ namespace micm
     {
       state_size += phase.second.StateSize();
     }
+    state_size += others_.size();
+
     return state_size;
   }
 
@@ -99,10 +128,14 @@ namespace micm
       const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
     std::vector<std::string> names = gas_phase_.UniqueNames();
-    for (auto& phase : phases_)
+    for (const auto& phase : phases_)
     {
-      for (auto& species_name : phase.second.UniqueNames())
+      for (const auto& species_name : phase.second.UniqueNames())
         names.push_back(phase.first + "." + species_name);
+    }
+    for (const auto& other : others_)
+    {
+      names.push_back(other.first + "." + other.second);
     }
     if (f)
     {

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace micm
 {
@@ -57,7 +57,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> LambdaRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new LambdaRateConstant{ *this } };
+    return std::make_unique<LambdaRateConstant>(*this);
   }
 
   inline double LambdaRateConstant::Calculate(
@@ -71,4 +71,4 @@ namespace micm
   {
     return parameters_.lambda_function_(conditions);
   }
-}
+}  // namespace micm

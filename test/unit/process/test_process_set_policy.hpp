@@ -1,16 +1,35 @@
+#include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 
 #include <gtest/gtest.h>
 
 #include <random>
 
-using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
 void compare_pair(const index_pair& a, const index_pair& b)
 {
   EXPECT_EQ(a.first, b.first);
   EXPECT_EQ(a.second, b.second);
+}
+
+template<class MatrixPolicy>
+void CheckCopyToDevice(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
+                })
+    matrix.CopyToDevice();
+}
+
+template<class MatrixPolicy>
+void CheckCopyToHost(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  { matrix.CopyToHost() } -> std::same_as<void>;
+                })
+    matrix.CopyToHost();
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
@@ -25,29 +44,41 @@ void testProcessSet()
   auto corge = micm::Species("corge");
   qux.parameterize_ = [](const micm::Conditions& c) { return c.air_density_ * 0.72; };
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz, corge } };
-
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_rate_constants_ = 3,
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } },
       2);
 
-  micm::Process r1 = micm::Process::Create()
+  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz, corge } };
+  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+
+  micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })
-                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
-                         .SetPhase(gas_phase);
+                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
+                         .SetRateConstant(arrhenius_rate_constant)
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r2 = micm::Process::Create()
+  micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar, qux })
-                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
-                         .SetPhase(gas_phase);
+                         .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
+                         .SetRateConstant(arrhenius_rate_constant)
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ quz })
+                         .SetProducts({})
+                         .SetRateConstant(arrhenius_rate_constant)
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r4 = micm::Process::Create()
+  micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ baz, qux })
-                         .SetProducts({ Yields(bar, 1), Yields(quz, 2.5) })
-                         .SetPhase(gas_phase);
+                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quz, 2.5) })
+                         .SetRateConstant(arrhenius_rate_constant)
+                         .SetPhase(gas_phase)
+                         .Build();
 
   auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
 
@@ -74,9 +105,18 @@ void testProcessSet()
   rate_constants[0] = { 10.0, 20.0 * 70.0 * 0.72, 30.0, 40.0 * 70.0 * 0.72 };
   rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72 };
 
+  // Copy input-only variables to the device
+  CheckCopyToDevice<DenseMatrixPolicy>(rate_constants);
+  CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
+
   DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
+  CheckCopyToDevice<DenseMatrixPolicy>(forcing);
+
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+
+  CheckCopyToHost<DenseMatrixPolicy>(forcing);
+
   EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
   EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
   EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
@@ -117,7 +157,13 @@ void testProcessSet()
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(jacobian);
+
   set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
+
+  CheckCopyToHost<SparseMatrixPolicy>(jacobian);
+
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
   EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
@@ -162,6 +208,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
+  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
                                                                 .number_of_rate_constants_ = n_reactions,
                                                                 .variable_names_{ species_names },
@@ -177,12 +224,17 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<yields> products{};
+    std::vector<micm::Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
     }
-    auto proc = micm::Process(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
+    auto proc = micm::ChemicalReactionBuilder()
+                    .SetReactants(reactants)
+                    .SetProducts(products)
+                    .SetRateConstant(arrhenius_rate_constant)
+                    .SetPhase(gas_phase)
+                    .Build();
     processes.push_back(proc);
   }
   RatesPolicy set = RatesPolicy(processes, state.variable_map_);
@@ -195,5 +247,9 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     elem = get_double();
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
 
+  CheckCopyToDevice<DenseMatrixPolicy>(forcing);
+
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+
+  CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }

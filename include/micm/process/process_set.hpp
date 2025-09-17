@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/process_error.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
@@ -10,48 +11,6 @@
 
 #include <cassert>
 #include <vector>
-
-enum class MicmProcessSetErrc
-{
-  ReactantDoesNotExist = MICM_PROCESS_SET_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
-  ProductDoesNotExist = MICM_PROCESS_SET_ERROR_CODE_PRODUCT_DOES_NOT_EXIST
-};
-
-namespace std
-{
-  template<>
-  struct is_error_condition_enum<MicmProcessSetErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmProcessSetErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return MICM_ERROR_CATEGORY_PROCESS_SET;
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmProcessSetErrc>(ev))
-      {
-        case MicmProcessSetErrc::ReactantDoesNotExist: return "Reactant does not exist";
-        case MicmProcessSetErrc::ProductDoesNotExist: return "Product does not exist";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const MicmProcessSetErrorCategory MICM_PROCESS_SET_ERROR{};
-}  // namespace
-
-inline std::error_code make_error_code(MicmProcessSetErrc e)
-{
-  return { static_cast<int>(e), MICM_PROCESS_SET_ERROR };
-}
 
 namespace micm
 {
@@ -84,25 +43,27 @@ namespace micm
     /// @brief Default constructor
     ProcessSet() = default;
 
-    /// @brief Create a process set calculator for a given set of processes
-    /// @param processes Processes to create calculator for
-    /// @param variable_map A mapping of species names to concentration index
+    /// @brief Constructs a ProcessSet by mapping species in each process to their corresponding indices
+    ///        Initializes internal data structures related to a set of processes, mapping them to variable indices
+    ///        using a provided variable_map. Also prepares the data needed for computing Jacobian contributions.
+    /// @param processes A list of processes, each with reactants and products
+    /// @param variable_map A map from species names to their corresponding index in the solver's state
+    /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
     ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
     virtual ~ProcessSet() = default;
 
-    /// @brief Return the full set of non-zero Jacobian elements for the set of processes
-    /// @return Jacobian elements as a set of index pairs
+    /// @brief Returns the positions of all non-zero Jacobian elements
+    /// @return A set of (row, column) index pairs, each representing a non-zero entry
     std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const;
 
-    /// @brief Sets the indicies for each non-zero Jacobian element in the underlying vector.
-    ///        Also sets combination of process ids and reactant ids to allow setting of
-    ///        jacobian elements in order by column.
-    /// @param matrix The sparse matrix used for the Jacobian
+    /// @brief Computes and stores flat (1D) indices for non-zero Jacobian elements
+    ///        Stores combination of process ids and reactant ids to support column-wise Jacobian updates.
+    /// @param matrix The sparse Jacobian matrix used to compute flat indices.
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
-    /// @brief Add forcing terms for the set of processes for the current conditions
+    /// @brief Adds forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
@@ -119,7 +80,7 @@ namespace micm
         const DenseMatrixPolicy& state_variables,
         DenseMatrixPolicy& forcing) const;
 
-    /// @brief Subtract Jacobian terms for the set of processes for the current conditions
+    /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
@@ -129,7 +90,6 @@ namespace micm
         const DenseMatrixPolicy& rate_constants,
         const DenseMatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const;
-    // template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     template<class DenseMatrixPolicy, class SparseMatrixPolicy>
       requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     void SubtractJacobianTerms(
@@ -137,9 +97,9 @@ namespace micm
         const DenseMatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const;
 
-    /// @brief Returns the set of species used in a set of processes
-    /// @param processes The set of processes
-    /// @return The set of species used in the set of processes
+    /// @brief Extracts all species involved in the given processes
+    /// @param processes A list of Process objects, each with reactants and products
+    /// @return A set of species names
     static std::set<std::string> SpeciesUsed(const std::vector<Process>& processes);
   };
 
@@ -159,78 +119,92 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    // Set up process information for forcing calculations
+    // For each process, look up each reactant name in variable_map and
+    // store the corresponding index
     for (const auto& process : processes)
     {
-      std::size_t number_of_reactants = 0;
-      std::size_t number_of_products = 0;
-      for (const auto& reactant : process.reactants_)
+      if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
       {
-        if (reactant.IsParameterized())
-          continue;  // Skip reactants that are parameterizations
-        if (variable_map.count(reactant.name_) < 1)
-          throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
-        reactant_ids_.push_back(variable_map.at(reactant.name_));
-        ++number_of_reactants;
+        std::size_t number_of_reactants = 0;
+        std::size_t number_of_products = 0;
+        for (const auto& reactant : reaction->reactants_)
+        {
+          if (reactant.IsParameterized())
+            continue;  // Skip reactants that are parameterizations
+          if (variable_map.count(reactant.name_) < 1)
+            throw std::system_error(make_error_code(MicmProcessErrc::ReactantDoesNotExist), reactant.name_);
+          reactant_ids_.push_back(variable_map.at(reactant.name_));
+          ++number_of_reactants;
+        }
+        // Store product indices and yields
+        for (const auto& product : reaction->products_)
+        {
+          if (product.species_.IsParameterized())
+            continue;  // Skip products that are parameterizations
+          if (variable_map.count(product.species_.name_) < 1)
+            throw std::system_error(make_error_code(MicmProcessErrc::ProductDoesNotExist), product.species_.name_);
+          product_ids_.push_back(variable_map.at(product.species_.name_));
+          yields_.push_back(product.coefficient_);
+          ++number_of_products;
+        }
+        // Record how many reactants and products were processed for each process
+        number_of_reactants_.push_back(number_of_reactants);
+        number_of_products_.push_back(number_of_products);
       }
-      for (const auto& product : process.products_)
-      {
-        if (product.first.IsParameterized())
-          continue;  // Skip products that are parameterizations
-        if (variable_map.count(product.first.name_) < 1)
-          throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
-        product_ids_.push_back(variable_map.at(product.first.name_));
-        yields_.push_back(product.second);
-        ++number_of_products;
-      }
-      number_of_reactants_.push_back(number_of_reactants);
-      number_of_products_.push_back(number_of_products);
     }
 
     // Set up process information for Jacobian calculations
+
+    // The variable_map is sorted by index
     std::vector<std::pair<std::string, std::size_t>> sorted_names(variable_map.begin(), variable_map.end());
     std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+
+    // For every independent variable (species), if the species is used as a reactant in a process,
+    // create a ProcessInfo record to track Jacobian contributions
     for (const auto& independent_variable : sorted_names)
     {
       for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
       {
         const auto& process = processes[i_process];
-        for (const auto& ind_reactant : process.reactants_)
-        {
-          if (ind_reactant.name_ != independent_variable.first)
-            continue;
-          ProcessInfo info;
-          info.process_id_ = i_process;
-          info.independent_id_ = independent_variable.second;
-          info.number_of_dependent_reactants_ = 0;
-          info.number_of_products_ = 0;
-          bool found = false;
-          for (const auto& reactant : process.reactants_)
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+          for (const auto& ind_reactant : reaction->reactants_)
           {
-            if (reactant.IsParameterized())
-              continue;  // Skip reactants that are parameterizations
-            if (variable_map.count(reactant.name_) < 1)
-              throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
-            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
-            {
-              found = true;
+            if (ind_reactant.name_ != independent_variable.first)
               continue;
+            ProcessInfo info;
+            info.process_id_ = i_process;
+            info.independent_id_ = independent_variable.second;
+            info.number_of_dependent_reactants_ = 0;
+            info.number_of_products_ = 0;
+
+            // Collect other (dependent) reactants and products
+            bool found = false;
+            for (const auto& reactant : reaction->reactants_)
+            {
+              if (reactant.IsParameterized())
+                continue;  // Skip reactants that are parameterizations
+              if (variable_map.count(reactant.name_) < 1)
+                throw std::system_error(make_error_code(MicmProcessErrc::ReactantDoesNotExist), reactant.name_);
+              if (variable_map.at(reactant.name_) == independent_variable.second && !found)
+              {
+                found = true;
+                continue;
+              }
+              jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+              ++info.number_of_dependent_reactants_;
             }
-            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
-            ++info.number_of_dependent_reactants_;
+            for (const auto& product : reaction->products_)
+            {
+              if (product.species_.IsParameterized())
+                continue;  // Skip products that are parameterizations
+              if (variable_map.count(product.species_.name_) < 1)
+                throw std::system_error(make_error_code(MicmProcessErrc::ProductDoesNotExist), product.species_.name_);
+              jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
+              jacobian_yields_.push_back(product.coefficient_);
+              ++info.number_of_products_;
+            }
+            jacobian_process_info_.push_back(info);
           }
-          for (const auto& product : process.products_)
-          {
-            if (product.first.IsParameterized())
-              continue;  // Skip products that are parameterizations
-            if (variable_map.count(product.first.name_) < 1)
-              throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
-            jacobian_product_ids_.push_back(variable_map.at(product.first.name_));
-            jacobian_yields_.push_back(product.second);
-            ++info.number_of_products_;
-          }
-          jacobian_process_info_.push_back(info);
-        }
       }
     }
   };
@@ -246,15 +220,18 @@ namespace micm
     {
       for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
       {
+        // For each reactant, collect the Jacobian contributing indices
         for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
         {
           ids.insert(std::make_pair(react_id[i_dep], react_id[i_ind]));
         }
+        // For each product, collect the Jacobian contributing indices
         for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
         {
           ids.insert(std::make_pair(prod_id[i_dep], react_id[i_ind]));
         }
       }
+      // Adavance iterators using the number of reactants/products in each process
       react_id += number_of_reactants_[i_rxn];
       prod_id += number_of_products_[i_rxn];
     }
@@ -302,21 +279,24 @@ namespace micm
       {
         double rate = cell_rate_constants[i_rxn];
 
+        // Caculate the reaction rate with the rate constant and concentrations
+        // of each reactant
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
           rate *= cell_state[react_id[i_react]];
         }
 
+        // Subtract the rate from reactant species
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
           cell_forcing[react_id[i_react]] -= rate;
         }
-
+        // Add the rate (scaled by yield) to product species
         for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
         {
           cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
         }
-
+        // Update iterators based on how many reactants/products each reaction has
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
@@ -489,13 +469,21 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::set<std::string> used_species;
-    for (auto& process : processes)
+    for (const auto& process : processes)
     {
-      for (auto& reactant : process.reactants_)
-        used_species.insert(reactant.name_);
-      for (auto& product : process.products_)
-        used_species.insert(product.first.name_);
+      if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+      {
+        for (const auto& reactant : reaction->reactants_)
+        {
+          used_species.insert(reactant.name_);
+        }
+        for (const auto& product : reaction->products_)
+        {
+          used_species.insert(product.species_.name_);
+        }
+      }
     }
+
     return used_species;
   }
 }  // namespace micm

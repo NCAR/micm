@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 
 #include <cmath>
 
@@ -66,7 +66,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> ArrheniusRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
+    return std::make_unique<ArrheniusRateConstant>(*this);
   }
 
   inline double ArrheniusRateConstant::Calculate(

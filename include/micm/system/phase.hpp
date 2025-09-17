@@ -10,17 +10,15 @@
 namespace micm
 {
 
-  /**
-   * @brief A class which represnts a certain chemical phase (gaseous, aquous)
-   *
-   * Each phase represents a set of species that participate in chemical reactions in that phase.
-   */
+  /// @brief Represents a chemical phase (e.g., gaseous, aqueous)
+  ///        Each phase defines a set of species that participate in chemical
+  ///        reactions within that phase.
   class Phase
   {
    public:
+    std::string name_;
     /// @brief The list of species
     std::vector<Species> species_;
-    std::string name_;
 
     /// @brief Defaulted constructors and assignment operators
     Phase() = default;
@@ -59,4 +57,5 @@ namespace micm
       return names;
     }
   };
+
 }  // namespace micm

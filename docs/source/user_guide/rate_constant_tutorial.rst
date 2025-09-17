@@ -81,9 +81,8 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
 
         Now that we have a gas phase and our species, we can start building the reactions. Two things to note are that
         stoichiemtric coefficients for reactants are represented by repeating that product as many times as you need.
-        To specify the yield of a product, we've created a typedef :cpp:type:`micm::Yield` 
-        and a function :cpp:func:`micm::Yields` that produces these. Note that we add a conversion for
-        some rate constant parameters to be consistent with the configuration file that expects rate constants
+        To specify the yield of a product, we've created a struct :cpp:type:`micm::Yield`. Note that we add a conversion
+        for some rate constant parameters to be consistent with the configuration file that expects rate constants
         to be in cm^3/molecule/s. (All units will be mks in the next version of the configuration file format.)
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp

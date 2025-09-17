@@ -3,14 +3,21 @@
 
 #pragma once
 
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/lambda_rate_constant.hpp>
+#include <micm/process/chemical_reaction.hpp>
+#include <micm/process/chemical_reaction_builder.hpp>
+#include <micm/process/phase_transfer_process.hpp>
+#include <micm/process/phase_transfer_process_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
-#include <micm/process/rate_constant.hpp>
-#include <micm/process/surface_rate_constant.hpp>
-#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-#include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/tunneling_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/branched_rate_constant.hpp>
+#include <micm/process/rate_constant/lambda_rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
+#include <micm/process/rate_constant/surface_rate_constant.hpp>
+#include <micm/process/rate_constant/taylor_series_rate_constant.hpp>
+#include <micm/process/rate_constant/ternary_chemical_activation_rate_constant.hpp>
+#include <micm/process/rate_constant/troe_rate_constant.hpp>
+#include <micm/process/rate_constant/tunneling_rate_constant.hpp>
+#include <micm/process/rate_constant/user_defined_rate_constant.hpp>
+#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
+#include <micm/process/transfer_coefficient/transfer_coefficient.hpp>

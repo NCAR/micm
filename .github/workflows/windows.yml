@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   mingw:
-    runs-on: windows-2019
+    runs-on: windows-latest
     strategy:
       matrix:
         build_type: [Release]
@@ -39,7 +39,7 @@ jobs:
           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose
 
   msvc2022:
-    runs-on: windows-2022
+    runs-on: windows-latest
     continue-on-error: true 
     strategy:
       matrix:
@@ -49,24 +49,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Run CMake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "Visual Studio 17 2022" -A ${{ matrix.architecture }}
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }}
     - name: Build
       run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
     - name: Test
       run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure
 
   clang:
-    runs-on: windows-2019
+    runs-on: windows-latest
     continue-on-error: true 
     strategy:
       matrix:
         build_type: [Release]
-        version: [11, 12, 13, 14, 15]
+        version: [19.1.0, 20.1.0]
 
     steps:
       - uses: actions/checkout@v4
       - name: Install Clang
-        run: curl -fsSL -o LLVM${{ matrix.version }}.exe https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.version }}.0.0/LLVM-${{ matrix.version }}.0.0-win64.exe ; 7z x LLVM${{ matrix.version }}.exe -y -o"C:/Program Files/LLVM"
+        run: curl -fsSL -o LLVM${{ matrix.version }}.exe https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.version }}/LLVM-${{ matrix.version }}-win64.exe ; 7z x LLVM${{ matrix.version }}.exe -y -o"C:/Program Files/LLVM"
       - name: Run CMake
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -G"MinGW Makefiles"
       - name: Build
@@ -75,7 +75,7 @@ jobs:
         run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure
 
   clang-cl-11:
-    runs-on: windows-2019
+    runs-on: windows-latest
     continue-on-error: true 
     strategy:
       matrix:
@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "Visual Studio 16 2019" -A ${{ matrix.architecture }} -T ClangCL
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }} -T ClangCL
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
       - name: Test

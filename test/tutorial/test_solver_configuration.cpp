@@ -87,51 +87,59 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::Create()
+  Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
-                   .SetProducts({ Yields(b, 1) })
+                   .SetProducts({ Yield(b, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r2 = Process::Create()
+  Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
-                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(b, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
-  Process r3 = Process::Create()
+  Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
-                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetProducts({ Yield(a, 1), Yield(c, 1) })
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .SetPhase(gas_phase);
+                   .SetPhase(gas_phase)
+                   .Build();
 
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  auto two_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
+  auto two_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                       micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
                        .SetSystem(system)
                        .SetReactions(reactions)
                        .Build();
 
-  auto three_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto three_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                         micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                          .SetSystem(system)
                          .SetReactions(reactions)
                          .Build();
 
-  auto four_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
+  auto four_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                        micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
                         .SetSystem(system)
                         .SetReactions(reactions)
                         .Build();
 
-  auto four_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
-                            .SetSystem(system)
-                            .SetReactions(reactions)
-                            .Build();
+  auto four_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                           micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
+                           .SetSystem(system)
+                           .SetReactions(reactions)
+                           .Build();
 
-  auto six_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
-                            .SetSystem(system)
-                            .SetReactions(reactions)
-                            .Build();
+  auto six_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                          micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
+                          .SetSystem(system)
+                          .SetReactions(reactions)
+                          .Build();
 
   std::cout << "Two stages: " << std::endl;
   test_solver_type(two_stage);

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 
 #include <cmath>
 
@@ -64,7 +64,7 @@ namespace micm
 
   inline std::unique_ptr<RateConstant> TunnelingRateConstant::Clone() const
   {
-    return std::unique_ptr<RateConstant>{ new TunnelingRateConstant{ *this } };
+    return std::make_unique<TunnelingRateConstant>(*this);
   }
 
   inline double TunnelingRateConstant::Calculate(const Conditions& conditions) const

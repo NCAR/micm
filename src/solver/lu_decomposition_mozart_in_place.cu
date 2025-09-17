@@ -20,8 +20,14 @@ namespace micm
       const std::pair<std::size_t, std::size_t>* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
       const std::size_t d_aii_nji_nki_size = devstruct.aii_nji_nki_size_;
 
-      double* const __restrict__ d_ALU = ALU_param.d_data_;
+      double* __restrict__ d_ALU = ALU_param.d_data_;
       const size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
+      const size_t cuda_matrix_vector_length = ALU_param.vector_length_;
+      const std::size_t local_tid = tid % cuda_matrix_vector_length;
+      const std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
+
+      // Shift the index for different groups
+      d_ALU += group_id * devstruct.number_of_non_zeros_ * cuda_matrix_vector_length;
 
       if (tid < number_of_grid_cells)
       {
@@ -29,10 +35,10 @@ namespace micm
         {
           auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
           auto d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
-          auto d_Aii_inverse = 1.0 / d_Aii[tid];
+          auto d_Aii_inverse = 1.0 / d_Aii[local_tid];
           for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
           {
-            auto d_ALU_ji = d_ALU + *d_aji + tid;
+            auto d_ALU_ji = d_ALU + *d_aji + local_tid;
             *d_ALU_ji *= d_Aii_inverse;
             ++d_aji;
           }
@@ -42,9 +48,9 @@ namespace micm
             const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
             for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
             {
-              auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
-              auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
-              auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
+              auto d_ALU_first = d_ALU + d_ajk_aji->first + local_tid;
+              auto d_ALU_second = d_ALU + d_ajk_aji->second + local_tid;
+              auto d_ALU_aik = d_ALU + d_aik_njk_first + local_tid;
               *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
               ++d_ajk_aji;
             }
@@ -121,6 +127,7 @@ namespace micm
       devstruct.aji_size_ = hoststruct.aji_size_;
       devstruct.aik_njk_size_ = hoststruct.aik_njk_size_;
       devstruct.ajk_aji_size_ = hoststruct.ajk_aji_size_;
+      devstruct.number_of_non_zeros_ = hoststruct.number_of_non_zeros_;
 
       return devstruct;
     }
@@ -147,7 +154,7 @@ namespace micm
     void DecomposeKernelDriver(CudaMatrixParam& ALU_param, const LuDecomposeParam& devstruct)
     {
       // Launch the CUDA kernel for LU decomposition
-      size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      std::size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           ALU_param, devstruct);
     }  // end of DecomposeKernelDriver

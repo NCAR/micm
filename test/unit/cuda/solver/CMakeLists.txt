@@ -1,9 +1,4 @@
 ################################################################################
-# Test utilities
-
-include(test_util)
-
-################################################################################
 # Tests
 
 create_standard_test(NAME cuda_lu_decomposition_mozart_in_place SOURCES test_cuda_lu_decomposition_mozart_in_place.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
