@@ -63,7 +63,9 @@ namespace micm
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
       : parameters_(parameters),
-        diffusion_coefficient_(parameters.species_.GetProperty<double>(property_keys::GAS_DIFFUSION_COEFFICIENT)),
+        // TODO - Diffusion coefficient should be avalialbe from PhaseSpecies
+        // Will address in the issue: https://github.com/NCAR/micm/issues/845
+        diffusion_coefficient_(1.0),
         mean_free_speed_factor_(
             8.0 * constants::GAS_CONSTANT /
             (M_PI * parameters.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT)))
