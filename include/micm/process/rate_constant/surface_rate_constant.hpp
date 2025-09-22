@@ -81,6 +81,7 @@ namespace micm
       }
       else
       {
+        std::cout << "musica error: " << e.what() << std::endl;
         throw;
       }
     }
