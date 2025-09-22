@@ -63,13 +63,27 @@ namespace micm
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
       : parameters_(parameters),
-        // TODO - Diffusion coefficient should be avalialbe from PhaseSpecies
-        // Will address in the issue: https://github.com/NCAR/micm/issues/845
-        diffusion_coefficient_(1.0),
         mean_free_speed_factor_(
             8.0 * constants::GAS_CONSTANT /
             (M_PI * parameters.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT)))
   {
+    // TODO - Diffusion coefficient should be avalialbe from PhaseSpecies
+    // Will address in the issue: https://github.com/NCAR/micm/issues/845
+    try
+    {
+      diffusion_coefficient_ = parameters.species_.GetProperty<double>(property_keys::DIFFUSION_COEFFICIENT);
+    }
+    catch (const std::system_error& e)
+    {
+      if (e.code() == make_error_code(MicmSpeciesErrc::PropertyNotFound))
+      {
+        diffusion_coefficient_ = 1.0e-05;
+      }
+      else
+      {
+        throw;
+      }
+    }
   }
 
   inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
