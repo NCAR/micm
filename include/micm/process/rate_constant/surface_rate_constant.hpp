@@ -81,8 +81,10 @@ namespace micm
       }
       else
       {
-        std::cout << "musica error: " << e.what() << std::endl;
-        throw;
+        // TODO: MUSICA does not know the MICM error message, 
+        // causing it to fall back to the default 'else' condition.
+        // Issue: https://github.com/NCAR/micm/issues/848
+        diffusion_coefficient_ = 1.0e-05;
       }
     }
   }
