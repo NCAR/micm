@@ -32,7 +32,7 @@ int main(const int argc, const char* argv[])
   if (it == phase_species_list.end())
   {
     std::cout << "Species not found\n";
-    return 1;
+    return 1; // Failure
   }
 
   double c_diffusion_coefficient = 2.3e2;
