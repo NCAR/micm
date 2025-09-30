@@ -18,9 +18,18 @@ namespace micm
     Species species_;
     std::optional<double> diffusion_coefficient_;
 
-    PhaseSpecies(const Species& species, double diffusion)
-      : species_(species), diffusion_coefficient_(diffusion) 
+    PhaseSpecies(const Species& species)
+      : species_(species)
     {}
+
+    PhaseSpecies(const Species& species, double diffusion_coefficient)
+      : species_(species), diffusion_coefficient_(diffusion_coefficient) 
+    {}
+
+    void SetDiffusionCoefficient(double diffusion_coefficient)
+    {
+      diffusion_coefficient_ = diffusion_coefficient;
+    }
   };
 
   /// @brief Represents a chemical phase (e.g., gaseous, aqueous)
@@ -30,7 +39,7 @@ namespace micm
   {
    public:
     std::string name_;
-    /// @brief The list of species
+    /// @brief The list of phase-specific species
     std::vector<PhaseSpecies> phase_species_;
 
     /// @brief Defaulted constructors and assignment operators
@@ -39,13 +48,6 @@ namespace micm
     Phase(Phase&&) noexcept = default;
     Phase& operator=(const Phase&) = default;
     Phase& operator=(Phase&&) noexcept = default;
-
-    /// @brief Create a phase with a set of species
-    Phase(const std::vector<PhaseSpecies>& phase_species)
-        : name_(),
-          phase_species_(phase_species)
-    {
-    }
 
     /// @brief Create a phase with a name and a set of species
     Phase(const std::string& name, const std::vector<PhaseSpecies>& phase_species)

@@ -72,7 +72,7 @@ namespace micm
     else
     {
       throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), 
-          "Diffusion coefficient for species " + parameters.phase_species_.species_.name_ + " is not defined");
+          "Diffusion coefficient for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
     }
     try
     {
@@ -84,7 +84,7 @@ namespace micm
       if (e.code() == make_error_code(MicmSpeciesErrc::PropertyNotFound))
       {
         throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), 
-          "Molecular weight for species " + parameters.phase_species_.species_.name_ + " is not defined");
+          "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
       }
       else
       {

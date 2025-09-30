@@ -90,7 +90,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
   foo.SetProperty("absolute tolerance", 1.0e-07);
   bar.SetProperty("absolute tolerance", 1.0e-08);
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ foo, bar } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo })

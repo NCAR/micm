@@ -28,7 +28,7 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
   auto quz = micm::Species("quz");
   auto quuz = micm::Species("quuz");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ foo, bar, baz, quz, quuz } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })

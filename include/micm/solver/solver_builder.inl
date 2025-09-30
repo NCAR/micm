@@ -228,8 +228,9 @@ namespace micm
       SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const
   {
     tolerances = std::vector<double>(species_map.size(), 1e-3);
-    for (auto& species : system_.gas_phase_.species_)
+    for (auto& phase_species : system_.gas_phase_.phase_species_)
     {
+      auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
       {
         tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
@@ -237,8 +238,9 @@ namespace micm
     }
     for (auto& phase : system_.phases_)
     {
-      for (auto& species : phase.second.species_)
+      for (auto& phase_species : phase.second.phase_species_)
       {
+        auto& species = phase_species.species_;
         if (species.HasProperty("absolute tolerance"))
         {
           tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");

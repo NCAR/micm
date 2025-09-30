@@ -6,6 +6,7 @@
 
 #include <random>
 
+using namespace micm;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
 void compare_pair(const index_pair& a, const index_pair& b)
@@ -35,52 +36,52 @@ void CheckCopyToHost(MatrixPolicy& matrix)
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
 void testProcessSet()
 {
-  auto foo = micm::Species("foo");
-  auto bar = micm::Species("bar");
-  auto baz = micm::Species("baz");
-  auto quz = micm::Species("quz");
-  auto quuz = micm::Species("quuz");
-  auto qux = micm::Species("qux");
-  auto corge = micm::Species("corge");
-  qux.parameterize_ = [](const micm::Conditions& c) { return c.air_density_ * 0.72; };
+  auto foo = Species("foo");
+  auto bar = Species("bar");
+  auto baz = Species("baz");
+  auto quz = Species("quz");
+  auto quuz = Species("quuz");
+  auto qux = Species("qux");
+  auto corge = Species("corge");
+  qux.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.72; };
 
-  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
-      micm::StateParameters{ .number_of_rate_constants_ = 3,
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz, quz, quuz, corge } };
+  State<DenseMatrixPolicy, SparseMatrixPolicy> state(
+      StateParameters{ .number_of_rate_constants_ = 3,
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } },
       2);
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz, corge } };
-  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+  ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
+  Process r1 = ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })
-                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
+                         .SetProducts({ Yield(bar, 1), Yield(quuz, 2.4) })
                          .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r2 = micm::ChemicalReactionBuilder()
+  Process r2 = ChemicalReactionBuilder()
                          .SetReactants({ bar, qux })
-                         .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
+                         .SetProducts({ Yield(foo, 1), Yield(quz, 1.4) })
                          .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r3 = micm::ChemicalReactionBuilder()
+  Process r3 = ChemicalReactionBuilder()
                          .SetReactants({ quz })
                          .SetProducts({})
                          .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r4 = micm::ChemicalReactionBuilder()
+  Process r4 = ChemicalReactionBuilder()
                          .SetReactants({ baz, qux })
-                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quz, 2.5) })
+                         .SetProducts({ Yield(bar, 1), Yield(quz, 2.5) })
                          .SetRateConstant(arrhenius_rate_constant)
                          .SetPhase(gas_phase)
                          .Build();
 
-  auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
+  auto used_species = RatesPolicy::SpeciesUsed(std::vector<Process>{ r1, r2, r3, r4 });
 
   EXPECT_EQ(used_species.size(), 6);
   EXPECT_TRUE(used_species.contains("foo"));
@@ -91,7 +92,7 @@ void testProcessSet()
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
 
-  RatesPolicy set = RatesPolicy(std::vector<micm::Process>{ r1, r2, r3, r4 }, state.variable_map_);
+  RatesPolicy set = RatesPolicy(std::vector<Process>{ r1, r2, r3, r4 }, state.variable_map_);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_.NumColumns(), 6);
@@ -200,36 +201,39 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  std::vector<micm::Species> species{};
+  std::vector<PhaseSpecies> phase_species{};
   std::vector<std::string> species_names{};
+  phase_species.reserve(n_species);
+  species_names.reserve(n_species);
   for (std::size_t i = 0; i < n_species; ++i)
   {
-    species.push_back(micm::Species{ std::to_string(i) });
-    species_names.push_back(std::to_string(i));
+    phase_species.emplace_back(PhaseSpecies(Species( std::to_string(i) )));
+    species_names.emplace_back(std::to_string(i));
   }
-  micm::Phase gas_phase{ species };
-  micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
-  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
+  Phase gas_phase{ "gas", phase_species };
+
+  ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+  State<DenseMatrixPolicy, SparseMatrixPolicy> state{ StateParameters{
                                                                 .number_of_rate_constants_ = n_reactions,
                                                                 .variable_names_{ species_names },
                                                             },
                                                             n_cells };
-  std::vector<micm::Process> processes{};
+  std::vector<Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {
     auto n_react = get_n_react();
-    std::vector<micm::Species> reactants{};
+    std::vector<Species> reactants{};
     for (std::size_t i_react = 0; i_react < n_react; ++i_react)
     {
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<micm::Yield> products{};
+    std::vector<Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(micm::Yield(std::to_string(get_species_id()), 1.2));
+      products.push_back(Yield(std::to_string(get_species_id()), 1.2));
     }
-    auto proc = micm::ChemicalReactionBuilder()
+    auto proc = ChemicalReactionBuilder()
                     .SetReactants(reactants)
                     .SetProducts(products)
                     .SetRateConstant(arrhenius_rate_constant)
