@@ -44,7 +44,7 @@ void test_analytical_surface_rxn(
   micm::Species baz("baz");
 
   // Phase
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ foo, bar, baz } };
 
   // System
   micm::System chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });

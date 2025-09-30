@@ -53,7 +53,7 @@ int main()
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ std::vector<Species>{ a, b, c } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
