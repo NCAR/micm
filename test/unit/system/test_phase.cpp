@@ -37,10 +37,8 @@ TEST(PhaseSpecies, SetDiffusionCoefficient)
 
 TEST(Phase, Constructor)
 {
-  Phase phase("test_phase",
-        std::vector<PhaseSpecies>({
-        PhaseSpecies(Species("species1")),
-        PhaseSpecies(Species("species2"))}));
+  Phase phase(
+      "test_phase", std::vector<PhaseSpecies>({ PhaseSpecies(Species("species1")), PhaseSpecies(Species("species2")) }));
   EXPECT_EQ(phase.name_, "test_phase");
   EXPECT_EQ(phase.phase_species_.size(), 2);
   EXPECT_EQ(phase.StateSize(), 2);

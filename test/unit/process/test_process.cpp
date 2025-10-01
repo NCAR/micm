@@ -26,7 +26,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Phase gas_phase{ "gas", { gas_foo, gas_bar } };
 
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
-  SurfaceRateConstant rc2({ .label_ = "foo_surf", .phase_species_ = gas_foo});
+  SurfaceRateConstant rc2({ .label_ = "foo_surf", .phase_species_ = gas_foo });
   UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
   Process r1 = ChemicalReactionBuilder().SetReactants({ foo, bar }).SetRateConstant(rc1).SetPhase(gas_phase).Build();
@@ -275,11 +275,11 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
   PhaseSpecies gas_e(e);
   Phase gas_phase{ "gas", { gas_c, gas_e } };
 
-  EXPECT_ANY_THROW(
-      Process r = ChemicalReactionBuilder()
-                      .SetReactants({ c, c })
-                      .SetProducts({ Yield(e, 1) })
-                      .SetRateConstant(SurfaceRateConstant({ .label_ = "c", .phase_species_ = gas_c, .reaction_probability_ = 0.90 }))
-                      .SetPhase(gas_phase)
-                      .Build(););
+  EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
+                                   .SetReactants({ c, c })
+                                   .SetProducts({ Yield(e, 1) })
+                                   .SetRateConstant(SurfaceRateConstant(
+                                       { .label_ = "c", .phase_species_ = gas_c, .reaction_probability_ = 0.90 }))
+                                   .SetPhase(gas_phase)
+                                   .Build(););
 }

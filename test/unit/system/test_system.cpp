@@ -1,5 +1,5 @@
-#include <micm/system/species.hpp>
 #include <micm/system/phase.hpp>
+#include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 
 #include <gtest/gtest.h>
@@ -25,10 +25,11 @@ TEST(System, ConstructorWithAllParameters)
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar }));
   Phase organic_phase("organic", std::vector<PhaseSpecies>({ organic_foo, organic_bar }));
   Phase aqueous_phase("aqueous", std::vector<PhaseSpecies>({ aqueous_baz, aqueous_quiz }));
-  std::unordered_map<std::string, Phase> phases = { { "organic", organic_phase }, { "aqueous", aqueous_phase }, };
-  System system = { SystemParameters{
-     .gas_phase_ = gas_phase,
-     .phases_ = phases } };
+  std::unordered_map<std::string, Phase> phases = {
+    { "organic", organic_phase },
+    { "aqueous", aqueous_phase },
+  };
+  System system = { SystemParameters{ .gas_phase_ = gas_phase, .phases_ = phases } };
 
   EXPECT_EQ(system.gas_phase_.phase_species_.size(), 2);
   EXPECT_EQ(system.phases_.size(), 2);
@@ -36,8 +37,7 @@ TEST(System, ConstructorWithAllParameters)
   EXPECT_EQ(system.phases_["aqueous"].phase_species_.size(), 2);
 
   auto names = system.UniqueNames();
-  std::vector<std::string> expected = {
-    "foo", "bar", "organic.foo", "organic.bar", "aqueous.baz", "aqueous.quiz" };
+  std::vector<std::string> expected = { "foo", "bar", "organic.foo", "organic.bar", "aqueous.baz", "aqueous.quiz" };
   std::multiset<std::string> name_set(names.begin(), names.end());
   std::multiset<std::string> expected_set(expected.begin(), expected.end());
 
@@ -66,10 +66,11 @@ TEST(System, ConstructorWithParameterizedSpecies)
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_param_species }));
   Phase organic_phase("organic", std::vector<PhaseSpecies>({ organic_foo, organic_bar }));
   Phase aqueous_phase("aqueous", std::vector<PhaseSpecies>({ aqueous_baz, aqueous_quiz }));
-  std::unordered_map<std::string, Phase> phases = { { "organic", organic_phase }, { "aqueous", aqueous_phase }, };
-  System system = { SystemParameters{
-     .gas_phase_ = gas_phase,
-     .phases_ = phases } };
+  std::unordered_map<std::string, Phase> phases = {
+    { "organic", organic_phase },
+    { "aqueous", aqueous_phase },
+  };
+  System system = { SystemParameters{ .gas_phase_ = gas_phase, .phases_ = phases } };
 
   EXPECT_EQ(system.gas_phase_.phase_species_.size(), 3);
   EXPECT_EQ(system.phases_.size(), 2);
@@ -78,8 +79,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
   EXPECT_EQ(system.StateSize(), 6);
 
   auto names = system.UniqueNames();
-  std::vector<std::string> expected = {
-    "foo", "bar", "organic.foo", "organic.bar", "aqueous.baz", "aqueous.quiz" };
+  std::vector<std::string> expected = { "foo", "bar", "organic.foo", "organic.bar", "aqueous.baz", "aqueous.quiz" };
   std::multiset<std::string> name_set(names.begin(), names.end());
   std::multiset<std::string> expected_set(expected.begin(), expected.end());
 

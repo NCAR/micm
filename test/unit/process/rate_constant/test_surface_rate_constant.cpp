@@ -12,7 +12,7 @@ constexpr double TOLERANCE = 1e-13;
 
 TEST(SurfaceRateConstant, CalculateDefaultProbability)
 {
-  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }});
+  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   double foo_diffusion_coefficient = 2.3e2;
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
 
@@ -27,10 +27,7 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
   state.conditions_[0].temperature_ = 273.65;    // K
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
 
-  SurfaceRateConstantParameters parameters{
-    .label_ = "foo",
-    .phase_species_ = foo_gas_species
-  };
+  SurfaceRateConstantParameters parameters{ .label_ = "foo", .phase_species_ = foo_gas_species };
   SurfaceRateConstant surface(parameters);
 
   EXPECT_EQ(surface.SizeCustomParameters(), 2);
@@ -44,7 +41,7 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
 
 TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
 {
-  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }});
+  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   double foo_diffusion_coefficient = 2.3e2;
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
 
@@ -58,31 +55,25 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]
   state.conditions_[0].temperature_ = 273.65;    // K
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
-  SurfaceRateConstantParameters parameters{
-    .label_ = "foo",
-    .phase_species_ = foo_gas_species,
-    .reaction_probability_ = 0.74
-  };
+  SurfaceRateConstantParameters parameters{ .label_ = "foo",
+                                            .phase_species_ = foo_gas_species,
+                                            .reaction_probability_ = 0.74 };
   SurfaceRateConstant surface(parameters);
 
   EXPECT_EQ(surface.SizeCustomParameters(), 2);
   EXPECT_EQ(surface.CustomParameters()[0], "foo.effective radius [m]");
   EXPECT_EQ(surface.CustomParameters()[1], "foo.particle number concentration [# m-3]");
   auto k = surface.Calculate(state.conditions_[0], params);
-  double expected =
-      4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
-      (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));
+  double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
+                    (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
 TEST(SurfaceRateConstant, DiffusionCoefficientIsMissing)
 {
-  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }});
+  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   PhaseSpecies foo_gas_species(foo);
-  SurfaceRateConstantParameters parameters{
-    .label_ = "foo",
-    .phase_species_ = foo_gas_species
-  };
+  SurfaceRateConstantParameters parameters{ .label_ = "foo", .phase_species_ = foo_gas_species };
 
   try
   {
@@ -102,10 +93,7 @@ TEST(SurfaceRateConstant, MolecularWeightIsMissing)
   Species foo("foo");
   double foo_diffusion_coefficient = 2.3e2;
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
-  SurfaceRateConstantParameters parameters{
-    .label_ = "foo",
-    .phase_species_ = foo_gas_species
-  };
+  SurfaceRateConstantParameters parameters{ .label_ = "foo", .phase_species_ = foo_gas_species };
 
   try
   {
