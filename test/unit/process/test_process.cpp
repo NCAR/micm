@@ -16,14 +16,17 @@ using namespace micm;
 template<class DenseMatrixPolicy>
 void testProcessUpdateState(const std::size_t number_of_grid_cells)
 {
-  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+  Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   Species bar("bar");
   bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
 
-  Phase gas_phase{ "gas", std::vector<micm::Species>{ foo, bar } };
+  double foo_diff_coeff = 2.3e2;
+  PhaseSpecies gas_foo(foo, foo_diff_coeff);
+  PhaseSpecies gas_bar(bar);
+  Phase gas_phase{ "gas", { gas_foo, gas_bar } };
 
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
-  SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
+  SurfaceRateConstant rc2({ .label_ = "foo_surf", .phase_species_ = gas_foo});
   UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
   Process r1 = ChemicalReactionBuilder().SetReactants({ foo, bar }).SetRateConstant(rc1).SetPhase(gas_phase).Build();
@@ -44,7 +47,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   }
   State<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
-                                      .variable_names_ = { "foo", "bar'" },
+                                      .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
                                   },
                                   number_of_grid_cells };
@@ -118,8 +121,8 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
   auto Hplus = Species{ "H+" };
   auto CO32minus = Species{ "CO32-" };
 
-  Phase gas_phase{ "gas", std::vector<Species>{ O3, NO, NO2, O2 } };
-  Phase aqueous_phase{ "aqueous", std::vector<Species>{ CO2, H2O, Hplus, CO32minus } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus } };
 
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
@@ -184,7 +187,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
   Species bar("bar");
   bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
 
-  Phase gas_phase{ "gas", std::vector<micm::Species>{ foo, bar } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar } };
   ArrheniusRateConstant rc1({ .A_ = 12.2, .C_ = 300.0 });
 
   Process reaction = ChemicalReactionBuilder().SetReactants({ foo, bar }).SetRateConstant(rc1).SetPhase(gas_phase).Build();
@@ -224,8 +227,8 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
   auto Hplus = Species{ "H+" };
   auto CO32minus = Species{ "CO32-" };
 
-  Phase gas_phase{ "gas", std::vector<Species>{ O3, NO, NO2, O2 } };
-  Phase aqueous_phase{ "aqueous", std::vector<Species>{ CO2, H2O, Hplus, CO32minus } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus } };
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
@@ -264,15 +267,19 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
 
 TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 {
-  Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+  Species c("c", { { "molecular weight [kg mol-1]", 0.025 } });
   Species e("e");
-  Phase gas_phase{ "gas", std::vector<micm::Species>{ c, e } };
+
+  double c_diff_coeff = 2.3e2;
+  PhaseSpecies gas_c(c, c_diff_coeff);
+  PhaseSpecies gas_e(e);
+  Phase gas_phase{ "gas", { gas_c, gas_e } };
 
   EXPECT_ANY_THROW(
       Process r = ChemicalReactionBuilder()
                       .SetReactants({ c, c })
                       .SetProducts({ Yield(e, 1) })
-                      .SetRateConstant(SurfaceRateConstant({ .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+                      .SetRateConstant(SurfaceRateConstant({ .label_ = "c", .phase_species_ = gas_c, .reaction_probability_ = 0.90 }))
                       .SetPhase(gas_phase)
                       .Build(););
 }

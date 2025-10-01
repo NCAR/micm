@@ -17,14 +17,27 @@ int main(const int argc, const char* argv[])
   auto b = Species("B");
   auto c = Species(
       "C",
-      std::map<std::string, double>{ { "molecular weight [kg mol-1]", 0.025 },
-                                     { "diffusion coefficient [m2 s-1]", 2.3e2 } });
+      std::map<std::string, double>{ { "molecular weight [kg mol-1]", 0.025 }});
   auto d = Species("D");
   auto e = Species("E");
   auto f = Species("F");
   auto g = Species("G");
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c, d, e, f, g } };
 
-  Phase gas_phase{ std::vector<Species>{ a, b, c, d, e, f, g } };
+  auto& phase_species_list = gas_phase.phase_species_;
+  auto it = std::find_if(phase_species_list.begin(), phase_species_list.end(),
+    [&c](const PhaseSpecies& ps) {
+      return ps.species_.name_ == c.name_; });
+
+  if (it == phase_species_list.end())
+  {
+    std::cout << "Species not found\n";
+    return 1; // Failure
+  }
+
+  double c_diffusion_coefficient = 2.3e2;
+  size_t surface_c_index = std::distance(phase_species_list.begin(), it);
+  phase_species_list[surface_c_index].SetDiffusionCoefficient(c_diffusion_coefficient);
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
@@ -58,7 +71,7 @@ int main(const int argc, const char* argv[])
   Process r4 = ChemicalReactionBuilder()
                    .SetReactants({ c })
                    .SetProducts({ Yield(e, 1) })
-                   .SetRateConstant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
+                   .SetRateConstant(SurfaceRateConstant({ .label_ = "C", .phase_species_ = phase_species_list[surface_c_index], .reaction_probability_ = 0.90 }))
                    .SetPhase(gas_phase)
                    .Build();
 
