@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <optional>
 
 namespace micm
 {
