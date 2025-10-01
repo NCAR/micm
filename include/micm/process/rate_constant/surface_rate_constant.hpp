@@ -32,7 +32,7 @@ namespace micm
     double diffusion_coefficient_;   // [m2 s-1]
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
 
-    /// @brief Constructs a SurfaceRateConstant by initializing the diffusion coefficient 
+    /// @brief Constructs a SurfaceRateConstant by initializing the diffusion coefficient
     ///        and mean free speed factor from the provided parameters
     /// @throws std::system_error if required properties (diffusion coefficient or molecular weight) are missing
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
@@ -71,7 +71,8 @@ namespace micm
     }
     else
     {
-      throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), 
+      throw std::system_error(
+          make_error_code(MicmSpeciesErrc::PropertyNotFound),
           "Diffusion coefficient for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
     }
     try
@@ -83,8 +84,9 @@ namespace micm
     {
       if (e.code() == make_error_code(MicmSpeciesErrc::PropertyNotFound))
       {
-        throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), 
-          "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound),
+            "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
       }
       else
       {

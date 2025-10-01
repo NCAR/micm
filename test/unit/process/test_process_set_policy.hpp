@@ -47,39 +47,37 @@ void testProcessSet()
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz, quz, quuz, corge } };
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
-      StateParameters{ .number_of_rate_constants_ = 3,
-                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } },
-      2);
+      StateParameters{ .number_of_rate_constants_ = 3, .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 2);
 
   ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
 
   Process r1 = ChemicalReactionBuilder()
-                         .SetReactants({ foo, baz })
-                         .SetProducts({ Yield(bar, 1), Yield(quuz, 2.4) })
-                         .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(gas_phase)
-                         .Build();
+                   .SetReactants({ foo, baz })
+                   .SetProducts({ Yield(bar, 1), Yield(quuz, 2.4) })
+                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetPhase(gas_phase)
+                   .Build();
 
   Process r2 = ChemicalReactionBuilder()
-                         .SetReactants({ bar, qux })
-                         .SetProducts({ Yield(foo, 1), Yield(quz, 1.4) })
-                         .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(gas_phase)
-                         .Build();
+                   .SetReactants({ bar, qux })
+                   .SetProducts({ Yield(foo, 1), Yield(quz, 1.4) })
+                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetPhase(gas_phase)
+                   .Build();
 
   Process r3 = ChemicalReactionBuilder()
-                         .SetReactants({ quz })
-                         .SetProducts({})
-                         .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(gas_phase)
-                         .Build();
+                   .SetReactants({ quz })
+                   .SetProducts({})
+                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetPhase(gas_phase)
+                   .Build();
 
   Process r4 = ChemicalReactionBuilder()
-                         .SetReactants({ baz, qux })
-                         .SetProducts({ Yield(bar, 1), Yield(quz, 2.5) })
-                         .SetRateConstant(arrhenius_rate_constant)
-                         .SetPhase(gas_phase)
-                         .Build();
+                   .SetReactants({ baz, qux })
+                   .SetProducts({ Yield(bar, 1), Yield(quz, 2.5) })
+                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetPhase(gas_phase)
+                   .Build();
 
   auto used_species = RatesPolicy::SpeciesUsed(std::vector<Process>{ r1, r2, r3, r4 });
 
@@ -207,17 +205,17 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   species_names.reserve(n_species);
   for (std::size_t i = 0; i < n_species; ++i)
   {
-    phase_species.emplace_back(PhaseSpecies(Species( std::to_string(i) )));
+    phase_species.emplace_back(PhaseSpecies(Species(std::to_string(i))));
     species_names.emplace_back(std::to_string(i));
   }
   Phase gas_phase{ "gas", phase_species };
 
   ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
   State<DenseMatrixPolicy, SparseMatrixPolicy> state{ StateParameters{
-                                                                .number_of_rate_constants_ = n_reactions,
-                                                                .variable_names_{ species_names },
-                                                            },
-                                                            n_cells };
+                                                          .number_of_rate_constants_ = n_reactions,
+                                                          .variable_names_{ species_names },
+                                                      },
+                                                      n_cells };
   std::vector<Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {

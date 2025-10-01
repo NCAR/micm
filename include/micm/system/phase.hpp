@@ -5,27 +5,30 @@
 #include <micm/system/species.hpp>
 
 #include <algorithm>
-#include <vector>
 #include <optional>
+#include <vector>
 
 namespace micm
 {
 
-  /// @brief Represents a chemical species within a specific phase, 
+  /// @brief Represents a chemical species within a specific phase,
   ///        storing the species information and its optional diffusion coefficient
   class PhaseSpecies
   {
-  public:
+   public:
     Species species_;
     std::optional<double> diffusion_coefficient_;
 
     PhaseSpecies(const Species& species)
-      : species_(species)
-    {}
+        : species_(species)
+    {
+    }
 
     PhaseSpecies(const Species& species, double diffusion_coefficient)
-      : species_(species), diffusion_coefficient_(diffusion_coefficient) 
-    {}
+        : species_(species),
+          diffusion_coefficient_(diffusion_coefficient)
+    {
+    }
 
     void SetDiffusionCoefficient(double diffusion_coefficient)
     {
@@ -60,7 +63,10 @@ namespace micm
     /// @brief Returns the number of non-parameterized species
     std::size_t StateSize() const
     {
-      return std::count_if(phase_species_.begin(), phase_species_.end(), [](const PhaseSpecies& ps) { return !ps.species_.IsParameterized(); });
+      return std::count_if(
+          phase_species_.begin(),
+          phase_species_.end(),
+          [](const PhaseSpecies& ps) { return !ps.species_.IsParameterized(); });
     }
 
     /// @brief Returns a set of unique names for each non-parameterized species
