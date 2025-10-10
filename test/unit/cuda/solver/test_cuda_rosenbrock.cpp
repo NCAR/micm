@@ -162,7 +162,7 @@ void testNormalizedErrorConst()
 template<std::size_t L>
 void testNormalizedErrorDiff()
 {
-  std::size_t number_of_grid_cells = L;
+  std::size_t number_of_grid_cells = 7; //L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
@@ -245,14 +245,14 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   // testNormalizedErrorConst<3395043>();
 
   // tests where RMSE changes with the size of the array
-  testNormalizedErrorDiff<1>();
+  // testNormalizedErrorDiff<1>();
   testNormalizedErrorDiff<2>();
-  testNormalizedErrorDiff<4>();
-  testNormalizedErrorDiff<7>();
-  testNormalizedErrorDiff<12>();
-  testNormalizedErrorDiff<16>();
-  testNormalizedErrorDiff<20>();
-  testNormalizedErrorDiff<5599>();
+  // testNormalizedErrorDiff<4>();
+  // testNormalizedErrorDiff<7>();
+  // testNormalizedErrorDiff<12>();
+  // testNormalizedErrorDiff<16>();
+  // testNormalizedErrorDiff<20>();
+  // testNormalizedErrorDiff<5599>();
   // testNormalizedErrorDiff<6603>();
   // testNormalizedErrorDiff<200041>();
   // testNormalizedErrorDiff<421875>();

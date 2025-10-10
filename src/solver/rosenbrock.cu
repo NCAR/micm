@@ -114,23 +114,12 @@ namespace micm
     // Modified version from NVIDIA's reduction example:
     // https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
     __global__ void NormalizedErrorKernel(
-        const CudaMatrixParam y_old_param,
-        const CudaMatrixParam y_new_param,
-        const CudaMatrixParam absolute_tolerance_param,
-        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct,
         const std::size_t number_of_elements,
         bool is_first_call)
     {
-      const double* const d_y_old = y_old_param.d_data_;
-      const double* const d_y_new = y_new_param.d_data_;
       double* const d_errors_input = devstruct.errors_input_;
       double* const d_errors_output = devstruct.errors_output_;
-      const double* const atol = absolute_tolerance_param.d_data_;
-      const double rtol = relative_tolerance;
-      const std::size_t cuda_matrix_vector_length = y_old_param.vector_length_;
-      // const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
-      const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
 
       // Declares a dynamically-sized shared memory array.
       // The size of this array is determined at runtime when the kernel is launched.
@@ -145,18 +134,13 @@ namespace micm
 
       if (is_first_call)
       {
-        // Local device variables
-        double d_ymax, d_scale;
-
         // Load two elements by one thread and do first add of reduction
         sdata[l_tid] = 0.0;
         for (int i = 0; i < 2; ++i)
         {
           if (g_tid < number_of_elements)
           {
-            d_ymax = max(fabs(d_y_old[g_tid]), fabs(d_y_new[g_tid]));
-            d_scale = atol[(g_tid / cuda_matrix_vector_length) % number_of_variables] + rtol * d_ymax;
-            d_errors_input[g_tid] = d_errors_input[g_tid] * d_errors_input[g_tid] / (d_scale * d_scale);
+            d_errors_input[g_tid] = d_errors_input[g_tid] * d_errors_input[g_tid];
             sdata[l_tid] += d_errors_input[g_tid];
           }
           g_tid += BLOCK_SIZE;
@@ -228,7 +212,7 @@ namespace micm
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
         const CudaMatrixParam absolute_tolerance_param,
-        const double relative_tolerance,
+        const double rtol,
         CudaRosenbrockSolverParam devstruct)
     {
       // Local device variables
@@ -237,17 +221,42 @@ namespace micm
       const double* const d_y_new = y_new_param.d_data_;
       double* const d_errors = devstruct.errors_input_;
       const double* const atol = absolute_tolerance_param.d_data_;
-      const double rtol = relative_tolerance;
-      const size_t num_elements = devstruct.errors_size_;
-      const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
+      const std::size_t number_of_elements = devstruct.errors_size_;
+      const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
+      const std::size_t cuda_matrix_vector_length = y_old_param.vector_length_;
+      const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
+      const std::size_t full_group = std::floor(number_of_grid_cells / cuda_matrix_vector_length) * cuda_matrix_vector_length * number_of_variables;
 
       // Calculate global thread ID
-      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-      if (tid < num_elements)
+      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+
+      // Calculate the index for absolute tolerance array
+      const std::size_t atol_idx = (tid / cuda_matrix_vector_length) % number_of_variables;
+
+      // compute the elements over the groups which fit exactly into the vector length parameter
+      if (tid < full_group)
       {
         d_ymax = max(fabs(d_y_old[tid]), fabs(d_y_new[tid]));
-        d_scale = atol[tid / number_of_grid_cells] + rtol * d_ymax;
+        d_scale = atol[atol_idx] + rtol * d_ymax;
         d_errors[tid] = d_errors[tid] / d_scale;
+      }
+
+      // compute the elements over the remaining group that may be partially filled
+      const std::size_t partial_group = number_of_grid_cells % cuda_matrix_vector_length;
+      if (partial_group > 0 && tid >= full_group && tid < number_of_elements)
+      {
+        const std::size_t row_idx = tid % cuda_matrix_vector_length;
+        const std::size_t local_tid = full_group + atol_idx * cuda_matrix_vector_length + row_idx;
+        if (row_idx < partial_group)
+        { 
+          d_ymax = max(fabs(d_y_old[local_tid]), fabs(d_y_new[local_tid]));
+          d_scale = atol[atol_idx] + rtol * d_ymax;
+          d_errors[local_tid] = d_errors[local_tid] / d_scale;
+        }
+        else
+        {
+          d_errors[local_tid] = 0.0;
+        }
       }
     }
 
@@ -276,6 +285,9 @@ namespace micm
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
+      const std::size_t number_of_elements = errors_param.number_of_elements_;
+      const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
+      const std::size_t number_of_species = absolute_tolerance_param.number_of_elements_;
 
       if (devstruct.errors_size_ != errors_param.number_of_elements_)
       {
@@ -292,27 +304,24 @@ namespace micm
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
 
-      const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
-      const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
-      const std::size_t number_of_elements = number_of_grid_cells * number_of_variables; // actual number of valid elements in the error vector (i.e., without padding)
+      // Launch the ScaledErrorKernel to compute the scaled errors
+      size_t number_of_blocks = (number_of_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      ScaledErrorKernel<<<
+          number_of_blocks,
+          BLOCK_SIZE,
+          0,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct);
 
       if (number_of_elements > 1000000)
       {
-        // call cublas APIs
-        size_t number_of_blocks = (number_of_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        ScaledErrorKernel<<<
-            number_of_blocks,
-            BLOCK_SIZE,
-            0,
-            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
             cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, devstruct.errors_input_, 1, &normalized_error),
             "cublasDnrm2");
         cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
-        normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
+        normalized_error = normalized_error * std::sqrt(1.0 / (number_of_grid_cells * number_of_species));
       }
       else
       {
@@ -328,10 +337,6 @@ namespace micm
             BLOCK_SIZE,
             BLOCK_SIZE * sizeof(double),
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param,
-            y_new_param,
-            absolute_tolerance_param,
-            relative_tolerance,
             devstruct,
             number_of_elements,
             is_first_call);
@@ -348,10 +353,6 @@ namespace micm
                 BLOCK_SIZE,
                 BLOCK_SIZE * sizeof(double),
                 micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-                y_old_param,
-                y_new_param,
-                absolute_tolerance_param,
-                relative_tolerance,
                 devstruct,
                 number_of_blocks,
                 is_first_call);
@@ -362,10 +363,6 @@ namespace micm
               BLOCK_SIZE,
               BLOCK_SIZE * sizeof(double),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-              y_old_param,
-              y_new_param,
-              absolute_tolerance_param,
-              relative_tolerance,
               devstruct,
               number_of_blocks,
               is_first_call);
@@ -381,7 +378,7 @@ namespace micm
                 micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
             "cudaMemcpy");
         cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
-        normalized_error = std::sqrt(normalized_error / number_of_elements);
+        normalized_error = std::sqrt(normalized_error / (number_of_grid_cells * number_of_species));
       }  // end of if-else for CUDA/CUBLAS implementation
       return std::max(normalized_error, 1.0e-10);
     }  // end of NormalizedErrorDriver function
