@@ -119,7 +119,7 @@ namespace micm
         const CudaMatrixParam absolute_tolerance_param,
         const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct,
-        const size_t n,
+        const std::size_t number_of_elements,
         bool is_first_call)
     {
       const double* const d_y_old = y_old_param.d_data_;
@@ -128,7 +128,9 @@ namespace micm
       double* const d_errors_output = devstruct.errors_output_;
       const double* const atol = absolute_tolerance_param.d_data_;
       const double rtol = relative_tolerance;
-      const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
+      const std::size_t cuda_matrix_vector_length = y_old_param.vector_length_;
+      // const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
+      const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
 
       // Declares a dynamically-sized shared memory array.
       // The size of this array is determined at runtime when the kernel is launched.
@@ -150,10 +152,10 @@ namespace micm
         sdata[l_tid] = 0.0;
         for (int i = 0; i < 2; ++i)
         {
-          if (g_tid < n)
+          if (g_tid < number_of_elements)
           {
             d_ymax = max(fabs(d_y_old[g_tid]), fabs(d_y_new[g_tid]));
-            d_scale = atol[g_tid / number_of_grid_cells] + rtol * d_ymax;
+            d_scale = atol[(g_tid / cuda_matrix_vector_length) % number_of_variables] + rtol * d_ymax;
             d_errors_input[g_tid] = d_errors_input[g_tid] * d_errors_input[g_tid] / (d_scale * d_scale);
             sdata[l_tid] += d_errors_input[g_tid];
           }
@@ -166,12 +168,12 @@ namespace micm
         // Load two elements by one thread and do first add of reduction
         // Access the d_errors array directly if it is not the first call
         sdata[l_tid] = 0.0;
-        if (g_tid < n)
+        if (g_tid < number_of_elements)
         {
           sdata[l_tid] += d_errors_input[g_tid];
         }
         g_tid += BLOCK_SIZE;
-        if (g_tid < n)
+        if (g_tid < number_of_elements)
         {
           sdata[l_tid] += d_errors_input[g_tid];
         }
@@ -274,11 +276,10 @@ namespace micm
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
-      const size_t number_of_elements = devstruct.errors_size_;
 
-      if (number_of_elements != errors_param.number_of_elements_)
+      if (devstruct.errors_size_ != errors_param.number_of_elements_)
       {
-        std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
+        std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(devstruct.errors_size_) +
                           " but got: " + std::to_string(errors_param.number_of_elements_);
         INTERNAL_ERROR(msg.c_str());
       }
@@ -286,10 +287,14 @@ namespace micm
           cudaMemcpyAsync(
               devstruct.errors_input_,
               errors_param.d_data_,
-              sizeof(double) * number_of_elements,
+              sizeof(double) * devstruct.errors_size_,
               cudaMemcpyDeviceToDevice,
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
+
+      const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
+      const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
+      const std::size_t number_of_elements = number_of_grid_cells * number_of_variables; // actual number of valid elements in the error vector (i.e., without padding)
 
       if (number_of_elements > 1000000)
       {

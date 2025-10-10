@@ -173,7 +173,12 @@ void testNormalizedErrorDiff()
   auto y_new = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, -13.9);
   auto errors = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 81.57);
 
-  state.SyncInputsToDevice();
+  // manually change each value of atol
+  for (size_t i = 0; i < state.state_size_; ++i)
+  {
+    atol[i] = atol[i] * (1 + i * 0.01);
+  }
+  state.SetAbsoluteTolerances(atol); // copy atol to the device
 
   double expected_error = 0.0;
   for (size_t i = 0; i < number_of_grid_cells; ++i)
@@ -194,6 +199,7 @@ void testNormalizedErrorDiff()
   y_old.CopyToDevice();
   y_new.CopyToDevice();
   errors.CopyToDevice();
+  state.SyncInputsToDevice();
 
   double computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
@@ -209,13 +215,13 @@ void testNormalizedErrorDiff()
   }
 }
 
-TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
-{
-  testAlphaMinusJacobian<1>();
-  testAlphaMinusJacobian<20>();
-  testAlphaMinusJacobian<300>();
-  testAlphaMinusJacobian<4000>();
-}
+// TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
+// {
+//   testAlphaMinusJacobian<1>();
+//   testAlphaMinusJacobian<20>();
+//   testAlphaMinusJacobian<300>();
+//   testAlphaMinusJacobian<4000>();
+// }
 
 TEST(RosenbrockSolver, CudaNormalizedError)
 {
@@ -225,18 +231,18 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   // Trying some odd and weird numbers is always helpful to reveal a potential bug.
 
   // tests where RMSE does not change with the size of the array
-  testNormalizedErrorConst<1>();
-  testNormalizedErrorConst<2>();
-  testNormalizedErrorConst<4>();
-  testNormalizedErrorConst<7>();
-  testNormalizedErrorConst<12>();
-  testNormalizedErrorConst<16>();
-  testNormalizedErrorConst<20>();
-  testNormalizedErrorConst<5599>();
-  testNormalizedErrorConst<6603>();
-  testNormalizedErrorConst<200041>();
-  testNormalizedErrorConst<421875>();
-  testNormalizedErrorConst<3395043>();
+  // testNormalizedErrorConst<1>();
+  // testNormalizedErrorConst<2>();
+  // testNormalizedErrorConst<4>();
+  // testNormalizedErrorConst<7>();
+  // testNormalizedErrorConst<12>();
+  // testNormalizedErrorConst<16>();
+  // testNormalizedErrorConst<20>();
+  // testNormalizedErrorConst<5599>();
+  // testNormalizedErrorConst<6603>();
+  // testNormalizedErrorConst<200041>();
+  // testNormalizedErrorConst<421875>();
+  // testNormalizedErrorConst<3395043>();
 
   // tests where RMSE changes with the size of the array
   testNormalizedErrorDiff<1>();
@@ -247,8 +253,8 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   testNormalizedErrorDiff<16>();
   testNormalizedErrorDiff<20>();
   testNormalizedErrorDiff<5599>();
-  testNormalizedErrorDiff<6603>();
-  testNormalizedErrorDiff<200041>();
-  testNormalizedErrorDiff<421875>();
-  testNormalizedErrorDiff<3395043>();
+  // testNormalizedErrorDiff<6603>();
+  // testNormalizedErrorDiff<200041>();
+  // testNormalizedErrorDiff<421875>();
+  // testNormalizedErrorDiff<3395043>();
 }

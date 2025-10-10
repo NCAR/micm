@@ -77,6 +77,8 @@ namespace micm
       CudaRosenbrockSolverParam hoststruct;
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
       // the absolute tolerance size is the same as the number of solved variables in one grid cell
+      // std::cout << "number_of_species: " << number_of_species << std::endl;
+      // std::cout << "jacobian.NumberOfBlocks(): " << jacobian.NumberOfBlocks() << std::endl;
       hoststruct.errors_size_ = jacobian.GroupVectorSize() * number_of_species;
       auto diagonal_indices = jacobian.DiagonalIndices(0);
       hoststruct.jacobian_diagonal_elements_ = diagonal_indices.data();
