@@ -12,7 +12,6 @@
 // https://doi.org/10.1016/S1352-2310(97)83212-8
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>

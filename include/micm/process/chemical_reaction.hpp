@@ -3,7 +3,6 @@
 #pragma once
 
 #include <micm/process/process_error.hpp>
-#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
@@ -117,8 +116,6 @@ namespace micm
       const std::vector<ChemicalReaction>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state)
   {
-    MICM_PROFILE_FUNCTION();
-
     for (std::size_t i{}; i < state.custom_rate_parameters_.NumRows(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
@@ -148,8 +145,6 @@ namespace micm
       const std::vector<ChemicalReaction>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state)
   {
-    MICM_PROFILE_FUNCTION();
-
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();

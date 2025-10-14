@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
 #include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
@@ -11,6 +10,7 @@
 #include <functional>
 #include <system_error>
 #include <vector>
+#include <iostream>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
   #define MICM_DEFAULT_VECTOR_SIZE 4
@@ -287,8 +287,6 @@ namespace micm
     /// @param x The input VectorMatrix
     void Axpy(const double &alpha, const VectorMatrix &x)
     {
-      MICM_PROFILE_FUNCTION();
-
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
@@ -310,8 +308,6 @@ namespace micm
     /// @param x The scalar constant to compare against
     void Max(const T &x)
     {
-      MICM_PROFILE_FUNCTION();
-
       for (auto &y : data_)
         y = std::max(y, x);
     }
@@ -320,8 +316,6 @@ namespace micm
     /// @param x The scalar constant to compare against
     void Min(const T &x)
     {
-      MICM_PROFILE_FUNCTION();
-
       for (auto &y : data_)
         y = std::min(y, x);
     }
@@ -347,8 +341,6 @@ namespace micm
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
-      MICM_PROFILE_FUNCTION();
-
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
