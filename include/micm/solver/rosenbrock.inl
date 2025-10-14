@@ -9,7 +9,6 @@ namespace micm
       auto& state,
       const RosenbrockSolverParameters& parameters) const noexcept
   {
-    MICM_PROFILE_FUNCTION();
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
@@ -213,8 +212,6 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
-    MICM_PROFILE_FUNCTION();
-
     for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
@@ -231,8 +228,6 @@ namespace micm
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
-    MICM_PROFILE_FUNCTION();
-
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
@@ -249,7 +244,6 @@ namespace micm
       SolverStats& stats,
       auto& state) const
   {
-    MICM_PROFILE_FUNCTION();
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
@@ -277,8 +271,6 @@ namespace micm
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
-    MICM_PROFILE_FUNCTION();
 
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
@@ -315,8 +307,6 @@ namespace micm
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
-    MICM_PROFILE_FUNCTION();
 
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
