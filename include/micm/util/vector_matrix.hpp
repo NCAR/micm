@@ -8,9 +8,9 @@
 #include <cassert>
 #include <cmath>
 #include <functional>
+#include <iostream>
 #include <system_error>
 #include <vector>
-#include <iostream>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
   #define MICM_DEFAULT_VECTOR_SIZE 4
