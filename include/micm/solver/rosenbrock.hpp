@@ -67,7 +67,8 @@ namespace micm
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian,
-        const size_t number_of_species)
+        const size_t number_of_species,
+	const size_t number_of_constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates))
     {
@@ -140,12 +141,13 @@ namespace micm
     /// @param jacobian Jacobian matrix
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    RosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
+    RosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species, const size_t number_of_constraints)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
               jacobian,
-              number_of_species)
+              number_of_species,
+	      number_of_constraints)
     {
     }
     RosenbrockSolver(const RosenbrockSolver&) = delete;
