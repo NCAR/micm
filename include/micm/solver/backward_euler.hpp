@@ -44,7 +44,8 @@ namespace micm
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian,
-        const size_t number_of_species)
+        const size_t number_of_species,
+	const size_t number_of_constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates))
     {
