@@ -314,6 +314,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
+    std::size_t number_of_constraints = 0;
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -340,6 +341,7 @@ namespace micm
       variable_names[species_pair.second] = species_pair.first;
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
+	                                 .number_of_constraints_ = number_of_constraints,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
@@ -348,7 +350,8 @@ namespace micm
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
+        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian,
+            number_of_species, number_of_constraints),
         state_parameters,
         options,
         this->reactions_,
