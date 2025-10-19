@@ -70,6 +70,7 @@ namespace micm
     LMatrixPolicy lower_matrix_;
     UMatrixPolicy upper_matrix_;
     std::size_t state_size_;
+    std::size_t constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
@@ -100,6 +101,7 @@ namespace micm
       lower_matrix_ = other.lower_matrix_;
       upper_matrix_ = other.upper_matrix_;
       state_size_ = other.state_size_;
+      constraint_size_ = other.constraint_size_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
       temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
       relative_tolerance_ = other.relative_tolerance_;
@@ -126,6 +128,7 @@ namespace micm
         lower_matrix_ = other.lower_matrix_;
         upper_matrix_ = other.upper_matrix_;
         state_size_ = other.state_size_;
+        constraint_size_ = other.constraint_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
@@ -150,6 +153,7 @@ namespace micm
           lower_matrix_(std::move(other.lower_matrix_)),
           upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
+          constraint_size_(other.constraint_size_),
           number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
@@ -177,12 +181,14 @@ namespace micm
         lower_matrix_ = std::move(other.lower_matrix_);
         upper_matrix_ = std::move(other.upper_matrix_);
         state_size_ = other.state_size_;
+        constraint_size_ = other.constraint_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = std::move(other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = std::move(other.absolute_tolerance_);
 
         other.state_size_ = 0;
+        other.constraint_size_ = 0;
         other.number_of_grid_cells_ = 0;
       }
       return *this;

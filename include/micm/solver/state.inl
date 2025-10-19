@@ -78,6 +78,7 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(0),
+        constraint_size_(0),
         number_of_grid_cells_(0),
         temporary_variables_(nullptr),
         relative_tolerance_(1e-06),
@@ -107,6 +108,7 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
+        constraint_size_(0),
         number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
@@ -117,6 +119,13 @@ namespace micm
     index = 0;
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
+
+    for (std::size_t i = 0; i < state_size_; i++) {
+      upper_left_diagonal_elements_.push_back(1.0);
+    }
+    for (std::size_t i = 0; i < constraint_size_; i++) {
+      upper_left_diagonal_elements_.push_back(0.0);
+    }
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
