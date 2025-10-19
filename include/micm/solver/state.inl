@@ -69,7 +69,7 @@ namespace micm
         custom_rate_parameters_(),
         rate_constants_(),
         conditions_(),
-        upper_left_diagonal_elements_(),
+        upper_left_identity_diagonal_(),
         jacobian_(),
         jacobian_diagonal_elements_(),
         variable_map_(),
@@ -102,7 +102,7 @@ namespace micm
         variable_map_(),
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
-        upper_left_diagonal_elements_(),
+        upper_left_identity_diagonal_(),
         jacobian_(),
         jacobian_diagonal_elements_(),
         lower_matrix_(),
@@ -121,10 +121,10 @@ namespace micm
       custom_rate_parameter_map_[label] = index++;
 
     for (std::size_t i = 0; i < state_size_; i++) {
-      upper_left_diagonal_elements_.push_back(1.0);
+      upper_left_identity_diagonal_.push_back(1.0);
     }
     for (std::size_t i = 0; i < constraint_size_; i++) {
-      upper_left_diagonal_elements_.push_back(0.0);
+      upper_left_identity_diagonal_.push_back(0.0);
     }
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)

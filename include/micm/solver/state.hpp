@@ -59,7 +59,7 @@ namespace micm
     /// @brief Atmospheric conditions, varies in time
     std::vector<Conditions> conditions_;
     /// @brief The block matrix with an upper left identity, zeros elsewhere
-    std::vector<std::size_t> upper_left_diagonal_elements_;
+    std::vector<double> upper_left_identity_diagonal_;
     /// @brief The jacobian structure, varies for each solve
     SparseMatrixPolicy jacobian_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
@@ -92,7 +92,7 @@ namespace micm
       custom_rate_parameters_ = other.custom_rate_parameters_;
       rate_constants_ = other.rate_constants_;
       conditions_ = other.conditions_;
-      upper_left_diagonal_elements_ = other.upper_left_diagonal_elements_;
+      upper_left_identity_diagonal_ = other.upper_left_identity_diagonal_;
       jacobian_ = other.jacobian_;
       jacobian_diagonal_elements_ = other.jacobian_diagonal_elements_;
       variable_map_ = other.variable_map_;
@@ -119,7 +119,7 @@ namespace micm
         custom_rate_parameters_ = other.custom_rate_parameters_;
         rate_constants_ = other.rate_constants_;
         conditions_ = other.conditions_;
-        upper_left_diagonal_elements_ = other.upper_left_diagonal_elements_;
+        upper_left_identity_diagonal_ = other.upper_left_identity_diagonal_;
         jacobian_ = other.jacobian_;
         jacobian_diagonal_elements_ = other.jacobian_diagonal_elements_;
         variable_map_ = other.variable_map_;
@@ -144,7 +144,7 @@ namespace micm
           custom_rate_parameters_(std::move(other.custom_rate_parameters_)),
           rate_constants_(std::move(other.rate_constants_)),
           conditions_(std::move(other.conditions_)),
-          upper_left_diagonal_elements_(std::move(other.upper_left_diagonal_elements_)),
+          upper_left_identity_diagonal_(std::move(other.upper_left_identity_diagonal_)),
           jacobian_(std::move(other.jacobian_)),
           jacobian_diagonal_elements_(std::move(other.jacobian_diagonal_elements_)),
           variable_map_(std::move(other.variable_map_)),
@@ -172,7 +172,7 @@ namespace micm
         custom_rate_parameters_ = std::move(other.custom_rate_parameters_);
         rate_constants_ = std::move(other.rate_constants_);
         conditions_ = std::move(other.conditions_);
-        upper_left_diagonal_elements_ = std::move(other.upper_left_diagonal_elements_);
+        upper_left_identity_diagonal_ = std::move(other.upper_left_identity_diagonal_);
         jacobian_ = std::move(other.jacobian_);
         jacobian_diagonal_elements_ = std::move(other.jacobian_diagonal_elements_);
         variable_map_ = std::move(other.variable_map_);
