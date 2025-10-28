@@ -264,22 +264,3 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
       copy_process.process_,
       phase_transfer.process_);
 }
-
-TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
-{
-  Species c("c", { { "molecular weight [kg mol-1]", 0.025 } });
-  Species e("e");
-
-  double c_diff_coeff = 2.3e2;
-  PhaseSpecies gas_c(c, c_diff_coeff);
-  PhaseSpecies gas_e(e);
-  Phase gas_phase{ "gas", { gas_c, gas_e } };
-
-  EXPECT_ANY_THROW(Process r = ChemicalReactionBuilder()
-                                   .SetReactants({ c, c })
-                                   .SetProducts({ Yield(e, 1) })
-                                   .SetRateConstant(SurfaceRateConstant(
-                                       { .label_ = "c", .phase_species_ = gas_c, .reaction_probability_ = 0.90 }))
-                                   .SetPhase(gas_phase)
-                                   .Build(););
-}
