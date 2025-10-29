@@ -15,6 +15,10 @@ namespace micm
     std::string label_;
     /// @brief Scaling factor to apply to user-provided rate constants
     double scaling_factor_{ 1.0 };
+    /// @brief Optional function to compute the rate constant
+    /// Takes temperature, pressure, and air density as parameters
+    /// and returns the computed rate constant.
+    /// If not provided, a user-supplied constant value is used instead.
     std::function<double(double, double, double)> parameterize_{ nullptr };
   };
 
