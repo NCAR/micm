@@ -82,9 +82,8 @@ TEST(UserDefinedRateConstant, ParameterizedRateConstant)
 
   micm::State state{ state_parameters, 1 };
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
-  micm::UserDefinedRateConstant photo({ .label_ = "a name", .scaling_factor_ = 1.0, .parameterize_ = [](double T, double P, double D) {
-    return 2.0;
-  } });
+  micm::UserDefinedRateConstant photo(
+      { .label_ = "a name", .scaling_factor_ = 1.0, .parameterize_ = [](double T, double P, double D) { return 2.0; } });
   auto k = photo.Calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 1.0 * 2.0);
   EXPECT_EQ(photo.CustomParameters()[0], "a name");
@@ -104,9 +103,8 @@ TEST(UserDefinedRateConstant, ParameterizedRateConstantWithScaling)
   state.conditions_[0].air_density_ = 1e6;
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
-  micm::UserDefinedRateConstant photo({ .label_ = "a name", .scaling_factor_ = 2.0, .parameterize_ = [](double T, double P, double D) {
-    return T * P;
-  } });
+  micm::UserDefinedRateConstant photo(
+      { .label_ = "a name", .scaling_factor_ = 2.0, .parameterize_ = [](double T, double P, double D) { return T * P; } });
   auto k = photo.Calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 272.5 * 101253.3 * 2.0);
   EXPECT_EQ(photo.CustomParameters()[0], "a name");

@@ -4,8 +4,8 @@
 
 #include <micm/process/rate_constant/rate_constant.hpp>
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace micm
 {
@@ -62,14 +62,14 @@ namespace micm
   };
 
   inline UserDefinedRateConstant::UserDefinedRateConstant()
-      : parameters_()
-      , parameterize_(nullptr)
+      : parameters_(),
+        parameterize_(nullptr)
   {
   }
 
   inline UserDefinedRateConstant::UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters)
-      : parameters_(parameters)
-      , parameterize_(parameters.parameterize_)
+      : parameters_(parameters),
+        parameterize_(parameters.parameterize_)
   {
   }
 
@@ -84,7 +84,8 @@ namespace micm
   {
     if (parameterize_)
     {
-      return parameterize_(conditions.temperature_, conditions.pressure_, conditions.air_density_) * parameters_.scaling_factor_;
+      return parameterize_(conditions.temperature_, conditions.pressure_, conditions.air_density_) *
+             parameters_.scaling_factor_;
     }
     return (double)*custom_parameters * parameters_.scaling_factor_;
   }
