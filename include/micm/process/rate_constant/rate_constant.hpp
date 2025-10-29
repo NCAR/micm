@@ -96,6 +96,12 @@ namespace micm
     {
       return 0;
     }
+
+    /// @brief Returns whether a species is parameterized
+    virtual bool IsParameterized() const
+    {
+      return false;
+    }
   };
 
 }  // namespace micm
