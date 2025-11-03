@@ -30,7 +30,7 @@ jobs:
       
       - name: Copy cublas headers
         run: |
-          cp -r /opt/nvidia/hpc_sdk/*/23.7/cuda/include/* /usr/include/
+          cp -r /opt/nvidia/hpc_sdk/*/25.1/cuda/include/* /usr/include/
 
       - name: Build
         run: cmake --build build --parallel 10
