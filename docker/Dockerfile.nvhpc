@@ -29,7 +29,7 @@ ENV FC=nvfortran
 COPY . /micm/
 
 # copy headers needed for cublas to /usr/include
-RUN cp -r /opt/nvidia/hpc_sdk/*/25.1/cuda/include/* /usr/include/
+RUN cp -r /opt/nvidia/hpc_sdk/*/25.9/cuda/include/* /usr/include/
 
 # build the library and run the tests
 RUN mkdir /build \
