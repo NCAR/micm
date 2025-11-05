@@ -27,7 +27,6 @@ namespace micm
       double* __restrict__ d_ALU = ALU_param.d_data_;
       double* d_x = x_param.d_data_;
       const std::size_t number_of_grid_cells = x_param.number_of_grid_cells_;
-      const std::size_t number_of_elements = x_param.number_of_elements_;
       const std::size_t cuda_matrix_vector_length = ALU_param.vector_length_;
       const std::size_t number_of_groups =
           (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;

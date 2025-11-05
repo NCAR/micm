@@ -28,8 +28,7 @@ void testAlphaMinusJacobian()
   auto cpu_solver = cpu_builder.Build();
 
   auto gpu_state = gpu_solver.GetState(number_of_grid_cells);
-  auto gpu_jacobian = gpu_state.jacobian_;
-  auto gpu_diagonal_elements = gpu_state.jacobian_diagonal_elements_;
+  auto& gpu_jacobian = gpu_state.jacobian_;
   EXPECT_EQ(gpu_jacobian.NumberOfBlocks(), number_of_grid_cells);
   EXPECT_EQ(gpu_jacobian.NumRows(), 5);
   EXPECT_EQ(gpu_jacobian.NumColumns(), gpu_jacobian.NumRows());
@@ -60,7 +59,7 @@ void testAlphaMinusJacobian()
   std::transform(gpu_jacobian_vec.cbegin(), gpu_jacobian_vec.cend(), gpu_jacobian_vec.begin(), std::negate<>{});
 
   auto cpu_state = cpu_solver.GetState(number_of_grid_cells);
-  auto cpu_jacobian = cpu_state.jacobian_;
+  auto& cpu_jacobian = cpu_state.jacobian_;
   auto cpu_diagonal_elements = cpu_state.jacobian_diagonal_elements_;
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
@@ -75,7 +74,7 @@ void testAlphaMinusJacobian()
   }
 
   gpu_jacobian.CopyToDevice();
-  gpu_solver.solver_.AlphaMinusJacobian(gpu_jacobian, gpu_diagonal_elements, 42.042);
+  gpu_solver.solver_.template AlphaMinusJacobian<decltype(gpu_state.jacobian_)>(gpu_state, 42.042);
   gpu_jacobian.CopyToHost();
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
@@ -95,7 +94,7 @@ void testAlphaMinusJacobian()
     EXPECT_EQ(gpu_jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 
-  cpu_solver.solver_.AlphaMinusJacobian(cpu_jacobian, cpu_diagonal_elements, 42.042);
+  cpu_solver.solver_.template AlphaMinusJacobian<decltype(cpu_state.jacobian_)>(cpu_state, 42.042);
 
   // Compare the results
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)

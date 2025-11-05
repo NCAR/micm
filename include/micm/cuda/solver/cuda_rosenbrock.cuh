@@ -11,15 +11,6 @@ namespace micm
 {
   namespace cuda
   {
-    /// This is the function that will copy the constant data
-    ///   members of class "CudaRosenbrockSolverParam" to the device
-    ///   and allocate device memory for temporary variables;
-    CudaRosenbrockSolverParam CopyConstData(CudaRosenbrockSolverParam& hoststruct);
-
-    /// This is the function that will delete the constant data
-    ///   members of class "CudaRosenbrockSolverParam" on the device
-    void FreeConstData(CudaRosenbrockSolverParam& devstruct);
-
     /// @brief Compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
     /// @param jacobian_param Dimensions and device data pointers for the Jacobian
     /// @param alpha scalar variable
@@ -28,7 +19,9 @@ namespace micm
     void AlphaMinusJacobianDriver(
         CudaMatrixParam& jacobian_param,
         const double& alpha,
-        const CudaRosenbrockSolverParam& devstruct);
+        size_t jacobian_diagonal_elements_size,
+        const std::size_t* jacobian_diagonal_elements
+      );
 
     /// @brief Computes the scaled norm of the matrix errors on the GPU; assume all the data are GPU resident already
     /// @param y_old_param matrix on the device
@@ -43,6 +36,8 @@ namespace micm
         const CudaMatrixParam& errors_param,
         const CudaMatrixParam& absolute_tolerance_param,
         const double relative_tolerance,
-        CudaRosenbrockSolverParam devstruct);
+        const std::size_t errors_size_,
+        double* errors_input,
+        double* errors_output);
   }  // namespace cuda
 }  // namespace micm

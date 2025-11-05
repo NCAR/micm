@@ -207,15 +207,14 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
-      SparseMatrixPolicy& jacobian,
-      std::vector<std::size_t>& jacobian_diagonal_elements,
+      auto& state,
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
-    for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
+    for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
     {
-      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
-      for (const auto& i_elem : jacobian_diagonal_elements)
+      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
+      for (const auto& i_elem : state.jacobian_diagonal_elements_)
         jacobian_vector[i_elem] += alpha;
     }
   }
@@ -223,16 +222,15 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
-      SparseMatrixPolicy& jacobian,
-      std::vector<std::size_t>& jacobian_diagonal_elements,
+      auto& state,
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
+    for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
-      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize());
-      for (const auto& i_elem : jacobian_diagonal_elements)
+      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
+      for (const auto& i_elem : state.jacobian_diagonal_elements_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
     }
@@ -247,7 +245,7 @@ namespace micm
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
-    static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, state.jacobian_diagonal_elements_, alpha);
+    static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, alpha);
 
     if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
     {
