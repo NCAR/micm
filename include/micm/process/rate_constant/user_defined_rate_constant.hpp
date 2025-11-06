@@ -4,7 +4,6 @@
 
 #include <micm/process/rate_constant/rate_constant.hpp>
 
-#include <functional>
 #include <string>
 
 namespace micm
@@ -15,19 +14,11 @@ namespace micm
     std::string label_;
     /// @brief Scaling factor to apply to user-provided rate constants
     double scaling_factor_{ 1.0 };
-    /// @brief Optional function to compute the rate constant
-    /// Takes temperature, pressure, and air density as parameters
-    /// and returns the computed rate constant.
-    /// If not provided, a user-supplied constant value is used instead.
-    std::function<double(double, double, double)> parameterize_{ nullptr };
   };
 
   /// @brief A photolysis rate constant
   class UserDefinedRateConstant : public RateConstant
   {
-    /// @brief A function that if provided will be used to return a rate constant
-    std::function<double(double, double, double)> parameterize_{ nullptr };
-
    public:
     UserDefinedRateConstantParameters parameters_;
 
@@ -55,21 +46,19 @@ namespace micm
     /// @return A rate constant based off of the conditions in the system
     double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
-    bool IsParameterized() const override
-    {
-      return parameterize_ != nullptr;
-    }
+    /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double Calculate(const Conditions& conditions) const override;
   };
 
   inline UserDefinedRateConstant::UserDefinedRateConstant()
-      : parameters_(),
-        parameterize_(nullptr)
+      : parameters_()
   {
   }
 
   inline UserDefinedRateConstant::UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters)
-      : parameters_(parameters),
-        parameterize_(parameters.parameterize_)
+      : parameters_(parameters)
   {
   }
 
@@ -78,15 +67,15 @@ namespace micm
     return std::make_unique<UserDefinedRateConstant>(*this);
   }
 
+  inline double UserDefinedRateConstant::Calculate(const Conditions& conditions) const
+  {
+    throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant), "");
+  }
+
   inline double UserDefinedRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    if (parameterize_)
-    {
-      return parameterize_(conditions.temperature_, conditions.pressure_, conditions.air_density_) *
-             parameters_.scaling_factor_;
-    }
     return (double)*custom_parameters * parameters_.scaling_factor_;
   }
 
