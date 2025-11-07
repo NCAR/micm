@@ -68,7 +68,7 @@ namespace micm
           cudaMemcpyAsync(
               jacobian_diagonal_elements_,
               diagonal_indices.data(),
-              sizeof(size_t) * diagonal_indices.size(),
+              sizeof(std::size_t) * diagonal_indices.size(),
               cudaMemcpyHostToDevice,
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
