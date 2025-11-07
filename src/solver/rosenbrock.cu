@@ -11,7 +11,7 @@ namespace micm
 {
   namespace cuda
   {
-    /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
+    /// CUDA kernel to compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
     __global__ void
     AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, size_t jacobian_diagonal_elements_size, const size_t* jacobian_diagonal_elements)
     {
