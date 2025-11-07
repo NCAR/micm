@@ -28,9 +28,6 @@ namespace micm
     std::size_t jacobian_diagonal_elements_size_;
     std::size_t* jacobian_diagonal_elements_ = nullptr;
 
-    // CudaErrorsParam errors_param_;
-    // CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param_;
-
     ~CudaState()
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(absolute_tolerance_param_), "cudaFree");
