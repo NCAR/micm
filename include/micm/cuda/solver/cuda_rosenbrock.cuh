@@ -19,7 +19,7 @@ namespace micm
     void AlphaMinusJacobianDriver(
         CudaMatrixParam& jacobian_param,
         const double& alpha,
-        size_t jacobian_diagonal_elements_size,
+        std::size_t jacobian_diagonal_elements_size,
         const std::size_t* jacobian_diagonal_elements
       );
 
