@@ -80,7 +80,7 @@ namespace micm
       requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param = state.jacobian_.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
-      micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, state.jacobian_diagonal_elements_size_, state.jacobian_diagonal_elements_);
+      micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, state.jacobian_diagonal_elements_param_);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
@@ -103,9 +103,7 @@ namespace micm
           errors.AsDeviceParam(),
           state.absolute_tolerance_param_,
           state.relative_tolerance_,
-          state.errors_size_,
-          state.errors_input_, 
-          state.errors_output_);
+          state.errors_param_);
     }
   };  // end CudaRosenbrockSolver
 }  // namespace micm

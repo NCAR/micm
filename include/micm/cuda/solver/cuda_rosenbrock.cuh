@@ -19,8 +19,7 @@ namespace micm
     void AlphaMinusJacobianDriver(
         CudaMatrixParam& jacobian_param,
         const double& alpha,
-        std::size_t jacobian_diagonal_elements_size,
-        const std::size_t* jacobian_diagonal_elements
+        const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param
       );
 
     /// @brief Computes the scaled norm of the matrix errors on the GPU; assume all the data are GPU resident already
@@ -36,8 +35,6 @@ namespace micm
         const CudaMatrixParam& errors_param,
         const CudaMatrixParam& absolute_tolerance_param,
         const double relative_tolerance,
-        const std::size_t errors_size_,
-        double* errors_input,
-        double* errors_output);
+        CudaErrorParm& errors_calc_param);
   }  // namespace cuda
 }  // namespace micm

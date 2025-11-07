@@ -89,3 +89,16 @@ struct CudaMatrixParam
   std::size_t number_of_grid_cells_;
   std::size_t vector_length_;
 };
+
+struct CudaErrorParm
+{
+  double* errors_input_ = nullptr;
+  double* errors_output_ = nullptr;
+  std::size_t errors_size_;
+};
+
+struct CudaJacobianDiagonalElementsParam
+{
+  std::size_t* data_ = nullptr;
+  std::size_t size_;
+};

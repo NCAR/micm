@@ -19,21 +19,15 @@ namespace micm
 
     CudaMatrixParam absolute_tolerance_param_;
 
-    // for NormalizedError function
-    std::size_t errors_size_;
-    double* errors_input_ = nullptr;
-    double* errors_output_ = nullptr;
-
-    // for AlphaMinusJacobian function
-    std::size_t jacobian_diagonal_elements_size_;
-    std::size_t* jacobian_diagonal_elements_ = nullptr;
+    CudaErrorParm errors_param_;
+    CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param_;
 
     ~CudaState()
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(absolute_tolerance_param_), "cudaFree");
-      CHECK_CUDA_ERROR(micm::cuda::FreeArray(errors_input_), "cudaFree");
-      CHECK_CUDA_ERROR(micm::cuda::FreeArray(errors_output_), "cudaFree");
-      CHECK_CUDA_ERROR(micm::cuda::FreeArray(jacobian_diagonal_elements_), "cudaFree");
+      CHECK_CUDA_ERROR(micm::cuda::FreeArray(errors_param_.errors_input_), "cudaFree");
+      CHECK_CUDA_ERROR(micm::cuda::FreeArray(errors_param_.errors_output_), "cudaFree");
+      CHECK_CUDA_ERROR(micm::cuda::FreeArray(jacobian_diagonal_elements_param_.data_), "cudaFree");
     }
 
     /// @brief Constructor which takes the state dimension information as input
@@ -47,23 +41,20 @@ namespace micm
       absolute_tolerance_param_.number_of_elements_ = atol.size();
       absolute_tolerance_param_.number_of_grid_cells_ = 1;
 
-      errors_size_ = parameters.number_of_species_ * number_of_grid_cells;
+      errors_param_.errors_size_ = parameters.number_of_species_ * number_of_grid_cells;
 
       auto diagonal_indices = this->jacobian_.DiagonalIndices(0);
-      jacobian_diagonal_elements_size_ = diagonal_indices.size();
+      jacobian_diagonal_elements_param_.size_ = diagonal_indices.size();
 
-      CHECK_CUDA_ERROR(
-          micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_),
-          "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::MallocArray<double>(errors_input_, errors_size_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::MallocArray<double>(errors_output_, errors_size_), "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          micm::cuda::MallocArray<std::size_t>(jacobian_diagonal_elements_, jacobian_diagonal_elements_size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocArray<double>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocArray<double>(errors_param_.errors_output_, errors_param_.errors_size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocArray<std::size_t>(jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_), "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
 
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              jacobian_diagonal_elements_,
+              jacobian_diagonal_elements_param_.data_,
               diagonal_indices.data(),
               sizeof(std::size_t) * diagonal_indices.size(),
               cudaMemcpyHostToDevice,
@@ -77,14 +68,10 @@ namespace micm
     {
       absolute_tolerance_param_ = other.absolute_tolerance_param_;
       other.absolute_tolerance_param_.d_data_ = nullptr;
-      errors_size_ = other.errors_size_;
-      errors_input_ = other.errors_input_;
-      other.errors_input_ = nullptr;
-      errors_output_ = other.errors_output_;
-      other.errors_output_ = nullptr;
-      jacobian_diagonal_elements_size_ = other.jacobian_diagonal_elements_size_;
-      jacobian_diagonal_elements_ = other.jacobian_diagonal_elements_;
-      other.jacobian_diagonal_elements_ = nullptr;
+      errors_param_ = other.errors_param_;
+      other.errors_param_ = {};
+      jacobian_diagonal_elements_param_ = other.jacobian_diagonal_elements_param_;
+      other.jacobian_diagonal_elements_param_ = {};
     }
 
     /// @brief Move assignment operator
@@ -95,14 +82,10 @@ namespace micm
         State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
         absolute_tolerance_param_ = other.absolute_tolerance_param_;
         other.absolute_tolerance_param_.d_data_ = nullptr;
-        errors_size_ = other.errors_size_;
-        errors_input_ = other.errors_input_;
-        other.errors_input_ = nullptr;
-        errors_output_ = other.errors_output_;
-        other.errors_output_ = nullptr;
-        jacobian_diagonal_elements_size_ = other.jacobian_diagonal_elements_size_;
-        jacobian_diagonal_elements_ = other.jacobian_diagonal_elements_;
-        other.jacobian_diagonal_elements_ = nullptr;
+        errors_param_ = other.errors_param_;
+        other.errors_param_ = {};
+        jacobian_diagonal_elements_param_ = other.jacobian_diagonal_elements_param_;
+        other.jacobian_diagonal_elements_param_ = {};
       }
       return *this;
     }

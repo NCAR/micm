@@ -13,7 +13,7 @@ namespace micm
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
     __global__ void
-    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, size_t jacobian_diagonal_elements_size, const size_t* jacobian_diagonal_elements)
+    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -21,14 +21,14 @@ namespace micm
       // Local device variables
       double* d_jacobian = jacobian_param.d_data_;
       size_t quotient, index_as_remainder;
-      const size_t number_of_diagonal_elements = jacobian_diagonal_elements_size;
+      const size_t number_of_diagonal_elements = jacobian_diagonal_elements_param.size_;
       const size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
 
       if (tid < number_of_grid_cells * number_of_diagonal_elements)
       {
         quotient = tid / number_of_grid_cells;
         index_as_remainder = tid - number_of_grid_cells * quotient;  // % operator may be more expensive
-        d_jacobian[jacobian_diagonal_elements[quotient] + index_as_remainder] += alpha;
+        d_jacobian[jacobian_diagonal_elements_param.data_[quotient] + index_as_remainder] += alpha;
       }
     }
 
@@ -58,13 +58,12 @@ namespace micm
         const double relative_tolerance,
         const size_t n,
         bool is_first_call,
-        double* errors_input,
-        double* errors_output)
+        const CudaErrorParm& errors_calc_param)
     {
       const double* const d_y_old = y_old_param.d_data_;
       const double* const d_y_new = y_new_param.d_data_;
-      double* const d_errors_input = errors_input;
-      double* const d_errors_output = errors_output;
+      double* const d_errors_input = errors_calc_param.errors_input_;
+      double* const d_errors_output = errors_calc_param.errors_output_;
       const double* const atol = absolute_tolerance_param.d_data_;
       const double rtol = relative_tolerance;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
@@ -166,17 +165,16 @@ namespace micm
         const CudaMatrixParam y_new_param,
         const CudaMatrixParam absolute_tolerance_param,
         const double relative_tolerance,
-        std::size_t errors_size,
-        double* errors_input)
+        const CudaErrorParm& errors_calc_param)
     {
       // Local device variables
       double d_ymax, d_scale;
       const double* const d_y_old = y_old_param.d_data_;
       const double* const d_y_new = y_new_param.d_data_;
-      double* const d_errors = errors_input;
+      double* const d_errors = errors_calc_param.errors_input_;
       const double* const atol = absolute_tolerance_param.d_data_;
       const double rtol = relative_tolerance;
-      const size_t num_elements = errors_size;
+      const size_t num_elements = errors_calc_param.errors_size_;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
       // Calculate global thread ID
@@ -193,15 +191,14 @@ namespace micm
     void AlphaMinusJacobianDriver(
         CudaMatrixParam& jacobian_param,
         const double& alpha,
-        size_t jacobian_diagonal_elements_size,
-        const size_t* jacobian_diagonal_elements)
+        const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
     {
-      size_t number_of_blocks = (jacobian_diagonal_elements_size * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      size_t number_of_blocks = (jacobian_diagonal_elements_param.size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
           0,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, jacobian_diagonal_elements_size, jacobian_diagonal_elements);
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, jacobian_diagonal_elements_param);
     }
 
     // Host code that will launch the NormalizedError CUDA kernel
@@ -211,12 +208,10 @@ namespace micm
         const CudaMatrixParam& errors_param,
         const CudaMatrixParam& absolute_tolerance_param,
         const double relative_tolerance,
-        const std::size_t errors_size,
-        double* errors_input,
-        double* errors_output)
+        CudaErrorParm& errors_calc_param)
     {
       double normalized_error;
-      const size_t number_of_elements = errors_size;
+      const size_t number_of_elements = errors_calc_param.errors_size_;
 
       if (number_of_elements != errors_param.number_of_elements_)
       {
@@ -226,7 +221,7 @@ namespace micm
       }
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              errors_input,
+              errors_calc_param.errors_input_,
               errors_param.d_data_,
               sizeof(double) * number_of_elements,
               cudaMemcpyDeviceToDevice,
@@ -242,11 +237,11 @@ namespace micm
             BLOCK_SIZE,
             0,
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, errors_size, errors_input);
+            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, errors_calc_param);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
-            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_input, 1, &normalized_error),
+            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_calc_param.errors_input_, 1, &normalized_error),
             "cublasDnrm2");
         cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
         normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
@@ -271,12 +266,11 @@ namespace micm
             relative_tolerance,
             number_of_elements,
             is_first_call, 
-            errors_input,
-            errors_output);
+            errors_calc_param);
         is_first_call = false;
         while (number_of_blocks > 1)
         {
-          std::swap(errors_input, errors_output);
+          std::swap(errors_calc_param.errors_input_, errors_calc_param.errors_output_);
           // Update grid size
           new_number_of_blocks = std::ceil(std::ceil(number_of_blocks * 1.0 / BLOCK_SIZE) / 2.0);
           if (new_number_of_blocks <= 1)
@@ -292,8 +286,7 @@ namespace micm
                 relative_tolerance,
                 number_of_blocks,
                 is_first_call,
-                errors_input,
-                errors_output);
+                errors_calc_param);
             break;
           }
           NormalizedErrorKernel<<<
@@ -307,15 +300,14 @@ namespace micm
               relative_tolerance,
               number_of_blocks,
               is_first_call,
-              errors_input,
-              errors_output);
+              errors_calc_param);
           number_of_blocks = new_number_of_blocks;
         }
 
         CHECK_CUDA_ERROR(
             cudaMemcpyAsync(
                 &normalized_error,
-                &errors_output[0],
+                &errors_calc_param.errors_output_[0],
                 sizeof(double),
                 cudaMemcpyDeviceToHost,
                 micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
