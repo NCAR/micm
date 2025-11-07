@@ -11,7 +11,7 @@ namespace micm
 {
   namespace cuda
   {
-    /// @brief Compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
+    /// @brief Compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
     /// @param jacobian_param Dimensions and device data pointers for the Jacobian
     /// @param alpha scalar variable
     /// @param devstruct device struct including the locations of diagonal elements of the Jacobian matrix
