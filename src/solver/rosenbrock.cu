@@ -13,7 +13,7 @@ namespace micm
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
     __global__ void
-    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
+    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -58,7 +58,7 @@ namespace micm
         const double relative_tolerance,
         const size_t n,
         bool is_first_call,
-        const CudaErrorParm& errors_calc_param)
+        const CudaErrorParm errors_calc_param)
     {
       const double* const d_y_old = y_old_param.d_data_;
       const double* const d_y_new = y_new_param.d_data_;
@@ -165,7 +165,7 @@ namespace micm
         const CudaMatrixParam y_new_param,
         const CudaMatrixParam absolute_tolerance_param,
         const double relative_tolerance,
-        const CudaErrorParm& errors_calc_param)
+        const CudaErrorParm errors_calc_param)
     {
       // Local device variables
       double d_ymax, d_scale;
