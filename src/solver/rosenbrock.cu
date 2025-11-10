@@ -12,8 +12,10 @@ namespace micm
   namespace cuda
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
-    __global__ void
-    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param)
+    __global__ void AlphaMinusJacobianKernel(
+        CudaMatrixParam jacobian_param,
+        const double alpha,
+        const CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -193,12 +195,14 @@ namespace micm
         const double& alpha,
         const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
     {
-      size_t number_of_blocks = (jacobian_diagonal_elements_param.size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      size_t number_of_blocks =
+          (jacobian_diagonal_elements_param.size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
           0,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, jacobian_diagonal_elements_param);
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          jacobian_param, alpha, jacobian_diagonal_elements_param);
     }
 
     // Host code that will launch the NormalizedError CUDA kernel
@@ -241,7 +245,8 @@ namespace micm
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
-            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_calc_param.errors_input_, 1, &normalized_error),
+            cublasDnrm2(
+                micm::cuda::GetCublasHandle(), number_of_elements, errors_calc_param.errors_input_, 1, &normalized_error),
             "cublasDnrm2");
         cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
         normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
@@ -265,7 +270,7 @@ namespace micm
             absolute_tolerance_param,
             relative_tolerance,
             number_of_elements,
-            is_first_call, 
+            is_first_call,
             errors_calc_param);
         is_first_call = false;
         while (number_of_blocks > 1)

@@ -91,9 +91,7 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(
-        auto& state,
-        const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const double& alpha) const
     {
       if (state.jacobian_.GroupVectorSize() != state.jacobian_.NumberOfBlocks())
       {
