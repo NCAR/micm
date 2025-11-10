@@ -22,10 +22,6 @@ namespace micm
   {
     ///@brief Default constructor
    public:
-    /// This is an instance of struct "CudaRosenbrockSolverParam" that allocates
-    ///   device memory of temporary variables and copy constant data member to device
-    CudaRosenbrockSolverParam devstruct_;
-
     /// @brief Solver parameters typename
     using ParametersType = CudaRosenbrockSolverParameters;
 
@@ -33,29 +29,19 @@ namespace micm
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
-              std::move(other)),
-          devstruct_(std::move(other.devstruct_))
+              std::move(other))
     {
-      other.devstruct_.errors_input_ = nullptr;
-      other.devstruct_.errors_output_ = nullptr;
-      other.devstruct_.jacobian_diagonal_elements_ = nullptr;
     };
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
       RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
-      devstruct_ = std::move(other.devstruct_);
-      other.devstruct_.errors_input_ = nullptr;
-      other.devstruct_.errors_output_ = nullptr;
-      other.devstruct_.jacobian_diagonal_elements_ = nullptr;
       return *this;
     };
 
     /// @brief Default constructor
     CudaRosenbrockSolver()
     {
-      devstruct_.errors_input_ = nullptr;
-      devstruct_.errors_output_ = nullptr;
     };
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
@@ -74,22 +60,12 @@ namespace micm
               jacobian,
               number_of_species)
     {
-      CudaRosenbrockSolverParam hoststruct;
-      // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
-      // the absolute tolerance size is the same as the number of solved variables in one grid cell
-      hoststruct.errors_size_ = jacobian.GroupVectorSize() * number_of_species;
-      auto diagonal_indices = jacobian.DiagonalIndices(0);
-      hoststruct.jacobian_diagonal_elements_ = diagonal_indices.data();
-      hoststruct.jacobian_diagonal_elements_size_ = diagonal_indices.size();
-      // Copy the data from host struct to device struct
-      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"
     ~CudaRosenbrockSolver()
     {
-      micm::cuda::FreeConstData(this->devstruct_);
     };
 
     /// @brief Computes [alpha * I - jacobian] on the GPU
@@ -99,14 +75,12 @@ namespace micm
     /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(
-        SparseMatrixPolicy& jacobian,
-        const std::vector<std::size_t>& jacobian_diagonal_elements,
+        auto& state,
         const double& alpha) const
       requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
-      auto jacobian_param =
-          jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
-      micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
+      auto jacobian_param = state.jacobian_.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
+      micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, state.jacobian_diagonal_elements_param_);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
@@ -129,7 +103,7 @@ namespace micm
           errors.AsDeviceParam(),
           state.absolute_tolerance_param_,
           state.relative_tolerance_,
-          this->devstruct_);
+          state.errors_param_);
     }
   };  // end CudaRosenbrockSolver
 }  // namespace micm

@@ -90,16 +90,15 @@ struct CudaMatrixParam
   std::size_t vector_length_;
 };
 
-/// This struct holds (1) pointer to, and (2) size of
-///   each constatnt data member from the class "CudaRosenbrockSolver";
-/// This struct could be allocated on the host or device;
-struct CudaRosenbrockSolverParam
+struct CudaErrorParm
 {
-  // for NormalizedError function
   double* errors_input_ = nullptr;
   double* errors_output_ = nullptr;
   std::size_t errors_size_;
-  // for AlphaMinusJacobian function
-  std::size_t* jacobian_diagonal_elements_ = nullptr;
-  std::size_t jacobian_diagonal_elements_size_;
+};
+
+struct CudaJacobianDiagonalElementsParam
+{
+  std::size_t* data_ = nullptr;
+  std::size_t size_;
 };
