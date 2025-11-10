@@ -46,10 +46,17 @@ namespace micm
       auto diagonal_indices = this->jacobian_.DiagonalIndices(0);
       jacobian_diagonal_elements_param_.size_ = diagonal_indices.size();
 
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::MallocArray<double>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::MallocArray<double>(errors_param_.errors_output_, errors_param_.errors_size_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::MallocArray<std::size_t>(jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          micm::cuda::MallocArray<double>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          micm::cuda::MallocArray<double>(errors_param_.errors_output_, errors_param_.errors_size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          micm::cuda::MallocArray<std::size_t>(
+              jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
+          "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
 
       CHECK_CUDA_ERROR(

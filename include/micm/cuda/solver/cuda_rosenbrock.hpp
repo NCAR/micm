@@ -29,9 +29,7 @@ namespace micm
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
-              std::move(other))
-    {
-    };
+              std::move(other)){};
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
@@ -40,9 +38,7 @@ namespace micm
     };
 
     /// @brief Default constructor
-    CudaRosenbrockSolver()
-    {
-    };
+    CudaRosenbrockSolver(){};
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
     /// @param parameters Solver parameters
@@ -58,15 +54,11 @@ namespace micm
               std::move(linear_solver),
               std::move(rates),
               jacobian,
-              number_of_species)
-    {
-    };
+              number_of_species){};
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"
-    ~CudaRosenbrockSolver()
-    {
-    };
+    ~CudaRosenbrockSolver(){};
 
     /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy
@@ -74,12 +66,11 @@ namespace micm
     /// @param jacobian_diagonal_elements Diagonal elements of the Jacobian matrix, not used
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(
-        auto& state,
-        const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const double& alpha) const
       requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
-      auto jacobian_param = state.jacobian_.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
+      auto jacobian_param =
+          state.jacobian_.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, state.jacobian_diagonal_elements_param_);
     }
 

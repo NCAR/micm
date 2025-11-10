@@ -16,7 +16,8 @@ namespace micm
     template<typename T>
     cudaError_t MallocArray(T*& array, std::size_t num_elements)
     {
-      cudaError_t err = cudaMallocAsync(&array, sizeof(T) * num_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+      cudaError_t err =
+          cudaMallocAsync(&array, sizeof(T) * num_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
       return err;
     }
 
