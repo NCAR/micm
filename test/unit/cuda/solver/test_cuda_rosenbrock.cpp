@@ -113,9 +113,8 @@ void testAlphaMinusJacobian()
 // In this test, all the elements in the same array are identical;
 // thus the calculated RMSE should be the same no matter what the size of the array is.
 template<std::size_t L>
-void testNormalizedErrorConst()
+void testNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
 {
-  std::size_t number_of_grid_cells = L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
@@ -159,9 +158,8 @@ void testNormalizedErrorConst()
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<std::size_t L>
-void testNormalizedErrorDiff()
+void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
 {
-  std::size_t number_of_grid_cells = 7; //L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
@@ -229,31 +227,94 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   // Here L = state_size_ * number_of_grid_cells_
   // Trying some odd and weird numbers is always helpful to reveal a potential bug.
 
-  // tests where RMSE does not change with the size of the array
-  // testNormalizedErrorConst<1>();
-  // testNormalizedErrorConst<2>();
-  // testNormalizedErrorConst<4>();
-  // testNormalizedErrorConst<7>();
-  // testNormalizedErrorConst<12>();
-  // testNormalizedErrorConst<16>();
-  // testNormalizedErrorConst<20>();
-  // testNormalizedErrorConst<5599>();
-  // testNormalizedErrorConst<6603>();
-  // testNormalizedErrorConst<200041>();
-  // testNormalizedErrorConst<421875>();
-  // testNormalizedErrorConst<3395043>();
+  /***************************************************************/
+  /* tests where RMSE does not change with the size of the array */
+  /***************************************************************/
 
-  // tests where RMSE changes with the size of the array
-  // testNormalizedErrorDiff<1>();
+  // number of grid cells == cuda matrix vector length
+  testNormalizedErrorConst<1>();
+  testNormalizedErrorConst<2>();
+  testNormalizedErrorConst<7>();
+  testNormalizedErrorConst<29>();
+  testNormalizedErrorConst<37>();
+  testNormalizedErrorConst<77>();
+  testNormalizedErrorConst<219>();
+  testNormalizedErrorConst<5599>();
+  testNormalizedErrorConst<6603>();
+  testNormalizedErrorConst<200041>();
+  testNormalizedErrorConst<421875>();
+  testNormalizedErrorConst<3395043>();
+
+  // number of grid cells == cuda matrix vector length
+  testNormalizedErrorConst<1>(2);
+  testNormalizedErrorConst<1>(7);
+  testNormalizedErrorConst<1>(29);
+  testNormalizedErrorConst<1>(37);
+  testNormalizedErrorConst<1>(77);
+  testNormalizedErrorConst<1>(219);
+  testNormalizedErrorConst<1>(5599);
+  testNormalizedErrorConst<1>(6603);
+  testNormalizedErrorConst<1>(200041);
+  testNormalizedErrorConst<1>(421875);
+  testNormalizedErrorConst<1>(3395043);
+
+  testNormalizedErrorConst<1109>(1);
+  testNormalizedErrorConst<1109>(2);
+  testNormalizedErrorConst<1109>(7);
+  testNormalizedErrorConst<1109>(29);
+  testNormalizedErrorConst<1109>(37);
+  testNormalizedErrorConst<1109>(77);
+  testNormalizedErrorConst<1109>(219);
+  testNormalizedErrorConst<1109>(5599);
+  testNormalizedErrorConst<1109>(6603);
+  testNormalizedErrorConst<1109>(200041);
+  testNormalizedErrorConst<1109>(421875);
+  testNormalizedErrorConst<1109>(3395043);
+
+  /*******************************************************/
+  /* tests where RMSE changes with the size of the array */
+  /*******************************************************/
+
+  // number of grid cells == cuda matrix vector length
+  testNormalizedErrorDiff<1>();
   testNormalizedErrorDiff<2>();
-  // testNormalizedErrorDiff<4>();
-  // testNormalizedErrorDiff<7>();
-  // testNormalizedErrorDiff<12>();
-  // testNormalizedErrorDiff<16>();
-  // testNormalizedErrorDiff<20>();
-  // testNormalizedErrorDiff<5599>();
-  // testNormalizedErrorDiff<6603>();
-  // testNormalizedErrorDiff<200041>();
-  // testNormalizedErrorDiff<421875>();
-  // testNormalizedErrorDiff<3395043>();
+  testNormalizedErrorDiff<4>();
+  testNormalizedErrorDiff<7>();
+  testNormalizedErrorDiff<29>();
+  testNormalizedErrorDiff<37>();
+  testNormalizedErrorDiff<77>();
+  testNormalizedErrorConst<219>(); 
+  testNormalizedErrorDiff<5599>();
+  testNormalizedErrorDiff<6603>();
+  testNormalizedErrorDiff<200041>();
+  testNormalizedErrorDiff<421875>();
+  testNormalizedErrorDiff<3395043>();
+
+  // number of grid cells != cuda matrix vector length
+  testNormalizedErrorDiff<1>(2);
+  testNormalizedErrorDiff<1>(4);
+  testNormalizedErrorDiff<1>(7);
+  testNormalizedErrorDiff<1>(29);
+  testNormalizedErrorDiff<1>(37);
+  testNormalizedErrorDiff<1>(77);
+  testNormalizedErrorDiff<1>(219);
+  testNormalizedErrorDiff<1>(5599);
+  testNormalizedErrorDiff<1>(6603);
+  testNormalizedErrorDiff<1>(200041);
+  testNormalizedErrorDiff<1>(421875);
+  testNormalizedErrorDiff<1>(3395043);
+
+  testNormalizedErrorDiff<1109>(1);
+  testNormalizedErrorDiff<1109>(2);
+  testNormalizedErrorDiff<1109>(4);
+  testNormalizedErrorDiff<1109>(7);
+  testNormalizedErrorDiff<1109>(29);
+  testNormalizedErrorDiff<1109>(37);
+  testNormalizedErrorDiff<1109>(77);
+  testNormalizedErrorDiff<1109>(219);
+  testNormalizedErrorDiff<1109>(5599);
+  testNormalizedErrorDiff<1109>(6603);
+  testNormalizedErrorDiff<1109>(200041);
+  testNormalizedErrorDiff<1109>(421875);
+  testNormalizedErrorDiff<1109>(3395043);
 }

@@ -172,7 +172,7 @@ namespace micm
       const std::size_t full_group = std::floor(number_of_grid_cells / cuda_matrix_vector_length) * cuda_matrix_vector_length * number_of_variables;
 
       // Calculate global thread ID
-      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Calculate the index for absolute tolerance array
       const std::size_t atol_idx = (tid / cuda_matrix_vector_length) % number_of_variables;
