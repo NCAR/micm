@@ -272,7 +272,7 @@ namespace micm
       else
       {
         // call CUDA implementation
-        std::size_t number_of_blocks = std::ceil(std::ceil(static_cast<double>(number_of_elements) / BLOCK_SIZE) / 2.0);
+        number_of_blocks = std::ceil(std::ceil(static_cast<double>(number_of_elements) / BLOCK_SIZE) / 2.0);
         number_of_blocks = number_of_blocks < 1 ? 1 : number_of_blocks;
         std::size_t new_number_of_blocks;
         bool is_first_call = true;

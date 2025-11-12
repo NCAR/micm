@@ -212,13 +212,13 @@ void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
   }
 }
 
-// TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
-// {
-//   testAlphaMinusJacobian<1>();
-//   testAlphaMinusJacobian<20>();
-//   testAlphaMinusJacobian<300>();
-//   testAlphaMinusJacobian<4000>();
-// }
+TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
+{
+  testAlphaMinusJacobian<1>();
+  testAlphaMinusJacobian<20>();
+  testAlphaMinusJacobian<300>();
+  testAlphaMinusJacobian<4000>();
+}
 
 TEST(RosenbrockSolver, CudaNormalizedError)
 {
