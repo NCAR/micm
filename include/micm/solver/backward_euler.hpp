@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/linear_solver.hpp>

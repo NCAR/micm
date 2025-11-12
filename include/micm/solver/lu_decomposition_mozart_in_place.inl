@@ -28,8 +28,6 @@ namespace micm
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline void LuDecompositionMozartInPlace::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
-    MICM_PROFILE_FUNCTION();
-
     std::size_t n = matrix.NumRows();
     auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < n; ++i)
@@ -73,8 +71,6 @@ namespace micm
       typename SparseMatrixPolicy::value_type initial_value,
       bool indexing_only)
   {
-    MICM_PROFILE_FUNCTION();
-
     std::size_t n = A.NumRows();
     std::set<std::pair<std::size_t, std::size_t>> ALU_ids;
     for (std::size_t i = 0; i < n; ++i)
@@ -106,7 +102,6 @@ namespace micm
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    MICM_PROFILE_FUNCTION();
     const std::size_t n = ALU.NumRows();
 
     // Loop over blocks
@@ -143,8 +138,6 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    MICM_PROFILE_FUNCTION();
-
     const std::size_t n = ALU.NumRows();
     const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
     constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();

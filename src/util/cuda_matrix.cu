@@ -14,11 +14,31 @@ namespace micm
   namespace cuda
   {
     template<typename T>
+    cudaError_t MallocArray(T*& array, std::size_t num_elements)
+    {
+      cudaError_t err =
+          cudaMallocAsync(&array, sizeof(T) * num_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+      return err;
+    }
+
+    template<typename T>
     cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements)
     {
       param.number_of_elements_ = number_of_elements;
       cudaError_t err = cudaMallocAsync(
           &(param.d_data_), sizeof(T) * number_of_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+      return err;
+    }
+
+    template<typename T>
+    cudaError_t FreeArray(T*& array)
+    {
+      if (array == nullptr)
+      {
+        return cudaError_t::cudaSuccess;
+      }
+      cudaError_t err = cudaFreeAsync(array, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+      array = nullptr;
       return err;
     }
 
@@ -136,6 +156,10 @@ namespace micm
     }
 
     // source code needs the instantiation of the template
+    template cudaError_t MallocArray<double>(double*& array, std::size_t num_elements);
+    template cudaError_t MallocArray<std::size_t>(std::size_t*& array, std::size_t num_elements);
+    template cudaError_t FreeArray<double>(double*& array);
+    template cudaError_t FreeArray<std::size_t>(std::size_t*& array);
     template cudaError_t MallocVector<double>(CudaMatrixParam& param, std::size_t number_of_elements);
     template cudaError_t MallocVector<int>(CudaMatrixParam& param, std::size_t number_of_elements);
     template cudaError_t MatrixMax<double>(CudaMatrixParam& param, double val);
