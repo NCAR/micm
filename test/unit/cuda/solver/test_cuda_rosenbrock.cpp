@@ -283,7 +283,7 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   testNormalizedErrorDiff<29>();
   testNormalizedErrorDiff<37>();
   testNormalizedErrorDiff<77>();
-  testNormalizedErrorConst<219>(); 
+  testNormalizedErrorDiff<219>();
   testNormalizedErrorDiff<5599>();
   testNormalizedErrorDiff<6603>();
   testNormalizedErrorDiff<200041>();
