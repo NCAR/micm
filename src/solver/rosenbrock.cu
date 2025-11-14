@@ -169,7 +169,8 @@ namespace micm
       const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
       const std::size_t cuda_matrix_vector_length = y_old_param.vector_length_;
       const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
-      const std::size_t full_group = std::floor(number_of_grid_cells / cuda_matrix_vector_length) * cuda_matrix_vector_length * number_of_variables;
+      const std::size_t full_group =
+          std::floor(static_cast<double>(number_of_grid_cells) / cuda_matrix_vector_length) * cuda_matrix_vector_length * number_of_variables;
 
       // Calculate global thread ID
       const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -192,7 +193,7 @@ namespace micm
         const std::size_t row_idx = tid % cuda_matrix_vector_length;
         const std::size_t local_tid = full_group + atol_idx * cuda_matrix_vector_length + row_idx;
         if (row_idx < partial_group)
-        { 
+        {
           d_ymax = max(fabs(d_y_old[local_tid]), fabs(d_y_new[local_tid]));
           d_scale = atol[atol_idx] + relative_tolerance * d_ymax;
           d_errors[local_tid] = d_errors[local_tid] / d_scale;
@@ -263,8 +264,7 @@ namespace micm
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
-            cublasDnrm2(
-                micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
+            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
             "cublasDnrm2");
         cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
         normalized_error = normalized_error * std::sqrt(1.0 / (number_of_grid_cells * number_of_species));

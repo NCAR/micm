@@ -175,7 +175,7 @@ void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
   {
     atol[i] = atol[i] * (1 + i * 0.01);
   }
-  state.SetAbsoluteTolerances(atol); // copy atol to the device
+  state.SetAbsoluteTolerances(atol);  // copy atol to the device
 
   double expected_error = 0.0;
   for (size_t i = 0; i < number_of_grid_cells; ++i)
