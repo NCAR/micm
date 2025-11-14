@@ -90,7 +90,7 @@ struct CudaMatrixParam
   std::size_t vector_length_;
 };
 
-struct CudaErrorParm
+struct CudaErrorParam
 {
   double* errors_input_ = nullptr;
   double* errors_output_ = nullptr;

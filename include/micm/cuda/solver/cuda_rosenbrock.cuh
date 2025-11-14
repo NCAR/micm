@@ -31,9 +31,9 @@ namespace micm
     double NormalizedErrorDriver(
         const CudaMatrixParam& y_old_param,
         const CudaMatrixParam& y_new_param,
-        const CudaMatrixParam& errors_param,
+        const CudaMatrixParam& y_error_param,
         const CudaMatrixParam& absolute_tolerance_param,
         const double relative_tolerance,
-        CudaErrorParm& errors_calc_param);
+        CudaErrorParam& errors_param);
   }  // namespace cuda
 }  // namespace micm

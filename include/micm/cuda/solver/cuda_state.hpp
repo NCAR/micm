@@ -19,7 +19,7 @@ namespace micm
 
     CudaMatrixParam absolute_tolerance_param_;
 
-    CudaErrorParm errors_param_;
+    CudaErrorParam errors_param_;
     CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param_;
 
     ~CudaState()
@@ -41,7 +41,10 @@ namespace micm
       absolute_tolerance_param_.number_of_elements_ = atol.size();
       absolute_tolerance_param_.number_of_grid_cells_ = 1;
 
-      errors_param_.errors_size_ = parameters.number_of_species_ * number_of_grid_cells;
+      // If cuda vector length does not divide number of grid cells evenly,
+      // we need to allocate GPU memory including the paddings for NormalizedError calculation.
+      std::size_t cuda_rosenbrock_vector_length = DenseMatrixPolicy::GroupVectorSize();
+      errors_param_.errors_size_ = parameters.number_of_species_ * ceil(static_cast<double>(number_of_grid_cells) / cuda_rosenbrock_vector_length) * cuda_rosenbrock_vector_length;
 
       auto diagonal_indices = this->jacobian_.DiagonalIndices(0);
       jacobian_diagonal_elements_param_.size_ = diagonal_indices.size();
