@@ -169,8 +169,8 @@ namespace micm
       const std::size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
       const std::size_t cuda_matrix_vector_length = y_old_param.vector_length_;
       const std::size_t number_of_variables = absolute_tolerance_param.number_of_elements_;
-      const std::size_t full_group =
-          std::floor(static_cast<double>(number_of_grid_cells) / cuda_matrix_vector_length) * cuda_matrix_vector_length * number_of_variables;
+      const std::size_t full_group = std::floor(static_cast<double>(number_of_grid_cells) / cuda_matrix_vector_length) *
+                                     cuda_matrix_vector_length * number_of_variables;
 
       // Calculate global thread ID
       const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
