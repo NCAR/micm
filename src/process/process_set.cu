@@ -42,20 +42,20 @@ namespace micm
 
       if (tid < number_of_grid_cells)
       {
-        for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
+        for (int i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
         {
           double rate = d_rate_constants[(i_rxn * cuda_matrix_vector_length) + local_tid];
           const std::size_t number_of_reactants = d_number_of_reactants[i_rxn];
-          for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
+          for (int i_react = 0; i_react < number_of_reactants; ++i_react)
           {
             rate *= d_state_variables[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid];
           }
-          for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
+          for (int i_react = 0; i_react < number_of_reactants; ++i_react)
           {
             d_forcing[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid] -= rate;
           }
           const std::size_t number_of_products = d_number_of_products[i_rxn];
-          for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
+          for (int i_prod = 0; i_prod < number_of_products; ++i_prod)
           {
             d_forcing[d_product_ids[i_prod] * cuda_matrix_vector_length + local_tid] += d_yields[i_prod] * rate;
           }
@@ -100,21 +100,21 @@ namespace micm
       if (tid < number_of_grid_cells)
       {
         // loop over reactions in a grid
-        for (std::size_t i_proc = 0; i_proc < number_of_process_infos; ++i_proc)
+        for (int i_proc = 0; i_proc < number_of_process_infos; ++i_proc)
         {
           const ProcessInfoParam& process_info = d_jacobian_process_info[i_proc];
           // Calculate d_rate/d_ind
           double d_rate_d_ind = d_rate_constants[(process_info.process_id_ * cuda_matrix_vector_length) + local_tid];
-          for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
+          for (int i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
           {
             d_rate_d_ind *= d_state_variables[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid];
           }
-          for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
+          for (int i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
           {
             d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
             ++d_jacobian_flat_ids;
           }
-          for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
+          for (int i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
           {
             std::size_t jacobian_idx = *d_jacobian_flat_ids + local_tid;
             d_jacobian[jacobian_idx] -= d_yields[i_dep] * d_rate_d_ind;
@@ -297,7 +297,7 @@ namespace micm
         CudaMatrixParam& jacobian_param,
         const ProcessSetParam& devstruct)
     {
-      size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      const std::size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SubtractJacobianTermsKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
@@ -312,7 +312,7 @@ namespace micm
         CudaMatrixParam& forcing_param,
         const ProcessSetParam& devstruct)
     {
-      std::size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      const std::size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AddForcingTermsKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
