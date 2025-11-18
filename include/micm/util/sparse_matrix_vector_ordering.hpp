@@ -14,7 +14,7 @@ namespace micm
   // Default vectorized SparseMatrix
   using DefaultVectorSparseMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  // Define the following two functions that only work for the CudaMatrix; the if constexpr statement is evalauted at
+  // Define the following two functions that only work for the CudaMatrix; the if constexpr statement is evaluated at
   // compile-time Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/
   template<class MatrixPolicy>
   void CheckCopyToDevice(MatrixPolicy& matrix)
