@@ -7,11 +7,28 @@
 
 namespace micm
 {
-
   /// @brief Alias for the default sparse matrix vector ordering
   template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   using SparseMatrixVectorOrdering = SparseMatrixVectorOrderingCompressedSparseRow<L>;
 
   // Default vectorized SparseMatrix
   using DefaultVectorSparseMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+
+  template<class MatrixPolicy>
+  void CheckCopyToDevice(MatrixPolicy& matrix)
+  {
+    if constexpr (requires {
+        { matrix.CopyToDevice() } -> std::same_as<void>;
+    })
+    matrix.CopyToDevice();
+  }
+
+  template<class MatrixPolicy>
+  void CheckCopyToHost(MatrixPolicy& matrix)
+  {
+    if constexpr (requires {
+        { matrix.CopyToHost() } -> std::same_as<void>;
+    })
+    matrix.CopyToHost();
+  }
 }  // namespace micm

@@ -18,18 +18,28 @@ namespace micm
         const CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param)
     {
       // Calculate global thread ID
-      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
       double* d_jacobian = jacobian_param.d_data_;
-      size_t quotient, index_as_remainder;
-      const size_t number_of_diagonal_elements = jacobian_diagonal_elements_param.size_;
-      const size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
+      std::size_t quotient, index_as_remainder;
+      const std::size_t number_of_diagonal_elements = jacobian_diagonal_elements_param.size_;
+      const std::size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
+      const std::size_t cuda_matrix_vector_length = jacobian_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t number_of_diagonal_elements_per_group = number_of_diagonal_elements * cuda_matrix_vector_length;
+      const std::size_t number_of_non_zeros_per_group = jacobian_param.number_of_elements_ / (number_of_groups * cuda_matrix_vector_length);
+      const std::size_t total_number_of_diagonal_elements = number_of_diagonal_elements_per_group * number_of_groups;
+      const std::size_t group_id = tid / number_of_diagonal_elements_per_group;
+      const std::size_t local_tid = tid - group_id * number_of_diagonal_elements_per_group;
 
-      if (tid < number_of_grid_cells * number_of_diagonal_elements)
+      // Shift the index for different groups
+      d_jacobian += group_id * number_of_non_zeros_per_group * cuda_matrix_vector_length;
+
+      if (tid < total_number_of_diagonal_elements)
       {
-        quotient = tid / number_of_grid_cells;
-        index_as_remainder = tid - number_of_grid_cells * quotient;  // % operator may be more expensive
+        quotient = local_tid / cuda_matrix_vector_length;
+        index_as_remainder = local_tid - cuda_matrix_vector_length * quotient;  // % operator may be more expensive
         d_jacobian[jacobian_diagonal_elements_param.data_[quotient] + index_as_remainder] += alpha;
       }
     }
@@ -211,8 +221,11 @@ namespace micm
         const double& alpha,
         const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
     {
-      size_t number_of_blocks =
-          (jacobian_diagonal_elements_param.size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      // We will add alpha to the padding elements as well to simplify the kernel code
+      const std::size_t number_of_groups = std::ceil(
+          static_cast<double>(jacobian_param.number_of_grid_cells_) / jacobian_param.vector_length_);
+      const std::size_t number_of_blocks =
+          (jacobian_diagonal_elements_param.size_ * number_of_groups * jacobian_param.vector_length_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
