@@ -222,8 +222,7 @@ namespace micm
         const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
     {
       // We will add alpha to the padding elements as well to simplify the kernel code
-      const std::size_t number_of_groups = std::ceil(
-          static_cast<double>(jacobian_param.number_of_grid_cells_) / jacobian_param.vector_length_);
+      const std::size_t number_of_groups = (jacobian_param.number_of_grid_cells_ + jacobian_param.vector_length_ - 1) / jacobian_param.vector_length_;
       const std::size_t number_of_blocks =
           (jacobian_diagonal_elements_param.size_ * number_of_groups * jacobian_param.vector_length_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<
