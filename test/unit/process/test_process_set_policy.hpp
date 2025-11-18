@@ -1,6 +1,7 @@
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
 
@@ -13,24 +14,6 @@ void compare_pair(const index_pair& a, const index_pair& b)
 {
   EXPECT_EQ(a.first, b.first);
   EXPECT_EQ(a.second, b.second);
-}
-
-template<class MatrixPolicy>
-void CheckCopyToDevice(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToDevice() } -> std::same_as<void>;
-                })
-    matrix.CopyToDevice();
-}
-
-template<class MatrixPolicy>
-void CheckCopyToHost(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToHost() } -> std::same_as<void>;
-                })
-    matrix.CopyToHost();
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
