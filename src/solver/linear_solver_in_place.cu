@@ -42,10 +42,10 @@ namespace micm
       {
         // Forward Substitution
         {
-          for (auto i = 0; i < d_nLij_size; ++i)
+          for (int i = 0; i < d_nLij_size; ++i)
           {
             const std::size_t j_lim = d_nLij[i];
-            for (auto j = 0; j < j_lim; ++j)
+            for (int j = 0; j < j_lim; ++j)
             {
               const std::size_t d_Lij_yj_first = (*d_Lij_yj).first;
               const std::size_t d_Lij_yj_second_times_vector_length = (*d_Lij_yj).second * cuda_matrix_vector_length;
@@ -61,10 +61,10 @@ namespace micm
         {
           // d_y will be x_elem in the CPU implementation
           d_y = d_x + x_param.number_of_elements_ / number_of_groups - cuda_matrix_vector_length;
-          for (auto i = 0; i < d_nUij_Uii_size; ++i)
+          for (int i = 0; i < d_nUij_Uii_size; ++i)
           {
             const std::size_t j_lim = d_nUij_Uii[i].first;
-            for (auto j = 0; j < j_lim; ++j)
+            for (int j = 0; j < j_lim; ++j)
             {
               auto d_ALU_ptr = d_ALU + (*d_Uij_xj).first;
               auto d_x_ptr = d_x + (*d_Uij_xj).second * cuda_matrix_vector_length;
@@ -84,10 +84,10 @@ namespace micm
     LinearSolverInPlaceParam CopyConstData(LinearSolverInPlaceParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-      size_t nLij_bytes = sizeof(size_t) * hoststruct.nLij_size_;
-      size_t Lij_yj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Lij_yj_size_;
-      size_t nUij_Uii_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.nUij_Uii_size_;
-      size_t Uij_xj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Uij_xj_size_;
+      std::size_t nLij_bytes = sizeof(std::size_t) * hoststruct.nLij_size_;
+      std::size_t Lij_yj_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.Lij_yj_size_;
+      std::size_t nUij_Uii_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.nUij_Uii_size_;
+      std::size_t Uij_xj_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.Uij_xj_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       LinearSolverInPlaceParam devstruct;
@@ -171,7 +171,7 @@ namespace micm
     void
     SolveKernelDriver(CudaMatrixParam& x_param, const CudaMatrixParam& ALU_param, const LinearSolverInPlaceParam& devstruct)
     {
-      std::size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      const std::size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           x_param, ALU_param, devstruct);
     }
