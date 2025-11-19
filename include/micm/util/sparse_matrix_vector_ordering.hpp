@@ -20,17 +20,17 @@ namespace micm
   void CheckCopyToDevice(MatrixPolicy& matrix)
   {
     if constexpr (requires {
-        { matrix.CopyToDevice() } -> std::same_as<void>;
-    })
-    matrix.CopyToDevice();
+                    { matrix.CopyToDevice() } -> std::same_as<void>;
+                  })
+      matrix.CopyToDevice();
   }
 
   template<class MatrixPolicy>
   void CheckCopyToHost(MatrixPolicy& matrix)
   {
     if constexpr (requires {
-        { matrix.CopyToHost() } -> std::same_as<void>;
-    })
-    matrix.CopyToHost();
+                    { matrix.CopyToHost() } -> std::same_as<void>;
+                  })
+      matrix.CopyToHost();
   }
 }  // namespace micm
