@@ -65,7 +65,8 @@ namespace micm
     LuDecomposeMozartInPlaceParam CopyConstData(LuDecomposeMozartInPlaceParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-      std::size_t aii_nji_nki_bytes = sizeof(std::tuple<std::size_t, std::size_t, std::size_t>) * hoststruct.aii_nji_nki_size_;
+      std::size_t aii_nji_nki_bytes =
+          sizeof(std::tuple<std::size_t, std::size_t, std::size_t>) * hoststruct.aii_nji_nki_size_;
       std::size_t aji_bytes = sizeof(std::size_t) * hoststruct.aji_size_;
       std::size_t aik_njk_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.aik_njk_size_;
       std::size_t ajk_aji_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.ajk_aji_size_;

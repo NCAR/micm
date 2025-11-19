@@ -26,9 +26,11 @@ namespace micm
       const std::size_t number_of_diagonal_elements = jacobian_diagonal_elements_param.size_;
       const std::size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
       const std::size_t cuda_matrix_vector_length = jacobian_param.vector_length_;
-      const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+      const std::size_t number_of_groups =
+          (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
       const std::size_t number_of_diagonal_elements_per_group = number_of_diagonal_elements * cuda_matrix_vector_length;
-      const std::size_t number_of_non_zeros_per_group = jacobian_param.number_of_elements_ / (number_of_groups * cuda_matrix_vector_length);
+      const std::size_t number_of_non_zeros_per_group =
+          jacobian_param.number_of_elements_ / (number_of_groups * cuda_matrix_vector_length);
       const std::size_t total_number_of_diagonal_elements = number_of_diagonal_elements_per_group * number_of_groups;
       const std::size_t group_id = tid / number_of_diagonal_elements_per_group;
       const std::size_t local_tid = tid - group_id * number_of_diagonal_elements_per_group;
@@ -222,9 +224,11 @@ namespace micm
         const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param)
     {
       // We will add alpha to the padding elements as well to simplify the kernel code
-      const std::size_t number_of_groups = (jacobian_param.number_of_grid_cells_ + jacobian_param.vector_length_ - 1) / jacobian_param.vector_length_;
+      const std::size_t number_of_groups =
+          (jacobian_param.number_of_grid_cells_ + jacobian_param.vector_length_ - 1) / jacobian_param.vector_length_;
       const std::size_t number_of_blocks =
-          (jacobian_diagonal_elements_param.size_ * number_of_groups * jacobian_param.vector_length_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+          (jacobian_diagonal_elements_param.size_ * number_of_groups * jacobian_param.vector_length_ + BLOCK_SIZE - 1) /
+          BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
