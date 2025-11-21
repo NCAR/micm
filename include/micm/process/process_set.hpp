@@ -4,7 +4,6 @@
 
 #include <micm/process/process.hpp>
 #include <micm/process/process_error.hpp>
-#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -117,8 +116,6 @@ namespace micm
         jacobian_yields_(),
         jacobian_flat_ids_()
   {
-    MICM_PROFILE_FUNCTION();
-
     // For each process, look up each reactant name in variable_map and
     // store the corresponding index
     for (const auto& process : processes)
@@ -211,8 +208,6 @@ namespace micm
 
   inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
   {
-    MICM_PROFILE_FUNCTION();
-
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
     auto prod_id = product_ids_.begin();
@@ -241,8 +236,6 @@ namespace micm
   template<typename OrderingPolicy>
   inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
-    MICM_PROFILE_FUNCTION();
-
     jacobian_flat_ids_.clear();
     auto react_id = jacobian_reactant_ids_.begin();
     auto prod_id = jacobian_product_ids_.begin();
@@ -263,8 +256,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
   {
-    MICM_PROFILE_FUNCTION();
-
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
@@ -311,8 +302,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
   {
-    MICM_PROFILE_FUNCTION();
-
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_forcing = forcing.AsVector();
@@ -373,8 +362,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    MICM_PROFILE_FUNCTION();
-
     auto cell_jacobian = jacobian.AsVector().begin();
 
     // loop over grid cells
@@ -411,8 +398,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    MICM_PROFILE_FUNCTION();
-
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_jacobian = jacobian.AsVector();
@@ -466,8 +451,6 @@ namespace micm
 
   inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
   {
-    MICM_PROFILE_FUNCTION();
-
     std::set<std::string> used_species;
     for (const auto& process : processes)
     {

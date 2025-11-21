@@ -12,7 +12,6 @@
 // https://doi.org/10.1016/S1352-2310(97)83212-8
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
@@ -90,16 +89,10 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(
-        SparseMatrixPolicy& jacobian,
-        std::vector<std::size_t>& jacobian_diagonal_elements,
-        const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const double& alpha) const
       requires(!VectorizableSparse<SparseMatrixPolicy>);
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(
-        SparseMatrixPolicy& jacobian,
-        std::vector<std::size_t>& jacobian_diagonal_elements,
-        const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const double& alpha) const
       requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Perform the LU decomposition of the matrix

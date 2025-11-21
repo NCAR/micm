@@ -11,7 +11,7 @@ namespace micm
     __global__ void DecomposeKernel(CudaMatrixParam ALU_param, const LuDecomposeParam devstruct)
     {
       // Calculate global thread ID
-      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
       const std::tuple<std::size_t, std::size_t, std::size_t>* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
@@ -21,8 +21,8 @@ namespace micm
       const std::size_t d_aii_nji_nki_size = devstruct.aii_nji_nki_size_;
 
       double* __restrict__ d_ALU = ALU_param.d_data_;
-      const size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
-      const size_t cuda_matrix_vector_length = ALU_param.vector_length_;
+      const std::size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
+      const std::size_t cuda_matrix_vector_length = ALU_param.vector_length_;
       const std::size_t local_tid = tid % cuda_matrix_vector_length;
       const std::size_t group_id = std::floor(static_cast<double>(tid) / cuda_matrix_vector_length);
 
@@ -31,18 +31,18 @@ namespace micm
 
       if (tid < number_of_grid_cells)
       {
-        for (std::size_t i = 0; i < d_aii_nji_nki_size; ++i)
+        for (int i = 0; i < d_aii_nji_nki_size; ++i)
         {
           auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
           auto d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
           auto d_Aii_inverse = 1.0 / d_Aii[local_tid];
-          for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
+          for (int ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
           {
             auto d_ALU_ji = d_ALU + *d_aji + local_tid;
             *d_ALU_ji *= d_Aii_inverse;
             ++d_aji;
           }
-          for (std::size_t ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
+          for (int ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
           {
             const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
             const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
@@ -65,10 +65,11 @@ namespace micm
     LuDecomposeMozartInPlaceParam CopyConstData(LuDecomposeMozartInPlaceParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-      size_t aii_nji_nki_bytes = sizeof(std::tuple<std::size_t, std::size_t, std::size_t>) * hoststruct.aii_nji_nki_size_;
-      size_t aji_bytes = sizeof(std::size_t) * hoststruct.aji_size_;
-      size_t aik_njk_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.aik_njk_size_;
-      size_t ajk_aji_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.ajk_aji_size_;
+      std::size_t aii_nji_nki_bytes =
+          sizeof(std::tuple<std::size_t, std::size_t, std::size_t>) * hoststruct.aii_nji_nki_size_;
+      std::size_t aji_bytes = sizeof(std::size_t) * hoststruct.aji_size_;
+      std::size_t aik_njk_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.aik_njk_size_;
+      std::size_t ajk_aji_bytes = sizeof(std::pair<std::size_t, std::size_t>) * hoststruct.ajk_aji_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       LuDecomposeParam devstruct;
@@ -154,7 +155,7 @@ namespace micm
     void DecomposeKernelDriver(CudaMatrixParam& ALU_param, const LuDecomposeParam& devstruct)
     {
       // Launch the CUDA kernel for LU decomposition
-      std::size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      const std::size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           ALU_param, devstruct);
     }  // end of DecomposeKernelDriver

@@ -1,29 +1,11 @@
 #include <micm/solver/linear_solver.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <iomanip>
 #include <random>
-
-// Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at
-// compile-time Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/
-template<class MatrixPolicy>
-void CheckCopyToDevice(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToDevice() } -> std::same_as<void>;
-                })
-    matrix.CopyToDevice();
-}
-
-template<class MatrixPolicy>
-void CheckCopyToHost(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToHost() } -> std::same_as<void>;
-                })
-    matrix.CopyToHost();
-}
 
 template<typename T, class MatrixPolicy, class SparseMatrixPolicy>
 void check_results(

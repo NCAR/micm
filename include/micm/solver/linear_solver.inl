@@ -6,7 +6,6 @@ namespace micm
   template<class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy& matrix)
   {
-    MICM_PROFILE_FUNCTION();
     const std::size_t order = matrix.NumRows();
     std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
@@ -72,8 +71,6 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    MICM_PROFILE_FUNCTION();
-
     auto lu =
         lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
     auto lower_matrix = std::move(lu.first);
@@ -112,8 +109,6 @@ namespace micm
       LMatrixPolicy& lower_matrix,
       UMatrixPolicy& upper_matrix) const
   {
-    MICM_PROFILE_FUNCTION();
-
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
@@ -125,8 +120,6 @@ namespace micm
       const LMatrixPolicy& lower_matrix,
       const UMatrixPolicy& upper_matrix) const
   {
-    MICM_PROFILE_FUNCTION();
-
     for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
     {
       auto x_cell = x[i_cell];
@@ -181,7 +174,6 @@ namespace micm
       const LMatrixPolicy& lower_matrix,
       const UMatrixPolicy& upper_matrix) const
   {
-    MICM_PROFILE_FUNCTION();
     constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)

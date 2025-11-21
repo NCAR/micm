@@ -62,8 +62,7 @@ void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
   builder = getSolver(builder);
   auto solver = builder.Build();
   auto state = solver.GetState(number_of_grid_cells);
-  auto jacobian = state.jacobian_;
-  auto diagonal_elements = state.jacobian_diagonal_elements_;
+  auto& jacobian = state.jacobian_;
 
   EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
   EXPECT_EQ(jacobian.NumRows(), 5);
@@ -89,21 +88,25 @@ void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
     jacobian[i_cell][4][2] = -53.6;
     jacobian[i_cell][4][4] = -1.0;
   }
-  solver.solver_.AlphaMinusJacobian(jacobian, diagonal_elements, 42.042);
+
+  CheckCopyToDevice<decltype(state.jacobian_)>(state.jacobian_);
+  solver.solver_.template AlphaMinusJacobian<decltype(state.jacobian_)>(state, 42.042);
+  CheckCopyToHost<decltype(state.jacobian_)>(state.jacobian_);
+
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][0][1], -24.3 * (i_cell + 2), 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][0][2], -42.3, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][1][0], -0.43, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][1][1], 42.042 - 23.4, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][1][2], -83.4 / (i_cell + 3), 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][2][0], -4.74, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][2][2], 42.042 - 6.91, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][3][1], -59.1, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][3][3], 42.042 - 83.4, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][4][0], -78.5, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][4][2], -53.6, 1.0e-5);
-    EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
+    EXPECT_EQ(jacobian[i_cell][0][0], 42.042 - 12.2);
+    EXPECT_EQ(jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
+    EXPECT_EQ(jacobian[i_cell][0][2], -42.3);
+    EXPECT_EQ(jacobian[i_cell][1][0], -0.43);
+    EXPECT_EQ(jacobian[i_cell][1][1], 42.042 - 23.4);
+    EXPECT_EQ(jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
+    EXPECT_EQ(jacobian[i_cell][2][0], -4.74);
+    EXPECT_EQ(jacobian[i_cell][2][2], 42.042 - 6.91);
+    EXPECT_EQ(jacobian[i_cell][3][1], -59.1);
+    EXPECT_EQ(jacobian[i_cell][3][3], 42.042 - 83.4);
+    EXPECT_EQ(jacobian[i_cell][4][0], -78.5);
+    EXPECT_EQ(jacobian[i_cell][4][2], -53.6);
+    EXPECT_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 }

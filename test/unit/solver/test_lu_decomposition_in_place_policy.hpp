@@ -4,25 +4,8 @@
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <iomanip>
 #include <random>
-
-template<class MatrixPolicy>
-void CheckCopyToDevice(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToDevice() } -> std::same_as<void>;
-                })
-    matrix.CopyToDevice();
-}
-
-template<class MatrixPolicy>
-void CheckCopyToHost(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToHost() } -> std::same_as<void>;
-                })
-    matrix.CopyToHost();
-}
 
 template<typename T, class SparseMatrixPolicy>
 void check_results(const SparseMatrixPolicy& A, const SparseMatrixPolicy& LU, const std::function<void(const T, const T)> f)
