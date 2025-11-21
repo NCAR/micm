@@ -15,7 +15,7 @@ jobs:
   cuda_tests:
     runs-on: gha-runner-micm
     container:
-      image: nvcr.io/nvidia/nvhpc:23.7-devel-cuda12.2-ubuntu22.04
+      image: nvcr.io/nvidia/nvhpc:25.1-devel-cuda12.6-ubuntu24.04
       options: --gpus all
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       
       - name: Copy cublas headers
         run: |
-          cp -r /opt/nvidia/hpc_sdk/*/23.7/cuda/include/* /usr/include/
+          cp -r /opt/nvidia/hpc_sdk/*/25.1/cuda/include/* /usr/include/
 
       - name: Build
         run: cmake --build build --parallel 10

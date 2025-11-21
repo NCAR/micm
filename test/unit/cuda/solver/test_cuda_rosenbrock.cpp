@@ -15,108 +15,11 @@
 template<std::size_t L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
-template<std::size_t L>
-void testAlphaMinusJacobian()
-{
-  std::size_t number_of_grid_cells = L;
-  auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  gpu_builder = getSolver(gpu_builder);
-  auto gpu_solver = gpu_builder.Build();
-  auto cpu_builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  cpu_builder = getSolver(cpu_builder);
-  auto cpu_solver = cpu_builder.Build();
-
-  auto gpu_state = gpu_solver.GetState(number_of_grid_cells);
-  auto gpu_jacobian = gpu_state.jacobian_;
-  auto gpu_diagonal_elements = gpu_state.jacobian_diagonal_elements_;
-  EXPECT_EQ(gpu_jacobian.NumberOfBlocks(), number_of_grid_cells);
-  EXPECT_EQ(gpu_jacobian.NumRows(), 5);
-  EXPECT_EQ(gpu_jacobian.NumColumns(), gpu_jacobian.NumRows());
-  EXPECT_EQ(gpu_jacobian[0].Size(), 5);
-  EXPECT_EQ(gpu_jacobian[0][0].Size(), 5);
-  auto& gpu_jacobian_vec = gpu_jacobian.AsVector();
-  EXPECT_GE(gpu_jacobian_vec.size(), 13 * number_of_grid_cells);
-
-  gpu_jacobian_vec.assign(gpu_jacobian_vec.size(), 100.0);
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  {
-    gpu_jacobian[i_cell][0][0] = 12.2;
-    gpu_jacobian[i_cell][0][1] = 24.3 * (i_cell + 2);
-    gpu_jacobian[i_cell][0][2] = 42.3;
-    gpu_jacobian[i_cell][1][0] = 0.43;
-    gpu_jacobian[i_cell][1][1] = 23.4;
-    gpu_jacobian[i_cell][1][2] = 83.4 / (i_cell + 3);
-    gpu_jacobian[i_cell][2][0] = 4.74;
-    gpu_jacobian[i_cell][2][2] = 6.91;
-    gpu_jacobian[i_cell][3][1] = 59.1;
-    gpu_jacobian[i_cell][3][3] = 83.4;
-    gpu_jacobian[i_cell][4][0] = 78.5;
-    gpu_jacobian[i_cell][4][2] = 53.6;
-    gpu_jacobian[i_cell][4][4] = 1.0;
-  }
-
-  // Negate the Jacobian matrix (-J) here
-  std::transform(gpu_jacobian_vec.cbegin(), gpu_jacobian_vec.cend(), gpu_jacobian_vec.begin(), std::negate<>{});
-
-  auto cpu_state = cpu_solver.GetState(number_of_grid_cells);
-  auto cpu_jacobian = cpu_state.jacobian_;
-  auto cpu_diagonal_elements = cpu_state.jacobian_diagonal_elements_;
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  {
-    for (std::size_t i = 0; i < 5; ++i)
-    {
-      for (std::size_t j = 0; j < 5; ++j)
-      {
-        if (!cpu_jacobian.IsZero(i, j))
-          cpu_jacobian[i_cell][i][j] = gpu_jacobian[i_cell][i][j];
-      }
-    }
-  }
-
-  gpu_jacobian.CopyToDevice();
-  gpu_solver.solver_.AlphaMinusJacobian(gpu_jacobian, gpu_diagonal_elements, 42.042);
-  gpu_jacobian.CopyToHost();
-
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  {
-    EXPECT_EQ(gpu_jacobian[i_cell][0][0], 42.042 - 12.2);
-    EXPECT_EQ(gpu_jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
-    EXPECT_EQ(gpu_jacobian[i_cell][0][2], -42.3);
-    EXPECT_EQ(gpu_jacobian[i_cell][1][0], -0.43);
-    EXPECT_EQ(gpu_jacobian[i_cell][1][1], 42.042 - 23.4);
-    EXPECT_EQ(gpu_jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
-    EXPECT_EQ(gpu_jacobian[i_cell][2][0], -4.74);
-    EXPECT_EQ(gpu_jacobian[i_cell][2][2], 42.042 - 6.91);
-    EXPECT_EQ(gpu_jacobian[i_cell][3][1], -59.1);
-    EXPECT_EQ(gpu_jacobian[i_cell][3][3], 42.042 - 83.4);
-    EXPECT_EQ(gpu_jacobian[i_cell][4][0], -78.5);
-    EXPECT_EQ(gpu_jacobian[i_cell][4][2], -53.6);
-    EXPECT_EQ(gpu_jacobian[i_cell][4][4], 42.042 - 1.0);
-  }
-
-  cpu_solver.solver_.AlphaMinusJacobian(cpu_jacobian, cpu_diagonal_elements, 42.042);
-
-  // Compare the results
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  {
-    for (std::size_t i = 0; i < 5; ++i)
-    {
-      for (std::size_t j = 0; j < 5; ++j)
-      {
-        if (!cpu_jacobian.IsZero(i, j))
-          EXPECT_EQ(cpu_jacobian[i_cell][i][j], gpu_jacobian[i_cell][i][j]);
-      }
-    }
-  }
-}
-
 // In this test, all the elements in the same array are identical;
 // thus the calculated RMSE should be the same no matter what the size of the array is.
 template<std::size_t L>
-void testNormalizedErrorConst()
+void testNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
 {
-  std::size_t number_of_grid_cells = L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
@@ -160,9 +63,8 @@ void testNormalizedErrorConst()
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<std::size_t L>
-void testNormalizedErrorDiff()
+void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
 {
-  std::size_t number_of_grid_cells = L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
@@ -173,7 +75,12 @@ void testNormalizedErrorDiff()
   auto y_new = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, -13.9);
   auto errors = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 81.57);
 
-  state.SyncInputsToDevice();
+  // manually change each value of atol
+  for (size_t i = 0; i < state.state_size_; ++i)
+  {
+    atol[i] = atol[i] * (1 + i * 0.01);
+  }
+  state.SetAbsoluteTolerances(atol);  // copy atol to the device
 
   double expected_error = 0.0;
   for (size_t i = 0; i < number_of_grid_cells; ++i)
@@ -194,6 +101,7 @@ void testNormalizedErrorDiff()
   y_old.CopyToDevice();
   y_new.CopyToDevice();
   errors.CopyToDevice();
+  state.SyncInputsToDevice();
 
   double computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
@@ -211,10 +119,45 @@ void testNormalizedErrorDiff()
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<1>();
-  testAlphaMinusJacobian<20>();
-  testAlphaMinusJacobian<300>();
-  testAlphaMinusJacobian<4000>();
+  // number of grid cells == cuda matrix vector length
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testAlphaMinusJacobian(GpuBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testAlphaMinusJacobian(GpuBuilder<7>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
+  testAlphaMinusJacobian(GpuBuilder<29>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
+  testAlphaMinusJacobian(GpuBuilder<37>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
+  testAlphaMinusJacobian(GpuBuilder<77>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
+  testAlphaMinusJacobian(GpuBuilder<219>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
+  testAlphaMinusJacobian(GpuBuilder<5599>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
+  testAlphaMinusJacobian(GpuBuilder<6603>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
+  testAlphaMinusJacobian(GpuBuilder<200041>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
+  testAlphaMinusJacobian(GpuBuilder<421875>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
+  testAlphaMinusJacobian(GpuBuilder<3395043>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
+
+  // number of grid cells != cuda matrix vector length
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
+  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
+
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
+  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
 }
 
 TEST(RosenbrockSolver, CudaNormalizedError)
@@ -224,31 +167,94 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   // Here L = state_size_ * number_of_grid_cells_
   // Trying some odd and weird numbers is always helpful to reveal a potential bug.
 
-  // tests where RMSE does not change with the size of the array
+  /***************************************************************/
+  /* tests where RMSE does not change with the size of the array */
+  /***************************************************************/
+
+  // number of grid cells == cuda matrix vector length
   testNormalizedErrorConst<1>();
   testNormalizedErrorConst<2>();
-  testNormalizedErrorConst<4>();
   testNormalizedErrorConst<7>();
-  testNormalizedErrorConst<12>();
-  testNormalizedErrorConst<16>();
-  testNormalizedErrorConst<20>();
+  testNormalizedErrorConst<29>();
+  testNormalizedErrorConst<37>();
+  testNormalizedErrorConst<77>();
+  testNormalizedErrorConst<219>();
   testNormalizedErrorConst<5599>();
   testNormalizedErrorConst<6603>();
   testNormalizedErrorConst<200041>();
   testNormalizedErrorConst<421875>();
   testNormalizedErrorConst<3395043>();
 
-  // tests where RMSE changes with the size of the array
+  // number of grid cells != cuda matrix vector length
+  testNormalizedErrorConst<1>(2);
+  testNormalizedErrorConst<1>(7);
+  testNormalizedErrorConst<1>(29);
+  testNormalizedErrorConst<1>(37);
+  testNormalizedErrorConst<1>(77);
+  testNormalizedErrorConst<1>(219);
+  testNormalizedErrorConst<1>(5599);
+  testNormalizedErrorConst<1>(6603);
+  testNormalizedErrorConst<1>(200041);
+  testNormalizedErrorConst<1>(421875);
+  testNormalizedErrorConst<1>(3395043);
+
+  testNormalizedErrorConst<1109>(1);
+  testNormalizedErrorConst<1109>(2);
+  testNormalizedErrorConst<1109>(7);
+  testNormalizedErrorConst<1109>(29);
+  testNormalizedErrorConst<1109>(37);
+  testNormalizedErrorConst<1109>(77);
+  testNormalizedErrorConst<1109>(219);
+  testNormalizedErrorConst<1109>(5599);
+  testNormalizedErrorConst<1109>(6603);
+  testNormalizedErrorConst<1109>(200041);
+  testNormalizedErrorConst<1109>(421875);
+  testNormalizedErrorConst<1109>(3395043);
+
+  /*******************************************************/
+  /* tests where RMSE changes with the size of the array */
+  /*******************************************************/
+
+  // number of grid cells == cuda matrix vector length
   testNormalizedErrorDiff<1>();
   testNormalizedErrorDiff<2>();
   testNormalizedErrorDiff<4>();
   testNormalizedErrorDiff<7>();
-  testNormalizedErrorDiff<12>();
-  testNormalizedErrorDiff<16>();
-  testNormalizedErrorDiff<20>();
+  testNormalizedErrorDiff<29>();
+  testNormalizedErrorDiff<37>();
+  testNormalizedErrorDiff<77>();
+  testNormalizedErrorDiff<219>();
   testNormalizedErrorDiff<5599>();
   testNormalizedErrorDiff<6603>();
   testNormalizedErrorDiff<200041>();
   testNormalizedErrorDiff<421875>();
   testNormalizedErrorDiff<3395043>();
+
+  // number of grid cells != cuda matrix vector length
+  testNormalizedErrorDiff<1>(2);
+  testNormalizedErrorDiff<1>(4);
+  testNormalizedErrorDiff<1>(7);
+  testNormalizedErrorDiff<1>(29);
+  testNormalizedErrorDiff<1>(37);
+  testNormalizedErrorDiff<1>(77);
+  testNormalizedErrorDiff<1>(219);
+  testNormalizedErrorDiff<1>(5599);
+  testNormalizedErrorDiff<1>(6603);
+  testNormalizedErrorDiff<1>(200041);
+  testNormalizedErrorDiff<1>(421875);
+  testNormalizedErrorDiff<1>(3395043);
+
+  testNormalizedErrorDiff<1109>(1);
+  testNormalizedErrorDiff<1109>(2);
+  testNormalizedErrorDiff<1109>(4);
+  testNormalizedErrorDiff<1109>(7);
+  testNormalizedErrorDiff<1109>(29);
+  testNormalizedErrorDiff<1109>(37);
+  testNormalizedErrorDiff<1109>(77);
+  testNormalizedErrorDiff<1109>(219);
+  testNormalizedErrorDiff<1109>(5599);
+  testNormalizedErrorDiff<1109>(6603);
+  testNormalizedErrorDiff<1109>(200041);
+  testNormalizedErrorDiff<1109>(421875);
+  testNormalizedErrorDiff<1109>(3395043);
 }

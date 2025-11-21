@@ -66,6 +66,7 @@ namespace micm
     {
       this->param_.number_of_grid_cells_ = 0;
       this->param_.number_of_elements_ = this->data_.size();
+      this->param_.vector_length_ = L;
       if (this->param_.number_of_elements_ != 0)
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
@@ -75,6 +76,7 @@ namespace micm
     {
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
+      this->param_.vector_length_ = L;
       if (this->param_.number_of_elements_ != 0)
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
@@ -84,6 +86,7 @@ namespace micm
     {
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
+      this->param_.vector_length_ = L;
       if (this->param_.number_of_elements_ != 0)
       {
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
@@ -96,6 +99,7 @@ namespace micm
     {
       this->param_.number_of_grid_cells_ = 0;
       this->param_.number_of_elements_ = 0;
+      this->param_.vector_length_ = L;
       for (const auto& inner_vector : other)
       {
         this->param_.number_of_elements_ += inner_vector.size();
@@ -111,6 +115,7 @@ namespace micm
       this->param_.d_data_ = nullptr;
       this->param_.number_of_elements_ = other.param_.number_of_elements_;
       this->param_.number_of_grid_cells_ = other.param_.number_of_grid_cells_;
+      this->param_.vector_length_ = other.param_.vector_length_;
       CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }

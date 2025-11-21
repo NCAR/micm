@@ -1,38 +1,11 @@
 #include <micm/solver/linear_solver.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <iomanip>
 #include <random>
-
-// Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at
-// compile-time Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/
-template<class MatrixPolicy>
-void CopyToDeviceDense(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToDevice() } -> std::same_as<void>;
-                })
-    matrix.CopyToDevice();
-}
-
-template<class SparseMatrixPolicy>
-void CopyToDeviceSparse(SparseMatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToDevice() } -> std::same_as<void>;
-                })
-    matrix.CopyToDevice();
-}
-
-template<class MatrixPolicy>
-void CopyToHostDense(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToHost() } -> std::same_as<void>;
-                })
-    matrix.CopyToHost();
-}
 
 template<typename T, class MatrixPolicy, class SparseMatrixPolicy>
 void check_results(
@@ -118,8 +91,8 @@ void testDenseMatrix()
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceDense<MatrixPolicy>(b);
-  CopyToDeviceDense<MatrixPolicy>(x);
+  CheckCopyToDevice<MatrixPolicy>(b);
+  CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
@@ -130,13 +103,13 @@ void testDenseMatrix()
         alu[0][i][j] = A[0][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
+  CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
   solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<MatrixPolicy>(x);
+  CheckCopyToHost<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
@@ -173,7 +146,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceDense<MatrixPolicy>(x);
+  CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
@@ -185,13 +158,13 @@ void testRandomMatrix(std::size_t number_of_blocks)
           alu[i_block][i][j] = A[i_block][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
+  CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
   solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<MatrixPolicy>(x);
+  CheckCopyToHost<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-6); });
@@ -240,7 +213,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceDense<MatrixPolicy>(x);
+  CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value, false);
@@ -253,17 +226,17 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
           alu[i_block][i][j] = 0;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
+  CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<SparseMatrixPolicy>(alu);
+  CheckCopyToHost<SparseMatrixPolicy>(alu);
 
   solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<MatrixPolicy>(x);
+  CheckCopyToHost<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 2.0e-06); });
@@ -295,7 +268,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceDense<MatrixPolicy>(x);
+  CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
@@ -307,13 +280,13 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
           alu[i_block][i][j] = A[i_block][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
+  CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
   solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<MatrixPolicy>(x);
+  CheckCopyToHost<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });

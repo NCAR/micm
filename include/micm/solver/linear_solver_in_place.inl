@@ -25,8 +25,6 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    MICM_PROFILE_FUNCTION();
-
     auto lu = lu_decomp_.template GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < lu.NumRows(); ++i)
     {
@@ -58,8 +56,6 @@ namespace micm
   template<class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(SparseMatrixPolicy& matrix) const
   {
-    MICM_PROFILE_FUNCTION();
-
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix);
   }
 
@@ -70,8 +66,6 @@ namespace micm
       MatrixPolicy& x,
       const SparseMatrixPolicy& lu_matrix) const
   {
-    MICM_PROFILE_FUNCTION();
-
     for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
     {
       auto x_cell = x[i_cell];
@@ -124,7 +118,6 @@ namespace micm
       MatrixPolicy& x,
       const SparseMatrixPolicy& lu_matrix) const
   {
-    MICM_PROFILE_FUNCTION();
     constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)

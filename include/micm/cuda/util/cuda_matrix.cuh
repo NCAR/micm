@@ -17,7 +17,17 @@ namespace micm
     /// @param num_elements Requested number of elements to allocate
     /// @returns Error code from allocating data on the device, if any
     template<typename T>
+    cudaError_t MallocArray(T*& array, std::size_t num_elements);
+
+    /// @brief Allocate memory on device
+    /// @param vectorMatrix Reference to struct containing information about allocated memory
+    /// @param num_elements Requested number of elements to allocate
+    /// @returns Error code from allocating data on the device, if any
+    template<typename T>
     cudaError_t MallocVector(CudaMatrixParam& vectorMatrix, std::size_t num_elements);
+
+    template<typename T>
+    cudaError_t FreeArray(T*& array);
 
     /// @brief Free memory allocated on device
     /// @param vectorMatrix Struct containing allocated device memory

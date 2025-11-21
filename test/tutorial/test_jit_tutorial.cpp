@@ -69,7 +69,7 @@ int main(const int argc, const char* argv[])
   auto bar = Species{ "Bar" };
   auto baz = Species{ "Baz" };
 
-  Phase gas_phase{ std::vector<Species>{ foo, bar, baz } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz } };
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 

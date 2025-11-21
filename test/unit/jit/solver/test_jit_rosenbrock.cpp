@@ -56,7 +56,7 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })

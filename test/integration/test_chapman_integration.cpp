@@ -19,7 +19,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   auto h2o = micm::Species("H2O");
   auto co2 = micm::Species("CO2");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ o, o1d, o2, o3, m, ar, n2, h2o, co2 } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ o, o1d, o2, o3, m, ar, n2, h2o, co2 } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ o1d, n2 })

@@ -24,7 +24,7 @@ namespace
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -83,7 +83,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           .SetReactions(reactions)
           .Build();
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
-  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
   EXPECT_EQ(backward_euler_vector.GetSystem().phases_.size(), the_system.phases_.size());
   EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
@@ -108,7 +108,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .Build();
 
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
-  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
   EXPECT_EQ(rosenbrock_vector.GetSystem().phases_.size(), the_system.phases_.size());
   EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);

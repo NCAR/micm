@@ -22,7 +22,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
   cl.SetProperty("absolute tolerance", 1.0e-20);
   cl2.SetProperty("absolute tolerance", 1.0e-20);
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ cl2, cl } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ cl2, cl } };
 
   micm::Process toy_r1 = micm::ChemicalReactionBuilder()
                              .SetReactants({ cl2 })

@@ -15,7 +15,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   auto irr_1 = micm::Species("irr_1");
   auto irr_2 = micm::Species("irr_2");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, irr_1, irr_2 } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, irr_1, irr_2 } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })

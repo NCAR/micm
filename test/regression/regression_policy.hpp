@@ -124,7 +124,7 @@ void test_flow_tube(
 
   double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * 6.02214076e23;
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ soa1, soa2, apinene, o3 } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ soa1, soa2, apinene, o3 } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ soa1 })

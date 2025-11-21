@@ -21,6 +21,8 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = CudaSparseMatrix<int, OrderingPolicy>;
     using value_type = T;
+    // Access vector length via OrderingPolicy::GroupVectorSize()
+    static constexpr std::size_t vector_length_ = OrderingPolicy::GroupVectorSize();
 
    private:
     CudaMatrixParam param_;
@@ -36,6 +38,7 @@ namespace micm
         : SparseMatrix<T, OrderingPolicy>(builder, indexing_only)
     {
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      this->param_.vector_length_ = this->vector_length_;
       if (!indexing_only)
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
     }
@@ -44,6 +47,7 @@ namespace micm
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      this->param_.vector_length_ = this->vector_length_;
       if (this->data_.size() != 0)
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
       return *this;

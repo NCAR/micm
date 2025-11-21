@@ -39,18 +39,21 @@ void test_analytical_surface_rxn(
                        (M_PI * std::pow(mode_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(mode_GSD) * std::log(mode_GSD))) *
                        (conc_stuff / DENSITY_stuff + conc_more_stuff / DENSITY_more_stuff);
 
-  micm::Species foo("foo", { { "molecular weight [kg mol-1]", MW_foo }, { "diffusion coefficient [m2 s-1]", Dg_foo } });
+  micm::Species foo("foo", { { "molecular weight [kg mol-1]", MW_foo } });
   micm::Species bar("bar");
   micm::Species baz("baz");
+  micm::PhaseSpecies gas_foo(foo, Dg_foo);
+  micm::PhaseSpecies gas_bar(bar);
+  micm::PhaseSpecies gas_baz(baz);
 
   // Phase
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz } };
+  micm::Phase gas_phase{ "gas", { gas_foo, gas_bar, gas_baz } };
 
   // System
   micm::System chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   // Rate
-  micm::SurfaceRateConstant surface{ { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
+  micm::SurfaceRateConstant surface{ { .label_ = "foo", .phase_species_ = gas_foo, .reaction_probability_ = rxn_gamma } };
 
   // Process
   micm::Process surface_process = micm::ChemicalReactionBuilder()

@@ -31,7 +31,7 @@ TEST(JitProcessSet, ForcingFunction)
   auto e = micm::Species("E");
   auto f = micm::Species("F");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, d, e, f } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d, e, f } };
   micm::ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
 
   micm::State<ForcingTestVectorMatrix, ForcingTestSparseVectorMatrix> state(
