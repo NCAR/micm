@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <iomanip>
 #include <random>
 
 // Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at
