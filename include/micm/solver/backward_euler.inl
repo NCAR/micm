@@ -27,7 +27,7 @@ namespace micm
     const auto time_step_reductions = parameters.time_step_reductions_;
 
     double H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
-    double t = 0.0;
+    double present_time = 0.0;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
 
@@ -40,7 +40,7 @@ namespace micm
     // Ensure Yn starts with the same values as the state variables
     Yn.Copy(Yn1);
 
-    while (t < time_step)
+    while (present_time < time_step)
     {
       result.state_ = SolverState::Running;
       bool converged = false;
@@ -116,7 +116,7 @@ namespace micm
 
         if (n_convergence_failures >= time_step_reductions.size())
         {
-          t += H;
+          present_time += H;
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
           break;
         }
@@ -131,7 +131,7 @@ namespace micm
       {
         result.stats_.accepted_++;
         result.state_ = SolverState::Converged;
-        t += H;
+        present_time += H;
         Yn.Copy(Yn1);
 
         // when we accept two solutions in a row, we can increase the time step
@@ -143,10 +143,10 @@ namespace micm
         }
       }
       // Don't let H go past the time step
-      H = std::min(H, time_step - t);
+      H = std::min(H, time_step - present_time);
     }
 
-    result.final_time_ = t;
+    result.stats_.final_time_ = present_time;
     return result;
   }
 

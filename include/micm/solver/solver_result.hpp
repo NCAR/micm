@@ -45,6 +45,8 @@ namespace micm
     uint64_t decompositions_{};
     /// @brief The number of linear solves
     uint64_t solves_{};
+    /// @brief The final time the solver iterated to
+    double final_time_{};
   };
 
   inline std::string SolverStateToString(const SolverState& state)
@@ -70,7 +72,5 @@ namespace micm
     SolverState state_ = SolverState::NotYetCalled;
     /// @brief A collection of runtime state for this call of the solver
     SolverStats stats_{};
-    /// @brief The final time the solver iterated to
-    double final_time_{};
   };
 }  // namespace micm

@@ -63,7 +63,7 @@ void test_solver_type(auto& solver)
       total_stats.decompositions_ += result.stats_.decompositions_;
       total_stats.solves_ += result.stats_.solves_;
 
-      elapsed_solve_time += result.final_time_;
+      elapsed_solve_time += result.stats_.final_time_;;
     }
 
     state.PrintState(time_step * (i + 1));

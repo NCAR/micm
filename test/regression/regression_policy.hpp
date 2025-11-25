@@ -187,7 +187,7 @@ void test_flow_tube(
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
+      actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];

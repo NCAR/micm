@@ -48,7 +48,7 @@ auto run_solver(auto& solver, const size_t n_grid_cells = 1)
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
       total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-      elapsed_solve_time = result.final_time_;
+      elapsed_solve_time = result.stats_.final_time_;;
 
       total_stats.function_calls_ += result.stats_.function_calls_;
       total_stats.jacobian_updates_ += result.stats_.jacobian_updates_;
