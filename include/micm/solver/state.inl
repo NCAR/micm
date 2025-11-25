@@ -107,8 +107,8 @@ namespace micm
         jacobian_diagonal_elements_(),
         lower_matrix_(),
         upper_matrix_(),
-        state_size_(parameters.variable_names_.size()),
-        constraint_size_(0),
+        state_size_(parameters.number_of_species_),
+        constraint_size_(parameters.number_of_constraints_),
         number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
