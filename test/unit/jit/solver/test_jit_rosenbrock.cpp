@@ -34,7 +34,8 @@ void run_solver(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.stats_.final_time_;;
+      elapsed_solve_time = result.stats_.final_time_;
+      ;
     }
   }
 }

@@ -196,7 +196,8 @@ namespace micm
       result.state_ = SolverState::Converged;
     }
 
-    result.stats_.final_time_ = present_time;;
+    result.stats_.final_time_ = present_time;
+    ;
 
     return result;
   }
