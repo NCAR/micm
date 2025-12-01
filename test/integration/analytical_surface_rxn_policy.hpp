@@ -100,7 +100,8 @@ void test_analytical_surface_rxn(
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     postpare_for_solve(state);
-    elapsed_solve_time = result.stats_.final_time_;;
+    elapsed_solve_time = result.stats_.final_time_;
+    ;
 
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
 
