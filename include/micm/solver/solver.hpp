@@ -105,6 +105,11 @@ namespace micm
       return state_parameters_.number_of_species_;
     }
 
+    std::size_t GetNumberOfConstraints() const
+    {
+      return state_parameters_.number_of_constraints_;
+    }
+
     std::size_t GetNumberOfReactions() const
     {
       return state_parameters_.number_of_rate_constants_;
