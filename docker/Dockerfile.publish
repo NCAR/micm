@@ -19,7 +19,6 @@ RUN mkdir /build \
       && cd /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=release \
-        -D MICM_ENABLE_LLVM:BOOL=TRUE \
         ../micm \
       && make install -j 8
 

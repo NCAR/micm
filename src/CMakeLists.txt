@@ -37,10 +37,6 @@ if(MICM_ENABLE_MPI)
   target_link_libraries(micm INTERFACE MPI::MPI_CXX)
 endif()
 
-if(MICM_ENABLE_LLVM)
-  target_link_libraries(micm INTERFACE ${llvm_libs})
-endif()
-
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)

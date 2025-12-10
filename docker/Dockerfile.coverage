@@ -26,9 +26,6 @@ RUN mkdir /build \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_COVERAGE:BOOL=TRUE \
-        -D MICM_ENABLE_LLVM:BOOL=TRUE \
-        # -D MICM_ENABLE_MPI:BOOL=TRUE \
-        # -D MICM_ENABLE_OPENMP:BOOL=TRUE \
         ../micm \
       && make install -j 8
 

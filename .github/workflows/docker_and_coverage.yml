@@ -22,7 +22,6 @@ jobs:
         dockerfile:
           - Dockerfile
           - Dockerfile.coverage
-          - Dockerfile.llvm
           - Dockerfile.memcheck
           - Dockerfile.nvhpc
           - Dockerfile.openmp

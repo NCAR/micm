@@ -3,10 +3,6 @@
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#ifdef MICM_ENABLE_LLVM
-  #include <micm/solver/jit/jit_solver_builder.hpp>
-  #include <micm/solver/jit/jit_solver_parameters.hpp>
-#endif
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
