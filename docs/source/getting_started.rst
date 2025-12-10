@@ -38,12 +38,10 @@ Options
 
 
 MICM can optionally include support for yaml configuration reading, OpenMP,
-JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library. 
+and GPUs. Each of these requires an additional library. 
 Some of these libraries can be included automatically with cmake build options,
 others require that you have libraries installed on your system.
 
-- JIT-compiled chemistry functions 
-  - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
 - GPU support
   - Coming soon
 - OpenMP
