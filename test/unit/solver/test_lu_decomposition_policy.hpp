@@ -6,24 +6,6 @@
 #include <functional>
 #include <random>
 
-template<class MatrixPolicy>
-void CopyToDevice(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToDevice() } -> std::same_as<void>;
-                })
-    matrix.CopyToDevice();
-}
-
-template<class MatrixPolicy>
-void CopyToHost(MatrixPolicy& matrix)
-{
-  if constexpr (requires {
-                  { matrix.CopyToHost() } -> std::same_as<void>;
-                })
-    matrix.CopyToHost();
-}
-
 template<typename T, class SparseMatrixPolicy>
 void check_results(
     const SparseMatrixPolicy& A,
@@ -185,14 +167,14 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
   auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
       A, initial_value, false);
 
-  CopyToDevice<SparseMatrixPolicy>(A);
-  CopyToDevice<SparseMatrixPolicy>(LU.first);
-  CopyToDevice<SparseMatrixPolicy>(LU.second);
+  CheckCopyToDevice<SparseMatrixPolicy>(A);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.first);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.second);
 
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
 
-  CopyToHost<SparseMatrixPolicy>(LU.first);
-  CopyToHost<SparseMatrixPolicy>(LU.second);
+  CheckCopyToHost<SparseMatrixPolicy>(LU.first);
+  CheckCopyToHost<SparseMatrixPolicy>(LU.second);
 
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-09); });

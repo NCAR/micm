@@ -380,7 +380,7 @@ void test_analytical_troe(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -453,7 +453,7 @@ void test_analytical_stiff_troe(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -544,7 +544,7 @@ void test_analytical_photolysis(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -609,7 +609,7 @@ void test_analytical_stiff_photolysis(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -695,7 +695,7 @@ void test_analytical_ternary_chemical_activation(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -768,7 +768,7 @@ void test_analytical_stiff_ternary_chemical_activation(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -860,7 +860,7 @@ void test_analytical_tunneling(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -922,7 +922,7 @@ void test_analytical_stiff_tunneling(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -1001,7 +1001,7 @@ void test_analytical_arrhenius(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -1064,7 +1064,7 @@ void test_analytical_stiff_arrhenius(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -1145,7 +1145,7 @@ void test_analytical_branched(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 =
       micm::ChemicalReactionBuilder()
@@ -1235,7 +1235,7 @@ void test_analytical_stiff_branched(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
   micm::Process r1 =
       micm::ChemicalReactionBuilder()
@@ -1354,7 +1354,7 @@ void test_analytical_robertson(
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -1439,7 +1439,8 @@ void test_analytical_robertson(
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
+      actual_solve += result.stats_.final_time_;
+      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
@@ -1524,7 +1525,7 @@ void test_analytical_oregonator(
   auto P = micm::Species("P");
   auto Q = micm::Species("Q");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ X, Y, Z, P, Q } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ X, Y, Z, P, Q } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ Y })
@@ -1635,7 +1636,8 @@ void test_analytical_oregonator(
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
+      actual_solve += result.stats_.final_time_;
+      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
@@ -1703,7 +1705,7 @@ void test_analytical_hires(
   auto y6 = micm::Species("Y6");
   auto y7 = micm::Species("Y7");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ y0, y1, y2, y3, y4, y5, y6, y7 } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ y0, y1, y2, y3, y4, y5, y6, y7 } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y0 })
@@ -1829,7 +1831,8 @@ void test_analytical_hires(
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
+      actual_solve += result.stats_.final_time_;
+      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
@@ -1909,7 +1912,7 @@ void test_analytical_e5(
   auto a5 = micm::Species("A5");
   auto a6 = micm::Species("A6");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, a3, a4, a5, a6 } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, a3, a4, a5, a6 } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -1995,7 +1998,8 @@ void test_analytical_e5(
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
+      actual_solve += result.stats_.final_time_;
+      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];

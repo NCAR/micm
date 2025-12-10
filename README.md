@@ -115,7 +115,7 @@ int main(const int argc, const char *argv[])
   auto bar = Species{ "Bar" };
   auto baz = Species{ "Baz" };
 
-  Phase gas_phase{ std::vector<Species>{ foo, bar, baz } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz } };
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
@@ -161,7 +161,7 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.10.0/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.11.0/include -std=c++20
 ./foo_chem
 ```
 

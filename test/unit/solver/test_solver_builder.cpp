@@ -24,7 +24,7 @@ namespace
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
@@ -83,7 +83,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           .SetReactions(reactions)
           .Build();
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
-  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
   EXPECT_EQ(backward_euler_vector.GetSystem().phases_.size(), the_system.phases_.size());
   EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
@@ -108,7 +108,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .Build();
 
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
-  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
   EXPECT_EQ(rosenbrock_vector.GetSystem().phases_.size(), the_system.phases_.size());
   EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);
@@ -124,7 +124,7 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
   auto options = micm::BackwardEulerSolverParameters();
   auto solve = solver.Solve(5, state, options);
 
-  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.final_time_, 5);
   EXPECT_EQ(solve.stats_.function_calls_, 2);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 2);
   EXPECT_EQ(solve.stats_.number_of_steps_, 2);
@@ -135,7 +135,7 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
 
   solve = solver.Solve(5, state, options);
 
-  EXPECT_EQ(solve.final_time_, 0.03125);
+  EXPECT_EQ(solve.stats_.final_time_, 0.03125);
   EXPECT_EQ(solve.stats_.function_calls_, 6);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 6);
   EXPECT_EQ(solve.stats_.number_of_steps_, 6);
@@ -154,7 +154,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 
   auto solve = solver.Solve(5, state);
 
-  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.final_time_, 5);
   EXPECT_EQ(solve.stats_.function_calls_, 18);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 9);
   EXPECT_EQ(solve.stats_.number_of_steps_, 9);
@@ -166,7 +166,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   state.variables_[0] = { 1.0, 0.0, 0.0 };
   solve = solver.Solve(5, state, options);
 
-  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.final_time_, 5);
   EXPECT_EQ(solve.stats_.function_calls_, 2);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 1);
   EXPECT_EQ(solve.stats_.number_of_steps_, 1);

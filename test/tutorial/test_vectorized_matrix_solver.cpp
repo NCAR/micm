@@ -37,7 +37,7 @@ void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
     while (elapsed_solve_time < time_step && solver_state != SolverState::Converged)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time += result.final_time_;
+      elapsed_solve_time += result.stats_.final_time_;;
       solver_state = result.state_;
     }
   }
@@ -53,7 +53,7 @@ int main()
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ std::vector<Species>{ a, b, c } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })

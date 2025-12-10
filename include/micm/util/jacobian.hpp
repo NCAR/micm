@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
-
 #include <cstddef>
 #include <set>
 #include <utility>
@@ -18,8 +16,6 @@ namespace micm
       std::size_t state_size,
       bool indexing_only)
   {
-    MICM_PROFILE_FUNCTION();
-
     auto builder = SparseMatrixPolicy::Create(state_size).SetNumberOfBlocks(number_of_grid_cells);
     for (auto& elem : nonzero_jacobian_elements)
       builder = builder.WithElement(elem.first, elem.second);

@@ -19,7 +19,7 @@ micm::Phase createGasPhase()
   auto h2o = micm::Species("H2O");
   auto co2 = micm::Species("CO2");
 
-  return micm::Phase{ std::vector<micm::Species>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
+  return micm::Phase{ "gas", std::vector<micm::PhaseSpecies>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
 }
 
 std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)

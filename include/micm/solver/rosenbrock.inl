@@ -9,7 +9,6 @@ namespace micm
       auto& state,
       const RosenbrockSolverParameters& parameters) const noexcept
   {
-    MICM_PROFILE_FUNCTION();
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
@@ -27,8 +26,6 @@ namespace micm
     const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
-    SolverStats stats;
-
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -36,7 +33,7 @@ namespace micm
 
     while ((present_time - time_step + parameters.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
-      if (stats.number_of_steps_ > parameters.max_number_of_steps_)
+      if (result.stats_.number_of_steps_ > parameters.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
@@ -54,12 +51,12 @@ namespace micm
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
-      stats.function_calls_ += 1;
+      result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-      stats.jacobian_updates_ += 1;
+      result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
       double last_alpha = 0.0;
@@ -77,7 +74,7 @@ namespace micm
         }
 
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(alpha, stats, state);
+        LinearFactor(alpha, result.stats_, state);
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
@@ -98,7 +95,7 @@ namespace micm
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
-              stats.function_calls_ += 1;
+              result.stats_.function_calls_ += 1;
             }
           }
           if (stage + 1 < parameters.stages_ && !parameters.new_function_evaluation_[stage + 1])
@@ -117,7 +114,7 @@ namespace micm
           {
             linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
           }
-          stats.solves_ += 1;
+          result.stats_.solves_ += 1;
         }
 
         // Compute the new solution
@@ -140,7 +137,7 @@ namespace micm
                 parameters.safety_factor_ / std::pow(error, 1 / parameters.estimator_of_local_order_)));
         double Hnew = H * fac;
 
-        stats.number_of_steps_ += 1;
+        result.stats_.number_of_steps_ += 1;
 
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
@@ -155,7 +152,7 @@ namespace micm
         }
         else if ((error < 1) || (H < h_min))
         {
-          stats.accepted_ += 1;
+          result.stats_.accepted_ += 1;
           present_time = present_time + H;
           Y.Swap(Ynew);
           Hnew = std::max(h_min, std::min(Hnew, h_max));
@@ -179,16 +176,16 @@ namespace micm
           reject_more_h = reject_last_h;
           reject_last_h = true;
           H = Hnew;
-          if (stats.accepted_ >= 1)
+          if (result.stats_.accepted_ >= 1)
           {
-            stats.rejected_ += 1;
+            result.stats_.rejected_ += 1;
           }
           // Re-generate the Jacobian matrix for the inline LU algorithm
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-            stats.jacobian_updates_ += 1;
+            result.stats_.jacobian_updates_ += 1;
           }
         }
       }
@@ -199,8 +196,8 @@ namespace micm
       result.state_ = SolverState::Converged;
     }
 
-    result.final_time_ = present_time;
-    result.stats_ = stats;
+    result.stats_.final_time_ = present_time;
+    ;
 
     return result;
   }
@@ -208,17 +205,14 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
-      SparseMatrixPolicy& jacobian,
-      std::vector<std::size_t>& jacobian_diagonal_elements,
+      auto& state,
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
-    MICM_PROFILE_FUNCTION();
-
-    for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
+    for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
     {
-      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
-      for (const auto& i_elem : jacobian_diagonal_elements)
+      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
+      for (const auto& i_elem : state.jacobian_diagonal_elements_)
         jacobian_vector[i_elem] += alpha;
     }
   }
@@ -226,18 +220,15 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
-      SparseMatrixPolicy& jacobian,
-      std::vector<std::size_t>& jacobian_diagonal_elements,
+      auto& state,
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
-    MICM_PROFILE_FUNCTION();
-
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
+    for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
-      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize());
-      for (const auto& i_elem : jacobian_diagonal_elements)
+      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
+      for (const auto& i_elem : state.jacobian_diagonal_elements_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
     }
@@ -249,11 +240,10 @@ namespace micm
       SolverStats& stats,
       auto& state) const
   {
-    MICM_PROFILE_FUNCTION();
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
-    static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, state.jacobian_diagonal_elements_, alpha);
+    static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, alpha);
 
     if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
     {
@@ -277,8 +267,6 @@ namespace micm
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
-    MICM_PROFILE_FUNCTION();
 
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
@@ -315,8 +303,6 @@ namespace micm
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
-    MICM_PROFILE_FUNCTION();
 
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();

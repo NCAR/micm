@@ -34,7 +34,8 @@ void run_solver(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.final_time_;
+      elapsed_solve_time = result.stats_.final_time_;
+      ;
     }
   }
 }
@@ -56,7 +57,7 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   auto b = micm::Species("B");
   auto c = micm::Species("C");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })

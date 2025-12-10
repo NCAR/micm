@@ -13,7 +13,7 @@ int main()
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ std::vector<Species>{ a, b, c } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
@@ -83,5 +83,5 @@ int main()
   std::cout << "rejected: " << result.stats_.rejected_ << std::endl;
   std::cout << "decompositions: " << result.stats_.decompositions_ << std::endl;
   std::cout << "solves: " << result.stats_.solves_ << std::endl;
-  std::cout << "final simulation time: " << result.final_time_ << std::endl;
+  std::cout << "final simulation time: " << result.stats_.final_time_ << std::endl;
 }

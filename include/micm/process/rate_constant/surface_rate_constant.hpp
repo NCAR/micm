@@ -4,7 +4,7 @@
 
 #define _USE_MATH_DEFINES
 #include <micm/process/rate_constant/rate_constant.hpp>
-#include <micm/system/species.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/property_keys.hpp>
 
@@ -19,7 +19,7 @@ namespace micm
     /// @brief Label for the reaction used to identify user-defined parameters
     std::string label_;
     /// @brief Gas-phase species reacting on surface
-    Species species_;
+    PhaseSpecies phase_species_;
     /// @brief Reaction probability (0-1) [unitless]
     double reaction_probability_{ 1.0 };
   };
@@ -32,8 +32,9 @@ namespace micm
     double diffusion_coefficient_;   // [m2 s-1]
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
 
-    /// @brief
-    /// @param parameters The data required to build this class
+    /// @brief Constructs a SurfaceRateConstant by initializing the diffusion coefficient
+    ///        and mean free speed factor from the provided parameters
+    /// @throws std::system_error if required properties (diffusion coefficient or molecular weight) are missing
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
 
     /// @brief Deep copy
@@ -62,12 +63,36 @@ namespace micm
   };
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
-      : parameters_(parameters),
-        diffusion_coefficient_(parameters.species_.GetProperty<double>(property_keys::GAS_DIFFUSION_COEFFICIENT)),
-        mean_free_speed_factor_(
-            8.0 * constants::GAS_CONSTANT /
-            (M_PI * parameters.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT)))
+      : parameters_(parameters)
   {
+    if (parameters.phase_species_.diffusion_coefficient_.has_value())
+    {
+      diffusion_coefficient_ = parameters.phase_species_.diffusion_coefficient_.value();
+    }
+    else
+    {
+      throw std::system_error(
+          make_error_code(MicmSpeciesErrc::PropertyNotFound),
+          "Diffusion coefficient for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
+    }
+    try
+    {
+      double molecular_weight = parameters.phase_species_.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT);
+      mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * molecular_weight);
+    }
+    catch (const std::system_error& e)
+    {
+      if (e.code() == make_error_code(MicmSpeciesErrc::PropertyNotFound))
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound),
+            "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
+      }
+      else
+      {
+        throw;
+      }
+    }
   }
 
   inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
