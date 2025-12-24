@@ -13,6 +13,7 @@
 #include <micm/process/rate_constant/branched_rate_constant.hpp>
 #include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/process/rate_constant/rate_constant.hpp>
+#include <micm/process/rate_constant/reversible_rate_constant.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/rate_constant/taylor_series_rate_constant.hpp>
 #include <micm/process/rate_constant/ternary_chemical_activation_rate_constant.hpp>
