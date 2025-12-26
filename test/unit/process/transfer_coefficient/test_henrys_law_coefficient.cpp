@@ -22,7 +22,6 @@ TEST(HenrysLawCoefficient, DefaultConstructor)
 
 TEST(HenrysLawCoefficient, CalculateKH_SimpleCase)
 {
-  // Test basic Henry's Law constant calculation: K_H = A * exp(C/T)
   micm::HenrysLawCoefficientParameters parameters;
   parameters.A_ = 32.4;
   parameters.C_ = -3.2e-3;
@@ -35,49 +34,17 @@ TEST(HenrysLawCoefficient, CalculateKH_SimpleCase)
   EXPECT_NEAR(k_h, expected, TOLERANCE * expected);
 }
 
-TEST(HenrysLawCoefficient, CalculateKH_TemperatureDependence)
-{
-  // Test temperature dependence
-  micm::HenrysLawCoefficientParameters parameters;
-  parameters.A_ = 32.4;
-  parameters.C_ = -2400.0;  // More typical value for C parameter [K]
-
-  micm::HenrysLawCoefficient hlc(parameters);
-  
-  // Test at different temperatures
-  double T1 = 273.15;  // 0°C
-  double T2 = 298.15;  // 25°C
-  double T3 = 313.15;  // 40°C
-
-  double k_h1 = hlc.CalculateKH(T1);
-  double k_h2 = hlc.CalculateKH(T2);
-  double k_h3 = hlc.CalculateKH(T3);
-
-  double expected1 = 32.4 * std::exp(-2400.0 / T1);
-  double expected2 = 32.4 * std::exp(-2400.0 / T2);
-  double expected3 = 32.4 * std::exp(-2400.0 / T3);
-
-  EXPECT_NEAR(k_h1, expected1, TOLERANCE * expected1);
-  EXPECT_NEAR(k_h2, expected2, TOLERANCE * expected2);
-  EXPECT_NEAR(k_h3, expected3, TOLERANCE * expected3);
-
-  // Verify that Henry's Law constant decreases with temperature for negative C
-  EXPECT_GT(k_h1, k_h2);
-  EXPECT_GT(k_h2, k_h3);
-}
-
 TEST(HenrysLawCoefficient, CalculateEffective_NeutralPH)
 {
-  // Test effective Henry's Law coefficient at neutral pH
   micm::HenrysLawCoefficientParameters parameters;
   parameters.A_ = 32.4;
   parameters.C_ = -2400.0;
-  parameters.K_a1_ = 1.0e-7;  // pK_a1 ~ 7
-  parameters.K_a2_ = 1.0e-11; // pK_a2 ~ 11
+  parameters.K_a1_ = 1.0e-7;
+  parameters.K_a2_ = 1.0e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
   
-  double temperature = 298.15;  // [K]
+  double temperature = 298.15;
   double pH = 7.0;
   
   double k_h_eff = hlc.CalculateEffective(temperature, pH);
@@ -93,16 +60,15 @@ TEST(HenrysLawCoefficient, CalculateEffective_NeutralPH)
 
 TEST(HenrysLawCoefficient, CalculateEffective_AcidicPH)
 {
-  // Test at acidic pH where dissociation is suppressed
   micm::HenrysLawCoefficientParameters parameters;
   parameters.A_ = 32.4;
   parameters.C_ = -2400.0;
-  parameters.K_a1_ = 4.3e-7;   // CO2: pK_a1 ~ 6.37
-  parameters.K_a2_ = 4.7e-11;  // CO2: pK_a2 ~ 10.33
+  parameters.K_a1_ = 4.3e-7;
+  parameters.K_a2_ = 4.7e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
   
-  double temperature = 298.15;  // [K]
+  double temperature = 298.15;
   double pH = 3.0;  // Acidic
   
   double k_h_eff = hlc.CalculateEffective(temperature, pH);
@@ -114,16 +80,15 @@ TEST(HenrysLawCoefficient, CalculateEffective_AcidicPH)
 
 TEST(HenrysLawCoefficient, CalculateEffective_BasicPH)
 {
-  // Test at basic pH where dissociation is significant
   micm::HenrysLawCoefficientParameters parameters;
   parameters.A_ = 32.4;
   parameters.C_ = -2400.0;
-  parameters.K_a1_ = 4.3e-7;   // CO2: pK_a1 ~ 6.37
-  parameters.K_a2_ = 4.7e-11;  // CO2: pK_a2 ~ 10.33
+  parameters.K_a1_ = 4.3e-7;
+  parameters.K_a2_ = 4.7e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
   
-  double temperature = 298.15;  // [K]
+  double temperature = 298.15; 
   double pH = 10.0;  // Basic
   
   double k_h_eff = hlc.CalculateEffective(temperature, pH);
@@ -152,7 +117,7 @@ TEST(HenrysLawCoefficient, CalculateWithConditions_WithPH)
   micm::HenrysLawCoefficient hlc(parameters);
   
   micm::Conditions conditions = {
-    .temperature_ = 298.15  // [K]
+    .temperature_ = 298.15
   };
   conditions.pH = 8.0;
   

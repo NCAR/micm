@@ -89,11 +89,8 @@ namespace micm
 
   inline double HenrysLawCoefficient::Calculate(const Conditions& conditions) const
   {
-    // If pH is available in conditions, calculate effective coefficient
-    // Otherwise, just return K_H(T)
     if (conditions.pH.has_value())
     {
-      // Assume first custom parameter is pH
       return CalculateEffective(conditions.temperature_, conditions.pH.value());
     }
     return CalculateEffective(conditions.temperature_, 7.0);
