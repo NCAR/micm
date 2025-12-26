@@ -7,7 +7,7 @@
 
 constexpr double TOLERANCE = 1e-13;
 
-TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
+TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArguments)
 {
   double temperature = 301.24;
   micm::Conditions conditions = {
@@ -29,7 +29,7 @@ TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
-TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArugments)
+TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArguments)
 {
   double temperature = 301.24;
   micm::Conditions conditions = {
