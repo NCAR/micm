@@ -53,11 +53,6 @@ namespace micm
     /// @return The effective Henry's Law coefficient accounting for temperature and pH
     double Calculate(const Conditions& conditions) const override;
 
-    /// @brief Calculate the Henry's Law constant K_H(T) = A * exp(C/T)
-    /// @param temperature Temperature in [K]
-    /// @return The Henry's Law constant
-    double CalculateKH(const double temperature) const;
-
     /// @brief Calculate the effective Henry's Law coefficient
     /// @param temperature Temperature in [K]
     /// @param pH pH of the aqueous phase
@@ -82,7 +77,7 @@ namespace micm
 
   inline double HenrysLawCoefficient::Calculate() const
   {
-    // TODO - does this number make sense as the default?
+    // TODO (jiwon) - does this number make sense as the default?
     // Default calculation at standard temperature (298.15 K) and neutral (7.0)
     return CalculateEffective(298.15, 7.0);
   }
@@ -96,16 +91,9 @@ namespace micm
     return CalculateEffective(conditions.temperature_, 7.0);
   }
 
-  inline double HenrysLawCoefficient::CalculateKH(const double temperature) const
-  {
-    // K_H(T) = A * exp(C / T)
-    return parameters_.A_ * std::exp(parameters_.C_ / temperature);
-  }
-
   inline double HenrysLawCoefficient::CalculateEffective(const double temperature, const double pH) const
   {
-    // Calculate base Henry's Law constant
-    double K_H = CalculateKH(temperature);
+    double K_H = parameters_.A_ * std::exp(parameters_.C_ / temperature);
 
     // Calculate [H+] from pH
     double H_plus = std::pow(10.0, -pH);

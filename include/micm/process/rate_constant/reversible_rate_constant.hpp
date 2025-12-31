@@ -14,11 +14,13 @@ namespace micm
     double A_{ 1 };
     /// @brief Activation threshold [K]
     double C_{ 0 };
-    /// @brief Reverse rate constant [s−1]
+    /// @brief Reverse rate constant [s−1], indicating how fast the species 
+    ///        leaves the condensed phase to return to the gas phase
     double k_r_{ 0 };
   };
 
   /// @brief A reversible rate constant with temperature dependence
+  ///        for condensed-phase reversible reaction
   class ReversibleRateConstant : public RateConstant
   {
    public:
@@ -46,9 +48,9 @@ namespace micm
     double Calculate(const Conditions& conditions) const override;
 
     /// @brief Calculate the rate constant
-    /// @param temperature Temperature in [K]
+    /// @param temperature Temperature [K]
     /// @return A rate constant based on temperature
-    double Calculate(const double& temperature) const;
+    double Calculate(const double temperature) const;
   };
 
   inline ReversibleRateConstant::ReversibleRateConstant()
@@ -78,12 +80,10 @@ namespace micm
     return Calculate(conditions.temperature_);
   }
 
-  // Condensed phase reversible reaction
-  // K_eq = A * exp(C / T) = Equilibrium constant
-  // k_r = reverse rate constant
-  // (k_f = K_eq * k_r = forward rate constant)
-  inline double ReversibleRateConstant::Calculate(const double& temperature) const
+  inline double ReversibleRateConstant::Calculate(const double temperature) const
   {
+    // K_eq = A * exp(C / T) = Equilibrium constant
+    // k_f = K_eq * k_r = forward rate constant, indicating how fast the gas can diffuse through the air
     double K_eq = parameters_.A_ * std::exp(parameters_.C_ / temperature);
     return K_eq * parameters_.k_r_;
   }
