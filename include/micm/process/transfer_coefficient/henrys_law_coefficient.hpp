@@ -100,8 +100,7 @@ namespace micm
 
     // Calculate effective Henry's Law coefficient for diprotic acid
     // K_H_eff = K_H * (1 + K_a1/[H+] + K_a1*K_a2/[H+]^2)
-    double K_H_eff = K_H * (1.0 + parameters_.K_a1_ / H_plus + 
-                            (parameters_.K_a1_ * parameters_.K_a2_) / (H_plus * H_plus));
+    double K_H_eff = K_H * (1.0 + parameters_.K_a1_ / H_plus + (parameters_.K_a1_ * parameters_.K_a2_) / (H_plus * H_plus));
 
     return K_H_eff;
   }
