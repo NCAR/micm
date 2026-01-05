@@ -13,11 +13,13 @@
 #include <micm/process/rate_constant/branched_rate_constant.hpp>
 #include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/process/rate_constant/rate_constant.hpp>
+#include <micm/process/rate_constant/reversible_rate_constant.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/rate_constant/taylor_series_rate_constant.hpp>
 #include <micm/process/rate_constant/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/rate_constant/troe_rate_constant.hpp>
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
+#include <micm/process/transfer_coefficient/henrys_law_coefficient.hpp>
 #include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
