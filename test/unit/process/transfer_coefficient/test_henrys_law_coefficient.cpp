@@ -29,18 +29,17 @@ TEST(HenrysLawCoefficient, CalculateEffective_NeutralPH)
   parameters.K_a2_ = 1.0e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
-  
+
   double temperature = 298.15;
   double pH = 7.0;
-  
+
   double k_h_eff = hlc.CalculateEffective(temperature, pH);
   double k_h = parameters.A_ * std::exp(parameters.C_ / temperature);
   double H_plus = std::pow(10.0, -pH);
-  
+
   // K_H_eff = K_H * (1 + K_a1/[H+] + K_a1*K_a2/[H+]^2)
-  double expected = k_h * (1.0 + parameters.K_a1_ / H_plus + 
-                           (parameters.K_a1_ * parameters.K_a2_) / (H_plus * H_plus));
-  
+  double expected = k_h * (1.0 + parameters.K_a1_ / H_plus + (parameters.K_a1_ * parameters.K_a2_) / (H_plus * H_plus));
+
   EXPECT_NEAR(k_h_eff, expected, TOLERANCE * expected);
 }
 
@@ -54,15 +53,13 @@ TEST(HenrysLawCoefficient, CalculateWithConditions_WithPH)
   parameters.K_a2_ = 4.7e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
-  
-  micm::Conditions conditions = {
-    .temperature_ = 298.15
-  };
+
+  micm::Conditions conditions = { .temperature_ = 298.15 };
   conditions.pH = 8.0;
-  
+
   double k = hlc.Calculate(conditions);
   double expected = hlc.CalculateEffective(298.15, 8.0);
-  
+
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
@@ -76,15 +73,15 @@ TEST(HenrysLawCoefficient, CalculateWithConditions_WithoutPH)
   parameters.K_a2_ = 4.7e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
-  
+
   micm::Conditions conditions = {
     .temperature_ = 298.15  // [K]
   };
   // pH not set
-  
+
   double k = hlc.Calculate(conditions);
   double expected = hlc.CalculateEffective(298.15, 7.0);  // Default pH = 7.0
-  
+
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
@@ -99,15 +96,13 @@ TEST(HenrysLawCoefficient, Clone)
 
   micm::HenrysLawCoefficient original(parameters);
   auto cloned = original.Clone();
-  
-  micm::Conditions conditions = {
-    .temperature_ = 298.15
-  };
+
+  micm::Conditions conditions = { .temperature_ = 298.15 };
   conditions.pH = 7.5;
-  
+
   double original_result = original.Calculate(conditions);
   double cloned_result = cloned->Calculate(conditions);
-  
+
   EXPECT_NEAR(original_result, cloned_result, TOLERANCE * original_result);
 }
 
@@ -121,10 +116,10 @@ TEST(HenrysLawCoefficient, Calculate_DefaultMethod)
   parameters.K_a2_ = 1.0e-11;
 
   micm::HenrysLawCoefficient hlc(parameters);
-  
+
   double k = hlc.Calculate();
   // Should use default T=298.15 K and pH=7.0
   double expected = hlc.CalculateEffective(298.15, 7.0);
-  
+
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
