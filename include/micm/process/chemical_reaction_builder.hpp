@@ -28,56 +28,57 @@ namespace micm
       has_scope_ = true;
       return *this;
     }
-    
-    ChemicalReactionBuilder& SetReactants(std::vector<Species> reactants)
-    {
-      if (has_scope_)
-      {
-        for (const auto& species : reactants)
-        {
-          reactants_.emplace_back(Scope(species, phase_));
-        }
-      }
-      else
-      {
-        reactants_ = std::move(reactants);
-      }
-      return *this;
-    }
-
-    ChemicalReactionBuilder& SetProducts(std::vector<Yield> products)
-    {
-      if (has_scope_)
-      {
-        for (const auto& [species_, coefficient_ ] : products)
-        {
-          products_.push_back(Yield{ Scope(species_, phase_), coefficient_ });
-        }
-      }
-      else
-      {
-        products_ = std::move(products);
-      }
-      return *this;
-    }
 
     /// @brief Sets the list of reactant species involved in the chemical reaction
     /// @param reactants A vector of Species objects representing the reactants
     /// @return Reference to the builder
-    // ChemicalReactionBuilder& SetReactants(std::vector<Species> reactants)
-    // {
-    //   reactants_ = std::move(reactants);
-    //   return *this;
-    // }
+    ChemicalReactionBuilder& SetReactants(std::vector<Species> reactants)
+    {
+      // if (has_scope_)
+      // {
+      //   for (auto& species : reactants)
+      //   {
+      //     // reactants_.emplace_back(Scope(species, phase_));
+      //     Scope(species, phase_);
+      //   }
+      // }
+      // else
+      // {
+      //   reactants_ = std::move(reactants);
+      // }
+      // return *this;
+      if (has_scope_)
+      {
+        for (auto& species : reactants)
+        {
+          // reactants_.emplace_back(Scope(species, phase_));
+          Scope(species, phase_);
+        }
+      }
+      reactants_ = std::move(reactants);
+      return *this;
+    }
 
-    // /// @brief Sets the list of product species and their yields for the chemical reaction
-    // /// @param products A vector of Yield objects representing the products
-    // /// @return Reference to the builder
-    // ChemicalReactionBuilder& SetProducts(std::vector<Yield> products)
-    // {
-    //   products_ = std::move(products);
-    //   return *this;
-    // }
+    /// @brief Sets the list of product species and their yields for the chemical reaction
+    /// @param products A vector of Yield objects representing the products
+    /// @return Reference to the builder
+    ChemicalReactionBuilder& SetProducts(std::vector<Yield> products)
+    {
+      if (has_scope_)
+      {
+        for (auto& [species, coefficient ] : products)
+        {
+          // products_.push_back(Yield{ Scope(species_, phase_), coefficient_ });
+          // products_.push_back(Yield{ Scope(species_, phase_), coefficient_ });
+          Scope(species, phase_);
+        }
+      }
+      // else
+      // {
+        products_ = std::move(products);
+      // }
+      return *this;
+    }
 
     /// @brief Sets the rate constant by cloning the provided RateConstant object
     ///        This method performs a deep copy of the given rate constant using its Clone() method.
@@ -126,11 +127,14 @@ namespace micm
     /// @param species 
     /// @param phase 
     /// @return 
-    Species Scope(const Species& species, const Phase& phase) const
+    // Species Scope(const Species& species, const Phase& phase) const
+    // Species Scope(Species& species, const Phase& phase)
+    void Scope(Species& species, const Phase& phase)
     {
-      Species scoped_species = species;
-      scoped_species.name_ = scope_ + "." + phase.name_ + "." + species.name_;
-      return scoped_species;
+      // Species scoped_species = species;
+      // scoped_species.name_ = scope_ + "." + phase.name_ + "." + species.name_;
+      // return scoped_species;
+      species.name_ = scope_ + "." + phase.name_ + "." + species.name_;
     }
   };
 
