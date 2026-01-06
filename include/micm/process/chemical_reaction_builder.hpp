@@ -21,6 +21,12 @@ namespace micm
   class ChemicalReactionBuilder
   {
    public:
+    /// @brief Enables aerosol scoping for reactant and product species
+    ///        This function must be called before setting reactants or products
+    ///        in order for scoping to be applied.
+    /// @param scope Aerosol scope prefix to apply to species names
+    /// @param phase Phase associated with the aerosol scope
+    /// @return Reference to the builder
     ChemicalReactionBuilder& SetAerosolScope(const std::string& scope, const Phase& phase)
     {
       scope_ = scope;
@@ -29,54 +35,52 @@ namespace micm
       return *this;
     }
 
-    /// @brief Sets the list of reactant species involved in the chemical reaction
-    /// @param reactants A vector of Species objects representing the reactants
+    /// @brief Sets the list of reactant species involved in the chemical reaction.
+    ///        When scoping is enabled, each reactant name is prefixed with an aerosol
+    ///        phase–specific scope.
+    /// @param reactants A list of Species objects representing the reactants
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetReactants(std::vector<Species> reactants)
+    ChemicalReactionBuilder& SetReactants(const std::vector<Species>& reactants)
     {
-      // if (has_scope_)
-      // {
-      //   for (auto& species : reactants)
-      //   {
-      //     // reactants_.emplace_back(Scope(species, phase_));
-      //     Scope(species, phase_);
-      //   }
-      // }
-      // else
-      // {
-      //   reactants_ = std::move(reactants);
-      // }
-      // return *this;
+      reactants_.reserve(reactants.size());
+
       if (has_scope_)
       {
-        for (auto& species : reactants)
+        for (const auto& species : reactants)
         {
-          // reactants_.emplace_back(Scope(species, phase_));
-          Scope(species, phase_);
+          reactants_.push_back(species);
+          Scope(reactants_.back(), phase_);
         }
       }
-      reactants_ = std::move(reactants);
+      else
+      {
+        reactants_ = reactants;
+      }
+
       return *this;
     }
 
-    /// @brief Sets the list of product species and their yields for the chemical reaction
-    /// @param products A vector of Yield objects representing the products
+    /// @brief Sets the list of product species and their yields for the chemical reaction.
+    ///        When scoping is enabled, each product name is prefixed with an aerosol
+    ///        phase–specific scope.
+    /// @param products A list of Yield objects representing the products
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetProducts(std::vector<Yield> products)
+    ChemicalReactionBuilder& SetProducts(const std::vector<Yield>& products)
     {
+      products_.reserve(products.size());
+
       if (has_scope_)
       {
-        for (auto& [species, coefficient ] : products)
+        for (const auto& [species, coefficient] : products)
         {
-          // products_.push_back(Yield{ Scope(species_, phase_), coefficient_ });
-          // products_.push_back(Yield{ Scope(species_, phase_), coefficient_ });
-          Scope(species, phase_);
+          products_.emplace_back(species, coefficient);
+          Scope(products_.back().species_, phase_);
         }
       }
-      // else
-      // {
-        products_ = std::move(products);
-      // }
+      else
+      {
+        products_ = products;
+      }
       return *this;
     }
 
@@ -123,17 +127,11 @@ namespace micm
     bool has_scope_ = false;
     std::string scope_;
 
-    /// @brief 
-    /// @param species 
-    /// @param phase 
-    /// @return 
-    // Species Scope(const Species& species, const Phase& phase) const
-    // Species Scope(Species& species, const Phase& phase)
+    /// @brief Applies an aerosol phase-specific scope to a species by prefixing its name
+    /// @param species Species object whose name will be modified
+    /// @param phase Phase whose name is used in the scope prefix
     void Scope(Species& species, const Phase& phase)
     {
-      // Species scoped_species = species;
-      // scoped_species.name_ = scope_ + "." + phase.name_ + "." + species.name_;
-      // return scoped_species;
       species.name_ = scope_ + "." + phase.name_ + "." + species.name_;
     }
   };
