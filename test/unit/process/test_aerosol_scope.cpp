@@ -146,3 +146,175 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeDifferentPhaseNames)
   EXPECT_EQ(chem_reaction1->reactants_[0].name_, "aitken.aqueous.ABC");
   EXPECT_EQ(chem_reaction2->reactants_[0].name_, "dust.organic.ABC");
 }
+
+// ============================================================================
+// Tests for mutual exclusivity of SetPhase and SetAerosolScope
+// ============================================================================
+
+TEST(ChemicalReactionBuilder, SetPhaseAfterSetAerosolScopeThrowsError)
+{
+  auto CO2 = Species{ "CO2" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2 } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ CO2 } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  EXPECT_THROW(
+      {
+        ChemicalReactionBuilder()
+            .SetAerosolScope("accumulation", aqueous_phase)
+            .SetPhase(gas_phase)  // Should throw
+            .SetReactants({ CO2 })
+            .SetProducts({})
+            .SetRateConstant(rate_constant)
+            .Build();
+      },
+      std::system_error);
+}
+
+TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetPhaseThrowsError)
+{
+  auto CO2 = Species{ "CO2" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2 } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ CO2 } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  EXPECT_THROW(
+      {
+        ChemicalReactionBuilder()
+            .SetPhase(gas_phase)
+            .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
+            .SetReactants({ CO2 })
+            .SetProducts({})
+            .SetRateConstant(rate_constant)
+            .Build();
+      },
+      std::system_error);
+}
+
+TEST(ChemicalReactionBuilder, UsingOnlySetPhaseWorks)
+{
+  auto CO2 = Species{ "CO2" };
+  auto H2O = Species{ "H2O" };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ CO2, H2O } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  // Should not throw - only SetPhase is used
+  Process reaction = ChemicalReactionBuilder()
+                         .SetPhase(gas_phase)
+                         .SetReactants({ CO2 })
+                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetRateConstant(rate_constant)
+                         .Build();
+
+  auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
+  ASSERT_NE(chem_reaction, nullptr);
+  
+  // Verify no scoping was applied
+  EXPECT_EQ(chem_reaction->reactants_[0].name_, "CO2");
+  EXPECT_EQ(chem_reaction->products_[0].species_.name_, "H2O");
+}
+
+TEST(ChemicalReactionBuilder, UsingOnlySetAerosolScopeWorks)
+{
+  auto CO2 = Species{ "CO2" };
+  auto H2O = Species{ "H2O" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  // Should not throw - only SetAerosolScope is used
+  Process reaction = ChemicalReactionBuilder()
+                         .SetAerosolScope("accumulation", aqueous_phase)
+                         .SetReactants({ CO2 })
+                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetRateConstant(rate_constant)
+                         .Build();
+
+  auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
+  ASSERT_NE(chem_reaction, nullptr);
+  
+  // Verify scoping was applied
+  EXPECT_EQ(chem_reaction->reactants_[0].name_, "accumulation.aqueous.CO2");
+  EXPECT_EQ(chem_reaction->products_[0].species_.name_, "accumulation.aqueous.H2O");
+}
+
+// ============================================================================
+// Tests for enforcing SetAerosolScope order
+// ============================================================================
+
+TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetReactantsThrowsError)
+{
+  auto CO2 = Species{ "CO2" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2 } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  EXPECT_THROW(
+      {
+        ChemicalReactionBuilder()
+            .SetReactants({ CO2 })  // Called first
+            .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
+            .SetProducts({})
+            .SetRateConstant(rate_constant)
+            .Build();
+      },
+      std::system_error);
+}
+
+TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetProductsThrowsError)
+{
+  auto CO2 = Species{ "CO2" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2 } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  EXPECT_THROW(
+      {
+        ChemicalReactionBuilder()
+            .SetProducts({ Yield(CO2, 1.0) })  // Called first
+            .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
+            .SetReactants({})
+            .SetRateConstant(rate_constant)
+            .Build();
+      },
+      std::system_error);
+}
+
+TEST(ChemicalReactionBuilder, SetAerosolScopeAfterBothReactantsAndProductsThrowsError)
+{
+  auto CO2 = Species{ "CO2" };
+  auto H2O = Species{ "H2O" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  EXPECT_THROW(
+      {
+        ChemicalReactionBuilder()
+            .SetReactants({ CO2 })
+            .SetProducts({ Yield(H2O, 1.0) })
+            .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
+            .SetRateConstant(rate_constant)
+            .Build();
+      },
+      std::system_error);
+}
+
+TEST(ChemicalReactionBuilder, CorrectOrderSetAerosolScopeBeforeReactantsAndProductsWorks)
+{
+  auto CO2 = Species{ "CO2" };
+  auto H2O = Species{ "H2O" };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O } };
+  auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
+
+  // Should not throw - correct order
+  Process reaction = ChemicalReactionBuilder()
+                         .SetAerosolScope("accumulation", aqueous_phase)  // Called first
+                         .SetReactants({ CO2 })
+                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetRateConstant(rate_constant)
+                         .Build();
+
+  auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
+  ASSERT_NE(chem_reaction, nullptr);
+  
+  // Verify scoping was applied correctly
+  EXPECT_EQ(chem_reaction->reactants_[0].name_, "accumulation.aqueous.CO2");
+  EXPECT_EQ(chem_reaction->products_[0].species_.name_, "accumulation.aqueous.H2O");
+}
