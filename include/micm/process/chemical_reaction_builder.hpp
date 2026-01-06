@@ -34,7 +34,7 @@ namespace micm
       if (has_phase_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive. Do not call both.");
+            "SetPhase and SetAerosolScope are mutually exclusiveand and should not be used together");
       if (has_reactants_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
@@ -121,7 +121,7 @@ namespace micm
       if (has_scope_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive. Do not call both.");
+            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together");
 
       phase_ = phase;
       has_phase_ = true;
