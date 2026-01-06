@@ -24,9 +24,9 @@ namespace micm
     /// @brief Enables aerosol scoping for reactant and product species
     ///        This function must be called before setting reactants or products
     ///        in order for scoping to be applied.
-    ///        Cannot be used together with SetPhase - they are mutually exclusive.
+    ///        Cannot be used together with SetPhase. They are mutually exclusive.
     /// @param scope Aerosol scope prefix to apply to species names
-    /// @param phase Phase associated with the aerosol scope
+    /// @param phase Phase object representing the reaction phase
     /// @return Reference to the builder
     /// @throws std::system_error if SetPhase, SetReactants, or SetProducts has already been called
     ChemicalReactionBuilder& SetAerosolScope(const std::string& scope, const Phase& phase)
@@ -34,7 +34,7 @@ namespace micm
       if (has_phase_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusiveand and should not be used together");
+            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together.");
       if (has_reactants_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
@@ -47,12 +47,12 @@ namespace micm
       scope_ = scope;
       phase_ = phase;
       has_scope_ = true;
+
       return *this;
     }
 
     /// @brief Sets the list of reactant species involved in the chemical reaction.
-    ///        When scoping is enabled, each reactant name is prefixed with an aerosol
-    ///        phase-specific scope.
+    ///        When scoping is enabled, each reactant name is prefixed with the preset scope.
     /// @param reactants A list of Species objects representing the reactants
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetReactants(const std::vector<Species>& reactants)
@@ -72,12 +72,12 @@ namespace micm
       }
 
       has_reactants_ = true;
+
       return *this;
     }
 
     /// @brief Sets the list of product species and their yields for the chemical reaction.
-    ///        When scoping is enabled, each product name is prefixed with an aerosol
-    ///        phase-specific scope.
+    ///        When scoping is enabled, each product name is prefixed with the preset scope.
     /// @param products A list of Yield objects representing the products
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetProducts(const std::vector<Yield>& products)
@@ -97,6 +97,7 @@ namespace micm
       }
 
       has_products_ = true;
+
       return *this;
     }
 
@@ -112,7 +113,7 @@ namespace micm
     }
 
     /// @brief Sets the phase in which the chemical reaction occurs (e.g., gas, aqueous)
-    ///        Cannot be used together with SetAerosolScope - they are mutually exclusive.
+    ///        Cannot be used together with SetAerosolScope. They are mutually exclusive.
     /// @param phase Phase object representing the reaction phase
     /// @return Reference to the builder
     /// @throws std::system_error if SetAerosolScope has already been called
@@ -121,7 +122,7 @@ namespace micm
       if (has_scope_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together");
+            "SetPhase and SetAerosolScope are mutually exclusive and should not be used togethe.");
 
       phase_ = phase;
       has_phase_ = true;
@@ -136,7 +137,7 @@ namespace micm
     {
       if (!rate_constant_)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
+            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
 
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));
