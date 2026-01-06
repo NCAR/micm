@@ -95,6 +95,7 @@ namespace micm
       {
         products_ = products;
       }
+
       has_products_ = true;
       return *this;
     }
