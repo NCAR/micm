@@ -9,7 +9,6 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace micm
@@ -59,7 +58,7 @@ namespace micm
     System(
         Phase&& gas_phase,
         std::unordered_map<std::string, Phase>&& phases,
-        const std::vector<std::string>& others)
+        std::vector<std::string>&& others)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
           others_(std::move(others))

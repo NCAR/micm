@@ -123,7 +123,7 @@ namespace micm
       if (has_scope_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive and should not be used togethe.");
+            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together.");
 
       phase_ = phase;
       has_phase_ = true;
