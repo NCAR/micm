@@ -4,6 +4,7 @@
 
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/utils.hpp>
 
 #include <functional>
 #include <string>
@@ -16,7 +17,7 @@ namespace micm
   {
     Phase gas_phase_{};
     std::unordered_map<std::string, Phase> phases_{};
-    std::unordered_map<std::string, std::string> others_{};
+    std::vector<std::string> others_{};
   };
 
   /// @brief Represents the complete chemical state of a grid cell
@@ -28,9 +29,8 @@ namespace micm
     Phase gas_phase_;
     /// @brief Additional phases (e.g., aqueous, aerosol), mapped by name and representing non-gas phase
     std::unordered_map<std::string, Phase> phases_;
-    /// @brief Tracks non-phase elements (e.g., number concentrations) associated with a model.
-    ///        Elements are mapped using a prefix specific to the model's name and representation.
-    std::unordered_map<std::string, std::string> others_;
+    /// @brief Tracks non-phase elements (e.g., number concentrations) associated with a model
+    std::vector<std::string> others_;
 
     /// @brief Default constructor
     System() = default;
@@ -39,7 +39,7 @@ namespace micm
     System(
         const Phase& gas_phase,
         const std::unordered_map<std::string, Phase>& phases,
-        const std::unordered_map<std::string, std::string>& others)
+        const std::vector<std::string>& others)
         : gas_phase_(gas_phase),
           phases_(phases),
           others_(others)
@@ -58,7 +58,7 @@ namespace micm
     System(
         Phase&& gas_phase,
         std::unordered_map<std::string, Phase>&& phases,
-        const std::unordered_map<std::string, std::string>& others)
+        std::vector<std::string>&& others)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
           others_(std::move(others))
@@ -109,12 +109,9 @@ namespace micm
 
   inline size_t System::StateSize() const
   {
-    size_t state_size = gas_phase_.StateSize();
-    for (const auto& phase : phases_)
-    {
-      state_size += phase.second.StateSize();
-    }
-    state_size += others_.size();
+    std::size_t state_size = gas_phase_.StateSize() + others_.size();
+    for (const auto& [key, phase] : phases_)
+      state_size += phase.StateSize();
 
     return state_size;
   }
@@ -127,22 +124,32 @@ namespace micm
   inline std::vector<std::string> System::UniqueNames(
       const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
-    std::vector<std::string> names = gas_phase_.UniqueNames();
-    for (const auto& phase : phases_)
+    std::vector<std::string> names;
+    names.reserve(StateSize());
+
+    auto gas_names = gas_phase_.UniqueNames();
+    names.insert(names.end(), 
+                 std::make_move_iterator(gas_names.begin()), 
+                 std::make_move_iterator(gas_names.end()));
+
+    for (const auto& [key, phase] : phases_)
     {
-      for (const auto& species_name : phase.second.UniqueNames())
-        names.push_back(phase.first + "." + species_name);
+      auto phase_names = phase.UniqueNames();
+      for (auto& species_name : phase_names)
+        names.push_back(JoinStrings({key, std::move(species_name)}));
     }
-    for (const auto& other : others_)
-    {
-      names.push_back(other.first + "." + other.second);
-    }
+
+    names.insert(names.end(), others_.begin(), others_.end());
+
     if (f)
     {
-      const auto orig_names = names;
-      for (std::size_t i = 0; i < orig_names.size(); ++i)
-        names[i] = f(orig_names, i);
+      std::vector<std::string> reordered;
+      reordered.reserve(names.size());
+      for (std::size_t i = 0; i < names.size(); ++i)
+        reordered.push_back(f(names, i));
+      return reordered;
     }
+
     return names;
   }
 
