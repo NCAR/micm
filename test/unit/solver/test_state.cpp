@@ -283,12 +283,12 @@ TEST(State, SetSingleConcentration)
 
 TEST(State, SetConcentrationByElementSingleValue)
 {
-  micm::SystemParameters params;
-  params.others_["modal.aitken"] = "number_concentration";
-  params.others_["modal.accumulation"] = "number_concentration";
-
   std::string aitken_num_conc = "modal.aitken.number_concentration";
   std::string accum_num_conc = "modal.accumulation.number_concentration";
+
+  micm::SystemParameters params;
+  params.others_.push_back(aitken_num_conc);
+  params.others_.push_back(accum_num_conc);
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
@@ -306,10 +306,10 @@ TEST(State, SetConcentrationByElementSingleValue)
 
 TEST(State, SetConcentrationByElementVector)
 {
-  micm::SystemParameters params;
-  params.others_["modal.aitken"] = "number_concentration";
-
   std::string aitken_num_conc = "modal.aitken.number_concentration";
+
+  micm::SystemParameters params;
+  params.others_.push_back(aitken_num_conc);
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,

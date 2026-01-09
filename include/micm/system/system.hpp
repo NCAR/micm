@@ -4,6 +4,7 @@
 
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/utils.hpp>
 
 #include <functional>
 #include <string>
@@ -136,7 +137,7 @@ namespace micm
     {
       auto phase_names = phase.UniqueNames();
       for (auto& species_name : phase_names)
-        names.emplace_back(key + "." + std::move(species_name));
+        names.push_back(JoinStrings({key, std::move(species_name)}));
     }
 
     names.insert(names.end(), others_.begin(), others_.end());
@@ -149,7 +150,7 @@ namespace micm
         reordered.push_back(f(names, i));
       return reordered;
     }
-    
+
     return names;
   }
 
