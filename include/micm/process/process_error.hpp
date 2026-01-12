@@ -13,6 +13,7 @@ enum class MicmProcessErrc
   ProductDoesNotExist = MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST,
   RateConstantIsNotSet = MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
   TransferCoefficientIsNotSet = MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
+  InvalidConfiguration = MICM_PROCESS_ERROR_CODE_INVALID_CONFIGURATION,
 };
 
 namespace std
@@ -35,10 +36,11 @@ class MicmProcessErrorCategory : public std::error_category
   {
     switch (static_cast<MicmProcessErrc>(ev))
     {
-      case MicmProcessErrc::RateConstantIsNotSet: return "Rate constant is not set";
-      case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
       case MicmProcessErrc::ReactantDoesNotExist: return "Reactant does not exist";
       case MicmProcessErrc::ProductDoesNotExist: return "Product does not exist";
+      case MicmProcessErrc::RateConstantIsNotSet: return "Rate constant is not set";
+      case MicmProcessErrc::TransferCoefficientIsNotSet: return "Transfer coefficient is not set";
+      case MicmProcessErrc::InvalidConfiguration: return "Configuration is not valid";
       default: return "Unknown error";
     }
   }
