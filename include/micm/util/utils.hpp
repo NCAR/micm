@@ -4,7 +4,6 @@
 
 #include <string>
 #include <vector>
-#include <format>
 
 namespace micm
 {
