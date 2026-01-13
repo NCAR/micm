@@ -8,24 +8,19 @@
 
 namespace micm
 {
-inline std::string JoinStrings(const std::vector<std::string>& names)
-{
+  inline std::string JoinStrings(const std::vector<std::string>& names)
+  {
     std::string result;
-    bool first = true;
-
-    for (const auto& name : names)
+    for (size_t i = 0; i < names.size(); ++i)
     {
-        if (name.empty())
-            continue;
-
-        if (!first)
-            std::format_to(std::back_inserter(result), ".");
-
-        std::format_to(std::back_inserter(result), "{}", name);
-        first = false;
+      if (!names[i].empty())
+      {
+        if (!result.empty())
+          result += ".";
+        result += names[i];
+      }
     }
-
     return result;
-}
+  }
 
 }  // namespace micm
