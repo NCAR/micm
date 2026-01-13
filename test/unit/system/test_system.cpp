@@ -105,7 +105,7 @@ TEST(System, OthersIsStoredAndAccessible)
   params.others_.emplace_back("modal.accumulation.number_concentration");
   System sys(params);
   auto names = sys.UniqueNames();
-  
+
   EXPECT_NE(std::find(names.begin(), names.end(), "modal.aitken.number_concentration"), names.end());
   EXPECT_NE(std::find(names.begin(), names.end(), "modal.accumulation.number_concentration"), names.end());
 }

@@ -17,26 +17,26 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAppliesCorrectScopingToReactants)
   // Create species
   auto CO2 = Species{ "CO2" };
   auto H2O = Species{ "H2O" };
-  
+
   // Create aqueous phase
   Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O } };
-  
+
   // Create a reaction with aerosol scoping
   auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
-  
+
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("accumulation", aqueous_phase)
                          .SetReactants({ CO2 })
                          .SetProducts({ Yield(H2O, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
-  
+
   // Verify the reaction was created and reactant name was scoped
   auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
   ASSERT_NE(chem_reaction, nullptr);
   ASSERT_EQ(chem_reaction->reactants_.size(), 1);
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "accumulation.aqueous.CO2");
-  
+
   // Verify product name was scoped
   ASSERT_EQ(chem_reaction->products_.size(), 1);
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "accumulation.aqueous.H2O");
@@ -48,28 +48,28 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAppliesCorrectScopingToProducts)
   auto OH = Species{ "OH-" };
   auto Hplus = Species{ "H+" };
   auto H2O = Species{ "H2O" };
-  
+
   // Create aqueous phase
   Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ OH, Hplus, H2O } };
-  
+
   // Create a reaction with aerosol scoping
   auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.14e-2 } };
-  
+
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("aitken", aqueous_phase)
                          .SetReactants({ H2O })
                          .SetProducts({ Yield(OH, 1.0), Yield(Hplus, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
-  
+
   // Verify the reaction was created
   auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
   ASSERT_NE(chem_reaction, nullptr);
-  
+
   // Verify reactant name was scoped
   ASSERT_EQ(chem_reaction->reactants_.size(), 1);
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "aitken.aqueous.H2O");
-  
+
   // Verify product names were scoped
   ASSERT_EQ(chem_reaction->products_.size(), 2);
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "aitken.aqueous.OH-");
@@ -83,29 +83,29 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeWithMultipleReactantsAndProducts)
   auto B = Species{ "B" };
   auto C = Species{ "C" };
   auto D = Species{ "D" };
-  
+
   // Create phase
   Phase organic_phase{ "organic", std::vector<PhaseSpecies>{ A, B, C, D } };
-  
+
   // Create a reaction with aerosol scoping
   auto rate_constant = ArrheniusRateConstant{ { .A_ = 2.5 } };
-  
+
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("coarse", organic_phase)
                          .SetReactants({ A, B })
                          .SetProducts({ Yield(C, 1.0), Yield(D, 2.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
-  
+
   // Verify the reaction was created
   auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
   ASSERT_NE(chem_reaction, nullptr);
-  
+
   // Verify reactant names were scoped
   ASSERT_EQ(chem_reaction->reactants_.size(), 2);
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "coarse.organic.A");
   EXPECT_EQ(chem_reaction->reactants_[1].name_, "coarse.organic.B");
-  
+
   // Verify product names and yields were preserved
   ASSERT_EQ(chem_reaction->products_.size(), 2);
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "coarse.organic.C");
@@ -118,12 +118,12 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeDifferentPhaseNames)
 {
   // Test that different phase names create different scopes
   auto species = Species{ "ABC" };
-  
+
   Phase phase1{ "aqueous", std::vector<PhaseSpecies>{ species } };
   Phase phase2{ "organic", std::vector<PhaseSpecies>{ species } };
-  
+
   auto rate_constant = ArrheniusRateConstant{ { .A_ = 1.0 } };
-  
+
   // Reaction with phase1
   Process reaction1 = ChemicalReactionBuilder()
                           .SetAerosolScope("aitken", phase1)
@@ -131,7 +131,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeDifferentPhaseNames)
                           .SetProducts({})
                           .SetRateConstant(rate_constant)
                           .Build();
-  
+
   // Reaction with phase2
   Process reaction2 = ChemicalReactionBuilder()
                           .SetAerosolScope("dust", phase2)
@@ -139,10 +139,10 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeDifferentPhaseNames)
                           .SetProducts({})
                           .SetRateConstant(rate_constant)
                           .Build();
-  
+
   auto* chem_reaction1 = std::get_if<ChemicalReaction>(&reaction1.process_);
   auto* chem_reaction2 = std::get_if<ChemicalReaction>(&reaction2.process_);
-  
+
   EXPECT_EQ(chem_reaction1->reactants_[0].name_, "aitken.aqueous.ABC");
   EXPECT_EQ(chem_reaction2->reactants_[0].name_, "dust.organic.ABC");
 }
@@ -208,7 +208,7 @@ TEST(ChemicalReactionBuilder, UsingOnlySetPhaseWorks)
 
   auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
   ASSERT_NE(chem_reaction, nullptr);
-  
+
   // Verify no scoping was applied
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "CO2");
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "H2O");
@@ -231,7 +231,7 @@ TEST(ChemicalReactionBuilder, UsingOnlySetAerosolScopeWorks)
 
   auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
   ASSERT_NE(chem_reaction, nullptr);
-  
+
   // Verify scoping was applied
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "accumulation.aqueous.CO2");
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "accumulation.aqueous.H2O");
@@ -250,7 +250,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetReactantsThrowsError)
   EXPECT_THROW(
       {
         ChemicalReactionBuilder()
-            .SetReactants({ CO2 })  // Called first
+            .SetReactants({ CO2 })                           // Called first
             .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
             .SetProducts({})
             .SetRateConstant(rate_constant)
@@ -268,7 +268,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetProductsThrowsError)
   EXPECT_THROW(
       {
         ChemicalReactionBuilder()
-            .SetProducts({ Yield(CO2, 1.0) })  // Called first
+            .SetProducts({ Yield(CO2, 1.0) })                // Called first
             .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
             .SetReactants({})
             .SetRateConstant(rate_constant)
@@ -313,7 +313,7 @@ TEST(ChemicalReactionBuilder, CorrectOrderSetAerosolScopeBeforeReactantsAndProdu
 
   auto* chem_reaction = std::get_if<ChemicalReaction>(&reaction.process_);
   ASSERT_NE(chem_reaction, nullptr);
-  
+
   // Verify scoping was applied correctly
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "accumulation.aqueous.CO2");
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "accumulation.aqueous.H2O");
