@@ -38,12 +38,10 @@ namespace micm
             "SetPhase and SetAerosolScope are mutually exclusive and should not be used together.");
       if (has_reactants_)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetAerosolScope must be called before SetReactants.");
+            make_error_code(MicmProcessErrc::InvalidConfiguration), "SetAerosolScope must be called before SetReactants.");
       if (has_products_)
         throw std::system_error(
-            make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetAerosolScope must be called before SetProducts.");
+            make_error_code(MicmProcessErrc::InvalidConfiguration), "SetAerosolScope must be called before SetProducts.");
 
       scope_ = scope;
       phase_ = phase;
@@ -143,7 +141,7 @@ namespace micm
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));
     }
-  
+
    private:
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
@@ -161,7 +159,7 @@ namespace micm
     /// @param phase Phase whose name is used in the scope prefix
     void Scope(Species& species, const Phase& phase)
     {
-      species.name_ = JoinStrings({scope_, phase.name_, species.name_});
+      species.name_ = JoinStrings({ scope_, phase.name_, species.name_ });
     }
   };
 

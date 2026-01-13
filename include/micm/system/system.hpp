@@ -55,10 +55,7 @@ namespace micm
     }
 
     /// @brief Parameterized constructor with move semantics
-    System(
-        Phase&& gas_phase,
-        std::unordered_map<std::string, Phase>&& phases,
-        std::vector<std::string>&& others)
+    System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases, std::vector<std::string>&& others)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases)),
           others_(std::move(others))
@@ -128,15 +125,13 @@ namespace micm
     names.reserve(StateSize());
 
     auto gas_names = gas_phase_.UniqueNames();
-    names.insert(names.end(), 
-                 std::make_move_iterator(gas_names.begin()), 
-                 std::make_move_iterator(gas_names.end()));
+    names.insert(names.end(), std::make_move_iterator(gas_names.begin()), std::make_move_iterator(gas_names.end()));
 
     for (const auto& [key, phase] : phases_)
     {
       auto phase_names = phase.UniqueNames();
       for (auto& species_name : phase_names)
-        names.push_back(JoinStrings({key, std::move(species_name)}));
+        names.push_back(JoinStrings({ key, std::move(species_name) }));
     }
 
     names.insert(names.end(), others_.begin(), others_.end());

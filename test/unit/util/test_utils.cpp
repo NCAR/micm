@@ -67,4 +67,3 @@ TEST(JoinStrings, StringsWithDots)
   std::string result = micm::JoinStrings(names);
   EXPECT_EQ(result, "accumulation.mode.aqueous.phase");
 }
-
