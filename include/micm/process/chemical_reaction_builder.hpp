@@ -9,6 +9,7 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/yield.hpp>
+#include <micm/util/utils.hpp>
 
 #include <memory>
 #include <utility>
@@ -122,7 +123,7 @@ namespace micm
       if (has_scope_)
         throw std::system_error(
             make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive and should not be used togethe.");
+            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together.");
 
       phase_ = phase;
       has_phase_ = true;
@@ -160,7 +161,7 @@ namespace micm
     /// @param phase Phase whose name is used in the scope prefix
     void Scope(Species& species, const Phase& phase)
     {
-      species.name_ = scope_ + "." + phase.name_ + "." + species.name_;
+      species.name_ = JoinStrings({scope_, phase.name_, species.name_});
     }
   };
 
