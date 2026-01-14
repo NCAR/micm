@@ -72,15 +72,42 @@
 
 The `AlphaMinusJacobian()` function has been fixed. See "How the Fix Works" section below.
 
+### Next Up: Chapman Mechanism with QSSA Constraint
+
+Implement the Chapman stratospheric ozone mechanism with atomic oxygen as a QSSA algebraic constraint. This is a real-world atmospheric chemistry test case that exercises the core DAE capability.
+
+**Reactions**:
+```
+O2 + hv -> 2O           j1 (slow)
+O + O2 + M -> O3        k2 (fast)
+O3 + hv -> O2 + O       j3 (fast)
+O + O3 -> 2O2           k4 (slow)
+```
+
+**QSSA Constraint**: `d[O]/dt ≈ 0`
+```
+2*j1*[O2] + j3*[O3] - k2*[O][O2][M] - k4*[O][O3] = 0
+```
+
+**Requirements**:
+- [ ] Implement `QSSAConstraint` or `CustomConstraint` class
+- [ ] Chapman mechanism test with O as algebraic variable
+- [ ] Validate against analytical solution and pure ODE reference
+- [ ] Diurnal cycle test with time-varying photolysis rates
+
+See `TESTS.md` for full specification and additional test cases.
+
 ### Medium Priority: Additional Constraint Types
 
 - [ ] **ConservationConstraint**: Mass conservation (sum of species = constant)
+- [ ] **QSSAConstraint**: Quasi-steady-state approximation (d[X]/dt = 0)
+- [ ] **CustomConstraint**: User-defined constraint functions via lambdas
 - [ ] **BoundConstraint**: Keep species within bounds
-- [ ] **CustomConstraint**: User-defined constraint functions
 
 ### Low Priority: Enhancements
 
 - [ ] Constraint-aware error estimation
+- [ ] Automatic projection (built into solver)
 - [ ] Specialized DAE solver parameters (RODAS variants)
 - [ ] Index-2 DAE support (if needed)
 - [ ] GPU constraint support (CUDA)
