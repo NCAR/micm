@@ -226,13 +226,17 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
-    // Only add alpha to rows flagged in the identity mask (currently all state variables)
+    // Add alpha to ALL diagonals for proper DAE support.
+    // For ODE variables (M[i][i]=1): forms αM - J = α - J
+    // For algebraic variables (M[i][i]=0): also adds α to regularize the constraint.
+    // This treats algebraic constraints as stiff ODEs (ε*z' = g(y,z) with ε=hγ),
+    // which ensures K values scale with H and prevents numerical instability
+    // from the c/H terms in Rosenbrock stage computation.
     for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
-      std::size_t diag_row = 0;
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
-        jacobian_vector[i_elem] += alpha * state.upper_left_identity_diagonal_[diag_row++];
+        jacobian_vector[i_elem] += alpha;
     }
   }
 
@@ -244,16 +248,14 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
-    // Only add alpha to rows flagged in the identity mask (currently all state variables)
+    // Add alpha to ALL diagonals for proper DAE support (see non-vectorized version for details)
     for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
-      std::size_t diag_row = 0;
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
       {
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          jacobian_vector[i_elem + i_cell] += alpha * state.upper_left_identity_diagonal_[diag_row];
-        ++diag_row;
+          jacobian_vector[i_elem + i_cell] += alpha;
       }
     }
   }

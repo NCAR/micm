@@ -124,14 +124,21 @@ if (constraints_.Size() > 0)
 }
 ```
 
-#### Matrix Formation:
+#### Matrix Formation (AlphaMinusJacobian):
+The key modification for DAE support is in `AlphaMinusJacobian()`. Alpha (= 1/(h*gamma)) is added to ALL diagonal elements, not just ODE rows:
+
 ```cpp
-AlphaMinusJacobian(
-    state.jacobian_,
-    state.upper_left_identity_diagonal_,  // M: 1 for ODE, 0 for algebraic
-    singular,
-    H * parameters.gamma_[0]);
+// Add alpha to ALL diagonals for proper DAE support.
+// For ODE variables (M[i][i]=1): forms αM - J = α - J
+// For algebraic variables (M[i][i]=0): also adds α to regularize the constraint.
+// This treats algebraic constraints as stiff ODEs (ε*z' = g(y,z) with ε=hγ),
+// which ensures K values scale with H and prevents numerical instability
+// from the c/H terms in Rosenbrock stage computation.
+for (const auto& i_elem : state.jacobian_diagonal_elements_)
+  jacobian_vector[i_elem] += alpha;
 ```
+
+This regularization approach treats algebraic constraints as stiff ODEs with time constant ε = hγ, ensuring numerical stability.
 
 ### 5. Temporary Variables (`include/micm/solver/rosenbrock_temporary_variables.hpp`)
 
@@ -190,15 +197,33 @@ Identity diagonal (mass matrix M):
 Following the `ProcessSet` convention:
 - `SubtractJacobianTerms()` subtracts the true Jacobian: `jacobian -= J_true`
 - After subtraction: `jacobian = -J_true`
-- `AlphaMinusJacobian()` computes: `M[i][i] - alpha * jacobian[i][i]`
+- `AlphaMinusJacobian()` adds alpha to all diagonals: `jacobian[i][i] += alpha`
+
+## Usage Notes
+
+### Projection Step
+
+For best results with algebraic constraints, apply a projection step after each solve to enforce constraints exactly:
+
+```cpp
+// After solver.Solve(dt, state):
+// For constraint C = K_eq * B
+state.variables_[0][C_idx] = K_eq * state.variables_[0][B_idx];
+```
+
+This is a common technique for DAE systems where the regularization approach causes constraints to be satisfied approximately rather than exactly.
+
+### Step Size Considerations
+
+Smaller time steps (e.g., dt = 0.001) work better for stiff constraint coupling. The regularization treats constraints as stiff ODEs with time constant ε = hγ, so smaller steps allow tighter tracking.
 
 ## Known Limitations
 
-1. **Off-diagonal scaling**: The current `AlphaMinusJacobian()` only modifies diagonal elements. For proper DAE support, all elements should be scaled by alpha (= h*gamma).
+1. **Approximate constraint satisfaction**: The regularization approach treats constraints as stiff ODEs rather than true algebraic equations. Use projection steps for exact enforcement.
 
-2. **Diagonal sign**: For constraint rows with M[i][i]=0, the diagonal computation produces `-alpha` instead of `+alpha`, which can cause numerical instability.
+2. **Step size sensitivity**: Very stiff systems (large K_eq) may require small time steps for accurate constraint tracking.
 
-3. **Stiff coupling**: Large equilibrium constants (K_eq >> 1) create stiff algebraic-differential coupling that the current solver struggles with.
+3. **No index-2 DAE support**: Only index-1 DAEs (constraints depending directly on state variables) are supported.
 
 ## File Listing
 
