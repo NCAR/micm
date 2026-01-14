@@ -7,6 +7,3 @@ doc/latex/
 .vscode
 xcode/
 __pycache__
-
-# Claude Code project context (local only)
-CLAUDE.md
