@@ -40,6 +40,24 @@ MICM (Model Independent Chemistry Module) is a C++ chemistry solver library. We'
 ### Documentation
 - `ARCHITECTURE.md` - Implementation details
 - `TODO.md` - Current status and remaining work
+- `TESTS.md` - Complex test case specifications
+
+---
+
+## Resume Prompt
+
+Copy and paste this to continue working on the DAE constraint system:
+
+```
+I'm continuing work on the MICM DAE constraint system. Please read:
+- TODO.md - for current priorities and next steps
+- TESTS.md - for test case specifications
+
+The next task is implementing the Chapman mechanism with QSSA constraint.
+Build and run tests first to verify the current state, then proceed with the TODO.
+```
+
+---
 
 ## Build Commands
 
