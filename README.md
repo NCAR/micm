@@ -54,8 +54,7 @@ If you would later like to uninstall MICM, you can run
 
 ## Options
 
-There are multiple options for running micm. You can use [json](https://github.com/nlohmann/json)
-to configure a solver, [llvm](https://llvm.org/) to JIT-compile
+There are multiple options for running micm. You can use our
 solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
 Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
 to learn how to enable these options.
@@ -161,7 +160,7 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.10.0/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.11.0/include -std=c++20
 ./foo_chem
 ```
 

@@ -50,7 +50,7 @@ TEST(TaylorSeriesRateConstant, CalculateWithSystem)
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
-TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArugments)
+TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArguments)
 {
   micm::Conditions conditions = {
     .temperature_ = 301.24  // [K]

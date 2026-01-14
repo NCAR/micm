@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 namespace micm
 {
@@ -26,8 +26,6 @@ namespace micm
     const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
-    SolverStats stats;
-
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -35,7 +33,7 @@ namespace micm
 
     while ((present_time - time_step + parameters.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
-      if (stats.number_of_steps_ > parameters.max_number_of_steps_)
+      if (result.stats_.number_of_steps_ > parameters.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
@@ -53,12 +51,12 @@ namespace micm
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
-      stats.function_calls_ += 1;
+      result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-      stats.jacobian_updates_ += 1;
+      result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
       double last_alpha = 0.0;
@@ -76,7 +74,7 @@ namespace micm
         }
 
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(alpha, stats, state);
+        LinearFactor(alpha, result.stats_, state);
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
@@ -97,7 +95,7 @@ namespace micm
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
-              stats.function_calls_ += 1;
+              result.stats_.function_calls_ += 1;
             }
           }
           if (stage + 1 < parameters.stages_ && !parameters.new_function_evaluation_[stage + 1])
@@ -116,7 +114,7 @@ namespace micm
           {
             linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
           }
-          stats.solves_ += 1;
+          result.stats_.solves_ += 1;
         }
 
         // Compute the new solution
@@ -139,7 +137,7 @@ namespace micm
                 parameters.safety_factor_ / std::pow(error, 1 / parameters.estimator_of_local_order_)));
         double Hnew = H * fac;
 
-        stats.number_of_steps_ += 1;
+        result.stats_.number_of_steps_ += 1;
 
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
@@ -154,7 +152,7 @@ namespace micm
         }
         else if ((error < 1) || (H < h_min))
         {
-          stats.accepted_ += 1;
+          result.stats_.accepted_ += 1;
           present_time = present_time + H;
           Y.Swap(Ynew);
           Hnew = std::max(h_min, std::min(Hnew, h_max));
@@ -178,16 +176,16 @@ namespace micm
           reject_more_h = reject_last_h;
           reject_last_h = true;
           H = Hnew;
-          if (stats.accepted_ >= 1)
+          if (result.stats_.accepted_ >= 1)
           {
-            stats.rejected_ += 1;
+            result.stats_.rejected_ += 1;
           }
           // Re-generate the Jacobian matrix for the inline LU algorithm
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-            stats.jacobian_updates_ += 1;
+            result.stats_.jacobian_updates_ += 1;
           }
         }
       }
@@ -198,8 +196,8 @@ namespace micm
       result.state_ = SolverState::Converged;
     }
 
-    result.final_time_ = present_time;
-    result.stats_ = stats;
+    result.stats_.final_time_ = present_time;
+    ;
 
     return result;
   }

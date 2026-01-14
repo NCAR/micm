@@ -3,10 +3,6 @@
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#ifdef MICM_ENABLE_LLVM
-  #include <micm/solver/jit/jit_solver_builder.hpp>
-  #include <micm/solver/jit/jit_solver_parameters.hpp>
-#endif
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -124,7 +120,7 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
   auto options = micm::BackwardEulerSolverParameters();
   auto solve = solver.Solve(5, state, options);
 
-  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.final_time_, 5);
   EXPECT_EQ(solve.stats_.function_calls_, 2);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 2);
   EXPECT_EQ(solve.stats_.number_of_steps_, 2);
@@ -135,7 +131,7 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
 
   solve = solver.Solve(5, state, options);
 
-  EXPECT_EQ(solve.final_time_, 0.03125);
+  EXPECT_EQ(solve.stats_.final_time_, 0.03125);
   EXPECT_EQ(solve.stats_.function_calls_, 6);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 6);
   EXPECT_EQ(solve.stats_.number_of_steps_, 6);
@@ -154,7 +150,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 
   auto solve = solver.Solve(5, state);
 
-  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.final_time_, 5);
   EXPECT_EQ(solve.stats_.function_calls_, 18);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 9);
   EXPECT_EQ(solve.stats_.number_of_steps_, 9);
@@ -166,7 +162,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   state.variables_[0] = { 1.0, 0.0, 0.0 };
   solve = solver.Solve(5, state, options);
 
-  EXPECT_EQ(solve.final_time_, 5);
+  EXPECT_EQ(solve.stats_.final_time_, 5);
   EXPECT_EQ(solve.stats_.function_calls_, 2);
   EXPECT_EQ(solve.stats_.jacobian_updates_, 1);
   EXPECT_EQ(solve.stats_.number_of_steps_, 1);

@@ -12,13 +12,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  xcode_macos_13:
-    runs-on: macos-13
+  xcode_macos_15_intel:
+    runs-on: macos-15-intel
     continue-on-error: true 
     strategy:
       matrix:
-        # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
-        xcode: ['14.1', '15.0']
+        # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md#xcode
+        xcode: ['16.0', '16.1', '16.2']
         build_type: [Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer

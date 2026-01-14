@@ -1,4 +1,4 @@
-/* Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+/* Copyright (C) 2023-2026 University Corporation for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -45,35 +45,9 @@ namespace micm
     uint64_t decompositions_{};
     /// @brief The number of linear solves
     uint64_t solves_{};
-
-    /// @brief Set all member variables to zero
-    void Reset();
-
-    /// @brief Print the solver stats to the console
-    void Print() const;
+    /// @brief The final time the solver iterated to
+    double final_time_{};
   };
-
-  inline void SolverStats::Reset()
-  {
-    function_calls_ = 0;
-    jacobian_updates_ = 0;
-    number_of_steps_ = 0;
-    accepted_ = 0;
-    rejected_ = 0;
-    decompositions_ = 0;
-    solves_ = 0;
-  }
-
-  inline void SolverStats::Print() const
-  {
-    std::cout << "Function calls: " << function_calls_ << std::endl;
-    std::cout << "Jacobian updates: " << jacobian_updates_ << std::endl;
-    std::cout << "Number of steps: " << number_of_steps_ << std::endl;
-    std::cout << "Accepted steps: " << accepted_ << std::endl;
-    std::cout << "Rejected steps: " << rejected_ << std::endl;
-    std::cout << "Decompositions: " << decompositions_ << std::endl;
-    std::cout << "Solves: " << solves_ << std::endl;
-  }
 
   inline std::string SolverStateToString(const SolverState& state)
   {
@@ -98,7 +72,5 @@ namespace micm
     SolverState state_ = SolverState::NotYetCalled;
     /// @brief A collection of runtime state for this call of the solver
     SolverStats stats_{};
-    /// @brief The final time the solver iterated to
-    double final_time_{};
   };
 }  // namespace micm

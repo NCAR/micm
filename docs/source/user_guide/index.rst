@@ -37,5 +37,4 @@ All of these tutorials are included in our automated tests. Each of them can be 
    solver_configurations
    solver_results
    openmp
-   jit
    vectorized_matrix_solver

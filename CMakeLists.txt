@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # project and version must be on the same line so that the docs can extract it
-project(micm VERSION 3.10.0 LANGUAGES CXX)
+project(micm VERSION 3.11.0 LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -30,7 +30,6 @@ option(MICM_ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
-option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
 set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")

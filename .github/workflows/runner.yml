@@ -1,21 +1,22 @@
 name: Designated GPU Runner
 
-on: 
+on:
   push:
     branches:
       - main
   pull_request:
   workflow_dispatch:
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   cuda_tests:
-    runs-on: gha-runner-micm
+    runs-on:
+      group: CIRRUS-4x16-gpu
     container:
-      image: nvcr.io/nvidia/nvhpc:25.1-devel-cuda12.6-ubuntu24.04
+      image: nvcr.io/nvidia/nvhpc:25.9-devel-cuda13.0-ubuntu24.04
       options: --gpus all
     steps:
       - uses: actions/checkout@v4
@@ -25,12 +26,12 @@ jobs:
            apt update
            apt install -y cmake g++
 
-      - name: Run Cmake 
+      - name: Run Cmake
         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
-      
+
       - name: Copy cublas headers
         run: |
-          cp -r /opt/nvidia/hpc_sdk/*/25.1/cuda/include/* /usr/include/
+          cp -r /opt/nvidia/hpc_sdk/*/25.9/cuda/include/* /usr/include/
 
       - name: Build
         run: cmake --build build --parallel 10

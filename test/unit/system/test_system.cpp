@@ -101,16 +101,11 @@ TEST(System, ConstructorWithParameterizedSpecies)
 TEST(System, OthersIsStoredAndAccessible)
 {
   SystemParameters params;
-  params.others_["modal.aitken"] = "number_concentration";
-  params.others_["modal.accumulation"] = "number_concentration";
-
+  params.others_.emplace_back("modal.aitken.number_concentration");
+  params.others_.emplace_back("modal.accumulation.number_concentration");
   System sys(params);
-
-  ASSERT_EQ(sys.others_.size(), 2);
-  EXPECT_EQ(sys.others_.at("modal.aitken"), "number_concentration");
-  EXPECT_EQ(sys.others_.at("modal.accumulation"), "number_concentration");
-
   auto names = sys.UniqueNames();
+
   EXPECT_NE(std::find(names.begin(), names.end(), "modal.aitken.number_concentration"), names.end());
   EXPECT_NE(std::find(names.begin(), names.end(), "modal.accumulation.number_concentration"), names.end());
 }

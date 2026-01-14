@@ -1,5 +1,5 @@
 #if 0
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 // This file defines error categories and codes for MICM
@@ -20,16 +20,12 @@
 #define MICM_CONFIGURATION_ERROR_CODE_CONTAINS_NON_STANDARD_KEY 12
 #define MICM_CONFIGURATION_ERROR_CODE_MUTUALLY_EXCLUSIVE_OPTION 13
 
-#define MICM_ERROR_CATEGORY_JIT                  "MICM JIT"
-#define MICM_JIT_ERROR_CODE_INVALID_MATRIX       1
-#define MICM_JIT_ERROR_CODE_MISSING_JIT_FUNCTION 2
-#define MICM_JIT_ERROR_CODE_FAILED_TO_BUILD      3
-
 #define MICM_ERROR_CATEGORY_PROCESS                             "MICM Process"
 #define MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST         1
 #define MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST          2
 #define MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET        3
 #define MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET 4
+#define MICM_PROCESS_ERROR_CODE_INVALID_CONFIGURATION           5
 
 #define MICM_ERROR_CATEGORY_RATE_CONSTANT                                              "MICM Rate Constant"
 #define MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT      1
