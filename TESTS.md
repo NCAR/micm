@@ -433,6 +433,44 @@ Note: Thermodynamic consistency requires `K1 * K2 * K3 = 1`
 
 ## Notes
 
+### CSV Output Format
+
+All numerical integration tests should output CSV data to stdout for plotting and validation:
+
+```cpp
+// At start of test:
+std::cout << "time";
+for (const auto& name : state.variable_names_)
+  std::cout << "," << name;
+std::cout << ",O_analytical,O3_analytical" << std::endl;  // if available
+
+// After each timestep:
+std::cout << std::scientific << std::setprecision(6);
+std::cout << time;
+for (std::size_t i = 0; i < state.variables_[0].size(); ++i)
+  std::cout << "," << state.variables_[0][i];
+std::cout << "," << O_analytical << "," << O3_analytical << std::endl;
+```
+
+**Example output**:
+```csv
+time,O2,O,O3,O_analytical,O3_analytical
+0.000000e+00,4.000000e+17,0.000000e+00,5.000000e+12,1.200000e+07,5.000000e+12
+1.000000e-03,4.000000e+17,1.198234e+07,4.999998e+12,1.200000e+07,4.999999e+12
+```
+
+**Usage**:
+```bash
+# Run test and save CSV
+./test_chapman > chapman_results.csv
+
+# Plot with Python
+python plot_results.py chapman_results.csv
+
+# Quick plot with gnuplot
+gnuplot -e "set datafile separator ','; plot 'chapman_results.csv' using 1:4 with lines"
+```
+
 ### Analytical Solutions
 
 Where possible, tests should compare against:

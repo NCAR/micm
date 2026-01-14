@@ -95,6 +95,20 @@ O + O3 -> 2O2           k4 (slow)
 - [ ] Validate against analytical solution and pure ODE reference
 - [ ] Diurnal cycle test with time-varying photolysis rates
 
+**CSV Output for Plotting**:
+Numerical integration tests should write CSV data to stdout (one line per timestep):
+```
+time,O2,O,O3,O_analytical,O3_analytical
+0.000000,4.0e+17,0.0e+00,5.0e+12,1.2e+07,5.0e+12
+0.001000,4.0e+17,1.2e+07,5.0e+12,1.2e+07,5.0e+12
+...
+```
+- First line: header with column names
+- Subsequent lines: time, all state variables, analytical values (if available)
+- Use scientific notation for consistency
+- Redirect to file when running: `./test_chapman > chapman_results.csv`
+- Enables plotting with Python/gnuplot for visual validation
+
 See `TESTS.md` for full specification and additional test cases.
 
 ### Medium Priority: Additional Constraint Types
