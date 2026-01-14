@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/constraint/constraint.hpp>
+#include <micm/constraint/constraint_set.hpp>
+#include <micm/constraint/equilibrium_constraint.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
@@ -18,6 +21,7 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+#include <memory>
 #include <system_error>
 
 namespace micm
@@ -50,6 +54,7 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
+    std::shared_ptr<std::vector<std::unique_ptr<Constraint>>> constraints_;
     std::size_t constraint_count_ = 0;
     std::vector<std::string> constraint_names_{};
     bool ignore_unused_species_ = true;
@@ -96,6 +101,11 @@ namespace micm
     /// @param reorder_state True if the state should be reordered
     /// @return Updated SolverBuilder
     SolverBuilder& SetReorderState(bool reorder_state);
+
+    /// @brief Set algebraic constraints for DAE solving
+    /// @param constraints Vector of constraint pointers (ownership transferred)
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints);
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
