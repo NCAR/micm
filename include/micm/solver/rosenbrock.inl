@@ -51,11 +51,23 @@ namespace micm
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
+
+      // Add constraint residuals to forcing (for DAE systems)
+      if (constraints_.Size() > 0)
+      {
+        constraints_.AddForcingTerms(Y, initial_forcing);
+      }
       result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+
+      // Add constraint Jacobian terms (for DAE systems)
+      if (constraints_.Size() > 0)
+      {
+        constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+      }
       result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
@@ -95,6 +107,11 @@ namespace micm
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
+              // Add constraint residuals for DAE systems
+              if (constraints_.Size() > 0)
+              {
+                constraints_.AddForcingTerms(Ynew, K[stage]);
+              }
               result.stats_.function_calls_ += 1;
             }
           }
@@ -209,6 +226,12 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
+    // Add alpha to ALL diagonals for proper DAE support.
+    // For ODE variables (M[i][i]=1): forms αM - J = α - J
+    // For algebraic variables (M[i][i]=0): also adds α to regularize the constraint.
+    // This treats algebraic constraints as stiff ODEs (ε*z' = g(y,z) with ε=hγ),
+    // which ensures K values scale with H and prevents numerical instability
+    // from the c/H terms in Rosenbrock stage computation.
     for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
@@ -225,12 +248,15 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
+    // Add alpha to ALL diagonals for proper DAE support (see non-vectorized version for details)
     for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
+      {
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
+      }
     }
   }
 

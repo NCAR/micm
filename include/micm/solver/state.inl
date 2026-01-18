@@ -120,11 +120,12 @@ namespace micm
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
-    // Build upper-left identity diagonal: 1s for ODE variables, 0s for constraints
-    for (std::size_t i = 0; i < state_size_; i++)
+    for (std::size_t i = 0; i < state_size_; i++) {
       upper_left_identity_diagonal_.push_back(1.0);
-    for (std::size_t i = 0; i < constraint_size_; i++)
+    }
+    for (std::size_t i = 0; i < constraint_size_; i++) {
       upper_left_identity_diagonal_.push_back(0.0);
+    }
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
