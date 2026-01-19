@@ -3,7 +3,6 @@
 #pragma once
 
 #include <cstddef>
-#include <map>
 #include <string>
 #include <vector>
 
@@ -42,14 +41,16 @@ namespace micm
     virtual ~Constraint() = default;
 
     /// @brief Evaluate the constraint residual G(x)
-    /// @param concentrations Map of species name to concentration
+    /// @param concentrations Vector of all species concentrations
+    /// @param indices Indices mapping species_dependencies_ to positions in concentrations vector
     /// @return Residual value (should be 0 when constraint is satisfied)
     virtual double Residual(const std::vector<double>& concentrations,
                             const std::vector<std::size_t>& indices) const = 0;
 
     /// @brief Compute partial derivatives dG/d[species] for each dependent species
-    /// @param concentrations Map of species name to concentration
-    /// @return Map of species name to partial derivative dG/d[species]
+    /// @param concentrations Vector of all species concentrations
+    /// @param indices Indices mapping species_dependencies_ to positions in concentrations vector
+    /// @return Vector of partial derivatives dG/d[species] in same order as species_dependencies_
     virtual std::vector<double> Jacobian(const std::vector<double>& concentrations,
                                          const std::vector<std::size_t>& indices) const = 0;
 
