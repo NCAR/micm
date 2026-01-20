@@ -5,12 +5,16 @@ This document provides an educational walkthrough of the new `Constraint`, `Equi
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Class Hierarchy](#class-hierarchy)
-3. [The Constraint Base Class](#the-constraint-base-class)
-4. [The EquilibriumConstraint Class](#the-equilibriumconstraint-class)
-5. [The ConstraintSet Class](#the-constraintset-class)
-6. [How ConstraintSet Mirrors ProcessSet](#how-constraintset-mirrors-processset)
-7. [Integration with the DAE System](#integration-with-the-dae-system)
+2. [Architecture Overview](#architecture-overview)
+3. [Class Hierarchy](#class-hierarchy)
+4. [The Constraint Base Class](#the-constraint-base-class)
+5. [The EquilibriumConstraint Class](#the-equilibriumconstraint-class)
+6. [The ConstraintSet Class](#the-constraintset-class)
+7. [How ConstraintSet Mirrors ProcessSet](#how-constraintset-mirrors-processset)
+8. [Integration with the DAE System](#integration-with-the-dae-system)
+9. [Test Coverage](#test-coverage)
+10. [Design Patterns Summary](#design-patterns-summary)
+11. [Note on DAE Notation Conventions](#note-on-dae-notation-conventions)
 
 ---
 
@@ -30,6 +34,121 @@ In atmospheric chemistry, algebraic constraints are useful for enforcing:
 ### Why Constraints?
 
 Standard ODE solvers only handle differential equations. When chemical reactions are much faster than the timescale of interest, they effectively reach equilibrium instantaneously. Rather than using extremely small timesteps to resolve these fast reactions, we can enforce the equilibrium condition as an algebraic constraint.
+
+---
+
+## Architecture Overview
+
+This section shows where the new constraint classes fit within MICM's solver architecture.
+
+### Data Flow During a Solve Step
+
+```
+User Input
+    |
+    v
+System (species, phases)  +  Reactions  +  Constraints
+    |                           |              |
+    v                           v              v
+variable_map           ProcessSet        ConstraintSet
+(name -> index)        (owns reactions)  (owns constraints)
+    |                        |                 |
+    +------------------------+-----------------+
+                             |
+                             v
+                    Rosenbrock Solver
+                             |
+            +----------------+----------------+
+            |                                 |
+            v                                 v
+    State Vector (y)                  Rate Constants (k)
+    [species concentrations]          [reaction rates]
+            |                                 |
+            +----------------+----------------+
+                             |
+                             v
+              +--- Forcing Computation ---+
+              |                           |
+              v                           v
+     ProcessSet.AddForcingTerms    ConstraintSet.AddForcingTerms
+     (rows 0..N-1: dy/dt = F)      (rows N..N+M-1: G(y) = 0)
+              |                           |
+              +-------------+-------------+
+                            |
+                            v
+                    Forcing Vector
+              [F_0, F_1, ..., G_0, G_1, ...]
+                            |
+                            v
+              +--- Jacobian Computation ---+
+              |                            |
+              v                            v
+   ProcessSet.SubtractJacobianTerms  ConstraintSet.SubtractJacobianTerms
+   (dF/dy entries)                   (dG/dy entries)
+              |                            |
+              +-------------+--------------+
+                            |
+                            v
+                   Sparse Jacobian Matrix
+                            |
+                            v
+                   Linear Algebra Solve
+                            |
+                            v
+                   State Update (y_new)
+```
+
+### Component Responsibilities
+
+```
+Constraint (abstract)
+    - Defines interface: Residual(), Jacobian()
+    - Stores species dependencies by name
+    - Self-contained, testable unit
+            |
+            v
+EquilibriumConstraint
+    - Implements equilibrium: K_eq * [reactants] - [products] = 0
+    - Computes residual and partial derivatives
+    - Handles arbitrary stoichiometry
+            |
+            v
+ConstraintSet
+    - Owns collection of Constraint objects
+    - Maps species names to solver indices
+    - Provides batch operations over grid cells
+    - Mirrors ProcessSet interface for solver integration
+            |
+            v
+Rosenbrock Solver
+    - Orchestrates the solve
+    - Calls ProcessSet and ConstraintSet in sequence
+    - Handles linear algebra and time stepping
+```
+
+### Parallel Structure: ProcessSet and ConstraintSet
+
+```
+ProcessSet                          ConstraintSet
+-----------                         -------------
+Reactions (ODE terms)               Constraints (algebraic terms)
+        |                                   |
+        v                                   v
+AddForcingTerms()                   AddForcingTerms()
+  - Computes reaction rates           - Computes constraint residuals
+  - Writes to rows 0..N-1             - Writes to rows N..N+M-1
+        |                                   |
+        v                                   v
+SubtractJacobianTerms()             SubtractJacobianTerms()
+  - Computes dF/dy                    - Computes dG/dy
+  - Writes to species rows            - Writes to constraint rows
+```
+
+Both classes:
+- Take `variable_map` at construction to resolve species names
+- Pre-compute sparse Jacobian indices via `SetJacobianFlatIds()`
+- Iterate over grid cells in the same pattern
+- Use the same sparse matrix access conventions
 
 ---
 
@@ -466,6 +585,70 @@ Forcing = [dy_0/dt, dy_1/dt, ..., G_0(y), G_1(y), ...]
    f. constraint_set.SubtractJacobianTerms(...)   // dG/dy entries
 
    g. Solve linear system
+```
+
+---
+
+## Test Coverage
+
+The constraint classes are tested in `test/unit/constraint/`. This section summarizes what the tests cover.
+
+### EquilibriumConstraint Tests (`test_constraint.cpp`)
+
+| Test | What It Verifies |
+|------|------------------|
+| `SimpleABEquilibrium` | Basic A + B ⇌ AB equilibrium; residual is zero at equilibrium, non-zero away from it |
+| `Jacobian` | Partial derivatives dG/d[A], dG/d[B], dG/d[AB] are computed correctly |
+| `SingleReactantSingleProduct` | Simple A ⇌ B case with one reactant and one product |
+| `TwoProductsOneReactant` | Stoichiometry handling: 2A ⇌ B + C with [A]² term |
+| `InvalidEquilibriumConstant` | Throws on K_eq ≤ 0 |
+
+**Key scenarios covered:**
+- Equilibrium satisfied (residual ≈ 0)
+- Away from equilibrium (residual ≠ 0)
+- Various stoichiometries (1:1, 2:1, 1:2)
+- Jacobian correctness for all dependency types
+
+### ConstraintSet Tests (`test_constraint_set.cpp`)
+
+| Test | What It Verifies |
+|------|------------------|
+| `Construction` | ConstraintSet builds correctly from constraints + variable_map |
+| `NonZeroJacobianElements` | Sparsity pattern is correct (row, column pairs) |
+| `MultipleConstraints` | Two independent constraints in one set |
+| `AddForcingTerms` | Residuals written to correct forcing vector rows |
+| `SubtractJacobianTerms` | Jacobian entries written to correct sparse matrix positions |
+| `EmptyConstraintSet` | Empty set is valid, does nothing |
+| `UnknownSpeciesThrows` | Throws if constraint references unknown species |
+| `ThreeDStateOneConstraint` | 3 species + 1 constraint, multi-cell grid |
+| `FourDStateTwoConstraints` | 4 species + 2 constraints, verifies both constraints |
+| `CoupledConstraintsSharedSpecies` | Two constraints sharing a species (A ⇌ B and A ⇌ C) |
+
+**Key scenarios covered:**
+- Single and multiple constraints
+- Single and multiple grid cells
+- Sparse Jacobian structure and flat index computation
+- Species shared between constraints
+- Error handling for invalid configurations
+
+### What's NOT Tested (Future Work)
+
+- Integration with actual Rosenbrock solver (planned for `dae-2-solver-integration`)
+- Performance benchmarks with large constraint sets
+- CUDA/GPU variants of ConstraintSet
+- Edge cases: very large K_eq, very small concentrations near machine epsilon
+
+### Running the Tests
+
+```bash
+cd build
+ctest -R constraint --output-on-failure
+```
+
+Or run specific test files:
+```bash
+./test/unit/constraint/test_constraint
+./test/unit/constraint/test_constraint_set
 ```
 
 ---
