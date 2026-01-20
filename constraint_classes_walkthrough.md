@@ -519,6 +519,62 @@ for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
 }
 ```
 
+### Flat Array Memory Layout and Strides
+
+MICM uses flat (1D) arrays with stride-based access for efficient memory layout across grid cells and species. Both `ProcessSet` and `ConstraintSet` follow the same conventions.
+
+**Dense matrices (state, forcing):**
+
+The `DenseMatrixPolicy` stores data as a flat array where:
+- Rows = grid cells
+- Columns = species (or state variables)
+- Access: `matrix[i_cell]` returns a view/iterator for cell `i_cell`
+
+```cpp
+// Both ProcessSet and ConstraintSet use identical access patterns:
+auto cell_state = state_variables[i_cell];     // View of species for this cell
+auto cell_forcing = forcing[i_cell];           // View of forcing for this cell
+cell_forcing[species_idx] += value;            // Write to specific species
+```
+
+**Sparse Jacobian matrix:**
+
+The sparse Jacobian is also stored as a flat array. Both classes access it identically:
+
+```cpp
+// Get iterator to the flat array
+auto cell_jacobian = jacobian.AsVector().begin();
+
+// Process each grid cell
+for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
+{
+  // Access pre-computed flat indices for sparse entries
+  cell_jacobian[jacobian_flat_ids_[i]] -= value;
+
+  // Advance pointer by the block size to reach next cell's Jacobian
+  cell_jacobian += jacobian.FlatBlockSize();
+}
+```
+
+The `FlatBlockSize()` is the stride between consecutive grid cells in the sparse Jacobian storage. Pre-computing `jacobian_flat_ids_` at setup time (via `SetJacobianFlatIds()`) avoids repeated 2D-to-1D index calculations during the solve.
+
+**Vectorized variants (future work):**
+
+`ProcessSet` has additional vectorized implementations using SIMD-friendly access patterns:
+
+```cpp
+// ProcessSet has these (ConstraintSet does not yet):
+template<typename DenseMatrixPolicy>
+  requires VectorizableDense<DenseMatrixPolicy>
+void AddForcingTerms(...);
+
+template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+void SubtractJacobianTerms(...);
+```
+
+These use `NumberOfGroups()`, `GroupSize()`, and `GroupVectorSize()` for blocked iteration. Adding vectorized variants to `ConstraintSet` is planned for future optimization work.
+
 ### Row Offset Distinction
 
 The key structural difference:
