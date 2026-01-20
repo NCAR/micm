@@ -1,6 +1,18 @@
-# Line-by-Line Explanation: Reactant Product Loop
+# Indexing Patterns in MICM
 
-This document explains the indexing logic in the `EquilibriumConstraint::Residual()` method.
+This document explains the indexing patterns used in MICM for accessing species concentrations during forcing and Jacobian computations. We focus on the `EquilibriumConstraint::Residual()` method and compare it with the approach used in `ProcessSet`.
+
+## Table of Contents
+
+1. [The Code](#the-code)
+2. [Context](#context)
+3. [Line-by-Line Breakdown](#line-by-line-breakdown)
+4. [Visual Summary](#visual-summary)
+5. [Complete State vs Constraint-Specific Vectors](#complete-state-vs-constraint-specific-vectors)
+6. [Why This Indirection?](#why-this-indirection)
+7. [Comparison with ProcessSet: 2-Level vs 3-Level Indirection](#comparison-with-processset-2-level-vs-3-level-indirection)
+
+---
 
 ## The Code
 
@@ -221,3 +233,149 @@ The triple indirection exists because:
 2. **The solver uses indices** — For performance, the solver works with integer indices, not string lookups
 3. **Species ordering varies** — Different systems have different species in different orders
 4. **Separation of concerns** — The constraint doesn't need to know about the global system layout; the `indices` parameter handles the mapping at runtime
+
+---
+
+## Comparison with ProcessSet: 2-Level vs 3-Level Indirection
+
+The `Constraint` classes use a 3-level indirection pattern, but `ProcessSet` uses a simpler 2-level pattern. Understanding this difference illuminates the design trade-offs.
+
+### ProcessSet: 2-Level Indirection
+
+In `ProcessSet::AddForcingTerms()`, the concentration access looks like this:
+
+```cpp
+// ProcessSet::AddForcingTerms (process_set.hpp)
+auto react_id = reactant_ids_.begin();
+// ...
+for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+{
+  rate *= cell_state[react_id[i_react]];
+}
+```
+
+This is only **2 levels of indirection**:
+
+```
+react_id[i_react]  →  global species index
+cell_state[...]    →  concentration value
+```
+
+**How does ProcessSet achieve this?** At construction time, `ProcessSet` pre-computes the global indices:
+
+```cpp
+// ProcessSet constructor
+for (const auto& reactant : reaction->reactants_)
+{
+  // Look up global index from variable_map and store it directly
+  reactant_ids_.push_back(variable_map.at(reactant.name_));
+}
+```
+
+The `reactant_ids_` vector stores **global indices directly**, not intermediate positions. The name-to-index mapping happens once at construction, not at every evaluation.
+
+### ConstraintSet + Constraint: 3-Level Indirection
+
+In contrast, `EquilibriumConstraint::Residual()` uses:
+
+```cpp
+double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+```
+
+This is **3 levels of indirection**:
+
+```
+reactant_dependency_indices_[i]  →  position in species_dependencies_
+indices[...]                     →  global species index
+concentrations[...]              →  concentration value
+```
+
+### Why the Difference?
+
+The architectural difference stems from **ownership and interface design**:
+
+| Aspect | ProcessSet | Constraint |
+|--------|-----------|------------|
+| **Index storage** | Global indices stored internally | Intermediate indices stored; global mapping passed as parameter |
+| **Construction** | Receives `variable_map`, computes global indices once | No access to `variable_map`; receives indices at evaluation time |
+| **Interface** | Tightly coupled to solver's index scheme | Decoupled; can be evaluated with any index mapping |
+| **Flexibility** | Must be reconstructed if species ordering changes | Same constraint object works with different index mappings |
+
+The `Constraint` interface is designed for **decoupling**: a `Constraint` object doesn't know (or need to know) about the global system layout. The `ConstraintSet` builds the `indices` vector from `variable_map` and passes it to each constraint at evaluation time.
+
+### The ConstraintSet Bridge
+
+The `ConstraintSet` actually does pre-compute global indices, storing them in `dependency_ids_`:
+
+```cpp
+// ConstraintSet constructor
+for (const auto& species_name : constraint->species_dependencies_)
+{
+  dependency_ids_.push_back(variable_map.at(species_name));  // Global index
+}
+```
+
+Then at evaluation time, it builds an `indices` vector and passes it to the constraint:
+
+```cpp
+// ConstraintSet::AddForcingTerms
+std::vector<std::size_t> indices(dep_id, dep_id + info.number_of_dependencies_);
+double residual = constraints_[info.constraint_index_]->Residual(concentrations, indices);
+```
+
+The constraint then uses `reactant_dependency_indices_` to navigate within that `indices` vector.
+
+### Visual Comparison
+
+**ProcessSet (2-level):**
+```
+reactant index (i_react)
+         │
+         ▼
+    reactant_ids_        [global indices pre-computed at construction]
+         │
+         ▼
+    cell_state           [concentrations]
+```
+
+**Constraint (3-level):**
+```
+reactant index (i)
+         │
+         ▼
+reactant_dependency_indices_    [position in species_dependencies_]
+         │
+         ▼
+    indices                     [global indices, passed as parameter]
+         │
+         ▼
+concentrations                  [concentrations]
+```
+
+### Performance Implications
+
+The extra indirection in `Constraint` has a small runtime cost:
+- One additional array lookup per species access
+- Temporary `indices` vector created for each constraint evaluation
+- Less cache-friendly memory access pattern
+
+For most use cases, this overhead is negligible compared to the actual mathematical computations. However, if profiling reveals this as a bottleneck, `ConstraintSet` could be refactored to:
+
+1. **Pre-compute separate reactant/product global index vectors** (like `ProcessSet` does)
+2. **Bypass the Constraint's internal indirection** by calling a lower-level interface
+3. **Inline the constraint evaluation** directly in `ConstraintSet`
+
+This would sacrifice the clean separation of concerns but match `ProcessSet`'s 2-level pattern.
+
+### Design Philosophy
+
+The current design prioritizes:
+- **Modularity** — Constraints are self-contained, testable units
+- **Flexibility** — Same constraint can work with different systems
+- **Clarity** — The Constraint interface is simple and explicit
+
+The `ProcessSet` design prioritizes:
+- **Performance** — Minimal indirection at evaluation time
+- **Efficiency** — No temporary allocations in hot loops
+
+Both approaches are valid. The `Constraint` classes follow a more object-oriented style where each constraint encapsulates its own logic, while `ProcessSet` uses a more data-oriented style optimized for batch processing.
