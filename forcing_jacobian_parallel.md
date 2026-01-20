@@ -5,7 +5,7 @@ This document shows how `ConstraintSet::SubtractJacobianTerms` mirrors `ProcessS
 ## Method Signatures
 
 ```cpp
-// ProcessSet: Jacobian contributions from chemical reactions (df/dy)
+// ProcessSet: Jacobian contributions from chemical reactions (dF/dy)
 template<class DenseMatrixPolicy, class SparseMatrixPolicy>
 void ProcessSet::SubtractJacobianTerms(
     const DenseMatrixPolicy& rate_constants,
@@ -185,7 +185,7 @@ void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 |--------|-----------|---------------|
 | **Input data** | Needs `rate_constants` + `state_variables` | Only needs `state_variables` |
 | **Jacobian rows** | Species rows (0 to N-1) | Constraint rows (N to N+M-1) |
-| **Jacobian calculation** | Inline: `d_rate_d_ind = k * [reactants]` | Delegated to `Constraint::Jacobian()` |
+| **Jacobian calculation** | Inline: `dF_d_ind = k * [reactants]` | Delegated to `Constraint::Jacobian()` |
 | **Entry signs** | `+=` for reactants, `-=` for products | `-=` for all (matches solver convention) |
 | **Complexity** | Handles reactants and products separately | Uniform handling of all dependencies |
 
@@ -200,7 +200,7 @@ Extended Jacobian Matrix:
        ┌─────────────────┐
        │  ×   ×   ×   ×  │  ← species row 0    ┐
        │  ×   ×   ×   ×  │  ← species row 1    │ ProcessSet writes here
-       │  ×   ×   ×   ×  │  ← species row 2    │ (df/dy entries)
+       │  ×   ×   ×   ×  │  ← species row 2    │ (dF/dy entries)
        │  ×   ×   ×   ×  │  ← species row 3    ┘
        ├─────────────────┤
        │  ×   ×   ×   ×  │  ← constraint row 0 ┐ ConstraintSet writes here
@@ -224,7 +224,7 @@ Both contribute to the same sparse Jacobian matrix, but to different row regions
 
 ## Mathematical Context
 
-**ProcessSet** computes derivatives of reaction rates:
+**ProcessSet** computes derivatives of the forcing function F(y):
 ```
 For reaction: A + B → C
 Rate = k[A][B]

@@ -19,7 +19,7 @@ This document provides an educational walkthrough of the new `Constraint`, `Equi
 ### What are DAEs?
 
 A Differential-Algebraic Equation (DAE) system combines:
-- **Differential equations**: `dy/dt = f(y)` — rates of change for species concentrations
+- **Differential equations**: `dy/dt = F(y)` — rates of change for species concentrations
 - **Algebraic equations**: `G(y) = 0` — constraints that must always be satisfied
 
 In atmospheric chemistry, algebraic constraints are useful for enforcing:
@@ -56,9 +56,9 @@ The `Constraint` class defines the interface that all constraints must implement
 
 ### Purpose
 
-Constraints define algebraic relations `G(x) = 0` that must be satisfied by the species concentrations. Each constraint provides:
-- A **residual function** `G(x)` that equals zero when satisfied
-- **Jacobian entries** `dG/dx` for each dependent species
+Constraints define algebraic relations `G(y) = 0` that must be satisfied by the species concentrations. Each constraint provides:
+- A **residual function** `G(y)` that equals zero when satisfied
+- **Jacobian entries** `dG/dy` for each dependent species
 
 ### Class Definition
 
@@ -72,7 +72,7 @@ class Constraint
   /// Names of species this constraint depends on
   std::vector<std::string> species_dependencies_;
 
-  /// Evaluate the constraint residual G(x)
+  /// Evaluate the constraint residual G(y)
   /// @return Residual value (should be 0 when constraint is satisfied)
   virtual double Residual(const std::vector<double>& concentrations,
                           const std::vector<std::size_t>& indices) const = 0;
@@ -354,7 +354,7 @@ void AddForcingTerms(const DenseMatrixPolicy& rate_constants,
                      const DenseMatrixPolicy& state_variables,
                      DenseMatrixPolicy& forcing) const;
 
-// ConstraintSet — adds constraint residuals to forcing (G(x) contributions)
+// ConstraintSet — adds constraint residuals to forcing (G(y) contributions)
 template<typename DenseMatrixPolicy>
 void AddForcingTerms(const DenseMatrixPolicy& state_variables,
                      DenseMatrixPolicy& forcing) const;
@@ -365,7 +365,7 @@ Note: ConstraintSet doesn't need `rate_constants` — constraints are evaluated 
 #### SubtractJacobianTerms
 
 ```cpp
-// ProcessSet — subtracts df/dy from Jacobian
+// ProcessSet — subtracts dF/dy from Jacobian
 template<class DenseMatrixPolicy, class SparseMatrixPolicy>
 void SubtractJacobianTerms(const DenseMatrixPolicy& rate_constants,
                            const DenseMatrixPolicy& state_variables,
@@ -458,11 +458,11 @@ Forcing = [dy_0/dt, dy_1/dt, ..., G_0(y), G_1(y), ...]
 
 3. Each solver iteration:
    a. Zero forcing vector
-   b. process_set.AddForcingTerms(...)      // dy/dt rows
+   b. process_set.AddForcingTerms(...)      // F(y) rows
    c. constraint_set.AddForcingTerms(...)   // G(y) rows
 
    d. Zero Jacobian
-   e. process_set.SubtractJacobianTerms(...)      // df/dy entries
+   e. process_set.SubtractJacobianTerms(...)      // dF/dy entries
    f. constraint_set.SubtractJacobianTerms(...)   // dG/dy entries
 
    g. Solve linear system
@@ -479,3 +479,27 @@ Forcing = [dy_0/dt, dy_1/dt, ..., G_0(y), G_1(y), ...]
 5. **Parallel Structure** — Mirrors `ProcessSet` for consistent solver integration
 
 This architecture enables clean extension of MICM's Rosenbrock solver from ODEs to DAEs while maintaining performance and code consistency.
+
+---
+
+## Note on DAE Notation Conventions
+
+In DAE literature, you may encounter a distinction between **differential variables** (y) and **algebraic variables** (z), written as a semi-explicit index-1 DAE:
+
+```
+dy/dt = F(y, z)
+    0 = G(y, z)
+```
+
+Here, y evolves according to differential equations while z is determined implicitly by the algebraic constraints. The full system Jacobian then has a block structure:
+
+```
+         ∂/∂y      ∂/∂z
+       ┌─────────┬─────────┐
+ F     │  ∂F/∂y  │  ∂F/∂z  │   ← Differential equations
+       ├─────────┼─────────┤
+ G     │  ∂G/∂y  │  ∂G/∂z  │   ← Algebraic constraints
+       └─────────┴─────────┘
+```
+
+MICM uses a **unified state vector y** for simplicity, where all species concentrations (whether governed by ODEs or determined by constraints) are stored together. This reflects how the code actually works — `ProcessSet` and `ConstraintSet` both operate on the same state vector. The distinction between "differential" and "algebraic" species is implicit in which equations govern them, rather than explicit in the notation.

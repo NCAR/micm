@@ -9,15 +9,15 @@
 namespace micm
 {
 
-  /// @brief Abstract base class for algebraic constraints G(x) = 0
+  /// @brief Abstract base class for algebraic constraints G(y) = 0
   ///
   /// Constraints define algebraic relations that must be satisfied by the species
   /// concentrations. They are used in DAE (Differential-Algebraic Equation) solvers
   /// to enforce conditions like chemical equilibrium or mass conservation.
   ///
   /// Each constraint provides:
-  /// - A residual function G(x) that should equal zero when the constraint is satisfied
-  /// - Jacobian entries dG/dx for each species the constraint depends on
+  /// - A residual function G(y) that should equal zero when the constraint is satisfied
+  /// - Jacobian entries dG/dy for each species the constraint depends on
   class Constraint
   {
    public:
@@ -40,7 +40,7 @@ namespace micm
     /// @brief Virtual destructor
     virtual ~Constraint() = default;
 
-    /// @brief Evaluate the constraint residual G(x)
+    /// @brief Evaluate the constraint residual G(y)
     /// @param concentrations Vector of all species concentrations
     /// @param indices Indices mapping species_dependencies_ to positions in concentrations vector
     /// @return Residual value (should be 0 when constraint is satisfied)
