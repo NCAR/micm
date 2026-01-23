@@ -3,12 +3,13 @@
 #pragma once
 
 #include <micm/constraint/constraint.hpp>
+#include <micm/constraint/constraint_error.hpp>
 #include <micm/system/yield.hpp>
 
 #include <cmath>
 #include <cstddef>
-#include <stdexcept>
 #include <string>
+#include <system_error>
 #include <vector>
 
 namespace micm
@@ -62,7 +63,7 @@ namespace micm
     {
       if (equilibrium_constant_ <= 0)
       {
-        throw std::invalid_argument("Equilibrium constant must be positive");
+        throw std::system_error(make_error_code(MicmConstraintErrc::InvalidEquilibriumConstant));
       }
 
       // Build species dependencies list (reactants first, then products)

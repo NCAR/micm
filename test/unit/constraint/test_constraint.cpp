@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <memory>
+#include <system_error>
 #include <vector>
 
 using namespace micm;
@@ -139,7 +140,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           std::vector<Yield>{ Yield(Species("A"), 1.0) },
           std::vector<Yield>{ Yield(Species("B"), 1.0) },
           -1.0),
-      std::invalid_argument);
+      std::system_error);
 
   EXPECT_THROW(
       EquilibriumConstraint(
@@ -147,5 +148,5 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           std::vector<Yield>{ Yield(Species("A"), 1.0) },
           std::vector<Yield>{ Yield(Species("B"), 1.0) },
           0.0),
-      std::invalid_argument);
+      std::system_error);
 }

@@ -3,14 +3,15 @@
 #pragma once
 
 #include <micm/constraint/constraint.hpp>
+#include <micm/constraint/constraint_error.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cstddef>
 #include <map>
 #include <memory>
 #include <set>
-#include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -132,7 +133,8 @@ namespace micm
         auto it = variable_map.find(species_name);
         if (it == variable_map.end())
         {
-          throw std::runtime_error(
+          throw std::system_error(
+              make_error_code(MicmConstraintErrc::UnknownSpecies),
               "Constraint '" + constraint->name_ + "' depends on unknown species '" + species_name + "'");
         }
         dependency_ids_.push_back(it->second);
