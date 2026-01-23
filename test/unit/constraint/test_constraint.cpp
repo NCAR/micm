@@ -3,12 +3,13 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/equilibrium_constraint.hpp>
+#include <micm/system/species.hpp>
+#include <micm/system/yield.hpp>
 
 #include <gtest/gtest.h>
 
 #include <cmath>
 #include <memory>
-#include <utility>
 #include <vector>
 
 using namespace micm;
@@ -22,8 +23,8 @@ TEST(EquilibriumConstraint, SimpleABEquilibrium)
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
       "A_B_equilibrium",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },  // reactants with stoich
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },               // products with stoich
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },  // reactants with stoich
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },                           // products with stoich
       K_eq);
 
   EXPECT_EQ(constraint.name_, "A_B_equilibrium");
@@ -60,8 +61,8 @@ TEST(EquilibriumConstraint, Jacobian)
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
       "A_B_equilibrium",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
       K_eq);
 
   std::vector<double> concentrations = { 0.01, 0.02, 0.05 };
@@ -84,8 +85,8 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
   double K_eq = 10.0;
   EquilibriumConstraint constraint(
       "A_B_simple",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "B", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0) },
+      std::vector<Yield>{ Yield(Species("B"), 1.0) },
       K_eq);
 
   EXPECT_EQ(constraint.species_dependencies_.size(), 2);
@@ -112,8 +113,8 @@ TEST(EquilibriumConstraint, TwoProductsOneReactant)
   double K_eq = 100.0;
   EquilibriumConstraint constraint(
       "dissociation",
-      std::vector<std::pair<std::string, double>>{ { "A", 2.0 } },    // A with stoich 2
-      std::vector<std::pair<std::string, double>>{ { "B", 1.0 }, { "C", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 2.0) },                                // A with stoich 2
+      std::vector<Yield>{ Yield(Species("B"), 1.0), Yield(Species("C"), 1.0) },
       K_eq);
 
   // Dependencies should be A, B, C
@@ -135,16 +136,16 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
-          std::vector<std::pair<std::string, double>>{ { "B", 1.0 } },
+          std::vector<Yield>{ Yield(Species("A"), 1.0) },
+          std::vector<Yield>{ Yield(Species("B"), 1.0) },
           -1.0),
       std::invalid_argument);
 
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
-          std::vector<std::pair<std::string, double>>{ { "B", 1.0 } },
+          std::vector<Yield>{ Yield(Species("A"), 1.0) },
+          std::vector<Yield>{ Yield(Species("B"), 1.0) },
           0.0),
       std::invalid_argument);
 }

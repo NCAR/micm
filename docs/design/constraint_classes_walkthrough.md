@@ -1,6 +1,6 @@
 # Constraint Classes for DAE Support in MICM
 
-This document provides an educational walkthrough of the new `Constraint`, `EquilibriumConstraint`, and `ConstraintSet` classes introduced in the `dae-1-constraint-classes` branch. These classes enable Differential-Algebraic Equation (DAE) support in MICM's Rosenbrock solver.
+This document provides an educational walkthrough of the `Constraint`, `EquilibriumConstraint`, and `ConstraintSet` classes that enable Differential-Algebraic Equation (DAE) support in MICM's Rosenbrock solver.
 
 ## Table of Contents
 

@@ -4,6 +4,8 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/equilibrium_constraint.hpp>
+#include <micm/system/species.hpp>
+#include <micm/system/yield.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
@@ -14,7 +16,6 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <utility>
 #include <vector>
 
 using namespace micm;
@@ -25,8 +26,8 @@ TEST(ConstraintSet, Construction)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
       1000.0));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -48,8 +49,8 @@ TEST(ConstraintSet, NonZeroJacobianElements)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
       1000.0));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -79,13 +80,13 @@ TEST(ConstraintSet, MultipleConstraints)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
       1000.0));
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "C_D_eq",
-      std::vector<std::pair<std::string, double>>{ { "C", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "D", 1.0 } },
+      std::vector<Yield>{ Yield(Species("C"), 1.0) },
+      std::vector<Yield>{ Yield(Species("D"), 1.0) },
       500.0));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -122,8 +123,8 @@ TEST(ConstraintSet, AddForcingTerms)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
       1000.0));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -160,8 +161,8 @@ TEST(ConstraintSet, SubtractJacobianTerms)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 }, { "B", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "AB", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
+      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
       1000.0));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -242,8 +243,8 @@ TEST(ConstraintSet, UnknownSpeciesThrows)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "invalid",
-      std::vector<std::pair<std::string, double>>{ { "X", 1.0 }, { "Y", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "XY", 1.0 } },
+      std::vector<Yield>{ Yield(Species("X"), 1.0), Yield(Species("Y"), 1.0) },
+      std::vector<Yield>{ Yield(Species("XY"), 1.0) },
       1000.0));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -275,8 +276,8 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "X_Y_eq",
-      std::vector<std::pair<std::string, double>>{ { "X", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "Y", 1.0 } },
+      std::vector<Yield>{ Yield(Species("X"), 1.0) },
+      std::vector<Yield>{ Yield(Species("Y"), 1.0) },
       K_eq));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -376,15 +377,15 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
   // Constraint 1: A <-> B with K_eq1 = 10
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "B", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0) },
+      std::vector<Yield>{ Yield(Species("B"), 1.0) },
       K_eq1));
 
   // Constraint 2: C + D <-> A with K_eq2 = 100
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "CD_A_eq",
-      std::vector<std::pair<std::string, double>>{ { "C", 1.0 }, { "D", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
+      std::vector<Yield>{ Yield(Species("C"), 1.0), Yield(Species("D"), 1.0) },
+      std::vector<Yield>{ Yield(Species("A"), 1.0) },
       K_eq2));
 
   std::map<std::string, std::size_t> variable_map = {
@@ -532,14 +533,14 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
   // Both constraints depend on species A
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_B_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "B", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0) },
+      std::vector<Yield>{ Yield(Species("B"), 1.0) },
       K_eq1));
 
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
       "A_C_eq",
-      std::vector<std::pair<std::string, double>>{ { "A", 1.0 } },
-      std::vector<std::pair<std::string, double>>{ { "C", 1.0 } },
+      std::vector<Yield>{ Yield(Species("A"), 1.0) },
+      std::vector<Yield>{ Yield(Species("C"), 1.0) },
       K_eq2));
 
   std::map<std::string, std::size_t> variable_map = {
