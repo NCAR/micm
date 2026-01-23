@@ -11,6 +11,9 @@ enum class MicmConstraintErrc
 {
   InvalidEquilibriumConstant = MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT,
   UnknownSpecies = MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+  EmptyReactants = MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS,
+  EmptyProducts = MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS,
+  InvalidStoichiometry = MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
 };
 
 namespace std
@@ -35,6 +38,9 @@ class MicmConstraintErrorCategory : public std::error_category
     {
       case MicmConstraintErrc::InvalidEquilibriumConstant: return "Equilibrium constant must be positive";
       case MicmConstraintErrc::UnknownSpecies: return "Unknown species in constraint";
+      case MicmConstraintErrc::EmptyReactants: return "Equilibrium constraint requires at least one reactant";
+      case MicmConstraintErrc::EmptyProducts: return "Equilibrium constraint requires at least one product";
+      case MicmConstraintErrc::InvalidStoichiometry: return "Stoichiometric coefficients must be positive";
       default: return "Unknown error";
     }
   }

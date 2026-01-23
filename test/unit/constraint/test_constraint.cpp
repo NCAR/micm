@@ -150,3 +150,64 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           0.0),
       std::system_error);
 }
+
+TEST(EquilibriumConstraint, EmptyReactantsThrows)
+{
+  EXPECT_THROW(
+      EquilibriumConstraint(
+          "invalid",
+          std::vector<Yield>{},  // empty reactants
+          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          1.0),
+      std::system_error);
+}
+
+TEST(EquilibriumConstraint, EmptyProductsThrows)
+{
+  EXPECT_THROW(
+      EquilibriumConstraint(
+          "invalid",
+          std::vector<Yield>{ Yield(Species("A"), 1.0) },
+          std::vector<Yield>{},  // empty products
+          1.0),
+      std::system_error);
+}
+
+TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
+{
+  // Zero stoichiometry for reactant
+  EXPECT_THROW(
+      EquilibriumConstraint(
+          "invalid",
+          std::vector<Yield>{ Yield(Species("A"), 0.0) },
+          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          1.0),
+      std::system_error);
+
+  // Negative stoichiometry for reactant
+  EXPECT_THROW(
+      EquilibriumConstraint(
+          "invalid",
+          std::vector<Yield>{ Yield(Species("A"), -1.0) },
+          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          1.0),
+      std::system_error);
+
+  // Zero stoichiometry for product
+  EXPECT_THROW(
+      EquilibriumConstraint(
+          "invalid",
+          std::vector<Yield>{ Yield(Species("A"), 1.0) },
+          std::vector<Yield>{ Yield(Species("B"), 0.0) },
+          1.0),
+      std::system_error);
+
+  // Negative stoichiometry for product
+  EXPECT_THROW(
+      EquilibriumConstraint(
+          "invalid",
+          std::vector<Yield>{ Yield(Species("A"), 1.0) },
+          std::vector<Yield>{ Yield(Species("B"), -2.0) },
+          1.0),
+      std::system_error);
+}

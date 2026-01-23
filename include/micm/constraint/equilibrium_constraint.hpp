@@ -61,9 +61,31 @@ namespace micm
           products_(products),
           equilibrium_constant_(equilibrium_constant)
     {
+      if (reactants_.empty())
+      {
+        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
+      }
+      if (products_.empty())
+      {
+        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyProducts));
+      }
       if (equilibrium_constant_ <= 0)
       {
         throw std::system_error(make_error_code(MicmConstraintErrc::InvalidEquilibriumConstant));
+      }
+      for (const auto& r : reactants_)
+      {
+        if (r.coefficient_ <= 0)
+        {
+          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
+        }
+      }
+      for (const auto& p : products_)
+      {
+        if (p.coefficient_ <= 0)
+        {
+          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
+        }
       }
 
       // Build species dependencies list (reactants first, then products)
