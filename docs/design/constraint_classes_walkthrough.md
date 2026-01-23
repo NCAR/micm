@@ -192,14 +192,16 @@ class Constraint
   std::vector<std::string> species_dependencies_;
 
   /// Evaluate the constraint residual G(y)
+  /// @param concentrations Pointer to species concentrations (row of state matrix)
+  /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
   /// @return Residual value (should be 0 when constraint is satisfied)
-  virtual double Residual(const std::vector<double>& concentrations,
-                          const std::vector<std::size_t>& indices) const = 0;
+  virtual double Residual(const double* concentrations, const std::size_t* indices) const = 0;
 
   /// Compute partial derivatives dG/d[species] for each dependent species
-  /// @return Vector of partial derivatives in same order as species_dependencies_
-  virtual std::vector<double> Jacobian(const std::vector<double>& concentrations,
-                                       const std::vector<std::size_t>& indices) const = 0;
+  /// @param concentrations Pointer to species concentrations (row of state matrix)
+  /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
+  /// @param jacobian Output buffer for partial derivatives (same order as species_dependencies_)
+  virtual void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const = 0;
 
   /// Get the number of species this constraint depends on
   std::size_t NumberOfDependencies() const
@@ -213,7 +215,7 @@ class Constraint
 
 1. **Pure virtual methods** — `Residual()` and `Jacobian()` must be implemented by derived classes
 2. **Species dependencies** — Each constraint declares which species it depends on
-3. **Index-based access** — Methods receive indices mapping species names to positions in the concentration vector
+3. **Pointer-based access** — Methods receive pointers for efficient access without copying; indices map species names to positions in the concentration array
 
 ---
 

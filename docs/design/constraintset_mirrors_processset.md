@@ -59,6 +59,9 @@ for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
 ### ConstraintSet::SubtractJacobianTerms
 
 ```cpp
+// Allocate reusable buffer for constraint Jacobian values
+std::vector<double> jac_buffer(max_dependencies_);
+
 auto cell_jacobian = jacobian.AsVector().begin();
 
 // Loop over grid cells
@@ -66,31 +69,25 @@ for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
 {
   auto cell_state = state_variables[i_cell];
 
-  // Convert cell state to vector for constraint evaluation
-  std::vector<double> concentrations(state_variables.NumColumns());
-  for (std::size_t j = 0; j < state_variables.NumColumns(); ++j)
-  {
-    concentrations[j] = cell_state[j];
-  }
-
-  auto dep_id = dependency_ids_.begin();
-  auto flat_id = jacobian_flat_ids_.begin();
+  // Get pointer to concentration data for this cell (no copy!)
+  const double* concentrations = &cell_state[0];
 
   for (const auto& info : constraint_info_)
   {
-    // Build indices vector for this constraint
-    std::vector<std::size_t> indices(dep_id, dep_id + info.number_of_dependencies_);
+    // Get pointer to pre-computed indices for this constraint
+    const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
 
-    // Compute constraint Jacobian
-    std::vector<double> jac = constraints_[info.constraint_index_]->Jacobian(concentrations, indices);
+    // Compute constraint Jacobian into reusable buffer
+    constraints_[info.constraint_index_]->Jacobian(concentrations, indices, jac_buffer.data());
+
+    // Get pointer to pre-computed flat indices for this constraint
+    const std::size_t* flat_ids = jacobian_flat_ids_.data() + info.jacobian_flat_offset_;
 
     // Subtract Jacobian entries (matching ProcessSet convention)
     for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
     {
-      cell_jacobian[*(flat_id++)] -= jac[i];
+      cell_jacobian[flat_ids[i]] -= jac_buffer[i];
     }
-
-    dep_id += info.number_of_dependencies_;
   }
 
   // Advance to next grid cell's Jacobian block

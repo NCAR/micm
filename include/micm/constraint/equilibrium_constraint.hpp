@@ -86,11 +86,10 @@ namespace micm
     ///
     /// At equilibrium, G = 0
     ///
-    /// @param concentrations Vector of all species concentrations
-    /// @param indices Indices mapping species_dependencies_ to concentrations vector
+    /// @param concentrations Pointer to species concentrations (row of state matrix)
+    /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
     /// @return Residual value
-    double Residual(const std::vector<double>& concentrations,
-                    const std::vector<std::size_t>& indices) const override
+    double Residual(const double* concentrations, const std::size_t* indices) const override
     {
       // Compute product of reactant concentrations raised to stoichiometric powers
       double reactant_product = 1.0;
@@ -120,13 +119,16 @@ namespace micm
     /// For product P with stoichiometry m:
     ///   dG/d[P] = -m * [P]^(m-1) * prod([other_products]^stoich)
     ///
-    /// @param concentrations Vector of all species concentrations
-    /// @param indices Indices mapping species_dependencies_ to concentrations vector
-    /// @return Vector of partial derivatives in same order as species_dependencies_
-    std::vector<double> Jacobian(const std::vector<double>& concentrations,
-                                 const std::vector<std::size_t>& indices) const override
+    /// @param concentrations Pointer to species concentrations (row of state matrix)
+    /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
+    /// @param jacobian Output buffer for partial derivatives (same order as species_dependencies_)
+    void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const override
     {
-      std::vector<double> jacobian(species_dependencies_.size(), 0.0);
+      // Initialize jacobian entries to zero
+      for (std::size_t i = 0; i < species_dependencies_.size(); ++i)
+      {
+        jacobian[i] = 0.0;
+      }
 
       // Compute full reactant and product terms
       double reactant_product = 1.0;
@@ -199,8 +201,6 @@ namespace micm
         }
         // else: derivative is 0 when conc = 0 and stoich > 1
       }
-
-      return jacobian;
     }
   };
 

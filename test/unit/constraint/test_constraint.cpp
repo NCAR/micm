@@ -40,14 +40,14 @@ TEST(EquilibriumConstraint, SimpleABEquilibrium)
   std::vector<double> concentrations = { 0.001, 0.001, 0.001 };
   std::vector<std::size_t> indices = { 0, 1, 2 };
 
-  double residual = constraint.Residual(concentrations, indices);
+  double residual = constraint.Residual(concentrations.data(), indices.data());
   EXPECT_NEAR(residual, 0.0, 1e-10);
 
   // Test away from equilibrium: [A] = 0.01, [B] = 0.01, [AB] = 0.001
   // K_eq * [A] * [B] = 1000 * 0.01 * 0.01 = 0.1
   // Residual = 0.1 - 0.001 = 0.099
   concentrations = { 0.01, 0.01, 0.001 };
-  residual = constraint.Residual(concentrations, indices);
+  residual = constraint.Residual(concentrations.data(), indices.data());
   EXPECT_NEAR(residual, 0.099, 1e-10);
 }
 
@@ -68,10 +68,10 @@ TEST(EquilibriumConstraint, Jacobian)
 
   std::vector<double> concentrations = { 0.01, 0.02, 0.05 };
   std::vector<std::size_t> indices = { 0, 1, 2 };
+  std::vector<double> jacobian(3);
 
-  auto jacobian = constraint.Jacobian(concentrations, indices);
+  constraint.Jacobian(concentrations.data(), indices.data(), jacobian.data());
 
-  EXPECT_EQ(jacobian.size(), 3);
   EXPECT_NEAR(jacobian[0], K_eq * concentrations[1], 1e-10);  // dG/d[A] = K_eq * [B]
   EXPECT_NEAR(jacobian[1], K_eq * concentrations[0], 1e-10);  // dG/d[B] = K_eq * [A]
   EXPECT_NEAR(jacobian[2], -1.0, 1e-10);                      // dG/d[AB] = -1
@@ -96,11 +96,11 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
   std::vector<double> concentrations = { 0.1, 1.0 };
   std::vector<std::size_t> indices = { 0, 1 };
 
-  double residual = constraint.Residual(concentrations, indices);
+  double residual = constraint.Residual(concentrations.data(), indices.data());
   EXPECT_NEAR(residual, 0.0, 1e-10);
 
-  auto jacobian = constraint.Jacobian(concentrations, indices);
-  EXPECT_EQ(jacobian.size(), 2);
+  std::vector<double> jacobian(2);
+  constraint.Jacobian(concentrations.data(), indices.data(), jacobian.data());
   EXPECT_NEAR(jacobian[0], K_eq, 1e-10);    // dG/d[A] = K_eq
   EXPECT_NEAR(jacobian[1], -1.0, 1e-10);    // dG/d[B] = -1
 }
@@ -127,7 +127,7 @@ TEST(EquilibriumConstraint, TwoProductsOneReactant)
   std::vector<double> concentrations = { 0.1, 0.5, 2.0 };
   std::vector<std::size_t> indices = { 0, 1, 2 };
 
-  double residual = constraint.Residual(concentrations, indices);
+  double residual = constraint.Residual(concentrations.data(), indices.data());
   EXPECT_NEAR(residual, 0.0, 1e-10);
 }
 

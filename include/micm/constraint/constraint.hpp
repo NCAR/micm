@@ -41,18 +41,16 @@ namespace micm
     virtual ~Constraint() = default;
 
     /// @brief Evaluate the constraint residual G(y)
-    /// @param concentrations Vector of all species concentrations
-    /// @param indices Indices mapping species_dependencies_ to positions in concentrations vector
+    /// @param concentrations Pointer to species concentrations (row of state matrix)
+    /// @param indices Pointer to indices mapping species_dependencies_ to positions in concentrations
     /// @return Residual value (should be 0 when constraint is satisfied)
-    virtual double Residual(const std::vector<double>& concentrations,
-                            const std::vector<std::size_t>& indices) const = 0;
+    virtual double Residual(const double* concentrations, const std::size_t* indices) const = 0;
 
     /// @brief Compute partial derivatives dG/d[species] for each dependent species
-    /// @param concentrations Vector of all species concentrations
-    /// @param indices Indices mapping species_dependencies_ to positions in concentrations vector
-    /// @return Vector of partial derivatives dG/d[species] in same order as species_dependencies_
-    virtual std::vector<double> Jacobian(const std::vector<double>& concentrations,
-                                         const std::vector<std::size_t>& indices) const = 0;
+    /// @param concentrations Pointer to species concentrations (row of state matrix)
+    /// @param indices Pointer to indices mapping species_dependencies_ to positions in concentrations
+    /// @param jacobian Output buffer for partial derivatives dG/d[species] (same order as species_dependencies_)
+    virtual void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const = 0;
 
     /// @brief Get the number of species this constraint depends on
     /// @return Number of dependent species
