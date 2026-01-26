@@ -24,7 +24,7 @@ namespace micm
     Phase condensed_phase_;
     Phase solvent_phase_;
     Species gas_species_;
-    std::vector<Yield> condensed_species_;
+    Species condensed_species_;
     Species solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
 
@@ -36,7 +36,7 @@ namespace micm
         const Phase& condensed_phase,
         const Phase& solvent_phase,
         Species gas_species,
-        std::vector<Yield> condensed_species,
+        Species condensed_species,
         Species solvent,
         std::unique_ptr<TransferCoefficient> coefficient)
         : gas_phase_(gas_phase),
