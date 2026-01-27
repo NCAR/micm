@@ -4,7 +4,7 @@
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
+#include <micm/process/transfer_coefficient/henrys_law_constant.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -138,7 +138,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
                                .SetGasSpecies(gas_phase, CO2)
                                .SetCondensedSpecies(aqueous_phase, H2OCO3)
                                .SetSolvent(aqueous_phase, H2O)
-                               .SetTransferCoefficient(PhaseTransferCoefficient())
+                               .SetTransferCoefficient(HenrysLawConstant())
                                .Build();
 
   // Check that the first process is a ChemicalReaction
@@ -236,7 +236,7 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
                                .SetGasSpecies(gas_phase, CO2)
                                .SetCondensedSpecies(aqueous_phase, H2OCO3)
                                .SetSolvent(aqueous_phase, H2O)
-                               .SetTransferCoefficient(PhaseTransferCoefficient())
+                               .SetTransferCoefficient(HenrysLawConstant())
                                .Build();
 
   // Assign original to copy

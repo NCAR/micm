@@ -1,4 +1,4 @@
-#include <micm/process/transfer_coefficient/henrys_law_coefficient.hpp>
+#include <micm/process/transfer_coefficient/henrys_law_constant.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/util/constants.hpp>
 
@@ -24,10 +24,10 @@ TEST(HenrysLawConstant, DefaultConstructor)
 
 TEST(HenrysLawConstant, CalculateAtReferenceTemperature)
 {
-  micm::HenrysLawConstantParameters parameters;
-  parameters.H_ref_ = 1.5e-3;
-  parameters.enthalpy_ = -10000.0;
-  parameters.temperature_ref_ = 298.15;
+  micm::HenrysLawConstantParameters parameters{
+    .H_ref_ = 1.5e-3,
+    .enthalpy_ = -10000.0,
+    .temperature_ref_ = 298.15};
 
   micm::HenrysLawConstant hlc(parameters);
 
@@ -42,10 +42,10 @@ TEST(HenrysLawConstant, CalculateAtReferenceTemperature)
 
 TEST(HenrysLawConstant, CalculateAtDifferentTemperature)
 {
-  micm::HenrysLawConstantParameters parameters;
-  parameters.H_ref_ = 1.3e-3;
-  parameters.enthalpy_ = -12000.0;
-  parameters.temperature_ref_ = 298.15;
+  micm::HenrysLawConstantParameters parameters{
+    .H_ref_ = 1.3e-3,
+    .enthalpy_ = -12000.0,
+    .temperature_ref_ = 298.15};
 
   micm::HenrysLawConstant hlc(parameters);
 
@@ -63,10 +63,10 @@ TEST(HenrysLawConstant, CalculateAtDifferentTemperature)
 TEST(HenrysLawConstant, CalculateWithCustomParameters)
 {
   // Test with different parameter values
-  micm::HenrysLawConstantParameters parameters;
-  parameters.H_ref_ = 2.5e-2;
-  parameters.enthalpy_ = -15000.0;
-  parameters.temperature_ref_ = 300.0;
+  micm::HenrysLawConstantParameters parameters{
+    .H_ref_ = 2.5e-2,
+    .enthalpy_ = -15000.0,
+    .temperature_ref_ = 300.0};
 
   micm::HenrysLawConstant hlc(parameters);
 
@@ -82,11 +82,10 @@ TEST(HenrysLawConstant, CalculateWithCustomParameters)
 
 TEST(HenrysLawConstant, Clone)
 {
-  // Test deep copy functionality
-  micm::HenrysLawConstantParameters parameters;
-  parameters.H_ref_ = 1.8e-3;
-  parameters.enthalpy_ = -13500.0;
-  parameters.temperature_ref_ = 298.15;
+  micm::HenrysLawConstantParameters parameters{
+    .H_ref_ = 1.8e-3,
+    .enthalpy_ = -13500.0,
+    .temperature_ref_ = 298.15};
 
   micm::HenrysLawConstant original(parameters);
   auto cloned = original.Clone();
@@ -102,10 +101,10 @@ TEST(HenrysLawConstant, Clone)
 TEST(HenrysLawConstant, TemperatureDependence)
 {
   // Test that Henry's constant changes correctly with temperature
-  micm::HenrysLawConstantParameters parameters;
-  parameters.H_ref_ = 1.3e-3;
-  parameters.enthalpy_ = -12000.0;  // Negative enthalpy means solubility increases with temperature
-  parameters.temperature_ref_ = 298.15;
+  micm::HenrysLawConstantParameters parameters{
+    .H_ref_ = 1.3e-3,
+    .enthalpy_ = -12000.0,
+    .temperature_ref_ = 298.15};
 
   micm::HenrysLawConstant hlc(parameters);
 
@@ -115,6 +114,6 @@ TEST(HenrysLawConstant, TemperatureDependence)
   double k_cold = hlc.Calculate(cold_conditions);
   double k_warm = hlc.Calculate(warm_conditions);
 
-  // With negative enthalpy, Henry's constant should increase with temperature
-  EXPECT_GT(k_warm, k_cold);
+  // The Henry's constant (solubility) is smaller at higher temperatures.
+  EXPECT_GT(k_cold, k_warm);
 }
