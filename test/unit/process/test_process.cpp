@@ -4,7 +4,7 @@
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
+#include <micm/process/transfer_coefficient/henrys_law_constant.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -120,9 +120,10 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
   auto H2O = Species{ "H2O" };
   auto Hplus = Species{ "H+" };
   auto CO32minus = Species{ "CO32-" };
+  auto H2OCO3  = Species{ "H2CO3" };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
-  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus } };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus, H2OCO3 } };
 
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
@@ -135,9 +136,9 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
                                .SetGasSpecies(gas_phase, CO2)
-                               .SetCondensedSpecies(aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) })
+                               .SetCondensedSpecies(aqueous_phase, H2OCO3)
                                .SetSolvent(aqueous_phase, H2O)
-                               .SetTransferCoefficient(PhaseTransferCoefficient())
+                               .SetTransferCoefficient(HenrysLawConstant())
                                .Build();
 
   // Check that the first process is a ChemicalReaction
@@ -169,9 +170,8 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
           EXPECT_EQ(value.condensed_phase_.name_, "aqueous");
           EXPECT_EQ(value.solvent_phase_.name_, "aqueous");
           EXPECT_EQ(value.gas_species_.name_, "CO2");
-          EXPECT_EQ(value.condensed_species_.size(), 2);
+          EXPECT_EQ(value.condensed_species_.name_, "H2CO3");
           EXPECT_EQ(value.solvent_.name_, "H2O");
-          EXPECT_EQ(value.condensed_species_[0].coefficient_, 2.0);
         }
         else
         {
@@ -226,16 +226,17 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
   auto H2O = Species{ "H2O" };
   auto Hplus = Species{ "H+" };
   auto CO32minus = Species{ "CO32-" };
+  auto H2OCO3  = Species{ "H2CO3" };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
-  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus } };
+  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus, H2OCO3 } };
 
   // Build a PhaseTransferProcess
   Process phase_transfer = PhaseTransferProcessBuilder()
-                               .SetGasSpecies(gas_phase, { CO2 })
-                               .SetCondensedSpecies(aqueous_phase, { Yield(Hplus, 2.0), Yield(CO32minus) })
+                               .SetGasSpecies(gas_phase, CO2)
+                               .SetCondensedSpecies(aqueous_phase, H2OCO3)
                                .SetSolvent(aqueous_phase, H2O)
-                               .SetTransferCoefficient(PhaseTransferCoefficient())
+                               .SetTransferCoefficient(HenrysLawConstant())
                                .Build();
 
   // Assign original to copy
@@ -252,7 +253,7 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
           EXPECT_EQ(copy.condensed_phase_.name_, original.condensed_phase_.name_);
           EXPECT_EQ(copy.solvent_phase_.name_, original.solvent_phase_.name_);
           EXPECT_EQ(copy.gas_species_.name_, original.gas_species_.name_);
-          EXPECT_EQ(copy.condensed_species_[1].species_.name_, original.condensed_species_[1].species_.name_);
+          EXPECT_EQ(copy.condensed_species_.name_, original.condensed_species_.name_);
           EXPECT_EQ(copy.solvent_.name_, original.solvent_.name_);
           EXPECT_NE(copy.coefficient_.get(), original.coefficient_.get());
         }
