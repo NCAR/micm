@@ -24,10 +24,7 @@ TEST(HenrysLawConstant, DefaultConstructor)
 
 TEST(HenrysLawConstant, CalculateAtReferenceTemperature)
 {
-  micm::HenrysLawConstantParameters parameters{
-    .H_ref_ = 1.5e-3,
-    .enthalpy_ = -10000.0,
-    .temperature_ref_ = 298.15};
+  micm::HenrysLawConstantParameters parameters{ .H_ref_ = 1.5e-3, .enthalpy_ = -10000.0, .temperature_ref_ = 298.15 };
 
   micm::HenrysLawConstant hlc(parameters);
 
@@ -42,10 +39,7 @@ TEST(HenrysLawConstant, CalculateAtReferenceTemperature)
 
 TEST(HenrysLawConstant, CalculateAtDifferentTemperature)
 {
-  micm::HenrysLawConstantParameters parameters{
-    .H_ref_ = 1.3e-3,
-    .enthalpy_ = -12000.0,
-    .temperature_ref_ = 298.15};
+  micm::HenrysLawConstantParameters parameters{ .H_ref_ = 1.3e-3, .enthalpy_ = -12000.0, .temperature_ref_ = 298.15 };
 
   micm::HenrysLawConstant hlc(parameters);
 
@@ -53,9 +47,9 @@ TEST(HenrysLawConstant, CalculateAtDifferentTemperature)
 
   double k = hlc.Calculate(conditions);
   // H = H_ref * exp((-enthalpy / R) * (1/T - 1/T_ref))
-  double expected = parameters.H_ref_ * 
-                    std::exp((-parameters.enthalpy_ / micm::constants::GAS_CONSTANT) * 
-                            (1.0 / 288.15 - 1.0 / parameters.temperature_ref_));
+  double expected =
+      parameters.H_ref_ *
+      std::exp((-parameters.enthalpy_ / micm::constants::GAS_CONSTANT) * (1.0 / 288.15 - 1.0 / parameters.temperature_ref_));
 
   EXPECT_NEAR(k, expected, TOLERANCE);
 }
@@ -63,29 +57,22 @@ TEST(HenrysLawConstant, CalculateAtDifferentTemperature)
 TEST(HenrysLawConstant, CalculateWithCustomParameters)
 {
   // Test with different parameter values
-  micm::HenrysLawConstantParameters parameters{
-    .H_ref_ = 2.5e-2,
-    .enthalpy_ = -15000.0,
-    .temperature_ref_ = 300.0};
+  micm::HenrysLawConstantParameters parameters{ .H_ref_ = 2.5e-2, .enthalpy_ = -15000.0, .temperature_ref_ = 300.0 };
 
   micm::HenrysLawConstant hlc(parameters);
 
   micm::Conditions conditions = { .temperature_ = 310.0 };
 
   double k = hlc.Calculate(conditions);
-  double expected = parameters.H_ref_ * 
-                    std::exp((-parameters.enthalpy_ / micm::constants::GAS_CONSTANT) * 
-                            (1.0 / 310.0 - 1.0 / 300.0));
+  double expected =
+      parameters.H_ref_ * std::exp((-parameters.enthalpy_ / micm::constants::GAS_CONSTANT) * (1.0 / 310.0 - 1.0 / 300.0));
 
   EXPECT_NEAR(k, expected, TOLERANCE * std::abs(expected));
 }
 
 TEST(HenrysLawConstant, Clone)
 {
-  micm::HenrysLawConstantParameters parameters{
-    .H_ref_ = 1.8e-3,
-    .enthalpy_ = -13500.0,
-    .temperature_ref_ = 298.15};
+  micm::HenrysLawConstantParameters parameters{ .H_ref_ = 1.8e-3, .enthalpy_ = -13500.0, .temperature_ref_ = 298.15 };
 
   micm::HenrysLawConstant original(parameters);
   auto cloned = original.Clone();
@@ -101,10 +88,7 @@ TEST(HenrysLawConstant, Clone)
 TEST(HenrysLawConstant, TemperatureDependence)
 {
   // Test that Henry's constant changes correctly with temperature
-  micm::HenrysLawConstantParameters parameters{
-    .H_ref_ = 1.3e-3,
-    .enthalpy_ = -12000.0,
-    .temperature_ref_ = 298.15};
+  micm::HenrysLawConstantParameters parameters{ .H_ref_ = 1.3e-3, .enthalpy_ = -12000.0, .temperature_ref_ = 298.15 };
 
   micm::HenrysLawConstant hlc(parameters);
 

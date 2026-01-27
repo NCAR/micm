@@ -120,7 +120,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
   auto H2O = Species{ "H2O" };
   auto Hplus = Species{ "H+" };
   auto CO32minus = Species{ "CO32-" };
-  auto H2OCO3  = Species{ "H2CO3" };
+  auto H2OCO3 = Species{ "H2CO3" };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
   Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus, H2OCO3 } };
@@ -226,7 +226,7 @@ TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
   auto H2O = Species{ "H2O" };
   auto Hplus = Species{ "H+" };
   auto CO32minus = Species{ "CO32-" };
-  auto H2OCO3  = Species{ "H2CO3" };
+  auto H2OCO3 = Species{ "H2CO3" };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
   Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus, H2OCO3 } };
