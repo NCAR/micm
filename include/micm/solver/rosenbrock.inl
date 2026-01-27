@@ -142,6 +142,7 @@ namespace micm
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
+          Y.Swap(Ynew);
           result.state_ = SolverState::NaNDetected;
           break;
         }
