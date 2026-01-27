@@ -17,9 +17,9 @@ namespace micm
   {
     /// @brief Henry's Law constant for the species at the reference temperature [mol L-1 atm-1]
     double H_ref_{ 1.3e-3 };
-    /// @brief Enthalpy of dissolution for the species in solution [J/mol)]
+    /// @brief Enthalpy of dissolution for the species in solution [J/mol]
     double enthalpy_{ -12000.0 };
-    /// @brief The standard reference tempearture [K]
+    /// @brief The standard reference temperature [K]
     double temperature_ref_ {298.15};
   };
 

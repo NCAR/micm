@@ -42,7 +42,7 @@ namespace micm
 
     /// @brief Sets the species in the condensed phase
     /// @param phase Phase object representing the condensed phase
-    /// @param condensed_species A vector of Yield representing the products
+    /// @param condensed_species Species object in the condensed phase
     /// @return Reference to the builder
     PhaseTransferProcessBuilder& SetCondensedSpecies(const Phase& phase, const Species& species)
     {
@@ -55,10 +55,10 @@ namespace micm
     /// @param phase Phase object representing the solvent phase
     /// @param solvent A Species object representing the solvent
     /// @return Reference to the builder
-    PhaseTransferProcessBuilder& SetSolvent(const Phase& phase, const Species& species)
+    PhaseTransferProcessBuilder& SetSolvent(const Phase& phase, const Species& solvent)
     {
       solvent_phase_ = phase;
-      solvent_ = species;
+      solvent_ = solvent;
       return *this;
     }
 
