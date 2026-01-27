@@ -20,7 +20,7 @@ namespace micm
     /// @brief Enthalpy of dissolution for the species in solution [J/mol]
     double enthalpy_{ -12000.0 };
     /// @brief The standard reference temperature [K]
-    double temperature_ref_ {298.15};
+    double temperature_ref_{ 298.15 };
   };
 
   /// @brief Henry's Law constant that accounts for temperature dependence
@@ -31,14 +31,14 @@ namespace micm
 
     /// @brief Default constructor
     HenrysLawConstant()
-      : parameters_()
+        : parameters_()
     {
     }
-    
+
     /// @brief Explicit constructor
     /// @param parameters A set of Henry's Law constant parameters
     HenrysLawConstant(const HenrysLawConstantParameters& parameters)
-      : parameters_(parameters)
+        : parameters_(parameters)
     {
     }
 
@@ -53,12 +53,10 @@ namespace micm
     /// @return The Henry's Law constant accounting for temperature
     double Calculate(const Conditions& conditions) const override
     {
-      return parameters_.H_ref_ * std::exp((-parameters_.enthalpy_ / constants::GAS_CONSTANT)
-              * (1.0 / conditions.temperature_ - 1.0 / parameters_.temperature_ref_));
+      return parameters_.H_ref_ * std::exp(
+                                      (-parameters_.enthalpy_ / constants::GAS_CONSTANT) *
+                                      (1.0 / conditions.temperature_ - 1.0 / parameters_.temperature_ref_));
     }
-
   };
 
 }  // namespace micm
-
-
