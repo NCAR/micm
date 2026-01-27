@@ -1,6 +1,6 @@
 ################################################################################
 # Preamble
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.24)
 
 # project and version must be on the same line so that the docs can extract it
 project(micm VERSION 3.11.0 LANGUAGES CXX)

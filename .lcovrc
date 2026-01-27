@@ -1,0 +1,3 @@
+# .lcovrc
+# Allows lcov to continue past GoogleTest macro line-mismatches
+ignore_errors = mismatch, inconsistent
