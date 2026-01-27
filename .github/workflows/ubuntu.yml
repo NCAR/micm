@@ -43,17 +43,9 @@ jobs:
     env:
       CC: clang
       CXX: clang++
-      # Forces Clang to use the system's standard library path
-      CXXFLAGS: "-stdlib=libstdc++"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install C++ Standard Library
-        # Ubuntu 24.04/26.04 requires explicit dev headers for Clang compatibility
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libstdc++-13-dev
 
       - name: Run Cmake 
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
