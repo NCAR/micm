@@ -26,7 +26,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
 
   micm::Process toy_r1 = micm::ChemicalReactionBuilder()
                              .SetReactants({ cl2 })
-                             .SetProducts({ micm::Yield(cl, 2.0) })
+                             .SetProducts({ micm::StoichSpecies(cl, 2.0) })
                              .SetPhase(gas_phase)
                              .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "toy_k1" }))
                              .Build();
@@ -34,7 +34,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
   constexpr double k2 = 1.0;
   micm::Process toy_r2 = micm::ChemicalReactionBuilder()
                              .SetReactants({ cl, cl })
-                             .SetProducts({ micm::Yield(cl2, 1.0) })
+                             .SetProducts({ micm::StoichSpecies(cl2, 1.0) })
                              .SetPhase(gas_phase)
                              .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k2 }))
                              .Build();

@@ -7,7 +7,7 @@
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 #include <micm/util/error.hpp>
 
 #include <memory>
@@ -23,7 +23,7 @@ namespace micm
   {
    public:
     std::vector<Species> reactants_;
-    std::vector<Yield> products_;
+    std::vector<StoichSpecies> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
@@ -32,7 +32,7 @@ namespace micm
 
     ChemicalReaction(
         std::vector<Species> reactants,
-        std::vector<Yield> products,
+        std::vector<StoichSpecies> products,
         std::unique_ptr<RateConstant> rate_constant,
         const Phase& phase)
         : reactants_(std::move(reactants)),

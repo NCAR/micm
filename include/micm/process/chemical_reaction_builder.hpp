@@ -8,7 +8,7 @@
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 #include <micm/util/utils.hpp>
 
 #include <memory>
@@ -77,9 +77,9 @@ namespace micm
 
     /// @brief Sets the list of product species and their yields for the chemical reaction.
     ///        When scoping is enabled, each product name is prefixed with the preset scope.
-    /// @param products A list of Yield objects representing the products
+    /// @param products A list of StoichSpecies objects representing the products
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetProducts(const std::vector<Yield>& products)
+    ChemicalReactionBuilder& SetProducts(const std::vector<StoichSpecies>& products)
     {
       if (has_scope_)
       {
@@ -144,7 +144,7 @@ namespace micm
 
    private:
     std::vector<Species> reactants_;
-    std::vector<Yield> products_;
+    std::vector<StoichSpecies> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
     std::string scope_;
