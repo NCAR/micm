@@ -51,7 +51,7 @@ jobs:
 
       - name: Run coverage tests in container
         if: matrix.dockerfile == 'Dockerfile.coverage'
-        run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
+        run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--ignore-errors mismatch,inconsistent --rerun-failed --output-on-failure -j8"'
 
       - name: Copy coverage from container
         if: matrix.dockerfile == 'Dockerfile.coverage'
