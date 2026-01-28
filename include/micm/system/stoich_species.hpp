@@ -13,7 +13,6 @@ namespace micm
     double coefficient_{ 1.0 };
   };
 
-  [[deprecated("micm::Yield has been renamed to micm::StoichSpecies; please use StoichSpecies instead")]]
-  using Yield = StoichSpecies;
+  using Yield [[deprecated("micm::Yield has been renamed to micm::StoichSpecies; please use StoichSpecies instead")]] = StoichSpecies;
 
 }  // namespace micm
