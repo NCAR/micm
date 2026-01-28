@@ -25,7 +25,7 @@ jobs:
           - Dockerfile.nvhpc
           - Dockerfile.openmp
           - Dockerfile.intel 
-          # # - Dockerfile.mpi
+          # - Dockerfile.mpi
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
