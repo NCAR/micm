@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/process/process_error.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>

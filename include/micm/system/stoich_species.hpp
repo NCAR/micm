@@ -2,12 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant/rate_constant.hpp>
-#include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-
-#include <memory>
-#include <vector>
 
 namespace micm
 {
