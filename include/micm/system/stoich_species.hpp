@@ -7,6 +7,8 @@
 namespace micm
 {
   /// @brief Represents a species in a chemical reaction, defined by its stoichiometric coefficient
+  [[deprecated("micm::Yield has been renamed to micm::StoichSpecies; please use StoichSpecies instead")]]
+  using Yield = StoichSpecies;
   struct StoichSpecies
   {
     Species species_;
