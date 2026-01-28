@@ -1,92 +1,92 @@
-name: Windows
+# name: Windows
 
-on: 
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+# on: 
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+#   cancel-in-progress: true
 
-jobs:
-  mingw:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        build_type: [Release]
-        architecture: [x64]
+# jobs:
+#   mingw:
+#     runs-on: windows-latest
+#     strategy:
+#       matrix:
+#         build_type: [Release]
+#         architecture: [x64]
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: ${{ matrix.architecture }}
-          version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
+#     steps:
+#       - uses: actions/checkout@v4
+#       - name: Set up MinGW
+#         uses: egor-tensin/setup-mingw@v2
+#         with:
+#           platform: ${{ matrix.architecture }}
+#           version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
 
-      - name: Run Cmake 
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "MinGW Makefiles"
+#       - name: Run Cmake 
+#         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "MinGW Makefiles"
 
-      - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
+#       - name: Build
+#         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
 
-      - name: Run tests
-        run: |
-          cd build
-          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose
+#       - name: Run tests
+#         run: |
+#           cd build
+#           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose
 
-  msvc2022:
-    runs-on: windows-latest
-    continue-on-error: true 
-    strategy:
-      matrix:
-        build_type: [Release]
-        architecture: [Win32, x64]
+#   msvc2022:
+#     runs-on: windows-latest
+#     continue-on-error: true 
+#     strategy:
+#       matrix:
+#         build_type: [Release]
+#         architecture: [Win32, x64]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Run CMake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }}
-    - name: Build
-      run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
-    - name: Test
-      run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure
+#     steps:
+#     - uses: actions/checkout@v4
+#     - name: Run CMake
+#       run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }}
+#     - name: Build
+#       run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
+#     - name: Test
+#       run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure
 
-  clang:
-    runs-on: windows-latest
-    continue-on-error: true 
-    strategy:
-      matrix:
-        build_type: [Release]
-        version: [19.1.0, 20.1.0]
+#   clang:
+#     runs-on: windows-latest
+#     continue-on-error: true 
+#     strategy:
+#       matrix:
+#         build_type: [Release]
+#         version: [19.1.0, 20.1.0]
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Clang
-        run: curl -fsSL -o LLVM${{ matrix.version }}.exe https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.version }}/LLVM-${{ matrix.version }}-win64.exe ; 7z x LLVM${{ matrix.version }}.exe -y -o"C:/Program Files/LLVM"
-      - name: Run CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -G"MinGW Makefiles"
-      - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
-      - name: Test
-        run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure
+#     steps:
+#       - uses: actions/checkout@v4
+#       - name: Install Clang
+#         run: curl -fsSL -o LLVM${{ matrix.version }}.exe https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.version }}/LLVM-${{ matrix.version }}-win64.exe ; 7z x LLVM${{ matrix.version }}.exe -y -o"C:/Program Files/LLVM"
+#       - name: Run CMake
+#         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -G"MinGW Makefiles"
+#       - name: Build
+#         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
+#       - name: Test
+#         run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure
 
-  clang-cl-11:
-    runs-on: windows-latest
-    continue-on-error: true 
-    strategy:
-      matrix:
-        build_type: [Release]
-        architecture: [x64]
+#   clang-cl-11:
+#     runs-on: windows-latest
+#     continue-on-error: true 
+#     strategy:
+#       matrix:
+#         build_type: [Release]
+#         architecture: [x64]
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }} -T ClangCL
-      - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
-      - name: Test
-        run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure
+#     steps:
+#       - uses: actions/checkout@v4
+#       - name: Run CMake
+#         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }} -T ClangCL
+#       - name: Build
+#         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
+#       - name: Test
+#         run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure

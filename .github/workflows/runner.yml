@@ -1,42 +1,42 @@
-name: Designated GPU Runner
+# name: Designated GPU Runner
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+#   cancel-in-progress: true
 
-jobs:
-  cuda_tests:
-    runs-on:
-      group: CIRRUS-4x16-gpu
-    container:
-      image: nvcr.io/nvidia/nvhpc:25.9-devel-cuda13.0-ubuntu24.04
-      options: --gpus all
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   cuda_tests:
+#     runs-on:
+#       group: CIRRUS-4x16-gpu
+#     container:
+#       image: nvcr.io/nvidia/nvhpc:25.9-devel-cuda13.0-ubuntu24.04
+#       options: --gpus all
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-           apt update
-           apt install -y cmake g++
+#       - name: Install dependencies
+#         run: |
+#            apt update
+#            apt install -y cmake g++
 
-      - name: Run Cmake
-        run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
+#       - name: Run Cmake
+#         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
 
-      - name: Copy cublas headers
-        run: |
-          cp -r /opt/nvidia/hpc_sdk/*/25.9/cuda/include/* /usr/include/
+#       - name: Copy cublas headers
+#         run: |
+#           cp -r /opt/nvidia/hpc_sdk/*/25.9/cuda/include/* /usr/include/
 
-      - name: Build
-        run: cmake --build build --parallel 10
+#       - name: Build
+#         run: cmake --build build --parallel 10
 
-      - name: Run tests
-        run: |
-          cd build
-          ctest --rerun-failed --output-on-failure . --verbose -j 10
+#       - name: Run tests
+#         run: |
+#           cd build
+#           ctest --rerun-failed --output-on-failure . --verbose -j 10

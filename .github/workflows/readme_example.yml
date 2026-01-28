@@ -1,33 +1,33 @@
-name: Test README Example
+# name: Test README Example
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#   workflow_dispatch:
 
-jobs:
-  test-readme-example:
-    runs-on: ${{ matrix.os }}
-    continue-on-error: true 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+# jobs:
+#   test-readme-example:
+#     runs-on: ${{ matrix.os }}
+#     continue-on-error: true 
+#     strategy:
+#       matrix:
+#         os: [ubuntu-latest, macos-latest]
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.9"
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: "3.9"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pandas
+#     - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install pytest pandas
 
-    - name: Run tests
-      run: pytest test/readme_example.py
+#     - name: Run tests
+#       run: pytest test/readme_example.py

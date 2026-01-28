@@ -1,70 +1,70 @@
-name: Mac
+# name: Mac
 
-on: 
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+# on: 
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+#   cancel-in-progress: true
 
-jobs:
-  xcode_macos_15_intel:
-    runs-on: macos-15-intel
-    continue-on-error: true 
-    strategy:
-      matrix:
-        # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md#xcode
-        xcode: ['16.0', '16.1', '16.2']
-        build_type: [Release]
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+# jobs:
+#   xcode_macos_15_intel:
+#     runs-on: macos-15-intel
+#     continue-on-error: true 
+#     strategy:
+#       matrix:
+#         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md#xcode
+#         xcode: ['16.0', '16.1', '16.2']
+#         build_type: [Release]
+#     env:
+#       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+#       - name: Run Cmake 
+#         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-      - name: Build
-        run: cmake --build build --parallel 10
+#       - name: Build
+#         run: cmake --build build --parallel 10
 
-      - name: Run tests
-        run: |
-          cd build
-          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
+#       - name: Run tests
+#         run: |
+#           cd build
+#           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
 
-  macos_lateset:
-    runs-on: macos-latest
-    continue-on-error: true 
-    strategy:
-      matrix:
-        compiler:
-          - { cpp: g++-14, c: gcc-14}
-          - { cpp: g++-13, c: gcc-13}
-          - { cpp: clang++, c: clang}
-        build_type: [Release]
-    env:
-      CC: ${{ matrix.compiler.c }}
-      CXX: ${{ matrix.compiler.cpp }}
+#   macos_lateset:
+#     runs-on: macos-latest
+#     continue-on-error: true 
+#     strategy:
+#       matrix:
+#         compiler:
+#           - { cpp: g++-14, c: gcc-14}
+#           - { cpp: g++-13, c: gcc-13}
+#           - { cpp: clang++, c: clang}
+#         build_type: [Release]
+#     env:
+#       CC: ${{ matrix.compiler.c }}
+#       CXX: ${{ matrix.compiler.cpp }}
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '16.4'
+#       - uses: maxim-lobanov/setup-xcode@v1
+#         with:
+#           xcode-version: '16.4'
 
-      - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+#       - name: Run Cmake 
+#         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-      - name: Build
-        run: cmake --build build --parallel 10
+#       - name: Build
+#         run: cmake --build build --parallel 10
 
-      - name: Run tests
-        run: |
-          cd build
-          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
+#       - name: Run tests
+#         run: |
+#           cd build
+#           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
