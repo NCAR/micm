@@ -1,0 +1,1049 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vectorized matrix solver &#8212; MICM 3.11.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bbe95013" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=8905d4f5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/vectorized_matrix_solver';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://ncar.github.io/micm/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '3.11.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MICM API" href="../api/index.html" />
+    <link rel="prev" title="OpenMP" href="openmp.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">MICM 3.11.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    MICM API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+    Citations and Bibliography
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    MICM API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+    Citations and Bibliography
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation_and_usage.html">Installation and usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rate_constant_tutorial.html">Rate Constants (except user defined ones)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_defined_rate_constant_tutorial.html">User-Defined Rate Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiple_grid_cells.html">Multiple Grid Cells</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solver_configurations.html">Solver configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solver_results.html">Solver results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="openmp.html">OpenMP</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Vectorized matrix solver</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Vectorized...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="vectorized-matrix-solver">
+<span id="id1"></span><h1>Vectorized matrix solver<a class="headerlink" href="#vectorized-matrix-solver" title="Link to this heading">#</a></h1>
+<p>Many of the tutorials have defined a chemical system without talking about their location. Each of these is essentially
+defining a <a class="reference external" href="https://en.wikipedia.org/wiki/Climate_model#Box_models">box model</a>. We often want to model chemistry
+in more than one location; multiple boxes. In weather and climate models, the domain is broken up into 2d or 3d grids.
+Each location may be referred to as a grid cell or column. With <code class="docutils literal notranslate"><span class="pre">micm</span></code>, we can solve multiple grid cells simultaneously in
+several ways.</p>
+<p>The tutorials listed below solve chemistry in more than one grid cell.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="multiple_grid_cells.html#multiple-grid-cells"><span class="std std-ref">Multiple Grid Cells</span></a>, this tutorial does so with a different data structure</p></li>
+<li><p><a class="reference internal" href="openmp.html#openmp"><span class="std std-ref">OpenMP</span></a>, this tutorial uses a single thread per grid cell</p></li>
+</ul>
+<p>In <a class="reference internal" href="multiple_grid_cells.html#multiple-grid-cells"><span class="std std-ref">Multiple Grid Cells</span></a> we assumed we were solving for the concentrations of an <span class="math notranslate nohighlight">\(N\times D\)</span> matrix, <span class="math notranslate nohighlight">\(N\)</span> species and
+<span class="math notranslate nohighlight">\(D\)</span> grid cells. However, we used the default matrix ordering in that tutorial. This is fine for simulations that aren’t
+too large, but computationally may be inferior. This is because the same species appears in each grid cell, <span class="math notranslate nohighlight">\(N\)</span> elements
+away from each other in memory. When solving the chemical equations, the same mathematical operations have to be applied to each
+species. We can organize the memory of the matrix so that the same species across all <span class="math notranslate nohighlight">\(D\)</span> grid cells are directly next
+to each other in memory. In this way, we help to encourage the compiler to vectorize the code and take advantage of
+<a class="reference external" href="https://en.wikipedia.org/wiki/Single_instruction,_multiple_data">SIMD instructions</a>.</p>
+<p>Organizing the data this way may be familiar to GPU programmers as
+<a class="reference external" href="https://www.sciencedirect.com/topics/computer-science/memory-access-coalescing">coalesced memory access</a>.</p>
+<p>To understand this, we’ll look at how the memeory is organized when solving the robertson equations with 3 grid cells using
+the various matrix types and ordering in <code class="docutils literal notranslate"><span class="pre">micm</span></code>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A &amp;\longrightarrow B, &amp;k_{1, \mathrm{user\ defined}} \\
+2B &amp;\longrightarrow B + C, &amp;k_{2, \mathrm{user\ defined}} \\
+B + C &amp;\longrightarrow A + C, \qquad &amp;k_{3, \mathrm{user\ defined}} \\\end{split}\]</div>
+<p>This entire example is contained below. Copy and paste to follow along.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/CPU.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;chrono&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+
+<span class="c1">// Use our namespace so that this example is easier to read</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">solver</span><span class="p">,</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">number_of_grid_cells</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.04</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3e7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e4</span><span class="p">;</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r1&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k1</span><span class="p">));</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r2&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k2</span><span class="p">));</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;r3&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">k3</span><span class="p">));</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">temperature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">272.5</span><span class="p">;</span><span class="w">  </span><span class="c1">// [K]</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">pressure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101253.3</span><span class="p">;</span><span class="w">  </span><span class="c1">// [Pa]</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">air_density</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1e6</span><span class="p">;</span><span class="w">    </span><span class="c1">// [mol m-3]</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">cell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">cell</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">number_of_grid_cells</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">cell</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="n">cell</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">temperature</span><span class="p">;</span>
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="n">cell</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pressure</span><span class="p">;</span>
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="n">cell</span><span class="p">].</span><span class="n">air_density_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">air_density</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">SolverState</span><span class="w"> </span><span class="n">solver_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SolverState</span><span class="o">::</span><span class="n">Converged</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">solver_state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SolverState</span><span class="o">::</span><span class="n">Converged</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">solver</span><span class="p">.</span><span class="n">CalculateRateConstants</span><span class="p">(</span><span class="n">state</span><span class="p">);</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">solver_state</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SolverState</span><span class="o">::</span><span class="n">Converged</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">Solve</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;;</span>
+<span class="w">      </span><span class="n">solver_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">state_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">solver_state</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">SolverState</span><span class="o">::</span><span class="n">Converged</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="s">&quot;Solver did not converge&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;B&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;C&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="s">&quot;gas&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">PhaseSpecies</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">StoichSpecies</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">UserDefinedRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;r1&quot;</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">StoichSpecies</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">StoichSpecies</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">UserDefinedRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;r2&quot;</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">StoichSpecies</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">StoichSpecies</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">UserDefinedRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;r3&quot;</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">ThreeStageRosenbrockParameters</span><span class="p">();</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">(</span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Process</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="p">,</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">number_of_grid_cells</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">solver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CpuSolverBuilder</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">RosenbrockSolverParameters</span><span class="o">&gt;</span><span class="p">(</span><span class="n">params</span><span class="p">).</span><span class="n">SetSystem</span><span class="p">(</span><span class="n">system</span><span class="p">).</span><span class="n">SetReactions</span><span class="p">(</span><span class="n">reactions</span><span class="p">).</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">(</span><span class="n">number_of_grid_cells</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.1</span><span class="p">,</span><span class="w"> </span><span class="mf">3.1</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="mf">2.2</span><span class="p">,</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.3</span><span class="p">,</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="mf">3.3</span><span class="w"> </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">vectorized_solver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CpuSolverBuilder</span><span class="o">&lt;</span>
+<span class="w">                               </span><span class="n">RosenbrockSolverParameters</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">VectorMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="w">                               </span><span class="p">.</span><span class="n">SetSystem</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+<span class="w">                               </span><span class="p">.</span><span class="n">SetReactions</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
+<span class="w">                               </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">vectorized_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vectorized_solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">(</span><span class="n">number_of_grid_cells</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.1</span><span class="p">,</span><span class="w"> </span><span class="mf">3.1</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="mf">2.2</span><span class="p">,</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.3</span><span class="p">,</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="mf">3.3</span><span class="w"> </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">variables_</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">number_of_grid_cells</span><span class="p">);</span>
+<span class="w">  </span><span class="n">solve</span><span class="p">(</span><span class="n">vectorized_solver</span><span class="p">,</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">,</span><span class="w"> </span><span class="n">number_of_grid_cells</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">cell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">cell</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">number_of_grid_cells</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">cell</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Cell &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">cell</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Species&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Regular&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Vectorized&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">species</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">system</span><span class="p">.</span><span class="n">UniqueNames</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">regular_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="n">species</span><span class="p">];</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">vectorized_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="n">species</span><span class="p">];</span>
+
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">species</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="n">cell</span><span class="p">][</span><span class="n">regular_idx</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="w">                </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="n">cell</span><span class="p">][</span><span class="n">vectorized_idx</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">sparse_matrix</span><span class="p">{</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;::</span><span class="n">Create</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">SetNumberOfBlocks</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">{</span>
+<span class="w">    </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;::</span><span class="n">Create</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">SetNumberOfBlocks</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.0.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.3&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.2&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.0.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.2.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.2.3&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.3.2&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.0.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.2.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.2.3&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.3.2&quot;</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Sparse matrix standard ordering elements&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">sparse_matrix</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Sparse matrix vector ordering elements&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="matrix-types-in-micm">
+<h2>Matrix types in micm<a class="headerlink" href="#matrix-types-in-micm" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">micm</span></code> has its own matrix types. These provide dense matrices (for species concentrations, reaction rates, etc.),
+and sparse matrices (for the Jacobian matrix).
+The elements of these matrices are placed in a contiguous vector, in an effort to minimize cache misses.
+Both dense and sparse matrices also have two strategies for element ordering available: standard and vector.
+The vector-ordering strategy is intented to encourage vectorization of the solver code.</p>
+<p>Dense and sparse matrix types are described in more detail below.</p>
+<section id="dense-matrix">
+<h3>Dense matrix<a class="headerlink" href="#dense-matrix" title="Link to this heading">#</a></h3>
+<figure class="transparent-image align-default" id="id3">
+<img alt="dense matrix ordering" src="../_images/dense.png" />
+<figcaption>
+<p><span class="caption-text">Element ordering for standard (left) and vector (right) ordered dense matrices.</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4I0EN4micm6MatrixE" title="micm::Matrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::Matrix</span></code></a>, a dense matrix, what you probably think of when you think of a matrix, with the caveat that all rows and columns live in one long array</p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4I0_NSt6size_tEEN4micm12VectorMatrixE" title="micm::VectorMatrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::VectorMatrix</span></code></a>, the same as <a class="reference internal" href="../api/index.html#_CPPv4I0EN4micm6MatrixE" title="micm::Matrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::Matrix</span></code></a>, except that the data is ordered such that columns, rather than rows, are contiguous in memory.</p></li>
+</ul>
+</section>
+<section id="dense-matrix-standard-ordering">
+<h3>Dense matrix: standard ordering<a class="headerlink" href="#dense-matrix-standard-ordering" title="Link to this heading">#</a></h3>
+<p>Up until now, we’ve mostly created our <a class="reference internal" href="../api/index.html#_CPPv4I00EN4micm16RosenbrockSolverE" title="micm::RosenbrockSolver"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::RosenbrockSolver</span></code></a> solvers like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.1</span><span class="p">,</span><span class="w"> </span><span class="mf">3.1</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="mf">2.2</span><span class="p">,</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.3</span><span class="p">,</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="mf">3.3</span><span class="w"> </span><span class="p">});</span>
+</pre></div>
+</div>
+<p>The empty angle brackets <code class="docutils literal notranslate"><span class="pre">&lt;&gt;</span></code> tell the compiler to use the default template paramters. The first two are most important and
+denote the <code class="docutils literal notranslate"><span class="pre">MatrixPolicy</span></code> and <code class="docutils literal notranslate"><span class="pre">SparseMatrixPolicy</span></code> to be used when we solve. By default, these are <a class="reference internal" href="../api/index.html#_CPPv4I0EN4micm6MatrixE" title="micm::Matrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::Matrix</span></code></a>
+and <a class="reference internal" href="../api/index.html#_CPPv4I00EN4micm12SparseMatrixE" title="micm::SparseMatrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SparseMatrix</span></code></a>. The most visible data affected by these paratemeters is the state’s
+<a class="reference internal" href="../api/index.html#_CPPv4N4micm5State10variables_E" title="micm::State::variables_"><code class="xref cpp cpp-member docutils literal notranslate"><span class="pre">micm::State::variables_</span></code></a> parameter, representing the concnetration of each of the species.</p>
+<p>After we created that first <code class="docutils literal notranslate"><span class="pre">solver</span></code>, if we get a state and set the concentration of the species and then print them,
+they are printed in order of grid cell (columns) first and then species (rows).
+Here, when setting the species, read the double as <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">cell.species</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">vectorized_solver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CpuSolverBuilder</span><span class="o">&lt;</span>
+<span class="w">                               </span><span class="n">RosenbrockSolverParameters</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">VectorMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="w">                               </span><span class="p">.</span><span class="n">SetSystem</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+<span class="w">                               </span><span class="p">.</span><span class="n">SetReactions</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span>.1
+<span class="m">1</span>.2
+<span class="m">1</span>.3
+<span class="m">2</span>.1
+<span class="m">2</span>.2
+<span class="m">2</span>.3
+<span class="m">3</span>.1
+<span class="m">3</span>.2
+<span class="m">3</span>.3
+</pre></div>
+</div>
+</section>
+<section id="dense-matrix-vector-ordering">
+<h3>Dense matrix: vector ordering<a class="headerlink" href="#dense-matrix-vector-ordering" title="Link to this heading">#</a></h3>
+<p>But, if we create a vectorized solver, set the same concentrations and print out the state variables, we see that it is organized
+first by species (rows) and then by grid cell (columns).
+Note that we needed to set some partial template specializations at the top of the file to create these.</p>
+<p>To create a vectorized solver, we must pass the appropriate templates as the template arguments to the Rosenbrock solver class.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">vectorized_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vectorized_solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">(</span><span class="n">number_of_grid_cells</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.1</span><span class="p">,</span><span class="w"> </span><span class="mf">2.1</span><span class="p">,</span><span class="w"> </span><span class="mf">3.1</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="mf">2.2</span><span class="p">,</span><span class="w"> </span><span class="mf">3.2</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.3</span><span class="p">,</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="mf">3.3</span><span class="w"> </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">variables_</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span>.1
+<span class="m">2</span>.1
+<span class="m">3</span>.1
+<span class="m">1</span>.2
+<span class="m">2</span>.2
+<span class="m">3</span>.2
+<span class="m">1</span>.3
+<span class="m">2</span>.3
+<span class="m">3</span>.3
+</pre></div>
+</div>
+<p>And that’s all you have to do to orgnaize the data by species first. By specifying the template parameter on the
+solver, each operation will use the same ordering for all of the data structures needed to solve the chemical system.</p>
+<p>It’s important to note that regardless of the ordering policy, matrix elements can always be accessed using
+standard square-bracket notation: <code class="docutils literal notranslate"><span class="pre">matrix[column][row]</span></code>.
+It’s only when accessing the underlying data vector directly that you need to pay attention to the ordering strategy.
+In fact, you can use the vectorized solver just as you would the regular solver, and the same output is produced.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">species</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">system</span><span class="p">.</span><span class="n">UniqueNames</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">regular_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="n">species</span><span class="p">];</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">vectorized_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="n">species</span><span class="p">];</span>
+
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">species</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="n">cell</span><span class="p">][</span><span class="n">regular_idx</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="w">                </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">vectorized_state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="n">cell</span><span class="p">][</span><span class="n">vectorized_idx</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">sparse_matrix</span><span class="p">{</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;::</span><span class="n">Create</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">SetNumberOfBlocks</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">};</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Cell<span class="w"> </span><span class="m">0</span>
+<span class="w"> </span>Species<span class="w">             </span>Regular<span class="w">          </span>Vectorized
+<span class="w">       </span>A<span class="w">             </span><span class="m">1</span>.02174<span class="w">             </span><span class="m">1</span>.02174
+<span class="w">       </span>B<span class="w">         </span><span class="m">1</span>.58226e-06<span class="w">         </span><span class="m">1</span>.58226e-06
+<span class="w">       </span>C<span class="w">             </span><span class="m">2</span>.57826<span class="w">             </span><span class="m">2</span>.57826
+
+Cell<span class="w"> </span><span class="m">1</span>
+<span class="w">  </span>Species<span class="w">             </span>Regular<span class="w">          </span>Vectorized
+<span class="w">        </span>A<span class="w">             </span><span class="m">2</span>.01153<span class="w">             </span><span class="m">2</span>.01153
+<span class="w">        </span>B<span class="w">         </span><span class="m">1</span>.75155e-06<span class="w">         </span><span class="m">1</span>.75155e-06
+<span class="w">        </span>C<span class="w">             </span><span class="m">4</span>.58846<span class="w">             </span><span class="m">4</span>.58846
+
+Cell<span class="w"> </span><span class="m">2</span>
+<span class="w">  </span>Species<span class="w">             </span>Regular<span class="w">          </span>Vectorized
+<span class="w">        </span>A<span class="w">              </span><span class="m">3</span>.0096<span class="w">              </span><span class="m">3</span>.0096
+<span class="w">        </span>B<span class="w">         </span><span class="m">1</span>.82514e-06<span class="w">         </span><span class="m">1</span>.82514e-06
+<span class="w">        </span>C<span class="w">              </span><span class="m">6</span>.5904<span class="w">              </span><span class="m">6</span>.5904
+</pre></div>
+</div>
+</section>
+<section id="sparse-matrix">
+<h3>Sparse matrix<a class="headerlink" href="#sparse-matrix" title="Link to this heading">#</a></h3>
+<p>The sparse matrix type in <code class="docutils literal notranslate"><span class="pre">micm</span></code> is more-specifically a block-diagonal sparse matrix, where each block along the
+diagonal has the same sparsity structure.</p>
+<figure class="transparent-image align-default" id="id4">
+<img alt="sparse matrix ordering" src="../_images/sparse.png" />
+<figcaption>
+<p><span class="caption-text">Element ordering for standard (left) and vector (right) ordered block-diagonal sparse matrices.</span><a class="headerlink" href="#id4" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<ul>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4I00EN4micm12SparseMatrixE" title="micm::SparseMatrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SparseMatrix</span></code></a>, a <a class="reference external" href="https://en.wikipedia.org/wiki/Sparse_matrix">sparse matrix</a> data structure</p>
+<blockquote>
+<div><ul>
+<li><p>The sparse matrix allows you to select the standard or vector ordering by applying a ordering policy to the <a class="reference internal" href="../api/index.html#_CPPv4I00EN4micm12SparseMatrixE" title="micm::SparseMatrix"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SparseMatrix</span></code></a> type.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm47SparseMatrixStandardOrderingCompressedSparseRowE" title="micm::SparseMatrixStandardOrderingCompressedSparseRow"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SparseMatrixStandardOrderingCompressedSparseRow</span></code></a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4I_NSt6size_tEEN4micm45SparseMatrixVectorOrderingCompressedSparseRowE" title="micm::SparseMatrixVectorOrderingCompressedSparseRow"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SparseMatrixVectorOrderingCompressedSparseRow</span></code></a></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>To demonstrate the effects of the ordering policy on sparse matrix objects, we create the same sparse matrix
+using each ordering policy:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">sparse_matrix</span><span class="p">{</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;::</span><span class="n">Create</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">SetNumberOfBlocks</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">{</span>
+<span class="w">    </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;::</span><span class="n">Create</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Standard ordering is the default, and thus does not have to be specified as a template parameter.
+When creating vector-ordered matrices, specify the second template argument using
+<code class="docutils literal notranslate"><span class="pre">micm::SparseMatrixVectorOrdering&lt;L&gt;</span></code> where <code class="docutils literal notranslate"><span class="pre">L</span></code> is the number of blocks (i.e. grid cells) in the
+block diagonal matrix.</p>
+<p>Just like the dense matrix, the square bracket notation is always used as <code class="docutils literal notranslate"><span class="pre">matrix[block][column][row]</span></code>.
+We use this syntax to set the same values for each element of our two sparse matrices.
+We created matrices of strings so the values can be set as <code class="docutils literal notranslate"><span class="pre">block.column.row</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">{</span>
+<span class="w">    </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrix</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">SparseMatrixVectorOrdering</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&gt;::</span><span class="n">Create</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">WithElement</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="n">SetNumberOfBlocks</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.0.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.3&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.2&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.0.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.2.1&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>We can again see the effects of the ordering policy by accessing the underlying data vector directly:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.3.2&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.0.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.2.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.2.3&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">sparse_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.3.2&quot;</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Sparse matrix standard ordering elements&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">sparse_matrix</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Sparse matrix vector ordering elements&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">sparse_vector_matrix</span><span class="p">.</span><span class="n">AsVector</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">elem</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Sparse<span class="w"> </span>matrix<span class="w"> </span>standard<span class="w"> </span>ordering<span class="w"> </span>elements
+<span class="m">0</span>.0.1
+<span class="m">0</span>.2.1
+<span class="m">0</span>.2.3
+<span class="m">0</span>.3.2
+<span class="m">1</span>.0.1
+<span class="m">1</span>.2.1
+<span class="m">1</span>.2.3
+<span class="m">1</span>.3.2
+<span class="m">2</span>.0.1
+<span class="m">2</span>.2.1
+<span class="m">2</span>.2.3
+<span class="m">2</span>.3.2
+
+Sparse<span class="w"> </span>matrix<span class="w"> </span>vector<span class="w"> </span>ordering<span class="w"> </span>elements
+<span class="m">0</span>.0.1
+<span class="m">1</span>.0.1
+<span class="m">2</span>.0.1
+<span class="m">0</span>.2.1
+<span class="m">1</span>.2.1
+<span class="m">2</span>.2.1
+<span class="m">0</span>.2.3
+<span class="m">1</span>.2.3
+<span class="m">2</span>.2.3
+<span class="m">0</span>.3.2
+<span class="m">1</span>.3.2
+<span class="m">2</span>.3.2
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="openmp.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">OpenMP</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">MICM API</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matrix-types-in-micm">Matrix types in micm</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-matrix">Dense matrix</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-matrix-standard-ordering">Dense matrix: standard ordering</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dense-matrix-vector-ordering">Dense matrix: vector ordering</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sparse-matrix">Sparse matrix</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/vectorized_matrix_solver.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2026, NCAR/UCAR.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
