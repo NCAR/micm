@@ -58,7 +58,7 @@ void test_analytical_surface_rxn(
   // Process
   micm::Process surface_process = micm::ChemicalReactionBuilder()
                                       .SetReactants({ foo })
-                                      .SetProducts({ micm::Yield(bar, bar_yield), micm::Yield(baz, baz_yield) })
+                                      .SetProducts({ micm::StoichSpecies(bar, bar_yield), micm::StoichSpecies(baz, baz_yield) })
                                       .SetRateConstant(surface)
                                       .SetPhase(gas_phase)
                                       .Build();

@@ -6,5 +6,5 @@
 #include <micm/system/conditions.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/system/stoich_species.hpp>
 #include <micm/system/system.hpp>
-#include <micm/system/yield.hpp>

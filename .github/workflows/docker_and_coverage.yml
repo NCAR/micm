@@ -18,7 +18,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         dockerfile:
           - Dockerfile
           - Dockerfile.coverage
@@ -33,7 +32,7 @@ jobs:
         with:
           submodules: recursive
       
-      - name: Delete huge unnecessary tools folder
+      - name: Free disk space
         run: rm -rf /opt/hostedtoolcache
 
       - name: Build Docker image
@@ -41,17 +40,12 @@ jobs:
 
       - name: Run tests in container
         # only run this if we are not running coverage tests or have built the cuda files
-        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc' && matrix.dockerfile != 'Dockerfile.llvm'
+        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
         run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-
-      - name: Run tests using LLVM in container
-        # excludes some very expensive memcheck tests
-        if: matrix.dockerfile == 'Dockerfile.llvm'
-        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8 -E \"memcheck_jit_linear_solver|memcheck_analytical_rosenbrock_integration\""'
 
       - name: Run coverage tests in container
         if: matrix.dockerfile == 'Dockerfile.coverage'
-        run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
+        run: docker run --name test-container -t micm bash -c 'make coverage'
 
       - name: Copy coverage from container
         if: matrix.dockerfile == 'Dockerfile.coverage'
@@ -59,7 +53,7 @@ jobs:
 
       - name: Upload coverage report
         if: matrix.dockerfile == 'Dockerfile.coverage'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.info

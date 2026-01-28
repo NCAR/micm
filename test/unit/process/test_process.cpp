@@ -128,7 +128,7 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
                                   .SetReactants({ Species("O3"), Species("NO") })
-                                  .SetProducts({ Yield(Species("NO2"), 1.0), Yield(Species("O2"), 1.0) })
+                                  .SetProducts({ StoichSpecies(Species("NO2"), 1.0), StoichSpecies(Species("O2"), 1.0) })
                                   .SetRateConstant(ArrheniusRateConstant())
                                   .SetPhase(gas_phase)
                                   .Build();
