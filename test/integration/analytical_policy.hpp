@@ -1755,12 +1755,14 @@ void test_analytical_hires(
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r8 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ y6 })
-                         .SetProducts({ micm::StoichSpecies(y4, 0.43 / 1.81), micm::StoichSpecies(y5, 0.69 / 1.81), micm::StoichSpecies(y7, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r8 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ y6 })
+          .SetProducts(
+              { micm::StoichSpecies(y4, 0.43 / 1.81), micm::StoichSpecies(y5, 0.69 / 1.81), micm::StoichSpecies(y7, 1) })
+          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
+          .SetPhase(gas_phase)
+          .Build();
 
   micm::Process r9 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y5, y7 })
