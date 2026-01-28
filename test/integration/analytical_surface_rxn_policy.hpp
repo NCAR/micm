@@ -56,12 +56,13 @@ void test_analytical_surface_rxn(
   micm::SurfaceRateConstant surface{ { .label_ = "foo", .phase_species_ = gas_foo, .reaction_probability_ = rxn_gamma } };
 
   // Process
-  micm::Process surface_process = micm::ChemicalReactionBuilder()
-                                      .SetReactants({ foo })
-                                      .SetProducts({ micm::StoichSpecies(bar, bar_yield), micm::StoichSpecies(baz, baz_yield) })
-                                      .SetRateConstant(surface)
-                                      .SetPhase(gas_phase)
-                                      .Build();
+  micm::Process surface_process =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ foo })
+          .SetProducts({ micm::StoichSpecies(bar, bar_yield), micm::StoichSpecies(baz, baz_yield) })
+          .SetRateConstant(surface)
+          .SetPhase(gas_phase)
+          .Build();
 
   auto reactions = std::vector<micm::Process>{ surface_process };
 

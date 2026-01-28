@@ -268,7 +268,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetProductsThrowsError)
   EXPECT_THROW(
       {
         ChemicalReactionBuilder()
-            .SetProducts({ StoichSpecies(CO2, 1.0) })                // Called first
+            .SetProducts({ StoichSpecies(CO2, 1.0) })        // Called first
             .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
             .SetReactants({})
             .SetRateConstant(rate_constant)
