@@ -19,12 +19,12 @@ jobs:
       fail-fast: false
       matrix:
         dockerfile:
-          # - Dockerfile
+          - Dockerfile
           - Dockerfile.coverage
-          # - Dockerfile.memcheck
-          # - Dockerfile.nvhpc
-          # - Dockerfile.openmp
-          # - Dockerfile.intel 
+          - Dockerfile.memcheck
+          - Dockerfile.nvhpc
+          - Dockerfile.openmp
+          - Dockerfile.intel 
           # # - Dockerfile.mpi
     steps:
       - name: Checkout code
