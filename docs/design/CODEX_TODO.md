@@ -1,0 +1,8 @@
+- Add a guard/assert for calling `ConstraintSet::SubtractJacobianTerms` before `SetJacobianFlatIds`, and add unit tests to cover the failure path.
+- Extend `EquilibriumConstraint` to handle zero/negative concentrations or enforce integer-only stoichiometry, and add edge-case unit tests.
+- Patch DAE solver loop to recompute constraint Jacobian terms on rejected steps (in-place LU path) and add coverage.
+- Decide and implement algebraic-variable error scaling (dedicated tolerances or exclusion), with tests for step-size control.
+- Make constraint cloning explicit in `SolverBuilder` (error or virtual clone) to avoid silent drops of non-EquilibriumConstraint types.
+- Define/validate behavior when `SetConstraintCount` is used without `SetConstraints` (reject or auto-create placeholders) and test it.
+- Review DAE tests that currently require manual projection; decide whether to keep projection or move enforcement into solver.
+- Identify which DAE integration/unit tests should live in PR parts 2/3 and document the split.
