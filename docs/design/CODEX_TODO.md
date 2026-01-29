@@ -1,3 +1,5 @@
+Note: TODOs from Codex 5.2 (Extra High) review pass.
+
 - Add a guard/assert for calling `ConstraintSet::SubtractJacobianTerms` before `SetJacobianFlatIds`, and add unit tests to cover the failure path.
 - Extend `EquilibriumConstraint` to handle zero/negative concentrations or enforce integer-only stoichiometry, and add edge-case unit tests.
 - Patch DAE solver loop to recompute constraint Jacobian terms on rejected steps (in-place LU path) and add coverage.
@@ -6,3 +8,5 @@
 - Define/validate behavior when `SetConstraintCount` is used without `SetConstraints` (reject or auto-create placeholders) and test it.
 - Review DAE tests that currently require manual projection; decide whether to keep projection or move enforcement into solver.
 - Identify which DAE integration/unit tests should live in PR parts 2/3 and document the split.
+- Clarify whether ConstraintSet supports vectorized matrix policies; block or implement vectorized-safe indexing and tests.
+- Prevent or validate constraint name collisions with species names in `SolverBuilder` variable maps.
