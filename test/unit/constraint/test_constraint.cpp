@@ -23,12 +23,11 @@ TEST(EquilibriumConstraint, SimpleABEquilibrium)
 
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
-      "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },  // reactants with stoich
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },                           // products with stoich
       K_eq);
 
-  EXPECT_EQ(constraint.name_, "A_B_equilibrium");
+
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
   EXPECT_EQ(constraint.species_dependencies_[0], "A");
   EXPECT_EQ(constraint.species_dependencies_[1], "B");
@@ -61,7 +60,6 @@ TEST(EquilibriumConstraint, Jacobian)
 
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
-      "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       K_eq);
@@ -85,7 +83,6 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
 
   double K_eq = 10.0;
   EquilibriumConstraint constraint(
-      "A_B_simple",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
       K_eq);
@@ -113,7 +110,6 @@ TEST(EquilibriumConstraint, TwoProductsOneReactant)
 
   double K_eq = 100.0;
   EquilibriumConstraint constraint(
-      "dissociation",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },                                // A with stoich 2
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
       K_eq);
@@ -136,7 +132,6 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
   // Test that negative or zero K_eq throws
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           -1.0),
@@ -144,7 +139,6 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
 
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           0.0),
@@ -155,7 +149,6 @@ TEST(EquilibriumConstraint, EmptyReactantsThrows)
 {
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{},  // empty reactants
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
@@ -166,7 +159,6 @@ TEST(EquilibriumConstraint, EmptyProductsThrows)
 {
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{},  // empty products
           1.0),
@@ -178,7 +170,6 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   // Zero stoichiometry for reactant
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
@@ -187,7 +178,6 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   // Negative stoichiometry for reactant
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), -1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
@@ -196,7 +186,6 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   // Zero stoichiometry for product
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 0.0) },
           1.0),
@@ -205,7 +194,6 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   // Negative stoichiometry for product
   EXPECT_THROW(
       EquilibriumConstraint(
-          "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), -2.0) },
           1.0),

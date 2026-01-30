@@ -149,7 +149,7 @@ namespace micm
         {
           throw std::system_error(
               make_error_code(MicmConstraintErrc::UnknownSpecies),
-              "Constraint '" + constraint->name_ + "' depends on unknown species '" + species_name + "'");
+              "Constraint depends on unknown species '" + species_name + "'");
         }
         dependency_ids_.push_back(it->second);
       }

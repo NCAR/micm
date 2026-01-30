@@ -47,17 +47,14 @@ namespace micm
     EquilibriumConstraint() = default;
 
     /// @brief Construct an equilibrium constraint
-    /// @param name Constraint identifier
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
     /// @param equilibrium_constant K_eq = [products]/[reactants] at equilibrium
     EquilibriumConstraint(
-        const std::string& name,
         const std::vector<StoichSpecies>& reactants,
         const std::vector<StoichSpecies>& products,
         double equilibrium_constant)
-        : Constraint(name),
-          reactants_(reactants),
+        : reactants_(reactants),
           products_(products),
           equilibrium_constant_(equilibrium_constant)
     {

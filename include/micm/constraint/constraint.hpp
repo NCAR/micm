@@ -21,21 +21,11 @@ namespace micm
   class Constraint
   {
    public:
-    /// @brief Name of the constraint (for identification/debugging)
-    std::string name_;
-
     /// @brief Names of species this constraint depends on
     std::vector<std::string> species_dependencies_;
 
     /// @brief Default constructor
     Constraint() = default;
-
-    /// @brief Constructor with name
-    /// @param name Constraint identifier
-    explicit Constraint(const std::string& name)
-        : name_(name)
-    {
-    }
 
     /// @brief Virtual destructor
     virtual ~Constraint() = default;
