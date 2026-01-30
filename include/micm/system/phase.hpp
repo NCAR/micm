@@ -79,8 +79,8 @@ namespace micm
       return names;
     }
 
-    /// @brief Returns a set of unique names for each non-parameterized species (excluding phase name prefix)
-    std::vector<std::string> UniqueSpeciesNames() const
+    /// @brief Returns a set of unique names for each non-parameterized species (excludes phase name prefix)
+    std::vector<std::string> SpeciesNames() const
     {
       std::vector<std::string> names{};
       for (const auto& phase_species : phase_species_)

@@ -121,7 +121,7 @@ namespace micm
 
     // Exclude phase name for gas phase species to maintain consistency with prior behavior
     // e.g., "O3" instead of "GAS.O3"
-    auto gas_names = gas_phase_.UniqueSpeciesNames();
+    auto gas_names = gas_phase_.SpeciesNames();
     names.insert(names.end(), std::make_move_iterator(gas_names.begin()), std::make_move_iterator(gas_names.end()));
 
     // Include names from external models

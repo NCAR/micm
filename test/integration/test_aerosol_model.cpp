@@ -138,7 +138,7 @@ TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
 
   // Assemble the full list of expected variable names
   std::vector<std::string> expected_names;
-  auto gas_names = gas.UniqueSpeciesNames();
+  auto gas_names = gas.SpeciesNames();
   expected_names.insert(expected_names.end(), gas_names.begin(), gas_names.end());
   auto aerosol1_names = aerosol_1.UniqueNames();
   expected_names.insert(expected_names.end(), aerosol1_names.begin(), aerosol1_names.end());
