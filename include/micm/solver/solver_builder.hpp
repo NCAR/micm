@@ -50,6 +50,8 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
+    std::size_t constraint_count_ = 0;
+    std::vector<std::string> constraint_names_{};
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -74,6 +76,16 @@ namespace micm
     /// @param reactions The reactions
     /// @return Updated SolverBuilder
     SolverBuilder& SetReactions(const std::vector<Process>& reactions);
+
+    /// @brief Set the number of algebraic constraints (appended after state variables)
+    /// @param number_of_constraints Constraint count
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetConstraintCount(std::size_t number_of_constraints);
+
+    /// @brief Set constraint names (appended after state variables)
+    /// @param names Constraint variable names
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetConstraintNames(const std::vector<std::string>& names);
 
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored
