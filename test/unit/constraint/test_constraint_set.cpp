@@ -26,10 +26,9 @@ TEST(ConstraintSet, Construction)
   // Create a simple constraint set with one equilibrium constraint
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      1000.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -49,10 +48,9 @@ TEST(ConstraintSet, NonZeroJacobianElements)
   // Create constraint set
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      1000.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -80,15 +78,13 @@ TEST(ConstraintSet, MultipleConstraints)
   // Create constraint set with two equilibrium constraints
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      1000.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) }));
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "C_D_eq",
+      500.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("D"), 1.0) },
-      500.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("D"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -123,10 +119,9 @@ TEST(ConstraintSet, AddForcingTerms)
   // Create constraint set
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      1000.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -161,10 +156,9 @@ TEST(ConstraintSet, SubtractJacobianTerms)
   // Create constraint set
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      1000.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -243,10 +237,9 @@ TEST(ConstraintSet, UnknownSpeciesThrows)
   // Creating a constraint with unknown species should throw
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "invalid",
+      1000.0,
       std::vector<StoichSpecies>{ StoichSpecies(Species("X"), 1.0), StoichSpecies(Species("Y"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("XY"), 1.0) },
-      1000.0));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("XY"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -276,10 +269,9 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
   // Create constraint: X <-> Y with K_eq = 50
   std::vector<std::unique_ptr<Constraint>> constraints;
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "X_Y_eq",
+      K_eq,
       std::vector<StoichSpecies>{ StoichSpecies(Species("X"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("Y"), 1.0) },
-      K_eq));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("Y"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "X", 0 },
@@ -377,17 +369,15 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
 
   // Constraint 1: A <-> B with K_eq1 = 10
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      K_eq1,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-      K_eq1));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) }));
 
   // Constraint 2: C + D <-> A with K_eq2 = 100
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "CD_A_eq",
+      K_eq2,
       std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0), StoichSpecies(Species("D"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      K_eq2));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },
@@ -533,16 +523,14 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
 
   // Both constraints depend on species A
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_B_eq",
+      K_eq1,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-      K_eq1));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) }));
 
   constraints.push_back(std::make_unique<EquilibriumConstraint>(
-      "A_C_eq",
+      K_eq2,
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
-      K_eq2));
+      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) }));
 
   std::map<std::string, std::size_t> variable_map = {
     { "A", 0 },

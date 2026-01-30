@@ -26,14 +26,14 @@ namespace micm
   class EquilibriumConstraint : public Constraint
   {
    public:
+    /// @brief Equilibrium constant K_eq = k_forward / k_backward
+    double equilibrium_constant_;
+
     /// @brief Reactant species and their stoichiometric coefficients
     std::vector<StoichSpecies> reactants_;
 
     /// @brief Product species and their stoichiometric coefficients
     std::vector<StoichSpecies> products_;
-
-    /// @brief Equilibrium constant K_eq = k_forward / k_backward
-    double equilibrium_constant_;
 
    private:
     /// @brief Indices into the reactants_ vector for each species dependency
@@ -47,17 +47,21 @@ namespace micm
     EquilibriumConstraint() = default;
 
     /// @brief Construct an equilibrium constraint
+    /// @param equilibrium_constant K_eq = [products]/[reactants] at equilibrium
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
-    /// @param equilibrium_constant K_eq = [products]/[reactants] at equilibrium
     EquilibriumConstraint(
+        double equilibrium_constant,
         const std::vector<StoichSpecies>& reactants,
-        const std::vector<StoichSpecies>& products,
-        double equilibrium_constant)
-        : reactants_(reactants),
-          products_(products),
-          equilibrium_constant_(equilibrium_constant)
+        const std::vector<StoichSpecies>& products)
+        : equilibrium_constant_(equilibrium_constant),
+          reactants_(reactants),
+          products_(products)
     {
+      if (equilibrium_constant_ <= 0)
+      {
+        throw std::system_error(make_error_code(MicmConstraintErrc::InvalidEquilibriumConstant));
+      }
       if (reactants_.empty())
       {
         throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
@@ -65,10 +69,6 @@ namespace micm
       if (products_.empty())
       {
         throw std::system_error(make_error_code(MicmConstraintErrc::EmptyProducts));
-      }
-      if (equilibrium_constant_ <= 0)
-      {
-        throw std::system_error(make_error_code(MicmConstraintErrc::InvalidEquilibriumConstant));
       }
       for (const auto& r : reactants_)
       {
