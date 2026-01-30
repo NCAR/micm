@@ -4,7 +4,7 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_error.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 
 #include <cmath>
 #include <cstddef>
@@ -27,10 +27,10 @@ namespace micm
   {
    public:
     /// @brief Reactant species and their stoichiometric coefficients
-    std::vector<Yield> reactants_;
+    std::vector<StoichSpecies> reactants_;
 
     /// @brief Product species and their stoichiometric coefficients
-    std::vector<Yield> products_;
+    std::vector<StoichSpecies> products_;
 
     /// @brief Equilibrium constant K_eq = k_forward / k_backward
     double equilibrium_constant_;
@@ -48,13 +48,13 @@ namespace micm
 
     /// @brief Construct an equilibrium constraint
     /// @param name Constraint identifier
-    /// @param reactants Vector of Yield (species, stoichiometry) for reactants
-    /// @param products Vector of Yield (species, stoichiometry) for products
+    /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
+    /// @param products Vector of StoichSpecies (species, stoichiometry) for products
     /// @param equilibrium_constant K_eq = [products]/[reactants] at equilibrium
     EquilibriumConstraint(
         const std::string& name,
-        const std::vector<Yield>& reactants,
-        const std::vector<Yield>& products,
+        const std::vector<StoichSpecies>& reactants,
+        const std::vector<StoichSpecies>& products,
         double equilibrium_constant)
         : Constraint(name),
           reactants_(reactants),

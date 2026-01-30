@@ -4,7 +4,7 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/equilibrium_constraint.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 
 #include <gtest/gtest.h>
 
@@ -24,8 +24,8 @@ TEST(EquilibriumConstraint, SimpleABEquilibrium)
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
       "A_B_equilibrium",
-      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },  // reactants with stoich
-      std::vector<Yield>{ Yield(Species("AB"), 1.0) },                           // products with stoich
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },  // reactants with stoich
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },                           // products with stoich
       K_eq);
 
   EXPECT_EQ(constraint.name_, "A_B_equilibrium");
@@ -62,8 +62,8 @@ TEST(EquilibriumConstraint, Jacobian)
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
       "A_B_equilibrium",
-      std::vector<Yield>{ Yield(Species("A"), 1.0), Yield(Species("B"), 1.0) },
-      std::vector<Yield>{ Yield(Species("AB"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       K_eq);
 
   std::vector<double> concentrations = { 0.01, 0.02, 0.05 };
@@ -86,8 +86,8 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
   double K_eq = 10.0;
   EquilibriumConstraint constraint(
       "A_B_simple",
-      std::vector<Yield>{ Yield(Species("A"), 1.0) },
-      std::vector<Yield>{ Yield(Species("B"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
       K_eq);
 
   EXPECT_EQ(constraint.species_dependencies_.size(), 2);
@@ -114,8 +114,8 @@ TEST(EquilibriumConstraint, TwoProductsOneReactant)
   double K_eq = 100.0;
   EquilibriumConstraint constraint(
       "dissociation",
-      std::vector<Yield>{ Yield(Species("A"), 2.0) },                                // A with stoich 2
-      std::vector<Yield>{ Yield(Species("B"), 1.0), Yield(Species("C"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },                                // A with stoich 2
+      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
       K_eq);
 
   // Dependencies should be A, B, C
@@ -137,16 +137,16 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), 1.0) },
-          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           -1.0),
       std::system_error);
 
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), 1.0) },
-          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           0.0),
       std::system_error);
 }
@@ -156,8 +156,8 @@ TEST(EquilibriumConstraint, EmptyReactantsThrows)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{},  // empty reactants
-          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          std::vector<StoichSpecies>{},  // empty reactants
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
       std::system_error);
 }
@@ -167,8 +167,8 @@ TEST(EquilibriumConstraint, EmptyProductsThrows)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), 1.0) },
-          std::vector<Yield>{},  // empty products
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+          std::vector<StoichSpecies>{},  // empty products
           1.0),
       std::system_error);
 }
@@ -179,8 +179,8 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), 0.0) },
-          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
       std::system_error);
 
@@ -188,8 +188,8 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), -1.0) },
-          std::vector<Yield>{ Yield(Species("B"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), -1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
       std::system_error);
 
@@ -197,8 +197,8 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), 1.0) },
-          std::vector<Yield>{ Yield(Species("B"), 0.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 0.0) },
           1.0),
       std::system_error);
 
@@ -206,8 +206,8 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
   EXPECT_THROW(
       EquilibriumConstraint(
           "invalid",
-          std::vector<Yield>{ Yield(Species("A"), 1.0) },
-          std::vector<Yield>{ Yield(Species("B"), -2.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Species("B"), -2.0) },
           1.0),
       std::system_error);
 }
