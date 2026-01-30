@@ -132,9 +132,9 @@ TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
 
   // Get a state and ensure that the size and labels match expectations
   auto state = solver.GetState();
-    EXPECT_EQ(
-        state.variable_map_.size(),
-        gas.UniqueNames().size() + aerosol_1.UniqueNames().size() + aerosol_2.UniqueNames().size());
+  EXPECT_EQ(
+      state.variable_map_.size(),
+      gas.UniqueNames().size() + aerosol_1.UniqueNames().size() + aerosol_2.UniqueNames().size());
 
   // Assemble the full list of expected variable names
   std::vector<std::string> expected_names;
