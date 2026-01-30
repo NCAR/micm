@@ -86,6 +86,65 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
+      StatePolicy>::SetConstraintCount(std::size_t number_of_constraints)
+  {
+    constraint_count_ = number_of_constraints;
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetConstraintNames(const std::vector<std::string>& names)
+  {
+    constraint_names_ = names;
+    constraint_count_ = names.size();
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
       StatePolicy>::SetIgnoreUnusedSpecies(bool ignore_unused_species)
   {
     ignore_unused_species_ = ignore_unused_species;
@@ -118,6 +177,36 @@ namespace micm
       StatePolicy>::SetReorderState(bool reorder_state)
   {
     reorder_state_ = reorder_state;
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints)
+  {
+    constraints_ = std::make_shared<std::vector<std::unique_ptr<Constraint>>>(std::move(constraints));
+    constraint_count_ = constraints_->size();
     return *this;
   }
 
@@ -314,6 +403,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
+    std::size_t number_of_constraints = constraint_count_;
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -324,8 +414,46 @@ namespace micm
 
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
+
+    // Create ConstraintSet from stored constraints (if any)
+    ConstraintSet constraint_set;
+    if (constraints_ && !constraints_->empty())
+    {
+      // Create extended variable map that includes constraint variables
+      // Constraints may reference constraint variables like "constraint_0" in their formulations
+      std::map<std::string, std::size_t> extended_variable_map = species_map;
+      std::vector<std::string> names = constraint_names_;
+      if (names.size() < number_of_constraints)
+      {
+        for (std::size_t i = names.size(); i < number_of_constraints; ++i)
+          names.push_back("constraint_" + std::to_string(i));
+      }
+      for (std::size_t i = 0; i < number_of_constraints; ++i)
+      {
+        extended_variable_map[names[i]] = number_of_species + i;
+      }
+
+      // Deep copy constraints since we need to move them into ConstraintSet
+      // but the builder may be reused
+      std::vector<std::unique_ptr<Constraint>> constraints_copy;
+      constraints_copy.reserve(constraints_->size());
+      for (const auto& c : *constraints_)
+      {
+        // Clone via dynamic cast - for now only EquilibriumConstraint is supported
+        if (auto* eq = dynamic_cast<const EquilibriumConstraint*>(c.get()))
+        {
+          constraints_copy.push_back(std::make_unique<EquilibriumConstraint>(*eq));
+        }
+      }
+      constraint_set = ConstraintSet(std::move(constraints_copy), extended_variable_map, number_of_species);
+
+      // Merge constraint Jacobian elements with ODE Jacobian elements
+      auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
+      nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
+    }
+
     // The actual number of grid cells is not needed to construct the various solver objects
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species + number_of_constraints, true);
 
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
@@ -335,11 +463,28 @@ namespace micm
     }
     rates.SetJacobianFlatIds(jacobian);
 
+    // Set Jacobian flat IDs for constraints
+    if (constraint_set.Size() > 0)
+    {
+      constraint_set.SetJacobianFlatIds(jacobian);
+    }
+
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
+    if (number_of_constraints > 0)
+    {
+      std::vector<std::string> names = constraint_names_;
+      if (names.size() < number_of_constraints)
+      {
+        for (std::size_t i = names.size(); i < number_of_constraints; ++i)
+          names.push_back("constraint_" + std::to_string(i));
+      }
+      variable_names.insert(variable_names.end(), names.begin(), names.begin() + number_of_constraints);
+    }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
+                                         .number_of_constraints_ = number_of_constraints,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
@@ -348,7 +493,8 @@ namespace micm
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
+        SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set), jacobian,
+            number_of_species, number_of_constraints),
         state_parameters,
         options,
         this->reactions_,
