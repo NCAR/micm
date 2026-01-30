@@ -302,7 +302,6 @@ TEST(State, SetConcentrationByElementSingleValue)
 TEST(State, SetConcentrationByElementVector)
 {
   micm::SystemParameters params;
- 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
                          .variable_names_{ "foo", "bar", "baz", "quz" },
