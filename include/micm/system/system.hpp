@@ -7,6 +7,7 @@
 #include <micm/util/utils.hpp>
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -19,11 +20,28 @@ namespace micm
     std::function<size_t()> state_size_func_;
     std::function<std::vector<std::string>()> unique_names_func_;
     
-    template<typename ModelType>
-    ExternalModel(const ModelType& model)
-    : state_size_func_([model]() { return model.StateSize(); }),
-      unique_names_func_([model]() { return model.UniqueNames(); })
+    // Default constructor
+    ExternalModel() = default;
+    
+    // Copy constructor
+    ExternalModel(const ExternalModel&) = default;
+    
+    // Move constructor  
+    ExternalModel(ExternalModel&&) = default;
+    
+    // Copy assignment
+    ExternalModel& operator=(const ExternalModel&) = default;
+    
+    // Move assignment
+    ExternalModel& operator=(ExternalModel&&) = default;
+    
+    template<typename ModelType,
+             typename = std::enable_if_t<!std::is_same_v<std::decay_t<ModelType>, ExternalModel>>>
+    ExternalModel(ModelType&& model)
     {
+      auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
+      state_size_func_ = [shared_model]() { return shared_model->StateSize(); };
+      unique_names_func_ = [shared_model]() { return shared_model->UniqueNames(); };
     }
   };
   
@@ -58,9 +76,9 @@ namespace micm
     template<typename... ExternalModels>
     System(
         const Phase& gas_phase,
-        ExternalModels... external_models)
+        ExternalModels&&... external_models)
         : gas_phase_(gas_phase),
-          external_models_{ ExternalModel{ external_models }... }
+          external_models_{ ExternalModel{ std::forward<ExternalModels>(external_models) }... }
     {
     }
 
