@@ -17,7 +17,7 @@ class StubAerosolModel
 {
 public:
   StubAerosolModel() = delete;
-  StubAerosolModel(std::string name, std::vector<micm::Phase> phases) : name_(name), phases_(phases) {}
+  StubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases) : name_(name), phases_(phases) {}
   std::size_t StateSize() const
   {
     EXPECT_TRUE(phases_.size() == 2);
