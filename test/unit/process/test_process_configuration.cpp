@@ -106,7 +106,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeWithMultipleReactantsAndProducts)
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "coarse.organic.A");
   EXPECT_EQ(chem_reaction->reactants_[1].name_, "coarse.organic.B");
 
-  // Verify product names and yields were preserved
+  // Verify product names and its stoichiometic coefficinets were preserved
   ASSERT_EQ(chem_reaction->products_.size(), 2);
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "coarse.organic.C");
   EXPECT_EQ(chem_reaction->products_[0].coefficient_, 1.0);
