@@ -94,7 +94,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo })
-                         .SetProducts({ micm::Yield(bar, 1) })
+                         .SetProducts({ micm::StoichSpecies(bar, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
                          .SetPhase(gas_phase)
                          .Build();

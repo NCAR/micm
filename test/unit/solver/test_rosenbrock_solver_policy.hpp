@@ -32,14 +32,14 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo, baz })
-                         .SetProducts({ micm::Yield(bar, 1), micm::Yield(quuz, 2.4) })
+                         .SetProducts({ micm::StoichSpecies(bar, 1), micm::StoichSpecies(quuz, 2.4) })
                          .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar })
-                         .SetProducts({ micm::Yield(foo, 1), micm::Yield(quz, 1.4) })
+                         .SetProducts({ micm::StoichSpecies(foo, 1), micm::StoichSpecies(quz, 1.4) })
                          .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }))
                          .Build();

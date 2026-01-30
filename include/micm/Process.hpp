@@ -1,4 +1,4 @@
-// Copyright (C) 2024-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2024-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -20,6 +20,5 @@
 #include <micm/process/rate_constant/troe_rate_constant.hpp>
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/process/transfer_coefficient/henrys_law_coefficient.hpp>
-#include <micm/process/transfer_coefficient/phase_transfer_coefficient.hpp>
+#include <micm/process/transfer_coefficient/henrys_law_constant.hpp>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>

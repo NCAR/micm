@@ -384,14 +384,14 @@ void test_analytical_troe(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 4.0e-11 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
                                                                    .k0_B_ = 1.6,
                                                                    .k0_C_ = 3,
@@ -457,21 +457,21 @@ void test_analytical_stiff_troe(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 4.0e-11 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 4.0e-11 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
                                                                    .k0_B_ = 1.6,
                                                                    .k0_C_ = 3,
@@ -485,14 +485,14 @@ void test_analytical_stiff_troe(
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(a1, 1) })
+                         .SetProducts({ micm::StoichSpecies(a1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -548,14 +548,14 @@ void test_analytical_photolysis(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "photoA" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "photoB" }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -613,35 +613,35 @@ void test_analytical_stiff_photolysis(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "photoA1B" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "photoA2B" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "photoB" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(a1, 1) })
+                         .SetProducts({ micm::StoichSpecies(a1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -699,14 +699,14 @@ void test_analytical_ternary_chemical_activation(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-5, .kinf_A_ = 1 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
                                                                                         .k0_B_ = 1.6,
                                                                                         .k0_C_ = 3,
@@ -772,21 +772,21 @@ void test_analytical_stiff_ternary_chemical_activation(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-5, .kinf_A_ = 1 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-5, .kinf_A_ = 1 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
                                                                                         .k0_B_ = 1.6,
                                                                                         .k0_C_ = 3,
@@ -800,14 +800,14 @@ void test_analytical_stiff_ternary_chemical_activation(
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(a1, 1) })
+                         .SetProducts({ micm::StoichSpecies(a1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -864,14 +864,14 @@ void test_analytical_tunneling(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -926,35 +926,35 @@ void test_analytical_stiff_tunneling(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(a1, 1) })
+                         .SetProducts({ micm::StoichSpecies(a1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1005,7 +1005,7 @@ void test_analytical_arrhenius(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e-3, .C_ = 50 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1013,7 +1013,7 @@ void test_analytical_arrhenius(
   micm::Process r2 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ b })
-          .SetProducts({ micm::Yield(c, 1) })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
           .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 7, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .SetPhase(gas_phase)
           .Build();
@@ -1068,14 +1068,14 @@ void test_analytical_stiff_arrhenius(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e-3, .C_ = 50 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e-3, .C_ = 50 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1083,21 +1083,21 @@ void test_analytical_stiff_arrhenius(
   micm::Process r3 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ b })
-          .SetProducts({ micm::Yield(c, 1) })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
           .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 1.6, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .SetPhase(gas_phase)
           .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(a1, 1) })
+                         .SetProducts({ micm::StoichSpecies(a1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1150,7 +1150,7 @@ void test_analytical_branched(
   micm::Process r1 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ a })
-          .SetProducts({ micm::Yield(b, 1) })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
                                                         .X_ = 1e-4,
                                                         .Y_ = 204.3,
@@ -1162,7 +1162,7 @@ void test_analytical_branched(
   micm::Process r2 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ b })
-          .SetProducts({ micm::Yield(c, 1) })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
                                                         .X_ = 1e-4,
                                                         .Y_ = 204.3,
@@ -1240,7 +1240,7 @@ void test_analytical_stiff_branched(
   micm::Process r1 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ a1 })
-          .SetProducts({ micm::Yield(b, 1) })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
                                                         .X_ = 1e-4,
                                                         .Y_ = 204.3,
@@ -1252,7 +1252,7 @@ void test_analytical_stiff_branched(
   micm::Process r2 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ a2 })
-          .SetProducts({ micm::Yield(b, 1) })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
                                                         .X_ = 1e-4,
                                                         .Y_ = 204.3,
@@ -1264,7 +1264,7 @@ void test_analytical_stiff_branched(
   micm::Process r3 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ b })
-          .SetProducts({ micm::Yield(c, 1) })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
                                                         .X_ = 1e-4,
                                                         .Y_ = 204.3,
@@ -1275,14 +1275,14 @@ void test_analytical_stiff_branched(
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2 })
-                         .SetProducts({ micm::Yield(a1, 1) })
+                         .SetProducts({ micm::StoichSpecies(a1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1358,21 +1358,21 @@ void test_analytical_robertson(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
-                         .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1), micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
-                         .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(a, 1), micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1529,35 +1529,35 @@ void test_analytical_oregonator(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ Y })
-                         .SetProducts({ micm::Yield(X, 1) })
+                         .SetProducts({ micm::StoichSpecies(X, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ X, Y })
-                         .SetProducts({ micm::Yield(P, 1) })
+                         .SetProducts({ micm::StoichSpecies(P, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ X })
-                         .SetProducts({ micm::Yield(Z, 1), micm::Yield(X, 2) })
+                         .SetProducts({ micm::StoichSpecies(Z, 1), micm::StoichSpecies(X, 2) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ X, X })
-                         .SetProducts({ micm::Yield(Q, 1) })
+                         .SetProducts({ micm::StoichSpecies(Q, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ Z })
-                         .SetProducts({ micm::Yield(Y, 1) })
+                         .SetProducts({ micm::StoichSpecies(Y, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1709,62 +1709,64 @@ void test_analytical_hires(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y0 })
-                         .SetProducts({ micm::Yield(y1, 1) })
+                         .SetProducts({ micm::StoichSpecies(y1, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y1 })
-                         .SetProducts({ micm::Yield(y0, 0.43 / 8.75), micm::Yield(y3, 8.32 / 8.75) })
+                         .SetProducts({ micm::StoichSpecies(y0, 0.43 / 8.75), micm::StoichSpecies(y3, 8.32 / 8.75) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y2 })
-                         .SetProducts({ micm::Yield(y0, 8.32 / 10.03), micm::Yield(y3, 1.71 / 10.03) })
+                         .SetProducts({ micm::StoichSpecies(y0, 8.32 / 10.03), micm::StoichSpecies(y3, 1.71 / 10.03) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
-                         .SetProducts({ micm::Yield(y0, 1) })
+                         .SetProducts({ micm::StoichSpecies(y0, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y3 })
-                         .SetProducts({ micm::Yield(y2, 0.43 / 1.12), micm::Yield(y5, 0.69 / 1.12) })
+                         .SetProducts({ micm::StoichSpecies(y2, 0.43 / 1.12), micm::StoichSpecies(y5, 0.69 / 1.12) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r6 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y4 })
-                         .SetProducts({ micm::Yield(y2, 0.035 / 1.745), micm::Yield(y5, 1.71 / 1.745) })
+                         .SetProducts({ micm::StoichSpecies(y2, 0.035 / 1.745), micm::StoichSpecies(y5, 1.71 / 1.745) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r6" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r7 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y5 })
-                         .SetProducts({ micm::Yield(y4, 1) })
+                         .SetProducts({ micm::StoichSpecies(y4, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r7" }))
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r8 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ y6 })
-                         .SetProducts({ micm::Yield(y4, 0.43 / 1.81), micm::Yield(y5, 0.69 / 1.81), micm::Yield(y7, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r8 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ y6 })
+          .SetProducts(
+              { micm::StoichSpecies(y4, 0.43 / 1.81), micm::StoichSpecies(y5, 0.69 / 1.81), micm::StoichSpecies(y7, 1) })
+          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
+          .SetPhase(gas_phase)
+          .Build();
 
   micm::Process r9 = micm::ChemicalReactionBuilder()
                          .SetReactants({ y5, y7 })
-                         .SetProducts({ micm::Yield(y6, 1) })
+                         .SetProducts({ micm::StoichSpecies(y6, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r9" }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -1916,28 +1918,28 @@ void test_analytical_e5(
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
-                         .SetProducts({ micm::Yield(a2, 1), micm::Yield(a3, 1) })
+                         .SetProducts({ micm::StoichSpecies(a2, 1), micm::StoichSpecies(a3, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a2, a3 })
-                         .SetProducts({ micm::Yield(a5, 1) })
+                         .SetProducts({ micm::StoichSpecies(a5, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1, a3 })
-                         .SetProducts({ micm::Yield(a4, 1) })
+                         .SetProducts({ micm::StoichSpecies(a4, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a4 })
-                         .SetProducts({ micm::Yield(a3, 1), micm::Yield(a6, 1) })
+                         .SetProducts({ micm::StoichSpecies(a3, 1), micm::StoichSpecies(a6, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .SetPhase(gas_phase)
                          .Build();

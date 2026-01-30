@@ -6,7 +6,7 @@
 #include <micm/process/phase_transfer_process.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 #include <micm/util/error.hpp>
 
 #include <memory>
