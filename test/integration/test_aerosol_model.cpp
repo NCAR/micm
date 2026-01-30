@@ -113,7 +113,7 @@ TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
   auto quux  = micm::Phase("QUUX", std::vector<micm::PhaseSpecies>({ baz, qux }));       // condensed aerosol or cloud phase
   auto corge = micm::Phase("CORGE", std::vector<micm::PhaseSpecies>({ foo, baz, qux })); // another condensed aerosol or cloud phase
 
-  // Create instaces of each stub aerosol model
+  // Create instances of each stub aerosol model
   auto aerosol_1 = StubAerosolModel("STUB1", std::vector<micm::Phase>({ quux, corge }));
   auto aerosol_2 = AnotherStubAerosolModel("STUB2", std::vector<micm::Phase>({ quux, corge }));
 
