@@ -36,11 +36,11 @@ public:
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
     for (const auto& name : phase1_names)
-    names.push_back(name_ + ".MODE1." + name);
+      names.push_back(name_ + ".MODE1." + name);
     for (const auto& name : phase1_names)
-    names.push_back(name_ + ".MODE2." + name);  
+      names.push_back(name_ + ".MODE2." + name);
     for (const auto& name : phase2_names)
-    names.push_back(name_ + ".MODE2." + name);
+      names.push_back(name_ + ".MODE2." + name);
     return names;
   }
 
