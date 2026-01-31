@@ -283,47 +283,38 @@ TEST(State, SetSingleConcentration)
 
 TEST(State, SetConcentrationByElementSingleValue)
 {
-  std::string aitken_num_conc = "modal.aitken.number_concentration";
-  std::string accum_num_conc = "modal.accumulation.number_concentration";
-
   micm::SystemParameters params;
-  params.others_.push_back(aitken_num_conc);
-  params.others_.push_back(accum_num_conc);
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
-                         .variable_names_{ "foo", "bar", "baz", "quz", aitken_num_conc, accum_num_conc },
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
                          .custom_rate_parameter_labels_{ "quux", "corge" },
                      },
                      1 };
 
-  state.SetConcentration(aitken_num_conc, 42.0);
-  state.SetConcentration(accum_num_conc, 12.0);
+  state.SetConcentration("baz", 42.0);
+  state.SetConcentration("quz", 12.0);
 
-  EXPECT_EQ(state.variables_[0][state.variable_map_[aitken_num_conc]], 42.0);
-  EXPECT_EQ(state.variables_[0][state.variable_map_[accum_num_conc]], 12.0);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["baz"]], 42.0);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["quz"]], 12.0);
 }
 
 TEST(State, SetConcentrationByElementVector)
 {
-  std::string aitken_num_conc = "modal.aitken.number_concentration";
-
   micm::SystemParameters params;
-  params.others_.push_back(aitken_num_conc);
-
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
-                         .variable_names_{ "foo", "bar", "baz", "quz", aitken_num_conc },
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
                          .custom_rate_parameter_labels_{ "quux", "corge" },
                      },
                      3 };
 
   std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
 
-  state.SetConcentration(aitken_num_conc, concentrations);
+  state.SetConcentration("foo", concentrations);
 
   for (std::size_t i = 0; i < concentrations.size(); ++i)
-    EXPECT_EQ(state.variables_[i][state.variable_map_[aitken_num_conc]], concentrations[i]);
+    EXPECT_EQ(state.variables_[i][state.variable_map_["foo"]], concentrations[i]);
 }
 
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)

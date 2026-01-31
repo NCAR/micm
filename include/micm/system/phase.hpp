@@ -75,6 +75,16 @@ namespace micm
       std::vector<std::string> names{};
       for (const auto& phase_species : phase_species_)
         if (!phase_species.species_.IsParameterized())
+          names.push_back(name_ + '.' + phase_species.species_.name_);
+      return names;
+    }
+
+    /// @brief Returns a set of unique names for each non-parameterized species (excludes phase name prefix)
+    std::vector<std::string> SpeciesNames() const
+    {
+      std::vector<std::string> names{};
+      for (const auto& phase_species : phase_species_)
+        if (!phase_species.species_.IsParameterized())
           names.push_back(phase_species.species_.name_);
       return names;
     }
