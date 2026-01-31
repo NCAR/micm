@@ -20,7 +20,7 @@ public:
   StubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases) : name_(name), phases_(phases) {}
   std::size_t StateSize() const
   {
-    EXPECT_TRUE(phases_.size() == 2);
+    EXPECT_EQ(phases_.size(), 2);
     // First mode: first phase only
     // Second mode: both phases
     std::size_t size = 0;
@@ -32,7 +32,7 @@ public:
   std::vector<std::string> UniqueNames() const
   {
     std::vector<std::string> names;
-    EXPECT_TRUE(phases_.size() == 2);
+    EXPECT_EQ(phases_.size(), 2);
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
     for (const auto& name : phase1_names)
@@ -59,10 +59,10 @@ class AnotherStubAerosolModel
 {
 public:
   AnotherStubAerosolModel() = delete;
-  AnotherStubAerosolModel(std::string name, std::vector<micm::Phase> phases) : name_(name), phases_(phases) {}
+  AnotherStubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases) : name_(name), phases_(phases) {}
   std::size_t StateSize() const
   {
-    EXPECT_TRUE(phases_.size() == 2);
+    EXPECT_EQ(phases_.size(), 2);
     // First mode: first phase only
     // Second mode: second phase only
     // Third mode: both phases
@@ -79,7 +79,7 @@ public:
   std::vector<std::string> UniqueNames() const
   {
     std::vector<std::string> names;
-    EXPECT_TRUE(phases_.size() == 2);
+    EXPECT_EQ(phases_.size(), 2);
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
     names.push_back(name_ + ".MODE1.NUMBER"); // number concentration for mode 1

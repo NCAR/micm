@@ -17,7 +17,9 @@ namespace micm
   // Helper class for collecting lambda functions from external models
   struct ExternalModel
   {
+    /// @brief Function to get the state size of the external model
     std::function<size_t()> state_size_func_;
+    /// @brief Function to get the unique names of the external model
     std::function<std::vector<std::string>()> unique_names_func_;
     
     // Default constructor
@@ -35,6 +37,9 @@ namespace micm
     // Move assignment
     ExternalModel& operator=(ExternalModel&&) = default;
     
+    /// @brief Constructor from an external model instance
+    /// @tparam ModelType Type of the external model
+    /// @param model Instance of the external model
     template<typename ModelType,
              typename = std::enable_if_t<!std::is_same_v<std::decay_t<ModelType>, ExternalModel>>>
     ExternalModel(ModelType&& model)
@@ -47,7 +52,9 @@ namespace micm
   
   struct SystemParameters
   {
+    /// @brief  @brief The gas phase
     Phase gas_phase_{};
+    /// @brief External models (e.g., aerosol models) that provide additional components to the system
     std::vector<ExternalModel> external_models_{};
   };
 
@@ -80,6 +87,10 @@ namespace micm
         : gas_phase_(gas_phase),
           external_models_{ ExternalModel{ std::forward<ExternalModels>(external_models) }... }
     {
+      if (StateSize() != UniqueNames().size())
+      {
+        throw std::invalid_argument("Mismatch between system state size and number of unique names. Likely duplicate species names.");
+      }
     }
 
     /// @brief Copy constructor
@@ -93,6 +104,10 @@ namespace micm
         : gas_phase_(parameters.gas_phase_),
           external_models_(parameters.external_models_)
     {
+      if (StateSize() != UniqueNames().size())
+      {
+        throw std::invalid_argument("Mismatch between system state size and number of unique names. Likely duplicate species names.");
+      }
     }
 
     /// @brief Copy assignment operator
