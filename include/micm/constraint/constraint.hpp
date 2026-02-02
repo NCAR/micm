@@ -21,7 +21,7 @@ namespace micm
   class Constraint
   {
    public:
-    /// @brief Name of the constraint (for identification/debugging)
+    /// @brief Name of the constraint (for identification)
     std::string name_;
 
     /// @brief Names of species this constraint depends on
