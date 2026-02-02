@@ -36,14 +36,14 @@ void testProcessSet()
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo, baz })
-                   .SetProducts({ Yield(bar, 1), Yield(quuz, 2.4) })
+                   .SetProducts({ StoichSpecies(bar, 1), StoichSpecies(quuz, 2.4) })
                    .SetRateConstant(arrhenius_rate_constant)
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ bar, qux })
-                   .SetProducts({ Yield(foo, 1), Yield(quz, 1.4) })
+                   .SetProducts({ StoichSpecies(foo, 1), StoichSpecies(quz, 1.4) })
                    .SetRateConstant(arrhenius_rate_constant)
                    .SetPhase(gas_phase)
                    .Build();
@@ -57,7 +57,7 @@ void testProcessSet()
 
   Process r4 = ChemicalReactionBuilder()
                    .SetReactants({ baz, qux })
-                   .SetProducts({ Yield(bar, 1), Yield(quz, 2.5) })
+                   .SetProducts({ StoichSpecies(bar, 1), StoichSpecies(quz, 2.5) })
                    .SetRateConstant(arrhenius_rate_constant)
                    .SetPhase(gas_phase)
                    .Build();
@@ -209,10 +209,10 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<Yield> products{};
+    std::vector<StoichSpecies> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(Yield(std::to_string(get_species_id()), 1.2));
+      products.push_back(StoichSpecies(std::to_string(get_species_id()), 1.2));
     }
     auto proc = ChemicalReactionBuilder()
                     .SetReactants(reactants)

@@ -14,7 +14,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
 
 
-Copyright (C) 2018-2025 University Corporation for Atmospheric Research
+Copyright (C) 2018-2026 University Corporation for Atmospheric Research
 
 
 <p align="center">
@@ -120,14 +120,14 @@ int main(const int argc, const char *argv[])
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
-                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetProducts({ StoichSpecies(bar, 0.8), StoichSpecies(baz, 0.2) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
-                   .SetProducts({ Yield(baz, 1) })
+                   .SetProducts({ StoichSpecies(baz, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
                    .SetPhase(gas_phase)
                    .Build();
@@ -219,4 +219,4 @@ installation and usage instructions.
 
 - [Apache 2.0](/LICENSE)
 
-Copyright (C) 2018-2025 University Corporation for Atmospheric Research
+Copyright (C) 2018-2026 University Corporation for Atmospheric Research

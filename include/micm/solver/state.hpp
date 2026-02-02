@@ -104,7 +104,8 @@ namespace micm
       state_size_ = other.state_size_;
       constraint_size_ = other.constraint_size_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
-      temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+      temporary_variables_ =
+          other.temporary_variables_ ? std::make_unique<TemporaryVariables>(*other.temporary_variables_) : nullptr;
       relative_tolerance_ = other.relative_tolerance_;
       absolute_tolerance_ = other.absolute_tolerance_;
     }
@@ -131,7 +132,8 @@ namespace micm
         state_size_ = other.state_size_;
         constraint_size_ = other.constraint_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
-        temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+        temporary_variables_ =
+            other.temporary_variables_ ? std::make_unique<TemporaryVariables>(*other.temporary_variables_) : nullptr;
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = other.absolute_tolerance_;
       }

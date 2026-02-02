@@ -6,7 +6,7 @@
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 
 #include <gtest/gtest.h>
 
@@ -27,7 +27,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAppliesCorrectScopingToReactants)
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("accumulation", aqueous_phase)
                          .SetReactants({ CO2 })
-                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetProducts({ StoichSpecies(H2O, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
 
@@ -58,7 +58,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAppliesCorrectScopingToProducts)
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("aitken", aqueous_phase)
                          .SetReactants({ H2O })
-                         .SetProducts({ Yield(OH, 1.0), Yield(Hplus, 1.0) })
+                         .SetProducts({ StoichSpecies(OH, 1.0), StoichSpecies(Hplus, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
 
@@ -93,7 +93,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeWithMultipleReactantsAndProducts)
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("coarse", organic_phase)
                          .SetReactants({ A, B })
-                         .SetProducts({ Yield(C, 1.0), Yield(D, 2.0) })
+                         .SetProducts({ StoichSpecies(C, 1.0), StoichSpecies(D, 2.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
 
@@ -106,7 +106,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeWithMultipleReactantsAndProducts)
   EXPECT_EQ(chem_reaction->reactants_[0].name_, "coarse.organic.A");
   EXPECT_EQ(chem_reaction->reactants_[1].name_, "coarse.organic.B");
 
-  // Verify product names and yields were preserved
+  // Verify product names and its stoichiometic coefficinets were preserved
   ASSERT_EQ(chem_reaction->products_.size(), 2);
   EXPECT_EQ(chem_reaction->products_[0].species_.name_, "coarse.organic.C");
   EXPECT_EQ(chem_reaction->products_[0].coefficient_, 1.0);
@@ -202,7 +202,7 @@ TEST(ChemicalReactionBuilder, UsingOnlySetPhaseWorks)
   Process reaction = ChemicalReactionBuilder()
                          .SetPhase(gas_phase)
                          .SetReactants({ CO2 })
-                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetProducts({ StoichSpecies(H2O, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
 
@@ -225,7 +225,7 @@ TEST(ChemicalReactionBuilder, UsingOnlySetAerosolScopeWorks)
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("accumulation", aqueous_phase)
                          .SetReactants({ CO2 })
-                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetProducts({ StoichSpecies(H2O, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
 
@@ -268,7 +268,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAfterSetProductsThrowsError)
   EXPECT_THROW(
       {
         ChemicalReactionBuilder()
-            .SetProducts({ Yield(CO2, 1.0) })                // Called first
+            .SetProducts({ StoichSpecies(CO2, 1.0) })        // Called first
             .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
             .SetReactants({})
             .SetRateConstant(rate_constant)
@@ -288,7 +288,7 @@ TEST(ChemicalReactionBuilder, SetAerosolScopeAfterBothReactantsAndProductsThrows
       {
         ChemicalReactionBuilder()
             .SetReactants({ CO2 })
-            .SetProducts({ Yield(H2O, 1.0) })
+            .SetProducts({ StoichSpecies(H2O, 1.0) })
             .SetAerosolScope("accumulation", aqueous_phase)  // Should throw
             .SetRateConstant(rate_constant)
             .Build();
@@ -307,7 +307,7 @@ TEST(ChemicalReactionBuilder, CorrectOrderSetAerosolScopeBeforeReactantsAndProdu
   Process reaction = ChemicalReactionBuilder()
                          .SetAerosolScope("accumulation", aqueous_phase)  // Called first
                          .SetReactants({ CO2 })
-                         .SetProducts({ Yield(H2O, 1.0) })
+                         .SetProducts({ StoichSpecies(H2O, 1.0) })
                          .SetRateConstant(rate_constant)
                          .Build();
 

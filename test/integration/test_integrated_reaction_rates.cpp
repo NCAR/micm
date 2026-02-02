@@ -19,7 +19,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1), micm::Yield(irr_1, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1), micm::StoichSpecies(irr_1, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
                          .SetPhase(gas_phase)
                          .Build();
@@ -27,7 +27,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::Process r2 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ b })
-          .SetProducts({ micm::Yield(c, 1), micm::Yield(irr_2, 1) })
+          .SetProducts({ micm::StoichSpecies(c, 1), micm::StoichSpecies(irr_2, 1) })
           .SetRateConstant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
           .SetPhase(gas_phase)
           .Build();
