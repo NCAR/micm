@@ -1,7 +1,6 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#include <micm/constraint/constraint.hpp>
 #include <micm/constraint/equilibrium_constraint.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
