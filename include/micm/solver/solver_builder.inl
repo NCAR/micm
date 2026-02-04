@@ -171,7 +171,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -180,7 +180,7 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetSpeciesMap() const
   {
-    std::map<std::string, std::size_t> species_map;
+    std::unordered_map<std::string, std::size_t> species_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     std::size_t index = 0;
     for (auto& name : system_.UniqueNames())
@@ -225,7 +225,7 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const
+      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map) const
   {
     tolerances = std::vector<double>(species_map.size(), 1e-3);
     for (auto& phase_species : system_.gas_phase_.phase_species_)
