@@ -19,6 +19,7 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <system_error>
+#include <unordered_map>
 
 namespace micm
 {
