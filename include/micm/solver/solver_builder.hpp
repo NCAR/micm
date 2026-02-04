@@ -19,6 +19,7 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <system_error>
+#include <unordered_map>
 
 namespace micm
 {
@@ -96,12 +97,12 @@ namespace micm
 
     /// @brief Gets a map of species to their index
     /// @return The species map
-    std::map<std::string, std::size_t> GetSpeciesMap() const;
+    std::unordered_map<std::string, std::size_t> GetSpeciesMap() const;
 
     /// @brief Sets the absolute tolerances per species
     /// @param parameters
     /// @param species_map
-    void SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const;
+    void SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map) const;
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters

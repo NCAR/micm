@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>
-#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -62,8 +61,8 @@ namespace micm
     SparseMatrixPolicy jacobian_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
     /// @brief Immutable data required for the state
-    std::map<std::string, std::size_t> variable_map_;
-    std::map<std::string, std::size_t> custom_rate_parameter_map_;
+    std::unordered_map<std::string, std::size_t> variable_map_;
+    std::unordered_map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
     LMatrixPolicy lower_matrix_;
     UMatrixPolicy upper_matrix_;

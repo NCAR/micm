@@ -37,7 +37,7 @@ namespace micm
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
-    CudaProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
+    CudaProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, std::size_t>& variable_map);
 
     ~CudaProcessSet()
     {
@@ -80,7 +80,7 @@ namespace micm
 
   inline CudaProcessSet::CudaProcessSet(
       const std::vector<Process>& processes,
-      const std::map<std::string, std::size_t>& variable_map)
+      const std::unordered_map<std::string, std::size_t>& variable_map)
       : ProcessSet(processes, variable_map)
   {
     /// Passing the class itself as an argument is not support by CUDA;

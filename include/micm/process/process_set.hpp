@@ -9,6 +9,7 @@
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cassert>
+#include <unordered_map>
 #include <vector>
 
 namespace micm
@@ -48,7 +49,7 @@ namespace micm
     /// @param processes A list of processes, each with reactants and products
     /// @param variable_map A map from species names to their corresponding index in the solver's state
     /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
-    ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
+    ProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, std::size_t>& variable_map);
 
     virtual ~ProcessSet() = default;
 
@@ -104,7 +105,7 @@ namespace micm
 
   inline ProcessSet::ProcessSet(
       const std::vector<Process>& processes,
-      const std::map<std::string, std::size_t>& variable_map)
+      const std::unordered_map<std::string, std::size_t>& variable_map)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),

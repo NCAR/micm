@@ -355,7 +355,7 @@ namespace micm
       std::cout << "," << std::setw(6) << "grid";
     }
 
-    for (const auto& [species, index] : variable_map_)
+    for (const auto& species : variable_names_)
     {
       std::cout << "," << std::setw(width) << species;
     }
@@ -389,12 +389,13 @@ namespace micm
       }
 
       bool first = true;
-      for (const auto& [species, index] : variable_map_)
+      for (const auto& species : variable_names_)
       {
         if (!first)
         {
           std::cout << ",";
         }
+        std::size_t index = variable_map_.at(species);
         std::cout << std::scientific << std::setw(width) << std::setprecision(2) << variables_[i][index];
         first = false;
       }
