@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <system_error>
+#include <unordered_map>
 
 namespace micm
 {
