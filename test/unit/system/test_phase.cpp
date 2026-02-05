@@ -44,8 +44,8 @@ TEST(Phase, Constructor)
   EXPECT_EQ(phase.StateSize(), 2);
 
   auto names = phase.UniqueNames();
-  EXPECT_EQ(names[0], "species1");
-  EXPECT_EQ(names[1], "species2");
+  EXPECT_EQ(names[0], "test_phase.species1");
+  EXPECT_EQ(names[1], "test_phase.species2");
 }
 
 TEST(Phase, ConstructorWithParameterizedSpecies)
@@ -78,6 +78,6 @@ TEST(Phase, UniqueNamesWithParameterizedSpecies)
 
   auto names = phase.UniqueNames();
   EXPECT_EQ(names.size(), 2);
-  EXPECT_EQ(names[0], "foo");
-  EXPECT_EQ(names[1], "baz");
+  EXPECT_EQ(names[0], "gas.foo");
+  EXPECT_EQ(names[1], "gas.baz");
 }

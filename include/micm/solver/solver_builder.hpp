@@ -54,7 +54,6 @@ namespace micm
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
-    bool valid_reactions_ = false;
 
    public:
     SolverBuilder() = delete;
