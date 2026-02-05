@@ -146,7 +146,7 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints)
   {
-    constraints_ = std::make_shared<std::vector<std::unique_ptr<Constraint>>>(std::move(constraints));
+    constraints_ = std::move(constraints);
     return *this;
   }
 
@@ -343,7 +343,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
-    std::size_t number_of_constraints = (constraints_ && !constraints_->empty()) ? constraints_->size() : 0;
+    std::size_t number_of_constraints = constraints_.size();
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -364,22 +364,11 @@ namespace micm
       std::map<std::string, std::size_t> extended_variable_map = species_map;
       for (std::size_t i = 0; i < number_of_constraints; ++i)
       {
-        extended_variable_map[(*constraints_)[i]->name_] = number_of_species + i;
+        extended_variable_map[constraints_[i]->name_] = number_of_species + i;
       }
 
-      // Deep copy constraints since we need to move them into ConstraintSet
-      // but the builder may be reused
-      std::vector<std::unique_ptr<Constraint>> constraints_copy;
-      constraints_copy.reserve(constraints_->size());
-      for (const auto& c : *constraints_)
-      {
-        // Clone via dynamic cast - for now only EquilibriumConstraint is supported
-        if (auto* eq = dynamic_cast<const EquilibriumConstraint*>(c.get()))
-        {
-          constraints_copy.push_back(std::make_unique<EquilibriumConstraint>(*eq));
-        }
-      }
-      constraint_set = ConstraintSet(std::move(constraints_copy), extended_variable_map, number_of_species);
+      // Move constraints into ConstraintSet (builder is consumed after Build())
+      constraint_set = ConstraintSet(std::move(constraints_), extended_variable_map, number_of_species);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
@@ -410,7 +399,7 @@ namespace micm
     {
       for (std::size_t i = 0; i < number_of_constraints; ++i)
       {
-        variable_names.push_back((*constraints_)[i]->name_);
+        variable_names.push_back(constraints_[i]->name_);
       }
     }
 

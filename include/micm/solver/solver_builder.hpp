@@ -55,7 +55,7 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::shared_ptr<std::vector<std::unique_ptr<Constraint>>> constraints_;
+    std::vector<std::unique_ptr<Constraint>> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
