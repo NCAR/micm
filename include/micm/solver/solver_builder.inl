@@ -86,65 +86,6 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::SetConstraintCount(std::size_t number_of_constraints)
-  {
-    constraint_count_ = number_of_constraints;
-    return *this;
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
-  inline SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>&
-  SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>::SetConstraintNames(const std::vector<std::string>& names)
-  {
-    constraint_names_ = names;
-    constraint_count_ = names.size();
-    return *this;
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
-  inline SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>&
-  SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
       StatePolicy>::SetIgnoreUnusedSpecies(bool ignore_unused_species)
   {
     ignore_unused_species_ = ignore_unused_species;
@@ -206,7 +147,6 @@ namespace micm
       StatePolicy>::SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints)
   {
     constraints_ = std::make_shared<std::vector<std::unique_ptr<Constraint>>>(std::move(constraints));
-    constraint_count_ = constraints_->size();
     return *this;
   }
 
@@ -403,7 +343,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
-    std::size_t number_of_constraints = constraint_count_;
+    std::size_t number_of_constraints = (constraints_ && !constraints_->empty()) ? constraints_->size() : 0;
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -417,20 +357,14 @@ namespace micm
 
     // Create ConstraintSet from stored constraints (if any)
     ConstraintSet constraint_set;
-    if (constraints_ && !constraints_->empty())
+    if (number_of_constraints > 0)
     {
-      // Create extended variable map that includes constraint variables
-      // Constraints may reference constraint variables like "constraint_0" in their formulations
+      // Create extended variable map that includes constraint variables (appended after species)
+      // Maps each constraint's name to its index in the augmented state vector
       std::map<std::string, std::size_t> extended_variable_map = species_map;
-      std::vector<std::string> names = constraint_names_;
-      if (names.size() < number_of_constraints)
-      {
-        for (std::size_t i = names.size(); i < number_of_constraints; ++i)
-          names.push_back("constraint_" + std::to_string(i));
-      }
       for (std::size_t i = 0; i < number_of_constraints; ++i)
       {
-        extended_variable_map[names[i]] = number_of_species + i;
+        extended_variable_map[(*constraints_)[i]->name_] = number_of_species + i;
       }
 
       // Deep copy constraints since we need to move them into ConstraintSet
@@ -474,13 +408,10 @@ namespace micm
       variable_names[species_pair.second] = species_pair.first;
     if (number_of_constraints > 0)
     {
-      std::vector<std::string> names = constraint_names_;
-      if (names.size() < number_of_constraints)
+      for (std::size_t i = 0; i < number_of_constraints; ++i)
       {
-        for (std::size_t i = names.size(); i < number_of_constraints; ++i)
-          names.push_back("constraint_" + std::to_string(i));
+        variable_names.push_back((*constraints_)[i]->name_);
       }
-      variable_names.insert(variable_names.end(), names.begin(), names.begin() + number_of_constraints);
     }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
