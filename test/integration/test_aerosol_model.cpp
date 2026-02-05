@@ -15,18 +15,22 @@
 // The first mode contains only the first phase, and the second mode contains both phases
 class StubAerosolModel
 {
-public:
+ public:
   StubAerosolModel() = delete;
-  StubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases) : name_(name), phases_(phases) {}
+  StubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases)
+      : name_(name),
+        phases_(phases)
+  {
+  }
   std::size_t StateSize() const
   {
     EXPECT_EQ(phases_.size(), 2);
     // First mode: first phase only
     // Second mode: both phases
     std::size_t size = 0;
-    size += phases_[0].StateSize(); // mode 1
-    size += phases_[0].StateSize(); // mode 2, first phase
-    size += phases_[1].StateSize(); // mode 2, second phase
+    size += phases_[0].StateSize();  // mode 1
+    size += phases_[0].StateSize();  // mode 2, first phase
+    size += phases_[1].StateSize();  // mode 2, second phase
     return size;
   }
   std::vector<std::string> UniqueNames() const
@@ -44,7 +48,7 @@ public:
     return names;
   }
 
-private:
+ private:
   std::string name_;
   std::vector<micm::Phase> phases_;
 };
@@ -57,9 +61,13 @@ private:
 // is also included for each mode.
 class AnotherStubAerosolModel
 {
-public:
+ public:
   AnotherStubAerosolModel() = delete;
-  AnotherStubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases) : name_(name), phases_(phases) {}
+  AnotherStubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases)
+      : name_(name),
+        phases_(phases)
+  {
+  }
   std::size_t StateSize() const
   {
     EXPECT_EQ(phases_.size(), 2);
@@ -67,13 +75,13 @@ public:
     // Second mode: second phase only
     // Third mode: both phases
     std::size_t size = 0;
-    size += 1; // mode 1 number concentration
-    size += phases_[0].StateSize(); // mode 1 species
-    size += 1; // mode 2 number concentration
-    size += phases_[1].StateSize(); // mode 2 species
-    size += 1; // mode 3 number concentration
-    size += phases_[0].StateSize(); // mode 3, first phase species
-    size += phases_[1].StateSize(); // mode 3, second phase species
+    size += 1;                       // mode 1 number concentration
+    size += phases_[0].StateSize();  // mode 1 species
+    size += 1;                       // mode 2 number concentration
+    size += phases_[1].StateSize();  // mode 2 species
+    size += 1;                       // mode 3 number concentration
+    size += phases_[0].StateSize();  // mode 3, first phase species
+    size += phases_[1].StateSize();  // mode 3, second phase species
     return size;
   }
   std::vector<std::string> UniqueNames() const
@@ -82,21 +90,21 @@ public:
     EXPECT_EQ(phases_.size(), 2);
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
-    names.push_back(name_ + ".MODE1.NUMBER"); // number concentration for mode 1
+    names.push_back(name_ + ".MODE1.NUMBER");  // number concentration for mode 1
     for (const auto& name : phase1_names)
-    names.push_back(name_ + ".MODE1." + name);
-    names.push_back(name_ + ".MODE2.NUMBER"); // number concentration for mode 2
+      names.push_back(name_ + ".MODE1." + name);
+    names.push_back(name_ + ".MODE2.NUMBER");  // number concentration for mode 2
     for (const auto& name : phase2_names)
-    names.push_back(name_ + ".MODE2." + name);
-    names.push_back(name_ + ".MODE3.NUMBER"); // number concentration for mode 3
+      names.push_back(name_ + ".MODE2." + name);
+    names.push_back(name_ + ".MODE3.NUMBER");  // number concentration for mode 3
     for (const auto& name : phase1_names)
-    names.push_back(name_ + ".MODE3." + name);
+      names.push_back(name_ + ".MODE3." + name);
     for (const auto& name : phase2_names)
-    names.push_back(name_ + ".MODE3." + name);
+      names.push_back(name_ + ".MODE3." + name);
     return names;
   }
 
-private:
+ private:
   std::string name_;
   std::vector<micm::Phase> phases_;
 };
@@ -104,24 +112,22 @@ private:
 TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
 {
   // Create a simple chemical system
-  auto foo = micm::Species("FO2"); // species that can partition to condensed phase
-  auto bar = micm::Species("BAR"); // gas-phase only species
-  auto baz = micm::Species("BAZ"); // condensed-phase only species
-  auto qux = micm::Species("QUX"); // condensed-phase only species
+  auto foo = micm::Species("FO2");  // species that can partition to condensed phase
+  auto bar = micm::Species("BAR");  // gas-phase only species
+  auto baz = micm::Species("BAZ");  // condensed-phase only species
+  auto qux = micm::Species("QUX");  // condensed-phase only species
 
-  auto gas   = micm::Phase("GAS", std::vector<micm::PhaseSpecies>({ foo, bar }));        // gas phase
-  auto quux  = micm::Phase("QUUX", std::vector<micm::PhaseSpecies>({ baz, qux }));       // condensed aerosol or cloud phase
-  auto corge = micm::Phase("CORGE", std::vector<micm::PhaseSpecies>({ foo, baz, qux })); // another condensed aerosol or cloud phase
+  auto gas = micm::Phase("GAS", std::vector<micm::PhaseSpecies>({ foo, bar }));    // gas phase
+  auto quux = micm::Phase("QUUX", std::vector<micm::PhaseSpecies>({ baz, qux }));  // condensed aerosol or cloud phase
+  auto corge =
+      micm::Phase("CORGE", std::vector<micm::PhaseSpecies>({ foo, baz, qux }));  // another condensed aerosol or cloud phase
 
   // Create instances of each stub aerosol model
   auto aerosol_1 = StubAerosolModel("STUB1", std::vector<micm::Phase>({ quux, corge }));
   auto aerosol_2 = AnotherStubAerosolModel("STUB2", std::vector<micm::Phase>({ quux, corge }));
 
   // Create a system containing the gas phase and both aerosol models
-  auto system = micm::System({
-    .gas_phase_ = gas,
-    .external_models_ = { aerosol_1, aerosol_2 }
-  });
+  auto system = micm::System({ .gas_phase_ = gas, .external_models_ = { aerosol_1, aerosol_2 } });
 
   // Create a solver for the system (without processes for simplicity)
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();

@@ -21,27 +21,26 @@ namespace micm
     std::function<size_t()> state_size_func_;
     /// @brief Function to get the unique names of the external model
     std::function<std::vector<std::string>()> unique_names_func_;
-    
+
     // Default constructor
     ExternalModel() = default;
-    
+
     // Copy constructor
     ExternalModel(const ExternalModel&) = default;
-    
-    // Move constructor  
+
+    // Move constructor
     ExternalModel(ExternalModel&&) = default;
-    
+
     // Copy assignment
     ExternalModel& operator=(const ExternalModel&) = default;
-    
+
     // Move assignment
     ExternalModel& operator=(ExternalModel&&) = default;
-    
+
     /// @brief Constructor from an external model instance
     /// @tparam ModelType Type of the external model
     /// @param model Instance of the external model
-    template<typename ModelType,
-             typename = std::enable_if_t<!std::is_same_v<std::decay_t<ModelType>, ExternalModel>>>
+    template<typename ModelType, typename = std::enable_if_t<!std::is_same_v<std::decay_t<ModelType>, ExternalModel>>>
     ExternalModel(ModelType&& model)
     {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
@@ -49,7 +48,7 @@ namespace micm
       unique_names_func_ = [shared_model]() { return shared_model->UniqueNames(); };
     }
   };
-  
+
   struct SystemParameters
   {
     /// @brief  @brief The gas phase
@@ -72,8 +71,7 @@ namespace micm
     System() = default;
 
     /// @brief Parameterized constructor
-    System(
-        const Phase& gas_phase)
+    System(const Phase& gas_phase)
         : gas_phase_(gas_phase),
           external_models_()
     {
@@ -81,15 +79,14 @@ namespace micm
 
     /// @brief Constructor with external models
     template<typename... ExternalModels>
-    System(
-        const Phase& gas_phase,
-        ExternalModels&&... external_models)
+    System(const Phase& gas_phase, ExternalModels&&... external_models)
         : gas_phase_(gas_phase),
           external_models_{ ExternalModel{ std::forward<ExternalModels>(external_models) }... }
     {
       if (StateSize() != UniqueNames().size())
       {
-        throw std::invalid_argument("Mismatch between system state size and number of unique names. Likely duplicate species names.");
+        throw std::invalid_argument(
+            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
       }
     }
 
@@ -106,7 +103,8 @@ namespace micm
     {
       if (StateSize() != UniqueNames().size())
       {
-        throw std::invalid_argument("Mismatch between system state size and number of unique names. Likely duplicate species names.");
+        throw std::invalid_argument(
+            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
       }
     }
 
