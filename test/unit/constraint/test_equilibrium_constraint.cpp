@@ -24,8 +24,9 @@ TEST(EquilibriumConstraint, SimpleABEquilibrium)
   double K_eq = 1000.0;
   EquilibriumConstraint constraint(
       "A_B_equilibrium",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },  // reactants with stoich
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },                           // products with stoich
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0),
+                                  StoichSpecies(Species("B"), 1.0) },   // reactants with stoich
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },  // products with stoich
       K_eq);
 
   EXPECT_EQ(constraint.name_, "A_B_equilibrium");
@@ -101,8 +102,8 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
 
   std::vector<double> jacobian(2);
   constraint.Jacobian(concentrations.data(), indices.data(), jacobian.data());
-  EXPECT_NEAR(jacobian[0], K_eq, 1e-10);    // dG/d[A] = K_eq
-  EXPECT_NEAR(jacobian[1], -1.0, 1e-10);    // dG/d[B] = -1
+  EXPECT_NEAR(jacobian[0], K_eq, 1e-10);  // dG/d[A] = K_eq
+  EXPECT_NEAR(jacobian[1], -1.0, 1e-10);  // dG/d[B] = -1
 }
 
 TEST(EquilibriumConstraint, TwoProductsOneReactant)
@@ -114,7 +115,7 @@ TEST(EquilibriumConstraint, TwoProductsOneReactant)
   double K_eq = 100.0;
   EquilibriumConstraint constraint(
       "dissociation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },                                // A with stoich 2
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },  // A with stoich 2
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
       K_eq);
 
