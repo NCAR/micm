@@ -1,6 +1,7 @@
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)
 endif()
+add_subdirectory(constraint)
 add_subdirectory(process)
 add_subdirectory(solver)
 add_subdirectory(system)
