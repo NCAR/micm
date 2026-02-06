@@ -13,10 +13,9 @@
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<class SolverBuilderPolicy>
-void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void testNormalizedErrorDiff(SolverBuilderPolicy&& builder, std::size_t number_of_grid_cells)
 {
-  builder = getSolver(builder);
-  auto solver = builder.Build();
+  auto solver = getSolver(std::move(builder)).Build();
   auto state = solver.GetState(number_of_grid_cells);
   const std::vector<double>& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;

@@ -63,13 +63,55 @@ namespace micm
 
    public:
     SolverBuilder() = delete;
+    virtual ~SolverBuilder() = default;
 
     SolverBuilder(const SolverParametersPolicy& options)
         : options_(options)
     {
     }
 
-    virtual ~SolverBuilder() = default;
+    // Copy constructor deep-copies the constraint vector
+    SolverBuilder(const SolverBuilder& other)
+        : options_(other.options_),
+          system_(other.system_),
+          reactions_(other.reactions_),
+          ignore_unused_species_(other.ignore_unused_species_),
+          reorder_state_(other.reorder_state_),
+          valid_system_(other.valid_system_),
+          valid_reactions_(other.valid_reactions_)
+    {
+      constraints_.reserve(other.constraints_.size());
+      for (const auto& constraint : other.constraints_)
+      {
+        constraints_.push_back(constraint->Clone());
+      }
+    }
+
+    SolverBuilder& operator=(const SolverBuilder& other)
+    {
+      if (this != &other)
+      {
+        options_ = other.options_;
+        system_ = other.system_;
+        reactions_ = other.reactions_;
+        ignore_unused_species_ = other.ignore_unused_species_;
+        reorder_state_ = other.reorder_state_;
+        valid_system_ = other.valid_system_;
+        valid_reactions_ = other.valid_reactions_;
+
+        constraints_.clear();
+        constraints_.reserve(other.constraints_.size());
+        for (const auto& constraint : other.constraints_)
+        {
+          constraints_.push_back(constraint->Clone());
+        }
+      }
+      return *this;
+    }
+
+    // Default move operations
+    SolverBuilder(SolverBuilder&&) = default;
+    SolverBuilder& operator=(SolverBuilder&&) = default;
 
     /// @brief Set the chemical system
     /// @param system The chemical system
@@ -98,7 +140,7 @@ namespace micm
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
-    auto Build() const;
+    auto Build();
 
    protected:
     /// @brief Checks for unused species
