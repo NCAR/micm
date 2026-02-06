@@ -288,7 +288,9 @@ TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
   state["STUB1.MODE2.CORGE.FO2"] = std::vector{ 1.23, 1.24, 1.25 };
 
   // Set some condensed-phase species in the second aerosol model by unique name and species object
-  auto& corge = phases["CORGE"];
+  auto corge_it = phases.find("CORGE");
+  ASSERT_NE(corge_it, phases.end());
+  auto& corge = corge_it->second;
   auto qux = micm::Species("QUX");
   state[aerosol_2.Species(2, corge, qux)] = std::vector{ 0.42, 0.43, 0.44 };
 
