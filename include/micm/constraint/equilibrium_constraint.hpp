@@ -102,6 +102,13 @@ namespace micm
       }
     }
 
+    /// @brief Create a deep copy of this constraint
+    /// @return Unique pointer to cloned equilibrium constraint
+    std::unique_ptr<Constraint> Clone() const override
+    {
+      return std::make_unique<EquilibriumConstraint>(*this);
+    }
+
     /// @brief Evaluate the equilibrium constraint residual
     ///
     /// G = K_eq * prod([reactants]^stoich) - prod([products]^stoich)

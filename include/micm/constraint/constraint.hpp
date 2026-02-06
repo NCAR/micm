@@ -40,6 +40,10 @@ namespace micm
     /// @brief Virtual destructor
     virtual ~Constraint() = default;
 
+    /// @brief Create a deep copy of this constraint
+    /// @return Unique pointer to cloned constraint
+    virtual std::unique_ptr<Constraint> Clone() const = 0;
+
     /// @brief Evaluate the constraint residual G(y)
     /// @param concentrations Pointer to species concentrations (row of state matrix)
     /// @param indices Pointer to indices mapping species_dependencies_ to positions in concentrations

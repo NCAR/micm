@@ -26,6 +26,8 @@ namespace micm
     const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
+    const bool has_constraints = constraints_.Size() > 0;
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -53,7 +55,7 @@ namespace micm
       rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
 
       // Add constraint residuals to forcing (for DAE systems)
-      if (constraints_.Size() > 0)
+      if (has_constraints)
       {
         constraints_.AddForcingTerms(Y, initial_forcing);
       }
@@ -64,7 +66,7 @@ namespace micm
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
 
       // Add constraint Jacobian terms (for DAE systems)
-      if (constraints_.Size() > 0)
+      if (has_constraints)
       {
         constraints_.SubtractJacobianTerms(Y, state.jacobian_);
       }
@@ -108,7 +110,7 @@ namespace micm
               K[stage].Fill(0);
               rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
               // Add constraint residuals for DAE systems
-              if (constraints_.Size() > 0)
+              if (has_constraints)
               {
                 constraints_.AddForcingTerms(Ynew, K[stage]);
               }

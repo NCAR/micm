@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <system_error>
+#include <unordered_map>
 
 namespace micm
 {
@@ -54,9 +55,7 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::shared_ptr<std::vector<std::unique_ptr<Constraint>>> constraints_;
-    std::size_t constraint_count_ = 0;
-    std::vector<std::string> constraint_names_{};
+    std::vector<std::unique_ptr<Constraint>> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -64,13 +63,55 @@ namespace micm
 
    public:
     SolverBuilder() = delete;
+    virtual ~SolverBuilder() = default;
 
     SolverBuilder(const SolverParametersPolicy& options)
         : options_(options)
     {
     }
 
-    virtual ~SolverBuilder() = default;
+    // Copy constructor deep-copies the constraint vector
+    SolverBuilder(const SolverBuilder& other)
+        : options_(other.options_),
+          system_(other.system_),
+          reactions_(other.reactions_),
+          ignore_unused_species_(other.ignore_unused_species_),
+          reorder_state_(other.reorder_state_),
+          valid_system_(other.valid_system_),
+          valid_reactions_(other.valid_reactions_)
+    {
+      constraints_.reserve(other.constraints_.size());
+      for (const auto& constraint : other.constraints_)
+      {
+        constraints_.push_back(constraint->Clone());
+      }
+    }
+
+    SolverBuilder& operator=(const SolverBuilder& other)
+    {
+      if (this != &other)
+      {
+        options_ = other.options_;
+        system_ = other.system_;
+        reactions_ = other.reactions_;
+        ignore_unused_species_ = other.ignore_unused_species_;
+        reorder_state_ = other.reorder_state_;
+        valid_system_ = other.valid_system_;
+        valid_reactions_ = other.valid_reactions_;
+
+        constraints_.clear();
+        constraints_.reserve(other.constraints_.size());
+        for (const auto& constraint : other.constraints_)
+        {
+          constraints_.push_back(constraint->Clone());
+        }
+      }
+      return *this;
+    }
+
+    // Default move operations
+    SolverBuilder(SolverBuilder&&) = default;
+    SolverBuilder& operator=(SolverBuilder&&) = default;
 
     /// @brief Set the chemical system
     /// @param system The chemical system
@@ -81,16 +122,6 @@ namespace micm
     /// @param reactions The reactions
     /// @return Updated SolverBuilder
     SolverBuilder& SetReactions(const std::vector<Process>& reactions);
-
-    /// @brief Set the number of algebraic constraints (appended after state variables)
-    /// @param number_of_constraints Constraint count
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraintCount(std::size_t number_of_constraints);
-
-    /// @brief Set constraint names (appended after state variables)
-    /// @param names Constraint variable names
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraintNames(const std::vector<std::string>& names);
 
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored
@@ -109,7 +140,7 @@ namespace micm
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
-    auto Build() const;
+    auto Build();
 
    protected:
     /// @brief Checks for unused species

@@ -98,23 +98,6 @@ namespace micm
       }
     }
 
-    /// @brief Returns the number of species
-    /// @return
-    std::size_t GetNumberOfSpecies() const
-    {
-      return state_parameters_.number_of_species_;
-    }
-
-    std::size_t GetNumberOfConstraints() const
-    {
-      return state_parameters_.number_of_constraints_;
-    }
-
-    std::size_t GetNumberOfReactions() const
-    {
-      return state_parameters_.number_of_rate_constants_;
-    }
-
     StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const
     {
       auto state = std::move(StatePolicy(state_parameters_, number_of_grid_cells));
