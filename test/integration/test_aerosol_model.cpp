@@ -218,7 +218,9 @@ TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
   auto qux = micm::Species("QUX");
   state[aerosol_2.Species(2, corge, qux)] = 0.42;
   // Set some condensed-phase species in the second aerosol model by index
-  auto corge_baz_index = state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second;
+  auto corge_baz_it = state.variable_map_.find("STUB2.MODE3.CORGE.BAZ");
+  ASSERT_NE(corge_baz_it, state.variable_map_.end());
+  auto corge_baz_index = corge_baz_it->second;
   state[corge_baz_index] = 0.33;
 
   // Set some aerosol-model-specific variables by unique name
