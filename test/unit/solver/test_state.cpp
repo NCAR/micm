@@ -406,7 +406,7 @@ TEST(State, SetStateWithSquareBracketOperator)
   EXPECT_EQ(state["foo"], 20.0);
 }
 
-TEST(State, SetMuliCellStateWithSqaureBrackets)
+TEST(State, SetMultiCellStateWithSquareBrackets)
 {
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
