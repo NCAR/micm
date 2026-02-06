@@ -214,7 +214,7 @@ TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
   state["STUB1.MODE2.CORGE.FO2"] = 1.23;
 
   // Set some condensed-phase species in the second aerosol model by unique name and species object
-  auto& corge = phases["CORGE"];
+  auto& corge = phases.at("CORGE");
   auto qux = micm::Species("QUX");
   state[aerosol_2.Species(2, corge, qux)] = 0.42;
   // Set some condensed-phase species in the second aerosol model by index
