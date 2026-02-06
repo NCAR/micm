@@ -10,7 +10,6 @@ build:
   tools:
     python: "mambaforge-22.9"
   commands:
-    - apt-get install -y cmake doxygen
     - cmake -S . -B build -D MICM_BUILD_DOCS=ON
     - cmake --build build --target docs
 
