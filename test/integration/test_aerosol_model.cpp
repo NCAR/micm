@@ -101,7 +101,7 @@ private:
   std::vector<micm::Phase> phases_;
 };
 
-TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
+std::tuple<micm::System, StubAerosolModel, AnotherStubAerosolModel> CreateSystemWithStubAerosolModels()
 {
   // Create a simple chemical system
   auto foo = micm::Species("FO2"); // species that can partition to condensed phase
@@ -123,6 +123,13 @@ TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
     .external_models_ = { aerosol_1, aerosol_2 }
   });
 
+  return { system, aerosol_1, aerosol_2 };
+}
+
+TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
+{
+  auto [system, aerosol_1, aerosol_2] = CreateSystemWithStubAerosolModels();
+
   // Create a solver for the system (without processes for simplicity)
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -134,11 +141,11 @@ TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
   auto state = solver.GetState();
   EXPECT_EQ(
       state.variable_map_.size(),
-      gas.UniqueNames().size() + aerosol_1.UniqueNames().size() + aerosol_2.UniqueNames().size());
+      system.gas_phase_.UniqueNames().size() + aerosol_1.UniqueNames().size() + aerosol_2.UniqueNames().size());
 
   // Assemble the full list of expected variable names
   std::vector<std::string> expected_names;
-  auto gas_names = gas.SpeciesNames();
+  auto gas_names = system.gas_phase_.SpeciesNames();
   expected_names.insert(expected_names.end(), gas_names.begin(), gas_names.end());
   auto aerosol1_names = aerosol_1.UniqueNames();
   expected_names.insert(expected_names.end(), aerosol1_names.begin(), aerosol1_names.end());
