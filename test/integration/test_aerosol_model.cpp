@@ -287,7 +287,9 @@ TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
   state[aerosol_2.Species(2, corge, qux)] = std::vector{ 0.42, 0.43, 0.44 };
 
   // Set some condensed-phase species in the second aerosol model by index
-  auto corge_baz_index = state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second;
+  auto corge_baz_it = state.variable_map_.find("STUB2.MODE3.CORGE.BAZ");
+  ASSERT_NE(corge_baz_it, state.variable_map_.end());
+  auto corge_baz_index = corge_baz_it->second;
   state[corge_baz_index] = std::vector{ 0.33, 0.34, 0.35 };
 
   // Set some aerosol-model-specific variables by unique name
