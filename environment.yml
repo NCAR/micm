@@ -1,0 +1,8 @@
+name: micm-docs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - cmake
+  - doxygen
+  - graphviz
