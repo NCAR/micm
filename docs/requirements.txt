@@ -1,4 +1,5 @@
 breathe
+cmake
 sphinx
 sphinx-book-theme
 sphinx-copybutton
