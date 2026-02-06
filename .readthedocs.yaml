@@ -4,6 +4,9 @@
 # Required
 version: 2
 
+conda:
+  environment: environment.yml
+
 # Set the OS, Python version, and other tools you might need
 build:
   os: ubuntu-24.04
@@ -13,9 +16,6 @@ build:
     - cmake -S . -B build -D MICM_BUILD_DOCS=ON
     - cmake --build build --target docs
 
-
-conda:
-  environment: environment.yml
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
