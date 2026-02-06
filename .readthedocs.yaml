@@ -12,10 +12,6 @@ build:
   os: ubuntu-24.04
   tools:
     python: "mambaforge-22.9"
-  commands:
-    - conda run -n micm-docs cmake -S . -B build -D MICM_BUILD_DOCS=ON
-    - conda run -n micm-docs cmake --build build --target docs
-
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
