@@ -269,22 +269,34 @@ namespace micm
 
     /// @brief Square-bracket access operator for unique variable name
     /// @param name The unique name of the variable to access
-    /// @return Reference to the variable matrix column corresponding to the given name
+    /// @return VariableProxy proxy object providing access to the values of the named variable
+    ///         (e.g., its concentration) across grid cells. This is a proxy, not a direct
+    ///         reference to an internal matrix column; see VariableProxy documentation for
+    ///         details on single- vs multi-cell access patterns.
     VariableProxy operator[](const std::string& name);
 
     /// @brief Square-bracket access operator for unique variable name (const version)
     /// @param name The unique name of the variable to access
-    /// @return Const reference to the variable matrix column corresponding to the given name
+    /// @return ConstVariableProxy proxy object providing read-only access to the values of the
+    ///         named variable across grid cells. This is a proxy, not a direct reference to an
+    ///         internal matrix column; see ConstVariableProxy documentation for details on
+    ///         single- vs multi-cell access patterns.
     ConstVariableProxy operator[](const std::string& name) const;
 
     /// @brief Square-bracket access operator for species object
     /// @param species The species object corresponding to the variable to access
-    /// @return Reference to the variable matrix column corresponding to the given species
+    /// @return VariableProxy proxy object providing access to the values of the given species
+    ///         across grid cells. This is a proxy, not a direct reference to an internal matrix
+    ///         column; see VariableProxy documentation for details on single- vs multi-cell
+        ///         access patterns.
     VariableProxy operator[](const Species& species);
 
     /// @brief Square-bracket access operator for species object (const version)
     /// @param species The species object corresponding to the variable to access
-    /// @return Const reference to the variable matrix column corresponding to the given species
+    /// @return ConstVariableProxy proxy object providing read-only access to the values of the
+    ///         given species across grid cells. This is a proxy, not a direct reference to an
+    ///         internal matrix column; see ConstVariableProxy documentation for details on
+    ///         single- vs multi-cell access patterns.
     ConstVariableProxy operator[](const Species& species) const;
 
     /// @brief Set species' concentrations
