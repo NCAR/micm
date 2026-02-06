@@ -7,8 +7,12 @@
 /// The test uses a stub aerosol model to test the integration interface.
 #include <micm/CPU.hpp>
 
-
 #include <gtest/gtest.h>
+#include <cstddef>
+#include <map>
+#include <string>
+#include <tuple>
+#include <vector>
 
 // First stubbed aerosol model implementation
 //
