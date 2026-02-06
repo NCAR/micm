@@ -19,11 +19,9 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = 'MICM'
-copyright = f'2022-{datetime.datetime.now().year}, NCAR/UCAR'
-author = 'NCAR/UCAR'
+copyright = f'2022-{datetime.datetime.now().year}, NSF-NCAR/ACOM'
+author = 'NSF-NCAR/ACOM'
 
-suffix = os.getenv("SWITCHER_SUFFIX", "")
-# the suffix is required. This is controlled by the dockerfile that builds the docs
 regex = r'project\(\w+\s+VERSION\s+(\d+\.\d+\.\d+)'
 version = '0.0.0'
 # read the version from the cmake files
@@ -32,7 +30,7 @@ with open(f'../../CMakeLists.txt', 'r') as f:
         match = re.match(regex, line)
         if match:
             version = match.group(1)
-release = f'{version}{suffix}'
+release = f'{version}'
 
 # -- General configuration ---------------------------------------------------
 
@@ -78,11 +76,7 @@ html_theme = 'pydata_sphinx_theme'
 html_theme_options = {
     "external_links": [],
     "github_url": "https://github.com/NCAR/micm",
-    "navbar_end": ["version-switcher", "navbar-icon-links"],
-    "switcher": {
-        "json_url": "https://ncar.github.io/micm/_static/switcher.json",
-        "version_match": release,
-    },
+    "navbar_end": ["navbar-icon-links"],
    "pygment_light_style": "tango",
    "pygment_dark_style": "monokai"
 }
