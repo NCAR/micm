@@ -1,6 +1,6 @@
 breathe
 sphinx
-sphinx-book-theme
+pydata-sphinx-theme
 sphinx-copybutton
 sphinx-design
 sphinxcontrib-bibtex

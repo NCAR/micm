@@ -6,3 +6,6 @@ dependencies:
   - cmake
   - doxygen
   - graphviz
+  - pip
+  - pip:
+      - -r docs/requirements.txt
