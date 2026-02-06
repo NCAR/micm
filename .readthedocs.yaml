@@ -10,8 +10,8 @@ build:
   tools:
     python: "3.12"
   commands:
-    - sudo apt-get update
-    - sudo apt-get install -y cmake doxygen graphviz
+    - apt-get update
+    - apt-get install -y cmake doxygen graphviz
     - cmake -S . -B build -D MICM_BUILD_DOCS=ON
     - cmake --build build --target docs
 
