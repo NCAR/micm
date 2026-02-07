@@ -1,0 +1,1092 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Rate Constants (except user defined ones) &#8212; MICM 3.11.0 (stable) documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bbe95013" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9ab7ea6c"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/rate_constant_tutorial';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://ncar.github.io/micm/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '3.11.0 (stable)';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="User-Defined Rate Constants" href="user_defined_rate_constant_tutorial.html" />
+    <link rel="prev" title="Installation and usage" href="installation_and_usage.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">MICM 3.11.0 (stable) documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    MICM API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+    Citations and Bibliography
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    MICM API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+    Citations and Bibliography
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation_and_usage.html">Installation and usage</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Rate Constants (except user defined ones)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_defined_rate_constant_tutorial.html">User-Defined Rate Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiple_grid_cells.html">Multiple Grid Cells</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solver_configurations.html">Solver configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solver_results.html">Solver results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="openmp.html">OpenMP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jit.html">A JIT-compiled solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectorized_matrix_solver.html">Vectorized matrix solver</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Rate...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="rate-constants-except-user-defined-ones">
+<span id="rate-constants"></span><h1>Rate Constants (except user defined ones)<a class="headerlink" href="#rate-constants-except-user-defined-ones" title="Link to this heading">#</a></h1>
+<p>MICM supports a subset of the rate constants defined as part of the
+<a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/index.html">OpenAtmos Mechanism Configuration</a>
+We will be adding more in the future.
+The links to the <code class="docutils literal notranslate"><span class="pre">micm</span></code> classes below detail the class and methods. Please check the OpenAtmos standard for
+specifics on the algorithm implemented for each rate constant type.
+At present, supported rate constants are:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm21ArrheniusRateConstantE" title="micm::ArrheniusRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::ArrheniusRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/arrhenius.html">OpenAtmos Arrhenius description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm20BranchedRateConstantE" title="micm::BranchedRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::BranchedRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/branched.html">OpenAtmos Branched description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm19SurfaceRateConstantE" title="micm::SurfaceRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SurfaceRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/surface.html">OpenAtmos Surface description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm37TernaryChemicalActivationRateConstantE" title="micm::TernaryChemicalActivationRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::TernaryChemicalActivationRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/ternary_chemical_activation.html">OpenAtmos Ternay chemical activiation description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm16TroeRateConstantE" title="micm::TroeRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::TroeRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/troe.html">OpenAtmos Troe description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm21TunnelingRateConstantE" title="micm::TunnelingRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::TunnelingRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/tunneling.html">OpenAtmos Tunneling description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm23UserDefinedRateConstantE" title="micm::UserDefinedRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::UserDefinedRateConstant</span></code></a>, this is a custom type, but this is how photolysis, first order loss, and emission rates are setup <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/photolysis.html">OpenAtmos Photolysis description</a></p></li>
+</ul>
+<p>This tutorial covers all but the last one. See the <a class="reference internal" href="user_defined_rate_constant_tutorial.html#user-defined-rate-constants"><span class="std std-ref">User-Defined Rate Constants</span></a> tutorial for examples and use
+cases on that.</p>
+<p>We’ll setup and solve a fake chemical system with 7 species and 6 reactions,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A &amp;\longrightarrow B, &amp;k_{1, \mathrm{arrhenius}} \\
+B &amp;\longrightarrow C (\mathrm{alkoxy\ products}) + D (\mathrm{nitrate\ products}), &amp;k_{2, \mathrm{branched}} \\
+C &amp;\longrightarrow E, &amp;k_{3, \mathrm{surface}} \\
+D &amp;\longrightarrow 2F, &amp;k_{4, \mathrm{ternary\ chemical\ activation}} \\
+2E &amp;\longrightarrow G, &amp;k_{5, \mathrm{troe}} \\
+F &amp;\longrightarrow G, &amp;k_{6, \mathrm{tunneling}} \\\end{split}\]</div>
+<p>MICM can be configured in two ways. We can either build the mechanism up by hand with the <code class="docutils literal notranslate"><span class="pre">micm</span></code> API,
+or parse a valid mechanism Configuration
+in the OpenAtmos format. In this tutorial, we will do both.</p>
+<p>If you’re looking for a copy and paste, choose
+the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/CPU.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;map&gt;</span>
+
+<span class="c1">// Use our namespace so that this example is easier to read</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="c1">// Conversion factor from moles m-3 to molecules cm-3 for consistency</span>
+<span class="c1">// with the configuraion file</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">constants</span><span class="o">::</span><span class="n">AVOGADRO_CONSTANT</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;B&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span>
+<span class="w">      </span><span class="s">&quot;C&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;molecular weight [kg mol-1]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.025</span><span class="w"> </span><span class="p">}});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;D&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;E&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;F&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;G&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="s">&quot;gas&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">PhaseSpecies</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">phase_species_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">.</span><span class="n">phase_species_</span><span class="p">;</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">find_if</span><span class="p">(</span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">[</span><span class="o">&amp;</span><span class="n">c</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">PhaseSpecies</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ps</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">ps</span><span class="p">.</span><span class="n">species_</span><span class="p">.</span><span class="n">name_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">name_</span><span class="p">;</span><span class="w"> </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Species not found</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="c1">// Failure</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">c_diffusion_coefficient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3e2</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">surface_c_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">distance</span><span class="p">(</span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">it</span><span class="p">);</span>
+<span class="w">  </span><span class="n">phase_species_list</span><span class="p">[</span><span class="n">surface_c_index</span><span class="p">].</span><span class="n">SetDiffusionCoefficient</span><span class="p">(</span><span class="n">c_diffusion_coefficient</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">ArrheniusRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.15e-4</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">110</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// a branched reaction has two output pathways</span>
+<span class="w">  </span><span class="c1">// this is represnted internal to micm as two different reactions</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">branched_params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">X_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">Y_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">204.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">a0_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">n_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Alkoxy</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Nitrate</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// A surface rate constant also needs to know the effective radius and particle number concentration</span>
+<span class="w">  </span><span class="c1">// we will set those later</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">SurfaceRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">phase_species_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">phase_species_list</span><span class="p">[</span><span class="n">surface_c_index</span><span class="p">],</span><span class="w"> </span><span class="p">.</span><span class="n">reaction_probability_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.90</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">TernaryChemicalActivationRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.6</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-3.1</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">402.1</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// to have a stoichiemetric coefficient of more than one for reactants,</span>
+<span class="w">  </span><span class="c1">// list the reactant that many times</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r6</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="p">})</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">TroeRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2e4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">167.0</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">136.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">24.0</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">          </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">TunnelingRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">chemical_system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">(</span><span class="n">micm</span><span class="o">::</span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">Process</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="p">,</span><span class="w"> </span><span class="n">r3</span><span class="p">,</span><span class="w"> </span><span class="n">r4</span><span class="p">,</span><span class="w"> </span><span class="n">r5</span><span class="p">,</span><span class="w"> </span><span class="n">r6</span><span class="p">,</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">solver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">CpuSolverBuilder</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">RosenbrockSolverParameters</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">                    </span><span class="n">micm</span><span class="o">::</span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">ThreeStageRosenbrockParameters</span><span class="p">())</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">SetSystem</span><span class="p">(</span><span class="n">chemical_system</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">SetReactions</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101319.9</span><span class="p">;</span><span class="w">   </span><span class="c1">// Pa</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">CalculateIdealAirDensity</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.effective radius [m]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e-7</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.particle number concentration [# m-3]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5e6</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintHeader</span><span class="p">();</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+<span class="w">    </span><span class="c1">// so we need to track how much time the solver was able to integrate for and continue</span>
+<span class="w">    </span><span class="c1">// solving until we finish</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">solver</span><span class="p">.</span><span class="n">CalculateRateConstants</span><span class="p">(</span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">Solve</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">stats_</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="line-by-line-explanation">
+<h2>Line-by-line explanation<a class="headerlink" href="#line-by-line-explanation" title="Link to this heading">#</a></h2>
+<p>To get started, we’ll need to include each rate constant type and the
+rosenbrock solver at the top of the file.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/CPU.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;map&gt;</span>
+
+<span class="c1">// Use our namespace so that this example is easier to read</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="c1">// Conversion factor from moles m-3 to molecules cm-3 for consistency</span>
+<span class="c1">// with the configuraion file</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">constants</span><span class="o">::</span><span class="n">AVOGADRO_CONSTANT</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>After that, we’ll use the <code class="docutils literal notranslate"><span class="pre">micm</span></code> namespace so that we don’t have to repeat it everywhere we need it.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;B&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To create a <a class="reference internal" href="../api/index.html#_CPPv4I00EN4micm16RosenbrockSolverE" title="micm::RosenbrockSolver"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::RosenbrockSolver</span></code></a>, we have to define a chemical system (<a class="reference internal" href="../api/index.html#_CPPv4N4micm6SystemE" title="micm::System"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::System</span></code></a>)
+and our reactions, which will be a vector of <a class="reference internal" href="../api/index.html#_CPPv4N4micm7ProcessE" title="micm::Process"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::Process</span></code></a> We will use the species to define these.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-1" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<p>To do this by hand, we have to define all of the chemical species in the system. This allows us to set
+any properties of the species that may be necessary for rate constanta calculations, like molecular weights
+and diffusion coefficients for the surface reaction.  We will also put these species into the gas phase.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="s">&quot;gas&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">PhaseSpecies</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">phase_species_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">.</span><span class="n">phase_species_</span><span class="p">;</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">find_if</span><span class="p">(</span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">[</span><span class="o">&amp;</span><span class="n">c</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">PhaseSpecies</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ps</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">ps</span><span class="p">.</span><span class="n">species_</span><span class="p">.</span><span class="n">name_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">c</span><span class="p">.</span><span class="n">name_</span><span class="p">;</span><span class="w"> </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Species not found</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="c1">// Failure</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Now that we have a gas phase and our species, we can start building the reactions. Two things to note are that
+stoichiemtric coefficients for reactants are represented by repeating that product as many times as you need.
+To specify the yield of a product, we’ve created a struct <a class="reference internal" href="../api/index.html#_CPPv4N4micm5YieldE" title="micm::Yield"><code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">micm::Yield</span></code></a>. Note that we add a conversion
+for some rate constant parameters to be consistent with the configuration file that expects rate constants
+to be in cm^3/molecule/s. (All units will be mks in the next version of the configuration file format.)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">c_diffusion_coefficient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3e2</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">surface_c_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">distance</span><span class="p">(</span><span class="n">phase_species_list</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">it</span><span class="p">);</span>
+<span class="w">  </span><span class="n">phase_species_list</span><span class="p">[</span><span class="n">surface_c_index</span><span class="p">].</span><span class="n">SetDiffusionCoefficient</span><span class="p">(</span><span class="n">c_diffusion_coefficient</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">ArrheniusRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.15e-4</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">110</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// a branched reaction has two output pathways</span>
+<span class="w">  </span><span class="c1">// this is represnted internal to micm as two different reactions</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">branched_params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">X_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">Y_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">204.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">a0_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">n_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Alkoxy</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Nitrate</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// A surface rate constant also needs to know the effective radius and particle number concentration</span>
+<span class="w">  </span><span class="c1">// we will set those later</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">SurfaceRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">phase_species_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">phase_species_list</span><span class="p">[</span><span class="n">surface_c_index</span><span class="p">],</span><span class="w"> </span><span class="p">.</span><span class="n">reaction_probability_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.90</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">TernaryChemicalActivationRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.6</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-3.1</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">402.1</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                                                            </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="c1">// to have a stoichiemetric coefficient of more than one for reactants,</span>
+<span class="w">  </span><span class="c1">// list the reactant that many times</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r6</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="p">})</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">          </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">TroeRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2e4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">167.0</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">136.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MOLES_M3_TO_MOLECULES_CM3</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+</pre></div>
+</div>
+<p>And finally we define our chemical system and reactions</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">                                              </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                              </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span><span class="w"> </span><span class="p">}))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now that we have a chemical system and a list of reactions, we can create the RosenbrockSolver.
+There are several ways to configure the solver. Here we are using a three stage solver. More options
+can be found in the <a class="reference internal" href="../api/index.html#_CPPv4N4micm26RosenbrockSolverParametersE" title="micm::RosenbrockSolverParameters"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::RosenbrockSolverParameters</span></code></a> and in the <a class="reference internal" href="solver_configurations.html#solver-configurations"><span class="std std-ref">Solver configurations</span></a> tutorial.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">          </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChemicalReactionBuilder</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetReactants</span><span class="p">({</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="p">})</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The rosenbrock solver will provide us a state, which we can use to set the concentrations,
+custom rate parameters, and temperature and pressure. Note that setting the custom rate paramters is different depending
+on if you define the configuration by hand or read it in. The parser has defaults for the names of the custom parameters
+and when defined by hand we choose these.</p>
+<section id="initializing-the-state">
+<span id="rate-constants-set-concentations"></span><h3>Initializing the state<a class="headerlink" href="#initializing-the-state" title="Link to this heading">#</a></h3>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">                   </span><span class="p">.</span><span class="n">SetProducts</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetRateConstant</span><span class="p">(</span><span class="n">TunnelingRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">SetPhase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">)</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">chemical_system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">(</span><span class="n">micm</span><span class="o">::</span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">Process</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="p">,</span><span class="w"> </span><span class="n">r3</span><span class="p">,</span><span class="w"> </span><span class="n">r4</span><span class="p">,</span><span class="w"> </span><span class="n">r5</span><span class="p">,</span><span class="w"> </span><span class="n">r6</span><span class="p">,</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">solver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">CpuSolverBuilder</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">RosenbrockSolverParameters</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">                    </span><span class="n">micm</span><span class="o">::</span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">ThreeStageRosenbrockParameters</span><span class="p">())</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">SetSystem</span><span class="p">(</span><span class="n">chemical_system</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">SetReactions</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, we are ready to pick a timestep and solve the system.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.effective radius [m]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e-7</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.particle number concentration [# m-3]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5e6</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintHeader</span><span class="p">();</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This is the output:</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id1">
+<caption><span class="caption-text">The Change of Concentration with Time
+ :header: “time”, “A”, “B”, “C”, “D”, “E”, “F”, “G”
+ :widths: 10, 15, 15, 15, 15, 15, 15, 15</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>0</p></td>
+<td><p>1.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+</tr>
+<tr class="row-even"><td><p>500</p></td>
+<td><p>8.54e-01</p></td>
+<td><p>4.57e-04</p></td>
+<td><p>1.44e-01</p></td>
+<td><p>1.55e-04</p></td>
+<td><p>6.47e-14</p></td>
+<td><p>1.23e-22</p></td>
+<td><p>6.44e-04</p></td>
+</tr>
+<tr class="row-odd"><td><p>1000</p></td>
+<td><p>7.30e-01</p></td>
+<td><p>3.90e-04</p></td>
+<td><p>2.65e-01</p></td>
+<td><p>2.89e-04</p></td>
+<td><p>2.53e-13</p></td>
+<td><p>2.28e-22</p></td>
+<td><p>2.44e-03</p></td>
+</tr>
+<tr class="row-even"><td><p>1500</p></td>
+<td><p>6.23e-01</p></td>
+<td><p>3.33e-04</p></td>
+<td><p>3.66e-01</p></td>
+<td><p>4.02e-04</p></td>
+<td><p>2.98e-13</p></td>
+<td><p>3.18e-22</p></td>
+<td><p>5.20e-03</p></td>
+</tr>
+<tr class="row-odd"><td><p>2000</p></td>
+<td><p>5.32e-01</p></td>
+<td><p>2.85e-04</p></td>
+<td><p>4.49e-01</p></td>
+<td><p>5.00e-04</p></td>
+<td><p>3.30e-13</p></td>
+<td><p>3.95e-22</p></td>
+<td><p>8.77e-03</p></td>
+</tr>
+<tr class="row-even"><td><p>2500</p></td>
+<td><p>4.55e-01</p></td>
+<td><p>2.43e-04</p></td>
+<td><p>5.18e-01</p></td>
+<td><p>5.83e-04</p></td>
+<td><p>3.55e-13</p></td>
+<td><p>4.61e-22</p></td>
+<td><p>1.30e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>3000</p></td>
+<td><p>3.88e-01</p></td>
+<td><p>2.08e-04</p></td>
+<td><p>5.75e-01</p></td>
+<td><p>6.54e-04</p></td>
+<td><p>3.74e-13</p></td>
+<td><p>5.17e-22</p></td>
+<td><p>1.78e-02</p></td>
+</tr>
+<tr class="row-even"><td><p>3500</p></td>
+<td><p>3.32e-01</p></td>
+<td><p>1.77e-04</p></td>
+<td><p>6.21e-01</p></td>
+<td><p>7.14e-04</p></td>
+<td><p>3.88e-13</p></td>
+<td><p>5.65e-22</p></td>
+<td><p>2.30e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>4000</p></td>
+<td><p>2.83e-01</p></td>
+<td><p>1.52e-04</p></td>
+<td><p>6.59e-01</p></td>
+<td><p>7.66e-04</p></td>
+<td><p>4.00e-13</p></td>
+<td><p>6.06e-22</p></td>
+<td><p>2.86e-02</p></td>
+</tr>
+<tr class="row-even"><td><p>4500</p></td>
+<td><p>2.42e-01</p></td>
+<td><p>1.29e-04</p></td>
+<td><p>6.88e-01</p></td>
+<td><p>8.10e-04</p></td>
+<td><p>4.09e-13</p></td>
+<td><p>6.41e-22</p></td>
+<td><p>3.45e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>5000</p></td>
+<td><p>2.07e-01</p></td>
+<td><p>1.11e-04</p></td>
+<td><p>7.11e-01</p></td>
+<td><p>8.48e-04</p></td>
+<td><p>4.15e-13</p></td>
+<td><p>6.71e-22</p></td>
+<td><p>4.06e-02</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="installation_and_usage.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Installation and usage</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="user_defined_rate_constant_tutorial.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">User-Defined Rate Constants</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#line-by-line-explanation">Line-by-line explanation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initializing-the-state">Initializing the state</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/rate_constant_tutorial.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2025, NCAR/UCAR.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

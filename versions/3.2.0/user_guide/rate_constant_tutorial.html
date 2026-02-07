@@ -1,0 +1,1261 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Rate Constants (except user defined ones) &#8212; MICM v3.2.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=ac02cc09edc035673794" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794" />
+  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=ac02cc09edc035673794"></script>
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/rate_constant_tutorial';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.14.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://ncar.github.io/micm/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v3.2.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="User-Defined Rate Constants" href="user_defined_rate_constant_tutorial.html" />
+    <link rel="prev" title="User Guide" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">MICM v3.2.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../getting_started.html">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="versionswitcherbutton" type="button" role="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="listbox" aria-controls="versionswitcherlist" aria-label="Version switcher list">
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="versionswitcherlist" class="version-switcher__menu dropdown-menu list-group-flush py-0" role="listbox" aria-labelledby="versionswitcherbutton">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../getting_started.html">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="versionswitcherbutton" type="button" role="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="listbox" aria-controls="versionswitcherlist" aria-label="Version switcher list">
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="versionswitcherlist" class="version-switcher__menu dropdown-menu list-group-flush py-0" role="listbox" aria-labelledby="versionswitcherbutton">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Rate Constants (except user defined ones)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_defined_rate_constant_tutorial.html">User-Defined Rate Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiple_grid_cells.html">Multiple Grid Cells</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solver_configurations.html">Solver configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="but_how_fast_is_it.html">But how fast is it?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="openmp.html">OpenMP</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Rate...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="rate-constants-except-user-defined-ones">
+<span id="rate-constants"></span><h1>Rate Constants (except user defined ones)<a class="headerlink" href="#rate-constants-except-user-defined-ones" title="Permalink to this heading">#</a></h1>
+<p>MICM supports a subset of the rate constants defined as part of the
+<a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/index.html">OpenAtmos Mechanism Configuration</a>
+We will be adding more in the future.
+The links to the <code class="docutils literal notranslate"><span class="pre">micm</span></code> classes below detail the class and methods. Please check the OpenAtmos standard for
+specific on the algorithm implemented for each rate constant type.
+At present, supported rate constants are:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm21ArrheniusRateConstantE" title="micm::ArrheniusRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::ArrheniusRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/arrhenius.html">OpenAtmos Arrhenius description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm20BranchedRateConstantE" title="micm::BranchedRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::BranchedRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/branched.html">OpenAtmos Branched description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm19SurfaceRateConstantE" title="micm::SurfaceRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SurfaceRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/surface.html">OpenAtmos Surface description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm37TernaryChemicalActivationRateConstantE" title="micm::TernaryChemicalActivationRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::TernaryChemicalActivationRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/ternary_chemical_activation.html">OpenAtmos Ternay chemical activiation description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm16TroeRateConstantE" title="micm::TroeRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::TroeRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/troe.html">OpenAtmos Troe description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm21TunnelingRateConstantE" title="micm::TunnelingRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::TunnelingRateConstant</span></code></a>, <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/tunneling.html">OpenAtmos Tunneling description</a></p></li>
+<li><p><a class="reference internal" href="../api/index.html#_CPPv4N4micm23UserDefinedRateConstantE" title="micm::UserDefinedRateConstant"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::UserDefinedRateConstant</span></code></a>, this is a custom type, but this is how photolysis rates are setup <a class="reference external" href="https://open-atmos.github.io/MechanismConfiguration/reactions/photolysis.html">OpenAtmos Photolysis description</a></p></li>
+</ul>
+<p>This tutorial covers all but the last one. See the <a class="reference internal" href="user_defined_rate_constant_tutorial.html#user-defined-rate-constants"><span class="std std-ref">User-Defined Rate Constants</span></a> tutorial for examples and use
+cases on that.</p>
+<p>We’ll setup and solve a fake chemical system with 7 species and 6 reactions,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A &amp;\longrightarrow B, &amp;k_{1, \mathrm{arrhenius}} \\
+B &amp;\longrightarrow C (\mathrm{alkoxy\ products}) + D (\mathrm{nitrate\ products}), &amp;k_{2, \mathrm{branched}} \\
+C &amp;\longrightarrow E, &amp;k_{3, \mathrm{surface}} \\
+D &amp;\longrightarrow 2F, &amp;k_{4, \mathrm{ternary\ chemical\ activation}} \\
+2E &amp;\longrightarrow G, &amp;k_{5, \mathrm{troe}} \\
+F &amp;\longrightarrow G, &amp;k_{6, \mathrm{tunneling}} \\\end{split}\]</div>
+<p>MICM can be configured in two ways. We can either build the mechanism up by hand with the <code class="docutils literal notranslate"><span class="pre">micm</span></code> API,
+or parse a valid mechanism Configuration
+in the OpenAtmos format. In this tutorial, we will do both.</p>
+<p>If you’re looking for a copy and paste, choose
+the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;map&gt;</span>
+
+<span class="c1">// Each rate constant is in its own header file</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/arrhenius_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/branched_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/surface_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/ternary_chemical_activation_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/troe_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/tunneling_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/solver/rosenbrock.hpp&gt;</span>
+
+<span class="c1">// Use our namespace so that this example is easier to read</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">print_header</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;time&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;A&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;B&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;D&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;E&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;F&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;G&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="o">&gt;</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">print_state</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">time</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">state</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ios</span><span class="w"> </span><span class="nf">oldState</span><span class="p">(</span><span class="k">nullptr</span><span class="p">);</span>
+<span class="w">  </span><span class="n">oldState</span><span class="p">.</span><span class="n">copyfmt</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;, &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">flush</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">scientific</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;A&quot;</span><span class="p">]]</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;B&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;C&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;D&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;E&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;F&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;G&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="p">.</span><span class="n">copyfmt</span><span class="p">(</span><span class="n">oldState</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;B&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span>
+<span class="w">      </span><span class="s">&quot;C&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;molecular weight [kg mol-1]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.025</span><span class="w"> </span><span class="p">},</span>
+<span class="w">                                     </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;diffusion coefficient [m2 s-1]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.3e2</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;D&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;E&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;F&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;G&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Species</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">ArrheniusRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.15e-1</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">110</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// a branched reaction has two output pathways</span>
+<span class="w">  </span><span class="c1">// this is represnted internal to micm as two different reactions</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">branched_params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">X_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">Y_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">204.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">a0_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">n_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Alkoxy</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Nitrate</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// A surface rate constant also needs to know the effective radius and particle number concentration</span>
+<span class="w">  </span><span class="c1">// we will set those later</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">SurfaceRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">species_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">reaction_probability_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.90</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">TernaryChemicalActivationRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.6</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-3.1</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">402.1</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// to have a stoichiemetric coefficient of more than one for reactants,</span>
+<span class="w">  </span><span class="c1">// list the reactant that many times</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">TroeRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2e4</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">167.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">136.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">24.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">TunnelingRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">chemical_system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">(</span><span class="n">micm</span><span class="o">::</span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">Process</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="p">,</span><span class="w"> </span><span class="n">r3</span><span class="p">,</span><span class="w"> </span><span class="n">r4</span><span class="p">,</span><span class="w"> </span><span class="n">r5</span><span class="p">,</span><span class="w"> </span><span class="n">r6</span><span class="p">,</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">solver</span><span class="p">{</span><span class="w"> </span><span class="n">chemical_system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101319.9</span><span class="p">;</span><span class="w">   </span><span class="c1">// Pa</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.effective radius [m]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e-7</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.particle number concentration [# m-3]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5e6</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">print_header</span><span class="p">();</span>
+<span class="w">  </span><span class="n">print_state</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+<span class="w">    </span><span class="c1">// so we need to track how much time the solver was able to integrate for and continue</span>
+<span class="w">    </span><span class="c1">// solving until we finish</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">Solve</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// std::cout &lt;&lt; &quot;solver state: &quot; &lt;&lt; StateToString(result.state_) &lt;&lt; std::endl;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">result_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">print_state</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-1">
+OpenAtmos Configuration reading</label><div class="sd-tab-content docutils">
+<div class="download-div">
+  <a href="../_static/tutorials/rate_constants_no_user_defined.zip" download>
+    <button class="download-button">Download zip configuration</button>
+  </a>
+</div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;map&gt;</span>
+
+<span class="c1">// Each rate constant is in its own header file</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/configure/solver_config.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/arrhenius_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/branched_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/surface_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/ternary_chemical_activation_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/troe_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/tunneling_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/solver/rosenbrock.hpp&gt;</span>
+
+<span class="c1">// Use our namespace so that this example is easier to read</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">print_header</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;time&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;A&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;B&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;D&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;E&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;F&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;G&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="o">&gt;</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">print_state</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">time</span><span class="p">,</span><span class="w"> </span><span class="n">State</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">state</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">ios</span><span class="w"> </span><span class="nf">oldState</span><span class="p">(</span><span class="k">nullptr</span><span class="p">);</span>
+<span class="w">  </span><span class="n">oldState</span><span class="p">.</span><span class="n">copyfmt</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;, &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">flush</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">scientific</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;A&quot;</span><span class="p">]]</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;B&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;C&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;D&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;E&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;F&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">state</span><span class="p">.</span><span class="n">variable_map_</span><span class="p">[</span><span class="s">&quot;G&quot;</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="p">.</span><span class="n">copyfmt</span><span class="p">(</span><span class="n">oldState</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">SolverConfig</span><span class="w"> </span><span class="n">solverConfig</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">config_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;./configs/rate_constants_no_user_defined&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">ConfigParseStatus</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solverConfig</span><span class="p">.</span><span class="n">ReadAndParse</span><span class="p">(</span><span class="n">config_path</span><span class="p">);</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">micm</span><span class="o">::</span><span class="n">ConfigParseStatus</span><span class="o">::</span><span class="n">Success</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="s">&quot;Parsing failed&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SolverParameters</span><span class="w"> </span><span class="n">solver_params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solverConfig</span><span class="p">.</span><span class="n">GetSolverParams</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">chemical_system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver_params</span><span class="p">.</span><span class="n">system_</span><span class="p">;</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver_params</span><span class="p">.</span><span class="n">processes_</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">solver</span><span class="p">{</span><span class="w"> </span><span class="n">chemical_system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101319.9</span><span class="p">;</span><span class="w">   </span><span class="c1">// Pa</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">intial_concentration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;D&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;E&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;F&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;G&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentrations</span><span class="p">(</span><span class="n">solver_params</span><span class="p">.</span><span class="n">system_</span><span class="p">,</span><span class="w"> </span><span class="n">intial_concentration</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;SURF.C surface.effective radius [m]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e-7</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;SURF.C surface.particle number concentration [# m-3]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5e6</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">print_header</span><span class="p">();</span>
+<span class="w">  </span><span class="n">print_state</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+<span class="w">    </span><span class="c1">// so we need to track how much time the solver was able to integrate for and continue</span>
+<span class="w">    </span><span class="c1">// solving until we finish</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">Solve</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// std::cout &lt;&lt; &quot;solver state: &quot; &lt;&lt; StateToString(result.state_) &lt;&lt; std::endl;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">result_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">print_state</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="line-by-line-explanation">
+<h2>Line-by-line explanation<a class="headerlink" href="#line-by-line-explanation" title="Permalink to this heading">#</a></h2>
+<p>To get started, we’ll need to include each rate constant type and the
+rosenbrock solver at the top of the file.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;map&gt;</span>
+
+<span class="c1">// Each rate constant is in its own header file</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/arrhenius_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/branched_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/surface_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/ternary_chemical_activation_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/troe_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/tunneling_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/solver/rosenbrock.hpp&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>After that, we’ll use the <code class="docutils literal notranslate"><span class="pre">micm</span></code> namespace and setup a template alias so that we can instantiate the
+rosenbrock solver.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">print_header</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;time&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;A&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;B&quot;</span>
+<span class="w">            </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>To create a <a class="reference internal" href="../api/index.html#_CPPv4II0E0I0E0EN4micm16RosenbrockSolverE" title="micm::RosenbrockSolver"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::RosenbrockSolver</span></code></a>, we have to define a chemical system (<a class="reference internal" href="../api/index.html#_CPPv4N4micm6SystemE" title="micm::System"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::System</span></code></a>)
+and our reactions, which will be a vector of <a class="reference internal" href="../api/index.html#_CPPv4N4micm7ProcessE" title="micm::Process"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::Process</span></code></a> We will use the species to define these.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-2">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<p>To do this by hand, we have to define all of the chemical species in the system. This allows us to set
+any properties of the species that may be necessary for rate constanta calculations, like molecular weights
+and diffusion coefficients for the surface reaction.  We will also put these species into the gas phase.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;D&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;E&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;F&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">(</span><span class="s">&quot;G&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Species</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">ArrheniusRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.15e-1</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">110</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Now that we have a gas phase and our species, we can start building the reactions. Two things to note are that
+stoichiemtric coefficients for reactants are represented by repeating that product as many times as you need.
+To specify the yield of a product, we’ve created a typedef <a class="reference internal" href="../api/index.html#_CPPv4N4micm5YieldE" title="micm::Yield"><code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">micm::Yield</span></code></a>
+and a function <a class="reference internal" href="../api/index.html#_CPPv4N4micm6yieldsEN4micm7SpeciesEd" title="micm::yields"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">micm::yields()</span></code></a> that produces these.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// a branched reaction has two output pathways</span>
+<span class="w">  </span><span class="c1">// this is represnted internal to micm as two different reactions</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">branched_params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">X_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">Y_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">204.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">a0_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">n_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Alkoxy</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">branched_params</span><span class="p">.</span><span class="n">branch_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BranchedRateConstantParameters</span><span class="o">::</span><span class="n">Branch</span><span class="o">::</span><span class="n">Nitrate</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">BranchedRateConstant</span><span class="p">(</span><span class="n">branched_params</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// A surface rate constant also needs to know the effective radius and particle number concentration</span>
+<span class="w">  </span><span class="c1">// we will set those later</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">SurfaceRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">label_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">species_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">reaction_probability_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.90</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">TernaryChemicalActivationRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.6</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-3.1</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">402.1</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                                                          </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// to have a stoichiemetric coefficient of more than one for reactants,</span>
+<span class="w">  </span><span class="c1">// list the reactant that many times</span>
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">TroeRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">k0_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2e4</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">k0_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">167.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">k0_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">kinf_A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">136.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">kinf_B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">kinf_C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">24.0</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">Fc_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.9</span><span class="p">,</span>
+<span class="w">                                                     </span><span class="p">.</span><span class="n">N_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">yields</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">TunnelingRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">B_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.3</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">302.3</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">chemical_system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">(</span><span class="n">micm</span><span class="o">::</span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">micm</span><span class="o">::</span><span class="n">Process</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="p">,</span><span class="w"> </span><span class="n">r3</span><span class="p">,</span><span class="w"> </span><span class="n">r4</span><span class="p">,</span><span class="w"> </span><span class="n">r5</span><span class="p">,</span><span class="w"> </span><span class="n">r6</span><span class="p">,</span><span class="w"> </span><span class="n">r7</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">solver</span><span class="p">{</span><span class="w"> </span><span class="n">chemical_system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>And finally we define our chemical system and reactions</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101319.9</span><span class="p">;</span><span class="w">   </span><span class="c1">// Pa</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-3">
+OpenAtmos Configuration reading</label><div class="sd-tab-content docutils">
+<p>After defining a valid OpenAtmos configuration with reactions that <code class="docutils literal notranslate"><span class="pre">micm</span></code> supports, configuring the chemical
+system and the processes is as simple as using the <a class="reference internal" href="../api/index.html#_CPPv4I0EN4micm12SolverConfigE" title="micm::SolverConfig"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::SolverConfig</span></code></a> class</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="s">&quot;Parsing failed&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">micm</span><span class="o">::</span><span class="n">SolverParameters</span><span class="w"> </span><span class="n">solver_params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solverConfig</span><span class="p">.</span><span class="n">GetSolverParams</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">chemical_system</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver_params</span><span class="p">.</span><span class="n">system_</span><span class="p">;</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">reactions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver_params</span><span class="p">.</span><span class="n">processes_</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">solver</span><span class="p">{</span><span class="w"> </span><span class="n">chemical_system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now that we have a chemical system and a list of reactions, we can create the RosenbrockSolver.
+There are several ways to configure the solver. Here we are using a three stage solver. More options
+can be found in the <a class="reference internal" href="../api/index.html#_CPPv4N4micm26RosenbrockSolverParametersE" title="micm::RosenbrockSolverParameters"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">micm::RosenbrockSolverParameters</span></code></a></p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The rosenbrock solver will provide us a state, which we can use to set the concentrations,
+custom rate parameters, and temperature and pressure</p>
+<section id="initializing-the-state">
+<span id="rate-constants-set-concentations"></span><h3>Initializing the state<a class="headerlink" href="#initializing-the-state" title="Permalink to this heading">#</a></h3>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-4">
+Build the Mechanism with the API</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w">  </span><span class="c1">// mol m-3</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.effective radius [m]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e-7</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;C.particle number concentration [# m-3]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5e6</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">print_header</span><span class="p">();</span>
+<span class="w">  </span><span class="n">print_state</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-5">
+OpenAtmos Configuration reading</label><div class="sd-tab-content docutils">
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;D&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;E&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;F&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;G&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">// mol m-3</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentrations</span><span class="p">(</span><span class="n">solver_params</span><span class="p">.</span><span class="n">system_</span><span class="p">,</span><span class="w"> </span><span class="n">intial_concentration</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;SURF.C surface.effective radius [m]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">1e-7</span><span class="p">);</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetCustomRateParameter</span><span class="p">(</span><span class="s">&quot;SURF.C surface.particle number concentration [# m-3]&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2.5e6</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">print_header</span><span class="p">();</span>
+<span class="w">  </span><span class="n">print_state</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, we are ready to pick a timestep and solve the system.</p>
+<blockquote>
+<div><div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// choose a timestep and print the initial state</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">time_step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span><span class="w">  </span><span class="c1">// s</span>
+
+<span class="w">  </span><span class="n">print_header</span><span class="p">();</span>
+<span class="w">  </span><span class="n">print_state</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// solve for ten iterations</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Depending on how stiff the system is</span>
+<span class="w">    </span><span class="c1">// the solver integration step may not be able to solve for the full time step</span>
+<span class="w">    </span><span class="c1">// so we need to track how much time the solver was able to integrate for and continue</span>
+<span class="w">    </span><span class="c1">// solving until we finish</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">time_step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">Solve</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">elapsed_solve_time</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">      </span><span class="n">elapsed_solve_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">final_time_</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// std::cout &lt;&lt; &quot;solver state: &quot; &lt;&lt; StateToString(result.state_) &lt;&lt; std::endl;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">result_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">print_state</span><span class="p">(</span><span class="n">time_step</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This is the output:</p>
+<table class="table" id="id1">
+<caption><span class="caption-text">Table Title</span><a class="headerlink" href="#id1" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 8.7%" />
+<col style="width: 13.0%" />
+<col style="width: 13.0%" />
+<col style="width: 13.0%" />
+<col style="width: 13.0%" />
+<col style="width: 13.0%" />
+<col style="width: 13.0%" />
+<col style="width: 13.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>time</p></th>
+<th class="head"><p>A</p></th>
+<th class="head"><p>B</p></th>
+<th class="head"><p>C</p></th>
+<th class="head"><p>D</p></th>
+<th class="head"><p>E</p></th>
+<th class="head"><p>F</p></th>
+<th class="head"><p>G</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>1.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+<td><p>0.00e+00</p></td>
+</tr>
+<tr class="row-odd"><td><p>500</p></td>
+<td><p>3.18e-09</p></td>
+<td><p>3.66e-09</p></td>
+<td><p>9.83e-01</p></td>
+<td><p>3.88e-14</p></td>
+<td><p>1.41e-03</p></td>
+<td><p>2.02e-13</p></td>
+<td><p>7.92e-03</p></td>
+</tr>
+<tr class="row-even"><td><p>1000</p></td>
+<td><p>1.14e-14</p></td>
+<td><p>1.31e-14</p></td>
+<td><p>9.66e-01</p></td>
+<td><p>1.39e-19</p></td>
+<td><p>1.40e-03</p></td>
+<td><p>7.24e-19</p></td>
+<td><p>1.64e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>1500</p></td>
+<td><p>4.09e-20</p></td>
+<td><p>4.71e-20</p></td>
+<td><p>9.49e-01</p></td>
+<td><p>4.98e-25</p></td>
+<td><p>1.39e-03</p></td>
+<td><p>2.59e-24</p></td>
+<td><p>2.48e-02</p></td>
+</tr>
+<tr class="row-even"><td><p>2000</p></td>
+<td><p>1.47e-25</p></td>
+<td><p>1.69e-25</p></td>
+<td><p>9.33e-01</p></td>
+<td><p>1.79e-30</p></td>
+<td><p>1.38e-03</p></td>
+<td><p>9.30e-30</p></td>
+<td><p>3.30e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>2500</p></td>
+<td><p>5.26e-31</p></td>
+<td><p>6.05e-31</p></td>
+<td><p>9.17e-01</p></td>
+<td><p>6.40e-36</p></td>
+<td><p>1.37e-03</p></td>
+<td><p>3.33e-35</p></td>
+<td><p>4.11e-02</p></td>
+</tr>
+<tr class="row-even"><td><p>3000</p></td>
+<td><p>1.89e-36</p></td>
+<td><p>2.17e-36</p></td>
+<td><p>9.01e-01</p></td>
+<td><p>2.30e-41</p></td>
+<td><p>1.36e-03</p></td>
+<td><p>1.20e-40</p></td>
+<td><p>4.90e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>3500</p></td>
+<td><p>6.77e-42</p></td>
+<td><p>7.78e-42</p></td>
+<td><p>8.85e-01</p></td>
+<td><p>8.23e-47</p></td>
+<td><p>1.34e-03</p></td>
+<td><p>4.29e-46</p></td>
+<td><p>5.68e-02</p></td>
+</tr>
+<tr class="row-even"><td><p>4000</p></td>
+<td><p>2.43e-47</p></td>
+<td><p>2.79e-47</p></td>
+<td><p>8.70e-01</p></td>
+<td><p>2.95e-52</p></td>
+<td><p>1.33e-03</p></td>
+<td><p>1.54e-51</p></td>
+<td><p>6.44e-02</p></td>
+</tr>
+<tr class="row-odd"><td><p>4500</p></td>
+<td><p>8.70e-53</p></td>
+<td><p>1.00e-52</p></td>
+<td><p>8.55e-01</p></td>
+<td><p>1.06e-57</p></td>
+<td><p>1.32e-03</p></td>
+<td><p>5.51e-57</p></td>
+<td><p>7.20e-02</p></td>
+</tr>
+<tr class="row-even"><td><p>5000</p></td>
+<td><p>3.12e-58</p></td>
+<td><p>3.59e-58</p></td>
+<td><p>8.40e-01</p></td>
+<td><p>3.80e-63</p></td>
+<td><p>1.31e-03</p></td>
+<td><p>1.98e-62</p></td>
+<td><p>7.94e-02</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="user_defined_rate_constant_tutorial.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">User-Defined Rate Constants</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#line-by-line-explanation">Line-by-line explanation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initializing-the-state">Initializing the state</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/rate_constant_tutorial.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=ac02cc09edc035673794"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2022-2023, NCAR/UCAR.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.14.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

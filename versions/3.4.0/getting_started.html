@@ -1,0 +1,777 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Getting Started &#8212; MICM v3.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=bbe95013" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script src="_static/documentation_options.js?v=4b578fff"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'getting_started';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://ncar.github.io/micm/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v3.4.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User Guide" href="user_guide/index.html" />
+    <link rel="prev" title="Welcome to MICM’s documentation!" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">MICM v3.4.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="user_guide/index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
+                        Getting Started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="user_guide/index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api/index.html">
+                        MICM API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="contributing/index.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="citing_and_bibliography/index.html">
+                        Citations and Bibliography
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NCAR/micm" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Getting Started</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h1>
+<section id="build-and-test">
+<h2>Build and Test<a class="headerlink" href="#build-and-test" title="Link to this heading">#</a></h2>
+<p>Configuring for different platforms and environments is shown here. There is an additional tutorial which covers
+some other specifics: <a class="reference internal" href="user_guide/installation_and_usage.html#installation-and-usage"><span class="std std-ref">Installation and usage</span></a>.</p>
+<section id="cpu">
+<h3>CPU<a class="headerlink" href="#cpu" title="Link to this heading">#</a></h3>
+<p>To build and install MICM locally, you must have the following libraries installed:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://cmake.org/">CMake</a>
+- <a class="reference external" href="https://cmake.org/download/">installation</a></p></li>
+</ul>
+<p>Then, it’s enough for you to configure and install micm on your computer. Because micm is header-only library, the install
+step will simply copy the header files into the normal location required by your system.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/NCAR/micm.git
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>micm
+<span class="gp">$ </span>mkdir<span class="w"> </span>build
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>build
+<span class="gp">$ </span>ccmake<span class="w"> </span>..
+<span class="gp">$ </span>make<span class="w"> </span>install<span class="w"> </span>-j<span class="w"> </span><span class="m">8</span>
+<span class="gp">$ </span>make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+<p>CMake will allow for setting options such as the installation directory
+with CMAKE_INSTALL_PREFIX, or various build flags such as MICM_BUILD_DOCS, MICM_ENABLE_CUDA, etc.</p>
+</section>
+<section id="options">
+<h3>Options<a class="headerlink" href="#options" title="Link to this heading">#</a></h3>
+<img alt="_images/options.png" src="_images/options.png" />
+<p>MICM can optionally include support for json configuration reading, OpenMP,
+JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library.
+Some of these libraries can be included automatically with cmake build options,
+others require that you have libraries installed on your system.</p>
+<ul class="simple">
+<li><p>JSON configuration support
+- When building micm, you need to enable the JSON option. This will download and configure the <a class="reference external" href="https://github.com/nlohmann/json">nlohmann/jsoncpp library</a>  for you. For example: <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DMICM_ENABLE_JSON=ON</span> <span class="pre">..</span></code></p></li>
+<li><p>JIT-compiled chemistry functions
+- This requires <a class="reference external" href="https://llvm.org/docs/index.html">LLVM</a> to be installed with on your system. Once it is, you can include the jit options with <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DENBABLE_LLVM=ON</span> <span class="pre">..</span></code></p></li>
+<li><p>GPU support
+- Coming soon</p></li>
+<li><p>OpenMP
+- On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either <code class="docutils literal notranslate"><span class="pre">CXX=g++</span> <span class="pre">cmake</span> <span class="pre">-DMICM_ENABLE_OPENMP=ON</span> <span class="pre">..</span></code> or <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DCMAKE_CXX_COMPILER=g++</span> <span class="pre">-DMICM_ENABLE_OPENMP=ON</span> <span class="pre">..</span></code>)</p></li>
+</ul>
+<p>For more ways to build and install micm, see <a class="reference internal" href="user_guide/installation_and_usage.html#installation-and-usage"><span class="std std-ref">Installation and usage</span></a>. If you would like instructions for building
+the docs, see <a class="reference internal" href="contributing/index.html#contributing"><span class="std std-ref">Contributing</span></a>.</p>
+</section>
+<section id="docker-container">
+<h3>Docker Container<a class="headerlink" href="#docker-container" title="Link to this heading">#</a></h3>
+<p>Build and run the image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker build -t micm -f docker/Dockerfile.nvhpc .
+$ docker run --rm -it micm
+</pre></div>
+</div>
+<p>If you would like, you can ssh into a running docker container and edit the files there.</p>
+</section>
+<section id="run-an-example">
+<h3>Run an Example<a class="headerlink" href="#run-an-example" title="Link to this heading">#</a></h3>
+<section id="micm-executable-example">
+<h4>MICM Executable Example<a class="headerlink" href="#micm-executable-example" title="Link to this heading">#</a></h4>
+<p>A simple driver for MICM is built with the library and can be used to solve a
+chemical system for given initial conditions over one time step.</p>
+<p>Just pass the driver the path to the folder containing a valid JSON
+mechanism configuration and the path to a CSV file holding the initial
+conditions.</p>
+<p>Several example mechanisms and sets of conditions can be found in the
+<code class="docutils literal notranslate"><span class="pre">/examples/configs/</span></code> folder.</p>
+<p>You can use them like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
+</pre></div>
+</div>
+<p>The output should be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">time</span><span class="p">,</span>          <span class="n">O</span><span class="p">,</span>        <span class="n">O1D</span><span class="p">,</span>         <span class="n">O2</span><span class="p">,</span>         <span class="n">O3</span>
+   <span class="mi">0</span><span class="p">,</span>   <span class="mf">0.00e+00</span><span class="p">,</span>   <span class="mf">0.00e+00</span><span class="p">,</span>   <span class="mf">7.50e-01</span><span class="p">,</span>   <span class="mf">8.10e-06</span>
+  <span class="mi">60</span><span class="p">,</span>   <span class="mf">2.57e-12</span><span class="p">,</span>   <span class="mf">3.49e-22</span><span class="p">,</span>   <span class="mf">7.50e-01</span><span class="p">,</span>   <span class="mf">8.10e-06</span>
+</pre></div>
+</div>
+</section>
+<section id="micm-api-example">
+<h4>MICM API Example<a class="headerlink" href="#micm-api-example" title="Link to this heading">#</a></h4>
+<p>The following example solves the fictitious chemical system:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">foo</span>       <span class="o">--</span><span class="n">k1</span><span class="o">--&gt;</span> <span class="mf">0.8</span> <span class="n">bar</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="n">baz</span>
+<span class="n">foo</span> <span class="o">+</span> <span class="n">bar</span> <span class="o">--</span><span class="n">k2</span><span class="o">--&gt;</span> <span class="n">baz</span>
+</pre></div>
+</div>
+<p>The <cite>k1</cite> and <cite>k2</cite> rate constants are for Arrhenius reactions.
+See the <cite>MICM documentation &lt;https://ncar.github.io/micm/&gt;</cite>
+for details on the types of reactions available in MICM and how to configure them.
+To solve this system save the following code in a file named <cite>foo_chem.cpp</cite></p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iomanip&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/process/arrhenius_rate_constant.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;micm/solver/rosenbrock.hpp&gt;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">micm</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">{</span><span class="w"> </span><span class="s">&quot;Foo&quot;</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">bar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">{</span><span class="w"> </span><span class="s">&quot;Bar&quot;</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">baz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Species</span><span class="p">{</span><span class="w"> </span><span class="s">&quot;Baz&quot;</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">Phase</span><span class="w"> </span><span class="n">gas_phase</span><span class="p">{</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Species</span><span class="o">&gt;</span><span class="p">{</span><span class="w"> </span><span class="n">foo</span><span class="p">,</span><span class="w"> </span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="n">baz</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">System</span><span class="w"> </span><span class="n">chemical_system</span><span class="p">{</span><span class="w"> </span><span class="n">SystemParameters</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">gas_phase_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gas_phase</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="mf">0.8</span><span class="p">),</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">baz</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">ArrheniusRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-3</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">Process</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Process</span><span class="o">::</span><span class="n">create</span><span class="p">()</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">reactants</span><span class="p">({</span><span class="w"> </span><span class="n">foo</span><span class="p">,</span><span class="w"> </span><span class="n">bar</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">products</span><span class="p">({</span><span class="w"> </span><span class="n">Yield</span><span class="p">(</span><span class="n">baz</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">rate_constant</span><span class="p">(</span><span class="n">ArrheniusRateConstant</span><span class="p">({</span><span class="w"> </span><span class="p">.</span><span class="n">A_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0e-5</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">C_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">110.0</span><span class="w"> </span><span class="p">}))</span>
+<span class="w">                   </span><span class="p">.</span><span class="n">phase</span><span class="p">(</span><span class="n">gas_phase</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Process</span><span class="o">&gt;</span><span class="w"> </span><span class="n">reactions</span><span class="p">{</span><span class="w"> </span><span class="n">r1</span><span class="p">,</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">RosenbrockSolver</span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">solver</span><span class="p">{</span><span class="w"> </span><span class="n">chemical_system</span><span class="p">,</span><span class="w"> </span><span class="n">reactions</span><span class="p">,</span><span class="w"> </span><span class="n">RosenbrockSolverParameters</span><span class="o">::</span><span class="n">three_stage_rosenbrock_parameters</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">GetState</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">temperature_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">287.45</span><span class="p">;</span><span class="w">  </span><span class="c1">// K</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">conditions_</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">pressure_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">101319.9</span><span class="p">;</span><span class="w">   </span><span class="c1">// Pa</span>
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">SetConcentration</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span><span class="w"> </span><span class="mf">20.0</span><span class="p">);</span><span class="w">           </span><span class="c1">// mol m-3</span>
+
+<span class="w">  </span><span class="n">state</span><span class="p">.</span><span class="n">PrintHeader</span><span class="p">();</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">solver</span><span class="p">.</span><span class="n">Solve</span><span class="p">(</span><span class="mf">500.0</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">variables_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">result_</span><span class="p">;</span>
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">PrintState</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">500</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To build and run the example using GNU:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ g++ -o foo_chem foo_chem.cpp -I&lt;CMAKE_INSTALL_PREFIX&gt;/include -std=c++20
+$ ./foo_chem
+</pre></div>
+</div>
+<p>You should see an output including this</p>
+<table class="table">
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 27.8%" />
+<col style="width: 27.8%" />
+<col style="width: 27.8%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>time [s]</p></th>
+<th class="head"><p>foo</p></th>
+<th class="head"><p>bar</p></th>
+<th class="head"><p>baz</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0.000000</p></td>
+<td><p>11.843503</p></td>
+<td><p>5.904845</p></td>
+<td><p>1.907012</p></td>
+</tr>
+<tr class="row-odd"><td><p>500.000000</p></td>
+<td><p>6.792023</p></td>
+<td><p>9.045965</p></td>
+<td><p>3.317336</p></td>
+</tr>
+<tr class="row-even"><td><p>1000.000000</p></td>
+<td><p>3.828700</p></td>
+<td><p>10.740589</p></td>
+<td><p>4.210461</p></td>
+</tr>
+<tr class="row-odd"><td><p>1500.000000</p></td>
+<td><p>2.138145</p></td>
+<td><p>11.663685</p></td>
+<td><p>4.739393</p></td>
+</tr>
+<tr class="row-even"><td><p>2000.000000</p></td>
+<td><p>1.187934</p></td>
+<td><p>12.169452</p></td>
+<td><p>5.042503</p></td>
+</tr>
+<tr class="row-odd"><td><p>2500.000000</p></td>
+<td><p>0.658129</p></td>
+<td><p>12.447502</p></td>
+<td><p>5.213261</p></td>
+</tr>
+<tr class="row-even"><td><p>3000.000000</p></td>
+<td><p>0.363985</p></td>
+<td><p>12.600676</p></td>
+<td><p>5.308597</p></td>
+</tr>
+<tr class="row-odd"><td><p>3500.000000</p></td>
+<td><p>0.201076</p></td>
+<td><p>12.685147</p></td>
+<td><p>5.361559</p></td>
+</tr>
+<tr class="row-even"><td><p>4000.000000</p></td>
+<td><p>0.111028</p></td>
+<td><p>12.731727</p></td>
+<td><p>5.390884</p></td>
+</tr>
+<tr class="row-odd"><td><p>4500.000000</p></td>
+<td><p>0.061290</p></td>
+<td><p>12.757422</p></td>
+<td><p>5.407096</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Welcome to MICM’s documentation!</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="user_guide/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#build-and-test">Build and Test</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cpu">CPU</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#options">Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docker-container">Docker Container</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-an-example">Run an Example</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#micm-executable-example">MICM Executable Example</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#micm-api-example">MICM API Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/getting_started.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2024, NCAR/UCAR.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
