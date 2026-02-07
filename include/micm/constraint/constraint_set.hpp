@@ -29,11 +29,11 @@ namespace micm
     /// @brief Information for each constraint
     struct ConstraintInfo
     {
-      std::size_t constraint_index_;        // Index in constraints_ vector
-      std::size_t constraint_row_;          // Row in the forcing/Jacobian (state_size + i)
-      std::size_t number_of_dependencies_;  // Number of species this constraint depends on
-      std::size_t dependency_offset_;       // Starting offset in dependency_ids_
-      std::size_t jacobian_flat_offset_;    // Starting offset in jacobian_flat_ids_
+      std::size_t constraint_index_;       // Index in constraints_ vector
+      std::size_t constraint_row_;         // Row in the forcing/Jacobian (state_size + i)
+      std::size_t number_of_dependencies_; // Number of species this constraint depends on
+      std::size_t dependency_offset_;      // Starting offset in dependency_ids_
+      std::size_t jacobian_flat_offset_;   // Starting offset in jacobian_flat_ids_
     };
 
     /// @brief The constraints
@@ -199,7 +199,9 @@ namespace micm
   }
 
   template<typename DenseMatrixPolicy>
-  inline void ConstraintSet::AddForcingTerms(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+  inline void ConstraintSet::AddForcingTerms(
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
   {
     if (constraints_.empty())
       return;
@@ -226,8 +228,9 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void ConstraintSet::SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
-      const
+  inline void ConstraintSet::SubtractJacobianTerms(
+      const DenseMatrixPolicy& state_variables,
+      SparseMatrixPolicy& jacobian) const
   {
     if (constraints_.empty())
       return;
