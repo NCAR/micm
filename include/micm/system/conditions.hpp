@@ -4,8 +4,6 @@
 
 #include <micm/util/constants.hpp>
 
-#include <optional>
-
 namespace micm
 {
   /// @brief Environemental conditions
@@ -14,8 +12,7 @@ namespace micm
     double temperature_{ 0.0 };  // K
     double pressure_{ 0.0 };     // Pa
     double air_density_{ 0.0 };  // mol m-3
-
-    std::optional<double> pH;  // unitless
+    double pH{ 0.0 };            // unitless
 
     void CalculateIdealAirDensity();
   };
