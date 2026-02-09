@@ -38,14 +38,29 @@ if(MICM_ENABLE_MPI)
 endif()
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
-  add_library(micm_cuda)
+  if(MICM_BUILD_SHARED_LIBS)
+    add_library(micm_cuda SHARED)
+  else()
+    add_library(micm_cuda STATIC)
+  endif()
+
   add_library(musica::micm_cuda ALIAS micm_cuda)
   target_link_libraries(micm_cuda
     PRIVATE micm
   )
-  target_link_libraries(micm_cuda 
-    PUBLIC CUDA::cudart CUDA::cublas
-  )
+  
+  # For SHARED builds, CUDA dependencies are PRIVATE to avoid forcing consumers to link CUDA libs
+  # For STATIC builds, CUDA dependencies are PUBLIC so consumers get required link flags
+  if(MICM_BUILD_SHARED_LIBS)
+    target_link_libraries(micm_cuda 
+      PRIVATE CUDA::cudart CUDA::cublas
+    )
+  else()
+    target_link_libraries(micm_cuda 
+      PUBLIC CUDA::cudart CUDA::cublas
+    )
+  endif()
+  
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 
