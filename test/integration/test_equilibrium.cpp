@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <unordered_map>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -16,21 +17,19 @@
 /// @brief Test ConstraintSet API directly (unit-level test for DAE infrastructure)
 TEST(EquilibriumIntegration, ConstraintSetAPITest)
 {
-  // This test verifies the constraint set API works correctly
-  // It doesn't use the full solver, just the constraint classes
   auto A = micm::Species("A");
   auto B = micm::Species("B");
   auto AB = micm::Species("AB");
 
   // Create constraint: A + B <-> AB with K_eq = 1000
   std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(
+  constraints.push_back(micm::EquilibriumConstraint(
       "A_B_eq",
       std::vector<micm::StoichSpecies>{ { A, 1.0 }, { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { AB, 1.0 } },
       1000.0));
 
-  std::map<std::string, std::size_t> variable_map = {
+  std::unordered_map<std::string, std::size_t> variable_map = {
     { "A", 0 },
     { "B", 1 },
     { "AB", 2 }
@@ -63,8 +62,9 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
+  auto C = micm::Species("C");
 
-  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
 
   // Simple reaction: A -> B
   double k = 0.1;
@@ -76,13 +76,13 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
                           .Build();
 
   // Create an equilibrium constraint
-  // constraint_0 will be auto-generated (NOT a Species, pure algebraic variable)
+  // C is an algebraic variable (not in any kinetic reaction)
   double K_eq = 10.0;
   std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(
+  constraints.push_back(micm::EquilibriumConstraint(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { micm::Species("constraint_0"), 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
       K_eq));
 
   // Build solver with constraints - this verifies the API works
@@ -97,22 +97,26 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   auto state = solver.GetState(1);
 
   // Verify the state includes constraint variables
-  ASSERT_EQ(state.state_size_, 2);       // A and B
+  ASSERT_EQ(state.state_size_, 3);       // A, B, and C
   ASSERT_EQ(state.constraint_size_, 1);
   ASSERT_TRUE(state.variable_map_.count("A") > 0);
   ASSERT_TRUE(state.variable_map_.count("B") > 0);
-  ASSERT_TRUE(state.variable_map_.count("constraint_0") > 0);
+  ASSERT_TRUE(state.variable_map_.count("C") > 0);
 
-  // Verify identity diagonal has correct structure (1s for ODE vars, 0 for constraint)
-  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 3);
-  EXPECT_EQ(state.upper_left_identity_diagonal_[0], 1.0);  // A is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[1], 1.0);  // B is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[2], 0.0);  // constraint is algebraic
+  // Verify identity diagonal has correct structure (1s for all species, 0s for constraint rows)
+  // Size is species (3) + constraints (1) = 4
+  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 4);
+  // All species are ODE variables
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // A is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // B is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 1.0);  // C is ODE
+  // The constraint row (beyond species) is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[3], 0.0);  // constraint row is algebraic
 
   // Verify state can be initialized
   std::size_t A_idx = state.variable_map_.at("A");
   std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("constraint_0");
+  std::size_t C_idx = state.variable_map_.at("C");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.1;
@@ -128,7 +132,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   std::cout << "  Constraint size: " << state.constraint_size_ << std::endl;
   std::cout << "  Variables: A=" << state.variables_[0][A_idx]
             << ", B=" << state.variables_[0][B_idx]
-            << ", constraint_0=" << state.variables_[0][C_idx] << std::endl;
+            << ", C=" << state.variables_[0][C_idx] << std::endl;
 }
 
 /// @brief Test SetConstraints API with multiple constraints
@@ -139,9 +143,11 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
+  auto C = micm::Species("C");
   auto D = micm::Species("D");
+  auto E = micm::Species("E");
 
-  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, D } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C, D, E } };
 
   // Simple kinetic reactions
   micm::Process rxn1 = micm::ChemicalReactionBuilder()
@@ -163,15 +169,15 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   double K_eq2 = 20.0;
 
   std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(
+  constraints.push_back(micm::EquilibriumConstraint(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { micm::Species("constraint_0"), 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
       K_eq1));
-  constraints.emplace_back(
+  constraints.push_back(micm::EquilibriumConstraint(
       "D_E_eq",
       std::vector<micm::StoichSpecies>{ { D, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { micm::Species("constraint_1"), 1.0 } },
+      std::vector<micm::StoichSpecies>{ { E, 1.0 } },
       K_eq2));
 
   // Build solver with multiple constraints
@@ -186,28 +192,33 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   auto state = solver.GetState(1);
 
   // Verify state structure
-  ASSERT_EQ(state.state_size_, 3);       // A, B, D
+  ASSERT_EQ(state.state_size_, 5);       // A, B, C, D, E
   ASSERT_EQ(state.constraint_size_, 2);  // Two constraints
   ASSERT_TRUE(state.variable_map_.count("A") > 0);
   ASSERT_TRUE(state.variable_map_.count("B") > 0);
+  ASSERT_TRUE(state.variable_map_.count("C") > 0);
   ASSERT_TRUE(state.variable_map_.count("D") > 0);
-  ASSERT_TRUE(state.variable_map_.count("constraint_0") > 0);
-  ASSERT_TRUE(state.variable_map_.count("constraint_1") > 0);
+  ASSERT_TRUE(state.variable_map_.count("E") > 0);
 
-  // Verify identity diagonal: 3 ODE vars + 2 constraints
-  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 5);
-  EXPECT_EQ(state.upper_left_identity_diagonal_[0], 1.0);  // A is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[1], 1.0);  // B is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[2], 1.0);  // D is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[3], 0.0);  // constraint_0 is algebraic
-  EXPECT_EQ(state.upper_left_identity_diagonal_[4], 0.0);  // constraint_1 is algebraic
+  // Verify identity diagonal: all species are ODE (1.0), constraint rows are algebraic (0.0)
+  // Size is species (5) + constraints (2) = 7  
+  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 7);
+  // All species are ODE variables
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // A is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // B is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 1.0);  // C is ODE 
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("D")], 1.0);  // D is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("E")], 1.0);  // E is ODE
+  // The constraint rows (beyond species) are algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[5], 0.0);  // constraint row 0 is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[6], 0.0);  // constraint row 1 is algebraic
 
   // Initialize state and verify CalculateRateConstants works
   state.variables_[0][state.variable_map_.at("A")] = 1.0;
   state.variables_[0][state.variable_map_.at("B")] = 0.1;
+  state.variables_[0][state.variable_map_.at("C")] = K_eq1 * 0.1;  // C should satisfy C = K_eq1 * B
   state.variables_[0][state.variable_map_.at("D")] = 0.05;
-  state.variables_[0][state.variable_map_.at("constraint_0")] = K_eq1 * 0.1;
-  state.variables_[0][state.variable_map_.at("constraint_1")] = K_eq2 * 0.05;
+  state.variables_[0][state.variable_map_.at("E")] = K_eq2 * 0.05;  // E should satisfy E = K_eq2 * D
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -244,7 +255,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // This couples B (ODE variable) to C (algebraic variable)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(
+  constraints.push_back(micm::EquilibriumConstraint(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },

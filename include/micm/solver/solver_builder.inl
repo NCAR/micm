@@ -342,20 +342,19 @@ namespace micm
 
     // Create ConstraintSet from stored constraints (if any)
     ConstraintSet constraint_set;
+    std::vector<std::string> constraint_names;
     if (number_of_constraints > 0)
     {
-      // Create extended variable map that includes auto-generated constraint variables
-      // This allows constraints to reference variables like "constraint_0", "constraint_1", etc.
-      // that don't need to be declared as Species in the Phase
-      std::unordered_map<std::string, std::size_t> extended_variable_map = species_map;
-      for (std::size_t i = 0; i < number_of_constraints; ++i)
+      // Extract constraint names before moving
+      constraint_names.reserve(number_of_constraints);
+      for (const auto& constraint : constraints_)
       {
-        std::string constraint_var_name = "constraint_" + std::to_string(i);
-        extended_variable_map[constraint_var_name] = number_of_species + i;
+        constraint_names.push_back(constraint.GetName());
       }
 
       // Move constraints into ConstraintSet
-      constraint_set = ConstraintSet(std::move(constraints_), extended_variable_map, number_of_species);
+      // constraint_set = ConstraintSet(std::move(constraints_), extended_variable_map, number_of_species);
+      constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
@@ -384,9 +383,9 @@ namespace micm
       variable_names[species_pair.second] = species_pair.first;
     if (number_of_constraints > 0)
     {
-      for (std::size_t i = 0; i < number_of_constraints; ++i)
+      for (const auto& name : constraint_names)
       {
-        variable_names.push_back(constraints_[i].GetName());
+        variable_names.push_back(name);
       }
     }
 
