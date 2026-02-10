@@ -5,6 +5,7 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/temporary_variables.hpp>
 #include <micm/system/conditions.hpp>
+#include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
@@ -70,6 +71,70 @@ namespace micm
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
+
+    class VariableProxy
+    {
+      State& state_;
+      std::size_t index_;
+
+     public:
+      VariableProxy(State& state, std::size_t index)
+          : state_(state),
+            index_(index)
+      {
+      }
+
+      operator double() const;
+
+      VariableProxy& operator=(double value);
+
+      VariableProxy& operator=(const std::vector<double>& values);
+
+      VariableProxy& operator=(const VariableProxy& other);
+
+      VariableProxy& operator+=(double value);
+
+      VariableProxy& operator-=(double value);
+
+      VariableProxy& operator*=(double value);
+
+      VariableProxy& operator/=(double value);
+
+      double& operator[](std::size_t grid_cell_index);
+
+      const double& operator[](std::size_t grid_cell_index) const;
+
+      bool operator==(const std::vector<double>& other) const;
+
+      friend bool operator==(const std::vector<double>& lhs, const VariableProxy& rhs)
+      {
+        return rhs == lhs;
+      }
+    };
+
+    class ConstVariableProxy
+    {
+      const State& state_;
+      std::size_t index_;
+
+     public:
+      ConstVariableProxy(const State& state, std::size_t index)
+          : state_(state),
+            index_(index)
+      {
+      }
+
+      operator double() const;
+
+      const double& operator[](std::size_t grid_cell_index) const;
+
+      bool operator==(const std::vector<double>& other) const;
+
+      friend bool operator==(const std::vector<double>& lhs, const ConstVariableProxy& rhs)
+      {
+        return rhs == lhs;
+      }
+    };
 
    public:
     /// @brief Default constructor
@@ -192,26 +257,72 @@ namespace micm
       return number_of_grid_cells_;
     }
 
+    /// @brief Square-bracket access operator for state variable index
+    /// @param index The index of the variable to access
+    /// @return Reference to the variable matrix column corresponding to the given index
+    VariableProxy operator[](std::size_t index);
+
+    /// @brief Square-bracket access operator for state variable index (const version)
+    /// @param index The index of the variable to access
+    /// @return Const reference to the variable matrix column corresponding to the given index
+    ConstVariableProxy operator[](std::size_t index) const;
+
+    /// @brief Square-bracket access operator for unique variable name
+    /// @param name The unique name of the variable to access
+    /// @return VariableProxy proxy object providing access to the values of the named variable
+    ///         (e.g., its concentration) across grid cells. This is a proxy, not a direct
+    ///         reference to an internal matrix column; see VariableProxy documentation for
+    ///         details on single- vs multi-cell access patterns.
+    VariableProxy operator[](const std::string& name);
+
+    /// @brief Square-bracket access operator for unique variable name (const version)
+    /// @param name The unique name of the variable to access
+    /// @return ConstVariableProxy proxy object providing read-only access to the values of the
+    ///         named variable across grid cells. This is a proxy, not a direct reference to an
+    ///         internal matrix column; see ConstVariableProxy documentation for details on
+    ///         single- vs multi-cell access patterns.
+    ConstVariableProxy operator[](const std::string& name) const;
+
+    /// @brief Square-bracket access operator for species object
+    /// @param species The species object corresponding to the variable to access
+    /// @return VariableProxy proxy object providing access to the values of the given species
+    ///         across grid cells. This is a proxy, not a direct reference to an internal matrix
+    ///         column; see VariableProxy documentation for details on single- vs multi-cell
+        ///         access patterns.
+    VariableProxy operator[](const Species& species);
+
+    /// @brief Square-bracket access operator for species object (const version)
+    /// @param species The species object corresponding to the variable to access
+    /// @return ConstVariableProxy proxy object providing read-only access to the values of the
+    ///         given species across grid cells. This is a proxy, not a direct reference to an
+    ///         internal matrix column; see ConstVariableProxy documentation for details on
+    ///         single- vs multi-cell access patterns.
+    ConstVariableProxy operator[](const Species& species) const;
+
     /// @brief Set species' concentrations
     /// @param species_to_concentration
     void SetConcentrations(const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
 
     /// @brief Set a single species concentration
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentration or state["species_name"] = concentration
     /// @param species the species to set the concentration for
     /// @param concentration concentration [mol m-3]
     void SetConcentration(const Species& species, double concentration);
 
     /// @brief Set concentrations for a single species across multiple grid cells
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentrations or state["species_name"] = concentrations
     /// @param species the species to set the concentrations for
     /// @param concentration vector of concentrations [mol m-3], one per grid cell
     void SetConcentration(const Species& species, const std::vector<double>& concentration);
 
     /// @brief Set the concentration for a named element (species or other variable)
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentration or state["species_name"] = concentration
     /// @param species the name of the element (can be a non-species variable, e.g., number_concentration)
     /// @param concentration concentration value [mol m-3]
     void SetConcentration(const std::string& element, double concentration);
 
     /// @brief Set concentrations for a named element (species or other variable) across multiple grid cells
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentrations or state["species_name"] = concentrations
     /// @param species the name of the element (can be a non-species variable, e.g., number_concentration)
     /// @param concentration vector of concentrations [mol m-3], one per grid cell
     void SetConcentration(const std::string& element, const std::vector<double>& concentration);
