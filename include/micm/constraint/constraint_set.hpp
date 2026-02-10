@@ -19,10 +19,9 @@ namespace micm
 {
 
   /// @brief Manages a collection of algebraic constraints for DAE solvers
-  ///
-  /// ConstraintSet handles the computation of constraint residuals (forcing terms)
-  /// and Jacobian contributions for a set of constraints. It follows the same
-  /// pattern as ProcessSet for integration with the Rosenbrock solver.
+  ///        ConstraintSet handles the computation of constraint residuals (forcing terms)
+  ///        and Jacobian contributions for a set of constraints. It follows the same
+  ///        pattern as ProcessSet for integration with the Rosenbrock solver.
   class ConstraintSet
   {
    protected:

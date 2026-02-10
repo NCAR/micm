@@ -16,13 +16,11 @@ namespace micm
 {
 
   /// @brief Constraint for chemical equilibrium: K_eq = [products]^stoich / [reactants]^stoich
-  ///
-  /// For a reversible reaction: aA + bB <-> cC + dD
-  /// The equilibrium constraint is: G = K_eq * [A]^a * [B]^b - [C]^c * [D]^d = 0
-  ///
-  /// This can also be written in terms of forward/backward rate constants:
-  /// G = k_f * [A]^a * [B]^b - k_b * [C]^c * [D]^d = 0
-  /// where K_eq = k_f / k_b
+  ///        For a reversible reaction: aA + bB <-> cC + dD
+  ///        The equilibrium constraint is: G = K_eq * [A]^a * [B]^b - [C]^c * [D]^d = 0
+  ///        This can also be written in terms of forward/backward rate constants:
+  ///        G = k_f * [A]^a * [B]^b - k_b * [C]^c * [D]^d = 0
+  ///        where K_eq = k_f / k_b
   class EquilibriumConstraint
   {
    public:

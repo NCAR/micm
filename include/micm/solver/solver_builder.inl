@@ -353,7 +353,6 @@ namespace micm
       }
 
       // Move constraints into ConstraintSet
-      // constraint_set = ConstraintSet(std::move(constraints_), extended_variable_map, number_of_species);
       constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements

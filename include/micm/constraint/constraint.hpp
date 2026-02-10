@@ -14,15 +14,10 @@ namespace micm
 {
 
   /// @brief Wrapper for algebraic constraints G(y) = 0 using variant pattern
-  ///
-  /// Constraints define algebraic relations that must be satisfied by the species
-  /// concentrations. They are used in DAE (Differential-Algebraic Equation) solvers
-  /// to enforce conditions like chemical equilibrium or mass conservation.
-  ///
-  /// This class uses std::variant to hold different constraint types.
-  /// Each constraint provides:
-  /// - A residual function G(y) that should equal zero when the constraint is satisfied
-  /// - Jacobian entries dG/dy for each species the constraint depends on
+  ///        This class uses std::variant to hold different constraint types.
+  ///        Each constraint provides:
+  ///        - A residual function G(y) that should equal zero when the constraint is satisfied
+  ///        - Jacobian entries dG/dy for each species the constraint depends on
   class Constraint
   {
    public:
