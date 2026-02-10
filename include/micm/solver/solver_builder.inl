@@ -143,7 +143,7 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints)
+      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
   {
     constraints_ = std::move(constraints);
     return *this;

@@ -23,18 +23,15 @@ namespace micm
   /// This can also be written in terms of forward/backward rate constants:
   /// G = k_f * [A]^a * [B]^b - k_b * [C]^c * [D]^d = 0
   /// where K_eq = k_f / k_b
-  ///
-  /// IMPORTANT: Current implementation supports defining pure algebraic variables
-  /// (species that appear in NO reactions). The product species should be "dummy"
-  /// species added to the Phase solely to create algebraic variables. The constraint
-  /// defines their values in terms of reactive species (reactants).
-  ///
-  /// This creates a semi-explicit DAE where products get dummy ODE rows (dP/dt = 0)
-  /// plus algebraic constraint rows (G = 0). Not suitable for constraining existing
-  /// reactive species (would create over-determined system).
-  class EquilibriumConstraint : public Constraint
+  class EquilibriumConstraint
   {
    public:
+    /// @brief Name of the constraint (for identification)
+    std::string name_;
+
+    /// @brief Names of species this constraint depends on
+    std::vector<std::string> species_dependencies_;
+
     /// @brief Reactant species and their stoichiometric coefficients
     std::vector<StoichSpecies> reactants_;
 
@@ -56,6 +53,9 @@ namespace micm
     EquilibriumConstraint() = default;
 
     /// @brief Construct an equilibrium constraint
+    ///        Validates that equilibrium constraint >= 0
+    ///        Builds species_dependencies_ by concatenating reactants then products
+    ///        Stores index mappings for efficient Jacobian computation
     /// @param name Constraint identifier
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
@@ -65,7 +65,7 @@ namespace micm
         const std::vector<StoichSpecies>& reactants,
         const std::vector<StoichSpecies>& products,
         double equilibrium_constant)
-        : Constraint(name),
+        : name_(name),
           reactants_(reactants),
           products_(products),
           equilibrium_constant_(equilibrium_constant)
@@ -111,23 +111,13 @@ namespace micm
       }
     }
 
-    /// @brief Create a deep copy of this constraint
-    /// @return Unique pointer to cloned equilibrium constraint
-    std::unique_ptr<Constraint> Clone() const override
-    {
-      return std::make_unique<EquilibriumConstraint>(*this);
-    }
-
     /// @brief Evaluate the equilibrium constraint residual
-    ///
-    /// G = K_eq * prod([reactants]^stoich) - prod([products]^stoich)
-    ///
-    /// At equilibrium, G = 0
-    ///
+    ///        G = K_eq * prod([reactants]^stoich) - prod([products]^stoich)
+    ///        At equilibrium, G = 0
     /// @param concentrations Pointer to species concentrations (row of state matrix)
     /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
     /// @return Residual value
-    double Residual(const double* concentrations, const std::size_t* indices) const override
+    double Residual(const double* concentrations, const std::size_t* indices) const
     {
       // Compute product of reactant concentrations raised to stoichiometric powers
       double reactant_product = 1.0;
@@ -150,17 +140,14 @@ namespace micm
     }
 
     /// @brief Compute Jacobian entries dG/d[species]
-    ///
-    /// For reactant R with stoichiometry n:
-    ///   dG/d[R] = K_eq * n * [R]^(n-1) * prod([other_reactants]^stoich)
-    ///
-    /// For product P with stoichiometry m:
-    ///   dG/d[P] = -m * [P]^(m-1) * prod([other_products]^stoich)
-    ///
+    ///        For reactant R with stoichiometry n:
+    ///          dG/d[R] = K_eq * n * [R]^(n-1) * prod([other_reactants]^stoich)
+    ///        For product P with stoichiometry m:
+    ///          dG/d[P] = -m * [P]^(m-1) * prod([other_products]^stoich)
     /// @param concentrations Pointer to species concentrations (row of state matrix)
     /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
     /// @param jacobian Output buffer for partial derivatives (same order as species_dependencies_)
-    void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const override
+    void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const
     {
       // Initialize jacobian entries to zero
       for (std::size_t i = 0; i < species_dependencies_.size(); ++i)

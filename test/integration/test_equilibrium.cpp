@@ -23,8 +23,8 @@ TEST(EquilibriumIntegration, ConstraintSetAPITest)
   auto AB = micm::Species("AB");
 
   // Create constraint: A + B <-> AB with K_eq = 1000
-  std::vector<std::unique_ptr<micm::Constraint>> constraints;
-  constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
+  std::vector<micm::Constraint> constraints;
+  constraints.emplace_back(
       "A_B_eq",
       std::vector<micm::StoichSpecies>{ { A, 1.0 }, { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { AB, 1.0 } },
@@ -78,8 +78,8 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // Create an equilibrium constraint
   // constraint_0 will be auto-generated (NOT a Species, pure algebraic variable)
   double K_eq = 10.0;
-  std::vector<std::unique_ptr<micm::Constraint>> constraints;
-  constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
+  std::vector<micm::Constraint> constraints;
+  constraints.emplace_back(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { micm::Species("constraint_0"), 1.0 } },
@@ -162,13 +162,13 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   double K_eq1 = 5.0;
   double K_eq2 = 20.0;
 
-  std::vector<std::unique_ptr<micm::Constraint>> constraints;
-  constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
+  std::vector<micm::Constraint> constraints;
+  constraints.emplace_back(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { micm::Species("constraint_0"), 1.0 } },
       K_eq1));
-  constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
+  constraints.emplace_back(
       "D_E_eq",
       std::vector<micm::StoichSpecies>{ { D, 1.0 } },
       std::vector<micm::StoichSpecies>{ { micm::Species("constraint_1"), 1.0 } },
@@ -243,8 +243,8 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   // This couples B (ODE variable) to C (algebraic variable)
   double K_eq = 2.0;
-  std::vector<std::unique_ptr<micm::Constraint>> constraints;
-  constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
+  std::vector<micm::Constraint> constraints;
+  constraints.emplace_back(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },

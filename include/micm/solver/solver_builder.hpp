@@ -55,7 +55,7 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::vector<std::unique_ptr<Constraint>> constraints_;
+    std::vector<Constraint> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -69,44 +69,11 @@ namespace micm
     {
     }
 
-    // Copy constructor deep-copies the constraint vector
-    SolverBuilder(const SolverBuilder& other)
-        : options_(other.options_),
-          system_(other.system_),
-          reactions_(other.reactions_),
-          ignore_unused_species_(other.ignore_unused_species_),
-          reorder_state_(other.reorder_state_),
-          valid_system_(other.valid_system_),
-          valid_reactions_(other.valid_reactions_)
-    {
-      constraints_.reserve(other.constraints_.size());
-      for (const auto& constraint : other.constraints_)
-      {
-        constraints_.push_back(constraint->Clone());
-      }
-    }
+    // Copy constructor
+    SolverBuilder(const SolverBuilder& other) = default;
 
-    SolverBuilder& operator=(const SolverBuilder& other)
-    {
-      if (this != &other)
-      {
-        options_ = other.options_;
-        system_ = other.system_;
-        reactions_ = other.reactions_;
-        ignore_unused_species_ = other.ignore_unused_species_;
-        reorder_state_ = other.reorder_state_;
-        valid_system_ = other.valid_system_;
-        valid_reactions_ = other.valid_reactions_;
-
-        constraints_.clear();
-        constraints_.reserve(other.constraints_.size());
-        for (const auto& constraint : other.constraints_)
-        {
-          constraints_.push_back(constraint->Clone());
-        }
-      }
-      return *this;
-    }
+    // Copy assignment
+    SolverBuilder& operator=(const SolverBuilder& other) = default;
 
     // Default move operations
     SolverBuilder(SolverBuilder&&) = default;
@@ -133,9 +100,9 @@ namespace micm
     SolverBuilder& SetReorderState(bool reorder_state);
 
     /// @brief Set algebraic constraints for DAE solving
-    /// @param constraints Vector of constraint pointers (ownership transferred)
+    /// @param constraints Vector of constraints
     /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints);
+    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
