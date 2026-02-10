@@ -354,7 +354,8 @@ namespace micm
 
       // Copy constraints so that the builder can be reused
       auto constraints_copy = constraints_;
-      // Move copied constraints into ConstraintSet
+      // Constraints reference existing species only (no new variables created)
+      // Pass species_map so constraints can resolve dependencies to species indices
       constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species);
 
       // // Move constraints into ConstraintSet
@@ -385,13 +386,10 @@ namespace micm
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
-    if (number_of_constraints > 0)
-    {
-      for (const auto& name : constraint_names)
-      {
-        variable_names.push_back(name);
-      }
-    }
+    // Note: Constraint names are NOT added to variable_names.
+    // Constraints add rows to the Jacobian/forcing but do not create new state variables.
+    // The variables_ matrix should only contain species, while Jacobian/forcing/K matrices
+    // have extra rows (state_size_ + constraint_size_) for the constraint equations.
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
                                          .number_of_constraints_ = number_of_constraints,
