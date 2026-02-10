@@ -21,10 +21,8 @@ template<std::size_t L>
 void testNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
 {
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  // gpu_builder = getSolver(gpu_builder);
-  // auto gpu_solver = gpu_builder.Build();
-  auto gpu_solver = getSolver(std::move(gpu_builder)).Build();
-  // auto gpu_solver = gpu_builder.Build();
+  gpu_builder = getSolver(gpu_builder);
+  auto gpu_solver = gpu_builder.Build();
   auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;
@@ -68,10 +66,8 @@ template<std::size_t L>
 void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
 {
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  // gpu_builder = getSolver(gpu_builder);
-  // auto gpu_solver = gpu_builder.Build();
-  // gpu_builder = getSolver(std::move(gpu_builder)).Build();
-  auto gpu_solver = getSolver(std::move(gpu_builder)).Build();
+  gpu_builder = getSolver(gpu_builder);
+  auto gpu_solver = gpu_builder.Build();
   auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;

@@ -13,7 +13,7 @@
 #include <cstddef>
 
 template<class SolverBuilderPolicy>
-SolverBuilderPolicy getSolver(SolverBuilderPolicy&& builder)
+SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -51,16 +51,16 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy&& builder)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }))
                          .Build();
 
-  return std::move(builder)
-          .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
-          .SetReorderState(false);
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
+      .SetReorderState(false);
 }
 
 template<class SolverBuilderPolicy>
-void testAlphaMinusJacobian(SolverBuilderPolicy&& builder, std::size_t number_of_grid_cells)
+void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  auto solver = getSolver(std::move(builder)).Build();
+  builder = getSolver(builder);
+  auto solver = builder.Build();
   auto state = solver.GetState(number_of_grid_cells);
   auto& jacobian = state.jacobian_;
 

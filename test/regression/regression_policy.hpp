@@ -146,7 +146,7 @@ void test_flow_tube(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
-  auto solver = std::move(builder).SetReorderState(false)
+  auto solver = builder.SetReorderState(false)
                     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions(processes)
                     .Build();
