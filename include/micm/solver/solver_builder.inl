@@ -347,7 +347,7 @@ namespace micm
       // Create extended variable map that includes auto-generated constraint variables
       // This allows constraints to reference variables like "constraint_0", "constraint_1", etc.
       // that don't need to be declared as Species in the Phase
-      std::map<std::string, std::size_t> extended_variable_map = species_map;
+      std::unordered_map<std::string, std::size_t> extended_variable_map = species_map;
       for (std::size_t i = 0; i < number_of_constraints; ++i)
       {
         std::string constraint_var_name = "constraint_" + std::to_string(i);
@@ -386,7 +386,7 @@ namespace micm
     {
       for (std::size_t i = 0; i < number_of_constraints; ++i)
       {
-        variable_names.push_back(constraints_[i]->name_);
+        variable_names.push_back(constraints_[i].GetName());
       }
     }
 
