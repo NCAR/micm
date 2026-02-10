@@ -304,21 +304,25 @@ namespace micm
     void SetConcentrations(const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
 
     /// @brief Set a single species concentration
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentration or state["species_name"] = concentration
     /// @param species the species to set the concentration for
     /// @param concentration concentration [mol m-3]
     void SetConcentration(const Species& species, double concentration);
 
     /// @brief Set concentrations for a single species across multiple grid cells
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentrations or state["species_name"] = concentrations
     /// @param species the species to set the concentrations for
     /// @param concentration vector of concentrations [mol m-3], one per grid cell
     void SetConcentration(const Species& species, const std::vector<double>& concentration);
 
     /// @brief Set the concentration for a named element (species or other variable)
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentration or state["species_name"] = concentration
     /// @param species the name of the element (can be a non-species variable, e.g., number_concentration)
     /// @param concentration concentration value [mol m-3]
     void SetConcentration(const std::string& element, double concentration);
 
     /// @brief Set concentrations for a named element (species or other variable) across multiple grid cells
+    /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations, e.g., state[species] = concentrations or state["species_name"] = concentrations
     /// @param species the name of the element (can be a non-species variable, e.g., number_concentration)
     /// @param concentration vector of concentrations [mol m-3], one per grid cell
     void SetConcentration(const std::string& element, const std::vector<double>& concentration);
