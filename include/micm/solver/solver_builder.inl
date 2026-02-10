@@ -314,7 +314,7 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::Build()
+      StatePolicy>::Build() const
   {
     // make a copy of the options so that the builder can be used repeatedly
     // this matters because the absolute tolerances must be set to match the system size, and that may change
@@ -352,8 +352,13 @@ namespace micm
         constraint_names.push_back(constraint.GetName());
       }
 
-      // Move constraints into ConstraintSet
-      constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
+      // Copy constraints so that the builder can be reused
+      auto constraints_copy = constraints_;
+      // Move copied constraints into ConstraintSet
+      constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species);
+
+      // // Move constraints into ConstraintSet
+      // constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();

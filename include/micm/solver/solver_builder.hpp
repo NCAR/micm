@@ -106,7 +106,7 @@ namespace micm
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
-    auto Build();
+    auto Build() const;
 
    protected:
     /// @brief Checks for unused species

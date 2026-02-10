@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_error.hpp>
 #include <micm/system/stoich_species.hpp>
 

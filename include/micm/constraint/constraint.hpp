@@ -9,12 +9,13 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <concepts>
+#include <type_traits>
 
 namespace micm
 {
 
-  /// @brief Wrapper for algebraic constraints G(y) = 0 using variant pattern
-  ///        This class uses std::variant to hold different constraint types.
+  /// @brief This class uses std::variant to hold different constraint types.
   ///        Each constraint provides:
   ///        - A residual function G(y) that should equal zero when the constraint is satisfied
   ///        - Jacobian entries dG/dy for each species the constraint depends on
