@@ -59,7 +59,6 @@ namespace micm
       StatePolicy>::SetReactions(const std::vector<Process>& reactions)
   {
     reactions_ = reactions;
-    valid_reactions_ = reactions_.size() > 0;
     return *this;
   }
 
@@ -260,7 +259,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -269,7 +268,7 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetSpeciesMap() const
   {
-    std::map<std::string, std::size_t> species_map;
+    std::unordered_map<std::string, std::size_t> species_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     std::size_t index = 0;
     for (auto& name : system_.UniqueNames())
@@ -314,7 +313,8 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const
+      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
+          const
   {
     tolerances = std::vector<double>(species_map.size(), 1e-3);
     for (auto& phase_species : system_.gas_phase_.phase_species_)
@@ -323,17 +323,6 @@ namespace micm
       if (species.HasProperty("absolute tolerance"))
       {
         tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
-      }
-    }
-    for (auto& phase : system_.phases_)
-    {
-      for (auto& phase_species : phase.second.phase_species_)
-      {
-        auto& species = phase_species.species_;
-        if (species.HasProperty("absolute tolerance"))
-        {
-          tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
-        }
       }
     }
   }
@@ -394,10 +383,6 @@ namespace micm
     if (!valid_system_)
     {
       throw std::system_error(make_error_code(MicmSolverErrc::MissingChemicalSystem), "Missing chemical system.");
-    }
-    if (!valid_reactions_)
-    {
-      throw std::system_error(make_error_code(MicmSolverErrc::MissingProcesses), "Missing processes.");
     }
     using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
     auto species_map = this->GetSpeciesMap();
