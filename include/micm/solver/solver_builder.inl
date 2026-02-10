@@ -359,8 +359,18 @@ namespace micm
     ConstraintSet constraint_set;
     if (number_of_constraints > 0)
     {
-      // Move constraints into ConstraintSet (builder is consumed after Build())
-      constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
+      // Create extended variable map that includes auto-generated constraint variables
+      // This allows constraints to reference variables like "constraint_0", "constraint_1", etc.
+      // that don't need to be declared as Species in the Phase
+      std::map<std::string, std::size_t> extended_variable_map = species_map;
+      for (std::size_t i = 0; i < number_of_constraints; ++i)
+      {
+        std::string constraint_var_name = "constraint_" + std::to_string(i);
+        extended_variable_map[constraint_var_name] = number_of_species + i;
+      }
+
+      // Move constraints into ConstraintSet
+      constraint_set = ConstraintSet(std::move(constraints_), extended_variable_map, number_of_species);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();

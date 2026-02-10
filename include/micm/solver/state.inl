@@ -120,6 +120,12 @@ namespace micm
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
+    // Build identity diagonal for augmented DAE system:
+    // - First state_size_ entries (species): diagonal = 1.0 (ODE equations)
+    // - Next constraint_size_ entries: diagonal = 0.0 (algebraic equations)
+    // Note: If constraint variables are species (current workaround), they appear
+    // in BOTH sections - once as dummy ODE species (diagonal=1.0, no reactions)
+    // and again as constraint equations (diagonal=0.0). This creates redundant rows.
     for (std::size_t i = 0; i < state_size_; i++) {
       upper_left_identity_diagonal_.push_back(1.0);
     }

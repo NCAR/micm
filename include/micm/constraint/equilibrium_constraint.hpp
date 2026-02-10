@@ -23,6 +23,15 @@ namespace micm
   /// This can also be written in terms of forward/backward rate constants:
   /// G = k_f * [A]^a * [B]^b - k_b * [C]^c * [D]^d = 0
   /// where K_eq = k_f / k_b
+  ///
+  /// IMPORTANT: Current implementation supports defining pure algebraic variables
+  /// (species that appear in NO reactions). The product species should be "dummy"
+  /// species added to the Phase solely to create algebraic variables. The constraint
+  /// defines their values in terms of reactive species (reactants).
+  ///
+  /// This creates a semi-explicit DAE where products get dummy ODE rows (dP/dt = 0)
+  /// plus algebraic constraint rows (G = 0). Not suitable for constraining existing
+  /// reactive species (would create over-determined system).
   class EquilibriumConstraint : public Constraint
   {
    public:

@@ -76,12 +76,13 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
                           .Build();
 
   // Create an equilibrium constraint
+  // constraint_0 will be auto-generated (NOT a Species, pure algebraic variable)
   double K_eq = 10.0;
   std::vector<std::unique_ptr<micm::Constraint>> constraints;
   constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { { "constraint_0"}, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { micm::Species("constraint_0"), 1.0 } },
       K_eq));
 
   // Build solver with constraints - this verifies the API works
@@ -165,12 +166,12 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { { "constraint_0" }, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { micm::Species("constraint_0"), 1.0 } },
       K_eq1));
   constraints.push_back(std::make_unique<micm::EquilibriumConstraint>(
       "D_E_eq",
       std::vector<micm::StoichSpecies>{ { D, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { { "constraint_1" }, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { micm::Species("constraint_1"), 1.0 } },
       K_eq2));
 
   // Build solver with multiple constraints

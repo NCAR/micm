@@ -142,6 +142,8 @@ namespace micm
       }
 
       // Map species dependencies to variable indices
+      // Variables can be either chemical species OR auto-generated constraint variables
+      // (e.g., "constraint_0", "constraint_1") that are added to variable_map by SolverBuilder
       for (const auto& species_name : constraint->species_dependencies_)
       {
         auto it = variable_map.find(species_name);
@@ -149,7 +151,7 @@ namespace micm
         {
           throw std::system_error(
               make_error_code(MicmConstraintErrc::UnknownSpecies),
-              "Constraint '" + constraint->name_ + "' depends on unknown species '" + species_name + "'");
+              "Constraint '" + constraint->name_ + "' depends on unknown variable '" + species_name + "'");
         }
         dependency_ids_.push_back(it->second);
       }
