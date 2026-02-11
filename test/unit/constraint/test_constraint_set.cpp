@@ -39,9 +39,7 @@ TEST(ConstraintSet, Construction)
     { "AB", 2 }
   };
 
-  std::size_t constraint_row_offset = 3;  // After the 3 species
-
-  ConstraintSet set(std::move(constraints), variable_map, constraint_row_offset);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   EXPECT_EQ(set.Size(), 1);
 }
@@ -61,7 +59,7 @@ TEST(ConstraintSet, ReplaceStateRowsMapsToAlgebraicSpecies)
     { "C", 2 }
   };
 
-  ConstraintSet set(std::move(constraints), variable_map, 3, true);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   EXPECT_EQ(set.Size(), 1);
   EXPECT_EQ(set.AlgebraicVariableIds().size(), 1);
@@ -89,19 +87,17 @@ TEST(ConstraintSet, NonZeroJacobianElements)
     { "AB", 2 }
   };
 
-  std::size_t constraint_row_offset = 3;
-
-  ConstraintSet set(std::move(constraints), variable_map, constraint_row_offset);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  // Constraint is at row 3 (after species A, B, AB)
-  // It depends on A (col 0), B (col 1), AB (col 2)
+  // Algebraic species = AB (index 2), constraint replaces row 2
+  // Dependencies: A (col 0), B (col 1), AB (col 2) + diagonal (2,2)
   EXPECT_EQ(non_zero_elements.size(), 3);
 
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 0)));  // dG/dA at row 3, col 0
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 1)));  // dG/dB at row 3, col 1
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 2)));  // dG/dAB at row 3, col 2
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 0)));  // dG/dA at row 2, col 0
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 1)));  // dG/dB at row 2, col 1
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 2)));  // dG/dAB at row 2, col 2 (+ diagonal)
 }
 
 TEST(ConstraintSet, MultipleConstraints)
@@ -127,22 +123,20 @@ TEST(ConstraintSet, MultipleConstraints)
     { "D", 4 }
   };
 
-  std::size_t constraint_row_offset = 5;
-
-  ConstraintSet set(std::move(constraints), variable_map, constraint_row_offset);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   EXPECT_EQ(set.Size(), 2);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  // First constraint at row 5: depends on A, B, AB
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(5, 0)));  // dG1/dA
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(5, 1)));  // dG1/dB
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(5, 2)));  // dG1/dAB
+  // First constraint: algebraic = AB (index 2), replaces row 2
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 0)));  // dG1/dA
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 1)));  // dG1/dB
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 2)));  // dG1/dAB + diagonal
 
-  // Second constraint at row 6: depends on C, D
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(6, 3)));  // dG2/dC
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(6, 4)));  // dG2/dD
+  // Second constraint: algebraic = D (index 4), replaces row 4
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(4, 3)));  // dG2/dC
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(4, 4)));  // dG2/dD + diagonal
 
   EXPECT_EQ(non_zero_elements.size(), 5);
 }
@@ -164,25 +158,24 @@ TEST(ConstraintSet, AddForcingTerms)
   };
 
   std::size_t num_species = 3;
-  std::size_t num_constraints = 1;
 
-  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   // State with 2 grid cells
   Matrix<double> state(2, num_species);
   state[0] = { 0.01, 0.01, 0.001 };  // Away from equilibrium
   state[1] = { 0.001, 0.001, 0.001 };  // At equilibrium
 
-  // Extended forcing vector (species + constraints)
-  Matrix<double> forcing(2, num_species + num_constraints, 0.0);
+  // Forcing vector (same size as state; constraint replaces AB row at index 2)
+  Matrix<double> forcing(2, num_species, 0.0);
 
   set.AddForcingTerms(state, forcing);
 
   // For grid cell 0: G = 1000 * 0.01 * 0.01 - 0.001 = 0.1 - 0.001 = 0.099
-  EXPECT_NEAR(forcing[0][3], 0.099, 1e-10);
+  EXPECT_NEAR(forcing[0][2], 0.099, 1e-10);
 
   // For grid cell 1: G = 1000 * 0.001 * 0.001 - 0.001 = 0.001 - 0.001 = 0.0
-  EXPECT_NEAR(forcing[1][3], 0.0, 1e-10);
+  EXPECT_NEAR(forcing[1][2], 0.0, 1e-10);
 }
 
 TEST(ConstraintSet, SubtractJacobianTerms)
@@ -202,21 +195,18 @@ TEST(ConstraintSet, SubtractJacobianTerms)
   };
 
   std::size_t num_species = 3;
-  std::size_t num_constraints = 1;
-  std::size_t total_vars = num_species + num_constraints;
 
-  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   // Get non-zero elements and build sparse Jacobian
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  // Build a 4x4 sparse Jacobian (3 species + 1 constraint)
-  // Include diagonal elements for species and constraint rows
-  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
+  // Build a 3x3 sparse Jacobian (constraint replaces AB's row)
+  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(num_species)
     .SetNumberOfBlocks(1)
     .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < total_vars; ++i)
+  for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);  // Diagonals
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
@@ -237,9 +227,10 @@ TEST(ConstraintSet, SubtractJacobianTerms)
   // dG/d[AB] = -1
 
   // Jacobian subtracts these values (matching ProcessSet convention)
-  EXPECT_NEAR(jacobian[0][3][0], -20.0, 1e-10);  // J[constraint_row, A] -= dG/dA
-  EXPECT_NEAR(jacobian[0][3][1], -10.0, 1e-10);  // J[constraint_row, B] -= dG/dB
-  EXPECT_NEAR(jacobian[0][3][2], 1.0, 1e-10);    // J[constraint_row, AB] -= dG/dAB = -(-1) = 1
+  // Constraint replaces row 2 (AB's row)
+  EXPECT_NEAR(jacobian[0][2][0], -20.0, 1e-10);  // J[2, A] -= dG/dA
+  EXPECT_NEAR(jacobian[0][2][1], -10.0, 1e-10);  // J[2, B] -= dG/dB
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-10);    // J[2, AB] -= dG/dAB = -(-1) = 1
 }
 
 TEST(ConstraintSet, EmptyConstraintSet)
@@ -283,15 +274,15 @@ TEST(ConstraintSet, UnknownSpeciesThrows)
   };
 
   EXPECT_THROW(
-      ConstraintSet(std::move(constraints), variable_map, 2),
+      ConstraintSet(std::move(constraints), variable_map),
       std::system_error);
 }
 
 /// @brief Test 3D state (3 species) with 1 constraint
 ///
 /// System: Species X, Y, Z with constraint X <-> Y (K_eq = 50)
-/// State dimension: 3 species + 1 constraint = 4
-/// Jacobian: 4x4 matrix
+/// Algebraic species = Y (first product), replaces row 1
+/// Jacobian: 3x3 matrix
 ///
 /// Constraint: G = K_eq * [X] - [Y] = 0
 /// At equilibrium: [Y]/[X] = K_eq = 50
@@ -299,8 +290,6 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
 {
   const double K_eq = 50.0;
   const std::size_t num_species = 3;
-  const std::size_t num_constraints = 1;
-  const std::size_t total_vars = num_species + num_constraints;
 
   // Create constraint: X <-> Y with K_eq = 50
   std::vector<Constraint> constraints;
@@ -316,23 +305,24 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
     { "Z", 2 }
   };
 
-  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   EXPECT_EQ(set.Size(), 1);
 
   // Check non-zero Jacobian elements
+  // Algebraic species = Y (index 1), constraint replaces row 1
   auto non_zero_elements = set.NonZeroJacobianElements();
-  EXPECT_EQ(non_zero_elements.size(), 2);  // dG/dX and dG/dY
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 0)));  // dG/dX at row 3, col 0
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 1)));  // dG/dY at row 3, col 1
-  EXPECT_FALSE(non_zero_elements.count(std::make_pair(3, 2))); // Z not involved
+  EXPECT_EQ(non_zero_elements.size(), 2);  // (1,0) dG/dX, (1,1) dG/dY + diagonal
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));  // dG/dX at row 1, col 0
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 1)));  // dG/dY at row 1, col 1 + diagonal
+  EXPECT_FALSE(non_zero_elements.count(std::make_pair(1, 2))); // Z not involved
 
-  // Build sparse Jacobian (4x4)
-  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
+  // Build sparse Jacobian (3x3)
+  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(num_species)
     .SetNumberOfBlocks(2)  // Test with 2 grid cells
     .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < total_vars; ++i)
+  for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
@@ -352,13 +342,14 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
   state[1][2] = 0.3;   // Z
 
   // Test forcing terms
-  Matrix<double> forcing(2, total_vars, 0.0);
+  Matrix<double> forcing(2, num_species, 0.0);
   set.AddForcingTerms(state, forcing);
 
-  // Grid cell 0: G = K_eq * [X] - [Y] = 50 * 0.1 - 2.0 = 5.0 - 2.0 = 3.0
-  EXPECT_NEAR(forcing[0][3], 3.0, 1e-10);
-  // Grid cell 1: G = 50 * 0.02 - 1.0 = 1.0 - 1.0 = 0.0 (at equilibrium)
-  EXPECT_NEAR(forcing[1][3], 0.0, 1e-10);
+  // Constraint replaces row 1 (Y's row)
+  // Grid cell 0: G = K_eq * [X] - [Y] = 50 * 0.1 - 2.0 = 3.0
+  EXPECT_NEAR(forcing[0][1], 3.0, 1e-10);
+  // Grid cell 1: G = 50 * 0.02 - 1.0 = 0.0 (at equilibrium)
+  EXPECT_NEAR(forcing[1][1], 0.0, 1e-10);
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, jacobian);
@@ -366,18 +357,16 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
   // For constraint G = K_eq * [X] - [Y]:
   // dG/dX = K_eq = 50
   // dG/dY = -1
-  // Jacobian subtracts, so:
-  // J[3,0] -= 50 => J[3,0] = -50
-  // J[3,1] -= (-1) => J[3,1] = 1
+  // Jacobian subtracts at row 1:
 
   // Grid cell 0
-  EXPECT_NEAR(jacobian[0][3][0], -K_eq, 1e-10);  // dG/dX
-  EXPECT_NEAR(jacobian[0][3][1], 1.0, 1e-10);    // dG/dY (subtracted -1)
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq, 1e-10);  // dG/dX
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);    // dG/dY (subtracted -1)
   // Grid cell 1
-  EXPECT_NEAR(jacobian[1][3][0], -K_eq, 1e-10);
-  EXPECT_NEAR(jacobian[1][3][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][0], -K_eq, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][1], 1.0, 1e-10);
 
-  // Z column should be unaffected (diagonal only)
+  // Z row should be unaffected
   EXPECT_NEAR(jacobian[0][2][2], 0.0, 1e-10);
   EXPECT_NEAR(jacobian[1][2][2], 0.0, 1e-10);
 }
@@ -385,11 +374,9 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
 /// @brief Test 4D state (4 species) with 2 constraints
 ///
 /// System: Species A, B, C, D with two constraints:
-///   1. A <-> B with K_eq1 = 10
-///   2. C + D <-> A with K_eq2 = 100
-///
-/// State dimension: 4 species + 2 constraints = 6
-/// Jacobian: 6x6 matrix
+///   1. A <-> B with K_eq1 = 10, algebraic species = B (row 1)
+///   2. C + D <-> A with K_eq2 = 100, algebraic species = A (row 0)
+/// Jacobian: 4x4 matrix
 ///
 /// Constraint 1: G1 = K_eq1 * [A] - [B] = 0
 /// Constraint 2: G2 = K_eq2 * [C] * [D] - [A] = 0
@@ -398,20 +385,18 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
   const double K_eq1 = 10.0;
   const double K_eq2 = 100.0;
   const std::size_t num_species = 4;
-  const std::size_t num_constraints = 2;
-  const std::size_t total_vars = num_species + num_constraints;
 
   // Create two constraints
   std::vector<Constraint> constraints;
 
-  // Constraint 1: A <-> B with K_eq1 = 10
+  // Constraint 1: A <-> B with K_eq1 = 10, algebraic species = B (row 1)
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
       K_eq1));
 
-  // Constraint 2: C + D <-> A with K_eq2 = 100
+  // Constraint 2: C + D <-> A with K_eq2 = 100, algebraic species = A (row 0)
   constraints.push_back(EquilibriumConstraint(
       "CD_A_eq",
       std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0), StoichSpecies(Species("D"), 1.0) },
@@ -425,31 +410,31 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
     { "D", 3 }
   };
 
-  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   EXPECT_EQ(set.Size(), 2);
 
   // Check non-zero Jacobian elements
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  // Constraint 1 at row 4: depends on A (col 0), B (col 1)
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(4, 0)));  // dG1/dA
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(4, 1)));  // dG1/dB
+  // Constraint 1 replaces row 1 (B): depends on A (col 0), B (col 1)
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));  // dG1/dA
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 1)));  // dG1/dB + diagonal
 
-  // Constraint 2 at row 5: depends on C (col 2), D (col 3), A (col 0)
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(5, 2)));  // dG2/dC
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(5, 3)));  // dG2/dD
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(5, 0)));  // dG2/dA
+  // Constraint 2 replaces row 0 (A): depends on C (col 2), D (col 3), A (col 0)
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(0, 2)));  // dG2/dC
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(0, 3)));  // dG2/dD
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(0, 0)));  // dG2/dA + diagonal
 
   // Total: 2 (from constraint 1) + 3 (from constraint 2) = 5
   EXPECT_EQ(non_zero_elements.size(), 5);
 
-  // Build sparse Jacobian (6x6)
-  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
+  // Build sparse Jacobian (4x4)
+  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(num_species)
     .SetNumberOfBlocks(3)  // Test with 3 grid cells
     .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < total_vars; ++i)
+  for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
@@ -461,9 +446,6 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
   Matrix<double> state(3, num_species);
 
   // Grid cell 0: Both constraints satisfied
-  // If [A] = 0.1, then [B] = K_eq1 * [A] = 10 * 0.1 = 1.0
-  // If [A] = 0.1 and K_eq2 * [C] * [D] = [A], then [C] * [D] = 0.1/100 = 0.001
-  // Let [C] = 0.1, [D] = 0.01 => [C]*[D] = 0.001
   state[0][0] = 0.1;    // A
   state[0][1] = 1.0;    // B = 10 * 0.1
   state[0][2] = 0.1;    // C
@@ -482,72 +464,55 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
   state[2][3] = 0.3;    // D, C*D = 0.06, K_eq2*C*D = 6.0 != 0.5
 
   // Test forcing terms
-  Matrix<double> forcing(3, total_vars, 0.0);
+  Matrix<double> forcing(3, num_species, 0.0);
   set.AddForcingTerms(state, forcing);
 
+  // Constraint 1 replaces row 1, Constraint 2 replaces row 0
   // Grid cell 0: Both at equilibrium
-  // G1 = K_eq1 * [A] - [B] = 10 * 0.1 - 1.0 = 0
-  // G2 = K_eq2 * [C] * [D] - [A] = 100 * 0.1 * 0.01 - 0.1 = 0.1 - 0.1 = 0
-  EXPECT_NEAR(forcing[0][4], 0.0, 1e-10);
-  EXPECT_NEAR(forcing[0][5], 0.0, 1e-10);
+  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);   // G1 = 10 * 0.1 - 1.0 = 0
+  EXPECT_NEAR(forcing[0][0], 0.0, 1e-10);   // G2 = 100 * 0.1 * 0.01 - 0.1 = 0
 
   // Grid cell 1: First satisfied, second not
-  // G1 = 10 * 0.2 - 2.0 = 0
-  // G2 = 100 * 0.1 * 0.1 - 0.2 = 1.0 - 0.2 = 0.8
-  EXPECT_NEAR(forcing[1][4], 0.0, 1e-10);
-  EXPECT_NEAR(forcing[1][5], 0.8, 1e-10);
+  EXPECT_NEAR(forcing[1][1], 0.0, 1e-10);   // G1 = 10 * 0.2 - 2.0 = 0
+  EXPECT_NEAR(forcing[1][0], 0.8, 1e-10);   // G2 = 100 * 0.1 * 0.1 - 0.2 = 0.8
 
   // Grid cell 2: Neither satisfied
-  // G1 = 10 * 0.5 - 3.0 = 5.0 - 3.0 = 2.0
-  // G2 = 100 * 0.2 * 0.3 - 0.5 = 6.0 - 0.5 = 5.5
-  EXPECT_NEAR(forcing[2][4], 2.0, 1e-10);
-  EXPECT_NEAR(forcing[2][5], 5.5, 1e-10);
+  EXPECT_NEAR(forcing[2][1], 2.0, 1e-10);   // G1 = 10 * 0.5 - 3.0 = 2.0
+  EXPECT_NEAR(forcing[2][0], 5.5, 1e-10);   // G2 = 100 * 0.2 * 0.3 - 0.5 = 5.5
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, jacobian);
 
-  // Constraint 1: G1 = K_eq1 * [A] - [B]
-  // dG1/dA = K_eq1 = 10
-  // dG1/dB = -1
-
-  // Constraint 2: G2 = K_eq2 * [C] * [D] - [A]
-  // dG2/dC = K_eq2 * [D]
-  // dG2/dD = K_eq2 * [C]
-  // dG2/dA = -1
+  // Constraint 1 at row 1: dG1/dA = K_eq1, dG1/dB = -1
+  // Constraint 2 at row 0: dG2/dC = K_eq2*[D], dG2/dD = K_eq2*[C], dG2/dA = -1
 
   // Grid cell 0:
-  // Constraint 1 row (4):
-  EXPECT_NEAR(jacobian[0][4][0], -K_eq1, 1e-10);  // -dG1/dA = -10
-  EXPECT_NEAR(jacobian[0][4][1], 1.0, 1e-10);     // -dG1/dB = -(-1) = 1
-
-  // Constraint 2 row (5):
-  // dG2/dC = 100 * 0.01 = 1.0
-  // dG2/dD = 100 * 0.1 = 10.0
-  // dG2/dA = -1
-  EXPECT_NEAR(jacobian[0][5][2], -K_eq2 * state[0][3], 1e-10);  // -dG2/dC
-  EXPECT_NEAR(jacobian[0][5][3], -K_eq2 * state[0][2], 1e-10);  // -dG2/dD
-  EXPECT_NEAR(jacobian[0][5][0], 1.0, 1e-10);                    // -dG2/dA = -(-1) = 1
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, 1e-10);
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][0][2], -K_eq2 * state[0][3], 1e-10);
+  EXPECT_NEAR(jacobian[0][0][3], -K_eq2 * state[0][2], 1e-10);
+  EXPECT_NEAR(jacobian[0][0][0], 1.0, 1e-10);
 
   // Grid cell 1:
-  EXPECT_NEAR(jacobian[1][4][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[1][4][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[1][5][2], -K_eq2 * state[1][3], 1e-10);
-  EXPECT_NEAR(jacobian[1][5][3], -K_eq2 * state[1][2], 1e-10);
-  EXPECT_NEAR(jacobian[1][5][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][0], -K_eq1, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][0][2], -K_eq2 * state[1][3], 1e-10);
+  EXPECT_NEAR(jacobian[1][0][3], -K_eq2 * state[1][2], 1e-10);
+  EXPECT_NEAR(jacobian[1][0][0], 1.0, 1e-10);
 
   // Grid cell 2:
-  EXPECT_NEAR(jacobian[2][4][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[2][4][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[2][5][2], -K_eq2 * state[2][3], 1e-10);
-  EXPECT_NEAR(jacobian[2][5][3], -K_eq2 * state[2][2], 1e-10);
-  EXPECT_NEAR(jacobian[2][5][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[2][1][0], -K_eq1, 1e-10);
+  EXPECT_NEAR(jacobian[2][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[2][0][2], -K_eq2 * state[2][3], 1e-10);
+  EXPECT_NEAR(jacobian[2][0][3], -K_eq2 * state[2][2], 1e-10);
+  EXPECT_NEAR(jacobian[2][0][0], 1.0, 1e-10);
 }
 
 /// @brief Test coupled constraints where constraints share species
 ///
 /// System: A, B, C with constraints that both involve A:
-///   1. A <-> B (K_eq1 = 5)
-///   2. A <-> C (K_eq2 = 20)
+///   1. A <-> B (K_eq1 = 5), algebraic = B (row 1)
+///   2. A <-> C (K_eq2 = 20), algebraic = C (row 2)
 ///
 /// This tests that the Jacobian correctly handles overlapping dependencies
 TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
@@ -555,8 +520,6 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
   const double K_eq1 = 5.0;
   const double K_eq2 = 20.0;
   const std::size_t num_species = 3;
-  const std::size_t num_constraints = 2;
-  const std::size_t total_vars = num_species + num_constraints;
 
   std::vector<Constraint> constraints;
 
@@ -579,29 +542,29 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
     { "C", 2 }
   };
 
-  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  ConstraintSet set(std::move(constraints), variable_map);
 
   EXPECT_EQ(set.Size(), 2);
 
   // Check Jacobian structure - both constraints depend on A
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  // Constraint 1 (row 3): dG1/dA, dG1/dB
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 0)));  // dG1/dA
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 1)));  // dG1/dB
+  // Constraint 1 replaces row 1 (B): dG1/dA, dG1/dB + diagonal
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));  // dG1/dA
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 1)));  // dG1/dB + diagonal
 
-  // Constraint 2 (row 4): dG2/dA, dG2/dC
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(4, 0)));  // dG2/dA
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(4, 2)));  // dG2/dC
+  // Constraint 2 replaces row 2 (C): dG2/dA, dG2/dC + diagonal
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 0)));  // dG2/dA
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 2)));  // dG2/dC + diagonal
 
   EXPECT_EQ(non_zero_elements.size(), 4);
 
-  // Build Jacobian
-  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
+  // Build Jacobian (3x3)
+  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(num_species)
     .SetNumberOfBlocks(1)
     .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < total_vars; ++i)
+  for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
@@ -610,39 +573,34 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
   set.SetJacobianFlatIds(jacobian);
 
   // State at dual equilibrium: [B]/[A] = 5, [C]/[A] = 20
-  // If [A] = 0.1, [B] = 0.5, [C] = 2.0
   Matrix<double> state(1, num_species);
   state[0][0] = 0.1;   // A
   state[0][1] = 0.5;   // B = 5 * 0.1
   state[0][2] = 2.0;   // C = 20 * 0.1
 
   // Test forcing terms
-  Matrix<double> forcing(1, total_vars, 0.0);
+  Matrix<double> forcing(1, num_species, 0.0);
   set.AddForcingTerms(state, forcing);
 
   // Both constraints should be satisfied
-  // G1 = 5 * 0.1 - 0.5 = 0
-  // G2 = 20 * 0.1 - 2.0 = 0
-  EXPECT_NEAR(forcing[0][3], 0.0, 1e-10);
-  EXPECT_NEAR(forcing[0][4], 0.0, 1e-10);
+  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);  // G1 at row 1
+  EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);  // G2 at row 2
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, jacobian);
 
-  // Constraint 1: dG1/dA = 5, dG1/dB = -1
-  EXPECT_NEAR(jacobian[0][3][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[0][3][1], 1.0, 1e-10);
+  // Constraint 1 at row 1: dG1/dA = 5, dG1/dB = -1
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, 1e-10);
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);
 
-  // Constraint 2: dG2/dA = 20, dG2/dC = -1
-  EXPECT_NEAR(jacobian[0][4][0], -K_eq2, 1e-10);
-  EXPECT_NEAR(jacobian[0][4][2], 1.0, 1e-10);
+  // Constraint 2 at row 2: dG2/dA = 20, dG2/dC = -1
+  EXPECT_NEAR(jacobian[0][2][0], -K_eq2, 1e-10);
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-10);
 }
 
 TEST(ConstraintSet, VectorizedMatricesRespectGridCellIndexing)
 {
   const std::size_t num_species = 3;
-  const std::size_t num_constraints = 1;
-  const std::size_t total_vars = num_species + num_constraints;
 
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
@@ -657,13 +615,14 @@ TEST(ConstraintSet, VectorizedMatricesRespectGridCellIndexing)
     { "AB", 2 }
   };
 
-  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  ConstraintSet set(std::move(constraints), variable_map);
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  auto builder = SparseMatrix<double, SparseMatrixVectorOrdering<4>>::Create(total_vars)
+  // Constraint replaces AB's row (index 2), Jacobian is 3x3
+  auto builder = SparseMatrix<double, SparseMatrixVectorOrdering<4>>::Create(num_species)
     .SetNumberOfBlocks(3)
     .InitialValue(0.0);
-  for (std::size_t i = 0; i < total_vars; ++i)
+  for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
   for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
@@ -676,24 +635,26 @@ TEST(ConstraintSet, VectorizedMatricesRespectGridCellIndexing)
   state[1] = { 0.03, 0.01, 0.2 };
   state[2] = { 0.001, 0.002, 0.004 };
 
-  VectorMatrix<double, 4> forcing(3, total_vars, 0.0);
+  VectorMatrix<double, 4> forcing(3, num_species, 0.0);
   set.AddForcingTerms(state, forcing);
 
-  EXPECT_NEAR(forcing[0][3], 1000.0 * 0.01 * 0.02 - 0.05, 1e-12);
-  EXPECT_NEAR(forcing[1][3], 1000.0 * 0.03 * 0.01 - 0.2, 1e-12);
-  EXPECT_NEAR(forcing[2][3], 1000.0 * 0.001 * 0.002 - 0.004, 1e-12);
+  // Constraint residual replaces row 2 (AB)
+  EXPECT_NEAR(forcing[0][2], 1000.0 * 0.01 * 0.02 - 0.05, 1e-12);
+  EXPECT_NEAR(forcing[1][2], 1000.0 * 0.03 * 0.01 - 0.2, 1e-12);
+  EXPECT_NEAR(forcing[2][2], 1000.0 * 0.001 * 0.002 - 0.004, 1e-12);
 
   set.SubtractJacobianTerms(state, jacobian);
 
-  EXPECT_NEAR(jacobian[0][3][0], -(1000.0 * 0.02), 1e-12);
-  EXPECT_NEAR(jacobian[0][3][1], -(1000.0 * 0.01), 1e-12);
-  EXPECT_NEAR(jacobian[0][3][2], 1.0, 1e-12);
+  // Jacobian entries at row 2 (AB's row, replaced by constraint)
+  EXPECT_NEAR(jacobian[0][2][0], -(1000.0 * 0.02), 1e-12);
+  EXPECT_NEAR(jacobian[0][2][1], -(1000.0 * 0.01), 1e-12);
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-12);
 
-  EXPECT_NEAR(jacobian[1][3][0], -(1000.0 * 0.01), 1e-12);
-  EXPECT_NEAR(jacobian[1][3][1], -(1000.0 * 0.03), 1e-12);
-  EXPECT_NEAR(jacobian[1][3][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[1][2][0], -(1000.0 * 0.01), 1e-12);
+  EXPECT_NEAR(jacobian[1][2][1], -(1000.0 * 0.03), 1e-12);
+  EXPECT_NEAR(jacobian[1][2][2], 1.0, 1e-12);
 
-  EXPECT_NEAR(jacobian[2][3][0], -(1000.0 * 0.002), 1e-12);
-  EXPECT_NEAR(jacobian[2][3][1], -(1000.0 * 0.001), 1e-12);
-  EXPECT_NEAR(jacobian[2][3][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[2][2][0], -(1000.0 * 0.002), 1e-12);
+  EXPECT_NEAR(jacobian[2][2][1], -(1000.0 * 0.001), 1e-12);
+  EXPECT_NEAR(jacobian[2][2][2], 1.0, 1e-12);
 }

@@ -14,6 +14,7 @@
 #include <vector>
 
 /// @brief Test ConstraintSet API directly (unit-level test for DAE infrastructure)
+///        Uses replace-state-rows mode: AB's row (index 2) is replaced by the constraint.
 TEST(EquilibriumIntegration, ConstraintSetAPITest)
 {
   auto A = micm::Species("A");
@@ -34,22 +35,22 @@ TEST(EquilibriumIntegration, ConstraintSetAPITest)
     { "AB", 2 }
   };
 
-  micm::ConstraintSet set(std::move(constraints), variable_map, 3);
+  micm::ConstraintSet set(std::move(constraints), variable_map);
 
-  // Test at equilibrium: [A] = 0.0312, [B] = 0.0312, [AB] = 0.9688
-  // K_eq * [A] * [B] = 1000 * 0.0312^2 ≈ 0.974
-  // Should approximately equal [AB] = 0.9688
+  // Test at equilibrium: [A] = 0.0312, [B] = 0.0312, [AB] = 0.9737
+  // K_eq * [A] * [B] = 1000 * 0.0312^2 ≈ 0.9734
+  // Should approximately equal [AB] = 0.9737
   micm::Matrix<double> state(1, 3);
   state[0][0] = 0.0312;  // A
   state[0][1] = 0.0312;  // B
   state[0][2] = 0.9737;  // AB - calculated to be at equilibrium
 
-  micm::Matrix<double> forcing(1, 4, 0.0);
+  micm::Matrix<double> forcing(1, 3, 0.0);
   set.AddForcingTerms(state, forcing);
 
-  // At equilibrium, residual should be close to 0
+  // At equilibrium, residual replaces AB's row (index 2)
   // G = K_eq * [A] * [B] - [AB] = 1000 * 0.0312 * 0.0312 - 0.9737 ≈ 0
-  EXPECT_NEAR(forcing[0][3], 0.0, 0.01);
+  EXPECT_NEAR(forcing[0][2], 0.0, 0.01);
 }
 
 /// @brief Test SetConstraints API integration - verifies solver builds and runs with constraints
@@ -903,4 +904,180 @@ TEST(EquilibriumIntegration, DAEClampingDoesNotBreakAlgebraicVariables)
   // ODE variables (A, B) should be non-negative (clamped)
   EXPECT_GE(state.variables_[0][A_idx], 0.0);
   EXPECT_GE(state.variables_[0][B_idx], 0.0);
+}
+
+/// @brief Regression test for State copy preserving solver-specific temporary variables (Clone fix)
+/// Copies a solver-generated State and solves with both original and copy to verify
+/// that polymorphic Clone() correctly preserves RosenbrockTemporaryVariables.
+TEST(EquilibriumIntegration, DAEStateCopyAndSolve)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.1;
+  state.variables_[0][C_idx] = K_eq * 0.1;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  // Copy the state (exercises Clone())
+  auto state_copy = state;
+
+  // Solve with the original state
+  solver.CalculateRateConstants(state);
+  auto result1 = solver.Solve(0.01, state);
+  ASSERT_EQ(result1.state_, micm::SolverState::Converged);
+
+  // Solve with the copied state
+  solver.CalculateRateConstants(state_copy);
+  auto result2 = solver.Solve(0.01, state_copy);
+  ASSERT_EQ(result2.state_, micm::SolverState::Converged);
+
+  // Both should produce identical results
+  EXPECT_DOUBLE_EQ(state.variables_[0][A_idx], state_copy.variables_[0][A_idx]);
+  EXPECT_DOUBLE_EQ(state.variables_[0][B_idx], state_copy.variables_[0][B_idx]);
+  EXPECT_DOUBLE_EQ(state.variables_[0][C_idx], state_copy.variables_[0][C_idx]);
+
+  // Both should satisfy the constraint
+  EXPECT_NEAR(K_eq * state.variables_[0][B_idx], state.variables_[0][C_idx], 1.0e-6);
+  EXPECT_NEAR(K_eq * state_copy.variables_[0][B_idx], state_copy.variables_[0][C_idx], 1.0e-6);
+}
+
+/// @brief Regression test for duplicate dependency accumulation in Jacobian
+/// When a species appears on both sides of a constraint (e.g., A + B <-> A + C),
+/// the Jacobian entries for that species should accumulate correctly via -=.
+TEST(EquilibriumIntegration, DAEOverlappingSpeciesJacobian)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  // Create constraint where A appears on both sides: A + B <-> A + C
+  // G = K_eq * [A] * [B] - [A] * [C] = 0
+  // At equilibrium: K_eq * [B] = [C] (when [A] > 0)
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "AB_AC_eq",
+      std::vector<micm::StoichSpecies>{ { A, 1.0 }, { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { A, 1.0 }, { C, 1.0 } },
+      2.0));
+
+  std::unordered_map<std::string, std::size_t> variable_map = {
+    { "A", 0 },
+    { "B", 1 },
+    { "C", 2 }
+  };
+
+  // Algebraic species is A (first product), so constraint replaces row 0
+  micm::ConstraintSet set(std::move(constraints), variable_map);
+
+  // Build a sparse Jacobian and set flat IDs
+  auto nonzero = set.NonZeroJacobianElements();
+  auto jacobian = micm::BuildJacobian<micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>(
+      nonzero, 1, 3, false);
+  set.SetJacobianFlatIds(jacobian);
+
+  // Set concentrations: A=1.0, B=0.5, C=1.0 (K_eq*B = 2*0.5 = 1.0 = C, at equilibrium)
+  micm::Matrix<double> state(1, 3);
+  state[0][0] = 1.0;   // A
+  state[0][1] = 0.5;   // B
+  state[0][2] = 1.0;   // C
+
+  // Zero the Jacobian and subtract terms
+  jacobian.Fill(0.0);
+  set.SubtractJacobianTerms(state, jacobian);
+
+  // Verify no NaN/Inf in the Jacobian
+  for (std::size_t row = 0; row < 3; ++row)
+  {
+    for (std::size_t col = 0; col < 3; ++col)
+    {
+      if (jacobian.IsZero(row, col))
+        continue;
+      EXPECT_FALSE(std::isnan(jacobian[0][row][col]))
+          << "NaN in Jacobian[" << row << "][" << col << "]";
+      EXPECT_FALSE(std::isinf(jacobian[0][row][col]))
+          << "Inf in Jacobian[" << row << "][" << col << "]";
+    }
+  }
+
+  // Residual at equilibrium should be near zero
+  micm::Matrix<double> forcing(1, 3, 0.0);
+  set.AddForcingTerms(state, forcing);
+  EXPECT_NEAR(forcing[0][0], 0.0, 1.0e-12);
+}
+
+/// @brief Regression test for constraint-only species with strict unused-species check
+/// Species used only by constraints (not by any kinetic reaction) should not trigger
+/// the unused-species error when SetIgnoreUnusedSpecies(false) is used.
+TEST(EquilibriumIntegration, DAEConstraintOnlySpeciesNotUnused)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  // Only reaction involves A and B; C is constraint-only
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  // C is the algebraic species - only referenced by the constraint
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  // Build with SetIgnoreUnusedSpecies(false) - should NOT throw for constraint-only species
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  EXPECT_NO_THROW({
+    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                      .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                      .SetReactions({ rxn })
+                      .SetConstraints(std::move(constraints))
+                      .SetIgnoreUnusedSpecies(false)
+                      .SetReorderState(false)
+                      .Build();
+  });
 }

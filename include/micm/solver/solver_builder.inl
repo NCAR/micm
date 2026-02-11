@@ -356,9 +356,18 @@ namespace micm
       auto constraints_copy = constraints_;
       // Constraints replace selected species rows in the mass-matrix DAE formulation.
       // Pass species_map so constraints can resolve dependencies and row targets to species indices.
-      constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species, true);
+      constraint_set = ConstraintSet(std::move(constraints_copy), species_map);
       algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
+
+      // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
+      for (auto it = nonzero_elements.begin(); it != nonzero_elements.end(); )
+      {
+        if (algebraic_variable_ids.count(it->first) > 0)
+          it = nonzero_elements.erase(it);
+        else
+          ++it;
+      }
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();

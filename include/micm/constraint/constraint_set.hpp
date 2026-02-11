@@ -49,12 +49,6 @@ namespace micm
     /// @brief Flat indices into the Jacobian sparse matrix for each constraint's Jacobian entries
     std::vector<std::size_t> jacobian_flat_ids_;
 
-    /// @brief Row offset for constraints in the extended state (= number of species)
-    std::size_t constraint_row_offset_{ 0 };
-
-    /// @brief If true, constraints replace selected species rows instead of augmenting extra rows
-    bool replace_state_rows_{ false };
-
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<std::size_t> algebraic_variable_ids_;
 
@@ -66,15 +60,12 @@ namespace micm
     ConstraintSet() = default;
 
     /// @brief Construct a ConstraintSet from constraints and variable mapping
+    ///        Constraints replace selected species rows in the state/Jacobian (DAE formulation)
     /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
-    /// @param constraint_row_offset Row offset for augmented-rows mode (= number of species)
-    /// @param replace_state_rows If true, constraints replace selected species rows in the state/Jacobian
     ConstraintSet(
         std::vector<Constraint>&& constraints,
-        const std::unordered_map<std::string, std::size_t>& variable_map,
-        std::size_t constraint_row_offset,
-        bool replace_state_rows = false);
+        const std::unordered_map<std::string, std::size_t>& variable_map);
 
     /// @brief Move constructor
     ConstraintSet(ConstraintSet&& other) noexcept = default;
@@ -128,12 +119,8 @@ namespace micm
 
   inline ConstraintSet::ConstraintSet(
       std::vector<Constraint>&& constraints,
-      const std::unordered_map<std::string, std::size_t>& variable_map,
-      std::size_t constraint_row_offset,
-      bool replace_state_rows)
-      : constraints_(std::move(constraints)),
-        constraint_row_offset_(constraint_row_offset),
-        replace_state_rows_(replace_state_rows)
+      const std::unordered_map<std::string, std::size_t>& variable_map)
+      : constraints_(std::move(constraints))
   {
     // Build constraint info and dependency indices
     std::size_t dependency_offset = 0;
@@ -143,28 +130,23 @@ namespace micm
 
       ConstraintInfo info;
       info.constraint_index_ = i;
-      if (replace_state_rows_)
-      {
-        const auto algebraic_species = constraint.GetAlgebraicSpecies();
-        auto row_it = variable_map.find(algebraic_species);
-        if (row_it == variable_map.end())
-        {
-          throw std::system_error(
-              make_error_code(MicmConstraintErrc::UnknownSpecies),
-              "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
-        }
-        info.constraint_row_ = row_it->second;
 
-        if (!algebraic_variable_ids_.insert(info.constraint_row_).second)
-        {
-          throw std::runtime_error(
-              "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
-        }
-      }
-      else
+      const auto& algebraic_species = constraint.GetAlgebraicSpecies();
+      auto row_it = variable_map.find(algebraic_species);
+      if (row_it == variable_map.end())
       {
-        info.constraint_row_ = constraint_row_offset_ + i;
+        throw std::system_error(
+            make_error_code(MicmConstraintErrc::UnknownSpecies),
+            "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
       }
+      info.constraint_row_ = row_it->second;
+
+      if (!algebraic_variable_ids_.insert(info.constraint_row_).second)
+      {
+        throw std::runtime_error(
+            "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
+      }
+
       info.number_of_dependencies_ = constraint.NumberOfDependencies();
       info.dependency_offset_ = dependency_offset;
       info.jacobian_flat_offset_ = 0;  // Set later in SetJacobianFlatIds
@@ -201,10 +183,7 @@ namespace micm
     for (const auto& info : constraint_info_)
     {
       // Ensure the diagonal element exists for the constraint row (required by AlphaMinusJacobian and LU decomposition)
-      if (replace_state_rows_)
-      {
-        ids.insert(std::make_pair(info.constraint_row_, info.constraint_row_));
-      }
+      ids.insert(std::make_pair(info.constraint_row_, info.constraint_row_));
       // Each constraint contributes Jacobian entries at (constraint_row, dependency_column)
       for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
       {
@@ -261,14 +240,7 @@ namespace micm
         {
           const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
           double residual = constraints_[info.constraint_index_].Residual(concentrations.data(), indices);
-          if (replace_state_rows_)
-          {
-            cell_forcing[info.constraint_row_] = residual;
-          }
-          else
-          {
-            cell_forcing[info.constraint_row_] += residual;
-          }
+          cell_forcing[info.constraint_row_] = residual;
         }
       }
     }
@@ -288,16 +260,9 @@ namespace micm
           // Get pointer to indices for this constraint
           const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
 
-          // Evaluate constraint residual and add to forcing
+          // Evaluate constraint residual: replaces the algebraic species row
           double residual = constraints_[info.constraint_index_].Residual(concentrations, indices);
-          if (replace_state_rows_)
-          {
-            cell_forcing[info.constraint_row_] = residual;
-          }
-          else
-          {
-            cell_forcing[info.constraint_row_] += residual;
-          }
+          cell_forcing[info.constraint_row_] = residual;
         }
       }
     }

@@ -133,15 +133,13 @@ namespace micm
     }
     else
     {
+      // Default: all ODE variables (diagonal = 1.0)
       for (std::size_t i = 0; i < state_size_; i++) {
         upper_left_identity_diagonal_.push_back(1.0);
       }
-      for (std::size_t i = 0; i < constraint_size_; i++) {
-        upper_left_identity_diagonal_.push_back(0.0);
-      }
     }
 
-    const std::size_t jacobian_size = constraints_replace_state_rows_ ? state_size_ : (state_size_ + constraint_size_);
+    const std::size_t jacobian_size = state_size_;
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {

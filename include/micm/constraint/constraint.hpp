@@ -74,9 +74,9 @@ namespace micm
 
     /// @brief Returns the species whose state row should be replaced by this algebraic constraint
     /// @return Algebraic species name
-    std::string GetAlgebraicSpecies() const
+    const std::string& GetAlgebraicSpecies() const
     {
-      return std::visit([](const auto& c) { return c.AlgebraicSpecies(); }, constraint_);
+      return std::visit([](const auto& c) -> const std::string& { return c.AlgebraicSpecies(); }, constraint_);
     }
   };
 
