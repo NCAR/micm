@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <memory>
+
 namespace micm
 {
   /// @brief This is the base class for temporary variables; currently it is empty and will be expanded by a specific solver
@@ -16,5 +18,8 @@ namespace micm
     TemporaryVariables& operator=(const TemporaryVariables& other) = default;
     TemporaryVariables& operator=(TemporaryVariables&& other) = default;
     virtual ~TemporaryVariables() = default;
+
+    /// @brief Clone this object, preserving the derived type
+    virtual std::unique_ptr<TemporaryVariables> Clone() const = 0;
   };
 }  // namespace micm

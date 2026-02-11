@@ -346,19 +346,14 @@ namespace micm
         const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
         constraints_[info.constraint_index_].Jacobian(concentration_ptr, indices, jac_buffer.data());
 
+        // In replace mode, the Jacobian row is already zeroed (Fill(0) + ProcessSet skips algebraic rows),
+        // so -= is safe and correctly accumulates when a species appears in multiple dependency slots.
         if constexpr (VectorizableSparse<SparseMatrixPolicy>)
         {
           const std::size_t* dep_id = dependency_ids_.data() + info.dependency_offset_;
           for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
           {
-            if (replace_state_rows_)
-            {
-              jacobian[i_cell][info.constraint_row_][dep_id[i]] = -jac_buffer[i];
-            }
-            else
-            {
-              jacobian[i_cell][info.constraint_row_][dep_id[i]] -= jac_buffer[i];
-            }
+            jacobian[i_cell][info.constraint_row_][dep_id[i]] -= jac_buffer[i];
           }
         }
         else
@@ -366,14 +361,7 @@ namespace micm
           const std::size_t* flat_ids = jacobian_flat_ids_.data() + info.jacobian_flat_offset_;
           for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
           {
-            if (replace_state_rows_)
-            {
-              cell_jacobian[flat_ids[i]] = -jac_buffer[i];
-            }
-            else
-            {
-              cell_jacobian[flat_ids[i]] -= jac_buffer[i];
-            }
+            cell_jacobian[flat_ids[i]] -= jac_buffer[i];
           }
         }
       }

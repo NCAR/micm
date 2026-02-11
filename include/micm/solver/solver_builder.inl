@@ -172,6 +172,13 @@ namespace micm
     }
 
     auto used_species = RatesPolicy::SpeciesUsed(reactions_);
+    // Include species referenced by constraints (dependencies and algebraic targets)
+    for (const auto& constraint : constraints_)
+    {
+      for (const auto& dep : constraint.GetSpeciesDependencies())
+        used_species.insert(dep);
+      used_species.insert(constraint.GetAlgebraicSpecies());
+    }
     auto available_species = system_.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
     std::set<std::string> unused_species;
