@@ -154,24 +154,25 @@ namespace micm
       }
 
       // Compute full reactant and product terms
+      // Guard against negative concentrations (consistent with Residual policy)
       double reactant_product = 1.0;
       for (std::size_t i = 0; i < reactants_.size(); ++i)
       {
-        double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[i]]]);
         reactant_product *= std::pow(conc, reactants_[i].coefficient_);
       }
 
       double product_product = 1.0;
       for (std::size_t i = 0; i < products_.size(); ++i)
       {
-        double conc = concentrations[indices[product_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[product_dependency_indices_[i]]]);
         product_product *= std::pow(conc, products_[i].coefficient_);
       }
 
       // Jacobian for reactants: dG/d[R] = K_eq * n * [R]^(n-1) * prod([others])
       for (std::size_t i = 0; i < reactants_.size(); ++i)
       {
-        double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[i]]]);
         double stoich = reactants_[i].coefficient_;
 
         if (conc > 0)
@@ -182,25 +183,24 @@ namespace micm
         else if (stoich == 1.0)
         {
           // Special case: if conc = 0 and stoich = 1, derivative is K_eq * prod(others)
-          // Recompute product of other reactants, scaled by K_eq
           double others = equilibrium_constant_;
           for (std::size_t j = 0; j < reactants_.size(); ++j)
           {
             if (j != i)
             {
-              double other_conc = concentrations[indices[reactant_dependency_indices_[j]]];
+              double other_conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[j]]]);
               others *= std::pow(other_conc, reactants_[j].coefficient_);
             }
           }
           jacobian[reactant_dependency_indices_[i]] = others;
         }
-        // else: derivative is 0 when conc = 0 and stoich > 1
+        // else: derivative is 0 when conc <= 0 and stoich > 1
       }
 
       // Jacobian for products: dG/d[P] = -m * [P]^(m-1) * prod([others])
       for (std::size_t i = 0; i < products_.size(); ++i)
       {
-        double conc = concentrations[indices[product_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[product_dependency_indices_[i]]]);
         double stoich = products_[i].coefficient_;
 
         if (conc > 0)
@@ -216,13 +216,13 @@ namespace micm
           {
             if (j != i)
             {
-              double other_conc = concentrations[indices[product_dependency_indices_[j]]];
+              double other_conc = std::max(0.0, concentrations[indices[product_dependency_indices_[j]]]);
               others *= std::pow(other_conc, products_[j].coefficient_);
             }
           }
           jacobian[product_dependency_indices_[i]] = others;
         }
-        // else: derivative is 0 when conc = 0 and stoich > 1
+        // else: derivative is 0 when conc <= 0 and stoich > 1
       }
     }
 

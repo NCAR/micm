@@ -49,21 +49,11 @@ Added explicit insertion of `(constraint_row, constraint_row)` when `replace_sta
 
 Added `std::max(0.0, ...)` guard before `std::pow()` calls in `Residual()` to prevent NaN from transient negative concentrations.
 
-### 2.2 MEDIUM: Residual and Jacobian use inconsistent concentration guards - OPEN (Codex Pass 3, Finding 2)
+### 2.2 Residual and Jacobian use inconsistent concentration guards - FIXED (Codex Pass 3, Finding 2)
 
-**File:** `include/micm/constraint/equilibrium_constraint.hpp:160-168`
+**File:** `include/micm/constraint/equilibrium_constraint.hpp`
 
-`Residual()` now clamps concentrations to `max(0, c)` before `std::pow()`, but the `Jacobian()` method computes `reactant_product` and `product_product` (lines 160-168) using raw concentrations with no guard. If `conc < 0` with non-integer stoichiometry, `std::pow(negative, non-integer)` returns NaN.
-
-The Jacobian does have `conc > 0` / `conc == 0` checks for the per-species derivative terms (lines 177, 206), but the *aggregate product terms* (lines 157-169) used in those derivatives are computed without guards.
-
-**Risks:**
-- NaN/Inf in Jacobian for negative concentrations with non-integer stoichiometry
-- Linearization mismatch: `dG/dy` does not match the residual being solved, degrading convergence
-
-**Recommended fix:** Apply a consistent `std::max(0.0, ...)` guard in both Residual and Jacobian paths, and document derivative behavior for `c <= 0`.
-
-**Needed test:** Unit test with negative concentrations and fractional stoichiometry verifying Jacobian is finite and consistent with residual policy.
+Applied `std::max(0.0, ...)` guard consistently in the Jacobian method: aggregate product terms, per-species derivative terms, and `conc == 0` special-case fallbacks now all clamp negative concentrations to zero, matching the Residual policy.
 
 ### 2.3 MEDIUM: Equilibrium constant is compile-time static - OPEN (Enhancement)
 
@@ -135,23 +125,11 @@ Changed replace mode from `=` to `-=` so duplicate dependency columns accumulate
 
 Added constraint dependencies and algebraic targets to the used-species set in `UnusedSpeciesCheck()`.
 
-### 4.4 MEDIUM: Overloaded `Solve(time_step, state, params)` bypasses clamping - OPEN (Codex Pass 3, Finding 1)
+### 4.4 Overloaded `Solve(time_step, state, params)` bypasses clamping - FIXED (Codex Pass 3, Finding 1)
 
-**File:** `include/micm/solver/solver.hpp:89-93`
+**File:** `include/micm/solver/solver.hpp`
 
-```cpp
-SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
-{
-    solver_parameters_ = params;
-    return solver_.Solve(time_step, state, params);  // no clamping!
-}
-```
-
-The default `Solve(time_step, state)` applies selective ODE-only clamping, but the parameterized overload returns directly with no post-processing. This creates an API inconsistency — identical physics can produce different positivity behavior depending on which overload the caller uses.
-
-**Recommended fix:** Refactor clamping into a shared post-processing helper and invoke from both overloads.
-
-**Needed test:** Regression test using the parameterized overload, verifying ODE rows are clamped identically.
+Extracted clamping into a private `PostSolveClamp()` helper, called from both `Solve` overloads. Both paths now apply identical post-solve clamping (ODE-only for DAE, all variables otherwise).
 
 ### 4.5 LOW: No targeted regression tests for recently fixed issues - OPEN (Codex Pass 3, Finding 3)
 
@@ -193,8 +171,6 @@ Kinetic nonzero elements are collected before algebraic row IDs are applied, so 
 |----------|------|--------|
 | HIGH | State copy + solve (Rosenbrock) | Regression test for 4.1 fix |
 | HIGH | State copy + solve (BackwardEuler) | Regression test for 4.1 fix |
-| MEDIUM | Parameterized Solve overload clamping | Validates fix for 4.4 |
-| MEDIUM | Negative conc + fractional stoich Jacobian | Validates fix for 2.2 |
 | MEDIUM | Overlapping-species constraint Jacobian | Regression test for 4.2 fix |
 | MEDIUM | Constraint-only species + strict unused check | Regression test for 4.3 fix |
 | LOW | Reorder state with constraints | Markowitz reordering + DAE interaction |
@@ -224,8 +200,6 @@ Kinetic nonzero elements are collected before algebraic row IDs are applied, so 
 
 | Priority | Issue | Type | Section |
 |----------|-------|------|---------|
-| MEDIUM | Residual/Jacobian inconsistent concentration guards | Bug | 2.2 |
-| MEDIUM | Parameterized `Solve` overload bypasses clamping | Bug | 4.4 |
 | MEDIUM | Temperature-dependent equilibrium constant | Enhancement | 2.3 |
 | MEDIUM | 4-stage DAE parameters citation | Documentation | 2.4 |
 | LOW | No regression tests for Clone/dup-dep/unused-species fixes | Testing | 4.5 |
