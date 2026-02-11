@@ -102,10 +102,7 @@ namespace micm
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              // Copy only species variables from Y to Ynew.
-              // Y has size state.state_size_ (species only), while Ynew has state.state_size_
-              // plus any additional constraint variables. Zero-initialize Ynew first so that
-              // constraint columns start from a known state.
+              // Copy state variables from Y to Ynew for the new function evaluation
               Ynew.Fill(0.0);
               for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
               {
@@ -155,7 +152,7 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        // Compute the new solution: Copy species from Y, then add increments from K stages
+        // Compute the new solution: Copy Y, then add increments from K stages
         for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
         {
           for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
@@ -198,7 +195,7 @@ namespace micm
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
-          // Copy only species variables from Ynew back to Y (Ynew may have constraint rows/columns that Y doesn't have)
+          // Copy solution from Ynew back to Y
           for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
           {
             for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
@@ -253,7 +250,6 @@ namespace micm
     }
 
     result.stats_.final_time_ = present_time;
-    ;
 
     return result;
   }

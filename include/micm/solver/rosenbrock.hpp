@@ -24,11 +24,9 @@
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <functional>
-#include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
@@ -46,7 +44,7 @@ namespace micm
   /// in extending classes and called from the base class Solve() function.
   /// https://en.cppreference.com/w/cpp/language/crtp
   ///
-  template<class RatesPolicy, class LinearSolverPolicy, class Dervied>
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   class AbstractRosenbrockSolver
   {
    public:
@@ -68,10 +66,7 @@ namespace micm
     AbstractRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        ConstraintSet&& constraints,
-        auto& jacobian,
-        const size_t number_of_species,
-        const size_t number_of_constraints)
+        ConstraintSet&& constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
           constraints_(std::move(constraints))
@@ -137,23 +132,16 @@ namespace micm
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param constraints Algebraic constraints
-    /// @param jacobian Jacobian matrix
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
     RosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        ConstraintSet&& constraints,
-        auto& jacobian,
-        const size_t number_of_species,
-        const size_t number_of_constraints)
+        ConstraintSet&& constraints)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              std::move(constraints),
-              jacobian,
-              number_of_species,
-              number_of_constraints)
+              std::move(constraints))
     {
     }
     RosenbrockSolver(const RosenbrockSolver&) = delete;

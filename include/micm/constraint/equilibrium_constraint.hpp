@@ -117,10 +117,11 @@ namespace micm
     double Residual(const double* concentrations, const std::size_t* indices) const
     {
       // Compute product of reactant concentrations raised to stoichiometric powers
+      // Guard against negative concentrations (transient solver artifacts) to avoid NaN from std::pow
       double reactant_product = 1.0;
       for (std::size_t i = 0; i < reactants_.size(); ++i)
       {
-        double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[i]]]);
         reactant_product *= std::pow(conc, reactants_[i].coefficient_);
       }
 
@@ -128,7 +129,7 @@ namespace micm
       double product_product = 1.0;
       for (std::size_t i = 0; i < products_.size(); ++i)
       {
-        double conc = concentrations[indices[product_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[product_dependency_indices_[i]]]);
         product_product *= std::pow(conc, products_[i].coefficient_);
       }
 

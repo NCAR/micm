@@ -200,6 +200,11 @@ namespace micm
     auto dep_id = dependency_ids_.begin();
     for (const auto& info : constraint_info_)
     {
+      // Ensure the diagonal element exists for the constraint row (required by AlphaMinusJacobian and LU decomposition)
+      if (replace_state_rows_)
+      {
+        ids.insert(std::make_pair(info.constraint_row_, info.constraint_row_));
+      }
       // Each constraint contributes Jacobian entries at (constraint_row, dependency_column)
       for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
       {

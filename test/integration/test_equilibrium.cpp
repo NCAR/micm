@@ -10,7 +10,6 @@
 
 #include <cmath>
 #include <unordered_map>
-#include <iostream>
 #include <utility>
 #include <vector>
 
@@ -123,13 +122,6 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   // Verify CalculateRateConstants works
   solver.CalculateRateConstants(state);
-
-  std::cout << "SetConstraints API test passed:" << std::endl;
-  std::cout << "  State size: " << state.state_size_ << std::endl;
-  std::cout << "  Constraint size: " << state.constraint_size_ << std::endl;
-  std::cout << "  Variables: A=" << state.variables_[0][A_idx]
-            << ", B=" << state.variables_[0][B_idx]
-            << ", C=" << state.variables_[0][C_idx] << std::endl;
 }
 
 /// @brief Test SetConstraints API with multiple constraints
@@ -220,10 +212,6 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   state.conditions_[0].pressure_ = 101325.0;
 
   solver.CalculateRateConstants(state);
-
-  std::cout << "SetConstraints API with multiple constraints test passed:" << std::endl;
-  std::cout << "  State size: " << state.state_size_ << std::endl;
-  std::cout << "  Constraint size: " << state.constraint_size_ << std::endl;
 }
 
 /// @brief Test DAE solving - actually calls Solve() with algebraic constraints
@@ -276,49 +264,20 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
-  std::cout << "DAE Solve test - Initial state:" << std::endl;
-  std::cout << "  A = " << state.variables_[0][A_idx] << std::endl;
-  std::cout << "  B = " << state.variables_[0][B_idx] << std::endl;
-  std::cout << "  C = " << state.variables_[0][C_idx] << std::endl;
-
   // Solve with smaller time steps
   double dt = 0.001;
   double total_time = 0.1;
   double time = 0.0;
   int steps = 0;
 
-  std::cout << "Solving DAE system..." << std::endl;
-
-  bool first_step = true;
-
   while (time < total_time)
   {
     solver.CalculateRateConstants(state);
-    
-    if (first_step)
-    {
-      std::cout << "\nBefore first solve:" << std::endl;
-      std::cout << "  A = " << state.variables_[0][A_idx] << std::endl;
-      std::cout << "  B = " << state.variables_[0][B_idx] << std::endl;
-      std::cout << "  C = " << state.variables_[0][C_idx] << std::endl;
-    }
-    
     auto result = solver.Solve(dt, state);
-    
-    if (first_step)
-    {
-      std::cout << "\nAfter first solve:" << std::endl;
-      std::cout << "  A = " << state.variables_[0][A_idx] << std::endl;
-      std::cout << "  B = " << state.variables_[0][B_idx] << std::endl;
-      std::cout << "  C = " << state.variables_[0][C_idx] << std::endl;
-      std::cout << "  Residual = " << (K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx]) << std::endl;
-      first_step = false;
-    }
 
     if (result.state_ != micm::SolverState::Converged)
     {
-      std::cout << "  SOLVE DID NOT CONVERGE at step " << steps << ", time=" << time << std::endl;
-      FAIL() << "DAE solve did not converge";
+      FAIL() << "DAE solve did not converge at step " << steps << ", time=" << time;
     }
 
     // Verify constraint is maintained by the solver
@@ -331,17 +290,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     steps++;
   }
 
-  std::cout << "DAE Solve result:" << std::endl;
-  std::cout << "  Steps: " << steps << std::endl;
-  std::cout << "  A = " << state.variables_[0][A_idx] << std::endl;
-  std::cout << "  B = " << state.variables_[0][B_idx] << std::endl;
-  std::cout << "  C = " << state.variables_[0][C_idx] << std::endl;
-
   // Verify constraint is satisfied: C = K_eq * B
   double expected_C = K_eq * state.variables_[0][B_idx];
   double final_residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
-  std::cout << "  Expected C = " << expected_C << std::endl;
-  std::cout << "  Final constraint residual = " << final_residual << std::endl;
 
   EXPECT_NEAR(state.variables_[0][C_idx], expected_C, 1.0e-6);
   EXPECT_NEAR(final_residual, 0.0, 1.0e-6);
@@ -349,4 +300,488 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // Verify mass conservation: A + B should be conserved (approximately)
   double total = state.variables_[0][A_idx] + state.variables_[0][B_idx];
   EXPECT_NEAR(total, 1.0, 0.01);
+}
+
+/// @brief Test DAE solve with FourStageDifferentialAlgebraicRosenbrockParameters
+TEST(EquilibriumIntegration, DAESolveWithFourStageDAEParameters)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.0;
+  state.variables_[0][C_idx] = 0.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  double dt = 0.001;
+  double total_time = 0.1;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "FourStageDAE did not converge at time=" << time;
+
+    double residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated at time=" << time;
+
+    time += dt;
+  }
+
+  EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
+}
+
+/// @brief Test DAE solve with SixStageDifferentialAlgebraicRosenbrockParameters
+TEST(EquilibriumIntegration, DAESolveWithSixStageDAEParameters)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.0;
+  state.variables_[0][C_idx] = 0.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  double dt = 0.001;
+  double total_time = 0.1;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "SixStageDAE did not converge at time=" << time;
+
+    double residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated at time=" << time;
+
+    time += dt;
+  }
+
+  EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
+}
+
+/// @brief Test DAE solve with two coupled constraints sharing a species
+/// A -> B (kinetic), B <-> C (constraint 1), B <-> D (constraint 2)
+TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  auto D = micm::Species("D");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C, D } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq1 = 3.0;
+  double K_eq2 = 5.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq1));
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_D_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { D, 1.0 } },
+      K_eq2));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+  std::size_t D_idx = state.variable_map_.at("D");
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.0;
+  state.variables_[0][C_idx] = 0.0;
+  state.variables_[0][D_idx] = 0.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  double dt = 0.001;
+  double total_time = 0.1;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
+
+    double residual1 = K_eq1 * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    double residual2 = K_eq2 * state.variables_[0][B_idx] - state.variables_[0][D_idx];
+    EXPECT_NEAR(residual1, 0.0, 1.0e-6) << "Constraint 1 violated at time=" << time;
+    EXPECT_NEAR(residual2, 0.0, 1.0e-6) << "Constraint 2 violated at time=" << time;
+
+    time += dt;
+  }
+
+  // Both constraints should be satisfied at the end
+  EXPECT_NEAR(K_eq1 * state.variables_[0][B_idx], state.variables_[0][C_idx], 1.0e-6);
+  EXPECT_NEAR(K_eq2 * state.variables_[0][B_idx], state.variables_[0][D_idx], 1.0e-6);
+  // Mass conservation: A + B should be conserved
+  EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
+}
+
+/// @brief Test conservation law: A + B + C/K_eq should be conserved
+TEST(EquilibriumIntegration, DAEConservationLaw)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  // Start at equilibrium for the constraint
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.1;
+  state.variables_[0][C_idx] = K_eq * 0.1;  // C = K_eq * B at equilibrium
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  // The kinetic reaction A -> B doesn't create or destroy C directly.
+  // Since C = K_eq * B, the "effective B" including its constrained partner is B + C/K_eq = 2*B.
+  // So A + B is the conserved quantity for the kinetic system.
+  double initial_A_plus_B = state.variables_[0][A_idx] + state.variables_[0][B_idx];
+
+  double dt = 0.001;
+  double total_time = 0.5;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged);
+    time += dt;
+  }
+
+  double final_A_plus_B = state.variables_[0][A_idx] + state.variables_[0][B_idx];
+  EXPECT_NEAR(final_A_plus_B, initial_A_plus_B, 0.01);
+
+  // Constraint should still be satisfied
+  EXPECT_NEAR(K_eq * state.variables_[0][B_idx], state.variables_[0][C_idx], 1.0e-6);
+}
+
+/// @brief Test that the solver handles large K_eq (stiff coupling) without NaN
+TEST(EquilibriumIntegration, DAESolveStiffCoupling)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  // Large equilibrium constant creates stiff coupling
+  double K_eq = 1000.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.0;
+  state.variables_[0][C_idx] = 0.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  double dt = 0.001;
+  double total_time = 0.05;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+
+    // Should not produce NaN or Inf
+    ASSERT_FALSE(std::isnan(state.variables_[0][A_idx])) << "NaN in A at time=" << time;
+    ASSERT_FALSE(std::isnan(state.variables_[0][B_idx])) << "NaN in B at time=" << time;
+    ASSERT_FALSE(std::isnan(state.variables_[0][C_idx])) << "NaN in C at time=" << time;
+    ASSERT_FALSE(std::isinf(state.variables_[0][A_idx])) << "Inf in A at time=" << time;
+    ASSERT_FALSE(std::isinf(state.variables_[0][B_idx])) << "Inf in B at time=" << time;
+    ASSERT_FALSE(std::isinf(state.variables_[0][C_idx])) << "Inf in C at time=" << time;
+
+    // Solver should converge (or at least not crash)
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Stiff DAE did not converge at time=" << time;
+
+    double residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    EXPECT_NEAR(residual, 0.0, 1.0e-4) << "Constraint violated at time=" << time;
+
+    time += dt;
+  }
+}
+
+/// @brief Test DAE solve with non-unit stoichiometric coefficient
+/// 2A <-> B means K_eq * [A]^2 - [B] = 0
+TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  // Reaction: C -> A (to produce A for the equilibrium)
+  double k = 0.5;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ C })
+                          .SetProducts({ { A, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
+  double K_eq = 10.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "A2_B_eq",
+      std::vector<micm::StoichSpecies>{ { A, 2.0 } },
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  // Start with some A so the constraint has something to work with
+  state.variables_[0][A_idx] = 0.1;
+  state.variables_[0][B_idx] = K_eq * 0.1 * 0.1;  // B = K_eq * A^2
+  state.variables_[0][C_idx] = 1.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  double dt = 0.001;
+  double total_time = 0.05;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "NonUnit stoich did not converge at time=" << time;
+
+    // Constraint: K_eq * [A]^2 - [B] = 0
+    double A_val = state.variables_[0][A_idx];
+    double B_val = state.variables_[0][B_idx];
+    double residual = K_eq * A_val * A_val - B_val;
+    EXPECT_NEAR(residual, 0.0, 1.0e-5) << "Constraint violated at time=" << time;
+
+    time += dt;
+  }
+}
+
+/// @brief Test that Max(0.0) clamping doesn't break algebraic variables
+/// Algebraic variables should not be clamped since they're determined by constraints
+TEST(EquilibriumIntegration, DAEClampingDoesNotBreakAlgebraicVariables)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.0;
+  state.variables_[0][C_idx] = 0.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  // Verify that constraints_replace_state_rows_ is set
+  ASSERT_TRUE(state.constraints_replace_state_rows_);
+
+  // After a solve, C should be K_eq * B, and the constraint should be satisfied
+  // This verifies that clamping doesn't interfere with algebraic variable values
+  solver.CalculateRateConstants(state);
+  auto result = solver.Solve(0.01, state);
+  ASSERT_EQ(result.state_, micm::SolverState::Converged);
+
+  // B should be positive after one step (A is decaying into B)
+  EXPECT_GT(state.variables_[0][B_idx], 0.0);
+  // C should be K_eq * B
+  EXPECT_NEAR(K_eq * state.variables_[0][B_idx], state.variables_[0][C_idx], 1.0e-6);
+  // ODE variables (A, B) should be non-negative (clamped)
+  EXPECT_GE(state.variables_[0][A_idx], 0.0);
+  EXPECT_GE(state.variables_[0][B_idx], 0.0);
 }

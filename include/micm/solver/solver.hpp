@@ -70,7 +70,18 @@ namespace micm
     SolverResult Solve(double time_step, StatePolicy& state)
     {
       auto result = solver_.Solve(time_step, state, solver_parameters_);
-      state.variables_.Max(0.0);
+      if (state.constraints_replace_state_rows_)
+      {
+        // Only clamp ODE variables to non-negative; algebraic variables may legitimately be negative
+        for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
+          for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
+            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+              state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
+      }
+      else
+      {
+        state.variables_.Max(0.0);
+      }
       return result;
     }
 
