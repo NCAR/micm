@@ -189,3 +189,37 @@ TEST(SolverBuilder, DAEKineticAlgebraicRowPruningDoesNotThrow)
     (void)solver;
   });
 }
+
+TEST(SolverBuilder, DAEKineticAlgebraicReactantRowPruningDoesNotThrow)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  micm::Phase local_gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  // C is constrained (algebraic) and also appears as a kinetic reactant.
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A, C })
+                          .SetProducts({ micm::StoichSpecies(B, 1.0) })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0, .B_ = 0.0, .C_ = 0.0 }))
+                          .SetPhase(local_gas_phase)
+                          .Build();
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  EXPECT_NO_THROW({
+    std::vector<micm::Constraint> constraints;
+    constraints.push_back(micm::EquilibriumConstraint(
+        "B_C_eq",
+        std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+        std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+        2.0));
+
+    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                      .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = local_gas_phase }))
+                      .SetReactions({ rxn })
+                      .SetConstraints(std::move(constraints))
+                      .SetReorderState(false)
+                      .Build();
+    (void)solver;
+  });
+}

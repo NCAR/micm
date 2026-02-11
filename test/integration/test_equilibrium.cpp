@@ -303,6 +303,80 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   EXPECT_NEAR(total, 1.0, 0.01);
 }
 
+/// @brief Test DAE solve with constraints and state reordering enabled
+TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  // Simple reaction: A -> B with rate k
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(true)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  // Verify algebraic/ODE split is preserved under reordering
+  EXPECT_EQ(state.upper_left_identity_diagonal_[A_idx], 1.0);
+  EXPECT_EQ(state.upper_left_identity_diagonal_[B_idx], 1.0);
+  EXPECT_EQ(state.upper_left_identity_diagonal_[C_idx], 0.0);
+
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.0;
+  state.variables_[0][C_idx] = 0.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  double dt = 0.001;
+  double total_time = 0.1;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged)
+        << "Reordered DAE solve did not converge at time=" << time;
+
+    // Constraint should hold at each step
+    double residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated at time=" << time;
+
+    time += dt;
+  }
+
+  // Mass conservation for A -> B
+  EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
+}
+
 /// @brief Test DAE solve with FourStageDifferentialAlgebraicRosenbrockParameters
 TEST(EquilibriumIntegration, DAESolveWithFourStageDAEParameters)
 {
