@@ -107,7 +107,7 @@ namespace micm
               // plus any additional constraint variables. Zero-initialize Ynew first so that
               // constraint columns start from a known state.
               Ynew.Fill(0.0);
-              for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+              for (std::size_t i_cell = 0; i_cell < Ynew.NumRows(); ++i_cell)
               {
                 for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
                 {
@@ -152,7 +152,7 @@ namespace micm
         // plus any additional constraint variables. Zero-initialize Ynew first so that
         // constraint columns start from a known state.
         Ynew.Fill(0.0);
-        for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+        for (std::size_t i_cell = 0; i_cell < Ynew.NumRows(); ++i_cell)
         {
           for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
           {
