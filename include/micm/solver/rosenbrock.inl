@@ -102,14 +102,15 @@ namespace micm
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              // Copy only species variables from Y to Ynew (Y has size state_size_, Ynew has state_size_ + constraint_size_)
-              for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-              {
-                for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
-                {
-                  Ynew[i_cell][i_var] = Y[i_cell][i_var];
-                }
-              }
+              Ynew.Copy(Y);
+              // // Copy only species variables from Y to Ynew (Y has size state_size_, Ynew has state_size_ + constraint_size_)
+              // for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+              // {
+              //   for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+              //   {
+              //     Ynew[i_cell][i_var] = Y[i_cell][i_var];
+              //   }
+              // }
               for (uint64_t j = 0; j < stage; ++j)
               {
                 Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
@@ -143,14 +144,15 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
+        Ynew.Copy(Y);
         // Compute the new solution: Copy species from Y, then add increments from K stages
-        for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-        {
-          for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
-          {
-            Ynew[i_cell][i_var] = Y[i_cell][i_var];
-          }
-        }
+        // for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+        // {
+        //   for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+        //   {
+        //     Ynew[i_cell][i_var] = Y[i_cell][i_var];
+        //   }
+        // }
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Ynew.Axpy(parameters.m_[stage], K[stage]);
 
@@ -186,14 +188,15 @@ namespace micm
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
-          // Copy only species variables from Ynew back to Y (Ynew has constraint rows that Y doesn't have)
-          for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-          {
-            for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
-            {
-              Y[i_cell][i_var] = Ynew[i_cell][i_var];
-            }
-          }
+          Y.Swap(Ynew);
+          // // Copy only species variables from Ynew back to Y (Ynew has constraint rows that Y doesn't have)
+          // for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+          // {
+          //   for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+          //   {
+          //     Y[i_cell][i_var] = Ynew[i_cell][i_var];
+          //   }
+          // }
           Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
