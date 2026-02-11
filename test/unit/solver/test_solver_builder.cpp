@@ -1,5 +1,6 @@
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/constraint/equilibrium_constraint.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
@@ -153,4 +154,38 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 
   EXPECT_EQ(solver.solver_parameters_.h_min_, 15.0);
   EXPECT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
+}
+
+TEST(SolverBuilder, DAEKineticAlgebraicRowPruningDoesNotThrow)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  micm::Phase local_gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  // Kinetics writes to C, while C is also the algebraic constraint row.
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ micm::StoichSpecies(C, 1.0) })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0, .B_ = 0.0, .C_ = 0.0 }))
+                          .SetPhase(local_gas_phase)
+                          .Build();
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  EXPECT_NO_THROW({
+    std::vector<micm::Constraint> constraints;
+    constraints.push_back(micm::EquilibriumConstraint(
+        "B_C_eq",
+        std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+        std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+        2.0));
+
+    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                      .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = local_gas_phase }))
+                      .SetReactions({ rxn })
+                      .SetConstraints(std::move(constraints))
+                      .SetReorderState(false)
+                      .Build();
+    (void)solver;
+  });
 }

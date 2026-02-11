@@ -245,15 +245,30 @@ namespace micm
   inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
     jacobian_flat_ids_.clear();
+    jacobian_flat_ids_.reserve(
+        jacobian_reactant_ids_.size() + jacobian_process_info_.size() + jacobian_product_ids_.size());
     auto react_id = jacobian_reactant_ids_.begin();
     auto prod_id = jacobian_product_ids_.begin();
+    // Algebraic rows may be pruned from sparsity; keep placeholder ids so the update loops stay aligned.
+    constexpr std::size_t skipped_flat_id = 0;
     for (const auto& process_info : jacobian_process_info_)
     {
       for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
-        jacobian_flat_ids_.push_back(matrix.VectorIndex(0, *(react_id++), process_info.independent_id_));
-      jacobian_flat_ids_.push_back(matrix.VectorIndex(0, process_info.independent_id_, process_info.independent_id_));
+      {
+        const std::size_t row_id = *(react_id++);
+        jacobian_flat_ids_.push_back(
+            is_algebraic_variable_[row_id] ? skipped_flat_id : matrix.VectorIndex(0, row_id, process_info.independent_id_));
+      }
+      jacobian_flat_ids_.push_back(
+          is_algebraic_variable_[process_info.independent_id_]
+              ? skipped_flat_id
+              : matrix.VectorIndex(0, process_info.independent_id_, process_info.independent_id_));
       for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
-        jacobian_flat_ids_.push_back(matrix.VectorIndex(0, *(prod_id++), process_info.independent_id_));
+      {
+        const std::size_t row_id = *(prod_id++);
+        jacobian_flat_ids_.push_back(
+            is_algebraic_variable_[row_id] ? skipped_flat_id : matrix.VectorIndex(0, row_id, process_info.independent_id_));
+      }
     }
   }
 
