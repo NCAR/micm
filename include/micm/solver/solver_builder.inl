@@ -342,16 +342,16 @@ namespace micm
 
     // Create ConstraintSet from stored constraints (if any)
     ConstraintSet constraint_set;
+    std::set<std::size_t> algebraic_variable_ids;
     if (number_of_constraints > 0)
     {
       // Copy constraints so that the builder can be reused
       auto constraints_copy = constraints_;
-      // Constraints reference existing species only (no new variables created)
-      // Pass species_map so constraints can resolve dependencies to species indices
-      constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species);
-
-      // // Move constraints into ConstraintSet
-      // constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
+      // Constraints replace selected species rows in the mass-matrix DAE formulation.
+      // Pass species_map so constraints can resolve dependencies and row targets to species indices.
+      constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species, true);
+      algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
+      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
@@ -359,7 +359,7 @@ namespace micm
     }
 
     // The actual number of grid cells is not needed to construct the various solver objects
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species + number_of_constraints, true);
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
@@ -378,17 +378,22 @@ namespace micm
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
-    // Note: Constraint names are NOT added to variable_names.
-    // Constraints add rows to the Jacobian/forcing but do not create new state variables.
-    // The variables_ matrix should only contain species, while Jacobian/forcing/K matrices
-    // have extra rows (state_size_ + constraint_size_) for the constraint equations.
+
+    // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
+    std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
+    for (const auto variable_id : algebraic_variable_ids)
+    {
+      mass_matrix_diagonal[variable_id] = 0.0;
+    }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
                                          .number_of_constraints_ = number_of_constraints,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
-                                         .nonzero_jacobian_elements_ = nonzero_elements };
+                                         .nonzero_jacobian_elements_ = nonzero_elements,
+                                         .mass_matrix_diagonal_ = mass_matrix_diagonal,
+                                         .constraints_replace_state_rows_ = (number_of_constraints > 0) };
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 

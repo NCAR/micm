@@ -9,6 +9,8 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
@@ -42,6 +44,33 @@ TEST(ConstraintSet, Construction)
   ConstraintSet set(std::move(constraints), variable_map, constraint_row_offset);
 
   EXPECT_EQ(set.Size(), 1);
+}
+
+TEST(ConstraintSet, ReplaceStateRowsMapsToAlgebraicSpecies)
+{
+  std::vector<Constraint> constraints;
+  constraints.push_back(EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
+      10.0));
+
+  std::unordered_map<std::string, std::size_t> variable_map = {
+    { "A", 0 },
+    { "B", 1 },
+    { "C", 2 }
+  };
+
+  ConstraintSet set(std::move(constraints), variable_map, 3, true);
+
+  EXPECT_EQ(set.Size(), 1);
+  EXPECT_EQ(set.AlgebraicVariableIds().size(), 1);
+  EXPECT_TRUE(set.AlgebraicVariableIds().count(2));  // C row is algebraic
+
+  auto non_zero_elements = set.NonZeroJacobianElements();
+  EXPECT_EQ(non_zero_elements.size(), 2);
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 1)));  // row C, col B
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 2)));  // row C, col C
 }
 
 TEST(ConstraintSet, NonZeroJacobianElements)
@@ -607,4 +636,64 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
   // Constraint 2: dG2/dA = 20, dG2/dC = -1
   EXPECT_NEAR(jacobian[0][4][0], -K_eq2, 1e-10);
   EXPECT_NEAR(jacobian[0][4][2], 1.0, 1e-10);
+}
+
+TEST(ConstraintSet, VectorizedMatricesRespectGridCellIndexing)
+{
+  const std::size_t num_species = 3;
+  const std::size_t num_constraints = 1;
+  const std::size_t total_vars = num_species + num_constraints;
+
+  std::vector<Constraint> constraints;
+  constraints.push_back(EquilibriumConstraint(
+      "A_B_eq",
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      1000.0));
+
+  std::unordered_map<std::string, std::size_t> variable_map = {
+    { "A", 0 },
+    { "B", 1 },
+    { "AB", 2 }
+  };
+
+  ConstraintSet set(std::move(constraints), variable_map, num_species);
+  auto non_zero_elements = set.NonZeroJacobianElements();
+
+  auto builder = SparseMatrix<double, SparseMatrixVectorOrdering<4>>::Create(total_vars)
+    .SetNumberOfBlocks(3)
+    .InitialValue(0.0);
+  for (std::size_t i = 0; i < total_vars; ++i)
+    builder = builder.WithElement(i, i);
+  for (const auto& elem : non_zero_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+
+  SparseMatrix<double, SparseMatrixVectorOrdering<4>> jacobian{ builder };
+  set.SetJacobianFlatIds(jacobian);
+
+  VectorMatrix<double, 4> state(3, num_species, 0.0);
+  state[0] = { 0.01, 0.02, 0.05 };
+  state[1] = { 0.03, 0.01, 0.2 };
+  state[2] = { 0.001, 0.002, 0.004 };
+
+  VectorMatrix<double, 4> forcing(3, total_vars, 0.0);
+  set.AddForcingTerms(state, forcing);
+
+  EXPECT_NEAR(forcing[0][3], 1000.0 * 0.01 * 0.02 - 0.05, 1e-12);
+  EXPECT_NEAR(forcing[1][3], 1000.0 * 0.03 * 0.01 - 0.2, 1e-12);
+  EXPECT_NEAR(forcing[2][3], 1000.0 * 0.001 * 0.002 - 0.004, 1e-12);
+
+  set.SubtractJacobianTerms(state, jacobian);
+
+  EXPECT_NEAR(jacobian[0][3][0], -(1000.0 * 0.02), 1e-12);
+  EXPECT_NEAR(jacobian[0][3][1], -(1000.0 * 0.01), 1e-12);
+  EXPECT_NEAR(jacobian[0][3][2], 1.0, 1e-12);
+
+  EXPECT_NEAR(jacobian[1][3][0], -(1000.0 * 0.01), 1e-12);
+  EXPECT_NEAR(jacobian[1][3][1], -(1000.0 * 0.03), 1e-12);
+  EXPECT_NEAR(jacobian[1][3][2], 1.0, 1e-12);
+
+  EXPECT_NEAR(jacobian[2][3][0], -(1000.0 * 0.002), 1e-12);
+  EXPECT_NEAR(jacobian[2][3][1], -(1000.0 * 0.001), 1e-12);
+  EXPECT_NEAR(jacobian[2][3][2], 1.0, 1e-12);
 }

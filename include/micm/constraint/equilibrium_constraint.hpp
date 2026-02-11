@@ -224,6 +224,16 @@ namespace micm
         // else: derivative is 0 when conc = 0 and stoich > 1
       }
     }
+
+    /// @brief Returns the species whose row should be replaced by this algebraic constraint
+    /// @return Species name of the primary algebraic variable
+    ///
+    /// For equilibrium constraints, we use the first product species as the algebraic row target.
+    /// This supports common forms such as K_eq * [B] - [C] = 0 where C is algebraic.
+    const std::string& AlgebraicSpecies() const
+    {
+      return products_[0].species_.name_;
+    }
   };
 
 }  // namespace micm

@@ -86,7 +86,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
       K_eq));
 
   // Build solver with constraints - this verifies the API works
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ rxn })
@@ -96,22 +96,19 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   auto state = solver.GetState(1);
 
-  // Verify the state includes constraint variables
+  // Verify constraint metadata
   ASSERT_EQ(state.state_size_, 3);       // A, B, and C
   ASSERT_EQ(state.constraint_size_, 1);
   ASSERT_TRUE(state.variable_map_.count("A") > 0);
   ASSERT_TRUE(state.variable_map_.count("B") > 0);
   ASSERT_TRUE(state.variable_map_.count("C") > 0);
 
-  // Verify identity diagonal has correct structure (1s for all species, 0s for constraint rows)
-  // Size is species (3) + constraints (1) = 4
-  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 4);
-  // All species are ODE variables
+  // Verify mass-matrix diagonal.
+  // Size is species only; constrained species rows are algebraic (0), others are ODE (1).
+  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 3);
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // A is ODE
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // B is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 1.0);  // C is ODE
-  // The constraint row (beyond species) is algebraic
-  EXPECT_EQ(state.upper_left_identity_diagonal_[3], 0.0);  // constraint row is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // C is algebraic
 
   // Verify state can be initialized
   std::size_t A_idx = state.variable_map_.at("A");
@@ -202,18 +199,15 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   ASSERT_TRUE(state.variable_map_.count("E") > 0);
   ASSERT_TRUE(state.variable_map_.count("F") > 0);
 
-  // Verify identity diagonal: all species are ODE (1.0), constraint rows are algebraic (0.0)
-  // Size is species (6) + constraints (2) = 8  
-  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 8);
+  // Verify mass-matrix diagonal.
+  // Size is species only; constrained species rows are algebraic (0), others are ODE (1).
+  ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 6);
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // A is ODE
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // B is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 1.0);  // C is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // C is algebraic
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("D")], 1.0);  // D is ODE
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("E")], 1.0);  // E is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("F")], 1.0);  // F is ODE
-  // The constraint rows (beyond species) are algebraic
-  EXPECT_EQ(state.upper_left_identity_diagonal_[6], 0.0);  // constraint row 0 is algebraic
-  EXPECT_EQ(state.upper_left_identity_diagonal_[7], 0.0);  // constraint row 1 is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("F")], 0.0);  // F is algebraic
 
   // Initialize state and verify CalculateRateConstants works
   state.variables_[0][state.variable_map_.at("A")] = 1.0;
@@ -233,24 +227,8 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 }
 
 /// @brief Test DAE solving - actually calls Solve() with algebraic constraints
-///
-/// **DISABLED: Reveals a design limitation with purely algebraic variables.**
-///
-/// The current implementation adds constraint equations as additional rows in the Jacobian/forcing,
-/// but for purely algebraic variables (species not in any reactions), this doesn't work because:
-/// 1. Algebraic variable C is at index 2 with its own ODE row (but no kinetic equations)
-/// 2. Constraint equation G = K_eq*B - C is added as row 3 (separate from C's row)
-/// 3. C's ODE row (row 2) has no forcing terms and minimal Jacobian entries, so C never updates
-/// 4. The constraint row evaluates the residual but doesn't directly enforce C = K_eq * B
-///
-/// To support purely algebraic variables, the design needs to either:
-/// - Replace the algebraic variable's ODE row with the constraint equation (not add a separate row)
-/// - Add a projection step that explicitly sets C = K_eq * B after each solve
-/// - Modify the constraint Jacobian to add entries in C's row, not just the constraint row
-///
-/// For now, the SetConstraints API works for constraints between variables that have kinetic
-/// equations, but pure algebraic variables require further solver modifications.
-TEST(EquilibriumIntegration, DISABLED_DAESolveWithConstraint)
+/// This exercises mass-matrix DAE enforcement where constrained species rows are algebraic.
+TEST(EquilibriumIntegration, DAESolveWithConstraint)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -344,10 +322,8 @@ TEST(EquilibriumIntegration, DISABLED_DAESolveWithConstraint)
     }
 
     // Verify constraint is maintained by the solver
-    // With the regularization approach (alpha added to constraint rows), the algebraic
-    // constraint is treated as a stiff ODE, so it tracks the constraint with some lag
     double constraint_residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
-    EXPECT_NEAR(constraint_residual, 0.0, 0.05)  // Relaxed tolerance for regularization approach
+    EXPECT_NEAR(constraint_residual, 0.0, 1.0e-6)
         << "Constraint not satisfied at step " << steps 
         << ": K_eq*B - C = " << constraint_residual;
 
@@ -367,8 +343,8 @@ TEST(EquilibriumIntegration, DISABLED_DAESolveWithConstraint)
   std::cout << "  Expected C = " << expected_C << std::endl;
   std::cout << "  Final constraint residual = " << final_residual << std::endl;
 
-  EXPECT_NEAR(state.variables_[0][C_idx], expected_C, 0.01);
-  EXPECT_NEAR(final_residual, 0.0, 0.01);
+  EXPECT_NEAR(state.variables_[0][C_idx], expected_C, 1.0e-6);
+  EXPECT_NEAR(final_residual, 0.0, 1.0e-6);
 
   // Verify mass conservation: A + B should be conserved (approximately)
   double total = state.variables_[0][A_idx] + state.variables_[0][B_idx];

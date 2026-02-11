@@ -71,6 +71,13 @@ namespace micm
     {
       std::visit([&](const auto& c) { c.Jacobian(concentrations, indices, jacobian); }, constraint_);
     }
+
+    /// @brief Returns the species whose state row should be replaced by this algebraic constraint
+    /// @return Algebraic species name
+    std::string GetAlgebraicSpecies() const
+    {
+      return std::visit([](const auto& c) { return c.AlgebraicSpecies(); }, constraint_);
+    }
   };
 
 }  // namespace micm

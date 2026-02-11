@@ -1,5 +1,7 @@
 #include "test_rosenbrock_solver_policy.hpp"
 
+#include <micm/constraint/constraint.hpp>
+#include <micm/constraint/equilibrium_constraint.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
@@ -54,6 +56,72 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
     std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl;
     throw std::runtime_error("Fail to match computed_error and expected_error.\n");
   }
+}
+
+template<class SolverBuilderPolicy>
+void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+  micm::Process reaction = micm::ChemicalReactionBuilder()
+                               .SetReactants({ A })
+                               .SetProducts({ micm::StoichSpecies(B, 1) })
+                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.5, .B_ = 0.0, .C_ = 0.0 }))
+                               .SetPhase(gas_phase)
+                               .Build();
+
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
+      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
+      10.0));
+
+  auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ reaction })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+  auto state = solver.GetState(number_of_grid_cells);
+
+  ASSERT_EQ(state.constraint_size_, 1);
+
+  using MatrixPolicy = decltype(state.variables_);
+  MatrixPolicy y_old(number_of_grid_cells, state.state_size_, 0.0);
+  MatrixPolicy y_new(number_of_grid_cells, state.state_size_ + state.constraint_size_, 0.0);
+  MatrixPolicy errors(number_of_grid_cells, state.state_size_ + state.constraint_size_, 0.0);
+
+  double expected_error = 0.0;
+  const auto& atol = state.absolute_tolerance_;
+  const auto& rtol = state.relative_tolerance_;
+
+  for (std::size_t i = 0; i < number_of_grid_cells; ++i)
+  {
+    for (std::size_t j = 0; j < state.state_size_; ++j)
+    {
+      y_old[i][j] = 1.0 + i + 0.1 * j;
+      y_new[i][j] = 0.8 + 0.5 * i + 0.2 * j;
+      errors[i][j] = 0.01 * (1 + i + j);
+
+      const double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      const double scale = atol[j] + rtol * ymax;
+      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
+    }
+
+    // Set extreme values in constraint-only columns to verify they are ignored by normalization.
+    const std::size_t constraint_col = state.state_size_;
+    y_new[i][constraint_col] = (i + 1) * 1.0e12;
+    errors[i][constraint_col] = (i + 1) * 1.0e9;
+  }
+
+  expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
+  expected_error = std::max(expected_error, 1.0e-10);
+
+  const double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  EXPECT_NEAR(computed_error, expected_error, 1e-12);
 }
 
 using StandardBuilder = micm::CpuSolverBuilder<
@@ -136,4 +204,24 @@ TEST(RosenbrockSolver, VectorNormalizedError)
   testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
   testNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
   testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+}
+
+TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
+{
+  testNormalizedErrorIgnoresConstraintColumns(
+      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
+      2);
+  testNormalizedErrorIgnoresConstraintColumns(
+      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
+      5);
+}
+
+TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
+{
+  testNormalizedErrorIgnoresConstraintColumns(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
+      3);
+  testNormalizedErrorIgnoresConstraintColumns(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
+      5);
 }
