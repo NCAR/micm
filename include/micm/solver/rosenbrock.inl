@@ -147,7 +147,18 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        Ynew.Copy(Y);
+        // Copy only species variables from Y to Ynew.
+        // Y has size state.state_size_ (species only), while Ynew has state.state_size_
+        // plus any additional constraint variables. Zero-initialize Ynew first so that
+        // constraint columns start from a known state.
+        Ynew.Fill(0.0);
+        for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+        {
+          for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+          {
+            Ynew[i_cell][i_var] = Y[i_cell][i_var];
+          }
+        }
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Ynew.Axpy(parameters.m_[stage], K[stage]);
 
