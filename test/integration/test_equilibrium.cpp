@@ -722,6 +722,125 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   }
 }
 
+/// @brief Test DAE solve with multiple grid cells
+/// Exercises the per-cell iteration in AddForcingTerms, SubtractJacobianTerms,
+/// AlphaMinusJacobian, and NormalizedError with different initial conditions per cell.
+TEST(EquilibriumIntegration, DAESolveMultiGridCell)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+
+  double k = 1.0;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  double K_eq = 2.0;
+  std::vector<micm::Constraint> constraints;
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      K_eq));
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+
+  const std::size_t num_cells = 3;
+  auto state = solver.GetState(num_cells);
+
+  std::size_t A_idx = state.variable_map_.at("A");
+  std::size_t B_idx = state.variable_map_.at("B");
+  std::size_t C_idx = state.variable_map_.at("C");
+
+  // Different initial conditions per cell, all starting at constraint equilibrium (C = K_eq * B)
+  // Cell 0: high A, small B
+  state.variables_[0][A_idx] = 1.0;
+  state.variables_[0][B_idx] = 0.01;
+  state.variables_[0][C_idx] = K_eq * 0.01;
+
+  // Cell 1: moderate A and B
+  state.variables_[1][A_idx] = 0.5;
+  state.variables_[1][B_idx] = 0.2;
+  state.variables_[1][C_idx] = K_eq * 0.2;
+
+  // Cell 2: low A, high B
+  state.variables_[2][A_idx] = 0.1;
+  state.variables_[2][B_idx] = 0.8;
+  state.variables_[2][C_idx] = K_eq * 0.8;
+
+  for (std::size_t cell = 0; cell < num_cells; ++cell)
+  {
+    state.conditions_[cell].temperature_ = 298.0;
+    state.conditions_[cell].pressure_ = 101325.0;
+  }
+
+  // Record initial A+B per cell for conservation check
+  std::vector<double> initial_A_plus_B(num_cells);
+  for (std::size_t cell = 0; cell < num_cells; ++cell)
+  {
+    initial_A_plus_B[cell] = state.variables_[cell][A_idx] + state.variables_[cell][B_idx];
+  }
+
+  double dt = 0.001;
+  double total_time = 0.1;
+  double time = 0.0;
+
+  while (time < total_time)
+  {
+    solver.CalculateRateConstants(state);
+    auto result = solver.Solve(dt, state);
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Multi-grid DAE did not converge at time=" << time;
+
+    // Check constraint satisfaction per cell
+    for (std::size_t cell = 0; cell < num_cells; ++cell)
+    {
+      double residual = K_eq * state.variables_[cell][B_idx] - state.variables_[cell][C_idx];
+      EXPECT_NEAR(residual, 0.0, 1.0e-6)
+          << "Constraint violated in cell " << cell << " at time=" << time;
+
+      // No NaN or Inf in any cell
+      ASSERT_FALSE(std::isnan(state.variables_[cell][A_idx])) << "NaN in A, cell " << cell;
+      ASSERT_FALSE(std::isnan(state.variables_[cell][B_idx])) << "NaN in B, cell " << cell;
+      ASSERT_FALSE(std::isnan(state.variables_[cell][C_idx])) << "NaN in C, cell " << cell;
+    }
+
+    time += dt;
+  }
+
+  // Final checks per cell
+  for (std::size_t cell = 0; cell < num_cells; ++cell)
+  {
+    // Constraint satisfied
+    EXPECT_NEAR(K_eq * state.variables_[cell][B_idx], state.variables_[cell][C_idx], 1.0e-6)
+        << "Final constraint violated in cell " << cell;
+
+    // Mass conservation: A + B should be conserved
+    double final_A_plus_B = state.variables_[cell][A_idx] + state.variables_[cell][B_idx];
+    EXPECT_NEAR(final_A_plus_B, initial_A_plus_B[cell], 0.01)
+        << "Mass not conserved in cell " << cell;
+
+    // ODE variables non-negative
+    EXPECT_GE(state.variables_[cell][A_idx], 0.0) << "Negative A in cell " << cell;
+    EXPECT_GE(state.variables_[cell][B_idx], 0.0) << "Negative B in cell " << cell;
+  }
+
+  // Verify cells evolved differently (different initial conditions should give different results)
+  EXPECT_NE(state.variables_[0][B_idx], state.variables_[1][B_idx]);
+  EXPECT_NE(state.variables_[1][B_idx], state.variables_[2][B_idx]);
+}
+
 /// @brief Test that Max(0.0) clamping doesn't break algebraic variables
 /// Algebraic variables should not be clamped since they're determined by constraints
 TEST(EquilibriumIntegration, DAEClampingDoesNotBreakAlgebraicVariables)

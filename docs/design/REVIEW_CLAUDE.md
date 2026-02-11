@@ -1,7 +1,7 @@
 # Code Review: MICM Rosenbrock DAE Solver
 
 **Reviewer:** Claude Opus 4.6
-**Date:** 2026-02-11
+**Date:** 2026-02-11 (updated after Codex Pass 3)
 **Branch:** `dae-constraint-enforcement`
 **Scope:** Full review of DAE constraint system integrated into the Rosenbrock solver
 
@@ -11,7 +11,7 @@
 
 The DAE (Differential-Algebraic Equation) constraint system is architecturally sound. The "replace-state-rows" design correctly replaces algebraic species rows in-place rather than appending extra rows, keeping matrix dimensions consistent throughout the solver. The mass-matrix diagonal (`upper_left_identity_diagonal_`) properly distinguishes ODE rows (M=1) from algebraic rows (M=0), and is correctly applied in `AlphaMinusJacobian` and the c/H stage combination terms. The `ProcessSet` correctly skips kinetic contributions for algebraic variable rows.
 
-Two passes of review have been completed. Most bugs and code quality issues from the first pass are now fixed. Remaining open issues are documented below alongside findings from the Codex review (`REVIEW_CODEX.md`).
+Three review passes have been completed (two Claude, three Codex). Most bugs and code quality issues are now fixed. This document tracks the current status of all findings from both reviewers.
 
 ---
 
@@ -35,7 +35,7 @@ Added explicit insertion of `(constraint_row, constraint_row)` when `replace_sta
 
 ### 1.4 LOW: `AlgebraicSpecies()` returns a copy vs. const reference inconsistency - OPEN
 
-**File:** `include/micm/constraint/constraint.hpp`
+**File:** `include/micm/constraint/constraint.hpp:77`
 
 `Constraint::GetAlgebraicSpecies()` returns `std::string` by value while `EquilibriumConstraint::AlgebraicSpecies()` returns `const std::string&`. The `std::visit` lambda also returns by value. Not a bug, but creates an unnecessary copy.
 
@@ -43,13 +43,29 @@ Added explicit insertion of `(constraint_row, constraint_row)` when `replace_sta
 
 ## 2. Robustness Issues
 
-### 2.1 Unguarded `std::pow()` with potentially negative concentrations - FIXED
+### 2.1 Unguarded `std::pow()` with potentially negative concentrations in Residual - FIXED
 
 **File:** `include/micm/constraint/equilibrium_constraint.hpp`
 
 Added `std::max(0.0, ...)` guard before `std::pow()` calls in `Residual()` to prevent NaN from transient negative concentrations.
 
-### 2.2 MEDIUM: Equilibrium constant is compile-time static - OPEN (Enhancement)
+### 2.2 MEDIUM: Residual and Jacobian use inconsistent concentration guards - OPEN (Codex Pass 3, Finding 2)
+
+**File:** `include/micm/constraint/equilibrium_constraint.hpp:160-168`
+
+`Residual()` now clamps concentrations to `max(0, c)` before `std::pow()`, but the `Jacobian()` method computes `reactant_product` and `product_product` (lines 160-168) using raw concentrations with no guard. If `conc < 0` with non-integer stoichiometry, `std::pow(negative, non-integer)` returns NaN.
+
+The Jacobian does have `conc > 0` / `conc == 0` checks for the per-species derivative terms (lines 177, 206), but the *aggregate product terms* (lines 157-169) used in those derivatives are computed without guards.
+
+**Risks:**
+- NaN/Inf in Jacobian for negative concentrations with non-integer stoichiometry
+- Linearization mismatch: `dG/dy` does not match the residual being solved, degrading convergence
+
+**Recommended fix:** Apply a consistent `std::max(0.0, ...)` guard in both Residual and Jacobian paths, and document derivative behavior for `c <= 0`.
+
+**Needed test:** Unit test with negative concentrations and fractional stoichiometry verifying Jacobian is finite and consistent with residual policy.
+
+### 2.3 MEDIUM: Equilibrium constant is compile-time static - OPEN (Enhancement)
 
 **File:** `include/micm/constraint/equilibrium_constraint.hpp`
 
@@ -57,7 +73,7 @@ Real atmospheric chemistry equilibrium constants are temperature-dependent (Arrh
 
 **Recommendation:** Add support for a rate-constant-like callable that takes temperature as input, similar to `ArrheniusRateConstant`.
 
-### 2.3 MEDIUM: `FourStageDifferentialAlgebraicRosenbrockParameters` needs citation - OPEN
+### 2.4 MEDIUM: `FourStageDifferentialAlgebraicRosenbrockParameters` needs citation - OPEN
 
 **File:** `include/micm/solver/rosenbrock_solver_parameters.hpp`
 
@@ -99,54 +115,56 @@ The builder unconditionally uses replace mode when constraints are present. The 
 
 ---
 
-## 4. Findings from Codex Review (REVIEW_CODEX.md)
+## 4. Findings from Codex Reviews
 
-These findings were identified by the Codex reviewer and confirmed as still valid.
+### 4.1 `State` copy operations slice solver-specific temporary buffers - FIXED
 
-### 4.1 HIGH: `State` copy operations slice solver-specific temporary buffers - OPEN
+**Files:** `include/micm/solver/state.hpp`, `temporary_variables.hpp`, `rosenbrock_temporary_variables.hpp`, `backward_euler_temporary_variables.hpp`
 
-**Files:** `include/micm/solver/state.hpp:110-111, 139-140`
+Added virtual `Clone()` to `TemporaryVariables` base class, overridden in both derived types. State copy ctor/assignment now use `Clone()` to preserve the derived type.
+
+### 4.2 Row-replacement Jacobian overwrite with duplicate dependency columns - FIXED
+
+**File:** `include/micm/constraint/constraint_set.hpp`
+
+Changed replace mode from `=` to `-=` so duplicate dependency columns accumulate correctly. The Jacobian row is already zeroed by `Fill(0)` and ProcessSet skips algebraic rows, so `-=` is safe.
+
+### 4.3 Unused-species validation ignores constraint-only species - FIXED
+
+**File:** `include/micm/solver/solver_builder.inl`
+
+Added constraint dependencies and algebraic targets to the used-species set in `UnusedSpeciesCheck()`.
+
+### 4.4 MEDIUM: Overloaded `Solve(time_step, state, params)` bypasses clamping - OPEN (Codex Pass 3, Finding 1)
+
+**File:** `include/micm/solver/solver.hpp:89-93`
 
 ```cpp
-temporary_variables_ =
-    other.temporary_variables_ ? std::make_unique<TemporaryVariables>(*other.temporary_variables_) : nullptr;
+SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
+{
+    solver_parameters_ = params;
+    return solver_.Solve(time_step, state, params);  // no clamping!
+}
 ```
 
-Both copy constructor and copy assignment recreate `temporary_variables_` as a base `TemporaryVariables` object. The Rosenbrock solver `static_cast`s to `RosenbrockTemporaryVariables` in `rosenbrock.inl:19`. Copying a state and then solving the copy triggers undefined behavior.
+The default `Solve(time_step, state)` applies selective ODE-only clamping, but the parameterized overload returns directly with no post-processing. This creates an API inconsistency — identical physics can produce different positivity behavior depending on which overload the caller uses.
 
-**Proposed fix:** Add `virtual std::unique_ptr<TemporaryVariables> Clone() const = 0;` to the base class and override in derived types. Use `Clone()` in State copy operations instead of `std::make_unique<TemporaryVariables>(...)`.
+**Recommended fix:** Refactor clamping into a shared post-processing helper and invoke from both overloads.
 
-**Needed tests:**
-- Copy a Rosenbrock state and solve both original and copy
-- Equivalent test for BackwardEuler state copy
+**Needed test:** Regression test using the parameterized overload, verifying ODE rows are clamped identically.
 
-### 4.2 MEDIUM: Row-replacement Jacobian can overwrite when dependency column repeats - OPEN
+### 4.5 LOW: No targeted regression tests for recently fixed issues - OPEN (Codex Pass 3, Finding 3)
 
-**Files:** `include/micm/constraint/constraint_set.hpp:354-377`
-
-Replace mode writes with `=` per dependency entry. If a species appears on both sides of an equilibrium (e.g., `A + B <-> A + C`), the dependency list has duplicate columns and only the last partial derivative for that `(row, col)` is retained.
-
-Currently safe for typical equilibrium constraints (reactants and products are disjoint), but a latent bug for constraints with overlapping species.
-
-**Proposed fix:** In replacement mode, clear target row entries once, then accumulate (`+=`) all dependency contributions. Or deduplicate dependencies and pre-aggregate derivatives before writeback.
+The fixes for Clone() (4.1), duplicate dependency accumulation (4.2), and constraint-aware unused-species (4.3) lack dedicated regression tests.
 
 **Needed tests:**
-- Constraint with overlapping species (e.g., `A + B <-> A + C`) verifying Jacobian `dG/dA` includes both partial derivative terms
+- Copy a solver-generated State and solve both original and copy (Rosenbrock + BackwardEuler)
+- Constraint with repeated species (e.g., `A + B <-> A + C`) verifying Jacobian accumulation
+- `.SetIgnoreUnusedSpecies(false)` with constraint-only species builds successfully
 
-### 4.3 MEDIUM: Unused-species validation ignores constraint-only species - OPEN
+### 4.6 LOW: Jacobian sparsity includes kinetic algebraic-row entries - OPEN (Enhancement)
 
-**File:** `include/micm/solver/solver_builder.inl:174`
-
-`UnusedSpeciesCheck()` only considers `RatesPolicy::SpeciesUsed(reactions_)`. A species that appears only in a constraint (not in any reaction) would be flagged as unused when `SetIgnoreUnusedSpecies(false)`.
-
-**Proposed fix:** Union reaction-used species with constraint dependency/algebraic target species before the difference check.
-
-**Needed tests:**
-- Builder test with strict unused-species checking + constraint-only species should build successfully
-
-### 4.4 LOW: Jacobian sparsity includes kinetic algebraic-row entries - OPEN (Enhancement)
-
-**File:** `include/micm/solver/solver_builder.inl:341-354`
+**File:** `include/micm/solver/solver_builder.inl`
 
 Kinetic nonzero elements are collected before algebraic row IDs are applied, so rows that will be entirely replaced by constraints still carry their kinetic sparsity pattern. This causes extra fill in the LU factorization for no benefit.
 
@@ -167,16 +185,18 @@ Kinetic nonzero elements are collected before algebraic row IDs are applied, so 
 | `DAESolveStiffCoupling` | Large K_eq (1000), no NaN/Inf | PASSING |
 | `DAESolveWithNonUnitStoichiometry` | K_eq*[A]^2 - [B] = 0 | PASSING |
 | `DAEClampingDoesNotBreakAlgebraicVariables` | Selective clamping verification | PASSING |
+| `DAESolveMultiGridCell` | 3 grid cells with different ICs, per-cell checks | PASSING |
 
 ### Tests Still Needed
 
 | Priority | Test | Reason |
 |----------|------|--------|
-| HIGH | State copy + solve (Rosenbrock) | Validates fix for 4.1 (slicing bug) |
-| HIGH | State copy + solve (BackwardEuler) | Same slicing issue |
-| HIGH | Multi-grid-cell DAE solve | Verifies vectorized paths |
-| MEDIUM | Overlapping-species constraint Jacobian | Validates fix for 4.2 |
-| MEDIUM | Constraint-only species + strict unused check | Validates fix for 4.3 |
+| HIGH | State copy + solve (Rosenbrock) | Regression test for 4.1 fix |
+| HIGH | State copy + solve (BackwardEuler) | Regression test for 4.1 fix |
+| MEDIUM | Parameterized Solve overload clamping | Validates fix for 4.4 |
+| MEDIUM | Negative conc + fractional stoich Jacobian | Validates fix for 2.2 |
+| MEDIUM | Overlapping-species constraint Jacobian | Regression test for 4.2 fix |
+| MEDIUM | Constraint-only species + strict unused check | Regression test for 4.3 fix |
 | LOW | Reorder state with constraints | Markowitz reordering + DAE interaction |
 | LOW | Error estimation for algebraic variables | Step size controller behavior |
 
@@ -191,12 +211,12 @@ Kinetic nonzero elements are collected before algebraic row IDs are applied, so 
 3. **ProcessSet algebraic guards**: Efficiently prevents kinetic contributions on constraint rows.
 4. **DAE-specific Rosenbrock parameters**: FourStage and SixStage (RODAS) parameter sets available.
 5. **Validation**: Duplicate constraint row detection, unknown species errors, equilibrium constant validation.
+6. **Polymorphic Clone**: State copy now preserves solver-specific temporary variables correctly.
 
 ### Architecture Risks
 
-1. **State copy slicing** (4.1): Most critical risk — any code path that copies a state and solves the copy will crash.
-2. **NormalizedError weighting**: Treats algebraic variables identically to ODE variables. May need different scaling for stiffer systems.
-3. **No index detection**: Assumes all constraints are index-1. Higher-index DAEs would require index reduction (not implemented; should be documented as a limitation).
+1. **NormalizedError weighting**: Treats algebraic variables identically to ODE variables. May need different scaling for stiffer systems.
+2. **No index detection**: Assumes all constraints are index-1. Higher-index DAEs would require index reduction (not implemented; should be documented as a limitation).
 
 ---
 
@@ -204,11 +224,11 @@ Kinetic nonzero elements are collected before algebraic row IDs are applied, so 
 
 | Priority | Issue | Type | Section |
 |----------|-------|------|---------|
-| HIGH | State copy slicing of temporary variables | Bug | 4.1 |
-| MEDIUM | Jacobian overwrite with duplicate dependency columns | Bug | 4.2 |
-| MEDIUM | Unused-species check ignores constraint species | Bug | 4.3 |
-| MEDIUM | Temperature-dependent equilibrium constant | Enhancement | 2.2 |
-| MEDIUM | 4-stage DAE parameters citation | Documentation | 2.3 |
+| MEDIUM | Residual/Jacobian inconsistent concentration guards | Bug | 2.2 |
+| MEDIUM | Parameterized `Solve` overload bypasses clamping | Bug | 4.4 |
+| MEDIUM | Temperature-dependent equilibrium constant | Enhancement | 2.3 |
+| MEDIUM | 4-stage DAE parameters citation | Documentation | 2.4 |
+| LOW | No regression tests for Clone/dup-dep/unused-species fixes | Testing | 4.5 |
 | LOW | Remove dead append-rows code paths | Simplification | 3.5 |
-| LOW | AlgebraicSpecies() return type inconsistency | Code quality | 1.4 |
-| LOW | Filter kinetic sparsity from algebraic rows | Enhancement | 4.4 |
+| LOW | `AlgebraicSpecies()` return type inconsistency | Code quality | 1.4 |
+| LOW | Filter kinetic sparsity from algebraic rows | Enhancement | 4.6 |
