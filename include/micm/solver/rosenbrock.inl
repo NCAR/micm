@@ -221,6 +221,11 @@ namespace micm
           {
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+            // Subtract constraint Jacobian terms (for DAE systems)
+            if (has_constraints)
+            {
+              constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+            }
             result.stats_.jacobian_updates_ += 1;
           }
         }
