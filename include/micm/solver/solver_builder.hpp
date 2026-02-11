@@ -69,15 +69,15 @@ namespace micm
     {
     }
 
-    // Copy constructor
-    SolverBuilder(const SolverBuilder& other) = default;
+    // // Copy constructor
+    // SolverBuilder(const SolverBuilder& other) = default;
 
-    // Copy assignment
-    SolverBuilder& operator=(const SolverBuilder& other) = default;
+    // // Copy assignment
+    // SolverBuilder& operator=(const SolverBuilder& other) = default;
 
-    // Default move operations
-    SolverBuilder(SolverBuilder&&) = default;
-    SolverBuilder& operator=(SolverBuilder&&) = default;
+    // // Default move operations
+    // SolverBuilder(SolverBuilder&&) = default;
+    // SolverBuilder& operator=(SolverBuilder&&) = default;
 
     /// @brief Set the chemical system
     /// @param system The chemical system
