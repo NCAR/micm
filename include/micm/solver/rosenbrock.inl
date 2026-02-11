@@ -26,6 +26,8 @@ namespace micm
     const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
+    const bool has_constraints = constraints_.Size() > 0;
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -51,11 +53,23 @@ namespace micm
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
+
+      // Add constraint residuals to forcing (for DAE systems)
+      if (has_constraints)
+      {
+        constraints_.AddForcingTerms(Y, initial_forcing);
+      }
       result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+
+      // Add constraint Jacobian terms (for DAE systems)
+      if (has_constraints)
+      {
+        constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+      }
       result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
@@ -88,13 +102,29 @@ namespace micm
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              Ynew.Copy(Y);
+              // Copy only species variables from Y to Ynew.
+              // Y has size state.state_size_ (species only), while Ynew has state.state_size_
+              // plus any additional constraint variables. Zero-initialize Ynew first so that
+              // constraint columns start from a known state.
+              Ynew.Fill(0.0);
+              for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+              {
+                for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+                {
+                  Ynew[i_cell][i_var] = Y[i_cell][i_var];
+                }
+              }
               for (uint64_t j = 0; j < stage; ++j)
               {
                 Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
+              // Add constraint residuals for DAE systems
+              if (has_constraints)
+              {
+                constraints_.AddForcingTerms(Ynew, K[stage]);
+              }
               result.stats_.function_calls_ += 1;
             }
           }
@@ -117,8 +147,14 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        // Compute the new solution
-        Ynew.Copy(Y);
+        // Compute the new solution: Copy species from Y, then add increments from K stages
+        for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+        {
+          for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+          {
+            Ynew[i_cell][i_var] = Y[i_cell][i_var];
+          }
+        }
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Ynew.Axpy(parameters.m_[stage], K[stage]);
 
@@ -154,7 +190,14 @@ namespace micm
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
-          Y.Swap(Ynew);
+          // Copy only species variables from Ynew back to Y (Ynew may have constraint rows/columns that Y doesn't have)
+          for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+          {
+            for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+            {
+              Y[i_cell][i_var] = Ynew[i_cell][i_var];
+            }
+          }
           Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
@@ -185,6 +228,11 @@ namespace micm
           {
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+            // Subtract constraint Jacobian terms (for DAE systems)
+            if (has_constraints)
+            {
+              constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+            }
             result.stats_.jacobian_updates_ += 1;
           }
         }
@@ -209,6 +257,12 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
+    // Add alpha to ALL diagonals for proper DAE support.
+    // For ODE variables (M[i][i]=1): forms αM - J = α - J
+    // For algebraic variables (M[i][i]=0): also adds α to regularize the constraint.
+    // This treats algebraic constraints as stiff ODEs (ε*z' = g(y,z) with ε=hγ),
+    // which ensures K values scale with H and prevents numerical instability
+    // from the c/H terms in Rosenbrock stage computation.
     for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
@@ -225,12 +279,15 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
+    // Add alpha to ALL diagonals for proper DAE support (see non-vectorized version for details)
     for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
+      {
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
+      }
     }
   }
 

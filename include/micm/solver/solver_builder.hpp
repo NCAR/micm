@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/constraint/constraint.hpp>
+#include <micm/constraint/constraint_set.hpp>
+#include <micm/constraint/equilibrium_constraint.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
@@ -18,6 +21,7 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+#include <memory>
 #include <system_error>
 #include <unordered_map>
 
@@ -51,19 +55,29 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
+    std::vector<Constraint> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
 
    public:
     SolverBuilder() = delete;
+    virtual ~SolverBuilder() = default;
 
     SolverBuilder(const SolverParametersPolicy& options)
         : options_(options)
     {
     }
 
-    virtual ~SolverBuilder() = default;
+    // Copy constructor
+    SolverBuilder(const SolverBuilder& other) = default;
+
+    // Copy assignment
+    SolverBuilder& operator=(const SolverBuilder& other) = default;
+
+    // Default move operations
+    SolverBuilder(SolverBuilder&&) = default;
+    SolverBuilder& operator=(SolverBuilder&&) = default;
 
     /// @brief Set the chemical system
     /// @param system The chemical system
@@ -84,6 +98,11 @@ namespace micm
     /// @param reorder_state True if the state should be reordered
     /// @return Updated SolverBuilder
     SolverBuilder& SetReorderState(bool reorder_state);
+
+    /// @brief Set algebraic constraints for DAE solving
+    /// @param constraints Vector of constraints
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver

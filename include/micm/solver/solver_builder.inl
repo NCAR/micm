@@ -128,6 +128,35 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
+  {
+    constraints_ = std::move(constraints);
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
   inline void SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -299,6 +328,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
+    std::size_t number_of_constraints = constraints_.size();
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -309,8 +339,27 @@ namespace micm
 
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
+
+    // Create ConstraintSet from stored constraints (if any)
+    ConstraintSet constraint_set;
+    if (number_of_constraints > 0)
+    {
+      // Copy constraints so that the builder can be reused
+      auto constraints_copy = constraints_;
+      // Constraints reference existing species only (no new variables created)
+      // Pass species_map so constraints can resolve dependencies to species indices
+      constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species);
+
+      // // Move constraints into ConstraintSet
+      // constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
+
+      // Merge constraint Jacobian elements with ODE Jacobian elements
+      auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
+      nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
+    }
+
     // The actual number of grid cells is not needed to construct the various solver objects
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species + number_of_constraints, true);
 
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
@@ -320,11 +369,22 @@ namespace micm
     }
     rates.SetJacobianFlatIds(jacobian);
 
+    // Set Jacobian flat IDs for constraints
+    if (constraint_set.Size() > 0)
+    {
+      constraint_set.SetJacobianFlatIds(jacobian);
+    }
+
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
+    // Note: Constraint names are NOT added to variable_names.
+    // Constraints add rows to the Jacobian/forcing but do not create new state variables.
+    // The variables_ matrix should only contain species, while Jacobian/forcing/K matrices
+    // have extra rows (state_size_ + constraint_size_) for the constraint equations.
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
+                                         .number_of_constraints_ = number_of_constraints,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
@@ -333,7 +393,8 @@ namespace micm
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
+        SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set), jacobian,
+            number_of_species, number_of_constraints),
         state_parameters,
         options,
         this->reactions_,
