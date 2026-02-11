@@ -48,6 +48,7 @@ namespace micm
     CudaRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
+        ConstraintSet&& constraints,
         auto& jacobian,
         const size_t number_of_species,
         const size_t number_of_constraints)
