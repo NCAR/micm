@@ -342,16 +342,8 @@ namespace micm
 
     // Create ConstraintSet from stored constraints (if any)
     ConstraintSet constraint_set;
-    std::vector<std::string> constraint_names;
     if (number_of_constraints > 0)
     {
-      // Extract constraint names before moving
-      constraint_names.reserve(number_of_constraints);
-      for (const auto& constraint : constraints_)
-      {
-        constraint_names.push_back(constraint.GetName());
-      }
-
       // Copy constraints so that the builder can be reused
       auto constraints_copy = constraints_;
       // Constraints reference existing species only (no new variables created)

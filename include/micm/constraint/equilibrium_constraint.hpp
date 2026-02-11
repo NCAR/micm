@@ -50,7 +50,7 @@ namespace micm
     EquilibriumConstraint() = default;
 
     /// @brief Construct an equilibrium constraint
-    ///        Validates that equilibrium constraint >= 0
+    ///        Validates that equilibrium constraint > 0
     ///        Builds species_dependencies_ by concatenating reactants then products
     ///        Stores index mappings for efficient Jacobian computation
     /// @param name Constraint identifier
