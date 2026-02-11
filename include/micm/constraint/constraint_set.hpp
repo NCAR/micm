@@ -7,7 +7,7 @@
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cstddef>
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <set>
 #include <string>
@@ -19,10 +19,9 @@ namespace micm
 {
 
   /// @brief Manages a collection of algebraic constraints for DAE solvers
-  ///
-  /// ConstraintSet handles the computation of constraint residuals (forcing terms)
-  /// and Jacobian contributions for a set of constraints. It follows the same
-  /// pattern as ProcessSet for integration with the Rosenbrock solver.
+  ///        ConstraintSet handles the computation of constraint residuals (forcing terms)
+  ///        and Jacobian contributions for a set of constraints. It follows the same
+  ///        pattern as ProcessSet for integration with the Rosenbrock solver.
   class ConstraintSet
   {
    protected:
@@ -37,7 +36,7 @@ namespace micm
     };
 
     /// @brief The constraints
-    std::vector<std::unique_ptr<Constraint>> constraints_;
+    std::vector<Constraint> constraints_;
 
     /// @brief Flat list of species indices for each constraint's dependencies
     std::vector<std::size_t> dependency_ids_;
@@ -59,12 +58,12 @@ namespace micm
     ConstraintSet() = default;
 
     /// @brief Construct a ConstraintSet from constraints and variable mapping
-    /// @param constraints Vector of constraint pointers (ownership transferred)
+    /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
     /// @param constraint_row_offset Row offset for constraint equations (= number of species)
     ConstraintSet(
-        std::vector<std::unique_ptr<Constraint>>&& constraints,
-        const std::map<std::string, std::size_t>& variable_map,
+        std::vector<Constraint>&& constraints,
+        const std::unordered_map<std::string, std::size_t>& variable_map,
         std::size_t constraint_row_offset);
 
     /// @brief Move constructor
@@ -73,12 +72,11 @@ namespace micm
     /// @brief Move assignment
     ConstraintSet& operator=(ConstraintSet&& other) noexcept = default;
 
-    /// @brief Destructor
-    virtual ~ConstraintSet() = default;
+    /// @brief Copy constructor
+    ConstraintSet(const ConstraintSet&) = default;
 
-    // Delete copy operations (constraints are unique_ptr)
-    ConstraintSet(const ConstraintSet&) = delete;
-    ConstraintSet& operator=(const ConstraintSet&) = delete;
+    /// @brief Copy assignment
+    ConstraintSet& operator=(const ConstraintSet&) = default;
 
     /// @brief Get the number of constraints
     std::size_t Size() const
@@ -96,19 +94,15 @@ namespace micm
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     /// @brief Add constraint residuals to forcing vector (constraint rows)
-    ///
-    /// For each constraint G_i, adds G_i(x) to forcing[constraint_row_offset + i]
-    ///
+    ///        For each constraint G_i, adds G_i(x) to forcing[constraint_row_offset + i]
     /// @param state_variables Current species concentrations (grid cell, species)
     /// @param forcing Forcing terms (grid cell, state variable) - constraint rows will be modified
     template<typename DenseMatrixPolicy>
     void AddForcingTerms(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const;
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
-    ///
-    /// For each constraint G_i, subtracts dG_i/dx_j from jacobian[constraint_row, j]
-    /// (Subtraction matches the convention used by ProcessSet)
-    ///
+    ///        For each constraint G_i, subtracts dG_i/dx_j from jacobian[constraint_row, j]
+    ///        (Subtraction matches the convention used by ProcessSet)
     /// @param state_variables Current species concentrations (grid cell, species)
     /// @param jacobian Sparse Jacobian matrix (grid cell, row, column)
     template<class DenseMatrixPolicy, class SparseMatrixPolicy>
@@ -116,8 +110,8 @@ namespace micm
   };
 
   inline ConstraintSet::ConstraintSet(
-      std::vector<std::unique_ptr<Constraint>>&& constraints,
-      const std::map<std::string, std::size_t>& variable_map,
+      std::vector<Constraint>&& constraints,
+      const std::unordered_map<std::string, std::size_t>& variable_map,
       std::size_t constraint_row_offset)
       : constraints_(std::move(constraints)),
         constraint_row_offset_(constraint_row_offset)
@@ -131,7 +125,7 @@ namespace micm
       ConstraintInfo info;
       info.constraint_index_ = i;
       info.constraint_row_ = constraint_row_offset_ + i;
-      info.number_of_dependencies_ = constraint->species_dependencies_.size();
+      info.number_of_dependencies_ = constraint.NumberOfDependencies();
       info.dependency_offset_ = dependency_offset;
       info.jacobian_flat_offset_ = 0;  // Set later in SetJacobianFlatIds
 
@@ -142,14 +136,14 @@ namespace micm
       }
 
       // Map species dependencies to variable indices
-      for (const auto& species_name : constraint->species_dependencies_)
+      for (const auto& species_name : constraint.GetSpeciesDependencies())
       {
         auto it = variable_map.find(species_name);
         if (it == variable_map.end())
         {
           throw std::system_error(
               make_error_code(MicmConstraintErrc::UnknownSpecies),
-              "Constraint '" + constraint->name_ + "' depends on unknown species '" + species_name + "'");
+              "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
         }
         dependency_ids_.push_back(it->second);
       }
@@ -221,7 +215,7 @@ namespace micm
         const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
 
         // Evaluate constraint residual and add to forcing
-        double residual = constraints_[info.constraint_index_]->Residual(concentrations, indices);
+        double residual = constraints_[info.constraint_index_].Residual(concentrations, indices);
         cell_forcing[info.constraint_row_] += residual;
       }
     }
@@ -254,7 +248,7 @@ namespace micm
         const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
 
         // Compute constraint Jacobian into buffer
-        constraints_[info.constraint_index_]->Jacobian(concentrations, indices, jac_buffer.data());
+        constraints_[info.constraint_index_].Jacobian(concentrations, indices, jac_buffer.data());
 
         // Get pointer to flat indices for this constraint
         const std::size_t* flat_ids = jacobian_flat_ids_.data() + info.jacobian_flat_offset_;

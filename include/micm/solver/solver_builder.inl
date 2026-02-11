@@ -85,65 +85,6 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::SetConstraintCount(std::size_t number_of_constraints)
-  {
-    constraint_count_ = number_of_constraints;
-    return *this;
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
-  inline SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>&
-  SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>::SetConstraintNames(const std::vector<std::string>& names)
-  {
-    constraint_names_ = names;
-    constraint_count_ = names.size();
-    return *this;
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
-  inline SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>&
-  SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
       StatePolicy>::SetIgnoreUnusedSpecies(bool ignore_unused_species)
   {
     ignore_unused_species_ = ignore_unused_species;
@@ -202,10 +143,9 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints)
+      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
   {
-    constraints_ = std::make_shared<std::vector<std::unique_ptr<Constraint>>>(std::move(constraints));
-    constraint_count_ = constraints_->size();
+    constraints_ = std::move(constraints);
     return *this;
   }
 
@@ -388,7 +328,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
-    std::size_t number_of_constraints = constraint_count_;
+    std::size_t number_of_constraints = constraints_.size();
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -402,35 +342,16 @@ namespace micm
 
     // Create ConstraintSet from stored constraints (if any)
     ConstraintSet constraint_set;
-    if (constraints_ && !constraints_->empty())
+    if (number_of_constraints > 0)
     {
-      // Create extended variable map that includes constraint variables
-      // Constraints may reference constraint variables like "constraint_0" in their formulations
-      std::map<std::string, std::size_t> extended_variable_map = species_map;
-      std::vector<std::string> names = constraint_names_;
-      if (names.size() < number_of_constraints)
-      {
-        for (std::size_t i = names.size(); i < number_of_constraints; ++i)
-          names.push_back("constraint_" + std::to_string(i));
-      }
-      for (std::size_t i = 0; i < number_of_constraints; ++i)
-      {
-        extended_variable_map[names[i]] = number_of_species + i;
-      }
+      // Copy constraints so that the builder can be reused
+      auto constraints_copy = constraints_;
+      // Constraints reference existing species only (no new variables created)
+      // Pass species_map so constraints can resolve dependencies to species indices
+      constraint_set = ConstraintSet(std::move(constraints_copy), species_map, number_of_species);
 
-      // Deep copy constraints since we need to move them into ConstraintSet
-      // but the builder may be reused
-      std::vector<std::unique_ptr<Constraint>> constraints_copy;
-      constraints_copy.reserve(constraints_->size());
-      for (const auto& c : *constraints_)
-      {
-        // Clone via dynamic cast - for now only EquilibriumConstraint is supported
-        if (auto* eq = dynamic_cast<const EquilibriumConstraint*>(c.get()))
-        {
-          constraints_copy.push_back(std::make_unique<EquilibriumConstraint>(*eq));
-        }
-      }
-      constraint_set = ConstraintSet(std::move(constraints_copy), extended_variable_map, number_of_species);
+      // // Move constraints into ConstraintSet
+      // constraint_set = ConstraintSet(std::move(constraints_), species_map, number_of_species);
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
@@ -457,16 +378,10 @@ namespace micm
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
-    if (number_of_constraints > 0)
-    {
-      std::vector<std::string> names = constraint_names_;
-      if (names.size() < number_of_constraints)
-      {
-        for (std::size_t i = names.size(); i < number_of_constraints; ++i)
-          names.push_back("constraint_" + std::to_string(i));
-      }
-      variable_names.insert(variable_names.end(), names.begin(), names.begin() + number_of_constraints);
-    }
+    // Note: Constraint names are NOT added to variable_names.
+    // Constraints add rows to the Jacobian/forcing but do not create new state variables.
+    // The variables_ matrix should only contain species, while Jacobian/forcing/K matrices
+    // have extra rows (state_size_ + constraint_size_) for the constraint equations.
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
                                          .number_of_constraints_ = number_of_constraints,

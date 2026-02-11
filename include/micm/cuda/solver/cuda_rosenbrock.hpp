@@ -48,13 +48,17 @@ namespace micm
     CudaRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
+        ConstraintSet&& constraints,
         auto& jacobian,
-        const size_t number_of_species)
+        const size_t number_of_species,
+        const size_t number_of_constraints)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
+              std::move(constraints),
               jacobian,
-              number_of_species){};
+              number_of_species,
+              number_of_constraints){};
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"

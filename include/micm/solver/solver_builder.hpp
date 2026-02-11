@@ -55,22 +55,29 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::shared_ptr<std::vector<std::unique_ptr<Constraint>>> constraints_;
-    std::size_t constraint_count_ = 0;
-    std::vector<std::string> constraint_names_{};
+    std::vector<Constraint> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
 
    public:
     SolverBuilder() = delete;
+    virtual ~SolverBuilder() = default;
 
     SolverBuilder(const SolverParametersPolicy& options)
         : options_(options)
     {
     }
 
-    virtual ~SolverBuilder() = default;
+    // Copy constructor
+    SolverBuilder(const SolverBuilder& other) = default;
+
+    // Copy assignment
+    SolverBuilder& operator=(const SolverBuilder& other) = default;
+
+    // Default move operations
+    SolverBuilder(SolverBuilder&&) = default;
+    SolverBuilder& operator=(SolverBuilder&&) = default;
 
     /// @brief Set the chemical system
     /// @param system The chemical system
@@ -81,16 +88,6 @@ namespace micm
     /// @param reactions The reactions
     /// @return Updated SolverBuilder
     SolverBuilder& SetReactions(const std::vector<Process>& reactions);
-
-    /// @brief Set the number of algebraic constraints (appended after state variables)
-    /// @param number_of_constraints Constraint count
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraintCount(std::size_t number_of_constraints);
-
-    /// @brief Set constraint names (appended after state variables)
-    /// @param names Constraint variable names
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraintNames(const std::vector<std::string>& names);
 
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored
@@ -103,9 +100,9 @@ namespace micm
     SolverBuilder& SetReorderState(bool reorder_state);
 
     /// @brief Set algebraic constraints for DAE solving
-    /// @param constraints Vector of constraint pointers (ownership transferred)
+    /// @param constraints Vector of constraints
     /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<std::unique_ptr<Constraint>>&& constraints);
+    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
