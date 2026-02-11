@@ -55,6 +55,7 @@ namespace micm
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
+              std::move(constraints),
               jacobian,
               number_of_species,
               number_of_constraints){};
