@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <micm/external_model.hpp>
 #include <micm/Process.hpp>
 #include <micm/Solver.hpp>
 #include <micm/System.hpp>
