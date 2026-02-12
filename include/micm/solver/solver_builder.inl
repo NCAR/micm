@@ -188,15 +188,8 @@ namespace micm
     if (reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
-      auto unsorted_rates = RatesPolicy(reactions_, species_map);
+      auto unsorted_rates = RatesPolicy(reactions_, species_map, system_.external_models_);
       auto unsorted_jac_elements = unsorted_rates.NonZeroJacobianElements();
-
-      // Add Jacobian elements from external models
-      for (const auto& model : system_.external_models_)
-      {
-        auto model_jac_elements = model.non_zero_jacobian_elements_func_(species_map);
-        unsorted_jac_elements.insert(model_jac_elements.begin(), model_jac_elements.end());
-      }
 
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
       Matrix unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
@@ -326,15 +319,8 @@ namespace micm
 
     this->UnusedSpeciesCheck();
 
-    RatesPolicy rates(this->reactions_, species_map);
+    RatesPolicy rates(this->reactions_, species_map, system_.external_models_);
     auto nonzero_elements = rates.NonZeroJacobianElements();
-
-    // Add Jacobian elements from external models
-    for (const auto& model : system_.external_models_)
-    {
-      auto model_jac_elements = model.non_zero_jacobian_elements_func_(species_map);
-      nonzero_elements.insert(model_jac_elements.begin(), model_jac_elements.end());
-    }
 
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);

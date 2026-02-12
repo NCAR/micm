@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/external_model.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_error.hpp>
 #include <micm/solver/state.hpp>
@@ -38,6 +39,8 @@ namespace micm
     std::vector<std::size_t> jacobian_product_ids_;
     std::vector<double> jacobian_yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
+    std::vector<ExternalModel> external_models_;
+    std::unordered_map<std::string, std::size_t> variable_map_;
 
    public:
     /// @brief Default constructor
@@ -50,6 +53,20 @@ namespace micm
     /// @param variable_map A map from species names to their corresponding index in the solver's state
     /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
     ProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, std::size_t>& variable_map);
+
+    /// @brief Constructs a ProcessSet as above, but also includes contributions from external models
+    /// @param processes A list of processes, each with reactants and products
+    /// @param variable_map A map from species names to their corresponding index in the solver's state
+    /// @param external_models A list of external models that provide additional processes and Jacobian contributions
+    /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
+    ProcessSet(
+        const std::vector<Process>& processes,
+        const std::unordered_map<std::string, std::size_t>& variable_map,
+        const std::vector<ExternalModel>& external_models)
+        : ProcessSet(processes, variable_map)
+    {
+      external_models_ = external_models;
+    }
 
     virtual ~ProcessSet() = default;
 
@@ -115,7 +132,8 @@ namespace micm
         jacobian_reactant_ids_(),
         jacobian_product_ids_(),
         jacobian_yields_(),
-        jacobian_flat_ids_()
+        jacobian_flat_ids_(),
+        variable_map_(variable_map)
   {
     // For each process, look up each reactant name in variable_map and
     // store the corresponding index
@@ -230,6 +248,12 @@ namespace micm
       // Adavance iterators using the number of reactants/products in each process
       react_id += number_of_reactants_[i_rxn];
       prod_id += number_of_products_[i_rxn];
+    }
+
+    // Add Jacobian elements from external models
+    for (const auto& model : external_models_)    {
+      auto model_jac_elements = model.non_zero_jacobian_elements_func_(variable_map_);
+      ids.insert(model_jac_elements.begin(), model_jac_elements.end());
     }
     return ids;
   }
