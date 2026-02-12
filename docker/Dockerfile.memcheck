@@ -16,7 +16,7 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake \
-        -D CMAKE_BUILD_TYPE=release \
+        -D CMAKE_BUILD_TYPE=debug \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_MEMCHECK:BOOL=TRUE \
         ../micm \

@@ -11,16 +11,21 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 namespace micm
 {
   // Helper class for collecting lambda functions from external models
   struct ExternalModel
   {
-    /// @brief Function to get the state size of the external model
-    std::function<size_t()> state_size_func_;
-    /// @brief Function to get the unique names of the external model
-    std::function<std::vector<std::string>()> unique_names_func_;
+    /// @brief Function to get the state size (variables, parameters) of the external model
+    std::function<std::tuple<std::size_t, std::size_t>()> state_size_func_;
+    /// @brief Function to get the state variable names of the external model
+    std::function<std::vector<std::string>()> variable_names_func_;
+    /// @brief Function to get the state parameter names of the external model
+    std::function<std::vector<std::string>()> parameter_names_func_;
+    /// @brief Function to get the non-zero Jacobian elements of the external model
+    std::function<std::set<std::pair<std::size_t, std::size_t>>(const std::unordered_map<std::string, std::size_t>&)> non_zero_jacobian_elements_func_;
     
     // Default constructor
     ExternalModel() = default;
@@ -46,7 +51,11 @@ namespace micm
     {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
       state_size_func_ = [shared_model]() { return shared_model->StateSize(); };
-      unique_names_func_ = [shared_model]() { return shared_model->UniqueNames(); };
+      variable_names_func_ = [shared_model]() { return shared_model->StateVariableNames(); };
+      parameter_names_func_ = [shared_model]() { return shared_model->StateParameterNames(); };
+      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, std::size_t>& species_map) {
+        return shared_model->NonZeroJacobianElements(species_map);
+      };
     }
   };
   
@@ -135,7 +144,7 @@ namespace micm
     std::size_t state_size = gas_phase_.StateSize();
     for (const auto& model : external_models_)
     {
-      state_size += model.state_size_func_();
+      state_size += std::get<0>(model.state_size_func_());
     }
 
     return state_size;
@@ -160,7 +169,7 @@ namespace micm
     // Include names from external models
     for (const auto& model : external_models_)
     {
-      auto model_names = model.unique_names_func_();
+      auto model_names = model.variable_names_func_();
       names.insert(names.end(), model_names.begin(), model_names.end());
     }
 

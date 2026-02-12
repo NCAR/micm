@@ -191,6 +191,13 @@ namespace micm
       auto unsorted_rates = RatesPolicy(reactions_, species_map);
       auto unsorted_jac_elements = unsorted_rates.NonZeroJacobianElements();
 
+      // Add Jacobian elements from external models
+      for (const auto& model : system_.external_models_)
+      {
+        auto model_jac_elements = model.non_zero_jacobian_elements_func_(species_map);
+        unsorted_jac_elements.insert(model_jac_elements.begin(), model_jac_elements.end());
+      }
+
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
       Matrix unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
       for (auto& elem : unsorted_jac_elements)
@@ -267,6 +274,18 @@ namespace micm
         }
       }
     }
+    std::size_t size = param_labels.size();
+    // Include custom parameter labels from external models
+    for (const auto& model : system_.external_models_)
+    {
+      auto model_param_labels = model.parameter_names_func_();
+      param_labels.insert(param_labels.end(), model_param_labels.begin(), model_param_labels.end());
+      size += std::get<1>(model.state_size_func_());
+    }
+    if (param_labels.size() != size)
+    {
+      throw std::invalid_argument("Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate parameter labels.");
+    }
     return param_labels;
   }
 
@@ -309,6 +328,14 @@ namespace micm
 
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
+
+    // Add Jacobian elements from external models
+    for (const auto& model : system_.external_models_)
+    {
+      auto model_jac_elements = model.non_zero_jacobian_elements_func_(species_map);
+      nonzero_elements.insert(model_jac_elements.begin(), model_jac_elements.end());
+    }
+
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
