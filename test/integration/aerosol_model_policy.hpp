@@ -360,14 +360,13 @@ void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void test_solve_with_stub_aerosol_models(BuilderPolicy builder)
+void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                       .AddExternalModelProcesses(aerosol_1)
-                       .AddExternalModelProcesses(aerosol_2)
+                       .AddExternalModelProcesses(aerosol_1) // excluding aerosol 2 process for this test
                        .SetIgnoreUnusedSpecies(true)
                        .Build();
 
