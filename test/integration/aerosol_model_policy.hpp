@@ -1,14 +1,11 @@
 // Copyright (C) 2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-
-/// @file test/integration/test_aerosol_model.cpp
-/// @brief Integration test for including an external aerosol model in MICM
-///
-/// The test uses a stub aerosol model to test the integration interface.
-#include <micm/CPU.hpp>
+#pragma once
 
 #include "stub_aerosol_1.hpp"
 #include "stub_aerosol_2.hpp"
+
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 #include <cstddef>
@@ -19,7 +16,7 @@
 
 /// @brief  Helper function to create a system with two stub aerosol models
 /// @return A tuple containing the system, the first stub aerosol model, the second stub aerosol model, and a map of phase names to Phase objects
-std::tuple<micm::System, StubAerosolModel, AnotherStubAerosolModel, std::map<std::string, micm::Phase>> CreateSystemWithStubAerosolModels()
+inline std::tuple<micm::System, StubAerosolModel, AnotherStubAerosolModel, std::map<std::string, micm::Phase>> CreateSystemWithStubAerosolModels()
 {
   // Create a simple chemical system
   auto foo = micm::Species("FO2"); // species that can partition to condensed phase
@@ -53,16 +50,16 @@ std::tuple<micm::System, StubAerosolModel, AnotherStubAerosolModel, std::map<std
   return { system, aerosol_1, aerosol_2, phases };
 }
 
-TEST(AerosolModelIntegration, StateIncludesStubAerosolModel)
+/// @brief Test that state includes stub aerosol model variables
+template<class BuilderPolicy>
+void test_state_includes_stub_aerosol_model(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(system)
-                            .SetIgnoreUnusedSpecies(true)
-                            .Build();
+  auto solver = builder.SetSystem(system)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
 
   // Get a state and ensure that the size and labels match expectations
   auto state = solver.GetState();
@@ -97,16 +94,16 @@ TEST(AerosolModelIntegration, StateIncludesStubAerosolModel)
   EXPECT_TRUE(state.variable_map_.find("STUB2.MODE2.CORGE.BAZ") != state.variable_map_.end());
 }
 
-TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
+/// @brief Test updating state with stub aerosol model (single grid cell)
+template<class BuilderPolicy>
+void test_update_state_with_stub_aerosol_model(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(system)
-                            .SetIgnoreUnusedSpecies(true)
-                            .Build();
+  auto solver = builder.SetSystem(system)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -169,16 +166,16 @@ TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
   EXPECT_DOUBLE_EQ(state[aerosol_2.Number(1)], 500.0);
 }
 
-TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
+/// @brief Test updating multi-cell state with stub aerosol model
+template<class BuilderPolicy>
+void test_update_multi_cell_state_with_stub_aerosol_model(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(system)
-                            .SetIgnoreUnusedSpecies(true)
-                            .Build();
+  auto solver = builder.SetSystem(system)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
 
   const std::size_t num_cells = 3;
 
@@ -246,18 +243,18 @@ TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
   EXPECT_EQ(state[aerosol_2.Number(1)], (std::vector{ 500.0, 501.0, 502.0 }));
 }
 
-TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolModel)
+/// @brief Test single grid cell forcing calculation with stub aerosol model
+template<class BuilderPolicy>
+void test_single_cell_forcing_with_stub_aerosol_model(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
-  // Create a solver for the system (without processes for simplicity)
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(system)
-                            .AddExternalModelProcesses(aerosol_1)
-                            .AddExternalModelProcesses(aerosol_2)
-                            .SetIgnoreUnusedSpecies(true)
-                            .Build();
+  // Create a solver for the system with processes that use the aerosol models
+  auto solver = builder.SetSystem(system)
+                       .AddExternalModelProcesses(aerosol_1)
+                       .AddExternalModelProcesses(aerosol_2)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -304,18 +301,18 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolMo
   EXPECT_DOUBLE_EQ(forcing_1[0][baz_mode2_index], expected_baz_gain);
 }
 
-TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolModel)
+/// @brief Test single grid cell Jacobian calculation with stub aerosol model
+template<class BuilderPolicy>
+void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
-  // Create a solver for the system (without processes for simplicity)
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(system)
-                            .AddExternalModelProcesses(aerosol_1)
-                            .AddExternalModelProcesses(aerosol_2)
-                            .SetIgnoreUnusedSpecies(true)
-                            .Build();
+  // Create a solver for the system with processes that use the aerosol models
+  auto solver = builder.SetSystem(system)
+                       .AddExternalModelProcesses(aerosol_1)
+                       .AddExternalModelProcesses(aerosol_2)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -361,18 +358,18 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolM
   EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode2_index][baz_mode1_index], expected_baz_mode2_partial);
 }
 
-TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModels)
+/// @brief Test solving with stub aerosol models
+template<class BuilderPolicy>
+void test_solve_with_stub_aerosol_models(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with processes that use the aerosol models
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(system)
-                            .AddExternalModelProcesses(aerosol_1)
-                            .AddExternalModelProcesses(aerosol_2)
-                            .SetIgnoreUnusedSpecies(true)
-                            .Build();
+  auto solver = builder.SetSystem(system)
+                       .AddExternalModelProcesses(aerosol_1)
+                       .AddExternalModelProcesses(aerosol_2)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
 
   // Get a state and set some initial values
   auto state = solver.GetState();
@@ -400,7 +397,7 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModels)
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
 
-  // Verify that the state variables have been updated (we won't check specific values here since the processes are not defined in this stub model)
+  // Verify that the state variables have been updated
   EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-3);
   EXPECT_EQ(state["BAR"], 2.0);
   EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-3);

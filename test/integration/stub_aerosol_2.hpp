@@ -1,16 +1,21 @@
 // Copyright (C) 2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-/// @file test/integration/stub_aerosol_1.hpp
+/// @file test/integration/stub_aerosol_2.hpp
 /// @brief Stub aerosol model for integration testing
 #pragma once
 
+#include <micm/system/phase.hpp>
+#include <micm/system/species.hpp>
+
 #include <gtest/gtest.h>
 
+#include <functional>
 #include <map>
 #include <set>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 // Second stubbed aerosol model implementation

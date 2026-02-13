@@ -5,12 +5,17 @@
 /// @brief Stub aerosol model for integration testing
 #pragma once
 
+#include <micm/system/phase.hpp>
+#include <micm/system/species.hpp>
+
 #include <gtest/gtest.h>
 
+#include <functional>
 #include <map>
 #include <set>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 // some parameters used in the test
