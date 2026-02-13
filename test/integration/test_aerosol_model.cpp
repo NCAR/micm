@@ -376,28 +376,36 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModels)
 
   // Get a state and set some initial values
   auto state = solver.GetState();
-  state["FO2"] = 1.0;
+
+  double fo2_intial = 1.0;
+  double baz_mode1_initial = 0.5;
+  double fo2_mode2_initial = 0.8;
+  state["FO2"] = fo2_intial;
   state["BAR"] = 2.0;
-  state["STUB1.MODE1.QUUX.BAZ"] = 0.5;
-  state["STUB1.MODE2.CORGE.FO2"] = 0.8;
+  state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
+  state["STUB1.MODE2.CORGE.FO2"] = fo2_mode2_initial;
   state["STUB2.MODE3.CORGE.QUX"] = 0.3;
   state["STUB2.MODE3.CORGE.BAZ"] = 0.2;
   state["STUB2.MODE1.NUMBER"] = 1000.0;
   state["STUB2.MODE2.NUMBER"] = 500.0;
-
-  // Solve the system for a single time step
+  
+  // Calculate the analytical solution to verify the results
   double time_step = 10.0; // seconds
+  double stub1_rxn1_delta = STUB1_RATE_CONSTANT_FO2_CORGE * fo2_intial * time_step;
+  double stub1_rxn2_delta = STUB1_RATE_CONSTANT_BAZ_QUUX * baz_mode1_initial * time_step;
+  
+  // Solve the system for a single time step
   auto results = solver.Solve(time_step, state);
 
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
 
   // Verify that the state variables have been updated (we won't check specific values here since the processes are not defined in this stub model)
-  EXPECT_NE(state["FO2"], 1.0);
+  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-3);
   EXPECT_EQ(state["BAR"], 2.0);
-  EXPECT_NE(state["STUB1.MODE1.QUUX.BAZ"], 0.5);
-  EXPECT_NE(state["STUB1.MODE2.QUUX.BAZ"], 0.0);
-  EXPECT_NE(state["STUB1.MODE2.CORGE.FO2"], 0.8);
+  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-3);
+  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, 1e-3);
+  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, 1e-3);
   EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], 0.3);
   EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], 0.2);
   EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
