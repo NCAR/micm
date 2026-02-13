@@ -62,7 +62,8 @@ void testProcessSet()
                    .SetPhase(gas_phase)
                    .Build();
 
-  auto used_species = RatesPolicy::SpeciesUsed(std::vector<Process>{ r1, r2, r3, r4 });
+  RatesPolicy set = RatesPolicy(std::vector<Process>{ r1, r2, r3, r4 }, state.variable_map_);
+  auto used_species = set.SpeciesUsed(std::vector<Process>{ r1, r2, r3, r4 });
 
   EXPECT_EQ(used_species.size(), 6);
   EXPECT_TRUE(used_species.contains("foo"));
@@ -72,8 +73,6 @@ void testProcessSet()
   EXPECT_TRUE(used_species.contains("quuz"));
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
-
-  RatesPolicy set = RatesPolicy(std::vector<Process>{ r1, r2, r3, r4 }, state.variable_map_);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_.NumColumns(), 6);
@@ -95,7 +94,7 @@ void testProcessSet()
 
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
-  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms(rate_constants, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 
@@ -234,7 +233,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
-  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms(rate_constants, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }

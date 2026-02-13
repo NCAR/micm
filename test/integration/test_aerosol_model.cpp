@@ -43,27 +43,33 @@ public:
     size += phases_[1].StateSize(); // mode 2, second phase
     return { size, 0 }; // Return the number of state variables and parameters (0 for this stub model)
   }
-  std::vector<std::string> StateVariableNames() const
+  std::set<std::string> StateVariableNames() const
   {
-    std::vector<std::string> names;
+    std::set<std::string> names;
     EXPECT_EQ(phases_.size(), 2);
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
     for (const auto& name : phase1_names)
-      names.push_back(name_ + ".MODE1." + name);
+      names.insert(name_ + ".MODE1." + name);
     for (const auto& name : phase1_names)
-      names.push_back(name_ + ".MODE2." + name);
+      names.insert(name_ + ".MODE2." + name);
     for (const auto& name : phase2_names)
-      names.push_back(name_ + ".MODE2." + name);
+      names.insert(name_ + ".MODE2." + name);
     return names;
   }
-  std::vector<std::string> StateParameterNames() const
+  std::set<std::string> StateParameterNames() const
   {
     return {};
   }
   std::string Species(const int mode, const micm::Phase& phase, const micm::Species& species) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
+  }
+
+  // We'll pretend all the species in the aerosol model are involved in processes
+  std::set<std::string> SpeciesUsed() const
+  {
+    return StateVariableNames();
   }
 
   // We'll assume this model includes gas-aerosol conversion of FO2 to mode 2, and
@@ -91,9 +97,7 @@ public:
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-    const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-    const DenseMatrixPolicy& state_parameters,
-    const DenseMatrixPolicy& state_variables) const
+    const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
   {
     // We'll store the information needed to calculate the forcing terms in a vector of tuples
     // Each tuple will include: reactant state variable index, product state variable index, and the rate constant
@@ -131,37 +135,35 @@ public:
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
     const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-    const DenseMatrixPolicy& state_parameters,
-    const DenseMatrixPolicy& state_variables,
     const SparseMatrixPolicy& jacobian) const
   {
-    // For the simple reactions in this stub model, there will be two Jacobian element updates for each reaction: one for the reactant and one for the product, with values equal to the rate constant (negative for the reactant, positive for the product)
-    // We'll store the information needed to calculate the Jacobian terms in a vector of tuples, similar to the forcing function
-    // with jacobian index, and the partial derivative value (+/-rate constant)
-    std::vector<std::tuple<std::size_t, double>> jacobian_info;
-    for(std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
+    // For this simple implementation, we'll use the dependent and independent variable indices with the square-bracket syntax
+    // of the jacobian matrix. In a real implementation, we should want to get the underlying vector indices of the jacobian
+    // elements, and iterate over blocks in the block diagonal sparse matrix in the most efficient way for the specific SparseMatrixPolicy.
+    std::vector<std::tuple<std::size_t, std::size_t, double>> jacobian_info; // (dependent id, independent id, value)
+    auto fo2_gas_index_it = state_variable_indices.find("FO2");
+    auto fo2_mode2_index_it = state_variable_indices.find("STUB1.MODE2.CORGE.FO2");
+    if (fo2_gas_index_it != state_variable_indices.end() && fo2_mode2_index_it != state_variable_indices.end())
     {
-      auto fo2_gas_index_it = state_variable_indices.find("FO2");
-      auto fo2_mode2_index_it = state_variable_indices.find("STUB1.MODE2.CORGE.FO2");
-      if (fo2_gas_index_it != state_variable_indices.end() && fo2_mode2_index_it != state_variable_indices.end())
-      {
-        jacobian_info.push_back({ jacobian.VectorIndex(i_cell, fo2_gas_index_it->second, fo2_gas_index_it->second), -rate_constants_.fo2_gas_to_mode2_corge }); // reactant partial derivative
-        jacobian_info.push_back({ jacobian.VectorIndex(i_cell, fo2_mode2_index_it->second, fo2_gas_index_it->second), rate_constants_.fo2_gas_to_mode2_corge }); // product partial derivative
-      }
-      auto baz_mode1_index_it = state_variable_indices.find("STUB1.MODE1.QUUX.BAZ");
-      auto baz_mode2_index_it = state_variable_indices.find("STUB1.MODE2.QUUX.BAZ");
-      if (baz_mode1_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end())
-      {
-        jacobian_info.push_back({ jacobian.VectorIndex(i_cell, baz_mode1_index_it->second, baz_mode1_index_it->second), -rate_constants_.baz_mode1_to_mode2_quux }); // reactant partial derivative
-        jacobian_info.push_back({ jacobian.VectorIndex(i_cell, baz_mode2_index_it->second, baz_mode1_index_it->second), rate_constants_.baz_mode1_to_mode2_quux }); // product partial derivative
-      } 
+      jacobian_info.push_back({ fo2_gas_index_it->second, fo2_gas_index_it->second, -rate_constants_.fo2_gas_to_mode2_corge }); // reactant partial derivative
+      jacobian_info.push_back({ fo2_mode2_index_it->second, fo2_gas_index_it->second, rate_constants_.fo2_gas_to_mode2_corge }); // product partial derivative
     }
-
+    auto baz_mode1_index_it = state_variable_indices.find("STUB1.MODE1.QUUX.BAZ");
+    auto baz_mode2_index_it = state_variable_indices.find("STUB1.MODE2.QUUX.BAZ");
+    if (baz_mode1_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end())
+    {
+      jacobian_info.push_back({ baz_mode1_index_it->second, baz_mode1_index_it->second, -rate_constants_.baz_mode1_to_mode2_quux }); // reactant partial derivative
+      jacobian_info.push_back({ baz_mode2_index_it->second, baz_mode1_index_it->second, rate_constants_.baz_mode1_to_mode2_quux }); // product partial derivative
+    } 
+  
     // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms
     return [jacobian_info](const DenseMatrixPolicy& state_parameters, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian) {
-      for (const auto& [jacobian_index, value] : jacobian_info)
+      for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
       {
-        jacobian.AsVector()[jacobian_index] += value;
+        for (const auto& [dependent_id, independent_id, value] : jacobian_info)
+        {
+          jacobian[i_block][dependent_id][independent_id] += value;
+        }
       }
     };
   }
@@ -199,26 +201,26 @@ public:
     size += phases_[1].StateSize(); // mode 3, second phase species
     return { size, 0 }; // Return the number of state variables and parameters (0 for this stub model for now)
   }
-  std::vector<std::string> StateVariableNames() const
+  std::set<std::string> StateVariableNames() const
   {
-    std::vector<std::string> names;
+    std::set<std::string> names;
     EXPECT_EQ(phases_.size(), 2);
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
-    names.push_back(name_ + ".MODE1.NUMBER"); // number concentration for mode 1
+    names.insert(name_ + ".MODE1.NUMBER"); // number concentration for mode 1
     for (const auto& name : phase1_names)
-    names.push_back(name_ + ".MODE1." + name);
-    names.push_back(name_ + ".MODE2.NUMBER"); // number concentration for mode 2
+    names.insert(name_ + ".MODE1." + name);
+    names.insert(name_ + ".MODE2.NUMBER"); // number concentration for mode 2
     for (const auto& name : phase2_names)
-    names.push_back(name_ + ".MODE2." + name);
-    names.push_back(name_ + ".MODE3.NUMBER"); // number concentration for mode 3
+    names.insert(name_ + ".MODE2." + name);
+    names.insert(name_ + ".MODE3.NUMBER"); // number concentration for mode 3
     for (const auto& name : phase1_names)
-    names.push_back(name_ + ".MODE3." + name);
+    names.insert(name_ + ".MODE3." + name);
     for (const auto& name : phase2_names)
-    names.push_back(name_ + ".MODE3." + name);
+    names.insert(name_ + ".MODE3." + name);
     return names;
   }
-  std::vector<std::string> StateParameterNames() const
+  std::set<std::string> StateParameterNames() const
   {
     return {};
   }
@@ -230,6 +232,13 @@ public:
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + ".NUMBER";
   }
+
+  // We'll assume all the species in the aerosol model are involved in processes
+  std::set<std::string> SpeciesUsed() const
+  {
+    return StateVariableNames();
+  }
+
   std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(const std::unordered_map<std::string, std::size_t>& state_indices) const
   {
     // For this stub model, we'll assume there are no processes and therefore the Jacobian is always zero, so we can return an empty set
@@ -238,9 +247,7 @@ public:
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-    const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-    const DenseMatrixPolicy& state_parameters,
-    const DenseMatrixPolicy& state_variables) const
+    const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
   {
     // For this stub model, we'll assume there are no processes and therefore the forcing function always returns zero, so we can return a lambda that does nothing
     return [](const DenseMatrixPolicy& state_parameters, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing_terms) {
@@ -251,8 +258,6 @@ public:
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
     const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-    const DenseMatrixPolicy& state_parameters,
-    const DenseMatrixPolicy& state_variables,
     const SparseMatrixPolicy& jacobian) const
   {
     // For this stub model, we'll assume there are no processes and therefore the Jacobian is always zero, so we can return a lambda that does nothing
@@ -300,7 +305,7 @@ std::tuple<micm::System, StubAerosolModel, AnotherStubAerosolModel, std::map<std
   return { system, aerosol_1, aerosol_2, phases };
 }
 
-TEST(AerosolModelIntegration, CanIntegrateWithStubAerosolModel)
+TEST(AerosolModelIntegration, StateIncludesStubAerosolModel)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -501,6 +506,8 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolMo
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                             .SetSystem(system)
+                            .AddExternalModelProcesses(aerosol_1)
+                            .AddExternalModelProcesses(aerosol_2)
                             .SetIgnoreUnusedSpecies(true)
                             .Build();
 
@@ -516,7 +523,8 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolMo
   state["STUB2.MODE2.NUMBER"] = 500.0;
 
   // Calculate forcing terms using the first aerosol model's forcing function
-  auto forcing_function_1 = aerosol_1.ForcingFunction(state.custom_rate_parameter_map_, state.variable_map_, state.custom_rate_parameters_, state.variables_);
+  using DenseMatrixPolicyType = decltype(state.variables_);
+  auto forcing_function_1 = aerosol_1.ForcingFunction<DenseMatrixPolicyType>(state.custom_rate_parameter_map_, state.variable_map_);
   auto forcing_1 = state.variables_; // make a forcing matrix of the same size as the state variable matrix
   forcing_1 = 0.0; // initialize forcing terms to zero before calculation
   forcing_function_1(state.custom_rate_parameters_, state.variables_, forcing_1);
@@ -556,6 +564,8 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolM
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                             .SetSystem(system)
+                            .AddExternalModelProcesses(aerosol_1)
+                            .AddExternalModelProcesses(aerosol_2)
                             .SetIgnoreUnusedSpecies(true)
                             .Build();
 
@@ -573,7 +583,9 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolM
   // Calculate Jacobian terms using the first aerosol model's Jacobian function
   auto jacobian_1 = state.jacobian_; // make a Jacobian matrix of the same size as the system Jacobian
   jacobian_1 = 0.0; // initialize Jacobian terms to zero before calculation
-  auto jacobian_function_1 = aerosol_1.JacobianFunction(state.custom_rate_parameter_map_, state.variable_map_, state.custom_rate_parameters_, state.variables_, jacobian_1);
+  using DenseMatrixPolicyType = decltype(state.variables_);
+  using SparseMatrixPolicyType = decltype(state.jacobian_);
+  auto jacobian_function_1 = aerosol_1.JacobianFunction<DenseMatrixPolicyType, SparseMatrixPolicyType>(state.custom_rate_parameter_map_, state.variable_map_, jacobian_1);
   jacobian_function_1(state.custom_rate_parameters_, state.variables_, jacobian_1);
 
   // For the FO2 gas to mode 2 CORGE partitioning, we expect two non-zero Jacobian elements: a negative value equal to the rate constant in the column corresponding to FO2 and row corresponding to FO2 (representing the partial derivative of the FO2 loss with respect to FO2), and a positive value equal to the rate constant in the column corresponding to FO2 and row corresponding to mode 2 CORGE FO2 (representing the partial derivative of the FO2 gain with respect to FO2)
@@ -599,4 +611,47 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolM
   double expected_baz_mode2_partial = STUB1_RATE_CONSTANT_BAZ_QUUX;
   EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode1_index][baz_mode1_index], expected_baz_mode1_partial);
   EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode2_index][baz_mode1_index], expected_baz_mode2_partial);
+}
+
+TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModels)
+{
+  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+
+  // Create a solver for the system with processes that use the aerosol models
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  micm::Solver solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                            .SetSystem(system)
+                            .AddExternalModelProcesses(aerosol_1)
+                            .AddExternalModelProcesses(aerosol_2)
+                            .SetIgnoreUnusedSpecies(true)
+                            .Build();
+
+  // Get a state and set some initial values
+  auto state = solver.GetState();
+  state["FO2"] = 1.0;
+  state["BAR"] = 2.0;
+  state["STUB1.MODE1.QUUX.BAZ"] = 0.5;
+  state["STUB1.MODE2.CORGE.FO2"] = 0.8;
+  state["STUB2.MODE3.CORGE.QUX"] = 0.3;
+  state["STUB2.MODE3.CORGE.BAZ"] = 0.2;
+  state["STUB2.MODE1.NUMBER"] = 1000.0;
+  state["STUB2.MODE2.NUMBER"] = 500.0;
+
+  // Solve the system for a single time step
+  double time_step = 10.0; // seconds
+  auto results = solver.Solve(time_step, state);
+
+  // Make sure the solver reports success
+  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+
+  // Verify that the state variables have been updated (we won't check specific values here since the processes are not defined in this stub model)
+  EXPECT_NE(state["FO2"], 1.0);
+  EXPECT_EQ(state["BAR"], 2.0);
+  EXPECT_NE(state["STUB1.MODE1.QUUX.BAZ"], 0.5);
+  EXPECT_NE(state["STUB1.MODE2.QUUX.BAZ"], 0.0);
+  EXPECT_NE(state["STUB1.MODE2.CORGE.FO2"], 0.8);
+  EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], 0.3);
+  EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], 0.2);
+  EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
+  EXPECT_EQ(state["STUB2.MODE2.NUMBER"], 500.0);
 }

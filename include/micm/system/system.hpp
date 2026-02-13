@@ -22,7 +22,7 @@ namespace micm
     /// @brief  @brief The gas phase
     Phase gas_phase_{};
     /// @brief External models (e.g., aerosol models) that provide additional components to the system
-    std::vector<ExternalModel> external_models_{};
+    std::vector<ExternalModelSystem> external_models_{};
   };
 
   /// @brief Represents the complete chemical state of a grid cell
@@ -33,7 +33,7 @@ namespace micm
     /// @brief The gas phase, defining a set of species present in the system
     Phase gas_phase_;
     /// @brief External models (e.g., aerosol models) that provide additional components to the system
-    std::vector<ExternalModel> external_models_;
+    std::vector<ExternalModelSystem> external_models_;
 
     /// @brief Default constructor
     System() = default;
@@ -52,7 +52,7 @@ namespace micm
         const Phase& gas_phase,
         ExternalModels&&... external_models)
         : gas_phase_(gas_phase),
-          external_models_{ ExternalModel{ std::forward<ExternalModels>(external_models) }... }
+          external_models_{ ExternalModelSystem{ std::forward<ExternalModels>(external_models) }... }
     {
       if (StateSize() != UniqueNames().size())
       {

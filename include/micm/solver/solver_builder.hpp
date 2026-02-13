@@ -51,6 +51,7 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
+    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -75,6 +76,11 @@ namespace micm
     /// @return Updated SolverBuilder
     SolverBuilder& SetReactions(const std::vector<Process>& reactions);
 
+    /// @brief Add processes from an external model
+    /// @param model The external model
+    /// @return Updated SolverBuilder
+    SolverBuilder& AddExternalModelProcesses(const auto& model);
+
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored
     /// @return Updated SolverBuilder
@@ -91,8 +97,9 @@ namespace micm
 
    protected:
     /// @brief Checks for unused species
+    /// @param rates The rates policy instance containing information about processes
     /// @throws std::system_error if an unused species is found
-    void UnusedSpeciesCheck() const;
+    void UnusedSpeciesCheck(const RatesPolicy& rates) const;
 
     /// @brief Gets a map of species to their index
     /// @return The species map
@@ -107,7 +114,7 @@ namespace micm
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
-    std::vector<std::string> GetCustomParameterLabels() const;
+    std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
   };
 
   /// @brief Builder of CPU-based general solvers
@@ -128,7 +135,7 @@ namespace micm
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
-      ProcessSet,
+      ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>,
       LuDecompositionPolicy,
       LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
@@ -147,7 +154,7 @@ namespace micm
       SolverParametersPolicy,
       DenseMatrix,
       SparseMatrixPolicy,
-      ProcessSet,
+      ProcessSet<DenseMatrix, SparseMatrixPolicy>,
       LuDecompositionPolicy,
       LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>,
       State<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>>;

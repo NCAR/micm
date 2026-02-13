@@ -85,6 +85,35 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
+      StatePolicy>::AddExternalModelProcesses(const auto& model)
+  {
+    external_models_.emplace_back( ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) } );
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
       StatePolicy>::SetIgnoreUnusedSpecies(bool ignore_unused_species)
   {
     ignore_unused_species_ = ignore_unused_species;
@@ -135,14 +164,14 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::UnusedSpeciesCheck() const
+      StatePolicy>::UnusedSpeciesCheck(const RatesPolicy& rates) const
   {
     if (ignore_unused_species_)
     {
       return;
     }
 
-    auto used_species = RatesPolicy::SpeciesUsed(reactions_);
+    auto used_species = rates.SpeciesUsed(reactions_);
     auto available_species = system_.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
     std::set<std::string> unused_species;
@@ -188,7 +217,7 @@ namespace micm
     if (reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
-      auto unsorted_rates = RatesPolicy(reactions_, species_map, system_.external_models_);
+      auto unsorted_rates = RatesPolicy(reactions_, species_map, external_models_);
       auto unsorted_jac_elements = unsorted_rates.NonZeroJacobianElements();
 
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
@@ -246,16 +275,16 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::vector<std::string> SolverBuilder<
+  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::GetCustomParameterLabels() const
+      StatePolicy>::GetCustomParameterMap() const
   {
-    std::vector<std::string> param_labels{};
+    std::unordered_map<std::string, std::size_t> params{};
 
     for (const auto& reaction : reactions_)
     {
@@ -263,23 +292,26 @@ namespace micm
       {
         for (auto& label : process->rate_constant_->CustomParameters())
         {
-          param_labels.push_back(label);
+          params[label] = params.size();
         }
       }
     }
-    std::size_t size = param_labels.size();
+    std::size_t size = params.size();
     // Include custom parameter labels from external models
     for (const auto& model : system_.external_models_)
     {
-      auto model_param_labels = model.parameter_names_func_();
-      param_labels.insert(param_labels.end(), model_param_labels.begin(), model_param_labels.end());
+      auto param_names = model.parameter_names_func_();
+      for (const auto& label : param_names)
+      {
+        params[label] = params.size();
+      }
       size += std::get<1>(model.state_size_func_());
     }
-    if (param_labels.size() != size)
+    if (params.size() != size)
     {
       throw std::invalid_argument("Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate parameter labels.");
     }
-    return param_labels;
+    return params;
   }
 
   template<
@@ -309,7 +341,7 @@ namespace micm
     }
     using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
     auto species_map = this->GetSpeciesMap();
-    auto labels = this->GetCustomParameterLabels();
+    auto params_map = this->GetCustomParameterMap();
     std::size_t number_of_species = this->system_.StateSize();
     if (number_of_species == 0)
     {
@@ -317,9 +349,9 @@ namespace micm
           make_error_code(MicmSolverErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
     }
 
-    this->UnusedSpeciesCheck();
-
-    RatesPolicy rates(this->reactions_, species_map, system_.external_models_);
+    RatesPolicy rates(this->reactions_, species_map, external_models_);
+    
+    this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
     // The actual number of grid cells is not needed to construct the various solver objects
@@ -332,10 +364,14 @@ namespace micm
       jacobian = std::move(lu);
     }
     rates.SetJacobianFlatIds(jacobian);
+    rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
+    std::vector<std::string> labels{ params_map.size() };
+    for (auto& param_pair : params_map)
+      labels[param_pair.second] = param_pair.first;
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
                                          .number_of_rate_constants_ = this->reactions_.size(),

@@ -17,6 +17,9 @@ namespace micm
 {
 
   /// @brief Solver function calculators for a collection of processes
+  /// @tparam DenseMatrixPolicy Policy for dense matrices
+  /// @tparam SparseMatrixPolicy Policy for sparse matrices
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   class ProcessSet
   {
    protected:
@@ -39,8 +42,16 @@ namespace micm
     std::vector<std::size_t> jacobian_product_ids_;
     std::vector<double> jacobian_yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
-    std::vector<ExternalModel> external_models_;
     std::unordered_map<std::string, std::size_t> variable_map_;
+    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
+    std::vector<std::function<void(
+        const DenseMatrixPolicy&,
+        const DenseMatrixPolicy&,
+        DenseMatrixPolicy&)>> external_model_forcing_functions_;
+    std::vector<std::function<void(
+        const DenseMatrixPolicy&,
+        const DenseMatrixPolicy&,
+        SparseMatrixPolicy&)>> external_model_jacobian_functions_;
 
    public:
     /// @brief Default constructor
@@ -62,7 +73,7 @@ namespace micm
     ProcessSet(
         const std::vector<Process>& processes,
         const std::unordered_map<std::string, std::size_t>& variable_map,
-        const std::vector<ExternalModel>& external_models)
+        const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models)
         : ProcessSet(processes, variable_map)
     {
       external_models_ = external_models;
@@ -80,47 +91,51 @@ namespace micm
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
+    /// @brief Sets external model functions for forcing terms and Jacobian contributions
+    /// @param state_parameter_indices Map of state parameter names to their indices
+    /// @param state_variable_indices Map of state variable names to their indices
+    /// @param jacobian The sparse Jacobian matrix used by the solver
+    void SetExternalModelFunctions(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const SparseMatrixPolicy& jacobian);
+
     /// @brief Adds forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
-    template<typename DenseMatrixPolicy>
-      requires(!VectorizableDense<DenseMatrixPolicy>)
     void AddForcingTerms(
         const DenseMatrixPolicy& rate_constants,
         const DenseMatrixPolicy& state_variables,
-        DenseMatrixPolicy& forcing) const;
-    template<typename DenseMatrixPolicy>
-      requires VectorizableDense<DenseMatrixPolicy>
+        DenseMatrixPolicy& forcing) const requires(!VectorizableDense<DenseMatrixPolicy>);
     void AddForcingTerms(
         const DenseMatrixPolicy& rate_constants,
         const DenseMatrixPolicy& state_variables,
-        DenseMatrixPolicy& forcing) const;
+        DenseMatrixPolicy& forcing) const requires(VectorizableDense<DenseMatrixPolicy>);
 
     /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
-    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-      requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
     void SubtractJacobianTerms(
+      const DenseMatrixPolicy& rate_constants,
+      const DenseMatrixPolicy& state_variables,
+      SparseMatrixPolicy& jacobian) const
+      requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>);
+      void SubtractJacobianTerms(
         const DenseMatrixPolicy& rate_constants,
         const DenseMatrixPolicy& state_variables,
-        SparseMatrixPolicy& jacobian) const;
-    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-      requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-    void SubtractJacobianTerms(
-        const DenseMatrixPolicy& rate_constants,
-        const DenseMatrixPolicy& state_variables,
-        SparseMatrixPolicy& jacobian) const;
+        SparseMatrixPolicy& jacobian) const
+        requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Extracts all species involved in the given processes
     /// @param processes A list of Process objects, each with reactants and products
     /// @return A set of species names
-    static std::set<std::string> SpeciesUsed(const std::vector<Process>& processes);
+    std::set<std::string> SpeciesUsed(const std::vector<Process>& processes) const;
   };
 
-  inline ProcessSet::ProcessSet(
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  inline ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::ProcessSet(
       const std::vector<Process>& processes,
       const std::unordered_map<std::string, std::size_t>& variable_map)
       : number_of_reactants_(),
@@ -225,7 +240,8 @@ namespace micm
     }
   };
 
-  inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::NonZeroJacobianElements() const
   {
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
@@ -258,8 +274,9 @@ namespace micm
     return ids;
   }
 
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   template<typename OrderingPolicy>
-  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
     jacobian_flat_ids_.clear();
     auto react_id = jacobian_reactant_ids_.begin();
@@ -274,12 +291,32 @@ namespace micm
     }
   }
 
-  template<typename DenseMatrixPolicy>
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetExternalModelFunctions(
+      const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+      const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+      const SparseMatrixPolicy& jacobian)
+  {
+    external_model_forcing_functions_.clear();
+    external_model_jacobian_functions_.clear();
+    for (const auto& model : external_models_)
+    {
+      external_model_forcing_functions_.push_back(model.get_forcing_function_(
+          state_parameter_indices,
+          state_variable_indices));
+      external_model_jacobian_functions_.push_back(model.get_jacobian_function_(
+          state_parameter_indices,
+          state_variable_indices,
+          jacobian));
+    }
+  }
+
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
+    const DenseMatrixPolicy& rate_constants,
+    const DenseMatrixPolicy& state_variables,
+    DenseMatrixPolicy& forcing) const
     requires(!VectorizableDense<DenseMatrixPolicy>)
-  inline void ProcessSet::AddForcingTerms(
-      const DenseMatrixPolicy& rate_constants,
-      const DenseMatrixPolicy& state_variables,
-      DenseMatrixPolicy& forcing) const
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
@@ -318,14 +355,20 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
+
+    // Add forcing contributions from external models
+    for (const auto& add_forcing_function : external_model_forcing_functions_)
+    {
+      add_forcing_function(rate_constants, state_variables, forcing);
+    }
   };
 
-  template<typename DenseMatrixPolicy>
-    requires VectorizableDense<DenseMatrixPolicy>
-  inline void ProcessSet::AddForcingTerms(
-      const DenseMatrixPolicy& rate_constants,
-      const DenseMatrixPolicy& state_variables,
-      DenseMatrixPolicy& forcing) const
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
+    const DenseMatrixPolicy& rate_constants,
+    const DenseMatrixPolicy& state_variables,
+    DenseMatrixPolicy& forcing) const
+    requires(VectorizableDense<DenseMatrixPolicy>)
   {
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
@@ -377,15 +420,21 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
+
+    // Add forcing contributions from external models
+    for (const auto& add_forcing_function : external_model_forcing_functions_)
+    {
+      add_forcing_function(rate_constants, state_variables, forcing);
+    }
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SubtractJacobianTerms(
+    const DenseMatrixPolicy& rate_constants,
+    const DenseMatrixPolicy& state_variables,
+    SparseMatrixPolicy& jacobian) const
     requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-  inline void ProcessSet::SubtractJacobianTerms(
-      const DenseMatrixPolicy& rate_constants,
-      const DenseMatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
   {
     auto cell_jacobian = jacobian.AsVector().begin();
 
@@ -413,15 +462,21 @@ namespace micm
       // increment cell_jacobian after each grid cell
       cell_jacobian += jacobian.FlatBlockSize();
     }
+
+    // Add Jacobian contributions from external models
+    for (const auto& add_jacobian_function : external_model_jacobian_functions_)
+    {
+      add_jacobian_function(rate_constants, state_variables, jacobian);
+    }
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SubtractJacobianTerms(
+    const DenseMatrixPolicy& rate_constants,
+    const DenseMatrixPolicy& state_variables,
+    SparseMatrixPolicy& jacobian) const
     requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-  inline void ProcessSet::SubtractJacobianTerms(
-      const DenseMatrixPolicy& rate_constants,
-      const DenseMatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
   {
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
@@ -472,9 +527,16 @@ namespace micm
         yield += process_info.number_of_products_;
       }
     }
+
+    // Add Jacobian contributions from external models
+    for (const auto& add_jacobian_function : external_model_jacobian_functions_)
+    {
+      add_jacobian_function(rate_constants, state_variables, jacobian);
+    }
   }
 
-  inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  inline std::set<std::string> ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SpeciesUsed(const std::vector<Process>& processes) const
   {
     std::set<std::string> used_species;
     for (const auto& process : processes)
@@ -490,6 +552,13 @@ namespace micm
           used_species.insert(product.species_.name_);
         }
       }
+    }
+
+    // Include species used in external models
+    for (const auto& model : external_models_)
+    {
+      auto model_species_used = model.species_used_func_();
+      used_species.insert(model_species_used.begin(), model_species_used.end());
     }
 
     return used_species;
