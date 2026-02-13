@@ -101,29 +101,29 @@ namespace micm
         const SparseMatrixPolicy& jacobian);
 
     /// @brief Adds forcing terms for the set of processes for the current conditions
-    /// @param rate_constants Current values for the process rate constants (grid cell, process)
+    /// @param state Current state containing rate constants and other relevant data
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     void AddForcingTerms(
-        const DenseMatrixPolicy& rate_constants,
+        const auto& state,
         const DenseMatrixPolicy& state_variables,
         DenseMatrixPolicy& forcing) const requires(!VectorizableDense<DenseMatrixPolicy>);
     void AddForcingTerms(
-        const DenseMatrixPolicy& rate_constants,
+        const auto& state,
         const DenseMatrixPolicy& state_variables,
         DenseMatrixPolicy& forcing) const requires(VectorizableDense<DenseMatrixPolicy>);
 
     /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
-    /// @param rate_constants Current values for the process rate constants (grid cell, process)
+    /// @param state Current state containing rate constants and other relevant data
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     void SubtractJacobianTerms(
-      const DenseMatrixPolicy& rate_constants,
+      const auto& state,
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
       requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>);
       void SubtractJacobianTerms(
-        const DenseMatrixPolicy& rate_constants,
+        const auto& state,
         const DenseMatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const
         requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
@@ -313,7 +313,7 @@ namespace micm
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
-    const DenseMatrixPolicy& rate_constants,
+    const auto& state,
     const DenseMatrixPolicy& state_variables,
     DenseMatrixPolicy& forcing) const
     requires(!VectorizableDense<DenseMatrixPolicy>)
@@ -321,7 +321,7 @@ namespace micm
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];
+      auto cell_rate_constants = state.rate_constants_[i_cell];
       auto cell_state = state_variables[i_cell];
       auto cell_forcing = forcing[i_cell];
       auto react_id = reactant_ids_.begin();
@@ -359,18 +359,18 @@ namespace micm
     // Add forcing contributions from external models
     for (const auto& add_forcing_function : external_model_forcing_functions_)
     {
-      add_forcing_function(rate_constants, state_variables, forcing);
+      add_forcing_function(state.custom_rate_parameters_, state_variables, forcing);
     }
   };
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
-    const DenseMatrixPolicy& rate_constants,
+    const auto& state,
     const DenseMatrixPolicy& state_variables,
     DenseMatrixPolicy& forcing) const
     requires(VectorizableDense<DenseMatrixPolicy>)
   {
-    const auto& v_rate_constants = rate_constants.AsVector();
+    const auto& v_rate_constants = state.rate_constants_.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_forcing = forcing.AsVector();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
@@ -381,7 +381,7 @@ namespace micm
       auto react_id = reactant_ids_.begin();
       auto prod_id = product_ids_.begin();
       auto yield = yields_.begin();
-      const std::size_t offset_rc = i_group * rate_constants.GroupSize();
+      const std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_forcing = i_group * forcing.GroupSize();
       std::vector<double> rate(L, 0);
@@ -424,14 +424,14 @@ namespace micm
     // Add forcing contributions from external models
     for (const auto& add_forcing_function : external_model_forcing_functions_)
     {
-      add_forcing_function(rate_constants, state_variables, forcing);
+      add_forcing_function(state.custom_rate_parameters_, state_variables, forcing);
     }
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SubtractJacobianTerms(
-    const DenseMatrixPolicy& rate_constants,
+    const auto& state,
     const DenseMatrixPolicy& state_variables,
     SparseMatrixPolicy& jacobian) const
     requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
@@ -441,7 +441,7 @@ namespace micm
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];
+      auto cell_rate_constants = state.rate_constants_[i_cell];
       auto cell_state = state_variables[i_cell];
 
       auto react_id = jacobian_reactant_ids_.begin();
@@ -466,19 +466,19 @@ namespace micm
     // Add Jacobian contributions from external models
     for (const auto& add_jacobian_function : external_model_jacobian_functions_)
     {
-      add_jacobian_function(rate_constants, state_variables, jacobian);
+      add_jacobian_function(state.custom_rate_parameters_, state_variables, jacobian);
     }
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SubtractJacobianTerms(
-    const DenseMatrixPolicy& rate_constants,
+    const auto& state,
     const DenseMatrixPolicy& state_variables,
     SparseMatrixPolicy& jacobian) const
     requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
   {
-    const auto& v_rate_constants = rate_constants.AsVector();
+    const auto& v_rate_constants = state.rate_constants_.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_jacobian = jacobian.AsVector();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
@@ -489,7 +489,7 @@ namespace micm
     {
       auto react_id = jacobian_reactant_ids_.begin();
       auto yield = jacobian_yields_.begin();
-      const std::size_t offset_rc = i_group * rate_constants.GroupSize();
+      const std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_jacobian = i_group * jacobian.GroupSize();
       auto flat_id = jacobian_flat_ids_.begin();
@@ -531,7 +531,7 @@ namespace micm
     // Add Jacobian contributions from external models
     for (const auto& add_jacobian_function : external_model_jacobian_functions_)
     {
-      add_jacobian_function(rate_constants, state_variables, jacobian);
+      add_jacobian_function(state.custom_rate_parameters_, state_variables, jacobian);
     }
   }
 

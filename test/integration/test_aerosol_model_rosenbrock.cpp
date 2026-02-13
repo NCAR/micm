@@ -294,3 +294,34 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModel1)
   test_solve_with_stub_aerosol_model_1(rosenbrock_vector_mozart_csc_3);
   test_solve_with_stub_aerosol_model_1(rosenbrock_vector_mozart_csc_4);
 }
+
+TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
+{
+  test_solve_with_two_stub_aerosol_models(rosenbrock_2stage);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_3stage);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_4stage);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_4stage_da);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_6stage_da);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_1);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_2);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_3);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_4);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_standard_doolittle);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_1);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_2);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_3);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_4);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_standard_mozart);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_1);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_2);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_3);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_4);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_1);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_2);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_3);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_4);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_1);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_2);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_3);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_4);
+}

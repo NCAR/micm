@@ -85,6 +85,7 @@ void testProcessSet()
   // parameterized species before calculating forcing terms
   rate_constants[0] = { 10.0, 20.0 * 70.0 * 0.72, 30.0, 40.0 * 70.0 * 0.72 };
   rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72 };
+  state.rate_constants_ = rate_constants;
 
   // Copy input-only variables to the device
   CheckCopyToDevice<DenseMatrixPolicy>(rate_constants);
@@ -94,7 +95,7 @@ void testProcessSet()
 
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
-  set.AddForcingTerms(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms(state, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 
@@ -141,7 +142,7 @@ void testProcessSet()
 
   CheckCopyToDevice<SparseMatrixPolicy>(jacobian);
 
-  set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
+  set.SubtractJacobianTerms(state, state.variables_, jacobian);
 
   CheckCopyToHost<SparseMatrixPolicy>(jacobian);
 
@@ -230,10 +231,11 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
+  state.rate_constants_ = rate_constants;
 
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
-  set.AddForcingTerms(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms(state, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }

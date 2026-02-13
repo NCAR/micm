@@ -178,7 +178,7 @@ public:
       {
         for (const auto& [dependent_id, independent_id, value] : jacobian_info)
         {
-          jacobian[i_block][dependent_id][independent_id] += value;
+          jacobian[i_block][dependent_id][independent_id] -= value;
         }
       }
     };

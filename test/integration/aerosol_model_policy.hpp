@@ -342,8 +342,9 @@ void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
   std::size_t fo2_mode2_index = fo2_mode2_index_it->second;
   double expected_fo2_gas_partial = -STUB1_RATE_CONSTANT_FO2_CORGE;
   double expected_fo2_mode2_partial = STUB1_RATE_CONSTANT_FO2_CORGE;
-  EXPECT_DOUBLE_EQ(jacobian_1[0][fo2_gas_index][fo2_gas_index], expected_fo2_gas_partial);
-  EXPECT_DOUBLE_EQ(jacobian_1[0][fo2_mode2_index][fo2_gas_index], expected_fo2_mode2_partial);
+  // Jacobian function calculates the negative of the partial derivatives for use in implicit solvers
+  EXPECT_DOUBLE_EQ(jacobian_1[0][fo2_gas_index][fo2_gas_index], -expected_fo2_gas_partial);
+  EXPECT_DOUBLE_EQ(jacobian_1[0][fo2_mode2_index][fo2_gas_index], -expected_fo2_mode2_partial);
 
   // For the baz mode 1 to mode 2 QUUX conversion, we expect two non-zero Jacobian elements: a negative value equal to the rate constant in the column corresponding to baz mode 1 QUUX and row corresponding to baz mode 1 QUUX (representing the partial derivative of the baz loss with respect to baz), and a positive value equal to the rate constant in the column corresponding to baz mode 1 QUUX and row corresponding to baz mode 2 QUUX (representing the partial derivative of the baz gain with respect to baz)
   auto baz_mode1_index_it = state.variable_map_.find("STUB1.MODE1.QUUX.BAZ");
@@ -354,8 +355,9 @@ void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
   std::size_t baz_mode2_index = baz_mode2_index_it->second;
   double expected_baz_mode1_partial = -STUB1_RATE_CONSTANT_BAZ_QUUX;
   double expected_baz_mode2_partial = STUB1_RATE_CONSTANT_BAZ_QUUX;
-  EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode1_index][baz_mode1_index], expected_baz_mode1_partial);
-  EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode2_index][baz_mode1_index], expected_baz_mode2_partial);
+  // Jacobian function calculates the negative of the partial derivatives for use in implicit solvers
+  EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode1_index][baz_mode1_index], -expected_baz_mode1_partial);
+  EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode2_index][baz_mode1_index], -expected_baz_mode2_partial);
 }
 
 /// @brief Test solving with stub aerosol models
@@ -387,23 +389,94 @@ void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder)
   
   // Calculate the analytical solution to verify the results
   double time_step = 10.0; // seconds
-  double stub1_rxn1_delta = STUB1_RATE_CONSTANT_FO2_CORGE * fo2_intial * time_step;
-  double stub1_rxn2_delta = STUB1_RATE_CONSTANT_BAZ_QUUX * baz_mode1_initial * time_step;
+  double stub1_rxn1_delta = fo2_intial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
+  double stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
   
   // Solve the system for a single time step
+  solver.CalculateRateConstants(state);
   auto results = solver.Solve(time_step, state);
 
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
 
   // Verify that the state variables have been updated
-  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-3);
+  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-4);
   EXPECT_EQ(state["BAR"], 2.0);
-  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-3);
-  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, 1e-3);
-  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, 1e-3);
+  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-4);
+  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, 1e-4);
+  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, 1e-4);
   EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], 0.3);
   EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], 0.2);
   EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
   EXPECT_EQ(state["STUB2.MODE2.NUMBER"], 500.0);
+}
+
+/// @brief Test solving with stub aerosol models
+template<class BuilderPolicy>
+void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder)
+{
+  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+
+  // Create a solver for the system with processes that use the aerosol models
+  auto solver = builder.SetSystem(system)
+                       .AddExternalModelProcesses(aerosol_1)
+                       .AddExternalModelProcesses(aerosol_2)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
+
+  // Get a state and set some initial values
+  auto state = solver.GetState();
+
+  double fo2_intial = 1.0;
+  double baz_mode1_initial = 0.5;
+  double fo2_mode2_initial = 0.8;
+  double stub2_mode2_fo2_initial = 0.4;
+  double stub2_mode2_baz_initial = 0.1;
+  double stub2_mode3_baz_initial = 0.2;
+  double stub2_mode3_qux_initial = 0.3;
+  double temperature = 275.0;
+  double fo2_to_baz_rate_constant = 0.01;
+  state["FO2"] = fo2_intial;
+  state["BAR"] = 2.0;
+  state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
+  state["STUB1.MODE2.CORGE.FO2"] = fo2_mode2_initial;
+  state["STUB2.MODE2.CORGE.FO2"] = stub2_mode2_fo2_initial;
+  state["STUB2.MODE2.CORGE.BAZ"] = stub2_mode2_baz_initial;
+  state["STUB2.MODE3.QUUX.BAZ"] = stub2_mode3_baz_initial;
+  state["STUB2.MODE3.QUUX.QUX"] = stub2_mode3_qux_initial;
+  state["STUB2.MODE3.CORGE.BAZ"] = 0.2;
+  state["STUB2.MODE1.NUMBER"] = 1000.0;
+  state["STUB2.MODE2.NUMBER"] = 500.0;
+
+  auto param_it = state.custom_rate_parameter_map_.find("STUB2.PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
+  ASSERT_NE(param_it, state.custom_rate_parameter_map_.end());
+  state.custom_rate_parameters_[0][param_it->second] = fo2_to_baz_rate_constant;
+  state.conditions_[0].temperature_ = temperature;
+
+  // Calculate the analytical solution to verify the results
+  double time_step = 10.0; // seconds
+  double stub1_rxn1_delta = fo2_intial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
+  double stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
+  double stub2_rxn1_delta = stub2_mode2_fo2_initial * (1.0 - std::exp(-fo2_to_baz_rate_constant * time_step));
+  double stub2_rxn2_delta = stub2_mode3_baz_initial * (1.0 - std::exp(-temperature * 0.005 * time_step));
+  
+  // Solve the system for a single time step
+  solver.CalculateRateConstants(state);
+  auto results = solver.Solve(time_step, state);
+
+  // Make sure the solver reports success
+  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+
+  // Verify that the state variables have been updated
+  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-4);
+  EXPECT_EQ(state["BAR"], 2.0);
+  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-4);
+  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, 1e-4);
+  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, 1e-4);
+  EXPECT_NEAR(state["STUB2.MODE2.CORGE.FO2"], stub2_mode2_fo2_initial - stub2_rxn1_delta, 5e-2);
+  EXPECT_NEAR(state["STUB2.MODE2.CORGE.BAZ"], stub2_mode2_baz_initial + stub2_rxn1_delta, 5e-2);
+  EXPECT_NEAR(state["STUB2.MODE3.QUUX.BAZ"], stub2_mode3_baz_initial - stub2_rxn2_delta, 5e-2);
+  EXPECT_NEAR(state["STUB2.MODE3.QUUX.QUX"], stub2_mode3_qux_initial + stub2_rxn2_delta, 5e-2);
+  EXPECT_NEAR(state["STUB2.MODE1.NUMBER"], 1000.0, 1e-5);
+  EXPECT_NEAR(state["STUB2.MODE2.NUMBER"], 500.0, 1e-5);
 }

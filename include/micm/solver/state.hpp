@@ -52,7 +52,7 @@ namespace micm
     std::size_t number_of_grid_cells_{ 1 };
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;
-    /// @brief Rate paramters particular to user-defined rate constants, may vary in time
+    /// @brief Rate parameters particular to user-defined rate constants, may vary in time
     DenseMatrixPolicy custom_rate_parameters_;
     /// @brief The reaction rates, may vary in time
     DenseMatrixPolicy rate_constants_;

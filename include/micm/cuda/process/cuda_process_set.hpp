@@ -53,12 +53,12 @@ namespace micm
 
     template<typename MatrixPolicy>
       requires(CudaMatrix<MatrixPolicy> && VectorizableDense<MatrixPolicy>)
-    void AddForcingTerms(const MatrixPolicy& rate_constants, const MatrixPolicy& state_variables, MatrixPolicy& forcing)
+    void AddForcingTerms(const auto& state, const MatrixPolicy& state_variables, MatrixPolicy& forcing)
         const;
 
     template<typename MatrixPolicy>
       requires(!CudaMatrix<MatrixPolicy>)
-    void AddForcingTerms(const MatrixPolicy& rate_constants, const MatrixPolicy& state_variables, MatrixPolicy& forcing)
+    void AddForcingTerms(const auto& state, const MatrixPolicy& state_variables, MatrixPolicy& forcing)
         const;
 
     template<class MatrixPolicy, class SparseMatrixPolicy>
@@ -66,14 +66,14 @@ namespace micm
           CudaMatrix<MatrixPolicy> && CudaMatrix<SparseMatrixPolicy> && VectorizableDense<MatrixPolicy> &&
           VectorizableSparse<SparseMatrixPolicy>)
     void SubtractJacobianTerms(
-        const MatrixPolicy& rate_constants,
+        const auto& state,
         const MatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const;
 
     template<class MatrixPolicy, class SparseMatrixPolicy>
       requires(!CudaMatrix<MatrixPolicy> && !CudaMatrix<SparseMatrixPolicy>)
     void SubtractJacobianTerms(
-        const MatrixPolicy& rate_constants,
+        const auto& state,
         const MatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const;
   };
@@ -141,13 +141,13 @@ namespace micm
   template<class MatrixPolicy>
     requires(CudaMatrix<MatrixPolicy> && VectorizableDense<MatrixPolicy>)
   inline void CudaProcessSet::AddForcingTerms(
-      const MatrixPolicy& rate_constants,
+      const auto& state,
       const MatrixPolicy& state_variables,
       MatrixPolicy& forcing) const
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue
     micm::cuda::AddForcingTermsKernelDriver(
-        rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
+        state.rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy>
@@ -155,13 +155,13 @@ namespace micm
         CudaMatrix<MatrixPolicy> && CudaMatrix<SparseMatrixPolicy> && VectorizableDense<MatrixPolicy> &&
         VectorizableSparse<SparseMatrixPolicy>)
   inline void CudaProcessSet::SubtractJacobianTerms(
-      const MatrixPolicy& rate_constants,
+      const auto& state,
       const MatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
     auto jacobian_param =
         jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
     micm::cuda::SubtractJacobianTermsKernelDriver(
-        rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
+        state.rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
   }
 }  // namespace micm
