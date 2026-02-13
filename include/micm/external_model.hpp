@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/system/conditions.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -51,6 +52,10 @@ namespace micm
     std::function<std::set<std::pair<std::size_t, std::size_t>>(const std::unordered_map<std::string, std::size_t>&)> non_zero_jacobian_elements_func_;
     /// @brief Function that returns the state variables that are used in the external model's processes
     std::function<std::set<std::string>()> species_used_func_;
+    /// @brief Function to generate the function used to update state parameters for the external model
+    std::function<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>(
+            const std::unordered_map<std::string, std::size_t>& state_parameter_indices)>
+        update_state_parameters_function_;
     /// @brief Function to generate the forcing function for the external model processes
     std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
             const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
@@ -75,6 +80,12 @@ namespace micm
           return shared_model->NonZeroJacobianElements(species_map);
       };
       species_used_func_ = [shared_model]() -> std::set<std::string> { return shared_model->SpeciesUsed(); };
+      update_state_parameters_function_ = [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices) ->
+        std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
+      {
+        return shared_model->template UpdateStateParametersFunction<DenseMatrixPolicy>(
+            state_parameter_indices);
+      };
       get_forcing_function_ = [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
                                          const std::unordered_map<std::string, std::size_t>& state_variable_indices) ->
                                          std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>

@@ -381,12 +381,20 @@ namespace micm
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
+    // Create vector of functions to update external model state parameters
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_funcs;
+    for (const auto& model : external_models_)
+    {
+      update_funcs.push_back(model.update_state_parameters_function_(params_map));
+    }
+
     return Solver<SolverPolicy, StatePolicy>(
         SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
         state_parameters,
         options,
         this->reactions_,
-        this->system_);
+        this->system_,
+        update_funcs);
   }
 
 }  // namespace micm

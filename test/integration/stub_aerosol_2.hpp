@@ -83,6 +83,18 @@ public:
     // For this stub model, we'll assume there are no processes and therefore the Jacobian is always zero, so we can return an empty set
     return {};
   }
+
+  // We have no parameters for this stub model
+  template<typename DenseMatrixPolicy>
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
+    const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
+  {
+    // No parameters to update in this stub model
+    return [](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters) {
+      // Do nothing
+    };
+  }
+
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,

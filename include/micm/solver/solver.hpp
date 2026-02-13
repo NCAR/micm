@@ -24,6 +24,7 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>> update_state_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -41,8 +42,24 @@ namespace micm
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
-          system_(std::move(system))
+          system_(std::move(system)),
+          update_state_parameters_functions_()
+    {
+    }
 
+    Solver(
+        SolverPolicy&& solver,
+        StateParameters state_parameters,
+        SolverParametersType solver_parameters,
+        std::vector<micm::Process> processes,
+        System system,
+        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>& update_state_parameters_functions)
+        : solver_(std::move(solver)),
+          state_parameters_(state_parameters),
+          solver_parameters_(solver_parameters),
+          processes_(std::move(processes)),
+          system_(std::move(system)),
+          update_state_parameters_functions_(update_state_parameters_functions)
     {
     }
 
@@ -54,7 +71,8 @@ namespace micm
           processes_(std::move(other.processes_)),
           state_parameters_(other.state_parameters_),
           solver_parameters_(other.solver_parameters_),
-          system_(std::move(other.system_))
+          system_(std::move(other.system_)),
+          update_state_parameters_functions_(std::move(other.update_state_parameters_functions_))
     {
     }
     Solver& operator=(Solver&& other)
@@ -64,6 +82,7 @@ namespace micm
       solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
       std::swap(this->system_, other.system_);
+      std::swap(this->update_state_parameters_functions_, other.update_state_parameters_functions_);
       return *this;
     }
 
@@ -145,6 +164,10 @@ namespace micm
     void CalculateRateConstants(StatePolicy& state)
     {
       Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
+      for (const auto& update_func : update_state_parameters_functions_)
+      {
+        update_func(state.conditions_, state.custom_rate_parameters_);
+      }
     }
   };
 
