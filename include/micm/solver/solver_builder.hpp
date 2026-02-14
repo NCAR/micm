@@ -79,7 +79,8 @@ namespace micm
     /// @brief Add processes from an external model
     /// @param model The external model
     /// @return Updated SolverBuilder
-    SolverBuilder& AddExternalModelProcesses(const auto& model);
+    template<class ExternalModel>
+    SolverBuilder& AddExternalModelProcesses(ExternalModel&& model);
 
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored

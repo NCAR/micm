@@ -91,6 +91,12 @@
 #include <memory>
 #include <string>
 #include <set>
+#include <tuple>
+#include <vector>
+#include <unordered_map>
+#include <type_traits>
+#include <utility>
+#include <cstddef>
 
 namespace micm
 {

@@ -120,6 +120,11 @@ public:
     // Create a function that updates the BAZ-to-QUX rate constant based on temperature for each grid cell
     auto baz_to_qux_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
     EXPECT_NE(baz_to_qux_param_it, state_parameter_indices.end());
+    if (baz_to_qux_param_it == state_parameter_indices.end())
+    {
+      // If the parameter is missing, return a no-op updater to avoid undefined behavior.
+      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    }
     std::size_t baz_to_qux_param_index = baz_to_qux_param_it->second;
     return [baz_to_qux_param_index](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters) {
       for(std::size_t cell = 0; cell < conditions.size(); ++cell)

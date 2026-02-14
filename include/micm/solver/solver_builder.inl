@@ -70,6 +70,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
+  template<class ExternalModel>
   inline SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -85,7 +86,7 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::AddExternalModelProcesses(const auto& model)
+      StatePolicy>::AddExternalModelProcesses(ExternalModel&& model)
   {
     external_models_.emplace_back( ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) } );
     return *this;
