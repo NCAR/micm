@@ -297,7 +297,7 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModel1)
 
 TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
 {
-  test_solve_with_two_stub_aerosol_models(rosenbrock_2stage);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_2stage, 5e-4);
   test_solve_with_two_stub_aerosol_models(rosenbrock_3stage);
   test_solve_with_two_stub_aerosol_models(rosenbrock_4stage);
   test_solve_with_two_stub_aerosol_models(rosenbrock_4stage_da);
@@ -320,6 +320,7 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
   test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_2);
   test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_3);
   test_solve_with_two_stub_aerosol_models(rosenbrock_vector_doolittle_csc_4);
+  test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_1);
   test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_1);
   test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_2);
   test_solve_with_two_stub_aerosol_models(rosenbrock_vector_mozart_csc_3);

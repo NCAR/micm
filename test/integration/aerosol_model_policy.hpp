@@ -362,7 +362,7 @@ void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder)
+void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -400,11 +400,11 @@ void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder)
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
 
   // Verify that the state variables have been updated
-  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-4);
+  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, base_relative_tolerance * fo2_intial);
   EXPECT_EQ(state["BAR"], 2.0);
-  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-4);
-  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, 1e-4);
-  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, 1e-4);
+  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, base_relative_tolerance * baz_mode1_initial);
+  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, base_relative_tolerance * baz_mode1_initial);
+  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, base_relative_tolerance * fo2_intial);
   EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], 0.3);
   EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], 0.2);
   EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
@@ -413,7 +413,7 @@ void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder)
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder)
+void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -468,15 +468,15 @@ void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder)
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
 
   // Verify that the state variables have been updated
-  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, 1e-4);
+  EXPECT_NEAR(state["FO2"], fo2_intial - stub1_rxn1_delta, base_relative_tolerance * fo2_intial);
   EXPECT_EQ(state["BAR"], 2.0);
-  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, 1e-4);
-  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, 1e-4);
-  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, 1e-4);
-  EXPECT_NEAR(state["STUB2.MODE2.CORGE.FO2"], stub2_mode2_fo2_initial - stub2_rxn1_delta, 5e-2);
-  EXPECT_NEAR(state["STUB2.MODE2.CORGE.BAZ"], stub2_mode2_baz_initial + stub2_rxn1_delta, 5e-2);
-  EXPECT_NEAR(state["STUB2.MODE3.QUUX.BAZ"], stub2_mode3_baz_initial - stub2_rxn2_delta, 5e-2);
-  EXPECT_NEAR(state["STUB2.MODE3.QUUX.QUX"], stub2_mode3_qux_initial + stub2_rxn2_delta, 5e-2);
-  EXPECT_NEAR(state["STUB2.MODE1.NUMBER"], 1000.0, 1e-5);
-  EXPECT_NEAR(state["STUB2.MODE2.NUMBER"], 500.0, 1e-5);
+  EXPECT_NEAR(state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, base_relative_tolerance * baz_mode1_initial);
+  EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, base_relative_tolerance * baz_mode1_initial);
+  EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, base_relative_tolerance * fo2_intial);
+  EXPECT_NEAR(state["STUB2.MODE2.CORGE.FO2"], stub2_mode2_fo2_initial - stub2_rxn1_delta, base_relative_tolerance * stub2_mode2_fo2_initial);
+  EXPECT_NEAR(state["STUB2.MODE2.CORGE.BAZ"], stub2_mode2_baz_initial + stub2_rxn1_delta, base_relative_tolerance * stub2_mode2_fo2_initial);
+  EXPECT_NEAR(state["STUB2.MODE3.QUUX.BAZ"], stub2_mode3_baz_initial - stub2_rxn2_delta, base_relative_tolerance * stub2_mode3_baz_initial);
+  EXPECT_NEAR(state["STUB2.MODE3.QUUX.QUX"], stub2_mode3_qux_initial + stub2_rxn2_delta, base_relative_tolerance * stub2_mode3_baz_initial);
+  EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
+  EXPECT_EQ(state["STUB2.MODE2.NUMBER"], 500.0);
 }
