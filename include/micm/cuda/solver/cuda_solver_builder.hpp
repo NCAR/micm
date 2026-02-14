@@ -25,7 +25,9 @@ namespace micm
       SolverParametersPolicy,
       CudaDenseMatrix<double, L>,
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
-      CudaProcessSet,
+      CudaProcessSet<
+          CudaDenseMatrix<double, L>,
+          CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>,
       CudaLuDecompositionMozartInPlace,
       CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecompositionMozartInPlace>,
       CudaState<
