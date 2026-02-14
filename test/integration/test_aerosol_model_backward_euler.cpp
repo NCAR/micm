@@ -326,3 +326,70 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
   test_solve_with_two_stub_aerosol_models(backward_euler_vector_mozart_in_place_3, 1e-1);
   test_solve_with_two_stub_aerosol_models(backward_euler_vector_mozart_in_place_4, 1e-1);
 }
+
+TEST(AerosolModelIntegration, CanSolveMultiGridCellWithStubAerosolModel1)
+{
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_4, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_4, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_4, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_csc_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_csc_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_csc_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_csc_4, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_csc_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_csc_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_csc_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_csc_4, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_in_place_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_in_place_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_in_place_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_doolittle_in_place_4, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_in_place_1, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_in_place_2, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_in_place_3, 2e-4);
+  test_solve_with_stub_aerosol_model_1_multi_cell(backward_euler_vector_mozart_in_place_4, 2e-4);
+}
+
+TEST(AerosolModelIntegration, CanSolveMultiGridCellWithTwoStubAerosolModels)
+{
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_4, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_4, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_4, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_csc_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_csc_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_csc_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_csc_4, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_csc_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_csc_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_csc_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_csc_4, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_in_place_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_in_place_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_in_place_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_doolittle_in_place_4, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_in_place_1, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_in_place_2, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_in_place_3, 1e-1);
+  test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_in_place_4, 1e-1);
+}
+

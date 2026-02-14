@@ -480,3 +480,178 @@ void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder, double base_
   EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
   EXPECT_EQ(state["STUB2.MODE2.NUMBER"], 500.0);
 }
+
+/// @brief Test solving with stub aerosol model using 3 grid cells
+template<class BuilderPolicy>
+void test_solve_with_stub_aerosol_model_1_multi_cell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+{
+  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+
+  // Create a solver for the system with processes that use the aerosol models
+  auto solver = builder.SetSystem(system)
+                       .AddExternalModelProcesses(aerosol_1) // excluding aerosol 2 process for this test
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
+
+  const std::size_t num_cells = 3;
+
+  // Get a state for multiple grid cells
+  auto state = solver.GetState(num_cells);
+
+  // Set different initial values for each cell
+  std::vector<double> fo2_initial = { 1.0, 1.5, 2.0 };
+  std::vector<double> baz_mode1_initial = { 0.5, 0.7, 0.9 };
+  std::vector<double> fo2_mode2_initial = { 0.8, 1.0, 1.2 };
+  
+  state["FO2"] = fo2_initial;
+  state["BAR"] = std::vector{ 2.0, 2.5, 3.0 };
+  state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
+  state["STUB1.MODE2.CORGE.FO2"] = fo2_mode2_initial;
+  state["STUB2.MODE3.CORGE.QUX"] = std::vector{ 0.3, 0.4, 0.5 };
+  state["STUB2.MODE3.CORGE.BAZ"] = std::vector{ 0.2, 0.3, 0.4 };
+  state["STUB2.MODE1.NUMBER"] = std::vector{ 1000.0, 1100.0, 1200.0 };
+  state["STUB2.MODE2.NUMBER"] = std::vector{ 500.0, 550.0, 600.0 };
+  
+  // Calculate the analytical solution to verify the results for each cell
+  double time_step = 10.0; // seconds
+  std::vector<double> stub1_rxn1_delta(num_cells);
+  std::vector<double> stub1_rxn2_delta(num_cells);
+  
+  for (std::size_t i = 0; i < num_cells; ++i)
+  {
+    stub1_rxn1_delta[i] = fo2_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
+    stub1_rxn2_delta[i] = baz_mode1_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
+  }
+  
+  // Solve the system for a single time step
+  solver.CalculateRateConstants(state);
+  auto results = solver.Solve(time_step, state);
+
+  // Make sure the solver reports success
+  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+
+  // Verify that the state variables have been updated in all cells
+  auto fo2_result = state["FO2"];
+  auto bar_result = state["BAR"];
+  auto baz_mode1_result = state["STUB1.MODE1.QUUX.BAZ"];
+  auto baz_mode2_result = state["STUB1.MODE2.QUUX.BAZ"];
+  auto fo2_mode2_result = state["STUB1.MODE2.CORGE.FO2"];
+  auto stub2_qux_result = state["STUB2.MODE3.CORGE.QUX"];
+  auto stub2_baz_result = state["STUB2.MODE3.CORGE.BAZ"];
+  auto stub2_num1_result = state["STUB2.MODE1.NUMBER"];
+  auto stub2_num2_result = state["STUB2.MODE2.NUMBER"];
+  
+  for (std::size_t i = 0; i < num_cells; ++i)
+  {
+    EXPECT_NEAR(fo2_result[i], fo2_initial[i] - stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
+    EXPECT_EQ(bar_result[i], (std::vector{ 2.0, 2.5, 3.0 })[i]);
+    EXPECT_NEAR(baz_mode1_result[i], baz_mode1_initial[i] - stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
+    EXPECT_NEAR(baz_mode2_result[i], stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
+    EXPECT_NEAR(fo2_mode2_result[i], fo2_mode2_initial[i] + stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
+    EXPECT_EQ(stub2_qux_result[i], (std::vector{ 0.3, 0.4, 0.5 })[i]);
+    EXPECT_EQ(stub2_baz_result[i], (std::vector{ 0.2, 0.3, 0.4 })[i]);
+    EXPECT_EQ(stub2_num1_result[i], (std::vector{ 1000.0, 1100.0, 1200.0 })[i]);
+    EXPECT_EQ(stub2_num2_result[i], (std::vector{ 500.0, 550.0, 600.0 })[i]);
+  }
+}
+
+/// @brief Test solving with two stub aerosol models using 3 grid cells
+template<class BuilderPolicy>
+void test_solve_with_two_stub_aerosol_models_multi_cell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+{
+  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+
+  // Create a solver for the system with processes that use the aerosol models
+  auto solver = builder.SetSystem(system)
+                       .AddExternalModelProcesses(aerosol_1)
+                       .AddExternalModelProcesses(aerosol_2)
+                       .SetIgnoreUnusedSpecies(true)
+                       .Build();
+
+  const std::size_t num_cells = 3;
+
+  // Get a state for multiple grid cells
+  auto state = solver.GetState(num_cells);
+
+  // Set different initial values for each cell
+  std::vector<double> fo2_initial = { 1.0, 1.5, 2.0 };
+  std::vector<double> baz_mode1_initial = { 0.5, 0.7, 0.9 };
+  std::vector<double> fo2_mode2_initial = { 0.8, 1.0, 1.2 };
+  std::vector<double> stub2_mode2_fo2_initial = { 0.4, 0.6, 0.8 };
+  std::vector<double> stub2_mode2_baz_initial = { 0.1, 0.15, 0.2 };
+  std::vector<double> stub2_mode3_baz_initial = { 0.2, 0.3, 0.4 };
+  std::vector<double> stub2_mode3_qux_initial = { 0.3, 0.4, 0.5 };
+  std::vector<double> temperature = { 275.0, 285.0, 295.0 };
+  std::vector<double> fo2_to_baz_rate_constant = { 0.01, 0.015, 0.02 };
+  
+  state["FO2"] = fo2_initial;
+  state["BAR"] = std::vector{ 2.0, 2.5, 3.0 };
+  state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
+  state["STUB1.MODE2.CORGE.FO2"] = fo2_mode2_initial;
+  state["STUB2.MODE2.CORGE.FO2"] = stub2_mode2_fo2_initial;
+  state["STUB2.MODE2.CORGE.BAZ"] = stub2_mode2_baz_initial;
+  state["STUB2.MODE3.QUUX.BAZ"] = stub2_mode3_baz_initial;
+  state["STUB2.MODE3.QUUX.QUX"] = stub2_mode3_qux_initial;
+  state["STUB2.MODE3.CORGE.BAZ"] = std::vector{ 0.2, 0.25, 0.3 };
+  state["STUB2.MODE1.NUMBER"] = std::vector{ 1000.0, 1100.0, 1200.0 };
+  state["STUB2.MODE2.NUMBER"] = std::vector{ 500.0, 550.0, 600.0 };
+
+  auto param_it = state.custom_rate_parameter_map_.find("STUB2.PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
+  ASSERT_NE(param_it, state.custom_rate_parameter_map_.end());
+  for (std::size_t i = 0; i < num_cells; ++i)
+  {
+    state.custom_rate_parameters_[i][param_it->second] = fo2_to_baz_rate_constant[i];
+    state.conditions_[i].temperature_ = temperature[i];
+  }
+
+  // Calculate the analytical solution to verify the results for each cell
+  double time_step = 10.0; // seconds
+  std::vector<double> stub1_rxn1_delta(num_cells);
+  std::vector<double> stub1_rxn2_delta(num_cells);
+  std::vector<double> stub2_rxn1_delta(num_cells);
+  std::vector<double> stub2_rxn2_delta(num_cells);
+  
+  for (std::size_t i = 0; i < num_cells; ++i)
+  {
+    stub1_rxn1_delta[i] = fo2_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
+    stub1_rxn2_delta[i] = baz_mode1_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
+    stub2_rxn1_delta[i] = stub2_mode2_fo2_initial[i] * (1.0 - std::exp(-fo2_to_baz_rate_constant[i] * time_step));
+    stub2_rxn2_delta[i] = stub2_mode3_baz_initial[i] * (1.0 - std::exp(-temperature[i] * 0.005 * time_step));
+  }
+  
+  // Solve the system for a single time step
+  solver.CalculateRateConstants(state);
+  auto results = solver.Solve(time_step, state);
+
+  // Make sure the solver reports success
+  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+
+  // Verify that the state variables have been updated in all cells
+  auto fo2_result = state["FO2"];
+  auto bar_result = state["BAR"];
+  auto baz_mode1_result = state["STUB1.MODE1.QUUX.BAZ"];
+  auto baz_mode2_result = state["STUB1.MODE2.QUUX.BAZ"];
+  auto fo2_mode2_result = state["STUB1.MODE2.CORGE.FO2"];
+  auto stub2_mode2_fo2_result = state["STUB2.MODE2.CORGE.FO2"];
+  auto stub2_mode2_baz_result = state["STUB2.MODE2.CORGE.BAZ"];
+  auto stub2_mode3_baz_result = state["STUB2.MODE3.QUUX.BAZ"];
+  auto stub2_mode3_qux_result = state["STUB2.MODE3.QUUX.QUX"];
+  auto stub2_num1_result = state["STUB2.MODE1.NUMBER"];
+  auto stub2_num2_result = state["STUB2.MODE2.NUMBER"];
+  
+  for (std::size_t i = 0; i < num_cells; ++i)
+  {
+    EXPECT_NEAR(fo2_result[i], fo2_initial[i] - stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
+    EXPECT_EQ(bar_result[i], (std::vector{ 2.0, 2.5, 3.0 })[i]);
+    EXPECT_NEAR(baz_mode1_result[i], baz_mode1_initial[i] - stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
+    EXPECT_NEAR(baz_mode2_result[i], stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
+    EXPECT_NEAR(fo2_mode2_result[i], fo2_mode2_initial[i] + stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
+    EXPECT_NEAR(stub2_mode2_fo2_result[i], stub2_mode2_fo2_initial[i] - stub2_rxn1_delta[i], base_relative_tolerance * stub2_mode2_fo2_initial[i]);
+    EXPECT_NEAR(stub2_mode2_baz_result[i], stub2_mode2_baz_initial[i] + stub2_rxn1_delta[i], base_relative_tolerance * stub2_mode2_fo2_initial[i]);
+    EXPECT_NEAR(stub2_mode3_baz_result[i], stub2_mode3_baz_initial[i] - stub2_rxn2_delta[i], base_relative_tolerance * stub2_mode3_baz_initial[i]);
+    EXPECT_NEAR(stub2_mode3_qux_result[i], stub2_mode3_qux_initial[i] + stub2_rxn2_delta[i], base_relative_tolerance * stub2_mode3_baz_initial[i]);
+    EXPECT_EQ(stub2_num1_result[i], (std::vector{ 1000.0, 1100.0, 1200.0 })[i]);
+    EXPECT_EQ(stub2_num2_result[i], (std::vector{ 500.0, 550.0, 600.0 })[i]);
+  }
+}
+
