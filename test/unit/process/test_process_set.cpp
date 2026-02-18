@@ -25,20 +25,20 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVe
 
 TEST(ProcessSet, Matrix)
 {
-  testProcessSet<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet>();
+  testProcessSet<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>();
 }
 
 TEST(ProcessSet, VectorMatrix)
 {
-  testProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet>();
-  testProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix, micm::ProcessSet>();
-  testProcessSet<Group3VectorMatrix, Group3SparseVectorMatrix, micm::ProcessSet>();
-  testProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix, micm::ProcessSet>();
+  testProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  testProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix, micm::ProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  testProcessSet<Group3VectorMatrix, Group3SparseVectorMatrix, micm::ProcessSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  testProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix, micm::ProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix>>();
 }
 
 TEST(RandomProcessSet, Matrix)
 {
-  testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet>(200, 50, 40);
-  testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet>(300, 30, 20);
-  testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet>(400, 100, 80);
+  testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>(200, 50, 40);
+  testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>(300, 30, 20);
+  testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>(400, 100, 80);
 }
