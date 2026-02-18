@@ -246,36 +246,6 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline void SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
-          const
-  {
-    tolerances = std::vector<double>(species_map.size(), 1e-3);
-    for (auto& phase_species : system_.gas_phase_.phase_species_)
-    {
-      auto& species = phase_species.species_;
-      if (species.HasProperty("absolute tolerance"))
-      {
-        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
-      }
-    }
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
   inline std::unordered_map<std::string, std::size_t> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -313,6 +283,36 @@ namespace micm
       throw std::invalid_argument("Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate parameter labels.");
     }
     return params;
+  }
+  
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline void SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::
+      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
+          const
+  {
+    tolerances = std::vector<double>(species_map.size(), 1e-3);
+    for (auto& phase_species : system_.gas_phase_.phase_species_)
+    {
+      auto& species = phase_species.species_;
+      if (species.HasProperty("absolute tolerance"))
+      {
+        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
+      }
+    }
   }
 
   template<

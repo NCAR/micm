@@ -105,6 +105,10 @@ namespace micm
     /// @brief Gets a map of species to their index
     /// @return The species map
     std::unordered_map<std::string, std::size_t> GetSpeciesMap() const;
+    
+    /// @brief Returns the labels of the custom parameters
+    /// @return The labels of the custom parameters
+    std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
 
     /// @brief Sets the absolute tolerances per species
     /// @param parameters
@@ -112,10 +116,6 @@ namespace micm
     void SetAbsoluteTolerances(
         std::vector<double>& tolerances,
         const std::unordered_map<std::string, std::size_t>& species_map) const;
-
-    /// @brief Returns the labels of the custom parameters
-    /// @return The labels of the custom parameters
-    std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
   };
 
   /// @brief Builder of CPU-based general solvers
