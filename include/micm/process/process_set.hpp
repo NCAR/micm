@@ -313,7 +313,8 @@ namespace micm
     }
   }
 
-  inline void ProcessSet::SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids)
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids)
   {
     std::fill(is_algebraic_variable_.begin(), is_algebraic_variable_.end(), false);
     for (const auto variable_id : variable_ids)
@@ -326,7 +327,7 @@ namespace micm
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetExternalModelFunctions(
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetExternalModelFunctions(
       const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
       const SparseMatrixPolicy& jacobian)
