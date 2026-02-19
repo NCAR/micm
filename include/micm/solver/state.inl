@@ -64,6 +64,250 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator double() const
+  {
+    if (state_.variables_.NumRows() != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot convert multi-gridcell State variable to single double value");
+    return state_.variables_[0][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator=(
+      double value)
+  {
+    if (state_.variables_.NumRows() != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot assign single value to multi-gridcell State variable");
+    state_.variables_[0][index_] = value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator=(
+      const std::vector<double>& values)
+  {
+    if (values.size() != state_.number_of_grid_cells_)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Number of values does not match number of grid cells in State");
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      state_.variables_[i][index_] = values[i];
+    }
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator=(
+      const VariableProxy& other)
+  {
+    if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Number of grid cells does not match between State variables");
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      state_.variables_[i][index_] = other.state_.variables_[i][other.index_];
+    }
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator+=(
+      double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot add single value to multi-gridcell State variable");
+    state_.variables_[0][index_] += value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator-=(
+      double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot subtract single value from multi-gridcell State variable");
+    state_.variables_[0][index_] -= value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator*=(
+      double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot multiply single value with multi-gridcell State variable");
+    state_.variables_[0][index_] *= value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator/=(
+      double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot divide multi-gridcell State variable by single value");
+    state_.variables_[0][index_] /= value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline double&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator[](
+      std::size_t grid_cell_index)
+  {
+    if (grid_cell_index >= state_.number_of_grid_cells_)
+      throw std::out_of_range("Grid cell index out of range");
+    return state_.variables_[grid_cell_index][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline const double&
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator[](
+      std::size_t grid_cell_index) const
+  {
+    if (grid_cell_index >= state_.number_of_grid_cells_)
+      throw std::out_of_range("Grid cell index out of range");
+    return state_.variables_[grid_cell_index][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator double() const
+  {
+    if (state_.variables_.NumRows() != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState),
+          "Cannot convert multi-gridcell State variable to single double value");
+    return state_.variables_[0][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator[](
+      std::size_t grid_cell_index) const
+  {
+    if (grid_cell_index >= state_.number_of_grid_cells_)
+      throw std::out_of_range("Grid cell index out of range");
+    return state_.variables_[grid_cell_index][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator==(
+      const std::vector<double>& other) const
+  {
+    if (other.size() != state_.number_of_grid_cells_)
+      return false;
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      if (state_.variables_[i][index_] != other[i])
+        return false;
+    }
+    return true;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator==(
+      const std::vector<double>& other) const
+  {
+    if (other.size() != state_.number_of_grid_cells_)
+      return false;
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      if (state_.variables_[i][index_] != other[i])
+        return false;
+    }
+    return true;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State()
       : variables_(),
         custom_rate_parameters_(),
@@ -160,6 +404,94 @@ namespace micm
       upper_matrix_ = upper_matrix;
     }
     jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      std::size_t index)
+  {
+    if (index >= state_size_)
+      throw std::out_of_range("Variable index out of range");
+    return VariableProxy(*this, index);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      std::size_t index) const
+  {
+    if (index >= state_size_)
+      throw std::out_of_range("Variable index out of range");
+    return ConstVariableProxy(*this, index);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      const std::string& name)
+  { 
+    auto var = variable_map_.find(name);
+    if (var == variable_map_.end())
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), name);
+    return VariableProxy(*this, var->second);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      const std::string& name) const
+  {
+    auto var = variable_map_.find(name);
+    if (var == variable_map_.end())
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), name);
+    return ConstVariableProxy(*this, var->second);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      const Species& species)
+  {
+    return operator[](species.name_);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      const Species& species) const
+  {
+    return operator[](species.name_);
   }
 
   template<

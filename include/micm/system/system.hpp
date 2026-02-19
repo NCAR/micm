@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/external_model.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/utils.hpp>
@@ -11,51 +12,17 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 namespace micm
 {
-  // Helper class for collecting lambda functions from external models
-  struct ExternalModel
-  {
-    /// @brief Function to get the state size of the external model
-    std::function<size_t()> state_size_func_;
-    /// @brief Function to get the unique names of the external model
-    std::function<std::vector<std::string>()> unique_names_func_;
-    
-    // Default constructor
-    ExternalModel() = default;
-    
-    // Copy constructor
-    ExternalModel(const ExternalModel&) = default;
-    
-    // Move constructor  
-    ExternalModel(ExternalModel&&) = default;
-    
-    // Copy assignment
-    ExternalModel& operator=(const ExternalModel&) = default;
-    
-    // Move assignment
-    ExternalModel& operator=(ExternalModel&&) = default;
-    
-    /// @brief Constructor from an external model instance
-    /// @tparam ModelType Type of the external model
-    /// @param model Instance of the external model
-    template<typename ModelType,
-             typename = std::enable_if_t<!std::is_same_v<std::decay_t<ModelType>, ExternalModel>>>
-    ExternalModel(ModelType&& model)
-    {
-      auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
-      state_size_func_ = [shared_model]() { return shared_model->StateSize(); };
-      unique_names_func_ = [shared_model]() { return shared_model->UniqueNames(); };
-    }
-  };
-  
+
   struct SystemParameters
   {
     /// @brief  @brief The gas phase
     Phase gas_phase_{};
     /// @brief External models (e.g., aerosol models) that provide additional components to the system
-    std::vector<ExternalModel> external_models_{};
+    std::vector<ExternalModelSystem> external_models_{};
   };
 
   /// @brief Represents the complete chemical state of a grid cell
@@ -66,7 +33,7 @@ namespace micm
     /// @brief The gas phase, defining a set of species present in the system
     Phase gas_phase_;
     /// @brief External models (e.g., aerosol models) that provide additional components to the system
-    std::vector<ExternalModel> external_models_;
+    std::vector<ExternalModelSystem> external_models_;
 
     /// @brief Default constructor
     System() = default;
@@ -85,7 +52,7 @@ namespace micm
         const Phase& gas_phase,
         ExternalModels&&... external_models)
         : gas_phase_(gas_phase),
-          external_models_{ ExternalModel{ std::forward<ExternalModels>(external_models) }... }
+          external_models_{ ExternalModelSystem{ std::forward<ExternalModels>(external_models) }... }
     {
       if (StateSize() != UniqueNames().size())
       {
@@ -135,7 +102,7 @@ namespace micm
     std::size_t state_size = gas_phase_.StateSize();
     for (const auto& model : external_models_)
     {
-      state_size += model.state_size_func_();
+      state_size += std::get<0>(model.state_size_func_());
     }
 
     return state_size;
@@ -160,7 +127,7 @@ namespace micm
     // Include names from external models
     for (const auto& model : external_models_)
     {
-      auto model_names = model.unique_names_func_();
+      auto model_names = model.variable_names_func_();
       names.insert(names.end(), model_names.begin(), model_names.end());
     }
 

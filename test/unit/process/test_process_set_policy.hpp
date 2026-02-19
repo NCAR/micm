@@ -62,7 +62,8 @@ void testProcessSet()
                    .SetPhase(gas_phase)
                    .Build();
 
-  auto used_species = RatesPolicy::SpeciesUsed(std::vector<Process>{ r1, r2, r3, r4 });
+  RatesPolicy set = RatesPolicy(std::vector<Process>{ r1, r2, r3, r4 }, state.variable_map_);
+  auto used_species = set.SpeciesUsed(std::vector<Process>{ r1, r2, r3, r4 });
 
   EXPECT_EQ(used_species.size(), 6);
   EXPECT_TRUE(used_species.contains("foo"));
@@ -72,8 +73,6 @@ void testProcessSet()
   EXPECT_TRUE(used_species.contains("quuz"));
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
-
-  RatesPolicy set = RatesPolicy(std::vector<Process>{ r1, r2, r3, r4 }, state.variable_map_);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_.NumColumns(), 6);
@@ -86,16 +85,17 @@ void testProcessSet()
   // parameterized species before calculating forcing terms
   rate_constants[0] = { 10.0, 20.0 * 70.0 * 0.72, 30.0, 40.0 * 70.0 * 0.72 };
   rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72 };
+  state.rate_constants_ = rate_constants;
 
   // Copy input-only variables to the device
-  CheckCopyToDevice<DenseMatrixPolicy>(rate_constants);
+  CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
   CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
 
   DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
-  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms(state, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 
@@ -142,7 +142,7 @@ void testProcessSet()
 
   CheckCopyToDevice<SparseMatrixPolicy>(jacobian);
 
-  set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
+  set.SubtractJacobianTerms(state, state.variables_, jacobian);
 
   CheckCopyToHost<SparseMatrixPolicy>(jacobian);
 
@@ -231,10 +231,12 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
+  state.rate_constants_ = rate_constants;
 
+  CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
-  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms(state, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }

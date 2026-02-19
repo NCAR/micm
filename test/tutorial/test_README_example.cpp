@@ -42,7 +42,7 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.conditions_[0].CalculateIdealAirDensity();
-  state.SetConcentration(foo, 20.0);  // mol m-3
+  state[foo] = 20.0;                           // mol m-3
 
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
