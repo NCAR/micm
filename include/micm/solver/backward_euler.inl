@@ -54,12 +54,12 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         forcing.Fill(0.0);
-        rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        rates_.AddForcingTerms(state, Yn1, forcing);
         result.stats_.function_calls_++;
 
         // calculate the negative jacobian
         state.jacobian_.Fill(0.0);
-        rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        rates_.SubtractJacobianTerms(state, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
         // add the inverse of the time step from the diagonal

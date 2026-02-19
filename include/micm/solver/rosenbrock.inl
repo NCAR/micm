@@ -52,24 +52,26 @@ namespace micm
 
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
-      rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
+      rates_.AddForcingTerms(state, Y, initial_forcing);
 
       // Add constraint residuals to forcing (for DAE systems)
       if (has_constraints)
       {
         constraints_.AddForcingTerms(Y, initial_forcing);
       }
+
       result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
-      rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+      rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
 
       // Add constraint Jacobian terms (for DAE systems)
       if (has_constraints)
       {
         constraints_.SubtractJacobianTerms(Y, state.jacobian_);
       }
+
       result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
@@ -116,7 +118,7 @@ namespace micm
                 Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
               }
               K[stage].Fill(0);
-              rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
+              rates_.AddForcingTerms(state, Ynew, K[stage]);
               // Add constraint residuals for DAE systems
               if (has_constraints)
               {
@@ -232,7 +234,7 @@ namespace micm
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
             state.jacobian_.Fill(0);
-            rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+            rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
             // Subtract constraint Jacobian terms (for DAE systems)
             if (has_constraints)
             {
