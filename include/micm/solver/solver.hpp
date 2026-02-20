@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -182,6 +183,24 @@ namespace micm
       {
         state.variables_.Max(0.0);
       }
+    }
+
+    LambdaRateConstant& GetRateConstantByName(const std::string& name)
+    {
+      for (auto& process : processes_)
+      {
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw std::system_error(
+          make_error_code(MicmProcessErrc::InvalidConfiguration),
+          "Rate constant with name '" + name + "' not found in any process");
     }
   };
 
