@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <iomanip>
 #include <random>
 
 template<typename T, class MatrixPolicy, class SparseMatrixPolicy>

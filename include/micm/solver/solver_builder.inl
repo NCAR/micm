@@ -158,6 +158,35 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
+  {
+    constraints_ = std::move(constraints);
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
   inline void SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -173,6 +202,14 @@ namespace micm
     }
 
     auto used_species = rates.SpeciesUsed(reactions_);
+    // Include species referenced by constraints (dependencies and algebraic targets)
+    for (const auto& constraint : constraints_)
+    {
+      for (const auto& dep : constraint.GetSpeciesDependencies())
+        used_species.insert(dep);
+      used_species.insert(constraint.GetAlgebraicSpecies());
+    }
+
     auto available_species = system_.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
     std::set<std::string> unused_species;
@@ -344,6 +381,7 @@ namespace micm
     auto species_map = this->GetSpeciesMap();
     auto params_map = this->GetCustomParameterMap();
     std::size_t number_of_species = this->system_.StateSize();
+    std::size_t number_of_constraints = constraints_.size();
     if (number_of_species == 0)
     {
       throw std::system_error(
@@ -354,6 +392,33 @@ namespace micm
     
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
+
+    // Create ConstraintSet from stored constraints (if any)
+    ConstraintSet constraint_set;
+    std::set<std::size_t> algebraic_variable_ids;
+    if (number_of_constraints > 0)
+    {
+      // Copy constraints so that the builder can be reused
+      auto constraints_copy = constraints_;
+      // Constraints replace selected species rows in the mass-matrix DAE formulation.
+      // Pass species_map so constraints can resolve dependencies and row targets to species indices.
+      constraint_set = ConstraintSet(std::move(constraints_copy), species_map);
+      algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
+      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
+
+      // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
+      for (auto it = nonzero_elements.begin(); it != nonzero_elements.end(); )
+      {
+        if (algebraic_variable_ids.count(it->first) > 0)
+          it = nonzero_elements.erase(it);
+        else
+          ++it;
+      }
+
+      // Merge constraint Jacobian elements with ODE Jacobian elements
+      auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
+      nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
+    }
 
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
@@ -367,6 +432,12 @@ namespace micm
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
+    // Set Jacobian flat IDs for constraints
+    if (constraint_set.Size() > 0)
+    {
+      constraint_set.SetJacobianFlatIds(jacobian);
+    }
+
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
@@ -374,11 +445,21 @@ namespace micm
     for (auto& param_pair : params_map)
       labels[param_pair.second] = param_pair.first;
 
+    // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
+    std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
+    for (const auto variable_id : algebraic_variable_ids)
+    {
+      mass_matrix_diagonal[variable_id] = 0.0;
+    }
+
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
+                                         .number_of_constraints_ = number_of_constraints,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
-                                         .nonzero_jacobian_elements_ = nonzero_elements };
+                                         .nonzero_jacobian_elements_ = nonzero_elements,
+                                         .mass_matrix_diagonal_ = mass_matrix_diagonal,
+                                         .constraints_replace_state_rows_ = (number_of_constraints > 0) };
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
@@ -390,7 +471,7 @@ namespace micm
     }
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
+        SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set)),
         state_parameters,
         options,
         this->reactions_,

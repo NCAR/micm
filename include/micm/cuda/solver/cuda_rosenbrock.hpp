@@ -41,20 +41,17 @@ namespace micm
     CudaRosenbrockSolver(){};
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
-    /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    /// @param jacobian Jacobian matrix
+    /// @param constraints Algebraic constraints
     CudaRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
+        ConstraintSet&& constraints)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              jacobian,
-              number_of_species){};
+              std::move(constraints)) {};
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"

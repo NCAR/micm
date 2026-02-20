@@ -26,6 +26,8 @@ namespace micm
     const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
+    const bool has_constraints = constraints_.Size() > 0;
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -51,11 +53,25 @@ namespace micm
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state, Y, initial_forcing);
+
+      // Add constraint residuals to forcing (for DAE systems)
+      if (has_constraints)
+      {
+        constraints_.AddForcingTerms(Y, initial_forcing);
+      }
+
       result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
+
+      // Add constraint Jacobian terms (for DAE systems)
+      if (has_constraints)
+      {
+        constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+      }
+
       result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
@@ -88,13 +104,26 @@ namespace micm
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              Ynew.Copy(Y);
+              // Copy state variables from Y to Ynew for the new function evaluation
+              Ynew.Fill(0.0);
+              for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+              {
+                for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+                {
+                  Ynew[i_cell][i_var] = Y[i_cell][i_var];
+                }
+              }
               for (uint64_t j = 0; j < stage; ++j)
               {
                 Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state, Ynew, K[stage]);
+              // Add constraint residuals for DAE systems
+              if (has_constraints)
+              {
+                constraints_.AddForcingTerms(Ynew, K[stage]);
+              }
               result.stats_.function_calls_ += 1;
             }
           }
@@ -104,7 +133,15 @@ namespace micm
           }
           for (uint64_t j = 0; j < stage; ++j)
           {
-            K[stage].Axpy(parameters.c_[stage_combinations + j] / H, K[j]);
+            const double c_over_h = parameters.c_[stage_combinations + j] / H;
+            for (std::size_t i_cell = 0; i_cell < K[stage].NumRows(); ++i_cell)
+            {
+              for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
+              {
+                K[stage][i_cell][i_var] +=
+                    c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
+              }
+            }
           }
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
@@ -117,8 +154,14 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        // Compute the new solution
-        Ynew.Copy(Y);
+        // Compute the new solution: Copy Y, then add increments from K stages
+        for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+        {
+          for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+          {
+            Ynew[i_cell][i_var] = Y[i_cell][i_var];
+          }
+        }
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Ynew.Axpy(parameters.m_[stage], K[stage]);
 
@@ -154,7 +197,14 @@ namespace micm
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
-          Y.Swap(Ynew);
+          // Copy solution from Ynew back to Y
+          for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+          {
+            for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
+            {
+              Y[i_cell][i_var] = Ynew[i_cell][i_var];
+            }
+          }
           Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
@@ -185,6 +235,11 @@ namespace micm
           {
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
+            // Subtract constraint Jacobian terms (for DAE systems)
+            if (has_constraints)
+            {
+              constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+            }
             result.stats_.jacobian_updates_ += 1;
           }
         }
@@ -197,7 +252,6 @@ namespace micm
     }
 
     result.stats_.final_time_ = present_time;
-    ;
 
     return result;
   }
@@ -209,11 +263,16 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
+    // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
+    // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
     for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
+      std::size_t i_diag = 0;
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
-        jacobian_vector[i_elem] += alpha;
+      {
+        jacobian_vector[i_elem] += alpha * state.upper_left_identity_diagonal_[i_diag++];
+      }
     }
   }
 
@@ -225,12 +284,17 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
+    // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
     for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
       auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
+      std::size_t i_diag = 0;
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
+      {
+        const double diagonal_scale = state.upper_left_identity_diagonal_[i_diag++];
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          jacobian_vector[i_elem + i_cell] += alpha;
+          jacobian_vector[i_elem + i_cell] += alpha * diagonal_scale;
+      }
     }
   }
 
@@ -268,23 +332,23 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
-    auto& _y = Y.AsVector();
-    auto& _ynew = Ynew.AsVector();
-    auto& _errors = errors.AsVector();
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const std::size_t N = Y.AsVector().size();
+    const std::size_t N = Y.NumRows() * Y.NumColumns();
     const std::size_t n_vars = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
 
-    for (std::size_t i = 0; i < N; ++i)
+    for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
-      ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      errors_over_scale = _errors[i] / (atol[i % n_vars] + rtol * ymax);
-      error += errors_over_scale * errors_over_scale;
+      for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
+      {
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
+      }
     }
 
     double error_min = 1.0e-10;
@@ -304,43 +368,23 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
-    auto y_iter = Y.AsVector().begin();
-    auto ynew_iter = Ynew.AsVector().begin();
-    auto errors_iter = errors.AsVector().begin();
     const auto& atol = state.absolute_tolerance_;
-    auto rtol = state.relative_tolerance_;
+    const auto& rtol = state.relative_tolerance_;
     const std::size_t N = Y.NumRows() * Y.NumColumns();
-    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
-    const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
     const std::size_t n_vars = atol.size();
 
+    double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
 
-    // compute the error over the blocks which fit exactly into the L parameter
-    for (std::size_t i = 0; i < whole_blocks; ++i)
+    // Use row/column indexing so error estimation is independent of matrix storage layout.
+    for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
-      errors_over_scale = *errors_iter / (atol[(i / L) % n_vars] + rtol * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
-      error += errors_over_scale * errors_over_scale;
-      ++y_iter;
-      ++ynew_iter;
-      ++errors_iter;
-    }
-
-    // compute the error over the remaining elements that are in the next group but didn't fill a full group
-    const std::size_t remaining_rows = Y.NumRows() % Y.GroupVectorSize();
-
-    if (remaining_rows > 0)
-    {
-      for (std::size_t y = 0; y < Y.NumColumns(); ++y)
+      for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        for (std::size_t x = 0; x < remaining_rows; ++x)
-        {
-          const std::size_t idx = y * L + x;
-          errors_over_scale =
-              errors_iter[idx] / (atol[y] + rtol * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
-          error += errors_over_scale * errors_over_scale;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 

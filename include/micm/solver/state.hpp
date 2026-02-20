@@ -27,12 +27,15 @@ namespace micm
   struct StateParameters
   {
     std::size_t number_of_species_{ 0 };
+    std::size_t number_of_constraints_{ 0 };
     std::size_t number_of_rate_constants_{ 0 };
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
     double relative_tolerance_{ 1e-06 };
     std::vector<double> absolute_tolerance_{};
+    std::vector<double> mass_matrix_diagonal_{};
+    bool constraints_replace_state_rows_{ false };
   };
 
   template<
@@ -58,6 +61,8 @@ namespace micm
     DenseMatrixPolicy rate_constants_;
     /// @brief Atmospheric conditions, varies in time
     std::vector<Conditions> conditions_;
+    /// @brief The block matrix with an upper left identity, zeros elsewhere
+    std::vector<double> upper_left_identity_diagonal_;
     /// @brief The jacobian structure, varies for each solve
     SparseMatrixPolicy jacobian_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
@@ -68,6 +73,8 @@ namespace micm
     LMatrixPolicy lower_matrix_;
     UMatrixPolicy upper_matrix_;
     std::size_t state_size_;
+    std::size_t constraint_size_;
+    bool constraints_replace_state_rows_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
@@ -153,6 +160,7 @@ namespace micm
       custom_rate_parameters_ = other.custom_rate_parameters_;
       rate_constants_ = other.rate_constants_;
       conditions_ = other.conditions_;
+      upper_left_identity_diagonal_ = other.upper_left_identity_diagonal_;
       jacobian_ = other.jacobian_;
       jacobian_diagonal_elements_ = other.jacobian_diagonal_elements_;
       variable_map_ = other.variable_map_;
@@ -161,9 +169,10 @@ namespace micm
       lower_matrix_ = other.lower_matrix_;
       upper_matrix_ = other.upper_matrix_;
       state_size_ = other.state_size_;
+      constraint_size_ = other.constraint_size_;
+      constraints_replace_state_rows_ = other.constraints_replace_state_rows_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
-      temporary_variables_ =
-          other.temporary_variables_ ? std::make_unique<TemporaryVariables>(*other.temporary_variables_) : nullptr;
+      temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
       relative_tolerance_ = other.relative_tolerance_;
       absolute_tolerance_ = other.absolute_tolerance_;
     }
@@ -179,6 +188,7 @@ namespace micm
         custom_rate_parameters_ = other.custom_rate_parameters_;
         rate_constants_ = other.rate_constants_;
         conditions_ = other.conditions_;
+        upper_left_identity_diagonal_ = other.upper_left_identity_diagonal_;
         jacobian_ = other.jacobian_;
         jacobian_diagonal_elements_ = other.jacobian_diagonal_elements_;
         variable_map_ = other.variable_map_;
@@ -187,9 +197,10 @@ namespace micm
         lower_matrix_ = other.lower_matrix_;
         upper_matrix_ = other.upper_matrix_;
         state_size_ = other.state_size_;
+        constraint_size_ = other.constraint_size_;
+        constraints_replace_state_rows_ = other.constraints_replace_state_rows_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
-        temporary_variables_ =
-            other.temporary_variables_ ? std::make_unique<TemporaryVariables>(*other.temporary_variables_) : nullptr;
+        temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = other.absolute_tolerance_;
       }
@@ -203,6 +214,7 @@ namespace micm
           custom_rate_parameters_(std::move(other.custom_rate_parameters_)),
           rate_constants_(std::move(other.rate_constants_)),
           conditions_(std::move(other.conditions_)),
+          upper_left_identity_diagonal_(std::move(other.upper_left_identity_diagonal_)),
           jacobian_(std::move(other.jacobian_)),
           jacobian_diagonal_elements_(std::move(other.jacobian_diagonal_elements_)),
           variable_map_(std::move(other.variable_map_)),
@@ -211,6 +223,8 @@ namespace micm
           lower_matrix_(std::move(other.lower_matrix_)),
           upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
+          constraint_size_(other.constraint_size_),
+          constraints_replace_state_rows_(other.constraints_replace_state_rows_),
           number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
@@ -229,6 +243,7 @@ namespace micm
         custom_rate_parameters_ = std::move(other.custom_rate_parameters_);
         rate_constants_ = std::move(other.rate_constants_);
         conditions_ = std::move(other.conditions_);
+        upper_left_identity_diagonal_ = std::move(other.upper_left_identity_diagonal_);
         jacobian_ = std::move(other.jacobian_);
         jacobian_diagonal_elements_ = std::move(other.jacobian_diagonal_elements_);
         variable_map_ = std::move(other.variable_map_);
@@ -237,12 +252,16 @@ namespace micm
         lower_matrix_ = std::move(other.lower_matrix_);
         upper_matrix_ = std::move(other.upper_matrix_);
         state_size_ = other.state_size_;
+        constraint_size_ = other.constraint_size_;
+        constraints_replace_state_rows_ = other.constraints_replace_state_rows_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = std::move(other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = std::move(other.absolute_tolerance_);
 
         other.state_size_ = 0;
+        other.constraint_size_ = 0;
+        other.constraints_replace_state_rows_ = false;
         other.number_of_grid_cells_ = 0;
       }
       return *this;

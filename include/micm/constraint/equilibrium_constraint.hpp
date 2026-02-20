@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_error.hpp>
 #include <micm/system/stoich_species.hpp>
 
@@ -16,16 +15,20 @@ namespace micm
 {
 
   /// @brief Constraint for chemical equilibrium: K_eq = [products]^stoich / [reactants]^stoich
-  ///
-  /// For a reversible reaction: aA + bB <-> cC + dD
-  /// The equilibrium constraint is: G = K_eq * [A]^a * [B]^b - [C]^c * [D]^d = 0
-  ///
-  /// This can also be written in terms of forward/backward rate constants:
-  /// G = k_f * [A]^a * [B]^b - k_b * [C]^c * [D]^d = 0
-  /// where K_eq = k_f / k_b
-  class EquilibriumConstraint : public Constraint
+  ///        For a reversible reaction: aA + bB <-> cC + dD
+  ///        The equilibrium constraint is: G = K_eq * [A]^a * [B]^b - [C]^c * [D]^d = 0
+  ///        This can also be written in terms of forward/backward rate constants:
+  ///        G = k_f * [A]^a * [B]^b - k_b * [C]^c * [D]^d = 0
+  ///        where K_eq = k_f / k_b
+  class EquilibriumConstraint
   {
    public:
+    /// @brief Name of the constraint (for identification)
+    std::string name_;
+
+    /// @brief Names of species this constraint depends on
+    std::vector<std::string> species_dependencies_;
+
     /// @brief Reactant species and their stoichiometric coefficients
     std::vector<StoichSpecies> reactants_;
 
@@ -47,6 +50,9 @@ namespace micm
     EquilibriumConstraint() = default;
 
     /// @brief Construct an equilibrium constraint
+    ///        Validates that equilibrium constraint > 0
+    ///        Builds species_dependencies_ by concatenating reactants then products
+    ///        Stores index mappings for efficient Jacobian computation
     /// @param name Constraint identifier
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
@@ -56,7 +62,7 @@ namespace micm
         const std::vector<StoichSpecies>& reactants,
         const std::vector<StoichSpecies>& products,
         double equilibrium_constant)
-        : Constraint(name),
+        : name_(name),
           reactants_(reactants),
           products_(products),
           equilibrium_constant_(equilibrium_constant)
@@ -103,21 +109,19 @@ namespace micm
     }
 
     /// @brief Evaluate the equilibrium constraint residual
-    ///
-    /// G = K_eq * prod([reactants]^stoich) - prod([products]^stoich)
-    ///
-    /// At equilibrium, G = 0
-    ///
+    ///        G = K_eq * prod([reactants]^stoich) - prod([products]^stoich)
+    ///        At equilibrium, G = 0
     /// @param concentrations Pointer to species concentrations (row of state matrix)
     /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
     /// @return Residual value
-    double Residual(const double* concentrations, const std::size_t* indices) const override
+    double Residual(const double* concentrations, const std::size_t* indices) const
     {
       // Compute product of reactant concentrations raised to stoichiometric powers
+      // Guard against negative concentrations (transient solver artifacts) to avoid NaN from std::pow
       double reactant_product = 1.0;
       for (std::size_t i = 0; i < reactants_.size(); ++i)
       {
-        double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[i]]]);
         reactant_product *= std::pow(conc, reactants_[i].coefficient_);
       }
 
@@ -125,7 +129,7 @@ namespace micm
       double product_product = 1.0;
       for (std::size_t i = 0; i < products_.size(); ++i)
       {
-        double conc = concentrations[indices[product_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[product_dependency_indices_[i]]]);
         product_product *= std::pow(conc, products_[i].coefficient_);
       }
 
@@ -134,17 +138,14 @@ namespace micm
     }
 
     /// @brief Compute Jacobian entries dG/d[species]
-    ///
-    /// For reactant R with stoichiometry n:
-    ///   dG/d[R] = K_eq * n * [R]^(n-1) * prod([other_reactants]^stoich)
-    ///
-    /// For product P with stoichiometry m:
-    ///   dG/d[P] = -m * [P]^(m-1) * prod([other_products]^stoich)
-    ///
+    ///        For reactant R with stoichiometry n:
+    ///          dG/d[R] = K_eq * n * [R]^(n-1) * prod([other_reactants]^stoich)
+    ///        For product P with stoichiometry m:
+    ///          dG/d[P] = -m * [P]^(m-1) * prod([other_products]^stoich)
     /// @param concentrations Pointer to species concentrations (row of state matrix)
     /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
     /// @param jacobian Output buffer for partial derivatives (same order as species_dependencies_)
-    void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const override
+    void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const
     {
       // Initialize jacobian entries to zero
       for (std::size_t i = 0; i < species_dependencies_.size(); ++i)
@@ -153,24 +154,25 @@ namespace micm
       }
 
       // Compute full reactant and product terms
+      // Guard against negative concentrations (consistent with Residual policy)
       double reactant_product = 1.0;
       for (std::size_t i = 0; i < reactants_.size(); ++i)
       {
-        double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[i]]]);
         reactant_product *= std::pow(conc, reactants_[i].coefficient_);
       }
 
       double product_product = 1.0;
       for (std::size_t i = 0; i < products_.size(); ++i)
       {
-        double conc = concentrations[indices[product_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[product_dependency_indices_[i]]]);
         product_product *= std::pow(conc, products_[i].coefficient_);
       }
 
       // Jacobian for reactants: dG/d[R] = K_eq * n * [R]^(n-1) * prod([others])
       for (std::size_t i = 0; i < reactants_.size(); ++i)
       {
-        double conc = concentrations[indices[reactant_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[i]]]);
         double stoich = reactants_[i].coefficient_;
 
         if (conc > 0)
@@ -181,25 +183,24 @@ namespace micm
         else if (stoich == 1.0)
         {
           // Special case: if conc = 0 and stoich = 1, derivative is K_eq * prod(others)
-          // Recompute product of other reactants, scaled by K_eq
           double others = equilibrium_constant_;
           for (std::size_t j = 0; j < reactants_.size(); ++j)
           {
             if (j != i)
             {
-              double other_conc = concentrations[indices[reactant_dependency_indices_[j]]];
+              double other_conc = std::max(0.0, concentrations[indices[reactant_dependency_indices_[j]]]);
               others *= std::pow(other_conc, reactants_[j].coefficient_);
             }
           }
           jacobian[reactant_dependency_indices_[i]] = others;
         }
-        // else: derivative is 0 when conc = 0 and stoich > 1
+        // else: derivative is 0 when conc <= 0 and stoich > 1
       }
 
       // Jacobian for products: dG/d[P] = -m * [P]^(m-1) * prod([others])
       for (std::size_t i = 0; i < products_.size(); ++i)
       {
-        double conc = concentrations[indices[product_dependency_indices_[i]]];
+        double conc = std::max(0.0, concentrations[indices[product_dependency_indices_[i]]]);
         double stoich = products_[i].coefficient_;
 
         if (conc > 0)
@@ -215,14 +216,24 @@ namespace micm
           {
             if (j != i)
             {
-              double other_conc = concentrations[indices[product_dependency_indices_[j]]];
+              double other_conc = std::max(0.0, concentrations[indices[product_dependency_indices_[j]]]);
               others *= std::pow(other_conc, products_[j].coefficient_);
             }
           }
           jacobian[product_dependency_indices_[i]] = others;
         }
-        // else: derivative is 0 when conc = 0 and stoich > 1
+        // else: derivative is 0 when conc <= 0 and stoich > 1
       }
+    }
+
+    /// @brief Returns the species whose row should be replaced by this algebraic constraint
+    /// @return Species name of the primary algebraic variable
+    ///
+    /// For equilibrium constraints, we use the first product species as the algebraic row target.
+    /// This supports common forms such as K_eq * [B] - [C] = 0 where C is algebraic.
+    const std::string& AlgebraicSpecies() const
+    {
+      return products_[0].species_.name_;
     }
   };
 

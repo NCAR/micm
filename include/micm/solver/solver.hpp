@@ -89,7 +89,7 @@ namespace micm
     SolverResult Solve(double time_step, StatePolicy& state)
     {
       auto result = solver_.Solve(time_step, state, solver_parameters_);
-      state.variables_.Max(0.0);
+      PostSolveClamp(state);
       return result;
     }
 
@@ -97,8 +97,30 @@ namespace micm
     SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
     {
       solver_parameters_ = params;
-      return solver_.Solve(time_step, state, params);
+      auto result = solver_.Solve(time_step, state, params);
+      PostSolveClamp(state);
+      return result;
     }
+
+   private:
+    /// @brief Clamp state variables to non-negative after a solve
+    ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
+    void PostSolveClamp(StatePolicy& state)
+    {
+      if (state.constraints_replace_state_rows_)
+      {
+        for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
+          for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
+            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+              state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
+      }
+      else
+      {
+        state.variables_.Max(0.0);
+      }
+    }
+
+   public:
 
     /// @brief Returns the maximum number of grid cells per state
     /// @return Number of grid cells
@@ -115,18 +137,6 @@ namespace micm
       {
         return std::numeric_limits<std::size_t>::max();
       }
-    }
-
-    /// @brief Returns the number of species
-    /// @return
-    std::size_t GetNumberOfSpecies() const
-    {
-      return state_parameters_.number_of_species_;
-    }
-
-    std::size_t GetNumberOfReactions() const
-    {
-      return state_parameters_.number_of_rate_constants_;
     }
 
     StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const

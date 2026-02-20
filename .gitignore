@@ -8,3 +8,5 @@ doc/latex/
 xcode/
 __pycache__
 .claude
+docs/design/
+CLAUDE.md
