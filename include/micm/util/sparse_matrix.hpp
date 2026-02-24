@@ -507,12 +507,12 @@ namespace micm
       
       ([&](auto& matrix) {
         // Check if this matrix is sparse (has NumberOfBlocks method)
-        constexpr bool has_number_of_blocks = requires { matrix.NumberOfBlocks(); };
-        is_sparse[index] = has_number_of_blocks;
+        constexpr bool is_sparse_matrix = SparseMatrixConcept<std::decay_t<decltype(matrix)>>;
+        is_sparse[index] = is_sparse_matrix;
         
         if (index == 0)
         {
-          if constexpr (has_number_of_blocks)
+          if constexpr (is_sparse_matrix)
           {
             num_blocks = matrix.NumberOfBlocks();
           }
@@ -525,7 +525,7 @@ namespace micm
         else
         {
           std::size_t matrix_blocks;
-          if constexpr (has_number_of_blocks)
+          if constexpr (is_sparse_matrix)
           {
             matrix_blocks = matrix.NumberOfBlocks();
           }
@@ -554,9 +554,9 @@ namespace micm
         std::size_t idx = 0;
         ([&](auto& matrix) {
           std::size_t matrix_blocks;
-          constexpr bool has_number_of_blocks = requires { matrix.NumberOfBlocks(); };
+          constexpr bool is_sparse_matrix = SparseMatrixConcept<std::decay_t<decltype(matrix)>>;
           
-          if constexpr (has_number_of_blocks)
+          if constexpr (is_sparse_matrix)
           {
             matrix_blocks = matrix.NumberOfBlocks();
           }
@@ -609,28 +609,21 @@ namespace micm
     }
 
    private:
-    /// @brief Get an element reference for a block, handling BlockViews and BlockVariables
-    template<typename Arg>
+    /// @brief Get an element reference for a block (BlockView)
+    template<SparseMatrixBlockView Arg>
     [[gnu::always_inline]]
     inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
-      // Check if Arg has GetMatrix() method (BlockView from potentially different matrix)
-      if constexpr (requires { arg.GetMatrix(); })
-      {
-        // It's a BlockView type, access the source matrix's data
-        auto* source_matrix = arg.GetMatrix();
-        return source_matrix->data_[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
-      }
-      else if constexpr (requires { arg.Get(); })
-      {
-        // It's a BlockVariable, return reference to the single storage value
-        return arg.Get();
-      }
-      else
-      {
-        // Unknown type, just return it
-        return arg;
-      }
+      auto* source_matrix = arg.GetMatrix();
+      return source_matrix->data_[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+    }
+
+    /// @brief Get an element reference for a block (BlockVariable)
+    template<BlockVariableView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    {
+      return arg.Get();
     }
   };
 
