@@ -5,6 +5,7 @@
 #include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <iterator>
 #include <set>
@@ -126,60 +127,57 @@ namespace micm
      private:
       const SparseMatrixType& matrix_;
       std::size_t group_;
-      std::size_t num_blocks_in_group_;  // Always 1 for standard ordering
 
-      /// @brief Get a const element reference for a specific block in this group
+      /// @brief Get element from sparse matrix ConstBlockView
+      template<typename Arg>
+        requires requires(Arg arg) { arg.RowIndex(); arg.ColumnIndex(); }
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->AsVector()[source_matrix->VectorIndex(group_, arg.RowIndex(), arg.ColumnIndex())];
+      }
+
+      /// @brief Get element from Matrix or VectorMatrix ConstColumnView
+      /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
+      template<typename Arg>
+        requires requires(Arg arg) { arg.ColumnIndex(); arg.GetMatrix(); }
+          && (!requires(Arg arg) { arg.RowIndex(); })
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        auto* source_matrix = arg.GetMatrix();
+        // Verify L=1 for VectorMatrix types
+        if constexpr (requires { source_matrix->GroupVectorSize(); })
+        {
+          assert(source_matrix->GroupVectorSize() == 1 && 
+                 "Standard ordering sparse matrices require L=1 (use VectorMatrix<1>)");
+        }
+        return source_matrix->AsVector()[group_ * source_matrix->NumColumns() + arg.ColumnIndex()];
+      }
+
+      /// @brief Get element from BlockVariable
+      template<typename Arg>
+        requires requires(Arg arg) { arg.Get(); }
+          && (!requires(Arg arg) { arg.RowIndex(); })
+          && (!requires(Arg arg) { arg.ColumnIndex(); })
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg.Get();
+      }
+
+      /// @brief Fallback for scalar arguments
       template<typename Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        // For standard ordering, group == block
-        std::size_t block = group_;
-        
-        // Check if Arg has RowIndex() method (ConstBlockView from sparse matrix)
-        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
-        {
-          // It's a ConstBlockView type from a sparse matrix
-          auto* source_matrix = arg.GetMatrix();
-          return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
-        }
-        // Check if Arg has ColumnIndex() method but not RowIndex() (ConstColumnView from dense matrix)
-        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
-        {
-          // It's a ConstColumnView type from a dense matrix
-          auto* source_matrix = arg.GetMatrix();
-          
-          // Check if this is a VectorMatrix (has GroupVectorSize method)
-          if constexpr (requires { source_matrix->GroupVectorSize(); })
-          {
-            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
-            std::size_t L = source_matrix->GroupVectorSize();
-            std::size_t row = block;
-            std::size_t row_group = row / L;
-            std::size_t row_in_group = row % L;
-            return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * L + row_in_group];
-          }
-          else
-          {
-            // Standard Matrix layout: data_[row * num_cols + col]
-            return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
-          }
-        }
-        else if constexpr (requires { arg.Get(); })
-        {
-          // It's a BlockVariable, for standard ordering always single value
-          return arg.Get();
-        }
-        else
-        {
-          // Unknown type, just return it
-          return arg;
-        }
+        return arg;
       }
 
      public:
       ConstGroupView(const SparseMatrixType& matrix, std::size_t group)
-          : matrix_(matrix), group_(group), num_blocks_in_group_(1)
+          : matrix_(matrix), group_(group)
       {
       }
 
@@ -214,60 +212,57 @@ namespace micm
      private:
       SparseMatrixType& matrix_;
       std::size_t group_;
-      std::size_t num_blocks_in_group_;  // Always 1 for standard ordering
 
-      /// @brief Get an element reference for a specific block in this group
+      /// @brief Get element from sparse matrix BlockView
+      template<typename Arg>
+        requires requires(Arg arg) { arg.RowIndex(); arg.ColumnIndex(); }
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->AsVector()[source_matrix->VectorIndex(group_, arg.RowIndex(), arg.ColumnIndex())];
+      }
+
+      /// @brief Get element from Matrix or VectorMatrix ColumnView
+      /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
+      template<typename Arg>
+        requires requires(Arg arg) { arg.ColumnIndex(); arg.GetMatrix(); }
+          && (!requires(Arg arg) { arg.RowIndex(); })
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        auto* source_matrix = arg.GetMatrix();
+        // Verify L=1 for VectorMatrix types
+        if constexpr (requires { source_matrix->GroupVectorSize(); })
+        {
+          assert(source_matrix->GroupVectorSize() == 1 && 
+                 "Standard ordering sparse matrices require L=1 (use VectorMatrix<1>)");
+        }
+        return source_matrix->AsVector()[group_ * source_matrix->NumColumns() + arg.ColumnIndex()];
+      }
+
+      /// @brief Get element from BlockVariable
+      template<typename Arg>
+        requires requires(Arg arg) { arg.Get(); }
+          && (!requires(Arg arg) { arg.RowIndex(); })
+          && (!requires(Arg arg) { arg.ColumnIndex(); })
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg.Get();
+      }
+
+      /// @brief Fallback for scalar arguments
       template<typename Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
-        // For standard ordering, group == block
-        std::size_t block = group_;
-        
-        // Check if Arg has RowIndex() method (BlockView from sparse matrix)
-        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
-        {
-          // It's a BlockView type from a sparse matrix
-          auto* source_matrix = arg.GetMatrix();
-          return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
-        }
-        // Check if Arg has ColumnIndex() method but not RowIndex() (ColumnView from dense matrix)
-        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
-        {
-          // It's a ColumnView type from a dense matrix
-          auto* source_matrix = arg.GetMatrix();
-          
-          // Check if this is a VectorMatrix (has GroupVectorSize method)
-          if constexpr (requires { source_matrix->GroupVectorSize(); })
-          {
-            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
-            std::size_t L = source_matrix->GroupVectorSize();
-            std::size_t row = block;
-            std::size_t row_group = row / L;
-            std::size_t row_in_group = row % L;
-            return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * L + row_in_group];
-          }
-          else
-          {
-            // Standard Matrix layout: data_[row * num_cols + col]
-            return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
-          }
-        }
-        else if constexpr (requires { arg.Get(); })
-        {
-          // It's a BlockVariable, for standard ordering always single value
-          return arg.Get();
-        }
-        else
-        {
-          // Unknown type, just return it
-          return arg;
-        }
+        return arg;
       }
 
      public:
       GroupView(SparseMatrixType& matrix, std::size_t group)
-          : matrix_(matrix), group_(group), num_blocks_in_group_(1)
+          : matrix_(matrix), group_(group)
       {
       }
 
