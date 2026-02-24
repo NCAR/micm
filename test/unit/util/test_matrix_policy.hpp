@@ -372,3 +372,384 @@ MatrixPolicy<double> testPrint()
 
   return matrix;
 }
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testArrayFunction()
+{
+  MatrixPolicy<double> matrix{ 5, 3, -1.0 };
+
+  // Set initial values that differ by rows
+  for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i)
+    for (int j = 0; j < static_cast<int>(matrix.NumColumns()); ++j)
+      matrix[i][j] = static_cast<double>(i - 2 + 10 * j);
+
+  // Initial Matrix values:
+  // Row 0: -2, 8, 18
+  // Row 1: -1, 9, 19
+  // Row 2: 0, 10, 20
+  // Row 3: 1, 11, 21
+  // Row 4: 2, 12, 22
+
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& m)
+    {
+      auto tmp = m.GetRowVariable();
+      m.ForEachRow([&](const double& a, const double& b, const double& c, double& t)
+        { t = a + b + c; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        m.GetConstColumnView(2),
+        tmp);
+      m.ForEachRow([&](double& c, const double& t)
+        { c = 4.0 * t; },
+        m.GetColumnView(2),
+        tmp);
+    }, matrix); // pass matrix so the type and dimensions are known by the function
+
+  func(matrix); // apply the function to the matrix
+
+  // Check results
+  EXPECT_EQ(matrix[0][2], 4.0 * (-2 + 8 + 18));   // 96
+  EXPECT_EQ(matrix[1][2], 4.0 * (-1 + 9 + 19));   // 108
+  EXPECT_EQ(matrix[2][2], 4.0 * (0 + 10 + 20));   // 120
+  EXPECT_EQ(matrix[3][2], 4.0 * (1 + 11 + 21));   // 132
+  EXPECT_EQ(matrix[4][2], 4.0 * (2 + 12 + 22));   // 144
+  EXPECT_EQ(matrix[0][0], -2.0);
+  EXPECT_EQ(matrix[1][0], -1.0);
+  EXPECT_EQ(matrix[2][0], 0.0);
+  EXPECT_EQ(matrix[3][0], 1.0);
+  EXPECT_EQ(matrix[4][0], 2.0);
+  EXPECT_EQ(matrix[0][1], 8.0);
+  EXPECT_EQ(matrix[1][1], 9.0);
+  EXPECT_EQ(matrix[2][1], 10.0);
+  EXPECT_EQ(matrix[3][1], 11.0);
+  EXPECT_EQ(matrix[4][1], 12.0);
+
+  // Use the function with a different matrix with the same dimensions
+  MatrixPolicy<double> matrix2{ 5, 3, -1.0 };
+  func(matrix2);
+  EXPECT_EQ(matrix2[0][2], 4.0 * (-1 + -1 + -1));   // -12
+  EXPECT_EQ(matrix2[1][2], 4.0 * (-1 + -1 + -1));   // -12
+  EXPECT_EQ(matrix2[2][2], 4.0 * (-1 + -1 + -1));   // -12
+  EXPECT_EQ(matrix2[3][2], 4.0 * (-1 + -1 + -1));   // -12
+  EXPECT_EQ(matrix2[4][2], 4.0 * (-1 + -1 + -1));   // -12
+  EXPECT_EQ(matrix2[0][0], -1.0);
+  EXPECT_EQ(matrix2[1][0], -1.0);
+  EXPECT_EQ(matrix2[2][0], -1.0);
+  EXPECT_EQ(matrix2[3][0], -1.0);
+  EXPECT_EQ(matrix2[4][0], -1.0);
+  EXPECT_EQ(matrix2[0][1], -1.0);
+  EXPECT_EQ(matrix2[1][1], -1.0);
+  EXPECT_EQ(matrix2[2][1], -1.0);
+  EXPECT_EQ(matrix2[3][1], -1.0);
+  EXPECT_EQ(matrix2[4][1], -1.0);
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
+std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunction()
+{
+  MatrixPolicy<double> matrixA{ 3, 2, 1.0 };
+  MatrixPolicy<double> matrixB{ 3, 3, 2.0 };
+
+  // Set initial values that differ by rows
+  for (int i = 0; i < static_cast<int>(matrixA.NumRows()); ++i)
+  {
+    for (int j = 0; j < static_cast<int>(matrixA.NumColumns()); ++j)
+    {
+      matrixA[i][j] = static_cast<double>(i + 10 * j);
+    }
+    for (int j = 0; j < static_cast<int>(matrixB.NumColumns()); ++j)
+    {
+      matrixB[i][j] = static_cast<double>(i * 2 + 20 * j);
+    }
+  }
+  // Set column 2 of matrixB separately
+  for (int i = 0; i < static_cast<int>(matrixB.NumRows()); ++i)
+    matrixB[i][2] = static_cast<double>(i * 4);
+
+  // Initial MatrixA values:
+  // Row 0: 0, 10
+  // Row 1: 1, 11
+  // Row 2: 2, 12
+
+  // Initial MatrixB values:
+  // Row 0: 0, 20, 0
+  // Row 1: 2, 22, 4
+  // Row 2: 4, 24, 8
+
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& mA, MatrixPolicy<double>& mB)
+    {
+      // Use an array function to set C = A + B
+      // where A is from matrixA, B is from matrixB, C is in matrixA
+      auto tmp = mA.GetRowVariable();
+      mA.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        mA.GetConstColumnView(0),
+        mB.GetConstColumnView(2),
+        tmp);
+      mA.ForEachRow([&](const double& t, double& c)
+        { c = t; },
+        tmp,
+        mA.GetColumnView(1));
+    }, matrixA, matrixB);
+
+  func(matrixA, matrixB);
+
+  // Check results
+  EXPECT_EQ(matrixA[0][1], 0 + 0);   // 0
+  EXPECT_EQ(matrixA[1][1], 1 + 4);   // 5
+  EXPECT_EQ(matrixA[2][1], 2 + 8);   // 10
+  EXPECT_EQ(matrixA[0][0], 0.0);
+  EXPECT_EQ(matrixA[1][0], 1.0);
+  EXPECT_EQ(matrixA[2][0], 2.0);
+  EXPECT_EQ(matrixB[0][0], 0.0);
+  EXPECT_EQ(matrixB[1][0], 2.0);
+  EXPECT_EQ(matrixB[2][0], 4.0);
+
+  return { matrixA, matrixB };
+}
+
+template<template<class> class MatrixPolicy>
+void testMismatchedRowDimensions()
+{
+  MatrixPolicy<double> matrixA{ 3, 3, 1.0 };
+  MatrixPolicy<double> matrixB{ 4, 3, 2.0 };  // Different number of rows!
+
+  // Should throw when creating the function with mismatched row counts
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& mA, MatrixPolicy<double>& mB)
+    {
+      // This should throw when matrixA and matrixB have different row counts
+      mA.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a + b; },
+        mA.GetConstColumnView(0),
+        mB.GetConstColumnView(0),
+        mA.GetColumnView(1));
+    }, matrixA, matrixB));
+}
+
+template<template<class> class MatrixPolicy>
+void testMismatchedColumnDimensions()
+{
+  MatrixPolicy<double> matrix{ 3, 4, 1.0 };
+
+  // Create the function - this should succeed
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& m)
+    {
+      // Try to access a column that doesn't exist
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a * 2.0; },
+        m.GetConstColumnView(0),
+        m.GetColumnView(5));  // Column 5 doesn't exist in a 4-column matrix
+    }, matrix);
+
+  // Should throw when invoking the function because column 5 doesn't exist
+  EXPECT_ANY_THROW(func(matrix));
+}
+
+template<template<class> class MatrixPolicy>
+void testWrongMatrixDimensions()
+{
+  MatrixPolicy<double> matrix1{ 3, 4, 1.0 };
+  MatrixPolicy<double> matrix2{ 3, 5, 2.0 };  // Different column count
+
+  // Create a function that expects 4 columns
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& m)
+    {
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a * 2.0; },
+        m.GetConstColumnView(0),
+        m.GetColumnView(3));  // Column 3 exists in 4-column matrix
+    }, matrix1);
+
+  func(matrix1);  // Should work fine
+  EXPECT_NO_THROW(func(matrix1));
+
+  // Should throw when applied to matrix with wrong dimensions
+  EXPECT_ANY_THROW(func(matrix2));
+}
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testMultipleTemporaries()
+{
+  MatrixPolicy<double> matrix{ 4, 5, 0.0 };
+
+  // Initialize first two columns
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+  {
+    matrix[i][0] = static_cast<double>(i + 1);
+    matrix[i][1] = static_cast<double>((i + 1) * 10);
+  }
+
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& m)
+    {
+      // Use TWO temporaries for intermediate calculations
+      auto tmp1 = m.GetRowVariable();
+      auto tmp2 = m.GetRowVariable();
+
+      // tmp1 = col0 * col1
+      m.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a * b; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        tmp1);
+
+      // tmp2 = col0 + col1
+      m.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        tmp2);
+
+      // col2 = tmp1 + tmp2 (product + sum)
+      m.ForEachRow([&](const double& t1, const double& t2, double& c)
+        { c = t1 + t2; },
+        tmp1,
+        tmp2,
+        m.GetColumnView(2));
+
+      // col3 = tmp1 - tmp2 (product - sum)
+      m.ForEachRow([&](const double& t1, const double& t2, double& c)
+        { c = t1 - t2; },
+        tmp1,
+        tmp2,
+        m.GetColumnView(3));
+
+      // col4 = tmp1 * tmp2
+      m.ForEachRow([&](const double& t1, const double& t2, double& c)
+        { c = t1 * t2; },
+        tmp1,
+        tmp2,
+        m.GetColumnView(4));
+    }, matrix);
+
+  func(matrix);
+
+  // Verify results
+  // Row 0: col0=1, col1=10, product=10, sum=11
+  EXPECT_EQ(matrix[0][2], 10.0 + 11.0);   // 21
+  EXPECT_EQ(matrix[0][3], 10.0 - 11.0);   // -1
+  EXPECT_EQ(matrix[0][4], 10.0 * 11.0);   // 110
+
+  // Row 1: col0=2, col1=20, product=40, sum=22
+  EXPECT_EQ(matrix[1][2], 40.0 + 22.0);   // 62
+  EXPECT_EQ(matrix[1][3], 40.0 - 22.0);   // 18
+  EXPECT_EQ(matrix[1][4], 40.0 * 22.0);   // 880
+
+  // Row 3: col0=4, col1=40, product=160, sum=44
+  EXPECT_EQ(matrix[3][2], 160.0 + 44.0);  // 204
+  EXPECT_EQ(matrix[3][3], 160.0 - 44.0);  // 116
+  EXPECT_EQ(matrix[3][4], 160.0 * 44.0);  // 7040
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testColumnViewReuse()
+{
+  MatrixPolicy<double> matrix{ 3, 4, 0.0 };
+
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    matrix[i][0] = static_cast<double>(i + 1);
+
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& m)
+    {
+      // Create column views once
+      auto col0 = m.GetConstColumnView(0);
+      auto col1 = m.GetColumnView(1);
+      auto col2 = m.GetColumnView(2);
+      auto col3 = m.GetColumnView(3);
+
+      // Reuse the same column views in multiple ForEachRow calls
+      // col1 = col0 * 2
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a * 2.0; },
+        col0, col1);
+
+      // col2 = col0 + col1 (reusing col0 and col1)
+      m.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a + b; },
+        col0, col1, col2);
+
+      // col3 = col2 * col1 (reusing col1 and col2)
+      m.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a * b; },
+        col2, col1, col3);
+    }, matrix);
+
+  func(matrix);
+
+  // Row 0: col0=1, col1=2, col2=3, col3=6
+  EXPECT_EQ(matrix[0][1], 2.0);
+  EXPECT_EQ(matrix[0][2], 3.0);
+  EXPECT_EQ(matrix[0][3], 6.0);
+
+  // Row 1: col0=2, col1=4, col2=6, col3=24
+  EXPECT_EQ(matrix[1][1], 4.0);
+  EXPECT_EQ(matrix[1][2], 6.0);
+  EXPECT_EQ(matrix[1][3], 24.0);
+
+  // Row 2: col0=3, col1=6, col2=9, col3=54
+  EXPECT_EQ(matrix[2][1], 6.0);
+  EXPECT_EQ(matrix[2][2], 9.0);
+  EXPECT_EQ(matrix[2][3], 54.0);
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testFunctionReusability()
+{
+  // Create a function once
+  MatrixPolicy<double> matrix1{ 2, 3, 1.0 };
+  
+  auto func = MatrixPolicy<double>::Function(
+    [](MatrixPolicy<double>& m)
+    {
+      auto tmp = m.GetRowVariable();
+      m.ForEachRow([&](const double& a, const double& b, const double& c, double& t)
+        { t = a + b + c; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        m.GetConstColumnView(2),
+        tmp);
+      m.ForEachRow([&](double& c, const double& t)
+        { c = 2.0 * t; },
+        m.GetColumnView(2),
+        tmp);
+    }, matrix1);
+
+  // Apply to first matrix
+  for (std::size_t i = 0; i < matrix1.NumRows(); ++i)
+    for (std::size_t j = 0; j < matrix1.NumColumns(); ++j)
+      matrix1[i][j] = static_cast<double>(i + j);
+
+  func(matrix1);
+  EXPECT_EQ(matrix1[0][2], 2.0 * (0 + 1 + 2));  // 6
+  EXPECT_EQ(matrix1[1][2], 2.0 * (1 + 2 + 3));  // 12
+
+  // Apply to second matrix with same dimensions
+  MatrixPolicy<double> matrix2{ 2, 3, 5.0 };
+  func(matrix2);
+  EXPECT_EQ(matrix2[0][2], 2.0 * (5 + 5 + 5));  // 30
+  EXPECT_EQ(matrix2[1][2], 2.0 * (5 + 5 + 5));  // 30
+
+  // Apply to third matrix with different values
+  MatrixPolicy<double> matrix3{ 2, 3, 0.0 };
+  for (std::size_t i = 0; i < matrix3.NumRows(); ++i)
+    matrix3[i][0] = static_cast<double>(i * 10);
+
+  func(matrix3);
+  EXPECT_EQ(matrix3[0][2], 2.0 * (0 + 0 + 0));   // 0
+  EXPECT_EQ(matrix3[1][2], 2.0 * (10 + 0 + 0));  // 20
+
+  return matrix1;
+}
+

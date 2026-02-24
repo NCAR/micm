@@ -124,7 +124,45 @@ TEST(Matrix, Min)
 {
   testMin<micm::Matrix>();
 }
+TEST(Matrix, ArrayFunction)
+{
+  testArrayFunction<micm::Matrix>();
+}
 
+TEST(Matrix, MultiMatrixArrayFunction)
+{
+  testMultiMatrixArrayFunction<micm::Matrix>();
+}
+
+TEST(Matrix, MismatchedRowDimensions)
+{
+  testMismatchedRowDimensions<micm::Matrix>();
+}
+
+TEST(Matrix, MismatchedColumnDimensions)
+{
+  testMismatchedColumnDimensions<micm::Matrix>();
+}
+
+TEST(Matrix, WrongMatrixDimensions)
+{
+  testWrongMatrixDimensions<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleTemporaries)
+{
+  testMultipleTemporaries<micm::Matrix>();
+}
+
+TEST(Matrix, ColumnViewReuse)
+{
+  testColumnViewReuse<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionReusability)
+{
+  testFunctionReusability<micm::Matrix>();
+}
 TEST(Matrix, Print)
 {
   testPrint<micm::Matrix>();

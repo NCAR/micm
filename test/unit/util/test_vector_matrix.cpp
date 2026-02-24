@@ -140,3 +140,67 @@ TEST(VectorMatrix, Print)
   testPrint<Group3MatrixAlias>();
   testPrint<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, ArrayFunction)
+{
+  testArrayFunction<Group1MatrixAlias>();
+  testArrayFunction<Group2MatrixAlias>();
+  testArrayFunction<Group3MatrixAlias>();
+  testArrayFunction<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultiMatrixArrayFunction)
+{
+  testMultiMatrixArrayFunction<Group1MatrixAlias>();
+  testMultiMatrixArrayFunction<Group2MatrixAlias>();
+  testMultiMatrixArrayFunction<Group3MatrixAlias>();
+  testMultiMatrixArrayFunction<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MismatchedRowDimensions)
+{
+  testMismatchedRowDimensions<Group1MatrixAlias>();
+  testMismatchedRowDimensions<Group2MatrixAlias>();
+  testMismatchedRowDimensions<Group3MatrixAlias>();
+  testMismatchedRowDimensions<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MismatchedColumnDimensions)
+{
+  testMismatchedColumnDimensions<Group1MatrixAlias>();
+  testMismatchedColumnDimensions<Group2MatrixAlias>();
+  testMismatchedColumnDimensions<Group3MatrixAlias>();
+  testMismatchedColumnDimensions<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, WrongMatrixDimensions)
+{
+  testWrongMatrixDimensions<Group1MatrixAlias>();
+  testWrongMatrixDimensions<Group2MatrixAlias>();
+  testWrongMatrixDimensions<Group3MatrixAlias>();
+  testWrongMatrixDimensions<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultipleTemporaries)
+{
+  testMultipleTemporaries<Group1MatrixAlias>();
+  testMultipleTemporaries<Group2MatrixAlias>();
+  testMultipleTemporaries<Group3MatrixAlias>();
+  testMultipleTemporaries<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ColumnViewReuse)
+{
+  testColumnViewReuse<Group1MatrixAlias>();
+  testColumnViewReuse<Group2MatrixAlias>();
+  testColumnViewReuse<Group3MatrixAlias>();
+  testColumnViewReuse<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, FunctionReusability)
+{
+  testFunctionReusability<Group1MatrixAlias>();
+  testFunctionReusability<Group2MatrixAlias>();
+  testFunctionReusability<Group3MatrixAlias>();
+  testFunctionReusability<Group4MatrixAlias>();
+}

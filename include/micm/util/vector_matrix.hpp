@@ -5,6 +5,7 @@
 #include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <functional>
@@ -33,6 +34,58 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
+
+    /// @brief A lightweight descriptor for a const column in a matrix
+    class ConstColumnView
+    {
+      friend class VectorMatrix;
+      const VectorMatrix* matrix_;
+      std::size_t column_index_;
+      
+      explicit ConstColumnView(const VectorMatrix* matrix, std::size_t column_index)
+          : matrix_(matrix),
+            column_index_(column_index)
+      {
+      }
+
+     public:
+      std::size_t ColumnIndex() const { return column_index_; }
+      const VectorMatrix* GetMatrix() const { return matrix_; }
+    };
+
+    /// @brief A lightweight descriptor for a mutable column in a matrix
+    class ColumnView
+    {
+      friend class VectorMatrix;
+      VectorMatrix* matrix_;
+      std::size_t column_index_;
+      
+      explicit ColumnView(VectorMatrix* matrix, std::size_t column_index)
+          : matrix_(matrix),
+            column_index_(column_index)
+      {
+      }
+
+     public:
+      std::size_t ColumnIndex() const { return column_index_; }
+      VectorMatrix* GetMatrix() { return matrix_; }
+    };
+
+    /// @brief A row-local temporary variable with its own storage
+    class RowVariable
+    {
+      friend class VectorMatrix;
+      std::vector<std::array<T, L>> storage_;  // Owned storage
+      
+      explicit RowVariable(std::size_t num_groups)
+          : storage_(num_groups)
+      {
+      }
+
+     public:
+      std::vector<std::array<T, L>>& Storage() { return storage_; }
+      const std::vector<std::array<T, L>>& Storage() const { return storage_; }
+    };
 
    private:
    protected:
@@ -399,6 +452,157 @@ namespace micm
     const std::vector<T> &AsVector() const
     {
       return data_;
+    }
+
+    /// @brief Create a const column view for accessing a column
+    /// @param column_index The index of the column
+    /// @return A ConstColumnView descriptor
+    ConstColumnView GetConstColumnView(std::size_t column_index) const
+    {
+      if (column_index >= y_dim_)
+      {
+        throw std::system_error(
+            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+            "Column index " + std::to_string(column_index) + " out of range for matrix with " +
+                std::to_string(y_dim_) + " columns");
+      }
+      return ConstColumnView(this, column_index);
+    }
+
+    /// @brief Create a mutable column view for accessing a column
+    /// @param column_index The index of the column
+    /// @return A ColumnView descriptor
+    ColumnView GetColumnView(std::size_t column_index)
+    {
+      if (column_index >= y_dim_)
+      {
+        throw std::system_error(
+            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+            "Column index " + std::to_string(column_index) + " out of range for matrix with " +
+                std::to_string(y_dim_) + " columns");
+      }
+      return ColumnView(this, column_index);
+    }
+
+    /// @brief Get a row variable with persistent storage for temporary values
+    /// @return A RowVariable with storage for arrays of L values
+    RowVariable GetRowVariable()
+    {
+      // Calculate number of groups needed
+      std::size_t num_groups = (x_dim_ + L - 1) / L;  // Ceiling division
+      return RowVariable(num_groups);
+    }
+
+    /// @brief Apply a function to each row of the matrix (processes L rows at a time)
+    /// @tparam Func The lambda/function type
+    /// @tparam Args The types of the column view arguments
+    /// @param func The function to apply to each row
+    /// @param args Column views or row variables
+    template<typename Func, typename... Args>
+    void ForEachRow(Func&& func, Args&&... args)
+    {
+      // Process complete groups of L rows
+      std::size_t num_groups = std::floor(x_dim_ / (double)L);
+      for (std::size_t group = 0; group < num_groups; ++group)
+      {
+        for (std::size_t row_in_group = 0; row_in_group < L; ++row_in_group)
+        {
+          std::size_t row = group * L + row_in_group;
+          func(GetRowElement(row, group, row_in_group, args)...);
+        }
+      }
+      
+      // Process remaining rows (if x_dim_ is not a multiple of L)
+      std::size_t remaining = x_dim_ % L;
+      if (remaining > 0)
+      {
+        std::size_t last_group = num_groups;
+        for (std::size_t row_in_group = 0; row_in_group < remaining; ++row_in_group)
+        {
+          std::size_t row = last_group * L + row_in_group;
+          func(GetRowElement(row, last_group, row_in_group, args)...);
+        }
+      }
+    }
+
+    /// @brief Create a function that can be applied to matrices
+    /// @tparam Func The lambda/function type
+    /// @tparam Matrices The matrix types
+    /// @param func The function to wrap
+    /// @param matrices The matrices to validate and capture dimensions from
+    /// @return A callable that validates dimensions and applies the function
+    template<typename Func, typename... Matrices>
+    static auto Function(Func&& func, Matrices&... matrices)
+    {
+      // Validate that all matrices have the same number of rows
+      std::size_t num_rows = 0;
+      std::array<std::size_t, sizeof...(Matrices)> num_cols_per_matrix{};
+      std::size_t index = 0;
+      
+      ([&](auto& matrix) {
+        if (index == 0)
+        {
+          num_rows = matrix.NumRows();
+        }
+        else if (matrix.NumRows() != num_rows)
+        {
+          throw std::system_error(
+              make_error_code(MicmMatrixErrc::InvalidVector),
+              "All matrices must have the same number of rows. Expected " + std::to_string(num_rows) +
+                  " but got " + std::to_string(matrix.NumRows()));
+        }
+        num_cols_per_matrix[index] = matrix.NumColumns();
+        ++index;
+      }(matrices), ...);
+
+      // Return a callable that validates dimensions on invocation and applies the function
+      return [func = std::forward<Func>(func), num_rows, num_cols_per_matrix](Matrices&... invoked_matrices) {
+        std::size_t idx = 0;
+        ([&](auto& matrix) {
+          if (matrix.NumRows() != num_rows)
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Matrix dimensions do not match. Expected " + std::to_string(num_rows) + " rows but got " +
+                    std::to_string(matrix.NumRows()));
+          }
+          if (matrix.NumColumns() != num_cols_per_matrix[idx])
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Matrix dimensions do not match. Expected " + std::to_string(num_cols_per_matrix[idx]) + 
+                    " columns but got " + std::to_string(matrix.NumColumns()));
+          }
+          ++idx;
+        }(invoked_matrices), ...);
+        
+        func(invoked_matrices...);
+      };
+    }
+
+   private:
+    /// @brief Get an element reference for a row, handling ColumnViews and RowVariables
+    template<typename Arg>
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    {
+      // Check if Arg has GetMatrix() method (ColumnView from potentially different matrix)
+      if constexpr (requires { arg.GetMatrix(); })
+      {
+        // It's a ColumnView type, access the source matrix's data
+        auto* source_matrix = arg.GetMatrix();
+        // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
+        return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
+      }
+      else if constexpr (requires { arg.Storage(); })
+      {
+        // It's a RowVariable, return reference to the storage at this group and row
+        return arg.Storage()[group][row_in_group];
+      }
+      else
+      {
+        // Unknown type, just return it
+        return arg;
+      }
     }
   };
 
