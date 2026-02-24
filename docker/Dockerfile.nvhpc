@@ -4,6 +4,14 @@
 #
 # Container versions, and sizes, can be found at https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
 #
+# For local testing, you can install the NVidia container toolkit:
+# see intructions here: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+#
+# One-time configuration for podman:
+# sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+#
+# Then run the container with:
+# podman run --device nvidia.com/gpu=all -it micm bash
 from nvcr.io/nvidia/nvhpc:25.1-devel-cuda12.6-ubuntu24.04
 
 RUN apt update \
