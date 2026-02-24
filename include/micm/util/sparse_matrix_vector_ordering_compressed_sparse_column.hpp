@@ -133,6 +133,219 @@ namespace micm
       typename std::conditional<(L > 1), std::array<T, L>, T>::type storage_;
     };
 
+    /// @brief ConstGroupView provides a const view of a single group of blocks for iteration
+    /// For vector ordering: each group contains L blocks (except possibly the last group)
+    template<typename SparseMatrixType>
+    class ConstGroupView
+    {
+     private:
+      const SparseMatrixType& matrix_;
+      std::size_t group_;
+      std::size_t num_blocks_in_group_;  // May be < L for the last group
+
+      /// @brief Get a const element reference for a specific block in this group
+      template<typename Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * L + block_in_group;
+        
+        // Check if Arg has RowIndex() method (ConstBlockView from sparse matrix)
+        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
+        {
+          // It's a ConstBlockView type from a sparse matrix
+          auto* source_matrix = arg.GetMatrix();
+          return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+        }
+        // Check if Arg has ColumnIndex() method but not RowIndex() (ConstColumnView from dense matrix)
+        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
+        {
+          // It's a ConstColumnView type from a dense matrix
+          auto* source_matrix = arg.GetMatrix();
+          
+          // Check if this is a VectorMatrix (has GroupVectorSize method)
+          if constexpr (requires { source_matrix->GroupVectorSize(); })
+          {
+            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
+            std::size_t matrix_L = source_matrix->GroupVectorSize();
+            std::size_t row = block;
+            std::size_t row_group = row / matrix_L;
+            std::size_t row_in_group = row % matrix_L;
+            return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
+          }
+          else
+          {
+            // Standard Matrix layout: data_[row * num_cols + col]
+            return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
+          }
+        }
+        else if constexpr (requires { arg.Get(); })
+        {
+          // It's a BlockVariable, access the array element for vector ordering
+          if constexpr (L > 1)
+          {
+            // Vector ordering: BlockVariable has array storage
+            return arg.Get()[block_in_group];
+          }
+          else
+          {
+            // L=1 case: BlockVariable has single value storage
+            return arg.Get();
+          }
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      ConstGroupView(const SparseMatrixType& matrix, std::size_t group)
+          : matrix_(matrix), group_(group)
+      {
+        // Calculate how many blocks are in this group
+        std::size_t total_blocks = matrix_.NumberOfBlocks();
+        std::size_t start_block = group * L;
+        num_blocks_in_group_ = std::min(L, total_blocks - start_block);
+      }
+
+      auto GetConstBlockView(std::size_t row, std::size_t col) const
+      {
+        return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockVariable() const
+      {
+        using T = typename SparseMatrixType::value_type;
+        return BlockVariable<T>();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachBlock(Func&& func, Args&&... args) const
+      {
+        // Tight loop over blocks in this group for vectorization
+        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        {
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);
+        }
+      }
+
+      std::size_t NumberOfBlocks() const { return matrix_.NumberOfBlocks(); }
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
+    /// @brief GroupView provides a view of a single group of blocks for iteration
+    /// For vector ordering: each group contains L blocks (except possibly the last group)
+    template<typename SparseMatrixType>
+    class GroupView
+    {
+     private:
+      SparseMatrixType& matrix_;
+      std::size_t group_;
+      std::size_t num_blocks_in_group_;  // May be < L for the last group
+
+      /// @brief Get an element reference for a specific block in this group
+      template<typename Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * L + block_in_group;
+        
+        // Check if Arg has RowIndex() method (BlockView from sparse matrix)
+        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
+        {
+          // It's a BlockView type from a sparse matrix
+          auto* source_matrix = arg.GetMatrix();
+          return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+        }
+        // Check if Arg has ColumnIndex() method but not RowIndex() (ColumnView from dense matrix)
+        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
+        {
+          // It's a ColumnView type from a dense matrix
+          auto* source_matrix = arg.GetMatrix();
+          
+          // Check if this is a VectorMatrix (has GroupVectorSize method)
+          if constexpr (requires { source_matrix->GroupVectorSize(); })
+          {
+            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
+            std::size_t matrix_L = source_matrix->GroupVectorSize();
+            std::size_t row = block;
+            std::size_t row_group = row / matrix_L;
+            std::size_t row_in_group = row % matrix_L;
+            return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
+          }
+          else
+          {
+            // Standard Matrix layout: data_[row * num_cols + col]
+            return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
+          }
+        }
+        else if constexpr (requires { arg.Get(); })
+        {
+          // It's a BlockVariable, access the array element for vector ordering
+          if constexpr (L > 1)
+          {
+            // Vector ordering: BlockVariable has array storage
+            return arg.Get()[block_in_group];
+          }
+          else
+          {
+            // L=1 case: BlockVariable has single value storage
+            return arg.Get();
+          }
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      GroupView(SparseMatrixType& matrix, std::size_t group)
+          : matrix_(matrix), group_(group)
+      {
+        // Calculate how many blocks are in this group
+        std::size_t total_blocks = matrix_.NumberOfBlocks();
+        std::size_t start_block = group * L;
+        num_blocks_in_group_ = std::min(L, total_blocks - start_block);
+      }
+
+      auto GetConstBlockView(std::size_t row, std::size_t col) const
+      {
+        return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockView(std::size_t row, std::size_t col)
+      {
+        return matrix_.GetBlockView(row, col);
+      }
+
+      auto GetBlockVariable()
+      {
+        using T = typename SparseMatrixType::value_type;
+        return BlockVariable<T>();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachBlock(Func&& func, Args&&... args)
+      {
+        // Tight loop over blocks in this group for vectorization
+        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        {
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);
+        }
+      }
+
+      std::size_t NumberOfBlocks() const { return matrix_.NumberOfBlocks(); }
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
     /// @brief Returns the number of blocks included in each group of blocks
     /// @return Number of blocks per group
     static constexpr std::size_t GroupVectorSize()
