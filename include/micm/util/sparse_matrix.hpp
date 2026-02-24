@@ -682,18 +682,4 @@ namespace micm
     }
   };
 
-  /// @brief Standard ordering row sparse matrices always use simple grouping (L==1)
-  template<typename T>
-  struct GroupingStrategy<SparseMatrix<SparseMatrixStandardOrderingCompressedSparseRow, T>>
-  {
-    using type = SimpleGroupingTag;
-  };
-
-  /// @brief Standard ordering column sparse matrices always use simple grouping (L==1)
-  template<typename T>
-  struct GroupingStrategy<SparseMatrix<SparseMatrixStandardOrderingCompressedSparseColumn, T>>
-  {
-    using type = SimpleGroupingTag;
-  };
-
 }  // namespace micm
