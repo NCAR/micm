@@ -104,6 +104,21 @@ namespace micm
     }
 
    public:
+    /// @brief A block-local temporary variable with its own storage
+    /// For standard ordering: single value
+    template<typename T>
+    class BlockVariable
+    {
+     public:
+      BlockVariable() = default;
+      
+      T& Get() { return storage_; }
+      const T& Get() const { return storage_; }
+      
+     private:
+      T storage_;
+    };
+
     /// @brief Returns the number of blocks included in each group of blocks
     /// @return Number of blocks in each group (1 for standard ordering)
     static constexpr std::size_t GroupVectorSize()

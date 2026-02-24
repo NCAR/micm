@@ -111,24 +111,8 @@ namespace micm
       SparseMatrix* GetMatrix() { return matrix_; }
     };
 
-    /// @brief A block-local temporary variable with its own storage
-    /// For standard ordering: single value
-    /// For vector ordering: array of L values
-    class BlockVariable
-    {
-      friend class SparseMatrix;
-      friend class GroupView;
-      
-      // Use conditional storage based on ordering policy
-      static constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
-      typename std::conditional<(L > 1), std::array<T, L>, T>::type storage_;
-      
-     public:
-      BlockVariable() = default;
-      
-      auto& Get() { return storage_; }
-      const auto& Get() const { return storage_; }
-    };
+    /// @brief Alias for the ordering policy's BlockVariable type
+    using BlockVariable = typename OrderingPolicy::template BlockVariable<T>;
 
    protected:
     std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix

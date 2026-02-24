@@ -7,6 +7,7 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iterator>
 #include <set>
@@ -117,6 +118,21 @@ namespace micm
     }
 
    public:
+    /// @brief A block-local temporary variable with its own storage
+    /// For vector ordering: array of L values when L>1, single value when L=1
+    template<typename T>
+    class BlockVariable
+    {
+     public:
+      BlockVariable() = default;
+      
+      auto& Get() { return storage_; }
+      const auto& Get() const { return storage_; }
+      
+     private:
+      typename std::conditional<(L > 1), std::array<T, L>, T>::type storage_;
+    };
+
     /// @brief Returns the number of blocks included in each group of blocks
     /// @return Number of blocks per group
     static constexpr std::size_t GroupVectorSize()
