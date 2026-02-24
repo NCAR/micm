@@ -71,16 +71,12 @@ namespace micm
     class RowVariable
     {
       friend class Matrix;
-      std::vector<T> storage_;  // Owned storage
+      T storage_;  // Stack-allocated single value
       
-      explicit RowVariable(std::size_t num_rows)
-          : storage_(num_rows)
-      {
-      }
-
      public:
-      std::vector<T>& Storage() { return storage_; }
-      const std::vector<T>& Storage() const { return storage_; }
+      RowVariable() = default;
+      T& Get() { return storage_; }
+      const T& Get() const { return storage_; }
     };
 
    private:
@@ -423,10 +419,10 @@ namespace micm
     }
 
     /// @brief Get a row variable with persistent storage for temporary values
-    /// @return A RowVariable with storage for one value per row
+    /// @return A RowVariable with stack-allocated storage
     RowVariable GetRowVariable()
     {
-      return RowVariable(x_dim_);
+      return RowVariable();
     }
 
     /// @brief Apply a function to each row of the matrix
@@ -452,7 +448,8 @@ namespace micm
 
       /// @brief Get an element reference for the current row in this group
       template<typename Arg>
-      decltype(auto) GetRowElement(Arg&& arg)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(Arg&& arg)
       {
         // Check if Arg has GetMatrix() method (ColumnView)
         if constexpr (requires { arg.GetMatrix(); })
@@ -461,10 +458,10 @@ namespace micm
           auto* source_matrix = arg.GetMatrix();
           return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
         }
-        else if constexpr (requires { arg.Storage(); })
+        else if constexpr (requires { arg.Get(); })
         {
-          // It's a RowVariable from this GroupView, access index 0
-          return arg.Storage()[0];
+          // It's a RowVariable from this GroupView, return the single value
+          return arg.Get();
         }
         else
         {
@@ -491,8 +488,8 @@ namespace micm
 
       RowVariable GetRowVariable()
       {
-        // Allocate storage for just this single row
-        return RowVariable(1);
+        // Stack-allocated single value
+        return RowVariable();
       }
 
       template<typename Func, typename... Args>
@@ -568,7 +565,8 @@ namespace micm
    private:
     /// @brief Get an element reference for a row, handling ColumnViews and RowVariables
     template<typename Arg>
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       // Check if Arg has GetMatrix() method (ColumnView from potentially different matrix)
       if constexpr (requires { arg.GetMatrix(); })
@@ -577,10 +575,10 @@ namespace micm
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
       }
-      else if constexpr (requires { arg.Storage(); })
+      else if constexpr (requires { arg.Get(); })
       {
-        // It's a RowVariable, return reference to the storage at this row
-        return arg.Storage()[row];
+        // It's a RowVariable, return reference to the single storage value
+        return arg.Get();
       }
       else
       {

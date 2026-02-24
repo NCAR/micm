@@ -75,21 +75,17 @@ namespace micm
     class RowVariable
     {
       friend class VectorMatrix;
-      std::vector<std::array<T, L>> storage_;  // Owned storage
+      alignas(32) std::array<T, L> storage_;  // Stack-allocated SIMD-aligned array
       
-      explicit RowVariable(std::size_t num_groups)
-          : storage_(num_groups)
-      {
-      }
-
      public:
-      std::vector<std::array<T, L>>& Storage() { return storage_; }
-      const std::vector<std::array<T, L>>& Storage() const { return storage_; }
+      RowVariable() = default;
+      std::array<T, L>& Get() { return storage_; }
+      const std::array<T, L>& Get() const { return storage_; }
     };
 
    private:
    protected:
-    std::vector<T> data_;
+    alignas(32) std::vector<T> data_;  // SIMD-aligned for vectorization
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
@@ -485,12 +481,11 @@ namespace micm
     }
 
     /// @brief Get a row variable with persistent storage for temporary values
-    /// @return A RowVariable with storage for arrays of L values
+    /// @return A RowVariable with stack-allocated storage
     RowVariable GetRowVariable()
     {
-      // Calculate number of groups needed
-      std::size_t num_groups = (x_dim_ + L - 1) / L;  // Ceiling division
-      return RowVariable(num_groups);
+      // Stack-allocated array of L elements
+      return RowVariable();
     }
 
     /// @brief Apply a function to each row of the matrix (processes L rows at a time)
@@ -535,7 +530,8 @@ namespace micm
 
       /// @brief Get an element reference for a specific row in this group
       template<typename Arg>
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
         // Check if Arg has GetMatrix() method (ColumnView)
         if constexpr (requires { arg.GetMatrix(); })
@@ -545,10 +541,10 @@ namespace micm
           // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
           return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
         }
-        else if constexpr (requires { arg.Storage(); })
+        else if constexpr (requires { arg.Get(); })
         {
-          // It's a RowVariable from this GroupView, access index 0 (group-local storage)
-          return arg.Storage()[0][row_in_group];
+          // It's a RowVariable from this GroupView, access the array element
+          return arg.Get()[row_in_group];
         }
         else
         {
@@ -575,8 +571,8 @@ namespace micm
 
       RowVariable GetRowVariable()
       {
-        // Allocate storage for just this group (1 array of L elements)
-        return RowVariable(1);
+        // Stack-allocated array of L elements
+        return RowVariable();
       }
 
       template<typename Func, typename... Args>
@@ -663,7 +659,8 @@ namespace micm
    private:
     /// @brief Get an element reference for a row, handling ColumnViews and RowVariables
     template<typename Arg>
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
     {
       // Check if Arg has GetMatrix() method (ColumnView from potentially different matrix)
       if constexpr (requires { arg.GetMatrix(); })
@@ -673,10 +670,10 @@ namespace micm
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
         return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
       }
-      else if constexpr (requires { arg.Storage(); })
+      else if constexpr (requires { arg.Get(); })
       {
-        // It's a RowVariable, return reference to the storage at this group and row
-        return arg.Storage()[group][row_in_group];
+        // It's a RowVariable, return reference to the array element
+        return arg.Get()[row_in_group];
       }
       else
       {
