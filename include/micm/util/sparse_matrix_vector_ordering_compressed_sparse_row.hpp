@@ -5,6 +5,7 @@
 #include <micm/util/matrix_error.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
 #include <array>
@@ -124,6 +125,7 @@ namespace micm
     class BlockVariable
     {
      public:
+      using category = BlockVariableTag;
       BlockVariable() = default;
       
       auto& Get() { return storage_; }
@@ -143,62 +145,67 @@ namespace micm
       std::size_t group_;
       std::size_t num_blocks_in_group_;  // May be < L for the last group
 
-      /// @brief Get a const element reference for a specific block in this group
-      template<typename Arg>
+      /// @brief Get element from sparse matrix ConstBlockView
+      template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+      }
+
+      /// @brief Get element from VectorMatrix ConstColumnView (tiered grouping L>1)
+      template<DenseMatrixColumnView Arg>
+        requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * L + block_in_group;
+        auto* source_matrix = arg.GetMatrix();
         
-        // Check if Arg has RowIndex() method (ConstBlockView from sparse matrix)
-        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
-        {
-          // It's a ConstBlockView type from a sparse matrix
-          auto* source_matrix = arg.GetMatrix();
-          return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
-        }
-        // Check if Arg has ColumnIndex() method but not RowIndex() (ConstColumnView from dense matrix)
-        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
-        {
-          // It's a ConstColumnView type from a dense matrix
-          auto* source_matrix = arg.GetMatrix();
-          
-          // Check if this is a VectorMatrix (has GroupVectorSize method)
-          if constexpr (requires { source_matrix->GroupVectorSize(); })
-          {
-            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
-            std::size_t matrix_L = source_matrix->GroupVectorSize();
-            std::size_t row = block;
-            std::size_t row_group = row / matrix_L;
-            std::size_t row_in_group = row % matrix_L;
-            return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
-          }
-          else
-          {
-            // Standard Matrix layout: data_[row * num_cols + col]
-            return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
-          }
-        }
-        else if constexpr (requires { arg.Get(); })
-        {
-          // It's a BlockVariable, access the array element for vector ordering
-          if constexpr (L > 1)
-          {
-            // Vector ordering: BlockVariable has array storage
-            return arg.Get()[block_in_group];
-          }
-          else
-          {
-            // L=1 case: BlockVariable has single value storage
-            return arg.Get();
-          }
-        }
-        else
-        {
-          // Unknown type, just return it
-          return arg;
-        }
+        // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
+        std::size_t matrix_L = source_matrix->GroupVectorSize();
+        std::size_t row = block;
+        std::size_t row_group = row / matrix_L;
+        std::size_t row_in_group = row % matrix_L;
+        return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
+      }
+
+      /// @brief Get element from Matrix or VectorMatrix<1> ConstColumnView (simple grouping L==1)
+      template<DenseMatrixColumnView Arg>
+        requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * L + block_in_group;
+        auto* source_matrix = arg.GetMatrix();
+        
+        // Standard Matrix layout: data_[row * num_cols + col]
+        return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
+      }
+
+      /// @brief Get element from BlockVariable (tiered grouping L>1)
+      template<BlockVariableView Arg>
+        requires (L > 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        // Vector ordering: BlockVariable has array storage
+        return arg.Get()[block_in_group];
+      }
+
+      /// @brief Get element from BlockVariable (simple grouping L==1)
+      template<BlockVariableView Arg>
+        requires (L == 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        // L=1 case: BlockVariable has single value storage
+        return arg.Get();
       }
 
      public:
@@ -247,62 +254,67 @@ namespace micm
       std::size_t group_;
       std::size_t num_blocks_in_group_;  // May be < L for the last group
 
-      /// @brief Get an element reference for a specific block in this group
-      template<typename Arg>
+      /// @brief Get element from sparse matrix BlockView
+      template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+      }
+
+      /// @brief Get element from VectorMatrix ColumnView (tiered grouping L>1)
+      template<DenseMatrixColumnView Arg>
+        requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * L + block_in_group;
+        auto* source_matrix = arg.GetMatrix();
         
-        // Check if Arg has RowIndex() method (BlockView from sparse matrix)
-        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
-        {
-          // It's a BlockView type from a sparse matrix
-          auto* source_matrix = arg.GetMatrix();
-          return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
-        }
-        // Check if Arg has ColumnIndex() method but not RowIndex() (ColumnView from dense matrix)
-        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
-        {
-          // It's a ColumnView type from a dense matrix
-          auto* source_matrix = arg.GetMatrix();
-          
-          // Check if this is a VectorMatrix (has GroupVectorSize method)
-          if constexpr (requires { source_matrix->GroupVectorSize(); })
-          {
-            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
-            std::size_t matrix_L = source_matrix->GroupVectorSize();
-            std::size_t row = block;
-            std::size_t row_group = row / matrix_L;
-            std::size_t row_in_group = row % matrix_L;
-            return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
-          }
-          else
-          {
-            // Standard Matrix layout: data_[row * num_cols + col]
-            return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
-          }
-        }
-        else if constexpr (requires { arg.Get(); })
-        {
-          // It's a BlockVariable, access the array element for vector ordering
-          if constexpr (L > 1)
-          {
-            // Vector ordering: BlockVariable has array storage
-            return arg.Get()[block_in_group];
-          }
-          else
-          {
-            // L=1 case: BlockVariable has single value storage
-            return arg.Get();
-          }
-        }
-        else
-        {
-          // Unknown type, just return it
-          return arg;
-        }
+        // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
+        std::size_t matrix_L = source_matrix->GroupVectorSize();
+        std::size_t row = block;
+        std::size_t row_group = row / matrix_L;
+        std::size_t row_in_group = row % matrix_L;
+        return source_matrix->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
+      }
+
+      /// @brief Get element from Matrix or VectorMatrix<1> ColumnView (simple grouping L==1)
+      template<DenseMatrixColumnView Arg>
+        requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * L + block_in_group;
+        auto* source_matrix = arg.GetMatrix();
+        
+        // Standard Matrix layout: data_[row * num_cols + col]
+        return source_matrix->AsVector()[block * source_matrix->NumColumns() + arg.ColumnIndex()];
+      }
+
+      /// @brief Get element from BlockVariable (tiered grouping L>1)
+      template<BlockVariableView Arg>
+        requires (L > 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        // Vector ordering: BlockVariable has array storage
+        return arg.Get()[block_in_group];
+      }
+
+      /// @brief Get element from BlockVariable (simple grouping L==1)
+      template<BlockVariableView Arg>
+        requires (L == 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        // L=1 case: BlockVariable has single value storage
+        return arg.Get();
       }
 
      public:
@@ -424,4 +436,5 @@ namespace micm
       return std::find(begin, end, column) == end;
     }
   };
+
 }  // namespace micm

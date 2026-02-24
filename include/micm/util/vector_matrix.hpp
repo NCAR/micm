@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
 #include <array>
@@ -49,6 +50,7 @@ namespace micm
       }
 
      public:
+      using category = DenseMatrixColumnViewTag;
       std::size_t ColumnIndex() const { return column_index_; }
       const VectorMatrix* GetMatrix() const { return matrix_; }
     };
@@ -67,6 +69,7 @@ namespace micm
       }
 
      public:
+      using category = DenseMatrixColumnViewTag;
       std::size_t ColumnIndex() const { return column_index_; }
       VectorMatrix* GetMatrix() { return matrix_; }
     };
@@ -808,6 +811,17 @@ namespace micm
         return arg;
       }
     }
+  };
+
+  // ============================================================================
+  // Grouping Strategy Specialization
+  // ============================================================================
+
+  /// @brief VectorMatrix uses simple grouping when L==1, tiered grouping when L>1
+  template<typename T, std::size_t L>
+  struct GroupingStrategy<VectorMatrix<T, L>>
+  {
+    using type = std::conditional_t<L == 1, SimpleGroupingTag, TieredGroupingTag>;
   };
 
 }  // namespace micm

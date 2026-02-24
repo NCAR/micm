@@ -4,6 +4,7 @@
 
 #include <micm/util/matrix_error.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
 #include <array>
@@ -85,6 +86,7 @@ namespace micm
       }
 
      public:
+      using category = SparseMatrixBlockViewTag;
       std::size_t RowIndex() const { return row_index_; }
       std::size_t ColumnIndex() const { return column_index_; }
       const SparseMatrix* GetMatrix() const { return matrix_; }
@@ -106,6 +108,7 @@ namespace micm
       }
 
      public:
+      using category = SparseMatrixBlockViewTag;
       std::size_t RowIndex() const { return row_index_; }
       std::size_t ColumnIndex() const { return column_index_; }
       SparseMatrix* GetMatrix() { return matrix_; }
@@ -677,6 +680,20 @@ namespace micm
     {
       return non_zero_elements_.size() * number_of_blocks_;
     }
+  };
+
+  /// @brief Standard ordering row sparse matrices always use simple grouping (L==1)
+  template<typename T>
+  struct GroupingStrategy<SparseMatrix<SparseMatrixStandardOrderingCompressedSparseRow, T>>
+  {
+    using type = SimpleGroupingTag;
+  };
+
+  /// @brief Standard ordering column sparse matrices always use simple grouping (L==1)
+  template<typename T>
+  struct GroupingStrategy<SparseMatrix<SparseMatrixStandardOrderingCompressedSparseColumn, T>>
+  {
+    using type = SimpleGroupingTag;
   };
 
 }  // namespace micm

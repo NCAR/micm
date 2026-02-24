@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
 #include <array>
@@ -45,6 +46,7 @@ namespace micm
       }
 
      public:
+      using category = DenseMatrixColumnViewTag;
       std::size_t ColumnIndex() const { return column_index_; }
       const Matrix* GetMatrix() const { return matrix_; }
     };
@@ -63,6 +65,7 @@ namespace micm
       }
 
      public:
+      using category = DenseMatrixColumnViewTag;
       std::size_t ColumnIndex() const { return column_index_; }
       Matrix* GetMatrix() { return matrix_; }
     };
@@ -675,5 +678,16 @@ namespace micm
   };
 
   using StandardDenseMatrix = Matrix<double>;
+
+  // ============================================================================
+  // Grouping Strategy Specialization
+  // ============================================================================
+
+  /// @brief Matrix always uses simple grouping (L==1)
+  template<typename T>
+  struct GroupingStrategy<Matrix<T>>
+  {
+    using type = SimpleGroupingTag;
+  };
 
 }  // namespace micm

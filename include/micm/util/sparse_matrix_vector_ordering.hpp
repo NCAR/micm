@@ -4,6 +4,7 @@
 
 #include "sparse_matrix_vector_ordering_compressed_sparse_column.hpp"
 #include "sparse_matrix_vector_ordering_compressed_sparse_row.hpp"
+#include "view_category.hpp"
 
 namespace micm
 {
@@ -33,4 +34,23 @@ namespace micm
                   })
       matrix.CopyToHost();
   }
+
+  // ============================================================================
+  // Grouping Strategy Specializations for Vector Ordering
+  // ============================================================================
+
+  /// @brief Vector ordering row sparse matrices use simple grouping when L==1, tiered when L>1
+  template<std::size_t L, typename T>
+  struct GroupingStrategy<SparseMatrix<SparseMatrixVectorOrderingCompressedSparseRow<L>, T>>
+  {
+    using type = std::conditional_t<L == 1, SimpleGroupingTag, TieredGroupingTag>;
+  };
+
+  /// @brief Vector ordering column sparse matrices use simple grouping when L==1, tiered when L>1
+  template<std::size_t L, typename T>
+  struct GroupingStrategy<SparseMatrix<SparseMatrixVectorOrderingCompressedSparseColumn<L>, T>>
+  {
+    using type = std::conditional_t<L == 1, SimpleGroupingTag, TieredGroupingTag>;
+  };
+
 }  // namespace micm

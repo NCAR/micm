@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -110,6 +111,7 @@ namespace micm
     class BlockVariable
     {
      public:
+      using category = BlockVariableTag;
       BlockVariable() = default;
       
       T& Get() { return storage_; }
@@ -129,8 +131,7 @@ namespace micm
       std::size_t group_;
 
       /// @brief Get element from sparse matrix ConstBlockView
-      template<typename Arg>
-        requires requires(Arg arg) { arg.RowIndex(); arg.ColumnIndex(); }
+      template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
@@ -140,9 +141,7 @@ namespace micm
 
       /// @brief Get element from Matrix or VectorMatrix ConstColumnView
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
-      template<typename Arg>
-        requires requires(Arg arg) { arg.ColumnIndex(); arg.GetMatrix(); }
-          && (!requires(Arg arg) { arg.RowIndex(); })
+      template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
@@ -157,22 +156,11 @@ namespace micm
       }
 
       /// @brief Get element from BlockVariable
-      template<typename Arg>
-        requires requires(Arg arg) { arg.Get(); }
-          && (!requires(Arg arg) { arg.RowIndex(); })
-          && (!requires(Arg arg) { arg.ColumnIndex(); })
+      template<BlockVariableView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg.Get();
-      }
-
-      /// @brief Fallback for scalar arguments
-      template<typename Arg>
-      [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
-      {
-        return arg;
       }
 
      public:
@@ -214,8 +202,7 @@ namespace micm
       std::size_t group_;
 
       /// @brief Get element from sparse matrix BlockView
-      template<typename Arg>
-        requires requires(Arg arg) { arg.RowIndex(); arg.ColumnIndex(); }
+      template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
@@ -225,9 +212,7 @@ namespace micm
 
       /// @brief Get element from Matrix or VectorMatrix ColumnView
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
-      template<typename Arg>
-        requires requires(Arg arg) { arg.ColumnIndex(); arg.GetMatrix(); }
-          && (!requires(Arg arg) { arg.RowIndex(); })
+      template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
@@ -242,22 +227,11 @@ namespace micm
       }
 
       /// @brief Get element from BlockVariable
-      template<typename Arg>
-        requires requires(Arg arg) { arg.Get(); }
-          && (!requires(Arg arg) { arg.RowIndex(); })
-          && (!requires(Arg arg) { arg.ColumnIndex(); })
+      template<BlockVariableView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg.Get();
-      }
-
-      /// @brief Fallback for scalar arguments
-      template<typename Arg>
-      [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
-      {
-        return arg;
       }
 
      public:
@@ -371,4 +345,5 @@ namespace micm
       return (elem == end);
     }
   };
+
 }  // namespace micm
