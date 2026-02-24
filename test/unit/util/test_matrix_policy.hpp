@@ -391,7 +391,7 @@ MatrixPolicy<double> testArrayFunction()
   // Row 4: 2, 12, 22
 
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& m)
+    [](auto&& m)
     {
       auto tmp = m.GetRowVariable();
       m.ForEachRow([&](const double& a, const double& b, const double& c, double& t)
@@ -480,7 +480,7 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunct
   // Row 2: 4, 24, 8
 
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& mA, MatrixPolicy<double>& mB)
+    [](auto&& mA, auto&& mB)
     {
       // Use an array function to set C = A + B
       // where A is from matrixA, B is from matrixB, C is in matrixA
@@ -520,7 +520,7 @@ void testMismatchedRowDimensions()
 
   // Should throw when creating the function with mismatched row counts
   EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& mA, MatrixPolicy<double>& mB)
+    [](auto&& mA, auto&& mB)
     {
       // This should throw when matrixA and matrixB have different row counts
       mA.ForEachRow([&](const double& a, const double& b, double& c)
@@ -538,7 +538,7 @@ void testMismatchedColumnDimensions()
 
   // Create the function - this should succeed
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& m)
+    [](auto&& m)
     {
       // Try to access a column that doesn't exist
       m.ForEachRow([&](const double& a, double& b)
@@ -559,7 +559,7 @@ void testWrongMatrixDimensions()
 
   // Create a function that expects 4 columns
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& m)
+    [](auto&& m)
     {
       m.ForEachRow([&](const double& a, double& b)
         { b = a * 2.0; },
@@ -587,7 +587,7 @@ MatrixPolicy<double> testMultipleTemporaries()
   }
 
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& m)
+    [](auto&& m)
     {
       // Use TWO temporaries for intermediate calculations
       auto tmp1 = m.GetRowVariable();
@@ -659,7 +659,7 @@ MatrixPolicy<double> testColumnViewReuse()
     matrix[i][0] = static_cast<double>(i + 1);
 
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& m)
+    [](auto&& m)
     {
       // Create column views once
       auto col0 = m.GetConstColumnView(0);
@@ -711,7 +711,7 @@ MatrixPolicy<double> testFunctionReusability()
   MatrixPolicy<double> matrix1{ 2, 3, 1.0 };
   
   auto func = MatrixPolicy<double>::Function(
-    [](MatrixPolicy<double>& m)
+    [](auto&& m)
     {
       auto tmp = m.GetRowVariable();
       m.ForEachRow([&](const double& a, const double& b, const double& c, double& t)

@@ -443,6 +443,69 @@ namespace micm
       }
     }
 
+    /// @brief GroupView provides a view of a single row (group of size 1) for iteration
+    class GroupView
+    {
+     private:
+      Matrix& matrix_;
+      std::size_t row_;
+
+      /// @brief Get an element reference for the current row in this group
+      template<typename Arg>
+      decltype(auto) GetRowElement(Arg&& arg)
+      {
+        // Check if Arg has GetMatrix() method (ColumnView)
+        if constexpr (requires { arg.GetMatrix(); })
+        {
+          // It's a ColumnView type, access the source matrix's data at the actual row
+          auto* source_matrix = arg.GetMatrix();
+          return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+        }
+        else if constexpr (requires { arg.Storage(); })
+        {
+          // It's a RowVariable from this GroupView, access index 0
+          return arg.Storage()[0];
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      GroupView(Matrix& matrix, std::size_t row)
+          : matrix_(matrix), row_(row)
+      {
+      }
+
+      auto GetConstColumnView(std::size_t column_index) const
+      {
+        return matrix_.GetConstColumnView(column_index);
+      }
+
+      auto GetColumnView(std::size_t column_index)
+      {
+        return matrix_.GetColumnView(column_index);
+      }
+
+      RowVariable GetRowVariable()
+      {
+        // Allocate storage for just this single row
+        return RowVariable(1);
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachRow(Func&& func, Args&&... args)
+      {
+        // For Matrix with L=1, just process the single row (no loop needed)
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
     /// @brief Create a function that can be applied to matrices
     /// @tparam Func The lambda/function type
     /// @tparam Matrices The matrix types
@@ -471,7 +534,7 @@ namespace micm
         }
         num_cols_per_matrix[index] = matrix.NumColumns();
         ++index;
-    }(matrices), ...);
+      }(matrices), ...);
 
       // Return a callable that validates dimensions on invocation and applies the function
       return [func = std::forward<Func>(func), num_rows, num_cols_per_matrix](Matrices&... invoked_matrices) {
@@ -494,7 +557,11 @@ namespace micm
           ++idx;
         }(invoked_matrices), ...);
         
-        func(invoked_matrices...);
+        // Iterate over rows, treating each row as a group of size 1
+        for (std::size_t row = 0; row < num_rows; ++row)
+        {
+          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, row)...);
+        }
       };
     }
 

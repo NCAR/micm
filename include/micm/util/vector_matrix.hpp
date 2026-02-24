@@ -525,6 +525,74 @@ namespace micm
       }
     }
 
+    /// @brief GroupView provides a view of a single group of L rows for iteration
+    class GroupView
+    {
+     private:
+      VectorMatrix& matrix_;
+      std::size_t group_;
+      std::size_t num_rows_in_group_;  // May be < L for the last group
+
+      /// @brief Get an element reference for a specific row in this group
+      template<typename Arg>
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      {
+        // Check if Arg has GetMatrix() method (ColumnView)
+        if constexpr (requires { arg.GetMatrix(); })
+        {
+          // It's a ColumnView type, access the source matrix's data
+          auto* source_matrix = arg.GetMatrix();
+          // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
+          return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
+        }
+        else if constexpr (requires { arg.Storage(); })
+        {
+          // It's a RowVariable from this GroupView, access index 0 (group-local storage)
+          return arg.Storage()[0][row_in_group];
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      GroupView(VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
+          : matrix_(matrix), group_(group), num_rows_in_group_(num_rows_in_group)
+      {
+      }
+
+      auto GetConstColumnView(std::size_t column_index) const
+      {
+        return matrix_.GetConstColumnView(column_index);
+      }
+
+      auto GetColumnView(std::size_t column_index)
+      {
+        return matrix_.GetColumnView(column_index);
+      }
+
+      RowVariable GetRowVariable()
+      {
+        // Allocate storage for just this group (1 array of L elements)
+        return RowVariable(1);
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachRow(Func&& func, Args&&... args)
+      {
+        // Tight loop over L rows in this group for vectorization
+        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);
+        }
+      }
+
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
     /// @brief Create a function that can be applied to matrices
     /// @tparam Func The lambda/function type
     /// @tparam Matrices The matrix types
@@ -576,7 +644,19 @@ namespace micm
           ++idx;
         }(invoked_matrices), ...);
         
-        func(invoked_matrices...);
+        // Iterate over groups, processing L rows at a time
+        std::size_t num_complete_groups = std::floor(num_rows / (double)L);
+        for (std::size_t group = 0; group < num_complete_groups; ++group)
+        {
+          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, group, L)...);
+        }
+        
+        // Process remaining rows (if num_rows is not a multiple of L)
+        std::size_t remaining = num_rows % L;
+        if (remaining > 0)
+        {
+          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, num_complete_groups, remaining)...);
+        }
       };
     }
 
