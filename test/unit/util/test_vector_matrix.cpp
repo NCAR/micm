@@ -204,3 +204,19 @@ TEST(VectorMatrix, FunctionReusability)
   testFunctionReusability<Group3MatrixAlias>();
   testFunctionReusability<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, ConstMatrixFunction)
+{
+  testConstMatrixFunction<Group1MatrixAlias>();
+  testConstMatrixFunction<Group2MatrixAlias>();
+  testConstMatrixFunction<Group3MatrixAlias>();
+  testConstMatrixFunction<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, EmptyMatrixFunction)
+{
+  testEmptyMatrixFunction<Group1MatrixAlias>();
+  testEmptyMatrixFunction<Group2MatrixAlias>();
+  testEmptyMatrixFunction<Group3MatrixAlias>();
+  testEmptyMatrixFunction<Group4MatrixAlias>();
+}

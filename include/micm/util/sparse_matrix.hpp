@@ -26,6 +26,20 @@ namespace micm
     t.NumberOfGroups(0);
   };
 
+  /// @brief Type trait to extract GroupVectorSize (L) from matrix types at compile-time
+  /// Default: L=1 for types without GroupVectorSize
+  template<typename T>
+  struct GroupVectorSize : std::integral_constant<std::size_t, 1> {};
+
+  /// Specialization for types with static GroupVectorSize method
+  template<typename T>
+    requires requires { T::GroupVectorSize(); }
+  struct GroupVectorSize<T> : std::integral_constant<std::size_t, T::GroupVectorSize()> {};
+
+  /// Helper variable template
+  template<typename T>
+  inline constexpr std::size_t GroupVectorSize_v = GroupVectorSize<T>::value;
+
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
     t.NumRows();
@@ -442,6 +456,108 @@ namespace micm
       }
     }
 
+    /// @brief ConstGroupView provides a const view of a single group of blocks for iteration
+    class ConstGroupView
+    {
+     private:
+      const SparseMatrix& matrix_;
+      std::size_t group_;
+      std::size_t num_blocks_in_group_;  // May be < L for the last group in vector ordering
+
+      /// @brief Get a const element reference for a specific block in this group
+      template<typename Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * OrderingPolicy::GroupVectorSize() + block_in_group;
+        
+        // Check if Arg has RowIndex() method (ConstBlockView from sparse matrix)
+        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
+        {
+          // It's a ConstBlockView type from a sparse matrix
+          auto* source_matrix = arg.GetMatrix();
+          return source_matrix->data_[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+        }
+        // Check if Arg has ColumnIndex() method but not RowIndex() (ConstColumnView from dense matrix)
+        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
+        {
+          // It's a ConstColumnView type from a dense matrix
+          auto* source_matrix = arg.GetMatrix();
+          
+          // Check if this is a VectorMatrix (has GroupVectorSize method)
+          if constexpr (requires { source_matrix->GroupVectorSize(); })
+          {
+            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
+            std::size_t L = source_matrix->GroupVectorSize();
+            std::size_t row = block;
+            std::size_t row_group = row / L;
+            std::size_t row_in_group = row % L;
+            return source_matrix->data_[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * L + row_in_group];
+          }
+          else
+          {
+            // Standard Matrix layout: data_[row * num_cols + col]
+            return source_matrix->data_[block * source_matrix->NumColumns() + arg.ColumnIndex()];
+          }
+        }
+        else if constexpr (requires { arg.Get(); })
+        {
+          // It's a BlockVariable, access the array element for vector ordering
+          if constexpr (OrderingPolicy::GroupVectorSize() > 1)
+          {
+            // Vector ordering: BlockVariable has array storage
+            return arg.Get()[block_in_group];
+          }
+          else
+          {
+            // Standard ordering: BlockVariable has single value storage
+            return arg.Get();
+          }
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      ConstGroupView(const SparseMatrix& matrix, std::size_t group)
+          : matrix_(matrix), group_(group)
+      {
+        // Calculate how many blocks are in this group (compile-time L, runtime calculation)
+        constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+        std::size_t total_blocks = matrix_.NumberOfBlocks();
+        std::size_t start_block = group * L;
+        num_blocks_in_group_ = std::min(L, total_blocks - start_block);
+      }
+
+      auto GetConstBlockView(std::size_t row, std::size_t col) const
+      {
+        return matrix_.GetConstBlockView(row, col);
+      }
+
+      BlockVariable GetBlockVariable() const
+      {
+        return BlockVariable();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachBlock(Func&& func, Args&&... args) const
+      {
+        // Tight loop over blocks in this group for vectorization
+        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        {
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);
+        }
+      }
+
+      std::size_t NumberOfBlocks() const { return matrix_.NumberOfBlocks(); }
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
     /// @brief GroupView provides a view of a single group of blocks for iteration
     class GroupView
     {
@@ -550,11 +666,27 @@ namespace micm
     };
 
     /// @brief Create a function that can be applied to sparse matrices
+    /// 
+    /// Creates a reusable callable that validates matrix dimensions and applies a user function
+    /// across block groups. The function iterates over groups of L blocks at a time, where L
+    /// is determined by the OrderingPolicy::GroupVectorSize().
+    /// 
     /// @tparam Func The lambda/function type
-    /// @tparam Matrices The matrix types
-    /// @param func The function to wrap
+    /// @tparam Matrices The matrix types (can mix SparseMatrix, VectorMatrix, and Matrix)
+    /// @param func The function to wrap - receives GroupView objects for each matrix
     /// @param matrices The matrices to validate and capture dimensions from
     /// @return A callable that validates dimensions and applies the function
+    /// 
+    /// @note Validation occurs in two phases:
+    ///   1. At function creation: Validates matrix dimensions and ordering compatibility
+    ///   2. At invocation: Re-validates dimensions in case matrices were resized
+    /// 
+    /// @note Column/Block view creation happens inside user lambda and is validated
+    ///       at invocation time, not at function creation time. Ensure all view indices
+    ///       are within matrix bounds to avoid runtime errors.
+    /// 
+    /// @throws std::system_error if matrices have incompatible orderings (different L values)
+    ///         or mismatched block counts
     template<typename Func, typename... Matrices>
     static auto Function(Func&& func, Matrices&... matrices)
     {
@@ -565,15 +697,8 @@ namespace micm
       // Check each matrix has compatible L
       std::size_t index = 0;
       ([&](auto& matrix) {
-        // Get the L value for this matrix
-        constexpr std::size_t matrix_L = []() {
-          using MatrixType = std::decay_t<decltype(matrix)>;
-          if constexpr (requires { MatrixType::GroupVectorSize(); }) {
-            return MatrixType::GroupVectorSize();
-          } else {
-            return static_cast<std::size_t>(1);  // Standard Matrix has implicit L=1
-          }
-        }();
+        // Get the L value for this matrix using the type trait
+        constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(matrix)>>;
         
         if (matrix_L != expected_L)
         {
@@ -683,7 +808,18 @@ namespace micm
         std::size_t num_groups = (num_blocks + L - 1) / L;  // Ceiling division
         for (std::size_t group = 0; group < num_groups; ++group)
         {
-          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, group)...);
+          // Use ConstGroupView if matrix is const, otherwise use GroupView
+          func([&]() {
+            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
+            if constexpr (std::is_const_v<MatrixType>)
+            {
+              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, group);
+            }
+            else
+            {
+              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, group);
+            }
+          }()...);
         }
       };
     }

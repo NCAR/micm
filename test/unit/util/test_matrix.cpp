@@ -163,6 +163,17 @@ TEST(Matrix, FunctionReusability)
 {
   testFunctionReusability<micm::Matrix>();
 }
+
+TEST(Matrix, ConstMatrixFunction)
+{
+  testConstMatrixFunction<micm::Matrix>();
+}
+
+TEST(Matrix, EmptyMatrixFunction)
+{
+  testEmptyMatrixFunction<micm::Matrix>();
+}
+
 TEST(Matrix, Print)
 {
   testPrint<micm::Matrix>();

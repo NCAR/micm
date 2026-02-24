@@ -753,3 +753,73 @@ MatrixPolicy<double> testFunctionReusability()
   return matrix1;
 }
 
+template<template<class> class MatrixPolicy>
+void testConstMatrixFunction()
+{
+  MatrixPolicy<double> matrix{ 3, 4, 0.0 };
+  
+  // Set initial values
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
+      matrix[i][j] = static_cast<double>(i * 10 + j);
+  
+  // Create a const reference
+  const MatrixPolicy<double>& const_matrix = matrix;
+  
+  // Create a function that only reads from the matrix
+  auto read_func = MatrixPolicy<double>::Function(
+    [](auto&& m)
+    {
+      auto tmp = m.GetRowVariable();
+      // Only use GetConstColumnView - should work with const matrices
+      m.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        tmp);
+      
+      // Verify we can read the values (no writes to m)
+      double sum = 0.0;
+      m.ForEachRow([&sum](const double& val)
+        { sum += val; },
+        m.GetConstColumnView(2));
+    }, const_matrix);
+  
+  // Should work fine with const matrix
+  EXPECT_NO_THROW(read_func(const_matrix));
+  
+  // Verify original matrix unchanged
+  EXPECT_EQ(matrix[0][0], 0.0);
+  EXPECT_EQ(matrix[1][2], 12.0);
+}
+
+template<template<class> class MatrixPolicy>
+void testEmptyMatrixFunction()
+{
+  // Test with 0 rows
+  MatrixPolicy<double> empty_rows{ 0, 3, 1.0 };
+  
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m)
+    {
+      // This should never execute
+      m.ForEachRow([&](double& val)
+        { val = 99.0; },  // Would fail if executed
+        m.GetColumnView(0));
+    }, empty_rows);
+  
+  // Should not throw, just iterate 0 times
+  EXPECT_NO_THROW(func(empty_rows));
+  
+  // Test with 0 columns (edge case)
+  MatrixPolicy<double> empty_cols{ 3, 0, 1.0 };
+  
+  auto func2 = MatrixPolicy<double>::Function(
+    [](auto&&)
+    {
+      // Cannot get any column views, so just return
+    }, empty_cols);
+  
+  EXPECT_NO_THROW(func2(empty_cols));
+}
+

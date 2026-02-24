@@ -1382,3 +1382,92 @@ void testIncompatibleSparseOrdering()
       std::system_error);
   }
 }
+
+/// @brief Test const-correctness with sparse matrices
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testConstSparseMatrixFunction()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(1, 2)
+                     .WithElement(2, 3)
+                     .WithElement(3, 3)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  
+  // Set initial values
+  for (int block = 0; block < 3; ++block)
+  {
+    matrix[block][0][1] = static_cast<double>(block + 1);
+    matrix[block][1][2] = static_cast<double>(block + 10);
+  }
+  
+  // Create a const reference
+  const SparseMatrixPolicy<double, OrderingPolicy>& const_matrix = matrix;
+  
+  // Create a function that only reads from the matrix
+  auto read_func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m)
+    {
+      auto tmp = m.GetBlockVariable();
+      // Only use GetConstBlockView - should work with const matrices
+      m.ForEachBlock([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstBlockView(0, 1),
+        m.GetConstBlockView(1, 2),
+        tmp);
+      
+      // Verify we can read the values (no writes to m)
+      double sum = 0.0;
+      m.ForEachBlock([&sum](const double& val)
+        { sum += val; },
+        m.GetConstBlockView(2, 3));
+    }, const_matrix);
+  
+  // Should work fine with const matrix
+  EXPECT_NO_THROW(read_func(const_matrix));
+  
+  // Verify original matrix unchanged
+  EXPECT_EQ(matrix[0][0][1], 1.0);
+  EXPECT_EQ(matrix[1][1][2], 11.0);
+}
+
+/// @brief Test edge case with empty sparse matrices
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testEmptySparseMatrixFunction()
+{
+  // Test with 0 non-zero elements
+  auto empty_builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+                           .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> empty_matrix{ empty_builder };
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m)
+    {
+      // With 0 non-zero elements, GetBlockView would throw
+      // So just iterate (0 blocks will be accessed)
+      auto tmp = m.GetBlockVariable();
+      // This inner lambda never executes if there are no blocks
+    }, empty_matrix);
+  
+  // Should not throw, function executes but has nothing to do
+  EXPECT_NO_THROW(func(empty_matrix));
+  
+  // Test with 0 blocks
+  auto zero_blocks_builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+                                 .WithElement(0, 1)
+                                 .SetNumberOfBlocks(0);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> zero_blocks{ zero_blocks_builder };
+  
+  auto func2 = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&&)
+    {
+      // Should never iterate
+    }, zero_blocks);
+  
+  EXPECT_NO_THROW(func2(zero_blocks));
+}
+

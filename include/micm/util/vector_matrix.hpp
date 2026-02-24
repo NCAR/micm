@@ -524,6 +524,81 @@ namespace micm
       }
     }
 
+    /// @brief ConstGroupView provides a const view of a single group of L rows for iteration
+    class ConstGroupView
+    {
+     private:
+      const VectorMatrix& matrix_;
+      std::size_t group_;
+      std::size_t num_rows_in_group_;  // May be < L for the last group
+
+      /// @brief Get a const element reference for a specific row in this group
+      template<typename Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      {
+        // Check if Arg has GetMatrix() method (ConstColumnView)
+        if constexpr (requires { arg.GetMatrix(); })
+        {
+          // It's a ConstColumnView type, access the source matrix's data
+          auto* source_matrix = arg.GetMatrix();
+          // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
+          return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
+        }
+        else if constexpr (requires { arg.Get(); })
+        {
+          // It's a RowVariable from this ConstGroupView, access the array element
+          return arg.Get()[row_in_group];
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
+      ConstGroupView(const VectorMatrix& matrix, std::size_t group)
+          : matrix_(matrix), group_(group)
+      {
+        // Calculate how many rows are in this group (typically L, except possibly the last group)
+        // Optimized: avoid calling NumberOfGroups() which does division+ceil
+        std::size_t start_row = group * L;
+        num_rows_in_group_ = std::min(L, matrix.x_dim_ - start_row);
+      }
+
+      /// @brief Constructor with explicit num_rows_in_group
+      ConstGroupView(const VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
+          : matrix_(matrix), group_(group), num_rows_in_group_(num_rows_in_group)
+      {
+      }
+
+      auto GetConstColumnView(std::size_t column_index) const
+      {
+        return matrix_.GetConstColumnView(column_index);
+      }
+
+      RowVariable GetRowVariable() const
+      {
+        // Stack-allocated array of L elements
+        return RowVariable();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachRow(Func&& func, Args&&... args) const
+      {
+        // Tight loop over L rows in this group for vectorization
+        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);
+        }
+      }
+
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
     /// @brief GroupView provides a view of a single group of L rows for iteration
     class GroupView
     {
@@ -563,17 +638,9 @@ namespace micm
           : matrix_(matrix), group_(group)
       {
         // Calculate how many rows are in this group (typically L, except possibly the last group)
-        std::size_t total_groups = matrix.NumberOfGroups();
-        if (group == total_groups - 1)
-        {
-          // Last group may have fewer than L rows
-          num_rows_in_group_ = matrix.x_dim_ - (total_groups - 1) * L;
-        }
-        else
-        {
-          // All other groups have exactly L rows
-          num_rows_in_group_ = L;
-        }
+        // Optimized: avoid calling NumberOfGroups() which does division+ceil
+        std::size_t start_row = group * L;
+        num_rows_in_group_ = std::min(L, matrix.x_dim_ - start_row);
       }
 
       /// @brief Constructor with explicit num_rows_in_group
@@ -612,12 +679,27 @@ namespace micm
       std::size_t NumColumns() const { return matrix_.NumColumns(); }
     };
 
-    /// @brief Create a function that can be applied to matrices
+    /// @brief Create a function that can be applied to vector matrices
+    /// 
+    /// Creates a reusable callable that validates matrix dimensions and applies a user function
+    /// across row groups. The function iterates over groups of L rows at a time for vectorization,
+    /// where L is the compile-time template parameter.
+    /// 
     /// @tparam Func The lambda/function type
     /// @tparam Matrices The matrix types
-    /// @param func The function to wrap
+    /// @param func The function to wrap - receives GroupView objects for each matrix
     /// @param matrices The matrices to validate and capture dimensions from
     /// @return A callable that validates dimensions and applies the function
+    /// 
+    /// @note Validation occurs in two phases:
+    ///   1. At function creation: Validates row counts match across all matrices
+    ///   2. At invocation: Re-validates dimensions in case matrices were resized
+    /// 
+    /// @note Column view creation happens inside user lambda and is validated
+    ///       at invocation time, not at function creation time. Ensure all column indices
+    ///       are within matrix bounds to avoid runtime errors.
+    /// 
+    /// @throws std::system_error if matrices have mismatched row counts or dimensions
     template<typename Func, typename... Matrices>
     static auto Function(Func&& func, Matrices&... matrices)
     {
@@ -667,14 +749,36 @@ namespace micm
         std::size_t num_complete_groups = std::floor(num_rows / (double)L);
         for (std::size_t group = 0; group < num_complete_groups; ++group)
         {
-          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, group, L)...);
+          // Use ConstGroupView if matrix is const, otherwise use GroupView
+          func([&]() {
+            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
+            if constexpr (std::is_const_v<MatrixType>)
+            {
+              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, group, L);
+            }
+            else
+            {
+              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, group, L);
+            }
+          }()...);
         }
         
         // Process remaining rows (if num_rows is not a multiple of L)
         std::size_t remaining = num_rows % L;
         if (remaining > 0)
         {
-          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, num_complete_groups, remaining)...);
+          // Use ConstGroupView if matrix is const, otherwise use GroupView
+          func([&]() {
+            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
+            if constexpr (std::is_const_v<MatrixType>)
+            {
+              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, num_complete_groups, remaining);
+            }
+            else
+            {
+              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, num_complete_groups, remaining);
+            }
+          }()...);
         }
       };
     }

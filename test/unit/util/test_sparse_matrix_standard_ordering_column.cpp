@@ -165,3 +165,13 @@ TEST(SparseCompressedColumnMatrix, SparseAndDenseMatrixFunction)
 {
   testSparseAndDenseMatrixFunction<micm::SparseMatrix, StandardOrdering, micm::Matrix>();
 }
+
+TEST(SparseCompressedColumnMatrix, ConstSparseMatrixFunction)
+{
+  testConstSparseMatrixFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, EmptySparseMatrixFunction)
+{
+  testEmptySparseMatrixFunction<micm::SparseMatrix, StandardOrdering>();
+}

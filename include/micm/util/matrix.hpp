@@ -440,6 +440,65 @@ namespace micm
       }
     }
 
+    /// @brief ConstGroupView provides a const view of a single row (group of size 1) for iteration
+    class ConstGroupView
+    {
+     private:
+      const Matrix& matrix_;
+      std::size_t row_;
+
+      /// @brief Get a const element reference for the current row in this group
+      template<typename Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(Arg&& arg) const
+      {
+        // Check if Arg has GetMatrix() method (ConstColumnView)
+        if constexpr (requires { arg.GetMatrix(); })
+        {
+          // It's a ConstColumnView type, access the source matrix's data at the actual row
+          auto* source_matrix = arg.GetMatrix();
+          return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+        }
+        else if constexpr (requires { arg.Get(); })
+        {
+          // It's a RowVariable from this ConstGroupView, return the single value
+          return arg.Get();
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      ConstGroupView(const Matrix& matrix, std::size_t row)
+          : matrix_(matrix), row_(row)
+      {
+      }
+
+      auto GetConstColumnView(std::size_t column_index) const
+      {
+        return matrix_.GetConstColumnView(column_index);
+      }
+
+      RowVariable GetRowVariable() const
+      {
+        // Stack-allocated single value
+        return RowVariable();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachRow(Func&& func, Args&&... args) const
+      {
+        // For Matrix with L=1, just process the single row (no loop needed)
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
     /// @brief GroupView provides a view of a single row (group of size 1) for iteration
     class GroupView
     {
@@ -505,11 +564,26 @@ namespace micm
     };
 
     /// @brief Create a function that can be applied to matrices
+    /// 
+    /// Creates a reusable callable that validates matrix dimensions and applies a user function
+    /// row-by-row. For standard Matrix (L=1), each row is processed individually.
+    /// 
     /// @tparam Func The lambda/function type
     /// @tparam Matrices The matrix types
-    /// @param func The function to wrap
+    /// @param func The function to wrap - receives GroupView objects for each matrix
     /// @param matrices The matrices to validate and capture dimensions from
     /// @return A callable that validates dimensions and applies the function
+    /// 
+    /// @note Validation occurs in two phases:
+    ///   1. At function creation: Validates row counts match across all matrices
+    ///   2. At invocation: Re-validates dimensions in case matrices were resized
+    /// 
+    /// @note Column view creation happens inside user lambda and is validated
+    ///       at invocation time, not at function creation time. Ensure all column indices
+    ///       are within matrix bounds to avoid runtime errors.
+    /// 
+    /// @throws std::system_error if matrices have mismatched row counts or column indices
+    ///         are out of bounds during execution
     template<typename Func, typename... Matrices>
     static auto Function(Func&& func, Matrices&... matrices)
     {
@@ -558,7 +632,18 @@ namespace micm
         // Iterate over rows, treating each row as a group of size 1
         for (std::size_t row = 0; row < num_rows; ++row)
         {
-          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, row)...);
+          // Use ConstGroupView if matrix is const, otherwise use GroupView
+          func([&]() {
+            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
+            if constexpr (std::is_const_v<MatrixType>)
+            {
+              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, row);
+            }
+            else
+            {
+              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, row);
+            }
+          }()...);
         }
       };
     }
