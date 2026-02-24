@@ -77,6 +77,7 @@ namespace micm
       T storage_;  // Stack-allocated single value
       
      public:
+      using category = BlockVariableTag;
       RowVariable() = default;
       T& Get() { return storage_; }
       const T& Get() const { return storage_; }
@@ -450,28 +451,21 @@ namespace micm
       const Matrix& matrix_;
       std::size_t row_;
 
-      /// @brief Get a const element reference for the current row in this group
-      template<typename Arg>
+      /// @brief Get a const element reference for the current row in this group (ColumnView)
+      template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetRowElement(Arg&& arg) const
       {
-        // Check if Arg has GetMatrix() method (ConstColumnView)
-        if constexpr (requires { arg.GetMatrix(); })
-        {
-          // It's a ConstColumnView type, access the source matrix's data at the actual row
-          auto* source_matrix = arg.GetMatrix();
-          return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
-        }
-        else if constexpr (requires { arg.Get(); })
-        {
-          // It's a RowVariable from this ConstGroupView, return the single value
-          return arg.Get();
-        }
-        else
-        {
-          // Unknown type, just return it
-          return arg;
-        }
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+      }
+
+      /// @brief Get a const element reference for the current row in this group (RowVariable)
+      template<BlockVariableView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(Arg&& arg) const
+      {
+        return arg.Get();
       }
 
      public:
@@ -509,28 +503,21 @@ namespace micm
       Matrix& matrix_;
       std::size_t row_;
 
-      /// @brief Get an element reference for the current row in this group
-      template<typename Arg>
+      /// @brief Get an element reference for the current row in this group (ColumnView)
+      template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       inline decltype(auto) GetRowElement(Arg&& arg)
       {
-        // Check if Arg has GetMatrix() method (ColumnView)
-        if constexpr (requires { arg.GetMatrix(); })
-        {
-          // It's a ColumnView type, access the source matrix's data at the actual row
-          auto* source_matrix = arg.GetMatrix();
-          return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
-        }
-        else if constexpr (requires { arg.Get(); })
-        {
-          // It's a RowVariable from this GroupView, return the single value
-          return arg.Get();
-        }
-        else
-        {
-          // Unknown type, just return it
-          return arg;
-        }
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+      }
+
+      /// @brief Get an element reference for the current row in this group (RowVariable)
+      template<BlockVariableView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(Arg&& arg)
+      {
+        return arg.Get();
       }
 
      public:
@@ -652,28 +639,21 @@ namespace micm
     }
 
    private:
-    /// @brief Get an element reference for a row, handling ColumnViews and RowVariables
-    template<typename Arg>
+    /// @brief Get an element reference for a row (ColumnView)
+    template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
     inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
-      // Check if Arg has GetMatrix() method (ColumnView from potentially different matrix)
-      if constexpr (requires { arg.GetMatrix(); })
-      {
-        // It's a ColumnView type, access the source matrix's data
-        auto* source_matrix = arg.GetMatrix();
-        return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
-      }
-      else if constexpr (requires { arg.Get(); })
-      {
-        // It's a RowVariable, return reference to the single storage value
-        return arg.Get();
-      }
-      else
-      {
-        // Unknown type, just return it
-        return arg;
-      }
+      auto* source_matrix = arg.GetMatrix();
+      return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
+    }
+
+    /// @brief Get an element reference for a row (RowVariable)
+    template<BlockVariableView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    {
+      return arg.Get();
     }
   };
 
