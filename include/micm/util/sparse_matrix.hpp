@@ -6,7 +6,9 @@
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cmath>
 #include <iterator>
 #include <ostream>
 #include <set>
@@ -53,6 +55,67 @@ namespace micm
     using IntMatrix = SparseMatrix<int, OrderingPolicy>;
     using value_type = T;
 
+    /// @brief A lightweight descriptor for a const block element in a sparse matrix
+    class ConstBlockView
+    {
+      friend class SparseMatrix;
+      const SparseMatrix* matrix_;
+      std::size_t row_index_;
+      std::size_t column_index_;
+      
+      explicit ConstBlockView(const SparseMatrix* matrix, std::size_t row_index, std::size_t column_index)
+          : matrix_(matrix),
+            row_index_(row_index),
+            column_index_(column_index)
+      {
+      }
+
+     public:
+      std::size_t RowIndex() const { return row_index_; }
+      std::size_t ColumnIndex() const { return column_index_; }
+      const SparseMatrix* GetMatrix() const { return matrix_; }
+    };
+
+    /// @brief A lightweight descriptor for a mutable block element in a sparse matrix
+    class BlockView
+    {
+      friend class SparseMatrix;
+      SparseMatrix* matrix_;
+      std::size_t row_index_;
+      std::size_t column_index_;
+      
+      explicit BlockView(SparseMatrix* matrix, std::size_t row_index, std::size_t column_index)
+          : matrix_(matrix),
+            row_index_(row_index),
+            column_index_(column_index)
+      {
+      }
+
+     public:
+      std::size_t RowIndex() const { return row_index_; }
+      std::size_t ColumnIndex() const { return column_index_; }
+      SparseMatrix* GetMatrix() { return matrix_; }
+    };
+
+    /// @brief A block-local temporary variable with its own storage
+    /// For standard ordering: single value
+    /// For vector ordering: array of L values
+    class BlockVariable
+    {
+      friend class SparseMatrix;
+      friend class GroupView;
+      
+      // Use conditional storage based on ordering policy
+      static constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+      typename std::conditional<(L > 1), std::array<T, L>, T>::type storage_;
+      
+     public:
+      BlockVariable() = default;
+      
+      auto& Get() { return storage_; }
+      const auto& Get() const { return storage_; }
+    };
+
    protected:
     std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
     std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
@@ -65,6 +128,7 @@ namespace micm
     friend class ConstProxyRow;
     friend class Proxy;
     friend class ConstProxy;
+    template<typename> friend class Matrix;
 
     class Proxy
     {
@@ -308,6 +372,344 @@ namespace micm
           for (std::size_t k = 0; k < block_size_; ++k)
             if (!this->IsZero(j, k))
               os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
+      }
+    }
+
+    /// @brief Create a const block view for accessing a block element
+    /// @param row The row index of the block element
+    /// @param col The column index of the block element
+    /// @return A ConstBlockView descriptor
+    ConstBlockView GetConstBlockView(std::size_t row, std::size_t col) const
+    {
+      if (row >= block_size_ || col >= block_size_)
+      {
+        throw std::system_error(
+            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+            "Block element (" + std::to_string(row) + "," + std::to_string(col) + 
+            ") out of range for matrix with block size " + std::to_string(block_size_));
+      }
+      if (this->IsZero(row, col))
+      {
+        throw std::system_error(
+            make_error_code(MicmMatrixErrc::ZeroElementAccess),
+            "Cannot create view for zero block element (" + std::to_string(row) + "," + 
+            std::to_string(col) + ")");
+      }
+      return ConstBlockView(this, row, col);
+    }
+
+    /// @brief Create a mutable block view for accessing a block element
+    /// @param row The row index of the block element
+    /// @param col The column index of the block element
+    /// @return A BlockView descriptor
+    BlockView GetBlockView(std::size_t row, std::size_t col)
+    {
+      if (row >= block_size_ || col >= block_size_)
+      {
+        throw std::system_error(
+            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+            "Block element (" + std::to_string(row) + "," + std::to_string(col) + 
+            ") out of range for matrix with block size " + std::to_string(block_size_));
+      }
+      if (this->IsZero(row, col))
+      {
+        throw std::system_error(
+            make_error_code(MicmMatrixErrc::ZeroElementAccess),
+            "Cannot create view for zero block element (" + std::to_string(row) + "," + 
+            std::to_string(col) + ")");
+      }
+      return BlockView(this, row, col);
+    }
+
+    /// @brief Get a block variable with persistent storage for temporary values
+    /// @return A BlockVariable with stack-allocated storage
+    BlockVariable GetBlockVariable()
+    {
+      return BlockVariable();
+    }
+
+    /// @brief Apply a function to each block of the matrix
+    /// @tparam Func The lambda/function type
+    /// @tparam Args The types of the block view arguments
+    /// @param func The function to apply to each block
+    /// @param args Block views or block variables
+    template<typename Func, typename... Args>
+    void ForEachBlock(Func&& func, Args&&... args)
+    {
+      for (std::size_t block = 0; block < number_of_blocks_; ++block)
+      {
+        func(GetBlockElement(block, args)...);
+      }
+    }
+
+    /// @brief GroupView provides a view of a single group of blocks for iteration
+    class GroupView
+    {
+     private:
+      SparseMatrix& matrix_;
+      std::size_t group_;
+      std::size_t num_blocks_in_group_;  // May be < L for the last group in vector ordering
+
+      /// @brief Get an element reference for a specific block in this group
+      template<typename Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        // Calculate the actual block index from group and block_in_group
+        std::size_t block = group_ * OrderingPolicy::GroupVectorSize() + block_in_group;
+        
+        // Check if Arg has RowIndex() method (BlockView from sparse matrix)
+        if constexpr (requires { arg.RowIndex(); arg.ColumnIndex(); })
+        {
+          // It's a BlockView type from a sparse matrix
+          auto* source_matrix = arg.GetMatrix();
+          return source_matrix->data_[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+        }
+        // Check if Arg has ColumnIndex() method but not RowIndex() (ColumnView from dense matrix)
+        else if constexpr (requires { arg.ColumnIndex(); } && !requires { arg.RowIndex(); })
+        {
+          // It's a ColumnView type from a dense matrix
+          auto* source_matrix = arg.GetMatrix();
+          
+          // Check if this is a VectorMatrix (has GroupVectorSize method)
+          if constexpr (requires { source_matrix->GroupVectorSize(); })
+          {
+            // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
+            std::size_t L = source_matrix->GroupVectorSize();
+            std::size_t row = block;
+            std::size_t row_group = row / L;
+            std::size_t row_in_group = row % L;
+            return source_matrix->data_[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * L + row_in_group];
+          }
+          else
+          {
+            // Standard Matrix layout: data_[row * num_cols + col]
+            return source_matrix->data_[block * source_matrix->NumColumns() + arg.ColumnIndex()];
+          }
+        }
+        else if constexpr (requires { arg.Get(); })
+        {
+          // It's a BlockVariable, access the array element for vector ordering
+          if constexpr (OrderingPolicy::GroupVectorSize() > 1)
+          {
+            // Vector ordering: BlockVariable has array storage
+            return arg.Get()[block_in_group];
+          }
+          else
+          {
+            // Standard ordering: BlockVariable has single value storage
+            return arg.Get();
+          }
+        }
+        else
+        {
+          // Unknown type, just return it
+          return arg;
+        }
+      }
+
+     public:
+      GroupView(SparseMatrix& matrix, std::size_t group)
+          : matrix_(matrix), group_(group)
+      {
+        // Calculate how many blocks are in this group (compile-time L, runtime calculation)
+        constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+        std::size_t total_blocks = matrix_.NumberOfBlocks();
+        std::size_t start_block = group * L;
+        num_blocks_in_group_ = std::min(L, total_blocks - start_block);
+      }
+
+      auto GetConstBlockView(std::size_t row, std::size_t col) const
+      {
+        return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockView(std::size_t row, std::size_t col)
+      {
+        return matrix_.GetBlockView(row, col);
+      }
+
+      BlockVariable GetBlockVariable()
+      {
+        return BlockVariable();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachBlock(Func&& func, Args&&... args)
+      {
+        // Tight loop over blocks in this group for vectorization
+        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        {
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);
+        }
+      }
+
+      std::size_t NumberOfBlocks() const { return matrix_.NumberOfBlocks(); }
+      std::size_t NumRows() const { return matrix_.NumRows(); }
+      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+    };
+
+    /// @brief Create a function that can be applied to sparse matrices
+    /// @tparam Func The lambda/function type
+    /// @tparam Matrices The matrix types
+    /// @param func The function to wrap
+    /// @param matrices The matrices to validate and capture dimensions from
+    /// @return A callable that validates dimensions and applies the function
+    template<typename Func, typename... Matrices>
+    static auto Function(Func&& func, Matrices&... matrices)
+    {
+      // Validate that all matrices have compatible ordering (same L value)
+      // Get L from this sparse matrix's ordering policy
+      constexpr std::size_t expected_L = OrderingPolicy::GroupVectorSize();
+      
+      // Check each matrix has compatible L
+      std::size_t index = 0;
+      ([&](auto& matrix) {
+        // Get the L value for this matrix
+        constexpr std::size_t matrix_L = []() {
+          using MatrixType = std::decay_t<decltype(matrix)>;
+          if constexpr (requires { MatrixType::GroupVectorSize(); }) {
+            return MatrixType::GroupVectorSize();
+          } else {
+            return static_cast<std::size_t>(1);  // Standard Matrix has implicit L=1
+          }
+        }();
+        
+        if (matrix_L != expected_L)
+        {
+          throw std::system_error(
+              make_error_code(MicmMatrixErrc::InvalidVector),
+              "Incompatible matrix orderings: Matrix " + std::to_string(index) + 
+              " has GroupVectorSize=" + std::to_string(matrix_L) +
+              " but expected " + std::to_string(expected_L) +
+              ". Cannot mix standard-ordered (L=1) and vector-ordered (L>1) matrices, " +
+              "or vector-ordered matrices with different L values.");
+        }
+        ++index;
+      }(matrices), ...);
+      
+      // Validate that all matrices have compatible dimensions
+      // For sparse matrices: use NumberOfBlocks()
+      // For dense matrices: use NumRows() (blocks correspond to rows)
+      std::size_t num_blocks = 0;
+      std::array<std::size_t, sizeof...(Matrices)> block_sizes{};
+      std::array<bool, sizeof...(Matrices)> is_sparse{};
+      index = 0;
+      
+      ([&](auto& matrix) {
+        // Check if this matrix is sparse (has NumberOfBlocks method)
+        constexpr bool has_number_of_blocks = requires { matrix.NumberOfBlocks(); };
+        is_sparse[index] = has_number_of_blocks;
+        
+        if (index == 0)
+        {
+          if constexpr (has_number_of_blocks)
+          {
+            num_blocks = matrix.NumberOfBlocks();
+          }
+          else
+          {
+            // For dense matrices, rows correspond to blocks
+            num_blocks = matrix.NumRows();
+          }
+        }
+        else
+        {
+          std::size_t matrix_blocks;
+          if constexpr (has_number_of_blocks)
+          {
+            matrix_blocks = matrix.NumberOfBlocks();
+          }
+          else
+          {
+            // For dense matrices, rows correspond to blocks
+            matrix_blocks = matrix.NumRows();
+          }
+          
+          if (matrix_blocks != num_blocks)
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "All matrices must have the same number of blocks/rows. Expected " + std::to_string(num_blocks) +
+                    " but got " + std::to_string(matrix_blocks));
+          }
+        }
+        
+        // Store block size (for sparse) or number of columns (for dense)
+        block_sizes[index] = matrix.NumRows();  // For sparse: block size; for dense: also NumRows
+        ++index;
+      }(matrices), ...);
+
+      // Return a callable that validates dimensions on invocation and applies the function
+      return [func = std::forward<Func>(func), num_blocks, block_sizes, is_sparse](Matrices&... invoked_matrices) {
+        std::size_t idx = 0;
+        ([&](auto& matrix) {
+          std::size_t matrix_blocks;
+          constexpr bool has_number_of_blocks = requires { matrix.NumberOfBlocks(); };
+          
+          if constexpr (has_number_of_blocks)
+          {
+            matrix_blocks = matrix.NumberOfBlocks();
+          }
+          else
+          {
+            // For dense matrices, rows correspond to blocks
+            matrix_blocks = matrix.NumRows();
+          }
+          
+          if (matrix_blocks != num_blocks)
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Matrix dimensions do not match. Expected " + std::to_string(num_blocks) + 
+                    " blocks/rows but got " + std::to_string(matrix_blocks));
+          }
+          if (matrix.NumRows() != block_sizes[idx])
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Matrix block size/rows does not match. Expected " + std::to_string(block_sizes[idx]) + 
+                    " but got " + std::to_string(matrix.NumRows()));
+          }
+          ++idx;
+        }(invoked_matrices), ...);
+        
+        // Get the group vector size from the OrderingPolicy (compile-time constant)
+        // For standard ordering: L = 1
+        // For vector ordering: L > 1
+        constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+        
+        // Iterate over groups, processing L blocks at a time
+        std::size_t num_groups = (num_blocks + L - 1) / L;  // Ceiling division
+        for (std::size_t group = 0; group < num_groups; ++group)
+        {
+          func(typename std::decay_t<Matrices>::GroupView(invoked_matrices, group)...);
+        }
+      };
+    }
+
+   private:
+    /// @brief Get an element reference for a block, handling BlockViews and BlockVariables
+    template<typename Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    {
+      // Check if Arg has GetMatrix() method (BlockView from potentially different matrix)
+      if constexpr (requires { arg.GetMatrix(); })
+      {
+        // It's a BlockView type, access the source matrix's data
+        auto* source_matrix = arg.GetMatrix();
+        return source_matrix->data_[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+      }
+      else if constexpr (requires { arg.Get(); })
+      {
+        // It's a BlockVariable, return reference to the single storage value
+        return arg.Get();
+      }
+      else
+      {
+        // Unknown type, just return it
+        return arg;
       }
     }
   };

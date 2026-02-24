@@ -175,7 +175,9 @@ namespace micm
           starts[(curr_row++) + 1] = total_elem;
         ++total_elem;
       }
-      starts[curr_row + 1] = total_elem;
+      // Fill all remaining entries from curr_row + 1 to block_size
+      for (std::size_t i = curr_row + 1; i <= block_size; ++i)
+        starts[i] = total_elem;
       return starts;
     }
 

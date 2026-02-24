@@ -103,6 +103,29 @@ namespace micm
       return indices;
     }
 
+   public:
+    /// @brief Returns the number of blocks included in each group of blocks
+    /// @return Number of blocks in each group (1 for standard ordering)
+    static constexpr std::size_t GroupVectorSize()
+    {
+      return 1;
+    }
+
+    /// @brief Returns the size of each group of blocks in the compressed data vector
+    /// @return Size of each group of blocks
+    std::size_t GroupSize(std::size_t number_of_non_zero_elements) const
+    {
+      return number_of_non_zero_elements;
+    }
+
+    /// @brief Returns the total number of groups of blocks in the compressed data
+    /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
+    /// @return Number of groups of blocks (equal to number_of_blocks for standard ordering)
+    std::size_t NumberOfGroups(std::size_t number_of_blocks) const
+    {
+      return number_of_blocks;
+    }
+
    private:
     /// @brief Returns the column ids of each non-zero element in a block
     /// @param block_size Number of rows or columns for each block
@@ -143,7 +166,9 @@ namespace micm
           starts[(curr_col++) + 1] = total_elem;
         ++total_elem;
       }
-      starts[curr_col + 1] = total_elem;
+      // Fill all remaining entries from curr_col + 1 to block_size
+      for (std::size_t i = curr_col + 1; i <= block_size; ++i)
+        starts[i] = total_elem;
       return starts;
     }
 

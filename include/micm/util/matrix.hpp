@@ -86,6 +86,7 @@ namespace micm
 
     friend class Proxy;
     friend class ConstProxy;
+    template<typename, typename> friend class SparseMatrix;
 
     class Proxy
     {

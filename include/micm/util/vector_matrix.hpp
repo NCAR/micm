@@ -92,6 +92,10 @@ namespace micm
    private:
     friend class Proxy;
     friend class ConstProxy;
+    
+    // Allow SparseMatrix::GroupView to access data_ for cross-matrix operations
+    template<typename U, typename OrderingPolicy>
+    friend class SparseMatrix;
 
     class Proxy
     {
@@ -554,6 +558,25 @@ namespace micm
       }
 
      public:
+      /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
+      GroupView(VectorMatrix& matrix, std::size_t group)
+          : matrix_(matrix), group_(group)
+      {
+        // Calculate how many rows are in this group (typically L, except possibly the last group)
+        std::size_t total_groups = matrix.NumberOfGroups();
+        if (group == total_groups - 1)
+        {
+          // Last group may have fewer than L rows
+          num_rows_in_group_ = matrix.x_dim_ - (total_groups - 1) * L;
+        }
+        else
+        {
+          // All other groups have exactly L rows
+          num_rows_in_group_ = L;
+        }
+      }
+
+      /// @brief Constructor with explicit num_rows_in_group
       GroupView(VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
           : matrix_(matrix), group_(group), num_rows_in_group_(num_rows_in_group)
       {

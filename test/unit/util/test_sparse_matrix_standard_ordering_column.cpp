@@ -115,3 +115,53 @@ TEST(SparseMatrixBuilder, BadConfiguration)
       },
       std::system_error);
 }
+
+TEST(SparseCompressedColumnMatrix, ArrayFunction)
+{
+  testArrayFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultiMatrixArrayFunction)
+{
+  testMultiMatrixArrayFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MismatchedBlockDimensions)
+{
+  testMismatchedBlockDimensions<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MismatchedElementDimensions)
+{
+  testMismatchedElementDimensions<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, WrongMatrixDimensions)
+{
+  testWrongMatrixDimensions<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleTemporaries)
+{
+  testMultipleTemporaries<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, BlockViewReuse)
+{
+  testBlockViewReuse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, FunctionReusability)
+{
+  testFunctionReusability<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, TwoSparseMatricesDifferentStructure)
+{
+  testTwoSparseMatricesDifferentStructure<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, SparseAndDenseMatrixFunction)
+{
+  testSparseAndDenseMatrixFunction<micm::SparseMatrix, StandardOrdering, micm::Matrix>();
+}
