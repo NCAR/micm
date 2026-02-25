@@ -174,6 +174,32 @@ TEST(Matrix, EmptyMatrixFunction)
   testEmptyMatrixFunction<micm::Matrix>();
 }
 
+// Flexible row count tests
+TEST(Matrix, MultiMatrixDifferentRowsFromCreation)
+{
+  testMultiMatrixDifferentRowsFromCreation<micm::Matrix>();
+}
+
+TEST(Matrix, MatrixVectorDifferentRowsFromCreation)
+{
+  testMatrixVectorDifferentRowsFromCreation<micm::Matrix>();
+}
+
+TEST(Matrix, MismatchedRowsAtInvocation)
+{
+  testMismatchedRowsAtInvocation<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleMatricesMismatchedRowsAtInvocation)
+{
+  testMultipleMatricesMismatchedRowsAtInvocation<micm::Matrix>();
+}
+
+TEST(Matrix, WrongColumnCountAtInvocation)
+{
+  testWrongColumnCountAtInvocation<micm::Matrix>();
+}
+
 TEST(Matrix, Print)
 {
   testPrint<micm::Matrix>();

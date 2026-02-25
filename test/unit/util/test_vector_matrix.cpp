@@ -221,6 +221,47 @@ TEST(VectorMatrix, EmptyMatrixFunction)
   testEmptyMatrixFunction<Group4MatrixAlias>();
 }
 
+// Flexible row count tests
+TEST(VectorMatrix, MultiMatrixDifferentRowsFromCreation)
+{
+  testMultiMatrixDifferentRowsFromCreation<Group1MatrixAlias>();
+  testMultiMatrixDifferentRowsFromCreation<Group2MatrixAlias>();
+  testMultiMatrixDifferentRowsFromCreation<Group3MatrixAlias>();
+  testMultiMatrixDifferentRowsFromCreation<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MatrixVectorDifferentRowsFromCreation)
+{
+  testMatrixVectorDifferentRowsFromCreation<Group1MatrixAlias>();
+  testMatrixVectorDifferentRowsFromCreation<Group2MatrixAlias>();
+  testMatrixVectorDifferentRowsFromCreation<Group3MatrixAlias>();
+  testMatrixVectorDifferentRowsFromCreation<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MismatchedRowsAtInvocation)
+{
+  testMismatchedRowsAtInvocation<Group1MatrixAlias>();
+  testMismatchedRowsAtInvocation<Group2MatrixAlias>();
+  testMismatchedRowsAtInvocation<Group3MatrixAlias>();
+  testMismatchedRowsAtInvocation<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultipleMatricesMismatchedRowsAtInvocation)
+{
+  testMultipleMatricesMismatchedRowsAtInvocation<Group1MatrixAlias>();
+  testMultipleMatricesMismatchedRowsAtInvocation<Group2MatrixAlias>();
+  testMultipleMatricesMismatchedRowsAtInvocation<Group3MatrixAlias>();
+  testMultipleMatricesMismatchedRowsAtInvocation<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, WrongColumnCountAtInvocation)
+{
+  testWrongColumnCountAtInvocation<Group1MatrixAlias>();
+  testWrongColumnCountAtInvocation<Group2MatrixAlias>();
+  testWrongColumnCountAtInvocation<Group3MatrixAlias>();
+  testWrongColumnCountAtInvocation<Group4MatrixAlias>();
+}
+
 // Vector support tests
 TEST(VectorMatrix, VectorInMatrixFunction)
 {
