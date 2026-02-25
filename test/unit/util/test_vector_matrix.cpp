@@ -220,3 +220,148 @@ TEST(VectorMatrix, EmptyMatrixFunction)
   testEmptyMatrixFunction<Group3MatrixAlias>();
   testEmptyMatrixFunction<Group4MatrixAlias>();
 }
+
+// Vector support tests
+TEST(VectorMatrix, VectorInMatrixFunction)
+{
+  testVectorInMatrixFunction<Group1MatrixAlias>();
+  testVectorInMatrixFunction<Group2MatrixAlias>();
+  testVectorInMatrixFunction<Group3MatrixAlias>();
+  testVectorInMatrixFunction<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, VectorTooSmall)
+{
+  testVectorTooSmall<Group1MatrixAlias>();
+  testVectorTooSmall<Group2MatrixAlias>();
+  testVectorTooSmall<Group3MatrixAlias>();
+  testVectorTooSmall<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, VectorTooLarge)
+{
+  testVectorTooLarge<Group1MatrixAlias>();
+  testVectorTooLarge<Group2MatrixAlias>();
+  testVectorTooLarge<Group3MatrixAlias>();
+  testVectorTooLarge<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, EmptyVectorNonEmptyMatrix)
+{
+  testEmptyVectorNonEmptyMatrix<Group1MatrixAlias>();
+  testEmptyVectorNonEmptyMatrix<Group2MatrixAlias>();
+  testEmptyVectorNonEmptyMatrix<Group3MatrixAlias>();
+  testEmptyVectorNonEmptyMatrix<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, NonEmptyVectorEmptyMatrix)
+{
+  testNonEmptyVectorEmptyMatrix<Group1MatrixAlias>();
+  testNonEmptyVectorEmptyMatrix<Group2MatrixAlias>();
+  testNonEmptyVectorEmptyMatrix<Group3MatrixAlias>();
+  testNonEmptyVectorEmptyMatrix<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, EmptyVectorEmptyMatrix)
+{
+  testEmptyVectorEmptyMatrix<Group1MatrixAlias>();
+  testEmptyVectorEmptyMatrix<Group2MatrixAlias>();
+  testEmptyVectorEmptyMatrix<Group3MatrixAlias>();
+  testEmptyVectorEmptyMatrix<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultipleVectorsDifferentSizes)
+{
+  testMultipleVectorsDifferentSizes<Group1MatrixAlias>();
+  testMultipleVectorsDifferentSizes<Group2MatrixAlias>();
+  testMultipleVectorsDifferentSizes<Group3MatrixAlias>();
+  testMultipleVectorsDifferentSizes<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultipleVectorsSameSize)
+{
+  testMultipleVectorsSameSize<Group1MatrixAlias>();
+  testMultipleVectorsSameSize<Group2MatrixAlias>();
+  testMultipleVectorsSameSize<Group3MatrixAlias>();
+  testMultipleVectorsSameSize<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultipleMatricesOneVector)
+{
+  testMultipleMatricesOneVector<Group1MatrixAlias>();
+  testMultipleMatricesOneVector<Group2MatrixAlias>();
+  testMultipleMatricesOneVector<Group3MatrixAlias>();
+  testMultipleMatricesOneVector<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MultipleMatricesDifferentRowsVector)
+{
+  testMultipleMatricesDifferentRowsVector<Group1MatrixAlias>();
+  testMultipleMatricesDifferentRowsVector<Group2MatrixAlias>();
+  testMultipleMatricesDifferentRowsVector<Group3MatrixAlias>();
+  testMultipleMatricesDifferentRowsVector<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, VectorSizeMatchesOneMatrixOnly)
+{
+  testVectorSizeMatchesOneMatrixOnly<Group1MatrixAlias>();
+  testVectorSizeMatchesOneMatrixOnly<Group2MatrixAlias>();
+  testVectorSizeMatchesOneMatrixOnly<Group3MatrixAlias>();
+  testVectorSizeMatchesOneMatrixOnly<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ConstVector)
+{
+  testConstVector<Group1MatrixAlias>();
+  testConstVector<Group2MatrixAlias>();
+  testConstVector<Group3MatrixAlias>();
+  testConstVector<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MutableVector)
+{
+  testMutableVector<Group1MatrixAlias>();
+  testMutableVector<Group2MatrixAlias>();
+  testMutableVector<Group3MatrixAlias>();
+  testMutableVector<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, FunctionReusabilityWithVectors)
+{
+  testFunctionReusabilityWithVectors<Group1MatrixAlias>();
+  testFunctionReusabilityWithVectors<Group2MatrixAlias>();
+  testFunctionReusabilityWithVectors<Group3MatrixAlias>();
+  testFunctionReusabilityWithVectors<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, FunctionInvocationWithWrongSizedVector)
+{
+  testFunctionInvocationWithWrongSizedVector<Group1MatrixAlias>();
+  testFunctionInvocationWithWrongSizedVector<Group2MatrixAlias>();
+  testFunctionInvocationWithWrongSizedVector<Group3MatrixAlias>();
+  testFunctionInvocationWithWrongSizedVector<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ArraySupport)
+{
+  testArraySupport<Group1MatrixAlias>();
+  testArraySupport<Group2MatrixAlias>();
+  testArraySupport<Group3MatrixAlias>();
+  testArraySupport<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, MixedVectorColumnViewRowVariable)
+{
+  testMixedVectorColumnViewRowVariable<Group1MatrixAlias>();
+  testMixedVectorColumnViewRowVariable<Group2MatrixAlias>();
+  testMixedVectorColumnViewRowVariable<Group3MatrixAlias>();
+  testMixedVectorColumnViewRowVariable<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, IntegerVector)
+{
+  testIntegerVector<Group1MatrixAlias>();
+  testIntegerVector<Group2MatrixAlias>();
+  testIntegerVector<Group3MatrixAlias>();
+  testIntegerVector<Group4MatrixAlias>();
+}

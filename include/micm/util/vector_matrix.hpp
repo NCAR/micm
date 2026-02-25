@@ -554,6 +554,14 @@ namespace micm
         return arg.Get()[row_in_group];
       }
 
+      /// @brief Get a const element reference for a specific row in this group (Vector-like)
+      template<VectorLike Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      {
+        return arg[group_ * L + row_in_group];
+      }
+
      public:
       /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
       ConstGroupView(const VectorMatrix& matrix, std::size_t group)
@@ -622,6 +630,14 @@ namespace micm
         return arg.Get()[row_in_group];
       }
 
+      /// @brief Get an element reference for a specific row in this group (Vector-like)
+      template<VectorLike Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      {
+        return arg[group_ * L + row_in_group];
+      }
+
      public:
       /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
       GroupView(VectorMatrix& matrix, std::size_t group)
@@ -669,86 +685,133 @@ namespace micm
       std::size_t NumColumns() const { return matrix_.NumColumns(); }
     };
 
-    /// @brief Create a function that can be applied to vector matrices
+    /// @brief Create a function that can be applied to vector matrices and vectors
     /// 
     /// Creates a reusable callable that validates matrix dimensions and applies a user function
     /// across row groups. The function iterates over groups of L rows at a time for vectorization,
     /// where L is the compile-time template parameter.
     /// 
     /// @tparam Func The lambda/function type
-    /// @tparam Matrices The matrix types
-    /// @param func The function to wrap - receives GroupView objects for each matrix
-    /// @param matrices The matrices to validate and capture dimensions from
+    /// @tparam Args The matrix and vector types
+    /// @param func The function to wrap - receives GroupView objects for matrices and vectors
+    /// @param args The matrices and vectors to validate and capture dimensions from
     /// @return A callable that validates dimensions and applies the function
     /// 
     /// @note Validation occurs in two phases:
-    ///   1. At function creation: Validates row counts match across all matrices
-    ///   2. At invocation: Re-validates dimensions in case matrices were resized
+    ///   1. At function creation: Validates row counts match across all matrices and vector sizes
+    ///   2. At invocation: Re-validates dimensions in case matrices/vectors were resized
     /// 
     /// @note Column view creation happens inside user lambda and is validated
     ///       at invocation time, not at function creation time. Ensure all column indices
     ///       are within matrix bounds to avoid runtime errors.
     /// 
-    /// @throws std::system_error if matrices have mismatched row counts or dimensions
-    template<typename Func, typename... Matrices>
-    static auto Function(Func&& func, Matrices&... matrices)
+    /// @throws std::system_error if matrices have mismatched row counts, vectors have wrong sizes,
+    ///         or dimensions mismatch
+    template<typename Func, typename... Args>
+    static auto Function(Func&& func, Args&... args)
     {
-      // Validate that all matrices have the same number of rows
+      // Validate that all matrices have the same number of rows and vectors have matching size
       std::size_t num_rows = 0;
-      std::array<std::size_t, sizeof...(Matrices)> num_cols_per_matrix{};
+      std::array<std::size_t, sizeof...(Args)> num_cols_or_size{};
+      std::array<bool, sizeof...(Args)> is_matrix_type{};
       std::size_t index = 0;
+      bool found_first = false;
       
-      ([&](auto& matrix) {
-        if (index == 0)
-        {
-          num_rows = matrix.NumRows();
+      ([&](auto& arg) {
+        using ArgType = std::remove_cvref_t<decltype(arg)>;
+        
+        if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
+          // This is a matrix
+          is_matrix_type[index] = true;
+          if (!found_first)
+          {
+            num_rows = arg.NumRows();
+            found_first = true;
+          }
+          else if (arg.NumRows() != num_rows)
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "All matrices must have the same number of rows. Expected " + std::to_string(num_rows) +
+                    " but got " + std::to_string(arg.NumRows()));
+          }
+          num_cols_or_size[index] = arg.NumColumns();
         }
-        else if (matrix.NumRows() != num_rows)
-        {
-          throw std::system_error(
-              make_error_code(MicmMatrixErrc::InvalidVector),
-              "All matrices must have the same number of rows. Expected " + std::to_string(num_rows) +
-                  " but got " + std::to_string(matrix.NumRows()));
+        else if constexpr (VectorLike<ArgType>) {
+          // This is a vector-like type
+          is_matrix_type[index] = false;
+          if (!found_first)
+          {
+            num_rows = arg.size();
+            found_first = true;
+          }
+          else if (arg.size() != num_rows)
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Vector size " + std::to_string(arg.size()) + 
+                    " does not match expected row count " + std::to_string(num_rows));
+          }
+          num_cols_or_size[index] = arg.size();
         }
-        num_cols_per_matrix[index] = matrix.NumColumns();
         ++index;
-      }(matrices), ...);
+      }(args), ...);
 
       // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_rows, num_cols_per_matrix](Matrices&... invoked_matrices) {
+      return [func = std::forward<Func>(func), num_rows, num_cols_or_size, is_matrix_type](Args&... invoked_args) {
         std::size_t idx = 0;
-        ([&](auto& matrix) {
-          if (matrix.NumRows() != num_rows)
-          {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "Matrix dimensions do not match. Expected " + std::to_string(num_rows) + " rows but got " +
-                    std::to_string(matrix.NumRows()));
+        ([&](auto& arg) {
+          using ArgType = std::remove_cvref_t<decltype(arg)>;
+          if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
+            // Validate matrix dimensions
+            if (arg.NumRows() != num_rows)
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "Matrix dimensions do not match. Expected " + std::to_string(num_rows) + " rows but got " +
+                      std::to_string(arg.NumRows()));
+            }
+            if (arg.NumColumns() != num_cols_or_size[idx])
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "Matrix dimensions do not match. Expected " + std::to_string(num_cols_or_size[idx]) + 
+                      " columns but got " + std::to_string(arg.NumColumns()));
+            }
           }
-          if (matrix.NumColumns() != num_cols_per_matrix[idx])
-          {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "Matrix dimensions do not match. Expected " + std::to_string(num_cols_per_matrix[idx]) + 
-                    " columns but got " + std::to_string(matrix.NumColumns()));
+          else if constexpr (VectorLike<ArgType>) {
+            // Validate vector size
+            if (arg.size() != num_cols_or_size[idx])
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "Vector dimensions do not match. Expected " + std::to_string(num_cols_or_size[idx]) + 
+                      " elements but got " + std::to_string(arg.size()));
+            }
           }
           ++idx;
-        }(invoked_matrices), ...);
+        }(invoked_args), ...);
         
         // Iterate over groups, processing L rows at a time
         std::size_t num_complete_groups = std::floor(num_rows / (double)L);
         for (std::size_t group = 0; group < num_complete_groups; ++group)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
-          func([&]() {
-            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
-            if constexpr (std::is_const_v<MatrixType>)
-            {
-              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, group, L);
+          // For vectors, just pass them through
+          func([&]() -> decltype(auto) {
+            using ArgType = std::remove_reference_t<decltype(invoked_args)>;
+            if constexpr (requires { invoked_args.NumRows(); invoked_args.NumColumns(); }) {
+              if constexpr (std::is_const_v<ArgType>)
+              {
+                return typename std::decay_t<Args>::ConstGroupView(invoked_args, group, L);
+              }
+              else
+              {
+                return typename std::decay_t<Args>::GroupView(invoked_args, group, L);
+              }
             }
-            else
-            {
-              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, group, L);
+            else {
+              return std::forward<decltype(invoked_args)>(invoked_args);
             }
           }()...);
         }
@@ -758,15 +821,21 @@ namespace micm
         if (remaining > 0)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
-          func([&]() {
-            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
-            if constexpr (std::is_const_v<MatrixType>)
-            {
-              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, num_complete_groups, remaining);
+          // For vectors, just pass them through
+          func([&]() -> decltype(auto) {
+            using ArgType = std::remove_reference_t<decltype(invoked_args)>;
+            if constexpr (requires { invoked_args.NumRows(); invoked_args.NumColumns(); }) {
+              if constexpr (std::is_const_v<ArgType>)
+              {
+                return typename std::decay_t<Args>::ConstGroupView(invoked_args, num_complete_groups, remaining);
+              }
+              else
+              {
+                return typename std::decay_t<Args>::GroupView(invoked_args, num_complete_groups, remaining);
+              }
             }
-            else
-            {
-              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, num_complete_groups, remaining);
+            else {
+              return std::forward<decltype(invoked_args)>(invoked_args);
             }
           }()...);
         }
@@ -790,6 +859,14 @@ namespace micm
     inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
     {
       return arg.Get()[row_in_group];
+    }
+
+    /// @brief Get an element reference for a row (Vector-like)
+    template<VectorLike Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    {
+      return arg[row];
     }
   };
 

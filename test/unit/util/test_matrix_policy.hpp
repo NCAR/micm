@@ -513,6 +513,72 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunct
 }
 
 template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testVectorInMatrixFunction()
+{
+  MatrixPolicy<double> matrix{ 5, 3, -1.0 };
+
+  // Set initial values that differ by rows
+  for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i)
+    for (int j = 0; j < static_cast<int>(matrix.NumColumns()); ++j)
+      matrix[i][j] = static_cast<double>(i - 2 + 10 * j);
+
+  // Initial Matrix values:
+  // Row 0: -2, 8, 18
+  // Row 1: -1, 9, 19
+  // Row 2: 0, 10, 20
+  // Row 3: 1, 11, 21
+  // Row 4: 2, 12, 22
+
+  // Create a vector that we will use in the function
+  std::vector<double> vec(matrix.NumRows());
+
+  // Set some initial values in the vector
+  vec[0] = 100.0;
+  vec[1] = 200.0;
+  vec[2] = 300.0;
+  vec[3] = 400.0;
+  vec[4] = 500.0;
+
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      auto tmp = m.GetRowVariable();
+      m.ForEachRow([&](const double& a, const double& b, const double& c, double& t)
+        { t = a + b + c; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        m.GetConstColumnView(2),
+        tmp);
+      m.ForEachRow([&](double& c, const double& d, const double& t)
+        { c = d * t; },
+        m.GetColumnView(2),
+        v,
+        tmp);
+    }, matrix, vec); // pass matrix so the type and dimensions are known by the function
+
+  func(matrix, vec); // apply the function to the matrix
+
+  // Check results
+  EXPECT_EQ(matrix[0][2], 100.0 * (-2 + 8 + 18));   // 2400
+  EXPECT_EQ(matrix[1][2], 200.0 * (-1 + 9 + 19));   // 5400
+  EXPECT_EQ(matrix[2][2], 300.0 * (0 + 10 + 20));   // 9000
+  EXPECT_EQ(matrix[3][2], 400.0 * (1 + 11 + 21));   // 13200
+  EXPECT_EQ(matrix[4][2], 500.0 * (2 + 12 + 22));   // 17000
+  EXPECT_EQ(matrix[0][0], -2.0);
+  EXPECT_EQ(matrix[1][0], -1.0);
+  EXPECT_EQ(matrix[2][0], 0.0);
+  EXPECT_EQ(matrix[3][0], 1.0);
+  EXPECT_EQ(matrix[4][0], 2.0);
+  EXPECT_EQ(matrix[0][1], 8.0);
+  EXPECT_EQ(matrix[1][1], 9.0);
+  EXPECT_EQ(matrix[2][1], 10.0);
+  EXPECT_EQ(matrix[3][1], 11.0);
+  EXPECT_EQ(matrix[4][1], 12.0);
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
 void testMismatchedRowDimensions()
 {
   MatrixPolicy<double> matrixA{ 3, 3, 1.0 };
@@ -821,5 +887,466 @@ void testEmptyMatrixFunction()
     }, empty_cols);
   
   EXPECT_NO_THROW(func2(empty_cols));
+}
+
+// ============================================================================
+// Vector Support Validation Tests
+// ============================================================================
+
+/// @brief Test: Vector with TOO FEW elements (should throw at Function creation)
+template<template<class> class MatrixPolicy>
+void testVectorTooSmall()
+{
+  MatrixPolicy<double> matrix{ 5, 3, 1.0 };
+  std::vector<double> vec_too_small(3);  // Only 3 elements, but matrix has 5 rows
+  
+  // Should throw when creating the function because vector size doesn't match row count
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      auto tmp = m.GetRowVariable();
+      m.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstColumnView(0),
+        v,  // Vector with wrong size
+        tmp);
+    }, matrix, vec_too_small));
+}
+
+/// @brief Test: Vector with TOO MANY elements (should throw at Function creation)
+template<template<class> class MatrixPolicy>
+void testVectorTooLarge()
+{
+  MatrixPolicy<double> matrix{ 5, 3, 1.0 };
+  std::vector<double> vec_too_large(10);  // 10 elements, but matrix has 5 rows
+  
+  // Should throw when creating the function because vector size doesn't match row count
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      auto tmp = m.GetRowVariable();
+      m.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstColumnView(0),
+        v,  // Vector with wrong size
+        tmp);
+    }, matrix, vec_too_large));
+}
+
+/// @brief Test: Empty vector with non-empty matrix (should throw)
+template<template<class> class MatrixPolicy>
+void testEmptyVectorNonEmptyMatrix()
+{
+  MatrixPolicy<double> matrix{ 5, 3, 1.0 };
+  std::vector<double> empty_vec;  // Empty
+  
+  // Should throw
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a; },
+        v,
+        m.GetColumnView(0));
+    }, matrix, empty_vec));
+}
+
+/// @brief Test: Non-empty vector with empty matrix (edge case - should throw)
+template<template<class> class MatrixPolicy>
+void testNonEmptyVectorEmptyMatrix()
+{
+  MatrixPolicy<double> matrix{ 0, 3, 1.0 };  // 0 rows
+  std::vector<double> vec(5);
+  
+  // Should throw because vector has elements but matrix has no rows
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a; },
+        v,
+        m.GetColumnView(0));
+    }, matrix, vec));
+}
+
+/// @brief Test: Empty vector with empty matrix (should work - no iterations)
+template<template<class> class MatrixPolicy>
+void testEmptyVectorEmptyMatrix()
+{
+  MatrixPolicy<double> matrix{ 0, 3, 1.0 };  // 0 rows
+  std::vector<double> empty_vec;  // Empty
+  
+  // Should succeed - both are empty, ForEachRow won't iterate
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a; },
+        v,
+        m.GetColumnView(0));
+    }, matrix, empty_vec);
+  
+  EXPECT_NO_THROW(func(matrix, empty_vec));
+}
+
+/// @brief Test: Multiple vectors with DIFFERENT sizes (should throw)
+template<template<class> class MatrixPolicy>
+void testMultipleVectorsDifferentSizes()
+{
+  MatrixPolicy<double> matrix{ 5, 3, 1.0 };
+  std::vector<double> vec1(5);  // Correct size
+  std::vector<double> vec2(3);  // Wrong size
+  
+  // Should throw because vec2 doesn't match matrix row count
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v1, auto&& v2)
+    {
+      m.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a + b; },
+        v1,
+        v2,
+        m.GetColumnView(0));
+    }, matrix, vec1, vec2));
+}
+
+/// @brief Test: Multiple vectors with SAME correct size (should work)
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testMultipleVectorsSameSize()
+{
+  MatrixPolicy<double> matrix{ 5, 3, 0.0 };
+  std::vector<double> vec1(5);
+  std::vector<double> vec2(5);
+  
+  // Initialize vectors
+  for (std::size_t i = 0; i < 5; ++i)
+  {
+    vec1[i] = static_cast<double>(i + 1);
+    vec2[i] = static_cast<double>((i + 1) * 10);
+  }
+  
+  // Should succeed
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v1, auto&& v2)
+    {
+      // col0 = v1 + v2
+      m.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a + b; },
+        v1,
+        v2,
+        m.GetColumnView(0));
+    }, matrix, vec1, vec2);
+  
+  func(matrix, vec1, vec2);
+  
+  // Verify results
+  EXPECT_EQ(matrix[0][0], 1.0 + 10.0);    // 11
+  EXPECT_EQ(matrix[1][0], 2.0 + 20.0);    // 22
+  EXPECT_EQ(matrix[2][0], 3.0 + 30.0);    // 33
+  EXPECT_EQ(matrix[3][0], 4.0 + 40.0);    // 44
+  EXPECT_EQ(matrix[4][0], 5.0 + 50.0);    // 55
+  
+  return matrix;
+}
+
+/// @brief Test: Multiple matrices + vector - vector size must match all matrices
+template<template<class> class MatrixPolicy>
+std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVector()
+{
+  MatrixPolicy<double> matrixA{ 4, 2, 0.0 };
+  MatrixPolicy<double> matrixB{ 4, 3, 0.0 };
+  std::vector<double> vec(4);
+  
+  for (std::size_t i = 0; i < 4; ++i)
+  {
+    vec[i] = static_cast<double>(i * 2);
+    matrixA[i][0] = static_cast<double>(i + 1);
+    matrixB[i][0] = static_cast<double>(i * 10);
+  }
+  
+  // Should succeed - both matrices have 4 rows, vector has 4 elements
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& mA, auto&& mB, auto&& v)
+    {
+      // matrixA col1 = matrixA col0 + vector
+      mA.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a + b; },
+        mA.GetConstColumnView(0),
+        v,
+        mA.GetColumnView(1));
+      
+      // matrixB col1 = matrixB col0 + vector
+      mB.ForEachRow([&](const double& a, const double& b, double& c)
+        { c = a + b; },
+        mB.GetConstColumnView(0),
+        v,
+        mB.GetColumnView(1));
+    }, matrixA, matrixB, vec);
+  
+  func(matrixA, matrixB, vec);
+  
+  // Verify results
+  EXPECT_EQ(matrixA[0][1], 1.0 + 0.0);   // 1
+  EXPECT_EQ(matrixA[1][1], 2.0 + 2.0);   // 4
+  EXPECT_EQ(matrixA[2][1], 3.0 + 4.0);   // 7
+  EXPECT_EQ(matrixA[3][1], 4.0 + 6.0);   // 10
+  
+  EXPECT_EQ(matrixB[0][1], 0.0 + 0.0);   // 0
+  EXPECT_EQ(matrixB[1][1], 10.0 + 2.0);  // 12
+  EXPECT_EQ(matrixB[2][1], 20.0 + 4.0);  // 24
+  EXPECT_EQ(matrixB[3][1], 30.0 + 6.0);  // 36
+  
+  return { matrixA, matrixB };
+}
+
+/// @brief Test: Multiple matrices with DIFFERENT row counts + vector (should throw)
+template<template<class> class MatrixPolicy>
+void testMultipleMatricesDifferentRowsVector()
+{
+  MatrixPolicy<double> matrixA{ 4, 2, 0.0 };
+  MatrixPolicy<double> matrixB{ 5, 3, 0.0 };  // Different row count!
+  std::vector<double> vec(4);
+  
+  // Should throw because matrices have different row counts
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& mA, auto&& mB, auto&& v)
+    {
+      mA.ForEachRow([&](const double& a, double& b)
+        { b = a; },
+        v,
+        mA.GetColumnView(0));
+    }, matrixA, matrixB, vec));
+}
+
+/// @brief Test: Vector size matches one matrix but not the other (should throw)
+template<template<class> class MatrixPolicy>
+void testVectorSizeMatchesOneMatrixOnly()
+{
+  MatrixPolicy<double> matrixA{ 5, 2, 0.0 };
+  MatrixPolicy<double> matrixB{ 5, 3, 0.0 };
+  std::vector<double> vec(4);  // Wrong size for both matrices (they have 5 rows)
+  
+  // Should throw because vector doesn't match matrix row counts
+  EXPECT_ANY_THROW(MatrixPolicy<double>::Function(
+    [](auto&& mA, auto&& mB, auto&& v)
+    {
+      mA.ForEachRow([&](const double& a, double& b)
+        { b = a; },
+        v,
+        mA.GetColumnView(0));
+    }, matrixA, matrixB, vec));
+}
+
+/// @brief Test: Const vector (read-only access)
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testConstVector()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  std::vector<double> vec_data = { 10.0, 20.0, 30.0 };
+  const std::vector<double>& const_vec = vec_data;
+  
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      // Read from const vector, write to matrix
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a * 2.0; },
+        v,  // const vector
+        m.GetColumnView(0));
+    }, matrix, const_vec);
+  
+  func(matrix, const_vec);
+  
+  EXPECT_EQ(matrix[0][0], 20.0);
+  EXPECT_EQ(matrix[1][0], 40.0);
+  EXPECT_EQ(matrix[2][0], 60.0);
+  
+  return matrix;
+}
+
+/// @brief Test: Non-const vector that gets modified
+template<template<class> class MatrixPolicy>
+std::tuple<MatrixPolicy<double>, std::vector<double>> testMutableVector()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  
+  for (std::size_t i = 0; i < 3; ++i)
+    matrix[i][0] = static_cast<double>(i + 1);
+  
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      // Write to vector from matrix
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a * 3.0; },
+        m.GetConstColumnView(0),
+        v);  // non-const vector
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  // Vector should be modified
+  EXPECT_EQ(vec[0], 3.0);
+  EXPECT_EQ(vec[1], 6.0);
+  EXPECT_EQ(vec[2], 9.0);
+  
+  return { matrix, vec };
+}
+
+/// @brief Test: Function reusability with different vectors
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testFunctionReusabilityWithVectors()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
+  
+  // Create function once
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a * 10.0; },
+        v,
+        m.GetColumnView(0));
+    }, matrix, vec1);
+  
+  // Apply with first vector
+  func(matrix, vec1);
+  EXPECT_EQ(matrix[0][0], 10.0);
+  EXPECT_EQ(matrix[1][0], 20.0);
+  EXPECT_EQ(matrix[2][0], 30.0);
+  
+  // Apply with second vector (same size)
+  std::vector<double> vec2 = { 5.0, 6.0, 7.0 };
+  func(matrix, vec2);
+  EXPECT_EQ(matrix[0][0], 50.0);
+  EXPECT_EQ(matrix[1][0], 60.0);
+  EXPECT_EQ(matrix[2][0], 70.0);
+  
+  return matrix;
+}
+
+/// @brief Test: Applying function with vector of wrong size at invocation time
+template<template<class> class MatrixPolicy>
+void testFunctionInvocationWithWrongSizedVector()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  std::vector<double> vec_correct(3);
+  std::vector<double> vec_wrong(5);
+  
+  // Create function with correct-sized vector
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachRow([&](const double& a, double& b)
+        { b = a; },
+        v,
+        m.GetColumnView(0));
+    }, matrix, vec_correct);
+  
+  // Should work with correct size
+  EXPECT_NO_THROW(func(matrix, vec_correct));
+  
+  // Should throw when invoked with wrong-sized vector
+  EXPECT_ANY_THROW(func(matrix, vec_wrong));
+}
+
+/// @brief Test: Array instead of vector (should work with any operator[] type)
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testArraySupport()
+{
+  MatrixPolicy<double> matrix{ 4, 2, 0.0 };
+  std::array<double, 4> arr = { 100.0, 200.0, 300.0, 400.0 };
+  
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& a)
+    {
+      m.ForEachRow([&](const double& val, double& result)
+        { result = val / 2.0; },
+        a,
+        m.GetColumnView(0));
+    }, matrix, arr);
+  
+  func(matrix, arr);
+  
+  EXPECT_EQ(matrix[0][0], 50.0);
+  EXPECT_EQ(matrix[1][0], 100.0);
+  EXPECT_EQ(matrix[2][0], 150.0);
+  EXPECT_EQ(matrix[3][0], 200.0);
+  
+  return matrix;
+}
+
+/// @brief Test: Mixed - vector, column view, and row variable together
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testMixedVectorColumnViewRowVariable()
+{
+  MatrixPolicy<double> matrix{ 4, 3, 0.0 };
+  std::vector<double> vec(4);
+  
+  for (std::size_t i = 0; i < 4; ++i)
+  {
+    matrix[i][0] = static_cast<double>(i + 1);
+    matrix[i][1] = static_cast<double>((i + 1) * 10);
+    vec[i] = static_cast<double>((i + 1) * 100);
+  }
+  
+  auto func = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v)
+    {
+      auto tmp = m.GetRowVariable();
+      
+      // tmp = col0 + col1
+      m.ForEachRow([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstColumnView(0),
+        m.GetConstColumnView(1),
+        tmp);
+      
+      // col2 = tmp + vector
+      m.ForEachRow([&](const double& t, const double& v_elem, double& result)
+        { result = t + v_elem; },
+        tmp,
+        v,
+        m.GetColumnView(2));
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  // Row 0: col0=1, col1=10, vec=100, result=(1+10)+100=111
+  EXPECT_EQ(matrix[0][2], 111.0);
+  // Row 1: col0=2, col1=20, vec=200, result=(2+20)+200=222
+  EXPECT_EQ(matrix[1][2], 222.0);
+  // Row 2: col0=3, col1=30, vec=300, result=(3+30)+300=333
+  EXPECT_EQ(matrix[2][2], 333.0);
+  // Row 3: col0=4, col1=40, vec=400, result=(4+40)+400=444
+  EXPECT_EQ(matrix[3][2], 444.0);
+  
+  return matrix;
+}
+
+/// @brief Test: Different integer types (std::vector<int>)
+template<template<class> class MatrixPolicy>
+MatrixPolicy<int> testIntegerVector()
+{
+  MatrixPolicy<int> matrix{ 3, 2, 0 };
+  std::vector<int> vec = { 10, 20, 30 };
+  
+  auto func = MatrixPolicy<int>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachRow([&](const int& a, int& b)
+        { b = a * 2; },
+        v,
+        m.GetColumnView(0));
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  EXPECT_EQ(matrix[0][0], 20);
+  EXPECT_EQ(matrix[1][0], 40);
+  EXPECT_EQ(matrix[2][0], 60);
+  
+  return matrix;
 }
 

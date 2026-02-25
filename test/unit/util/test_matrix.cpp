@@ -178,3 +178,93 @@ TEST(Matrix, Print)
 {
   testPrint<micm::Matrix>();
 }
+// Vector support tests
+TEST(Matrix, VectorInMatrixFunction)
+{
+  testVectorInMatrixFunction<micm::Matrix>();
+}
+
+TEST(Matrix, VectorTooSmall)
+{
+  testVectorTooSmall<micm::Matrix>();
+}
+
+TEST(Matrix, VectorTooLarge)
+{
+  testVectorTooLarge<micm::Matrix>();
+}
+
+TEST(Matrix, EmptyVectorNonEmptyMatrix)
+{
+  testEmptyVectorNonEmptyMatrix<micm::Matrix>();
+}
+
+TEST(Matrix, NonEmptyVectorEmptyMatrix)
+{
+  testNonEmptyVectorEmptyMatrix<micm::Matrix>();
+}
+
+TEST(Matrix, EmptyVectorEmptyMatrix)
+{
+  testEmptyVectorEmptyMatrix<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleVectorsDifferentSizes)
+{
+  testMultipleVectorsDifferentSizes<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleVectorsSameSize)
+{
+  testMultipleVectorsSameSize<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleMatricesOneVector)
+{
+  testMultipleMatricesOneVector<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleMatricesDifferentRowsVector)
+{
+  testMultipleMatricesDifferentRowsVector<micm::Matrix>();
+}
+
+TEST(Matrix, VectorSizeMatchesOneMatrixOnly)
+{
+  testVectorSizeMatchesOneMatrixOnly<micm::Matrix>();
+}
+
+TEST(Matrix, ConstVector)
+{
+  testConstVector<micm::Matrix>();
+}
+
+TEST(Matrix, MutableVector)
+{
+  testMutableVector<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionReusabilityWithVectors)
+{
+  testFunctionReusabilityWithVectors<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionInvocationWithWrongSizedVector)
+{
+  testFunctionInvocationWithWrongSizedVector<micm::Matrix>();
+}
+
+TEST(Matrix, ArraySupport)
+{
+  testArraySupport<micm::Matrix>();
+}
+
+TEST(Matrix, MixedVectorColumnViewRowVariable)
+{
+  testMixedVectorColumnViewRowVariable<micm::Matrix>();
+}
+
+TEST(Matrix, IntegerVector)
+{
+  testIntegerVector<micm::Matrix>();
+}
