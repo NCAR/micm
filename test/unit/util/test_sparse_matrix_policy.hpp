@@ -738,18 +738,24 @@ void testMismatchedBlockDimensions()
   MatrixPolicy<double, OrderingPolicy> matrixA{ builderA };
   MatrixPolicy<double, OrderingPolicy> matrixB{ builderB };
 
-  // Should throw when creating the function with mismatched block counts
+  // Should succeed at creation (different block counts allowed at creation)
   using SparseMatrixType = MatrixPolicy<double, OrderingPolicy>;
-  EXPECT_ANY_THROW(SparseMatrixType::Function(
+  auto func = SparseMatrixType::Function(
     [](auto&& mA, auto&& mB)
     {
-      // This should throw when matrixA and matrixB have different block counts
+      // This should work when matrices have same block counts
       mA.ForEachBlock([&](const double& a, const double& b, double& c)
         { c = a + b; },
         mA.GetConstBlockView(0, 1),
         mB.GetConstBlockView(0, 1),
         mA.GetBlockView(1, 1));
-    }, matrixA, matrixB));
+    }, matrixA, matrixA);
+  
+  // Should work with matching block counts
+  EXPECT_NO_THROW(func(matrixA, matrixA));
+  
+  // Should throw at invocation when matrices have different block counts
+  EXPECT_ANY_THROW(func(matrixA, matrixB));
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
@@ -792,7 +798,7 @@ void testWrongMatrixDimensions()
                       .WithElement(3, 3)
                       .SetNumberOfBlocks(3);
 
-  auto builder2 = MatrixPolicy<double, OrderingPolicy>::Create(5)  // Different matrix size!
+  auto builder2 = MatrixPolicy<double, OrderingPolicy>::Create(5)  // Different block size (5x5 vs 4x4)
                       .WithElement(0, 1)
                       .WithElement(1, 1)
                       .WithElement(2, 2)
@@ -802,21 +808,277 @@ void testWrongMatrixDimensions()
   MatrixPolicy<double, OrderingPolicy> matrix1{ builder1 };
   MatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
 
-  // Create a function that expects 4x4 matrix
+  // Create a function with 4x4 block matrix
   auto func = MatrixPolicy<double, OrderingPolicy>::Function(
     [](auto&& m)
     {
       m.ForEachBlock([&](const double& a, double& b)
         { b = a * 2.0; },
         m.GetConstBlockView(0, 1),
-        m.GetBlockView(3, 3));  // Element (3,3) exists in 4x4 matrix
+        m.GetBlockView(3, 3));  // Element (3,3) exists in both matrices
     }, matrix1);
 
-  func(matrix1);  // Should work fine
+  // Should work fine with matrix1
   EXPECT_NO_THROW(func(matrix1));
 
-  // Should throw when applied to matrix with wrong dimensions
-  EXPECT_ANY_THROW(func(matrix2));
+  // Should also work with matrix2 since it has the same number of blocks (3)
+  // and the accessed elements (0,1) and (3,3) exist in its sparsity pattern
+  EXPECT_NO_THROW(func(matrix2));
+  
+  // But if we try to use a matrix with different number of blocks, it should fail
+  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                      .WithElement(0, 1)
+                      .WithElement(1, 1)
+                      .SetNumberOfBlocks(5);  // Different number of blocks!
+  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
+  
+  // Should throw because number of blocks doesn't match (5 vs 3)
+  EXPECT_ANY_THROW(func(matrix3));
+}
+
+/// @brief Test: Multiple sparse matrices with DIFFERENT block counts from creation (should work)
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>> testMultipleSparseMatricesDifferentBlocksFromCreation()
+{
+  // Create function with matrices having 3 blocks
+  auto builder3blocks = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                            .WithElement(0, 1)
+                            .WithElement(1, 2)
+                            .WithElement(2, 3)
+                            .SetNumberOfBlocks(3);
+  
+  MatrixPolicy<double, OrderingPolicy> matrixA_3blocks{ builder3blocks };
+  MatrixPolicy<double, OrderingPolicy> matrixB_3blocks{ builder3blocks };
+  
+  // Initialize 3-block matrices
+  for (int block = 0; block < 3; ++block)
+  {
+    matrixA_3blocks[block][0][1] = static_cast<double>(block + 1);
+    matrixA_3blocks[block][1][2] = static_cast<double>(block + 10);
+    matrixB_3blocks[block][2][3] = static_cast<double>(block + 100);
+  }
+  
+  // Create function with 3-block matrices
+  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& mA, auto&& mB)
+    {
+      // Compute mA(2,3) = mA(0,1) + mA(1,2) + mB(2,3)
+      auto tmp = mA.GetBlockVariable();
+      mA.ForEachBlock([&](const double& a, const double& b, const double& c, double& t)
+        { t = a + b + c; },
+        mA.GetConstBlockView(0, 1),
+        mA.GetConstBlockView(1, 2),
+        mB.GetConstBlockView(2, 3),
+        tmp);
+      mA.ForEachBlock([&](const double& t, double& result)
+        { result = t; },
+        tmp,
+        mA.GetBlockView(2, 3));
+    }, matrixA_3blocks, matrixB_3blocks);
+  
+  // Now use with matrices having 4 blocks (different from creation!)
+  auto builder4blocks = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                            .WithElement(0, 1)
+                            .WithElement(1, 2)
+                            .WithElement(2, 3)
+                            .SetNumberOfBlocks(4);
+  
+  MatrixPolicy<double, OrderingPolicy> matrixA_4blocks{ builder4blocks };
+  MatrixPolicy<double, OrderingPolicy> matrixB_4blocks{ builder4blocks };
+  
+  // Initialize 4-block matrices
+  for (int block = 0; block < 4; ++block)
+  {
+    matrixA_4blocks[block][0][1] = static_cast<double>(block + 1);
+    matrixA_4blocks[block][1][2] = static_cast<double>(block + 10);
+    matrixB_4blocks[block][2][3] = static_cast<double>(block + 100);
+  }
+  
+  // Should work with different block count
+  EXPECT_NO_THROW(func(matrixA_4blocks, matrixB_4blocks));
+  
+  // Verify results for first 4 blocks
+  EXPECT_EQ(matrixA_4blocks[0][2][3], 1 + 10 + 100);   // 111
+  EXPECT_EQ(matrixA_4blocks[1][2][3], 2 + 11 + 101);   // 114
+  EXPECT_EQ(matrixA_4blocks[2][2][3], 3 + 12 + 102);   // 117
+  EXPECT_EQ(matrixA_4blocks[3][2][3], 4 + 13 + 103);   // 120
+  
+  return { matrixA_4blocks, matrixB_4blocks };
+}
+
+/// @brief Test: Sparse matrix + vector with DIFFERENT block/size from creation (should work)
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> testSparseMatrixVectorDifferentBlocksFromCreation()
+{
+  // Create function with 3-block matrix and 3-element vector
+  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .SetNumberOfBlocks(3);
+  
+  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
+  std::vector<double> vec3 = { 1.0, 2.0, 3.0 };
+  
+  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      // m(1,2) = m(0,1) + v
+      auto tmp = m.GetBlockVariable();
+      m.ForEachBlock([&](const double& a, const double& b, double& t)
+        { t = a + b; },
+        m.GetConstBlockView(0, 1),
+        v,
+        tmp);
+      m.ForEachBlock([&](const double& t, double& result)
+        { result = t; },
+        tmp,
+        m.GetBlockView(1, 2));
+    }, matrix3, vec3);
+  
+  // Now use with 5-block matrix and 5-element vector (different from creation!)
+  auto builder5 = MatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .SetNumberOfBlocks(5);
+  
+  MatrixPolicy<double, OrderingPolicy> matrix5{ builder5 };
+  std::vector<double> vec5 = { 10.0, 20.0, 30.0, 40.0, 50.0 };
+  
+  // Initialize
+  for (int block = 0; block < 5; ++block)
+  {
+    matrix5[block][0][1] = static_cast<double>(block + 1);
+  }
+  
+  // Should work with different block/vector size
+  EXPECT_NO_THROW(func(matrix5, vec5));
+  
+  // Verify results
+  EXPECT_EQ(matrix5[0][1][2], 1 + 10);   // 11
+  EXPECT_EQ(matrix5[1][1][2], 2 + 20);   // 22
+  EXPECT_EQ(matrix5[2][1][2], 3 + 30);   // 33
+  EXPECT_EQ(matrix5[3][1][2], 4 + 40);   // 44
+  EXPECT_EQ(matrix5[4][1][2], 5 + 50);   // 55
+  
+  return { matrix5, vec5 };
+}
+
+/// @brief Test: MISMATCHED block counts at invocation (should throw)
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+void testMismatchedBlocksAtInvocation()
+{
+  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .SetNumberOfBlocks(3);
+  
+  auto builder4 = MatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .SetNumberOfBlocks(4);
+  
+  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
+  MatrixPolicy<double, OrderingPolicy> matrix4{ builder4 };
+  
+  // Create function
+  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& mA, auto&& mB)
+    {
+      mA.ForEachBlock([&](const double& a, double& b)
+        { b = a * 2.0; },
+        mB.GetConstBlockView(0, 1),
+        mA.GetBlockView(1, 2));
+    }, matrix3, matrix3);
+  
+  // Should work with matching blocks
+  EXPECT_NO_THROW(func(matrix3, matrix3));
+  
+  // Should throw with mismatched block counts
+  EXPECT_ANY_THROW(func(matrix3, matrix4));
+  EXPECT_ANY_THROW(func(matrix4, matrix3));
+}
+
+/// @brief Test: Multiple sparse matrices with MISMATCHED blocks at invocation (should throw)
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+void testMultipleSparseMatricesMismatchedBlocksAtInvocation()
+{
+  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .WithElement(2, 3)
+                      .SetNumberOfBlocks(3);
+  
+  auto builder4 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .WithElement(2, 3)
+                      .SetNumberOfBlocks(4);
+  
+  MatrixPolicy<double, OrderingPolicy> matrixA_3{ builder3 };
+  MatrixPolicy<double, OrderingPolicy> matrixB_3{ builder3 };
+  MatrixPolicy<double, OrderingPolicy> matrixC_4{ builder4 };
+  
+  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& mA, auto&& mB, auto&& mC)
+    {
+      mA.ForEachBlock([&](const double& a, const double& b, const double& c, double& result)
+        { result = a + b + c; },
+        mA.GetConstBlockView(0, 1),
+        mB.GetConstBlockView(1, 2),
+        mC.GetConstBlockView(2, 3),
+        mA.GetBlockView(2, 3));
+    }, matrixA_3, matrixB_3, matrixB_3);
+  
+  // Should work when all have matching blocks
+  EXPECT_NO_THROW(func(matrixA_3, matrixB_3, matrixB_3));
+  
+  // Should throw when one matrix has different block count
+  EXPECT_ANY_THROW(func(matrixA_3, matrixB_3, matrixC_4));
+  EXPECT_ANY_THROW(func(matrixC_4, matrixB_3, matrixB_3));
+}
+
+/// @brief Test: Wrong element structure fails, different blocks succeeds
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+void testWrongStructureAtInvocation()
+{
+  // Same structure, different blocks
+  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                      .WithElement(0, 1)
+                      .WithElement(1, 2)
+                      .WithElement(2, 3)
+                      .SetNumberOfBlocks(3);
+  
+  auto builder5_same = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                           .WithElement(0, 1)
+                           .WithElement(1, 2)
+                           .WithElement(2, 3)
+                           .SetNumberOfBlocks(5);
+  
+  // Different structure (different elements)
+  auto builder5_diff = MatrixPolicy<double, OrderingPolicy>::Create(4)
+                           .WithElement(0, 1)
+                           .WithElement(1, 1)  // Different!
+                           .WithElement(2, 2)  // Different!
+                           .SetNumberOfBlocks(5);
+  
+  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
+  MatrixPolicy<double, OrderingPolicy> matrix5_same{ builder5_same };
+  MatrixPolicy<double, OrderingPolicy> matrix5_diff{ builder5_diff };
+  
+  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m)
+    {
+      m.ForEachBlock([&](const double& a, double& b)
+        { b = a * 2.0; },
+        m.GetConstBlockView(0, 1),
+        m.GetBlockView(1, 2));
+    }, matrix3);
+  
+  // Should work with different block count but same structure
+  EXPECT_NO_THROW(func(matrix5_same));
+  
+  // Should throw with different element structure
+  EXPECT_ANY_THROW(func(matrix5_diff));
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
@@ -1525,13 +1787,17 @@ void testVectorTooSmall()
   SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
   std::vector<double> vec = { 1.0, 2.0 };  // Too small - needs 3 elements
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&) {}, matrix, vec);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation (block counts can differ at creation)
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) {
+        m.ForEachBlock([&](const double& a, double& b)
+          { b = a; },
+          v,
+          m.GetBlockView(0, 1));
+      }, matrix, vec);
+  
+  // Should throw at invocation when vector size doesn't match block count
+  EXPECT_ANY_THROW(func(matrix, vec));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
@@ -1544,13 +1810,17 @@ void testVectorTooLarge()
   SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
   std::vector<double> vec = { 1.0, 2.0, 3.0, 4.0 };  // Too large
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&) {}, matrix, vec);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation (block counts can differ at creation)
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) {
+        m.ForEachBlock([&](const double& a, double& b)
+          { b = a; },
+          v,
+          m.GetBlockView(0, 1));
+      }, matrix, vec);
+  
+  // Should throw at invocation when vector size doesn't match block count
+  EXPECT_ANY_THROW(func(matrix, vec));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
@@ -1563,13 +1833,17 @@ void testEmptyVectorNonEmptySparseMatrix()
   SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
   std::vector<double> vec;  // Empty
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&) {}, matrix, vec);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) {
+        m.ForEachBlock([&](const double& a, double& b)
+          { b = a; },
+          v,
+          m.GetBlockView(0, 1));
+      }, matrix, vec);
+  
+  // Should throw at invocation when vector size doesn't match
+  EXPECT_ANY_THROW(func(matrix, vec));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
@@ -1582,13 +1856,17 @@ void testNonEmptyVectorEmptySparseMatrix()
   SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
   std::vector<double> vec = { 1.0, 2.0, 3.0 };
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&) {}, matrix, vec);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) {
+        m.ForEachBlock([&](const double& a, double& b)
+          { b = a; },
+          v,
+          m.GetBlockView(0, 1));
+      }, matrix, vec);
+  
+  // Should throw at invocation when vector size doesn't match block count
+  EXPECT_ANY_THROW(func(matrix, vec));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
@@ -1622,13 +1900,18 @@ void testMultipleVectorsDifferentSizes()
   std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
   std::vector<double> vec2 = { 4.0, 5.0 };  // Different size
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&, auto&&) {}, matrix, vec1, vec2);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation (different block counts allowed at creation)
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v1, auto&& v2) {
+        m.ForEachBlock([&](const double& a, const double& b, double& c)
+          { c = a + b; },
+          v1,
+          v2,
+          m.GetBlockView(0, 1));
+      }, matrix, vec1, vec2);
+  
+  // Should throw at invocation because vectors have different sizes
+  EXPECT_ANY_THROW(func(matrix, vec1, vec2));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
@@ -1705,13 +1988,17 @@ void testMultipleSparseMatricesDifferentBlocksVector()
   SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
   std::vector<double> vec = { 1.0, 2.0, 3.0 };
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&, auto&&) {}, matrix1, matrix2, vec);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation (different block counts allowed at creation)
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m1, auto&& m2, auto&& v) {
+        m1.ForEachBlock([&](const double& a, double& b)
+          { b = a; },
+          v,
+          m1.GetBlockView(0, 1));
+      }, matrix1, matrix2, vec);
+  
+  // Should throw at invocation because matrices have different block counts
+  EXPECT_ANY_THROW(func(matrix1, matrix2, vec));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
@@ -1729,13 +2016,17 @@ void testVectorSizeMatchesOneSparseMatrixOnly()
   std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
   std::vector<double> vec2 = { 4.0, 5.0 };  // Wrong size
   
-  try {
-    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-        [](auto&&, auto&&, auto&&, auto&&) {}, matrix1, matrix2, vec1, vec2);
-    FAIL() << "Should have thrown std::system_error";
-  } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
-  }
+  // Should succeed at creation (different block counts allowed at creation)
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&& m1, auto&& m2, auto&& v1, auto&& v2) {
+        m1.ForEachBlock([&](const double& a, double& b)
+          { b = a; },
+          v1,
+          m1.GetBlockView(0, 1));
+      }, matrix1, matrix2, vec1, vec2);
+  
+  // Should throw at invocation because vectors have different sizes
+  EXPECT_ANY_THROW(func(matrix1, matrix2, vec1, vec2));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>

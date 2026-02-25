@@ -176,6 +176,31 @@ TEST(SparseCompressedRowMatrix, EmptySparseMatrixFunction)
   testEmptySparseMatrixFunction<micm::SparseMatrix, StandardOrdering>();
 }
 
+TEST(SparseCompressedRowMatrix, MultipleSparseMatricesDifferentBlocksFromCreation)
+{
+  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedRowMatrix, SparseMatrixVectorDifferentBlocksFromCreation)
+{
+  testSparseMatrixVectorDifferentBlocksFromCreation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedRowMatrix, MismatchedBlocksAtInvocation)
+{
+  testMismatchedBlocksAtInvocation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedRowMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
+{
+  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedRowMatrix, WrongStructureAtInvocation)
+{
+  testWrongStructureAtInvocation<micm::SparseMatrix, StandardOrdering>();
+}
+
 // ============================================================================
 // Vector Support Tests
 // ============================================================================

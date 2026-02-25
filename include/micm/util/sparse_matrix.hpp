@@ -505,109 +505,44 @@ namespace micm
         ++index;
       }(args), ...);
       
-      // Validate that all matrices have compatible dimensions and vectors have matching sizes
-      // For sparse matrices: use NumberOfBlocks()
-      // For dense matrices: use NumRows() (blocks correspond to rows)
-      // For vectors: use size() (should match block count)
-      std::size_t num_blocks = 0;
-      std::array<std::size_t, sizeof...(Args)> block_sizes_or_vec_sizes{};
-      std::array<bool, sizeof...(Args)> is_sparse{};
-      std::array<bool, sizeof...(Args)> is_vector{};
-      bool found_first = false;
-      index = 0;
-      
-      ([&](auto& arg) {
-        using ArgType = std::remove_cvref_t<decltype(arg)>;
-        
-        // Check if this is a vector-like type
-        constexpr bool is_vector_type = VectorLike<ArgType>;
-        is_vector[index] = is_vector_type;
-        
-        if constexpr (is_vector_type)
-        {
-          // This is a vector
-          is_sparse[index] = false;
-          if (!found_first)
-          {
-            num_blocks = arg.size();
-            found_first = true;
-          }
-          else if (arg.size() != num_blocks)
-          {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "Vector size " + std::to_string(arg.size()) + 
-                    " does not match expected block count " + std::to_string(num_blocks));
-          }
-          block_sizes_or_vec_sizes[index] = arg.size();
-        }
-        else
-        {
-          // This is a matrix
-          constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
-          is_sparse[index] = is_sparse_matrix;
-          
-          if (!found_first)
-          {
-            if constexpr (is_sparse_matrix)
-            {
-              num_blocks = arg.NumberOfBlocks();
-            }
-            else
-            {
-              // For dense matrices, rows correspond to blocks
-              num_blocks = arg.NumRows();
-            }
-            found_first = true;
-          }
-          else
-          {
-            std::size_t arg_blocks;
-            if constexpr (is_sparse_matrix)
-            {
-              arg_blocks = arg.NumberOfBlocks();
-            }
-            else
-            {
-              // For dense matrices, rows correspond to blocks
-              arg_blocks = arg.NumRows();
-            }
-            
-            if (arg_blocks != num_blocks)
-            {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "All matrices must have the same number of blocks/rows. Expected " + std::to_string(num_blocks) +
-                      " but got " + std::to_string(arg_blocks));
-            }
-          }
-          
-          // Store block size (for sparse) or number of columns (for dense)
-          block_sizes_or_vec_sizes[index] = arg.NumRows();  // For sparse: block size; for dense: also NumRows
-        }
-        ++index;
-      }(args), ...);
+      // At creation time, we only validate ordering compatibility (L value)
+      // Matrices can have different sparsity patterns and block sizes
+      // The actual sparsity pattern compatibility is validated at runtime
+      // when block views are accessed (will throw if element doesn't exist)
 
-      // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_blocks, block_sizes_or_vec_sizes, is_sparse, is_vector](Args&... invoked_args) {
+      // Return a callable that validates dimensions at invocation time
+      return [func = std::forward<Func>(func)](Args&... invoked_args) {
+        // At invocation: Validate that all matrices/vectors have compatible block counts/sizes
+        // For sparse matrices: NumberOfBlocks()
+        // For dense matrices: NumRows() (blocks correspond to rows)
+        // For vectors: size() (should match block count)
+        std::size_t num_blocks = 0;
+        bool found_first = false;
         std::size_t idx = 0;
+        
         ([&](auto& arg) {
           using ArgType = std::remove_cvref_t<decltype(arg)>;
           
           if constexpr (VectorLike<ArgType>)
           {
-            // Validate vector size
-            if (arg.size() != block_sizes_or_vec_sizes[idx])
+            // Vector - validate size matches block count
+            if (!found_first)
+            {
+              num_blocks = arg.size();
+              found_first = true;
+            }
+            else if (arg.size() != num_blocks)
             {
               throw std::system_error(
                   make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Vector dimensions do not match. Expected " + std::to_string(block_sizes_or_vec_sizes[idx]) + 
-                      " elements but got " + std::to_string(arg.size()));
+                  "Vector size " + std::to_string(arg.size()) + 
+                  " does not match expected block count " + std::to_string(num_blocks) +
+                  " when invoking function");
             }
           }
           else
           {
-            // Validate matrix dimensions
+            // Matrix - validate block count
             std::size_t arg_blocks;
             constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
             
@@ -621,19 +556,17 @@ namespace micm
               arg_blocks = arg.NumRows();
             }
             
-            if (arg_blocks != num_blocks)
+            if (!found_first)
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Matrix dimensions do not match. Expected " + std::to_string(num_blocks) + 
-                      " blocks/rows but got " + std::to_string(arg_blocks));
+              num_blocks = arg_blocks;
+              found_first = true;
             }
-            if (arg.NumRows() != block_sizes_or_vec_sizes[idx])
+            else if (arg_blocks != num_blocks)
             {
               throw std::system_error(
                   make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Matrix block size/rows does not match. Expected " + std::to_string(block_sizes_or_vec_sizes[idx]) + 
-                      " but got " + std::to_string(arg.NumRows()));
+                  "All matrices must have the same number of blocks/rows when invoking function. Expected " + 
+                  std::to_string(num_blocks) + " but got " + std::to_string(arg_blocks));
             }
           }
           ++idx;

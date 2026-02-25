@@ -235,6 +235,46 @@ TEST(SparseVectorCompressedRowMatrix, EmptySparseMatrixFunction)
   testEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
+TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesDifferentBlocksFromCreation)
+{
+  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
+
+TEST(SparseVectorCompressedRowMatrix, SparseMatrixVectorDifferentBlocksFromCreation)
+{
+  testSparseMatrixVectorDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testSparseMatrixVectorDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testSparseMatrixVectorDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testSparseMatrixVectorDifferentBlocksFromCreation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
+
+TEST(SparseVectorCompressedRowMatrix, MismatchedBlocksAtInvocation)
+{
+  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
+
+TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
+{
+  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
+
+TEST(SparseVectorCompressedRowMatrix, WrongStructureAtInvocation)
+{
+  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
+
 // ============================================================================
 // Vector Support Tests (using L=1 for simplicity)
 // ============================================================================
