@@ -164,6 +164,14 @@ namespace micm
         return arg.Get();
       }
 
+      /// @brief Get element from Vector-like
+      template<VectorLike Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg[group_];
+      }
+
      public:
       ConstGroupView(const SparseMatrixType& matrix, std::size_t group)
           : matrix_(matrix), group_(group)
@@ -233,6 +241,14 @@ namespace micm
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg.Get();
+      }
+
+      /// @brief Get element from Vector-like
+      template<VectorLike Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg[group_];
       }
 
      public:

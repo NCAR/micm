@@ -207,6 +207,24 @@ namespace micm
         return arg.Get();
       }
 
+      /// @brief Get element from Vector-like (tiered grouping L>1)
+      template<VectorLike Arg>
+        requires (L > 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg[group_ * L + block_in_group];
+      }
+
+      /// @brief Get element from Vector-like (simple grouping L==1)
+      template<VectorLike Arg>
+        requires (L == 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg[group_];
+      }
+
      public:
       ConstGroupView(const SparseMatrixType& matrix, std::size_t group)
           : matrix_(matrix), group_(group)
@@ -314,6 +332,24 @@ namespace micm
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
+      }
+
+      /// @brief Get element from Vector-like (tiered grouping L>1)
+      template<VectorLike Arg>
+        requires (L > 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg[group_ * L + block_in_group];
+      }
+
+      /// @brief Get element from Vector-like (simple grouping L==1)
+      template<VectorLike Arg>
+        requires (L == 1)
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg[group_];
       }
 
      public:

@@ -449,139 +449,195 @@ namespace micm
       }
     }
 
-    /// @brief Create a function that can be applied to sparse matrices
+    /// @brief Create a function that can be applied to sparse matrices and vectors
     /// 
-    /// Creates a reusable callable that validates matrix dimensions and applies a user function
+    /// Creates a reusable callable that validates dimensions and applies a user function
     /// across block groups. The function iterates over groups of L blocks at a time, where L
-    /// is determined by the OrderingPolicy::GroupVectorSize().
+    /// is determined by the OrderingPolicy::GroupVectorSize(). Supports mixing sparse matrices,
+    /// dense matrices, and vector-like types.
     /// 
     /// @tparam Func The lambda/function type
-    /// @tparam Matrices The matrix types (can mix SparseMatrix, VectorMatrix, and Matrix)
-    /// @param func The function to wrap - receives GroupView objects for each matrix
-    /// @param matrices The matrices to validate and capture dimensions from
+    /// @tparam Args The matrix and vector types (can mix SparseMatrix, VectorMatrix, Matrix, and vectors)
+    /// @param func The function to wrap - receives GroupView objects for matrices and forwarded vectors
+    /// @param args The matrices and vectors to validate and capture dimensions from
     /// @return A callable that validates dimensions and applies the function
     /// 
     /// @note Validation occurs in two phases:
-    ///   1. At function creation: Validates matrix dimensions and ordering compatibility
-    ///   2. At invocation: Re-validates dimensions in case matrices were resized
+    ///   1. At function creation: Validates matrix dimensions, vector sizes, and ordering compatibility
+    ///   2. At invocation: Re-validates dimensions in case matrices/vectors were resized
     /// 
     /// @note Column/Block view creation happens inside user lambda and is validated
     ///       at invocation time, not at function creation time. Ensure all view indices
     ///       are within matrix bounds to avoid runtime errors.
     /// 
-    /// @throws std::system_error if matrices have incompatible orderings (different L values)
-    ///         or mismatched block counts
-    template<typename Func, typename... Matrices>
-    static auto Function(Func&& func, Matrices&... matrices)
+    /// @throws std::system_error if matrices have incompatible orderings (different L values),
+    ///         mismatched block counts, or vectors have wrong sizes
+    template<typename Func, typename... Args>
+    static auto Function(Func&& func, Args&... args)
     {
       // Validate that all matrices have compatible ordering (same L value)
       // Get L from this sparse matrix's ordering policy
       constexpr std::size_t expected_L = OrderingPolicy::GroupVectorSize();
       
-      // Check each matrix has compatible L
+      
+      // Check each argument: matrices must have compatible L, vectors are skipped
       std::size_t index = 0;
-      ([&](auto& matrix) {
-        // Get the L value for this matrix using the type trait
-        constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(matrix)>>;
+      ([&](auto& arg) {
+        using ArgType = std::remove_cvref_t<decltype(arg)>;
         
-        if (matrix_L != expected_L)
+        // Only check L for matrix types (not vectors)
+        if constexpr (!VectorLike<ArgType>)
         {
-          throw std::system_error(
-              make_error_code(MicmMatrixErrc::InvalidVector),
-              "Incompatible matrix orderings: Matrix " + std::to_string(index) + 
-              " has GroupVectorSize=" + std::to_string(matrix_L) +
-              " but expected " + std::to_string(expected_L) +
-              ". Cannot mix standard-ordered (L=1) and vector-ordered (L>1) matrices, " +
-              "or vector-ordered matrices with different L values.");
+          // Get the L value for this matrix using the type trait
+          constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+          
+          if (matrix_L != expected_L)
+          {
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Incompatible matrix orderings: Matrix " + std::to_string(index) + 
+                " has GroupVectorSize=" + std::to_string(matrix_L) +
+                " but expected " + std::to_string(expected_L) +
+                ". Cannot mix standard-ordered (L=1) and vector-ordered (L>1) matrices, " +
+                "or vector-ordered matrices with different L values.");
+          }
         }
         ++index;
-      }(matrices), ...);
+      }(args), ...);
       
-      // Validate that all matrices have compatible dimensions
+      // Validate that all matrices have compatible dimensions and vectors have matching sizes
       // For sparse matrices: use NumberOfBlocks()
       // For dense matrices: use NumRows() (blocks correspond to rows)
+      // For vectors: use size() (should match block count)
       std::size_t num_blocks = 0;
-      std::array<std::size_t, sizeof...(Matrices)> block_sizes{};
-      std::array<bool, sizeof...(Matrices)> is_sparse{};
+      std::array<std::size_t, sizeof...(Args)> block_sizes_or_vec_sizes{};
+      std::array<bool, sizeof...(Args)> is_sparse{};
+      std::array<bool, sizeof...(Args)> is_vector{};
+      bool found_first = false;
       index = 0;
       
-      ([&](auto& matrix) {
-        // Check if this matrix is sparse (has NumberOfBlocks method)
-        constexpr bool is_sparse_matrix = SparseMatrixConcept<std::decay_t<decltype(matrix)>>;
-        is_sparse[index] = is_sparse_matrix;
+      ([&](auto& arg) {
+        using ArgType = std::remove_cvref_t<decltype(arg)>;
         
-        if (index == 0)
+        // Check if this is a vector-like type
+        constexpr bool is_vector_type = VectorLike<ArgType>;
+        is_vector[index] = is_vector_type;
+        
+        if constexpr (is_vector_type)
         {
-          if constexpr (is_sparse_matrix)
+          // This is a vector
+          is_sparse[index] = false;
+          if (!found_first)
           {
-            num_blocks = matrix.NumberOfBlocks();
+            num_blocks = arg.size();
+            found_first = true;
           }
-          else
+          else if (arg.size() != num_blocks)
           {
-            // For dense matrices, rows correspond to blocks
-            num_blocks = matrix.NumRows();
+            throw std::system_error(
+                make_error_code(MicmMatrixErrc::InvalidVector),
+                "Vector size " + std::to_string(arg.size()) + 
+                    " does not match expected block count " + std::to_string(num_blocks));
           }
+          block_sizes_or_vec_sizes[index] = arg.size();
         }
         else
         {
-          std::size_t matrix_blocks;
-          if constexpr (is_sparse_matrix)
+          // This is a matrix
+          constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
+          is_sparse[index] = is_sparse_matrix;
+          
+          if (!found_first)
           {
-            matrix_blocks = matrix.NumberOfBlocks();
+            if constexpr (is_sparse_matrix)
+            {
+              num_blocks = arg.NumberOfBlocks();
+            }
+            else
+            {
+              // For dense matrices, rows correspond to blocks
+              num_blocks = arg.NumRows();
+            }
+            found_first = true;
           }
           else
           {
-            // For dense matrices, rows correspond to blocks
-            matrix_blocks = matrix.NumRows();
+            std::size_t arg_blocks;
+            if constexpr (is_sparse_matrix)
+            {
+              arg_blocks = arg.NumberOfBlocks();
+            }
+            else
+            {
+              // For dense matrices, rows correspond to blocks
+              arg_blocks = arg.NumRows();
+            }
+            
+            if (arg_blocks != num_blocks)
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "All matrices must have the same number of blocks/rows. Expected " + std::to_string(num_blocks) +
+                      " but got " + std::to_string(arg_blocks));
+            }
           }
           
-          if (matrix_blocks != num_blocks)
-          {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "All matrices must have the same number of blocks/rows. Expected " + std::to_string(num_blocks) +
-                    " but got " + std::to_string(matrix_blocks));
-          }
+          // Store block size (for sparse) or number of columns (for dense)
+          block_sizes_or_vec_sizes[index] = arg.NumRows();  // For sparse: block size; for dense: also NumRows
         }
-        
-        // Store block size (for sparse) or number of columns (for dense)
-        block_sizes[index] = matrix.NumRows();  // For sparse: block size; for dense: also NumRows
         ++index;
-      }(matrices), ...);
+      }(args), ...);
 
       // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_blocks, block_sizes, is_sparse](Matrices&... invoked_matrices) {
+      return [func = std::forward<Func>(func), num_blocks, block_sizes_or_vec_sizes, is_sparse, is_vector](Args&... invoked_args) {
         std::size_t idx = 0;
-        ([&](auto& matrix) {
-          std::size_t matrix_blocks;
-          constexpr bool is_sparse_matrix = SparseMatrixConcept<std::decay_t<decltype(matrix)>>;
+        ([&](auto& arg) {
+          using ArgType = std::remove_cvref_t<decltype(arg)>;
           
-          if constexpr (is_sparse_matrix)
+          if constexpr (VectorLike<ArgType>)
           {
-            matrix_blocks = matrix.NumberOfBlocks();
+            // Validate vector size
+            if (arg.size() != block_sizes_or_vec_sizes[idx])
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "Vector dimensions do not match. Expected " + std::to_string(block_sizes_or_vec_sizes[idx]) + 
+                      " elements but got " + std::to_string(arg.size()));
+            }
           }
           else
           {
-            // For dense matrices, rows correspond to blocks
-            matrix_blocks = matrix.NumRows();
-          }
-          
-          if (matrix_blocks != num_blocks)
-          {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "Matrix dimensions do not match. Expected " + std::to_string(num_blocks) + 
-                    " blocks/rows but got " + std::to_string(matrix_blocks));
-          }
-          if (matrix.NumRows() != block_sizes[idx])
-          {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "Matrix block size/rows does not match. Expected " + std::to_string(block_sizes[idx]) + 
-                    " but got " + std::to_string(matrix.NumRows()));
+            // Validate matrix dimensions
+            std::size_t arg_blocks;
+            constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
+            
+            if constexpr (is_sparse_matrix)
+            {
+              arg_blocks = arg.NumberOfBlocks();
+            }
+            else
+            {
+              // For dense matrices, rows correspond to blocks
+              arg_blocks = arg.NumRows();
+            }
+            
+            if (arg_blocks != num_blocks)
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "Matrix dimensions do not match. Expected " + std::to_string(num_blocks) + 
+                      " blocks/rows but got " + std::to_string(arg_blocks));
+            }
+            if (arg.NumRows() != block_sizes_or_vec_sizes[idx])
+            {
+              throw std::system_error(
+                  make_error_code(MicmMatrixErrc::InvalidVector),
+                  "Matrix block size/rows does not match. Expected " + std::to_string(block_sizes_or_vec_sizes[idx]) + 
+                      " but got " + std::to_string(arg.NumRows()));
+            }
           }
           ++idx;
-        }(invoked_matrices), ...);
+        }(invoked_args), ...);
         
         // Get the group vector size from the OrderingPolicy (compile-time constant)
         // For standard ordering: L = 1
@@ -592,16 +648,26 @@ namespace micm
         std::size_t num_groups = (num_blocks + L - 1) / L;  // Ceiling division
         for (std::size_t group = 0; group < num_groups; ++group)
         {
-          // Use ConstGroupView if matrix is const, otherwise use GroupView
-          func([&]() {
-            using MatrixType = std::remove_reference_t<decltype(invoked_matrices)>;
-            if constexpr (std::is_const_v<MatrixType>)
+          // For matrices: use ConstGroupView if const, otherwise GroupView
+          // For vectors: forward them directly
+          func([&]() -> decltype(auto) {
+            using ArgType = std::remove_reference_t<decltype(invoked_args)>;
+            if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
             {
-              return typename std::decay_t<Matrices>::ConstGroupView(invoked_matrices, group);
+              // Vector: just forward it
+              return std::forward<decltype(invoked_args)>(invoked_args);
             }
             else
             {
-              return typename std::decay_t<Matrices>::GroupView(invoked_matrices, group);
+              // Matrix: create appropriate GroupView
+              if constexpr (std::is_const_v<ArgType>)
+              {
+                return typename std::decay_t<Args>::ConstGroupView(invoked_args, group);
+              }
+              else
+              {
+                return typename std::decay_t<Args>::GroupView(invoked_args, group);
+              }
             }
           }()...);
         }
@@ -624,6 +690,14 @@ namespace micm
     inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg.Get();
+    }
+
+    /// @brief Get an element reference for a block (Vector-like)
+    template<VectorLike Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    {
+      return arg[block];
     }
   };
 

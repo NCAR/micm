@@ -1471,3 +1471,478 @@ void testEmptySparseMatrixFunction()
   EXPECT_NO_THROW(func2(zero_blocks));
 }
 
+// ============================================================================
+// Vector Support Tests for Sparse Matrices
+// ============================================================================
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+SparseMatrixPolicy<double, OrderingPolicy> testVectorInSparseMatrixFunction()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(1, 2)
+                     .WithElement(2, 3)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  
+  // Set matrix values
+  for (int block = 0; block < 3; ++block)
+  {
+    matrix[block][0][1] = static_cast<double>(block + 1);
+    matrix[block][1][2] = static_cast<double>(block + 2);
+    matrix[block][2][3] = static_cast<double>(block + 3);
+  }
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      // Read from vector, write to matrix
+      m.ForEachBlock([&](const double& in_vec, double& out_mat)
+        { out_mat = in_vec * 2.0; },
+        v,
+        m.GetBlockView(0, 1));
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  // Check results
+  EXPECT_EQ(matrix[0][0][1], 10.0);  // vec[0] * 2
+  EXPECT_EQ(matrix[1][0][1], 20.0);  // vec[1] * 2
+  EXPECT_EQ(matrix[2][0][1], 30.0);  // vec[2] * 2
+  
+  return matrix;
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testVectorTooSmall()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 1.0, 2.0 };  // Too small - needs 3 elements
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&) {}, matrix, vec);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testVectorTooLarge()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 1.0, 2.0, 3.0, 4.0 };  // Too large
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&) {}, matrix, vec);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testEmptyVectorNonEmptySparseMatrix()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec;  // Empty
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&) {}, matrix, vec);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testNonEmptyVectorEmptySparseMatrix()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(0);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 1.0, 2.0, 3.0 };
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&) {}, matrix, vec);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testEmptyVectorEmptySparseMatrix()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(0);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec;  // Empty
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&&, auto&&) {
+        // Should never execute
+        FAIL() << "Function should not be called for empty matrix/vector";
+      }, matrix, vec);
+  
+  // Should execute without error (zero iterations)
+  EXPECT_NO_THROW(func(matrix, vec));
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testMultipleVectorsDifferentSizes()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<double> vec2 = { 4.0, 5.0 };  // Different size
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&, auto&&) {}, matrix, vec1, vec2);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testMultipleVectorsSameSize()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<double> vec2 = { 4.0, 5.0, 6.0 };
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v1, auto&& v2)
+    {
+      m.ForEachBlock([&](const double& a, const double& b, double& out)
+        { out = a + b; },
+        v1, v2, m.GetBlockView(0, 1));
+    }, matrix, vec1, vec2);
+  
+  func(matrix, vec1, vec2);
+  
+  EXPECT_EQ(matrix[0][0][1], 5.0);   // 1 + 4
+  EXPECT_EQ(matrix[1][0][1], 7.0);   // 2 + 5
+  EXPECT_EQ(matrix[2][0][1], 9.0);   // 3 + 6
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testMultipleSparseMatricesOneVector()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder };
+  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder };
+  std::vector<double> vec = { 10.0, 20.0, 30.0 };
+  
+  for (int block = 0; block < 3; ++block)
+  {
+    matrix1[block][0][1] = static_cast<double>(block + 1);
+    matrix2[block][0][1] = 0.0;
+  }
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m1, auto&& m2, auto&& v)
+    {
+      m1.ForEachBlock([&](const double& a, const double& b, double& out)
+        { out = a + b; },
+        m1.GetConstBlockView(0, 1),
+        v,
+        m2.GetBlockView(0, 1));
+    }, matrix1, matrix2, vec);
+  
+  func(matrix1, matrix2, vec);
+  
+  EXPECT_EQ(matrix2[0][0][1], 11.0);  // 1 + 10
+  EXPECT_EQ(matrix2[1][0][1], 22.0);  // 2 + 20
+  EXPECT_EQ(matrix2[2][0][1], 33.0);  // 3 + 30
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testMultipleSparseMatricesDifferentBlocksVector()
+{
+  auto builder1 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .SetNumberOfBlocks(3);
+  auto builder2 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .SetNumberOfBlocks(4);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder1 };
+  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
+  std::vector<double> vec = { 1.0, 2.0, 3.0 };
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&, auto&&) {}, matrix1, matrix2, vec);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testVectorSizeMatchesOneSparseMatrixOnly()
+{
+  auto builder1 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .SetNumberOfBlocks(3);
+  auto builder2 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                      .WithElement(0, 1)
+                      .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder1 };
+  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
+  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<double> vec2 = { 4.0, 5.0 };  // Wrong size
+  
+  try {
+    auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+        [](auto&&, auto&&, auto&&, auto&&) {}, matrix1, matrix2, vec1, vec2);
+    FAIL() << "Should have thrown std::system_error";
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+  }
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+SparseMatrixPolicy<double, OrderingPolicy> testConstVectorSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  const std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachBlock([&](const double& a, double& b)
+        { b = a * 3.0; },
+        v,
+        m.GetBlockView(0, 1));
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  EXPECT_EQ(matrix[0][0][1], 15.0);
+  EXPECT_EQ(matrix[1][0][1], 30.0);
+  EXPECT_EQ(matrix[2][0][1], 45.0);
+  
+  return matrix;
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> testMutableVectorSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  
+  for (int block = 0; block < 3; ++block)
+    matrix[block][0][1] = static_cast<double>(block + 1);
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachBlock([&](const double& a, double& b)
+        { b = a * 3.0; },
+        m.GetConstBlockView(0, 1),
+        v);
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  // Vector should be modified
+  EXPECT_EQ(vec[0], 3.0);   // 1 * 3
+  EXPECT_EQ(vec[1], 6.0);   // 2 * 3
+  EXPECT_EQ(vec[2], 9.0);   // 3 * 3
+  
+  return std::make_tuple(matrix, vec);
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testFunctionReusabilityWithVectorsSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder };
+  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder };
+  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<double> vec2 = { 10.0, 20.0, 30.0 };
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachBlock([&](const double& a, double& b)
+        { b = a * 2.0; },
+        v,
+        m.GetBlockView(0, 1));
+    }, matrix1, vec1);
+  
+  func(matrix1, vec1);
+  EXPECT_EQ(matrix1[0][0][1], 2.0);
+  EXPECT_EQ(matrix1[1][0][1], 4.0);
+  EXPECT_EQ(matrix1[2][0][1], 6.0);
+  
+  func(matrix2, vec2);
+  EXPECT_EQ(matrix2[0][0][1], 20.0);
+  EXPECT_EQ(matrix2[1][0][1], 40.0);
+  EXPECT_EQ(matrix2[2][0][1], 60.0);
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testFunctionInvocationWithWrongSizedVectorSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<double> vec2 = { 1.0, 2.0 };  // Wrong size
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+      [](auto&&, auto&&) {}, matrix, vec1);
+  
+  EXPECT_THROW(
+      try { func(matrix, vec2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::InvalidVector));
+        throw;
+      },
+      std::system_error);
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testArraySupportSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::array<double, 3> arr = { 7.0, 14.0, 21.0 };
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& a)
+    {
+      m.ForEachBlock([&](const double& val, double& out)
+        { out = val / 7.0; },
+        a,
+        m.GetBlockView(0, 1));
+    }, matrix, arr);
+  
+  func(matrix, arr);
+  
+  EXPECT_EQ(matrix[0][0][1], 1.0);
+  EXPECT_EQ(matrix[1][0][1], 2.0);
+  EXPECT_EQ(matrix[2][0][1], 3.0);
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testMixedVectorBlockViewBlockVariable()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(1, 2)
+                     .WithElement(2, 3)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 100.0, 200.0, 300.0 };
+  
+  for (int block = 0; block < 3; ++block)
+  {
+    matrix[block][0][1] = static_cast<double>(block + 1);
+    matrix[block][1][2] = static_cast<double>(block + 2);
+    matrix[block][2][3] = static_cast<double>(block + 3);
+  }
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      auto tmp = m.GetBlockVariable();
+      m.ForEachBlock([&](const double& a, const double& b, const double& c, double& t)
+        { t = a + b + c; },
+        m.GetConstBlockView(0, 1),
+        m.GetConstBlockView(1, 2),
+        v,
+        tmp);
+      m.ForEachBlock([&](const double& t, double& out)
+        { out = t * 2.0; },
+        tmp,
+        m.GetBlockView(2, 3));
+    }, matrix, vec);
+  
+  func(matrix, vec);
+  
+  EXPECT_EQ(matrix[0][2][3], 206.0);  // (1 + 2 + 100) * 2
+  EXPECT_EQ(matrix[1][2][3], 410.0);  // (1 + 2 + 200) * 2
+  EXPECT_EQ(matrix[2][2][3], 614.0);  // (1 + 2 + 300) * 2
+}
+
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testIntegerVectorSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<int> int_vec = { 5, 10, 15 };
+  
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v)
+    {
+      m.ForEachBlock([&](const int& i, double& out)
+        { out = static_cast<double>(i) * 1.5; },
+        v,
+        m.GetBlockView(0, 1));
+    }, matrix, int_vec);
+  
+  func(matrix, int_vec);
+  
+  EXPECT_DOUBLE_EQ(matrix[0][0][1], 7.5);
+  EXPECT_DOUBLE_EQ(matrix[1][0][1], 15.0);
+  EXPECT_DOUBLE_EQ(matrix[2][0][1], 22.5);
+}
+
