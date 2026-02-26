@@ -369,26 +369,23 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::Build() const
   {
-    // make a copy of the options so that the builder can be used repeatedly
-    // this matters because the absolute tolerances must be set to match the system size, and that may change
-    auto options = this->options_;
-
     if (!valid_system_)
     {
       throw std::system_error(make_error_code(MicmSolverErrc::MissingChemicalSystem), "Missing chemical system.");
     }
-    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
-    auto species_map = this->GetSpeciesMap();
-    auto params_map = this->GetCustomParameterMap();
+
     std::size_t number_of_species = this->system_.StateSize();
-    std::size_t number_of_constraints = constraints_.size();
     if (number_of_species == 0)
     {
       throw std::system_error(
           make_error_code(MicmSolverErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
     }
 
-    RatesPolicy rates(this->reactions_, species_map, external_models_);
+    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
+    auto species_map = this->GetSpeciesMap();
+    auto params_map = this->GetCustomParameterMap();
+
+    RatesPolicy rates(reactions_, species_map, external_models_);
     
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
@@ -396,6 +393,8 @@ namespace micm
     // Create ConstraintSet from stored constraints (if any)
     ConstraintSet constraint_set;
     std::set<std::size_t> algebraic_variable_ids;
+
+    std::size_t number_of_constraints = constraints_.size();
     if (number_of_constraints > 0)
     {
       // Copy constraints so that the builder can be reused
@@ -458,8 +457,7 @@ namespace micm
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
                                          .nonzero_jacobian_elements_ = nonzero_elements,
-                                         .mass_matrix_diagonal_ = mass_matrix_diagonal,
-                                         .constraints_replace_state_rows_ = (number_of_constraints > 0) };
+                                         .mass_matrix_diagonal_ = mass_matrix_diagonal };
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
@@ -470,12 +468,16 @@ namespace micm
       update_funcs.push_back(model.update_state_parameters_function_(params_map));
     }
 
+    // make a copy of the options so that the builder can be used repeatedly
+    // this matters because the absolute tolerances must be set to match the system size, and that may change
+    auto options = this->options_;
+
     return Solver<SolverPolicy, StatePolicy>(
         SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set)),
         state_parameters,
         options,
-        this->reactions_,
-        this->system_,
+        reactions_,
+        system_,
         update_funcs);
   }
 

@@ -25,12 +25,14 @@ namespace micm
     std::vector<micm::Process> processes_;
     System system_;
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>> update_state_parameters_functions_;
-
+  
    public:
     using SolverPolicyType = SolverPolicy;
     using StatePolicyType = StatePolicy;
     SolverPolicy solver_;
     SolverParametersType solver_parameters_;
+
+    Solver(const Solver&) = delete;
 
     Solver(
         SolverPolicy&& solver,
@@ -63,9 +65,6 @@ namespace micm
     {
     }
 
-    Solver(const Solver&) = delete;
-    Solver& operator=(const Solver&) = delete;
-
     Solver(Solver&& other)
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
@@ -75,6 +74,9 @@ namespace micm
           update_state_parameters_functions_(std::move(other.update_state_parameters_functions_))
     {
     }
+
+    Solver& operator=(const Solver&) = delete;
+
     Solver& operator=(Solver&& other)
     {
       std::swap(this->solver_, other.solver_);
@@ -102,26 +104,6 @@ namespace micm
       return result;
     }
 
-   private:
-    /// @brief Clamp state variables to non-negative after a solve
-    ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
-    void PostSolveClamp(StatePolicy& state)
-    {
-      if (state.constraints_replace_state_rows_)
-      {
-        for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
-          for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
-            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-              state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
-      }
-      else
-      {
-        state.variables_.Max(0.0);
-      }
-    }
-
-   public:
-
     /// @brief Returns the maximum number of grid cells per state
     /// @return Number of grid cells
     /// @details This is the maximum number of grid cells that can fit
@@ -141,7 +123,8 @@ namespace micm
 
     StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const
     {
-      auto state = std::move(StatePolicy(state_parameters_, number_of_grid_cells));
+      StatePolicy state(state_parameters_, number_of_grid_cells);
+
       if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
         state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(
@@ -179,6 +162,26 @@ namespace micm
         update_func(state.conditions_, state.custom_rate_parameters_);
       }
     }
+
+   private:
+    /// @brief Clamp state variables to non-negative after a solve
+    ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
+    void PostSolveClamp(StatePolicy& state)
+    {
+      if (state.constraint_size_ > 0)
+      {
+        for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
+          for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
+            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+              state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
+      }
+      else
+      {
+        state.variables_.Max(0.0);
+      }
+    }
+
+
   };
 
 }  // namespace micm

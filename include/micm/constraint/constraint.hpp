@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/constraint/equilibrium_constraint.hpp>
+#include <micm/constraint/linear_constraint.hpp>
 
 #include <cstddef>
 #include <string>
@@ -22,12 +23,13 @@ namespace micm
   class Constraint
   {
    public:
-    using ConstraintVariant = std::variant<EquilibriumConstraint>;
+    using ConstraintVariant = std::variant<EquilibriumConstraint, LinearConstraint>;
 
     ConstraintVariant constraint_;
 
     template<typename T>
-      requires std::same_as<std::decay_t<T>, EquilibriumConstraint>
+      requires std::same_as<std::decay_t<T>, EquilibriumConstraint> || 
+               std::same_as<std::decay_t<T>, LinearConstraint>
     Constraint(T&& constraint)
         : constraint_(std::forward<T>(constraint))
     {

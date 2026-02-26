@@ -9,6 +9,7 @@ create_standard_test(NAME integrated_reaction_rates SOURCES test_integrated_reac
 create_standard_test(NAME aerosol_model_backward_euler SOURCES test_aerosol_model_backward_euler.cpp)
 create_standard_test(NAME aerosol_model_rosenbrock SOURCES test_aerosol_model_rosenbrock.cpp)
 create_standard_test(NAME equilibrium SOURCES test_equilibrium.cpp)
+create_standard_test(NAME linear_constraint SOURCES test_linear_constraint.cpp)
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)

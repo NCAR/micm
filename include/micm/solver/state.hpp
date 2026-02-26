@@ -35,7 +35,6 @@ namespace micm
     double relative_tolerance_{ 1e-06 };
     std::vector<double> absolute_tolerance_{};
     std::vector<double> mass_matrix_diagonal_{};
-    bool constraints_replace_state_rows_{ false };
   };
 
   template<
@@ -74,7 +73,6 @@ namespace micm
     UMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t constraint_size_;
-    bool constraints_replace_state_rows_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
@@ -170,7 +168,6 @@ namespace micm
       upper_matrix_ = other.upper_matrix_;
       state_size_ = other.state_size_;
       constraint_size_ = other.constraint_size_;
-      constraints_replace_state_rows_ = other.constraints_replace_state_rows_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
       temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
       relative_tolerance_ = other.relative_tolerance_;
@@ -198,7 +195,6 @@ namespace micm
         upper_matrix_ = other.upper_matrix_;
         state_size_ = other.state_size_;
         constraint_size_ = other.constraint_size_;
-        constraints_replace_state_rows_ = other.constraints_replace_state_rows_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
         relative_tolerance_ = other.relative_tolerance_;
@@ -224,7 +220,6 @@ namespace micm
           upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
           constraint_size_(other.constraint_size_),
-          constraints_replace_state_rows_(other.constraints_replace_state_rows_),
           number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
@@ -253,7 +248,6 @@ namespace micm
         upper_matrix_ = std::move(other.upper_matrix_);
         state_size_ = other.state_size_;
         constraint_size_ = other.constraint_size_;
-        constraints_replace_state_rows_ = other.constraints_replace_state_rows_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = std::move(other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
@@ -261,7 +255,6 @@ namespace micm
 
         other.state_size_ = 0;
         other.constraint_size_ = 0;
-        other.constraints_replace_state_rows_ = false;
         other.number_of_grid_cells_ = 0;
       }
       return *this;

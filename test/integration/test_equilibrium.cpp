@@ -962,9 +962,6 @@ TEST(EquilibriumIntegration, DAEClampingDoesNotBreakAlgebraicVariables)
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
-  // Verify that constraints_replace_state_rows_ is set
-  ASSERT_TRUE(state.constraints_replace_state_rows_);
-
   // After a solve, C should be K_eq * B, and the constraint should be satisfied
   // This verifies that clamping doesn't interfere with algebraic variable values
   solver.CalculateRateConstants(state);

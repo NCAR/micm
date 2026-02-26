@@ -104,15 +104,7 @@ namespace micm
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              // Copy state variables from Y to Ynew for the new function evaluation
-              Ynew.Fill(0.0);
-              for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-              {
-                for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
-                {
-                  Ynew[i_cell][i_var] = Y[i_cell][i_var];
-                }
-              }
+              Ynew.Copy(Y);
               for (uint64_t j = 0; j < stage; ++j)
               {
                 Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
@@ -134,12 +126,20 @@ namespace micm
           for (uint64_t j = 0; j < stage; ++j)
           {
             const double c_over_h = parameters.c_[stage_combinations + j] / H;
-            for (std::size_t i_cell = 0; i_cell < K[stage].NumRows(); ++i_cell)
+            if (!has_constraints)
             {
-              for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
+              K[stage].Axpy(c_over_h, K[j]);
+            }
+            else
+            {
+              // DAE path: scale by mass matrix diagonal element-wise
+              for (std::size_t i_cell = 0; i_cell < K[stage].NumRows(); ++i_cell)
               {
-                K[stage][i_cell][i_var] +=
-                    c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
+                for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
+                {
+                  K[stage][i_cell][i_var] +=
+                      c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
+                }
               }
             }
           }
@@ -154,14 +154,7 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        // Compute the new solution: Copy Y, then add increments from K stages
-        for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-        {
-          for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
-          {
-            Ynew[i_cell][i_var] = Y[i_cell][i_var];
-          }
-        }
+        Ynew.Copy(Y);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Ynew.Axpy(parameters.m_[stage], K[stage]);
 
@@ -197,14 +190,7 @@ namespace micm
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
-          // Copy solution from Ynew back to Y
-          for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-          {
-            for (std::size_t i_var = 0; i_var < state.state_size_; ++i_var)
-            {
-              Y[i_cell][i_var] = Ynew[i_cell][i_var];
-            }
-          }
+          Y.Swap(Ynew);
           Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
@@ -334,29 +320,36 @@ namespace micm
 
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const std::size_t N = Y.NumRows() * Y.NumColumns();
     const std::size_t n_vars = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
+    std::size_t num_ode_variables = 0;
 
+    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-        error += errors_over_scale * errors_over_scale;
+        // Skip algebraic variables (mass matrix diagonal = 0)
+        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+        {
+          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+          error += errors_over_scale * errors_over_scale;
+          ++num_ode_variables;
+        }
       }
     }
 
     double error_min = 1.0e-10;
+    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
 
     return std::max(std::sqrt(error / N), error_min);
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class DenseMatrixPolicy>
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
@@ -368,27 +361,35 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
+    // Use row/column indexing to check mass matrix diagonal for algebraic variables
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const std::size_t N = Y.NumRows() * Y.NumColumns();
     const std::size_t n_vars = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
+    std::size_t num_ode_variables = 0;
 
-    // Use row/column indexing so error estimation is independent of matrix storage layout.
+    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-        error += errors_over_scale * errors_over_scale;
+        // Skip algebraic variables (mass matrix diagonal = 0)
+        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+        {
+          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+          error += errors_over_scale * errors_over_scale;
+          ++num_ode_variables;
+        }
       }
     }
 
     double error_min = 1.0e-10;
+    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+
     return std::max(std::sqrt(error / N), error_min);
   }
 
