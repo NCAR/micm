@@ -75,20 +75,17 @@ namespace micm
     {
       friend class SparseMatrix;
       const SparseMatrix* matrix_;
-      std::size_t row_index_;
-      std::size_t column_index_;
+      std::size_t elem_position_;  // The nth non-zero element position (0-based)
       
-      explicit ConstBlockView(const SparseMatrix* matrix, std::size_t row_index, std::size_t column_index)
+      explicit ConstBlockView(const SparseMatrix* matrix, std::size_t elem_position)
           : matrix_(matrix),
-            row_index_(row_index),
-            column_index_(column_index)
+            elem_position_(elem_position)
       {
       }
 
      public:
       using category = SparseMatrixBlockViewTag;
-      std::size_t RowIndex() const { return row_index_; }
-      std::size_t ColumnIndex() const { return column_index_; }
+      std::size_t ElementPosition() const { return elem_position_; }
       const SparseMatrix* GetMatrix() const { return matrix_; }
     };
 
@@ -97,20 +94,17 @@ namespace micm
     {
       friend class SparseMatrix;
       SparseMatrix* matrix_;
-      std::size_t row_index_;
-      std::size_t column_index_;
+      std::size_t elem_position_;  // The nth non-zero element position (0-based)
       
-      explicit BlockView(SparseMatrix* matrix, std::size_t row_index, std::size_t column_index)
+      explicit BlockView(SparseMatrix* matrix, std::size_t elem_position)
           : matrix_(matrix),
-            row_index_(row_index),
-            column_index_(column_index)
+            elem_position_(elem_position)
       {
       }
 
      public:
       using category = SparseMatrixBlockViewTag;
-      std::size_t RowIndex() const { return row_index_; }
-      std::size_t ColumnIndex() const { return column_index_; }
+      std::size_t ElementPosition() const { return elem_position_; }
       SparseMatrix* GetMatrix() { return matrix_; }
     };
 
@@ -382,6 +376,15 @@ namespace micm
       }
     }
 
+    /// @brief Create a const block view for accessing the nth non-zero element
+    /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
+    /// @return A ConstBlockView descriptor
+    ConstBlockView GetConstBlockView(std::size_t vector_index) const
+    {
+      std::size_t elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
+      return ConstBlockView(this, elem_position);
+    }
+
     /// @brief Create a const block view for accessing a block element
     /// @param row The row index of the block element
     /// @param col The column index of the block element
@@ -402,7 +405,17 @@ namespace micm
             "Cannot create view for zero block element (" + std::to_string(row) + "," + 
             std::to_string(col) + ")");
       }
-      return ConstBlockView(this, row, col);
+      std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
+      return ConstBlockView(this, vector_index);
+    }
+
+    /// @brief Create a mutable block view for accessing the nth non-zero element
+    /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
+    /// @return A BlockView descriptor
+    BlockView GetBlockView(std::size_t vector_index)
+    {
+      std::size_t elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
+      return BlockView(this, elem_position);
     }
 
     /// @brief Create a mutable block view for accessing a block element
@@ -425,7 +438,8 @@ namespace micm
             "Cannot create view for zero block element (" + std::to_string(row) + "," + 
             std::to_string(col) + ")");
       }
-      return BlockView(this, row, col);
+      std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
+      return BlockView(this, vector_index);
     }
 
     /// @brief Get a block variable with persistent storage for temporary values

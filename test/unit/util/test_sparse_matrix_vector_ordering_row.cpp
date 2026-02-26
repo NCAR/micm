@@ -376,3 +376,11 @@ TEST(SparseVectorCompressedRowMatrix, FunctionWithConstSignatureSparse)
   testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
   testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
+
+TEST(SparseVectorCompressedRowMatrix, GetBlockViewByVectorIndex)
+{
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}

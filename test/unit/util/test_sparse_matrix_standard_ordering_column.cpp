@@ -299,3 +299,8 @@ TEST(SparseCompressedColumnMatrix, FunctionWithConstSignatureSparse)
 {
   testFunctionWithConstSignatureSparse<micm::SparseMatrix, StandardOrdering>();
 }
+
+TEST(SparseCompressedColumnMatrix, GetBlockViewByVectorIndex)
+{
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, StandardOrdering>();
+}

@@ -2260,3 +2260,71 @@ void testFunctionWithConstSignatureSparse()
   func_std(matrix, vec);
 }
 
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+SparseMatrixPolicy<double, OrderingPolicy> testGetBlockViewByVectorIndex()
+{
+  // Create a sparse matrix with a simple 3x3 sparsity pattern
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3)
+    .SetNumberOfBlocks(3)
+    .InitialValue(0.0);
+  
+  // Define sparsity pattern
+  builder = builder.WithElement(0, 0)   // vector index 0
+                   .WithElement(0, 2)   // vector index 1
+                   .WithElement(1, 0)   // vector index 2
+                   .WithElement(1, 1)   // vector index 3
+                   .WithElement(2, 1)   // vector index 4
+                   .WithElement(2, 2);  // vector index 5
+  
+  SparseMatrixPolicy<double, OrderingPolicy> sparse(builder);
+  
+  // Get the vector indices for our non-zero elements (relative to block 0)
+  std::vector<std::size_t> vector_indices;
+  vector_indices.push_back(sparse.VectorIndex(0, 0, 0));  // element (0,0)
+  vector_indices.push_back(sparse.VectorIndex(0, 0, 2));  // element (0,2)
+  vector_indices.push_back(sparse.VectorIndex(0, 1, 0));  // element (1,0)
+  vector_indices.push_back(sparse.VectorIndex(0, 1, 1));  // element (1,1)
+  vector_indices.push_back(sparse.VectorIndex(0, 2, 1));  // element (2,1)
+  vector_indices.push_back(sparse.VectorIndex(0, 2, 2));  // element (2,2)
+
+  std::vector<int> block_values = { 0, 1, 2 };
+   
+  // Use Function() to set values using vector indices
+  auto set_func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [&vector_indices](auto&& matrix, auto&& vector)
+    {
+      int value = 0;
+      for (auto&& index : vector_indices)
+      {
+        matrix.ForEachBlock([&](const double& val, double& elem)
+          { elem = val + value; },
+          vector,
+          matrix.GetBlockView(index));  // get block view using nth non-zero block index
+        value += 10;
+      }
+    }, sparse, block_values);
+  
+  set_func(sparse, block_values);
+  
+  // Verify that the correct values were set in the correct positions
+  EXPECT_EQ(sparse[0][0][0], 0.0);   // element (0,0) = 0 + 0
+  EXPECT_EQ(sparse[0][0][2], 10.0);  // element (0,2) = 0 + 10
+  EXPECT_EQ(sparse[0][1][0], 20.0);  // element (1,0) = 0 + 20
+  EXPECT_EQ(sparse[0][1][1], 30.0);  // element (1,1) = 0 + 30
+  EXPECT_EQ(sparse[0][2][1], 40.0);  // element (2,1) = 0 + 40
+  EXPECT_EQ(sparse[0][2][2], 50.0);  // element (2,2) = 0 + 50
+  EXPECT_EQ(sparse[1][0][0], 1.0);   // element (0,0) = 1 + 0
+  EXPECT_EQ(sparse[1][0][2], 11.0);  // element (0,2) = 1 + 10
+  EXPECT_EQ(sparse[1][1][0], 21.0);  // element (1,0) = 1 + 20
+  EXPECT_EQ(sparse[1][1][1], 31.0);  // element (1,1) = 1 + 30
+  EXPECT_EQ(sparse[1][2][1], 41.0);  // element (2,1) = 1 + 40
+  EXPECT_EQ(sparse[1][2][2], 51.0);  // element (2,2) = 1 + 50
+  EXPECT_EQ(sparse[2][0][0], 2.0);   // element (0,0) = 2 + 0
+  EXPECT_EQ(sparse[2][0][2], 12.0);  // element (0,2) = 2 + 10
+  EXPECT_EQ(sparse[2][1][0], 22.0);  // element (1,0) = 2 + 20
+  EXPECT_EQ(sparse[2][1][1], 32.0);  // element (1,1) = 2 + 30
+  EXPECT_EQ(sparse[2][2][1], 42.0);  // element (2,1) = 2 + 40
+  EXPECT_EQ(sparse[2][2][2], 52.0);  // element (2,2) = 2 + 50
+
+  return sparse;
+}

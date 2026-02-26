@@ -108,6 +108,32 @@ namespace micm
     /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
     /// @param block_id Block index
     /// @return Vector of indices of non-zero diagonal elements
+
+    /// @brief Convert row and column indices to vector index
+    /// @param row The row index
+    /// @param col The column index
+    /// @return The index of the nth non-zero element within a block (0-based)
+    std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
+    {
+      if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1)
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+      auto begin = std::next(row_ids_.begin(), row_start_[row]);
+      auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
+      auto elem = std::find(begin, end, col);
+      if (elem == end)
+        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+      return std::distance(row_ids_.begin(), elem);
+    }
+
+    /// @brief Extract element position from VectorIndex(0, row, col) result
+    /// @param vector_index_block_zero The result of VectorIndex(0, row, col)
+    /// @return The element position (0 to number_of_non_zero_elements-1)
+    std::size_t ElementPositionFromVectorIndex(std::size_t vector_index_block_zero) const
+    {
+      // For vector ordering: VectorIndex(0, row, col) = elem_position * L
+      return vector_index_block_zero / L;
+    }
+
     std::vector<std::size_t> DiagonalIndices(const std::size_t number_of_blocks, const std::size_t block_id) const
     {
       std::vector<std::size_t> indices;
@@ -153,7 +179,11 @@ namespace micm
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
         auto* source_matrix = arg.GetMatrix();
-        return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+        std::size_t elem_position = arg.ElementPosition();
+        std::size_t num_non_zero = source_matrix->FlatBlockSize();
+        // For vector ordering: (block / L) * (num_non_zero * L) + elem_position * L + (block % L)
+        std::size_t data_index = (block / L) * num_non_zero * L + elem_position * L + (block % L);
+        return source_matrix->AsVector()[data_index];
       }
 
       /// @brief Get element from VectorMatrix ConstColumnView (tiered grouping L>1)
@@ -236,6 +266,11 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
+      auto GetConstBlockView(std::size_t vector_index) const
+      {
+        return matrix_.GetConstBlockView(vector_index);
+      }
+
       auto GetConstBlockView(std::size_t row, std::size_t col) const
       {
         return matrix_.GetConstBlockView(row, col);
@@ -280,7 +315,11 @@ namespace micm
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
         auto* source_matrix = arg.GetMatrix();
-        return source_matrix->AsVector()[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+        std::size_t elem_position = arg.ElementPosition();
+        std::size_t num_non_zero = source_matrix->FlatBlockSize();
+        // For vector ordering: (block / L) * (num_non_zero * L) + elem_position * L + (block % L)
+        std::size_t data_index = (block / L) * num_non_zero * L + elem_position * L + (block % L);
+        return source_matrix->AsVector()[data_index];
       }
 
       /// @brief Get element from VectorMatrix ColumnView (tiered grouping L>1)
@@ -363,9 +402,19 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
+      auto GetConstBlockView(std::size_t vector_index) const
+      {
+        return matrix_.GetConstBlockView(vector_index);
+      }
+
       auto GetConstBlockView(std::size_t row, std::size_t col) const
       {
         return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockView(std::size_t vector_index)
+      {
+        return matrix_.GetBlockView(vector_index);
       }
 
       auto GetBlockView(std::size_t row, std::size_t col)

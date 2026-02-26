@@ -90,6 +90,32 @@ namespace micm
           data[block_start + i] += value;
     }
 
+    /// @brief Convert a vector index to row and column indices
+    /// @brief Convert row and column indices to vector index
+    /// @param row The row index
+    /// @param col The column index
+    /// @return The index of the nth non-zero element within a block (0-based)
+    std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
+    {
+      if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1)
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+      auto begin = std::next(row_ids_.begin(), row_start_[row]);
+      auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
+      auto elem = std::find(begin, end, col);
+      if (elem == end)
+        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+      return std::distance(row_ids_.begin(), elem);
+    }
+
+    /// @brief Extract element position from VectorIndex(0, row, col) result
+    /// @param vector_index_block_zero The result of VectorIndex(0, row, col)
+    /// @return The element position (0 to number_of_non_zero_elements-1)
+    std::size_t ElementPositionFromVectorIndex(std::size_t vector_index_block_zero) const
+    {
+      // For standard ordering: VectorIndex(0, row, col) = elem_position
+      return vector_index_block_zero;
+    }
+
     /// @brief Returns the indices along the diagonal of each block
     /// @param number_of_blocks Number of block sub-matrices in the overall matrix
     /// @param block_id Block index
@@ -136,7 +162,11 @@ namespace micm
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
-        return source_matrix->AsVector()[source_matrix->VectorIndex(group_, arg.RowIndex(), arg.ColumnIndex())];
+        std::size_t elem_position = arg.ElementPosition();
+        std::size_t num_non_zero = source_matrix->FlatBlockSize();
+        // For standard ordering: block * num_non_zero + elem_position
+        std::size_t data_index = group_ * num_non_zero + elem_position;
+        return source_matrix->AsVector()[data_index];
       }
 
       /// @brief Get element from Matrix or VectorMatrix ConstColumnView
@@ -177,6 +207,11 @@ namespace micm
       {
       }
 
+      auto GetConstBlockView(std::size_t vector_index) const
+      {
+        return matrix_.GetConstBlockView(vector_index);
+      }
+
       auto GetConstBlockView(std::size_t row, std::size_t col) const
       {
         return matrix_.GetConstBlockView(row, col);
@@ -215,7 +250,11 @@ namespace micm
       inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
-        return source_matrix->AsVector()[source_matrix->VectorIndex(group_, arg.RowIndex(), arg.ColumnIndex())];
+        std::size_t elem_position = arg.ElementPosition();
+        std::size_t num_non_zero = source_matrix->FlatBlockSize();
+        // For standard ordering: block * num_non_zero + elem_position
+        std::size_t data_index = group_ * num_non_zero + elem_position;
+        return source_matrix->AsVector()[data_index];
       }
 
       /// @brief Get element from Matrix or VectorMatrix ColumnView
@@ -256,9 +295,19 @@ namespace micm
       {
       }
 
+      auto GetConstBlockView(std::size_t vector_index) const
+      {
+        return matrix_.GetConstBlockView(vector_index);
+      }
+
       auto GetConstBlockView(std::size_t row, std::size_t col) const
       {
         return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockView(std::size_t vector_index)
+      {
+        return matrix_.GetBlockView(vector_index);
       }
 
       auto GetBlockView(std::size_t row, std::size_t col)

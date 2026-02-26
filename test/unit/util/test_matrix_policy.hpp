@@ -1312,6 +1312,8 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVe
 }
 
 /// @brief Test: Multiple matrices with DIFFERENT row counts + vector (creation succeeds, invocation fails)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overread"
 template<template<class> class MatrixPolicy>
 void testMultipleMatricesDifferentRowsVector()
 {
@@ -1332,8 +1334,11 @@ void testMultipleMatricesDifferentRowsVector()
   // Should throw at invocation because matrices have different row counts
   EXPECT_ANY_THROW(func(matrixA, matrixB, vec));
 }
+#pragma GCC diagnostic pop
 
 /// @brief Test: Vector size matches one matrix but not the other (creation succeeds, invocation fails)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overread"
 template<template<class> class MatrixPolicy>
 void testVectorSizeMatchesOneMatrixOnly()
 {
@@ -1354,6 +1359,7 @@ void testVectorSizeMatchesOneMatrixOnly()
   // Should throw at invocation because vector size doesn't match matrix row counts
   EXPECT_ANY_THROW(func(matrixA, matrixB, vec));
 }
+#pragma GCC diagnostic pop
 
 /// @brief Test: Const vector (read-only access)
 template<template<class> class MatrixPolicy>

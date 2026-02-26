@@ -273,6 +273,11 @@ TEST(SparseCompressedRowMatrix, FunctionWithConstSignatureSparse)
 {
   testFunctionWithConstSignatureSparse<micm::SparseMatrix, StandardOrdering>();
 }
+
+TEST(SparseCompressedRowMatrix, GetBlockViewByVectorIndex)
+{
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, StandardOrdering>();
+}
 TEST(SparseCompressedRowMatrix, FunctionReusabilityWithVectorsSparse)
 {
   testFunctionReusabilityWithVectorsSparse<micm::SparseMatrix, StandardOrdering>();
