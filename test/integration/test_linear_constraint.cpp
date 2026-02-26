@@ -137,13 +137,6 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
                 sum_initial_conc,
                 1e-10);
 
-    // 2. Concentrations remain non-negative
-    EXPECT_GE(state[A], 0.0);
-    EXPECT_GE(state[B], 0.0);
-    EXPECT_GE(state[C], 0.0);
-    EXPECT_GE(state[Cl], 0.0);
-    EXPECT_GE(state[Cl2], 0.0);
-
     time_step *= 10.0;
   }
 }

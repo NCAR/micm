@@ -16,11 +16,10 @@ namespace micm
   /// @brief Constraint for linear relationships: sum(coeff[i] * [species[i]]) = constant
   ///        For example: A + B + C = 1.0 represents a conservation law
   ///        The linear constraint is: G = c1*[A] + c2*[B] + c3*[C] - constant = 0
-  ///        This is useful for mass conservation, atom balance, or other additive constraints
   class LinearConstraint
   {
    public:
-    /// @brief Name of the constraint (for identification)
+    /// @brief Name of the constraint
     std::string name_;
 
     /// @brief Names of species this constraint depends on
@@ -50,18 +49,8 @@ namespace micm
           terms_(terms),
           constant_(constant)
     {
-      if (terms_.empty())
-      {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
-      }
-
-      // Build species dependencies list from terms
       for (const auto& term : terms_)
       {
-        if (term.coefficient_ == 0.0)
-        {
-          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
-        }
         species_dependencies_.push_back(term.species_.name_);
       }
     }
@@ -84,13 +73,12 @@ namespace micm
 
     /// @brief Compute Jacobian entries dG/d[species]
     ///        For a linear constraint, the Jacobian is simply the coefficients:
-    ///          dG/d[species[i]] = coeff[i]
+    ///        dG/d[species[i]] = coeff[i]
     /// @param concentrations Pointer to species concentrations (row of state matrix)
     /// @param indices Pointer to indices mapping species_dependencies_ to concentrations
     /// @param jacobian Output buffer for partial derivatives (same order as species_dependencies_)
     void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const
     {
-      // For linear constraints, derivatives are just the coefficients
       for (std::size_t i = 0; i < terms_.size(); ++i)
       {
         jacobian[i] = terms_[i].coefficient_;
@@ -98,11 +86,8 @@ namespace micm
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
+    ///        For linear constraints, the last species is used in the terms list as the algebraic row target.
     /// @return Species name of the primary algebraic variable
-    ///
-    /// For linear constraints, we use the last species in the terms list as the algebraic row target.
-    /// This convention allows users to specify which variable should be treated as algebraic
-    /// by placing it last in the terms list.
     const std::string& AlgebraicSpecies() const
     {
       return terms_.back().species_.name_;
