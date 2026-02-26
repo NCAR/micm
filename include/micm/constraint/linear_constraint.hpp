@@ -49,6 +49,10 @@ namespace micm
           terms_(terms),
           constant_(constant)
     {
+      if (terms_.empty())
+      {
+        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
+      }
       for (const auto& term : terms_)
       {
         species_dependencies_.push_back(term.species_.name_);

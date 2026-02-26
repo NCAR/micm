@@ -11,6 +11,7 @@
 #include <micm/util/matrix.hpp>
 
 #include <type_traits>
+#include <algorithm>
 
 namespace micm
 {
