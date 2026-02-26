@@ -269,7 +269,10 @@ TEST(SparseCompressedRowMatrix, MutableVectorSparse)
 {
   testMutableVectorSparse<micm::SparseMatrix, StandardOrdering>();
 }
-
+TEST(SparseCompressedRowMatrix, FunctionWithConstSignatureSparse)
+{
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, StandardOrdering>();
+}
 TEST(SparseCompressedRowMatrix, FunctionReusabilityWithVectorsSparse)
 {
   testFunctionReusabilityWithVectorsSparse<micm::SparseMatrix, StandardOrdering>();

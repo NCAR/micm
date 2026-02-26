@@ -511,7 +511,7 @@ namespace micm
       // when block views are accessed (will throw if element doesn't exist)
 
       // Return a callable that validates dimensions at invocation time
-      return [func = std::forward<Func>(func)](Args&... invoked_args) {
+      return [func = std::forward<Func>(func)](auto&&... invoked_args) {
         // At invocation: Validate that all matrices/vectors have compatible block counts/sizes
         // For sparse matrices: NumberOfBlocks()
         // For dense matrices: NumRows() (blocks correspond to rows)

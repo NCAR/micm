@@ -294,3 +294,8 @@ TEST(Matrix, IntegerVector)
 {
   testIntegerVector<micm::Matrix>();
 }
+
+TEST(Matrix, FunctionWithConstSignature)
+{
+  testFunctionWithConstSignature<micm::Matrix>();
+}

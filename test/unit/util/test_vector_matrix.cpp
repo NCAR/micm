@@ -406,3 +406,11 @@ TEST(VectorMatrix, IntegerVector)
   testIntegerVector<Group3MatrixAlias>();
   testIntegerVector<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, FunctionWithConstSignature)
+{
+  testFunctionWithConstSignature<Group1MatrixAlias>();
+  testFunctionWithConstSignature<Group2MatrixAlias>();
+  testFunctionWithConstSignature<Group3MatrixAlias>();
+  testFunctionWithConstSignature<Group4MatrixAlias>();
+}

@@ -734,7 +734,7 @@ namespace micm
       }(args), ...);
 
       // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_cols, is_matrix_type](Args&... invoked_args) {
+      return [func = std::forward<Func>(func), num_cols, is_matrix_type](auto&&... invoked_args) {
         // First pass: determine the row count from the first argument
         std::size_t num_rows = 0;
         bool found_first = false;

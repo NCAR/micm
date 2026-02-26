@@ -294,3 +294,8 @@ TEST(SparseCompressedColumnMatrix, IntegerVectorSparse)
 {
   testIntegerVectorSparse<micm::SparseMatrix, StandardOrdering>();
 }
+
+TEST(SparseCompressedColumnMatrix, FunctionWithConstSignatureSparse)
+{
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, StandardOrdering>();
+}

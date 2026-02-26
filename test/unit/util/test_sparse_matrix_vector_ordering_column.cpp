@@ -368,3 +368,11 @@ TEST(SparseVectorCompressedColumnMatrix, IntegerVectorSparse)
 {
   testIntegerVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
 }
+
+TEST(SparseVectorCompressedColumnMatrix, FunctionWithConstSignatureSparse)
+{
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+}

@@ -2237,3 +2237,26 @@ void testIntegerVectorSparse()
   EXPECT_DOUBLE_EQ(matrix[2][0][1], 22.5);
 }
 
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void testFunctionWithConstSignatureSparse()
+{
+  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(2)
+                     .WithElement(0, 0)
+                     .SetNumberOfBlocks(3);
+  
+  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  std::vector<double> vec = { 1.0, 2.0, 3.0 };
+  
+  // Create function - reads from const vector, writes to matrix
+  auto func_auto = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+    [](auto&& m, auto&& v) {
+      m.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; },
+                   v, m.GetBlockView(0, 0));
+    }, matrix, vec);
+  
+  // Try to wrap in std::function with const signature
+  std::function<void(SparseMatrixPolicy<double, OrderingPolicy>&, const std::vector<double>&)> func_std = func_auto;
+  
+  func_std(matrix, vec);
+}
+

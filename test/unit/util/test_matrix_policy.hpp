@@ -1569,3 +1569,22 @@ MatrixPolicy<int> testIntegerVector()
   return matrix;
 }
 
+template<template<class> class MatrixPolicy>
+void testFunctionWithConstSignature()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  std::vector<double> vec(3);
+  
+  // Create function
+  auto func_auto = MatrixPolicy<double>::Function(
+    [](auto&& m, auto&& v) {
+      m.ForEachRow([&](const double& a, double& b) { b = a * 2.0; },
+                   v, m.GetColumnView(0));
+    }, matrix, vec);
+  
+  // Try to wrap in std::function with const signature
+  std::function<void(MatrixPolicy<double>&, const std::vector<double>&)> func_std = func_auto;
+  
+  func_std(matrix, vec);
+}
+
