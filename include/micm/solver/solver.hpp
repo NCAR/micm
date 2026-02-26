@@ -11,6 +11,7 @@
 #include <micm/util/matrix.hpp>
 
 #include <type_traits>
+#include <algorithm>
 
 namespace micm
 {
@@ -180,8 +181,6 @@ namespace micm
         state.variables_.Max(0.0);
       }
     }
-
-
   };
 
 }  // namespace micm
