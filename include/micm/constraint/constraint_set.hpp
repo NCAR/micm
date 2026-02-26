@@ -221,9 +221,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
   {
-    if (constraints_.empty())
-      return;
-
     if constexpr (VectorizableDense<DenseMatrixPolicy>)
     {
       // Vectorized dense layouts are not row-contiguous, so build a contiguous row buffer.
@@ -273,9 +270,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    if (constraints_.empty())
-      return;
-
     // Allocate reusable buffer for constraint Jacobian values
     std::vector<double> jac_buffer(max_dependencies_);
 

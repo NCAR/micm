@@ -323,7 +323,6 @@ namespace micm
         upper_matrix_(),
         state_size_(0),
         constraint_size_(0),
-        constraints_replace_state_rows_(false),
         number_of_grid_cells_(0),
         temporary_variables_(nullptr),
         relative_tolerance_(1e-06),
@@ -354,7 +353,6 @@ namespace micm
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
         constraint_size_(parameters.number_of_constraints_),
-        constraints_replace_state_rows_(parameters.constraints_replace_state_rows_),
         number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
@@ -383,19 +381,17 @@ namespace micm
       }
     }
 
-    const std::size_t jacobian_size = state_size_;
-
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
       jacobian_ =
-          BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, jacobian_size, true);
+          BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, true);
       auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0, false);
       jacobian_ = std::move(lu);
     }
     else
     {
       jacobian_ =
-          BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, jacobian_size, false);
+          BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, false);
       auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(
           jacobian_, 0, false);
       auto lower_matrix = std::move(lu.first);

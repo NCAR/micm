@@ -128,11 +128,11 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
       requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>);
-      void SubtractJacobianTerms(
-        const auto& state,
-        const DenseMatrixPolicy& state_variables,
-        SparseMatrixPolicy& jacobian) const
-        requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
+    void SubtractJacobianTerms(
+      const auto& state,
+      const DenseMatrixPolicy& state_variables,
+      SparseMatrixPolicy& jacobian) const
+      requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Extracts all species involved in the given processes
     /// @param processes A list of Process objects, each with reactants and products
@@ -319,10 +319,7 @@ namespace micm
     std::fill(is_algebraic_variable_.begin(), is_algebraic_variable_.end(), false);
     for (const auto variable_id : variable_ids)
     {
-      if (variable_id < is_algebraic_variable_.size())
-      {
-        is_algebraic_variable_[variable_id] = true;
-      }
+      is_algebraic_variable_[variable_id] = true;
     }
   }
 
