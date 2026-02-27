@@ -1,6 +1,9 @@
 // Tests of common matrix functions
 #include <gtest/gtest.h>
 
+#include <array>
+#include <vector>
+
 template<template<class> class MatrixPolicy>
 MatrixPolicy<double> testSmallMatrix()
 {
@@ -1312,8 +1315,10 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVe
 }
 
 /// @brief Test: Multiple matrices with DIFFERENT row counts + vector (creation succeeds, invocation fails)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
 template<template<class> class MatrixPolicy>
 void testMultipleMatricesDifferentRowsVector()
 {
@@ -1334,11 +1339,15 @@ void testMultipleMatricesDifferentRowsVector()
   // Should throw at invocation because matrices have different row counts
   EXPECT_ANY_THROW(func(matrixA, matrixB, vec));
 }
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 /// @brief Test: Vector size matches one matrix but not the other (creation succeeds, invocation fails)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
 template<template<class> class MatrixPolicy>
 void testVectorSizeMatchesOneMatrixOnly()
 {
@@ -1359,7 +1368,9 @@ void testVectorSizeMatchesOneMatrixOnly()
   // Should throw at invocation because vector size doesn't match matrix row counts
   EXPECT_ANY_THROW(func(matrixA, matrixB, vec));
 }
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 /// @brief Test: Const vector (read-only access)
 template<template<class> class MatrixPolicy>
