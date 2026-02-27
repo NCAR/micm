@@ -5,7 +5,7 @@
 # Container versions, and sizes, can be found at https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
 #
 # For local testing, you can install the NVIDIA container toolkit:
-# see intructions here: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+# see instructions here: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 #
 # One-time configuration for podman:
 # sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
