@@ -12,21 +12,4 @@ namespace micm
   /// @brief Alias for the default sparse matrix standard ordering
   using SparseMatrixStandardOrdering = SparseMatrixStandardOrderingCompressedSparseRow;
 
-  template<class T, class OrderingPolicy>
-  class SparseMatrix;
-
-  /// @brief Standard ordering row sparse matrices always use simple grouping (L==1)
-  template<typename T>
-  struct GroupingStrategy<SparseMatrix<SparseMatrixStandardOrderingCompressedSparseRow, T>>
-  {
-    using type = SimpleGroupingTag;
-  };
-
-  /// @brief Standard ordering column sparse matrices always use simple grouping (L==1)
-  template<typename T>
-  struct GroupingStrategy<SparseMatrix<SparseMatrixStandardOrderingCompressedSparseColumn, T>>
-  {
-    using type = SimpleGroupingTag;
-  };
-
 }  // namespace micm
