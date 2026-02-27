@@ -628,7 +628,21 @@ namespace micm
     inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
-      return source_matrix->data_[source_matrix->VectorIndex(block, arg.RowIndex(), arg.ColumnIndex())];
+      constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+      std::size_t group = block / L;
+      std::size_t block_in_group = block % L;
+      
+      // Delegate to the OrderingPolicy's GroupView::GetBlockElement
+      if constexpr (std::is_const_v<std::remove_pointer_t<decltype(source_matrix)>>)
+      {
+        ConstGroupView group_view(*source_matrix, group);
+        return group_view.GetBlockElement(block_in_group, std::forward<Arg>(arg));
+      }
+      else
+      {
+        GroupView group_view(*source_matrix, group);
+        return group_view.GetBlockElement(block_in_group, std::forward<Arg>(arg));
+      }
     }
 
     /// @brief Get an element reference for a block (BlockVariable)
