@@ -60,8 +60,13 @@ namespace micm
   };
 
   /// @brief Determines the category of a view type (checks for nested 'category' type first)
+  /// Primary template: fallback for types without a nested 'category' type (e.g., std::vector)
+  /// This enables SFINAE to work correctly in concepts like VectorLike
   template<typename T, typename = void>
-  struct ViewCategory;
+  struct ViewCategory
+  {
+    using type = void;  // Default for non-view types
+  };
 
   /// @brief If type has a nested 'category' type, use it
   template<typename T>
