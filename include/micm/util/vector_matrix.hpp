@@ -89,7 +89,7 @@ namespace micm
 
    private:
    protected:
-    alignas(32) std::vector<T> data_;  // SIMD-aligned for vectorization
+    std::vector<T> data_;  // Memory alignment depends on std::vector's allocator
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
@@ -448,12 +448,12 @@ namespace micm
       return os;
     }
 
-    std::vector<T> &AsVector()
+    std::vector<T>& AsVector()
     {
       return data_;
     }
 
-    const std::vector<T> &AsVector() const
+    const std::vector<T>& AsVector() const
     {
       return data_;
     }
