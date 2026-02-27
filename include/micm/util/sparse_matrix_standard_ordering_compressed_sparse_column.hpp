@@ -91,8 +91,7 @@ namespace micm
           data[block_start + i] += value;
     }
 
-    /// @brief Convert a vector index to row and column indices
-    /// @brief Convert row and column indices to vector index
+    /// @brief Convert row and column indices to vector index within a block
     /// @param row The row index
     /// @param col The column index
     /// @return The index of the nth non-zero element within a block (0-based)
