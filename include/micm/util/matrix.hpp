@@ -684,14 +684,15 @@ namespace micm
           // For vectors, just pass them through
           func([&](auto&& arg) -> decltype(auto) {
             using ArgType = std::remove_reference_t<decltype(arg)>;
+            using ArgTypeNoConst = std::remove_const_t<ArgType>;
             if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename ArgType::ConstGroupView(arg, row);
+                return typename ArgTypeNoConst::ConstGroupView(arg, row);
               }
               else
               {
-                return typename ArgType::GroupView(arg, row);
+                return typename ArgTypeNoConst::GroupView(arg, row);
               }
             }
             else {

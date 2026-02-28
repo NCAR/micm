@@ -801,14 +801,15 @@ namespace micm
           // For vectors, just pass them through
           func([&](auto&& arg) -> decltype(auto) {
             using ArgType = std::remove_reference_t<decltype(arg)>;
+            using ArgTypeNoConst = std::remove_const_t<ArgType>;
             if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename ArgType::ConstGroupView(arg, group, L);
+                return typename ArgTypeNoConst::ConstGroupView(arg, group, L);
               }
               else
               {
-                return typename ArgType::GroupView(arg, group, L);
+                return typename ArgTypeNoConst::GroupView(arg, group, L);
               }
             }
             else {
@@ -825,14 +826,15 @@ namespace micm
           // For vectors, just pass them through
           func([&](auto&& arg) -> decltype(auto) {
             using ArgType = std::remove_reference_t<decltype(arg)>;
+            using ArgTypeNoConst = std::remove_const_t<ArgType>;
             if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename ArgType::ConstGroupView(arg, num_complete_groups, remaining);
+                return typename ArgTypeNoConst::ConstGroupView(arg, num_complete_groups, remaining);
               }
               else
               {
-                return typename ArgType::GroupView(arg, num_complete_groups, remaining);
+                return typename ArgTypeNoConst::GroupView(arg, num_complete_groups, remaining);
               }
             }
             else {

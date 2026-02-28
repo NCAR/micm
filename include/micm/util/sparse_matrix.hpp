@@ -599,6 +599,7 @@ namespace micm
           // For vectors: forward them directly
           func([&](auto&& arg) -> decltype(auto) {
             using ArgType = std::remove_reference_t<decltype(arg)>;
+            using ArgTypeNoConst = std::remove_const_t<ArgType>;
             if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
             {
               // Vector: just forward it
@@ -609,11 +610,11 @@ namespace micm
               // Matrix: create appropriate GroupView
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename ArgType::ConstGroupView(arg, group);
+                return typename ArgTypeNoConst::ConstGroupView(arg, group);
               }
               else
               {
-                return typename ArgType::GroupView(arg, group);
+                return typename ArgTypeNoConst::GroupView(arg, group);
               }
             }
           }(invoked_args)...);
