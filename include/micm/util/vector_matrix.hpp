@@ -775,34 +775,30 @@ namespace micm
 
       // Return a callable that validates dimensions on invocation and applies the function
       return [func = std::forward<Func>(func), num_cols, is_matrix_type](auto&&... invoked_args) mutable {
-        // First pass: determine the row count from the first argument
+        // Validate dimensions and determine row count in a single pass
         std::size_t num_rows = 0;
         bool found_first = false;
         std::size_t idx = 0;
         
         ([&](auto& arg) {
           using ArgType = std::remove_cvref_t<decltype(arg)>;
+          
+          // Determine row count from first argument
+          std::size_t this_num_rows = 0;
           if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
-            if (!found_first)
-            {
-              num_rows = arg.NumRows();
-              found_first = true;
-            }
+            this_num_rows = arg.NumRows();
           }
           else if constexpr (VectorLike<ArgType>) {
-            if (!found_first)
-            {
-              num_rows = arg.size();
-              found_first = true;
-            }
+            this_num_rows = arg.size();
           }
-          ++idx;
-        }(invoked_args), ...);
-        
-        // Second pass: validate all arguments have matching row counts and correct columns
-        idx = 0;
-        ([&](auto& arg) {
-          using ArgType = std::remove_cvref_t<decltype(arg)>;
+          
+          if (!found_first)
+          {
+            num_rows = this_num_rows;
+            found_first = true;
+          }
+          
+          // Validate dimensions
           if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
             // Validate matrix dimensions
             if (arg.NumRows() != num_rows)
