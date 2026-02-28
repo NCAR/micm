@@ -734,7 +734,7 @@ namespace micm
       }(args), ...);
 
       // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_cols, is_matrix_type](auto&&... invoked_args) {
+      return [func = std::forward<Func>(func), num_cols, is_matrix_type](auto&&... invoked_args) mutable {
         // First pass: determine the row count from the first argument
         std::size_t num_rows = 0;
         bool found_first = false;
@@ -799,22 +799,22 @@ namespace micm
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
           // For vectors, just pass them through
-          func([&]() -> decltype(auto) {
-            using ArgType = std::remove_reference_t<decltype(invoked_args)>;
-            if constexpr (requires { invoked_args.NumRows(); invoked_args.NumColumns(); }) {
+          func([&](auto&& arg) -> decltype(auto) {
+            using ArgType = std::remove_reference_t<decltype(arg)>;
+            if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename std::decay_t<Args>::ConstGroupView(invoked_args, group, L);
+                return typename ArgType::ConstGroupView(arg, group, L);
               }
               else
               {
-                return typename std::decay_t<Args>::GroupView(invoked_args, group, L);
+                return typename ArgType::GroupView(arg, group, L);
               }
             }
             else {
-              return std::forward<decltype(invoked_args)>(invoked_args);
+              return std::forward<decltype(arg)>(arg);
             }
-          }()...);
+          }(invoked_args)...);
         }
         
         // Process remaining rows (if num_rows is not a multiple of L)
@@ -823,22 +823,22 @@ namespace micm
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
           // For vectors, just pass them through
-          func([&]() -> decltype(auto) {
-            using ArgType = std::remove_reference_t<decltype(invoked_args)>;
-            if constexpr (requires { invoked_args.NumRows(); invoked_args.NumColumns(); }) {
+          func([&](auto&& arg) -> decltype(auto) {
+            using ArgType = std::remove_reference_t<decltype(arg)>;
+            if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename std::decay_t<Args>::ConstGroupView(invoked_args, num_complete_groups, remaining);
+                return typename ArgType::ConstGroupView(arg, num_complete_groups, remaining);
               }
               else
               {
-                return typename std::decay_t<Args>::GroupView(invoked_args, num_complete_groups, remaining);
+                return typename ArgType::GroupView(arg, num_complete_groups, remaining);
               }
             }
             else {
-              return std::forward<decltype(invoked_args)>(invoked_args);
+              return std::forward<decltype(arg)>(arg);
             }
-          }()...);
+          }(invoked_args)...);
         }
       };
     }

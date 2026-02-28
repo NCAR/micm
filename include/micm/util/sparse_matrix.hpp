@@ -525,7 +525,7 @@ namespace micm
       // when block views are accessed (will throw if element doesn't exist)
 
       // Return a callable that validates dimensions at invocation time
-      return [func = std::forward<Func>(func)](auto&&... invoked_args) {
+      return [func = std::forward<Func>(func)](auto&&... invoked_args) mutable {
         // At invocation: Validate that all matrices/vectors have compatible block counts/sizes
         // For sparse matrices: NumberOfBlocks()
         // For dense matrices: NumRows() (blocks correspond to rows)
@@ -597,26 +597,26 @@ namespace micm
         {
           // For matrices: use ConstGroupView if const, otherwise GroupView
           // For vectors: forward them directly
-          func([&]() -> decltype(auto) {
-            using ArgType = std::remove_reference_t<decltype(invoked_args)>;
+          func([&](auto&& arg) -> decltype(auto) {
+            using ArgType = std::remove_reference_t<decltype(arg)>;
             if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
             {
               // Vector: just forward it
-              return std::forward<decltype(invoked_args)>(invoked_args);
+              return std::forward<decltype(arg)>(arg);
             }
             else
             {
               // Matrix: create appropriate GroupView
               if constexpr (std::is_const_v<ArgType>)
               {
-                return typename std::decay_t<Args>::ConstGroupView(invoked_args, group);
+                return typename ArgType::ConstGroupView(arg, group);
               }
               else
               {
-                return typename std::decay_t<Args>::GroupView(invoked_args, group);
+                return typename ArgType::GroupView(arg, group);
               }
             }
-          }()...);
+          }(invoked_args)...);
         }
       };
     }
