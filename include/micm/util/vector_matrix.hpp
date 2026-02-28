@@ -752,27 +752,28 @@ namespace micm
     template<typename Func, typename... Args>
     static auto Function(Func&& func, Args&... args)
     {
-      // Capture column counts for matrices at creation time
+      // Capture column counts for matrices at creation time using helper
       // Row counts can differ between args at creation, but must match at invocation
-      std::vector<std::size_t> num_cols(sizeof...(Args));
-      std::size_t index = 0;
+      auto populate_cols = [](auto&... args_inner) {
+        std::vector<std::size_t> cols(sizeof...(args_inner));
+        std::size_t idx = 0;
+        ([&](auto& arg) {
+          using ArgType = std::remove_cvref_t<decltype(arg)>;
+          if constexpr (VectorLike<ArgType>) {
+            cols[idx] = 0;  // Not used for vectors
+          }
+          else {
+            cols[idx] = arg.NumColumns();
+          }
+          ++idx;
+        }(args_inner), ...);
+        return cols;
+      };
       
-      ([&](auto& arg) {
-        using ArgType = std::remove_cvref_t<decltype(arg)>;
-        
-        if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
-          // This is a matrix - just capture column count
-          num_cols[index] = arg.NumColumns();
-        }
-        else if constexpr (VectorLike<ArgType>) {
-          // This is a vector-like type - will validate size matches row count at invocation
-          num_cols[index] = 0;  // Not used for vectors
-        }
-        ++index;
-      }(args), ...);
+      std::vector<std::size_t> num_cols = populate_cols(args...);
 
-      // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_cols](auto&&... invoked_args) mutable {
+      // Store in variable to ensure fold expression completes before lambda construction
+      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable {
         // Validate dimensions and determine row count in a single pass
         std::size_t num_rows = 0;
         bool found_first = false;
@@ -876,6 +877,7 @@ namespace micm
           }(invoked_args)...);
         }
       };
+      return result;
     }
 
    private:
