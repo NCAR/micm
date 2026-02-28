@@ -648,47 +648,46 @@ namespace micm
         ([&](auto& arg) {
           using ArgType = std::remove_cvref_t<decltype(arg)>;
           
-          // Determine row count from first argument
-          std::size_t this_num_rows = 0;
-          if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
-            this_num_rows = arg.NumRows();
-          }
-          else if constexpr (VectorLike<ArgType>) {
-            this_num_rows = arg.size();
-          }
-          
-          if (!found_first)
-          {
-            num_rows = this_num_rows;
-            found_first = true;
-          }
-          
-          // Validate dimensions
-          if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
-            // Validate matrix dimensions
-            if (arg.NumRows() != num_rows)
+          if constexpr (VectorLike<ArgType>) {
+            // Vector - validate size matches row count
+            if (!found_first)
+            {
+              num_rows = arg.size();
+              found_first = true;
+            }
+            else if (arg.size() != num_rows)
             {
               throw std::system_error(
                   make_error_code(MicmMatrixErrc::InvalidVector),
-                  "All matrices must have the same number of rows when invoking function. Expected " + 
-                      std::to_string(num_rows) + " rows but got " + std::to_string(arg.NumRows()));
+                  "Vector size must match matrix row count. Expected " + std::to_string(num_rows) + 
+                      " elements but got " + std::to_string(arg.size()));
             }
+          }
+          else if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
+            // Matrix - validate dimensions
+            if (!found_first)
+            {
+              num_rows = arg.NumRows();
+              found_first = true;
+            }
+            else
+            {
+              if (arg.NumRows() != num_rows)
+              {
+                throw std::system_error(
+                    make_error_code(MicmMatrixErrc::InvalidVector),
+                    "All matrices must have the same number of rows when invoking function. Expected " + 
+                        std::to_string(num_rows) + " rows but got " + std::to_string(arg.NumRows()));
+              }
+            }
+            
+            // Always validate column count against captured value
             if (arg.NumColumns() != num_cols[idx])
             {
               throw std::system_error(
                   make_error_code(MicmMatrixErrc::InvalidVector),
                   "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + 
                       " columns but got " + std::to_string(arg.NumColumns()));
-            }
-          }
-          else if constexpr (VectorLike<ArgType>) {
-            // Validate vector size matches row count
-            if (arg.size() != num_rows)
-            {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Vector size must match matrix row count. Expected " + std::to_string(num_rows) + 
-                      " elements but got " + std::to_string(arg.size()));
             }
           }
           ++idx;
