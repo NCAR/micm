@@ -496,6 +496,14 @@ namespace micm
       return RowVariable();
     }
 
+    /// @brief Get a row variable with persistent storage for temporary values (const version)
+    /// @return A RowVariable with stack-allocated storage
+    RowVariable GetRowVariable() const
+    {
+      // Stack-allocated array of L elements
+      return RowVariable();
+    }
+
     /// @brief Apply a function to each row of the matrix (processes L rows at a time)
     /// @tparam Func The lambda/function type
     /// @tparam Args The types of the column view arguments
@@ -503,6 +511,38 @@ namespace micm
     /// @param args Column views or row variables
     template<typename Func, typename... Args>
     void ForEachRow(Func&& func, Args&&... args)
+    {
+      // Process complete groups of L rows
+      std::size_t num_groups = std::floor(x_dim_ / (double)L);
+      for (std::size_t group = 0; group < num_groups; ++group)
+      {
+        for (std::size_t row_in_group = 0; row_in_group < L; ++row_in_group)
+        {
+          std::size_t row = group * L + row_in_group;
+          func(GetRowElement(row, group, row_in_group, args)...);
+        }
+      }
+      
+      // Process remaining rows (if x_dim_ is not a multiple of L)
+      std::size_t remaining = x_dim_ % L;
+      if (remaining > 0)
+      {
+        std::size_t last_group = num_groups;
+        for (std::size_t row_in_group = 0; row_in_group < remaining; ++row_in_group)
+        {
+          std::size_t row = last_group * L + row_in_group;
+          func(GetRowElement(row, last_group, row_in_group, args)...);
+        }
+      }
+    }
+
+    /// @brief Apply a function to each row of the matrix (const version)
+    /// @tparam Func The lambda/function type
+    /// @tparam Args The types of the column view arguments
+    /// @param func The function to apply to each row
+    /// @param args Column views or row variables
+    template<typename Func, typename... Args>
+    void ForEachRow(Func&& func, Args&&... args) const
     {
       // Process complete groups of L rows
       std::size_t num_groups = std::floor(x_dim_ / (double)L);
@@ -868,6 +908,32 @@ namespace micm
     template<VectorLike Arg>
     [[gnu::always_inline]]
     inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    {
+      return arg[row];
+    }
+
+    /// @brief Get a const element reference for a row (ColumnView) - const version
+    template<DenseMatrixColumnView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    {
+      auto* source_matrix = arg.GetMatrix();
+      // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
+      return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
+    }
+
+    /// @brief Get a const element reference for a row (RowVariable) - const version
+    template<BlockVariableView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    {
+      return arg.Get()[row_in_group];
+    }
+
+    /// @brief Get a const element reference for a row (Vector-like) - const version
+    template<VectorLike Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
     {
       return arg[row];
     }

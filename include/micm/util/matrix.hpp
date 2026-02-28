@@ -431,6 +431,13 @@ namespace micm
       return RowVariable();
     }
 
+    /// @brief Get a row variable with persistent storage for temporary values (const version)
+    /// @return A RowVariable with stack-allocated storage
+    RowVariable GetRowVariable() const
+    {
+      return RowVariable();
+    }
+
     /// @brief Apply a function to each row of the matrix
     /// @tparam Func The lambda/function type
     /// @tparam Args The types of the column view arguments
@@ -438,6 +445,20 @@ namespace micm
     /// @param args Column views or row variables
     template<typename Func, typename... Args>
     void ForEachRow(Func&& func, Args&&... args)
+    {
+      for (std::size_t row = 0; row < x_dim_; ++row)
+      {
+        func(GetRowElement(row, args)...);
+      }
+    }
+
+    /// @brief Apply a function to each row of the matrix (const version)
+    /// @tparam Func The lambda/function type
+    /// @tparam Args The types of the column view arguments
+    /// @param func The function to apply to each row
+    /// @param args Column views or row variables
+    template<typename Func, typename... Args>
+    void ForEachRow(Func&& func, Args&&... args) const
     {
       for (std::size_t row = 0; row < x_dim_; ++row)
       {
@@ -725,6 +746,31 @@ namespace micm
     template<VectorLike Arg>
     [[gnu::always_inline]]
     inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    {
+      return arg[row];
+    }
+
+    /// @brief Get a const element reference for a row (ColumnView) - const version
+    template<DenseMatrixColumnView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    {
+      auto* source_matrix = arg.GetMatrix();
+      return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
+    }
+
+    /// @brief Get a const element reference for a row (RowVariable) - const version
+    template<BlockVariableView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    {
+      return arg.Get();
+    }
+
+    /// @brief Get a const element reference for a row (Vector-like) - const version
+    template<VectorLike Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       return arg[row];
     }
