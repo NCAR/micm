@@ -619,8 +619,7 @@ namespace micm
     {
       // Capture column counts for matrices at creation time
       // Row counts can differ between args at creation, but must match at invocation
-      // Use shared_ptr to heap-allocate arrays for better MSVC compatibility
-      auto num_cols = std::make_shared<std::array<std::size_t, sizeof...(Args)>>();
+      std::vector<std::size_t> num_cols(sizeof...(Args));
       std::size_t index = 0;
       
       ([&](auto& arg) {
@@ -628,11 +627,11 @@ namespace micm
         
         if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
           // This is a matrix - just capture column count
-          (*num_cols)[index] = arg.NumColumns();
+          num_cols[index] = arg.NumColumns();
         }
         else if constexpr (VectorLike<ArgType>) {
           // This is a vector-like type - will validate size matches row count at invocation
-          (*num_cols)[index] = 0;  // Not used for vectors
+          num_cols[index] = 0;  // Not used for vectors
         }
         ++index;
       }(args), ...);
@@ -681,11 +680,11 @@ namespace micm
             }
             
             // Always validate column count against captured value
-            if (arg.NumColumns() != (*num_cols)[idx])
+            if (arg.NumColumns() != num_cols[idx])
             {
               throw std::system_error(
                   make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Matrix column count does not match. Expected " + std::to_string((*num_cols)[idx]) + 
+                  "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + 
                       " columns but got " + std::to_string(arg.NumColumns()));
             }
           }
