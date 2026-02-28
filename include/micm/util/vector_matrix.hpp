@@ -11,6 +11,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <system_error>
 #include <vector>
 
@@ -753,8 +754,8 @@ namespace micm
     {
       // Capture column counts for matrices at creation time
       // Row counts can differ between args at creation, but must match at invocation
-      std::array<std::size_t, sizeof...(Args)> num_cols{};
-      std::array<bool, sizeof...(Args)> is_matrix_type{};
+      // Use shared_ptr to heap-allocate arrays for better MSVC compatibility
+      auto num_cols = std::make_shared<std::array<std::size_t, sizeof...(Args)>>();
       std::size_t index = 0;
       
       ([&](auto& arg) {
@@ -762,19 +763,17 @@ namespace micm
         
         if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
           // This is a matrix - just capture column count
-          is_matrix_type[index] = true;
-          num_cols[index] = arg.NumColumns();
+          (*num_cols)[index] = arg.NumColumns();
         }
         else if constexpr (VectorLike<ArgType>) {
           // This is a vector-like type - will validate size matches row count at invocation
-          is_matrix_type[index] = false;
-          num_cols[index] = 0;  // Not used for vectors
+          (*num_cols)[index] = 0;  // Not used for vectors
         }
         ++index;
       }(args), ...);
 
       // Return a callable that validates dimensions on invocation and applies the function
-      return [func = std::forward<Func>(func), num_cols, is_matrix_type](auto&&... invoked_args) mutable {
+      return [func = std::forward<Func>(func), num_cols](auto&&... invoked_args) mutable {
         // Validate dimensions and determine row count in a single pass
         std::size_t num_rows = 0;
         bool found_first = false;
@@ -817,11 +816,11 @@ namespace micm
             }
             
             // Always validate column count against captured value
-            if (arg.NumColumns() != num_cols[idx])
+            if (arg.NumColumns() != (*num_cols)[idx])
             {
               throw std::system_error(
                   make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + 
+                  "Matrix column count does not match. Expected " + std::to_string((*num_cols)[idx]) + 
                       " columns but got " + std::to_string(arg.NumColumns()));
             }
           }
