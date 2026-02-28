@@ -836,7 +836,14 @@ namespace micm
           func([&](auto&& arg) -> decltype(auto) {
             using ArgType = std::remove_reference_t<decltype(arg)>;
             using ArgTypeNoConst = std::remove_const_t<ArgType>;
-            if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
+            if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+            {
+              // Vector: just forward it
+              return std::forward<decltype(arg)>(arg);
+            }
+            else
+            {
+              // Matrix: create appropriate GroupView
               if constexpr (std::is_const_v<ArgType>)
               {
                 return typename ArgTypeNoConst::ConstGroupView(arg, group, L);
@@ -845,9 +852,6 @@ namespace micm
               {
                 return typename ArgTypeNoConst::GroupView(arg, group, L);
               }
-            }
-            else {
-              return std::forward<decltype(arg)>(arg);
             }
           }(invoked_args)...);
         }
@@ -861,7 +865,14 @@ namespace micm
           func([&](auto&& arg) -> decltype(auto) {
             using ArgType = std::remove_reference_t<decltype(arg)>;
             using ArgTypeNoConst = std::remove_const_t<ArgType>;
-            if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
+            if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+            {
+              // Vector: just forward it
+              return std::forward<decltype(arg)>(arg);
+            }
+            else
+            {
+              // Matrix: create appropriate GroupView
               if constexpr (std::is_const_v<ArgType>)
               {
                 return typename ArgTypeNoConst::ConstGroupView(arg, num_complete_groups, remaining);
@@ -870,9 +881,6 @@ namespace micm
               {
                 return typename ArgTypeNoConst::GroupView(arg, num_complete_groups, remaining);
               }
-            }
-            else {
-              return std::forward<decltype(arg)>(arg);
             }
           }(invoked_args)...);
         }
