@@ -88,7 +88,8 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::AddExternalModelProcesses(ExternalModel&& model)
   {
-    external_models_.emplace_back( ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) } );
+    external_models_.emplace_back(
+        ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) });
     return *this;
   }
 
@@ -280,11 +281,13 @@ namespace micm
     }
     if (params.size() != size)
     {
-      throw std::invalid_argument("Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate parameter labels.");
+      throw std::invalid_argument(
+          "Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate "
+          "parameter labels.");
     }
     return params;
   }
-  
+
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy,
@@ -351,7 +354,7 @@ namespace micm
     }
 
     RatesPolicy rates(this->reactions_, species_map, external_models_);
-    
+
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 

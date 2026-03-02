@@ -31,11 +31,7 @@ TEST(ConstraintSet, Construction)
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t constraint_row_offset = 3;  // After the 3 species
 
@@ -54,11 +50,7 @@ TEST(ConstraintSet, NonZeroJacobianElements)
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t constraint_row_offset = 3;
 
@@ -90,13 +82,7 @@ TEST(ConstraintSet, MultipleConstraints)
       std::vector<StoichSpecies>{ StoichSpecies(Species("D"), 1.0) },
       500.0));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 },
-    { "C", 3 },
-    { "D", 4 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 }, { "C", 3 }, { "D", 4 } };
 
   std::size_t constraint_row_offset = 5;
 
@@ -128,11 +114,7 @@ TEST(ConstraintSet, AddForcingTerms)
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t num_species = 3;
   std::size_t num_constraints = 1;
@@ -141,7 +123,7 @@ TEST(ConstraintSet, AddForcingTerms)
 
   // State with 2 grid cells
   Matrix<double> state(2, num_species);
-  state[0] = { 0.01, 0.01, 0.001 };  // Away from equilibrium
+  state[0] = { 0.01, 0.01, 0.001 };    // Away from equilibrium
   state[1] = { 0.001, 0.001, 0.001 };  // At equilibrium
 
   // Extended forcing vector (species + constraints)
@@ -166,11 +148,7 @@ TEST(ConstraintSet, SubtractJacobianTerms)
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t num_species = 3;
   std::size_t num_constraints = 1;
@@ -183,9 +161,8 @@ TEST(ConstraintSet, SubtractJacobianTerms)
 
   // Build a 4x4 sparse Jacobian (3 species + 1 constraint)
   // Include diagonal elements for species and constraint rows
-  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+  auto builder =
+      SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < total_vars; ++i)
     builder = builder.WithElement(i, i);  // Diagonals
@@ -248,14 +225,9 @@ TEST(ConstraintSet, UnknownSpeciesThrows)
       std::vector<StoichSpecies>{ StoichSpecies(Species("XY"), 1.0) },
       1000.0));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
-  EXPECT_THROW(
-      ConstraintSet(std::move(constraints), variable_map, 2),
-      std::system_error);
+  EXPECT_THROW(ConstraintSet(std::move(constraints), variable_map, 2), std::system_error);
 }
 
 /// @brief Test 3D state (3 species) with 1 constraint
@@ -281,11 +253,7 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
       std::vector<StoichSpecies>{ StoichSpecies(Species("Y"), 1.0) },
       K_eq));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "X", 0 },
-    { "Y", 1 },
-    { "Z", 2 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
   ConstraintSet set(std::move(constraints), variable_map, num_species);
 
@@ -293,15 +261,15 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
 
   // Check non-zero Jacobian elements
   auto non_zero_elements = set.NonZeroJacobianElements();
-  EXPECT_EQ(non_zero_elements.size(), 2);  // dG/dX and dG/dY
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 0)));  // dG/dX at row 3, col 0
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 1)));  // dG/dY at row 3, col 1
-  EXPECT_FALSE(non_zero_elements.count(std::make_pair(3, 2))); // Z not involved
+  EXPECT_EQ(non_zero_elements.size(), 2);                       // dG/dX and dG/dY
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 0)));   // dG/dX at row 3, col 0
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(3, 1)));   // dG/dY at row 3, col 1
+  EXPECT_FALSE(non_zero_elements.count(std::make_pair(3, 2)));  // Z not involved
 
   // Build sparse Jacobian (4x4)
   auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
-    .SetNumberOfBlocks(2)  // Test with 2 grid cells
-    .InitialValue(0.0);
+                     .SetNumberOfBlocks(2)  // Test with 2 grid cells
+                     .InitialValue(0.0);
 
   for (std::size_t i = 0; i < total_vars; ++i)
     builder = builder.WithElement(i, i);
@@ -314,9 +282,9 @@ TEST(ConstraintSet, ThreeDStateOneConstraint)
   // State with 2 grid cells
   Matrix<double> state(2, num_species);
   // Grid cell 0: Away from equilibrium
-  state[0][0] = 0.1;   // X
-  state[0][1] = 2.0;   // Y
-  state[0][2] = 0.5;   // Z (uninvolved)
+  state[0][0] = 0.1;  // X
+  state[0][1] = 2.0;  // Y
+  state[0][2] = 0.5;  // Z (uninvolved)
   // Grid cell 1: At equilibrium (Y/X = 50)
   state[1][0] = 0.02;  // X
   state[1][1] = 1.0;   // Y = 50 * 0.02 = 1.0
@@ -389,12 +357,7 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
       K_eq2));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 },
-    { "D", 3 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
   ConstraintSet set(std::move(constraints), variable_map, num_species);
 
@@ -417,8 +380,8 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
 
   // Build sparse Jacobian (6x6)
   auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
-    .SetNumberOfBlocks(3)  // Test with 3 grid cells
-    .InitialValue(0.0);
+                     .SetNumberOfBlocks(3)  // Test with 3 grid cells
+                     .InitialValue(0.0);
 
   for (std::size_t i = 0; i < total_vars; ++i)
     builder = builder.WithElement(i, i);
@@ -435,22 +398,22 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
   // If [A] = 0.1, then [B] = K_eq1 * [A] = 10 * 0.1 = 1.0
   // If [A] = 0.1 and K_eq2 * [C] * [D] = [A], then [C] * [D] = 0.1/100 = 0.001
   // Let [C] = 0.1, [D] = 0.01 => [C]*[D] = 0.001
-  state[0][0] = 0.1;    // A
-  state[0][1] = 1.0;    // B = 10 * 0.1
-  state[0][2] = 0.1;    // C
-  state[0][3] = 0.01;   // D, so C*D = 0.001, K_eq2*C*D = 0.1 = A
+  state[0][0] = 0.1;   // A
+  state[0][1] = 1.0;   // B = 10 * 0.1
+  state[0][2] = 0.1;   // C
+  state[0][3] = 0.01;  // D, so C*D = 0.001, K_eq2*C*D = 0.1 = A
 
   // Grid cell 1: First constraint satisfied, second not
-  state[1][0] = 0.2;    // A
-  state[1][1] = 2.0;    // B = 10 * 0.2 (constraint 1 satisfied)
-  state[1][2] = 0.1;    // C
-  state[1][3] = 0.1;    // D, C*D = 0.01, K_eq2*C*D = 1.0 != 0.2
+  state[1][0] = 0.2;  // A
+  state[1][1] = 2.0;  // B = 10 * 0.2 (constraint 1 satisfied)
+  state[1][2] = 0.1;  // C
+  state[1][3] = 0.1;  // D, C*D = 0.01, K_eq2*C*D = 1.0 != 0.2
 
   // Grid cell 2: Neither constraint satisfied
-  state[2][0] = 0.5;    // A
-  state[2][1] = 3.0;    // B != 10 * 0.5 = 5.0
-  state[2][2] = 0.2;    // C
-  state[2][3] = 0.3;    // D, C*D = 0.06, K_eq2*C*D = 6.0 != 0.5
+  state[2][0] = 0.5;  // A
+  state[2][1] = 3.0;  // B != 10 * 0.5 = 5.0
+  state[2][2] = 0.2;  // C
+  state[2][3] = 0.3;  // D, C*D = 0.06, K_eq2*C*D = 6.0 != 0.5
 
   // Test forcing terms
   Matrix<double> forcing(3, total_vars, 0.0);
@@ -497,7 +460,7 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
   // dG2/dA = -1
   EXPECT_NEAR(jacobian[0][5][2], -K_eq2 * state[0][3], 1e-10);  // -dG2/dC
   EXPECT_NEAR(jacobian[0][5][3], -K_eq2 * state[0][2], 1e-10);  // -dG2/dD
-  EXPECT_NEAR(jacobian[0][5][0], 1.0, 1e-10);                    // -dG2/dA = -(-1) = 1
+  EXPECT_NEAR(jacobian[0][5][0], 1.0, 1e-10);                   // -dG2/dA = -(-1) = 1
 
   // Grid cell 1:
   EXPECT_NEAR(jacobian[1][4][0], -K_eq1, 1e-10);
@@ -544,11 +507,7 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
       std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
       K_eq2));
 
-  std::map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 }
-  };
+  std::map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSet set(std::move(constraints), variable_map, num_species);
 
@@ -568,9 +527,8 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
   EXPECT_EQ(non_zero_elements.size(), 4);
 
   // Build Jacobian
-  auto builder = SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+  auto builder =
+      SparseMatrix<double, SparseMatrixStandardOrdering>::Create(total_vars).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < total_vars; ++i)
     builder = builder.WithElement(i, i);
@@ -583,9 +541,9 @@ TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
   // State at dual equilibrium: [B]/[A] = 5, [C]/[A] = 20
   // If [A] = 0.1, [B] = 0.5, [C] = 2.0
   Matrix<double> state(1, num_species);
-  state[0][0] = 0.1;   // A
-  state[0][1] = 0.5;   // B = 5 * 0.1
-  state[0][2] = 2.0;   // C = 20 * 0.1
+  state[0][0] = 0.1;  // A
+  state[0][1] = 0.5;  // B = 5 * 0.1
+  state[0][2] = 2.0;  // C = 20 * 0.1
 
   // Test forcing terms
   Matrix<double> forcing(1, total_vars, 0.0);

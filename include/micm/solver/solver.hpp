@@ -24,7 +24,8 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>> update_state_parameters_functions_;
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
+        update_state_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -53,7 +54,8 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>& update_state_parameters_functions)
+        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+            update_state_parameters_functions)
         : solver_(std::move(solver)),
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),

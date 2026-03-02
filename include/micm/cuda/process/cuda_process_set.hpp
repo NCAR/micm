@@ -62,13 +62,11 @@ namespace micm
     /// @param matrix
     void SetJacobianFlatIds(const SparseMatrixPolicy& matrix);
 
-    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing)
-    const requires(VectorizableDense<DenseMatrixPolicy>);
+    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+      requires(VectorizableDense<DenseMatrixPolicy>);
 
-    void SubtractJacobianTerms(
-      const auto& state,
-      const DenseMatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
+    void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
+        const
       requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
   };
 
@@ -175,9 +173,9 @@ namespace micm
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
-    const auto& state,
-    const DenseMatrixPolicy& state_variables,
-    DenseMatrixPolicy& forcing) const
+      const auto& state,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
     requires(VectorizableDense<DenseMatrixPolicy>)
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue

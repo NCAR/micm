@@ -64,7 +64,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator double() const
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+  operator double() const
   {
     if (state_.variables_.NumRows() != 1)
       throw std::system_error(
@@ -79,9 +80,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator=(
-      double value)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator=(double value)
   {
     if (state_.variables_.NumRows() != 1)
       throw std::system_error(
@@ -97,9 +99,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator=(
-      const std::vector<double>& values)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator=(const std::vector<double>& values)
   {
     if (values.size() != state_.number_of_grid_cells_)
       throw std::system_error(
@@ -118,9 +121,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator=(
-      const VariableProxy& other)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator=(const VariableProxy& other)
   {
     if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
       throw std::system_error(
@@ -139,9 +143,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator+=(
-      double value)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator+=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
       throw std::system_error(
@@ -157,9 +162,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator-=(
-      double value)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator-=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
       throw std::system_error(
@@ -175,9 +181,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator*=(
-      double value)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator*=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
       throw std::system_error(
@@ -193,9 +200,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator/=(
-      double value)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator/=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
       throw std::system_error(
@@ -211,9 +219,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline double&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator[](
-      std::size_t grid_cell_index)
+  inline double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy::operator[](std::size_t grid_cell_index)
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
       throw std::out_of_range("Grid cell index out of range");
@@ -226,9 +233,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline const double&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator[](
-      std::size_t grid_cell_index) const
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy::operator[](std::size_t grid_cell_index) const
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
       throw std::out_of_range("Grid cell index out of range");
@@ -241,7 +247,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator double() const
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy::operator double() const
   {
     if (state_.variables_.NumRows() != 1)
       throw std::system_error(
@@ -256,8 +263,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator[](
-      std::size_t grid_cell_index) const
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy::operator[](std::size_t grid_cell_index) const
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
       throw std::out_of_range("Grid cell index out of range");
@@ -270,8 +277,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator==(
-      const std::vector<double>& other) const
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy::operator==(const std::vector<double>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
       return false;
@@ -289,8 +296,8 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator==(
-      const std::vector<double>& other) const
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy::operator==(const std::vector<double>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
       return false;
@@ -387,9 +394,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
-      std::size_t index)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          std::size_t index)
   {
     if (index >= state_size_)
       throw std::out_of_range("Variable index out of range");
@@ -402,9 +410,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
-      std::size_t index) const
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          std::size_t index) const
   {
     if (index >= state_size_)
       throw std::out_of_range("Variable index out of range");
@@ -417,10 +426,11 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
-      const std::string& name)
-  { 
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const std::string& name)
+  {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), name);
@@ -433,9 +443,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
-      const std::string& name) const
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const std::string& name) const
   {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
@@ -449,9 +460,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
-      const Species& species)
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const Species& species)
   {
     return operator[](species.name_);
   }
@@ -462,9 +474,10 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
-      const Species& species) const
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const Species& species) const
   {
     return operator[](species.name_);
   }
