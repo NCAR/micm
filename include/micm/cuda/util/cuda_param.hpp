@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <utility>
 
 // To make the NormalizedError function works properly on GPU,
