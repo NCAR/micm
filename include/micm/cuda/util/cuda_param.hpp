@@ -45,7 +45,7 @@ struct ProcessSetParam
   std::size_t jacobian_product_ids_size_;
   std::size_t jacobian_yields_size_;
   std::size_t jacobian_flat_ids_size_;
-  std::size_t is_algebraic_variable_size_;
+  std::size_t algebraic_variable_size_;
 };
 
 /// This struct holds the (1) pointer to, and (2) size of

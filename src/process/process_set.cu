@@ -162,7 +162,7 @@ namespace micm
       std::size_t number_of_products_bytes = sizeof(std::size_t) * hoststruct.number_of_products_size_;
       std::size_t product_ids_bytes = sizeof(std::size_t) * hoststruct.product_ids_size_;
       std::size_t yields_bytes = sizeof(double) * hoststruct.yields_size_;
-      std::size_t is_algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.is_algebraic_variable_size_;
+      std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       ProcessSetParam devstruct;
@@ -177,7 +177,7 @@ namespace micm
           cudaMallocAsync(&(devstruct.number_of_products_), number_of_products_bytes, cuda_stream_id), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.product_ids_), product_ids_bytes, cuda_stream_id), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.yields_), yields_bytes, cuda_stream_id), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.is_algebraic_variable_), is_algebraic_variable_bytes, cuda_stream_id), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.is_algebraic_variable_), algebraic_variable_bytes, cuda_stream_id), "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
@@ -208,7 +208,7 @@ namespace micm
           cudaMemcpyAsync(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice, cuda_stream_id),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.is_algebraic_variable_, hoststruct.is_algebraic_variable_, is_algebraic_variable_bytes, cudaMemcpyHostToDevice, cuda_stream_id),
+          cudaMemcpyAsync(devstruct.is_algebraic_variable_, hoststruct.is_algebraic_variable_, algebraic_variable_bytes, cudaMemcpyHostToDevice, cuda_stream_id),
           "cudaMemcpy");
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;
@@ -216,7 +216,7 @@ namespace micm
       devstruct.number_of_products_size_ = hoststruct.number_of_products_size_;
       devstruct.product_ids_size_ = hoststruct.product_ids_size_;
       devstruct.yields_size_ = hoststruct.yields_size_;
-      devstruct.is_algebraic_variable_size_ = hoststruct.is_algebraic_variable_size_;
+      devstruct.algebraic_variable_size_ = hoststruct.algebraic_variable_size_;
 
       return devstruct;
     }
@@ -292,6 +292,24 @@ namespace micm
       devstruct.jacobian_product_ids_size_ = hoststruct.jacobian_product_ids_size_;
       devstruct.jacobian_yields_size_ = hoststruct.jacobian_yields_size_;
       devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
+    }
+
+    void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct)
+    {
+      std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
+
+      auto cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.is_algebraic_variable_,
+              hoststruct.is_algebraic_variable_,
+              algebraic_variable_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+
+      devstruct.algebraic_variable_size_ = hoststruct.algebraic_variable_size_;
     }
 
     /// This is the function that will delete the constant data
