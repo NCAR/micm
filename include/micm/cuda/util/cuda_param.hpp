@@ -33,6 +33,7 @@ struct ProcessSetParam
   std::size_t* jacobian_product_ids_ = nullptr;
   double* jacobian_yields_ = nullptr;
   std::size_t* jacobian_flat_ids_ = nullptr;
+  bool* is_algebraic_variable_ = nullptr;
   std::size_t number_of_reactants_size_;
   std::size_t reactant_ids_size_;
   std::size_t number_of_products_size_;
@@ -43,6 +44,7 @@ struct ProcessSetParam
   std::size_t jacobian_product_ids_size_;
   std::size_t jacobian_yields_size_;
   std::size_t jacobian_flat_ids_size_;
+  std::size_t is_algebraic_variable_size_;
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
