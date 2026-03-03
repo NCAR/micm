@@ -8,3 +8,4 @@ create_standard_test(NAME sparse_matrix_vector_compressed_column_ordering SOURCE
 create_standard_test(NAME sparse_matrix_vector_compressed_row_ordering SOURCES test_sparse_matrix_vector_ordering_row.cpp)
 create_standard_test(NAME utils SOURCES test_utils.cpp)
 create_standard_test(NAME vector_matrix SOURCES test_vector_matrix.cpp)
+create_standard_test(NAME view_category_sfinae SOURCES test_view_category_sfinae.cpp)
