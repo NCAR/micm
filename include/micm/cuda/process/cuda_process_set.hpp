@@ -193,7 +193,7 @@ namespace micm
     if (this->devstruct_.is_algebraic_variable_ != nullptr)
     {
       auto cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
-      std::size_t is_algebraic_variable_bytes = sizeof(bool) * this->is_algebraic_variable_.size();
+      std::size_t is_algebraic_variable_bytes = sizeof(uint8_t) * this->is_algebraic_variable_.size();
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
               this->devstruct_.is_algebraic_variable_,

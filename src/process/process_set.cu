@@ -23,7 +23,7 @@ namespace micm
       const std::size_t* const __restrict__ d_number_of_products = devstruct.number_of_products_;
       const std::size_t* __restrict__ d_product_ids = devstruct.product_ids_;
       const double* __restrict__ d_yields = devstruct.yields_;
-      const bool* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
+      const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
       const double* __restrict__ d_state_variables = state_variables_param.d_data_;
@@ -91,7 +91,7 @@ namespace micm
       const std::size_t* __restrict__ d_product_ids = devstruct.jacobian_product_ids_;
       const double* __restrict__ d_yields = devstruct.jacobian_yields_;
       const std::size_t* __restrict__ d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
-      const bool* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
+      const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const std::size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
       const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
@@ -162,7 +162,7 @@ namespace micm
       std::size_t number_of_products_bytes = sizeof(std::size_t) * hoststruct.number_of_products_size_;
       std::size_t product_ids_bytes = sizeof(std::size_t) * hoststruct.product_ids_size_;
       std::size_t yields_bytes = sizeof(double) * hoststruct.yields_size_;
-      std::size_t is_algebraic_variable_bytes = sizeof(bool) * hoststruct.is_algebraic_variable_size_;
+      std::size_t is_algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.is_algebraic_variable_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       ProcessSetParam devstruct;
