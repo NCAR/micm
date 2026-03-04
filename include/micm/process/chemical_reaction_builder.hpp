@@ -22,81 +22,23 @@ namespace micm
   class ChemicalReactionBuilder
   {
    public:
-    /// @brief Enables aerosol scoping for reactant and product species
-    ///        This function must be called before setting reactants or products
-    ///        in order for scoping to be applied.
-    ///        Cannot be used together with SetPhase. They are mutually exclusive.
-    /// @param scope Aerosol scope prefix to apply to species names
-    /// @param phase Phase object representing the reaction phase
-    /// @return Reference to the builder
-    /// @throws std::system_error if SetPhase, SetReactants, or SetProducts has already been called
-    ChemicalReactionBuilder& SetAerosolScope(const std::string& scope, const Phase& phase)
-    {
-      if (has_phase_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together.");
-      if (has_reactants_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::InvalidConfiguration), "SetAerosolScope must be called before SetReactants.");
-      if (has_products_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::InvalidConfiguration), "SetAerosolScope must be called before SetProducts.");
-
-      scope_ = scope;
-      phase_ = phase;
-      has_scope_ = true;
-
-      return *this;
-    }
-
     /// @brief Sets the list of reactant species involved in the chemical reaction.
-    ///        When scoping is enabled, each reactant name is prefixed with the preset scope.
     /// @param reactants A list of Species objects representing the reactants
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetReactants(const std::vector<Species>& reactants)
     {
-      if (has_scope_)
-      {
-        reactants_.reserve(reactants.size());
-        for (const auto& species : reactants)
-        {
-          reactants_.push_back(species);
-          Scope(reactants_.back(), phase_);
-        }
-      }
-      else
-      {
-        reactants_ = reactants;
-      }
-
+      reactants_ = reactants;
       has_reactants_ = true;
-
       return *this;
     }
 
     /// @brief Sets the list of product species and their yields for the chemical reaction.
-    ///        When scoping is enabled, each product name is prefixed with the preset scope.
     /// @param products A list of StoichSpecies objects representing the products
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetProducts(const std::vector<StoichSpecies>& products)
     {
-      if (has_scope_)
-      {
-        products_.reserve(products.size());
-        for (const auto& [species, coefficient] : products)
-        {
-          products_.emplace_back(species, coefficient);
-          Scope(products_.back().species_, phase_);
-        }
-      }
-      else
-      {
-        products_ = products;
-      }
-
+      products_ = products;
       has_products_ = true;
-
       return *this;
     }
 
@@ -112,17 +54,10 @@ namespace micm
     }
 
     /// @brief Sets the phase in which the chemical reaction occurs (e.g., gas, aqueous)
-    ///        Cannot be used together with SetAerosolScope. They are mutually exclusive.
     /// @param phase Phase object representing the reaction phase
     /// @return Reference to the builder
-    /// @throws std::system_error if SetAerosolScope has already been called
     ChemicalReactionBuilder& SetPhase(const Phase& phase)
     {
-      if (has_scope_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::InvalidConfiguration),
-            "SetPhase and SetAerosolScope are mutually exclusive and should not be used together.");
-
       phase_ = phase;
       has_phase_ = true;
       return *this;
@@ -147,20 +82,10 @@ namespace micm
     std::vector<StoichSpecies> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
-    std::string scope_;
 
-    bool has_scope_ = false;
     bool has_phase_ = false;
     bool has_reactants_ = false;
     bool has_products_ = false;
-
-    /// @brief Applies an aerosol phase-specific scope to a species by prefixing its name
-    /// @param species Species object whose name will be modified
-    /// @param phase Phase whose name is used in the scope prefix
-    void Scope(Species& species, const Phase& phase)
-    {
-      species.name_ = JoinStrings({ scope_, phase.name_, species.name_ });
-    }
   };
 
 }  // namespace micm
