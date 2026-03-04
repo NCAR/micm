@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -24,7 +25,8 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>> update_state_parameters_functions_;
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
+        update_state_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -53,7 +55,8 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>& update_state_parameters_functions)
+        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+            update_state_parameters_functions)
         : solver_(std::move(solver)),
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),
@@ -168,6 +171,24 @@ namespace micm
       {
         update_func(state.conditions_, state.custom_rate_parameters_);
       }
+    }
+
+    LambdaRateConstant& GetRateConstantByName(const std::string& name)
+    {
+      for (auto& process : processes_)
+      {
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw std::system_error(
+          make_error_code(MicmProcessErrc::InvalidConfiguration),
+          "Rate constant with name '" + name + "' not found in any process");
     }
   };
 
