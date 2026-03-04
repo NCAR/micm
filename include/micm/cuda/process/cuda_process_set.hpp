@@ -62,6 +62,13 @@ namespace micm
     /// @param matrix
     void SetJacobianFlatIds(const SparseMatrixPolicy& matrix);
 
+    /// @brief Marks species rows that should be treated as algebraic (constraints replace ODE rows).
+    ///        Updates algebraic variable IDs after `ProcessSetParam` construction.
+    ///        If algebraic variable IDs are not set post-construction, then this function may not be
+    ///        necessary.
+    /// @param variable_ids Set of variable ids whose forcing/Jacobian rows should not receive kinetic contributions
+    void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids);
+
     void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing)
     const requires(VectorizableDense<DenseMatrixPolicy>);
 
@@ -91,12 +98,14 @@ namespace micm
     hoststruct.number_of_products_ = this->number_of_products_.data();
     hoststruct.product_ids_ = this->product_ids_.data();
     hoststruct.yields_ = this->yields_.data();
+    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
 
     hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
     hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
     hoststruct.number_of_products_size_ = this->number_of_products_.size();
     hoststruct.product_ids_size_ = this->product_ids_.size();
     hoststruct.yields_size_ = this->yields_.size();
+    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
 
     // Copy the data from host struct to device struct
     this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
@@ -128,12 +137,14 @@ namespace micm
     hoststruct.number_of_products_ = this->number_of_products_.data();
     hoststruct.product_ids_ = this->product_ids_.data();
     hoststruct.yields_ = this->yields_.data();
+    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
 
     hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
     hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
     hoststruct.number_of_products_size_ = this->number_of_products_.size();
     hoststruct.product_ids_size_ = this->product_ids_.size();
     hoststruct.yields_size_ = this->yields_.size();
+    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
 
     // Copy the data from host struct to device struct
     this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
@@ -170,6 +181,22 @@ namespace micm
 
     // Copy the data from host struct to device struct
     micm::cuda::CopyJacobianParams(hoststruct, this->devstruct_);
+  }
+
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
+  inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids)
+  {
+    // Update the host-side is_algebraic_variable_ array
+    ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(variable_ids);
+
+    // Then update the device memory
+    ProcessSetParam hoststruct;
+    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
+    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
+  
+    // Copy the data from host struct to device struct
+    micm::cuda::CopyAlgebraicVariableParams(hoststruct, this->devstruct_);
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>

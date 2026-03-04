@@ -240,3 +240,141 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }
+
+
+/// @brief Test that algebraic-row masking works correctly: algebraic species' rows remain unchanged
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
+void testAlgebraicMasking()
+{
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+  auto D = Species("D");
+
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D } };
+  
+  // Set up state with 2 grid cells
+  State<DenseMatrixPolicy, SparseMatrixPolicy> state(
+      StateParameters{ .number_of_rate_constants_ = 1, .variable_names_{ "A", "B", "C", "D" } }, 2);
+
+  ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+
+  // Create a single reaction: A + B -> C + D
+  Process r1 = ChemicalReactionBuilder()
+                   .SetReactants({ A, B })
+                   .SetProducts({ StoichSpecies(C, 1), StoichSpecies(D, 1) })
+                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetPhase(gas_phase)
+                   .Build();
+
+  RatesPolicy process_set = RatesPolicy(std::vector<Process>{ r1 }, state.variable_map_);
+
+  // Note: When constructing a solver, if constraints are passed to the solver builder,
+  //       their algebraic variables are registered.
+  //       Here, constraint initialization is skipped because this test
+  //       focuses on algebraic masking without building the full solver.
+  //       The algebraic variables are set arbitrarily for testing purposes only.
+  // Mark species B (index 1) and D (index 3) as algebraic variables
+  std::set<std::size_t> algebraic_ids{ 1, 3 };
+  process_set.SetAlgebraicVariableIds(algebraic_ids);
+
+  // Initialize state variables
+  state.variables_[0] = { 1.0, 2.0, 3.0, 4.0 };
+  state.variables_[1] = { 5.0, 6.0, 7.0, 8.0 };
+  
+  // Initialize rate constants
+  DenseMatrixPolicy rate_constants{ 2, 1 };
+  rate_constants[0] = { 10.0 };
+  rate_constants[1] = { 20.0 };
+  state.rate_constants_ = rate_constants;
+
+  // Copy input data to device
+  CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
+  CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
+
+  // Test AddForcingTerms with algebraic masking
+  {
+    // Initialize forcing with known values (1000.0)
+    DenseMatrixPolicy forcing{ 2, 4, 1000.0 };
+    CheckCopyToDevice<DenseMatrixPolicy>(forcing);
+
+    // Call AddForcingTerms
+    process_set.AddForcingTerms(state, state.variables_, forcing);
+    CheckCopyToHost<DenseMatrixPolicy>(forcing);
+
+    // For reaction A + B -> C + D with rate = k * [A] * [B]:
+    // Cell 0: rate = 10.0 * 1.0 * 2.0 = 20.0
+    // Cell 1: rate = 20.0 * 5.0 * 6.0 = 600.0
+
+    // Species A (index 0) is NOT algebraic: should be updated (loses reactant)
+    EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 20.0);   // Cell 0
+    EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 600.0);  // Cell 1
+
+    // Species B (index 1) IS algebraic: should remain unchanged
+    EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0);  // Cell 0
+    EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0);  // Cell 1
+
+    // Species C (index 2) is NOT algebraic: should be updated (gains product)
+    EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 + 20.0);   // Cell 0
+    EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 + 600.0);  // Cell 1
+
+    // Species D (index 3) IS algebraic: should remain unchanged
+    EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0);  // Cell 0
+    EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0);  // Cell 1
+  }
+
+  // Test SubtractJacobianTerms with algebraic masking
+  {
+    // Build Jacobian structure
+    auto non_zero_elements = process_set.NonZeroJacobianElements();
+    auto builder = SparseMatrixPolicy::Create(4).SetNumberOfBlocks(2).InitialValue(500.0);
+    for (auto& elem : non_zero_elements)
+      builder = builder.WithElement(elem.first, elem.second);
+    SparseMatrixPolicy jacobian{ builder };
+    process_set.SetJacobianFlatIds(jacobian);
+
+    CheckCopyToDevice<SparseMatrixPolicy>(jacobian);
+
+    // Call SubtractJacobianTerms
+    process_set.SubtractJacobianTerms(state, state.variables_, jacobian);
+    CheckCopyToHost<SparseMatrixPolicy>(jacobian);
+
+    // For reaction A + B -> C + D:
+    // d_rate/d_A = k * [B] (affects rows A and C if non-algebraic)
+    // d_rate/d_B = k * [A] (affects rows A, B if non-algebraic; note B is algebraic)
+    // Cell 0: d_rate/d_A = 10.0 * 2.0 = 20.0, d_rate/d_B = 10.0 * 1.0 = 10.0
+    // Cell 1: d_rate/d_A = 20.0 * 6.0 = 120.0, d_rate/d_B = 20.0 * 5.0 = 100.0
+
+    // Row A (index 0, NOT algebraic) should be updated
+    // A->A: +d_rate/d_A (diagonal, reactant)
+    EXPECT_DOUBLE_EQ(jacobian[0][0][0], 500.0 + 20.0);   // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][0][0], 500.0 + 120.0);  // Cell 1
+    
+    // A->B: +d_rate/d_B (off-diagonal, reactant)
+    EXPECT_DOUBLE_EQ(jacobian[0][0][1], 500.0 + 10.0);   // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][0][1], 500.0 + 100.0);  // Cell 1
+
+    // Row B (index 1, IS algebraic) should remain unchanged at 500.0
+    // B->A and B->B should not be updated
+    EXPECT_DOUBLE_EQ(jacobian[0][1][0], 500.0);  // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][1][0], 500.0);  // Cell 1
+    EXPECT_DOUBLE_EQ(jacobian[0][1][1], 500.0);  // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][1][1], 500.0);  // Cell 1
+
+    // Row C (index 2, NOT algebraic) should be updated (product)
+    // C->A: -d_rate/d_A (product contribution)
+    EXPECT_DOUBLE_EQ(jacobian[0][2][0], 500.0 - 20.0);   // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][2][0], 500.0 - 120.0);  // Cell 1
+    
+    // C->B: -d_rate/d_B (product contribution)
+    EXPECT_DOUBLE_EQ(jacobian[0][2][1], 500.0 - 10.0);   // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][2][1], 500.0 - 100.0);  // Cell 1
+
+    // Row D (index 3, IS algebraic) should remain unchanged at 500.0
+    // D->A and D->B should not be updated
+    EXPECT_DOUBLE_EQ(jacobian[0][3][0], 500.0);  // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][3][0], 500.0);  // Cell 1
+    EXPECT_DOUBLE_EQ(jacobian[0][3][1], 500.0);  // Cell 0
+    EXPECT_DOUBLE_EQ(jacobian[1][3][1], 500.0);  // Cell 1
+  }
+}
