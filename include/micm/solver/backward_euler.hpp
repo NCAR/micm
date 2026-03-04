@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/constraint/constraint_set.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/linear_solver.hpp>
@@ -32,6 +33,7 @@ namespace micm
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
+    ConstraintSet constraints_;
 
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
@@ -39,13 +41,14 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
+    /// @param constraints Algebraic constraints (not used by BackwardEuler, for API compatibility)
     AbstractBackwardEuler(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
+        ConstraintSet&& constraints)
         : linear_solver_(std::move(linear_solver)),
-          rates_(std::move(rates))
+          rates_(std::move(rates)),
+          constraints_(std::move(constraints))
     {
     }
 

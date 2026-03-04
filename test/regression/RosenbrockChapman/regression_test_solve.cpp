@@ -42,7 +42,7 @@ TEST(RegressionRosenbrock, FourStageDASolve)
 TEST(RegressionRosenbrock, SixStageDASolve)
 {
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+      micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
   auto solver = getChapmanSolver(builder);
   testSolve(solver, 1.0e-4);
 }
