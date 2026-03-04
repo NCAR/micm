@@ -6,7 +6,6 @@
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/cuda/util/cuda_util.cuh>
 #include <micm/process/process_set.hpp>
 
 namespace micm
@@ -191,7 +190,7 @@ namespace micm
     // Update the host-side is_algebraic_variable_ array
     ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(variable_ids);
 
-    // Then update the device memoryrn
+    // Then update the device memory
     ProcessSetParam hoststruct;
     hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
     hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
