@@ -5,7 +5,6 @@
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_error.hpp>
-#include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
