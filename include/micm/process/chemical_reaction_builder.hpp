@@ -28,7 +28,6 @@ namespace micm
     ChemicalReactionBuilder& SetReactants(const std::vector<Species>& reactants)
     {
       reactants_ = reactants;
-      has_reactants_ = true;
       return *this;
     }
 
@@ -38,7 +37,6 @@ namespace micm
     ChemicalReactionBuilder& SetProducts(const std::vector<StoichSpecies>& products)
     {
       products_ = products;
-      has_products_ = true;
       return *this;
     }
 
@@ -59,7 +57,6 @@ namespace micm
     ChemicalReactionBuilder& SetPhase(const Phase& phase)
     {
       phase_ = phase;
-      has_phase_ = true;
       return *this;
     }
 
@@ -82,10 +79,6 @@ namespace micm
     std::vector<StoichSpecies> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
-
-    bool has_phase_ = false;
-    bool has_reactants_ = false;
-    bool has_products_ = false;
   };
 
 }  // namespace micm
