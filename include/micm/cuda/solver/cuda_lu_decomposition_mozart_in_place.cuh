@@ -20,5 +20,8 @@ namespace micm
     ///   members of class "CudaLuDecompositionMozartInPlace" on the device
     void FreeConstData(LuDecomposeMozartInPlaceParam& devstruct);
 
+    /// Driver for the hardcoded kernel with compile-time known index arrays
+    void DecomposeKernelHardcodedDriver(CudaMatrixParam& ALU_param, uint32_t number_of_non_zeros);
+
   }  // end of namespace cuda
 }  // end of namespace micm

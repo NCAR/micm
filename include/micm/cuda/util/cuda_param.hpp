@@ -3,11 +3,12 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <utility>
 
 // To make the NormalizedError function works properly on GPU,
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
-const std::size_t BLOCK_SIZE = 512;
+const std::size_t BLOCK_SIZE = 128;
 
 /// This struct holds information about a process for the Jacobian calculation
 struct ProcessInfoParam
@@ -47,18 +48,26 @@ struct ProcessSetParam
 
 /// This struct holds the (1) pointer to, and (2) size of
 ///   each constant data member from the class "LuDecompositionMozartInPlace";
+/// Uses uint32_t SoA layout with packed pairs for fewer memory transactions.
 /// This struct could be allocated on the host or device;
 struct LuDecomposeMozartInPlaceParam
 {
-  std::tuple<std::size_t, std::size_t, std::size_t>* aii_nji_nki_ = nullptr;
-  std::size_t* aji_ = nullptr;
-  std::pair<std::size_t, std::size_t>* aik_njk_ = nullptr;
-  std::pair<std::size_t, std::size_t>* ajk_aji_ = nullptr;
-  std::size_t aii_nji_nki_size_;
-  std::size_t aji_size_;
-  std::size_t aik_njk_size_;
-  std::size_t ajk_aji_size_;
-  std::size_t number_of_non_zeros_;
+  // SoA arrays for diagonal info (was: tuple<size_t,size_t,size_t>*)
+  uint32_t* aii_ = nullptr;  // diagonal index (pre-multiplied by vector_length)
+  uint32_t* nji_ = nullptr;  // count of sub-diagonal entries per column
+  uint32_t* nki_ = nullptr;  // count of super-diagonal entries per row
+  // Flat array for sub-diagonal indices
+  uint32_t* aji_ = nullptr;  // sub-diagonal indices
+  // Packed pairs: [aik, njk] interleaved as uint32_t[2*size] (loaded as uint2 in kernel)
+  uint32_t* aik_njk_packed_ = nullptr;
+  // Packed pairs: [ajk, aji_update] interleaved as uint32_t[2*size] (loaded as uint2 in kernel)
+  uint32_t* ajk_aji_packed_ = nullptr;
+  // Sizes
+  uint32_t n_;  // number of outer iterations
+  uint32_t aji_size_;
+  uint32_t aik_njk_size_;  // number of (aik, njk) pairs
+  uint32_t ajk_aji_size_;  // number of (ajk, aji_update) pairs
+  uint32_t number_of_non_zeros_;
 };
 
 /// Alias for the default LU decomposition parameter struct

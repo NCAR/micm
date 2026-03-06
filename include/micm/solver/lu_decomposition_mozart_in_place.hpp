@@ -90,6 +90,12 @@ namespace micm
       requires(VectorizableSparse<SparseMatrixPolicy>)
     void Decompose(SparseMatrixPolicy& ALU) const;
 
+    /// @brief Accessors for index arrays (used by tests to dump/hardcode values)
+    const auto& GetAiiNjiNki() const { return aii_nji_nki_; }
+    const auto& GetAji() const { return aji_; }
+    const auto& GetAikNjk() const { return aik_njk_; }
+    const auto& GetAjkAji() const { return ajk_aji_; }
+
    protected:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
