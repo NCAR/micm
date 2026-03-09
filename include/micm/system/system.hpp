@@ -5,7 +5,6 @@
 #include <micm/external_model.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/util/utils.hpp>
 
 #include <functional>
 #include <memory>

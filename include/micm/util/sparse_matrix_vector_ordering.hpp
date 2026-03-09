@@ -4,6 +4,7 @@
 
 #include "sparse_matrix_vector_ordering_compressed_sparse_column.hpp"
 #include "sparse_matrix_vector_ordering_compressed_sparse_row.hpp"
+#include "view_category.hpp"
 
 namespace micm
 {
@@ -33,4 +34,5 @@ namespace micm
                   })
       matrix.CopyToHost();
   }
+
 }  // namespace micm

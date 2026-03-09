@@ -16,11 +16,6 @@ COPY . /micm/
 
 RUN pip3 install -r /micm/docs/requirements.txt
 
-ARG SUFFIX=""
-ENV SWITCHER_SUFFIX=$SUFFIX
-
-RUN echo "The suffix is '$SWITCHER_SUFFIX'"
-
 RUN mkdir /build \
       && cd /build \
       && cmake -D MICM_BUILD_DOCS=ON \
