@@ -70,12 +70,12 @@ namespace micm
     std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error, "");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
       if (elem == end)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ZeroElementAccess, micm::MicmSeverity::Error, "");
       return std::size_t{ (elem - row_ids_.begin()) + block * row_ids_.size() };
     }
 
@@ -97,12 +97,12 @@ namespace micm
     std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
     {
       if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error, "");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, col);
       if (elem == end)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ZeroElementAccess, micm::MicmSeverity::Error, "");
       return std::distance(row_ids_.begin(), elem);
     }
 
@@ -402,7 +402,7 @@ namespace micm
     bool IsZero(std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error, "");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);

@@ -8,7 +8,6 @@
 #include <cmath>
 #include <cstddef>
 #include <string>
-#include <system_error>
 #include <vector>
 
 namespace micm
@@ -69,28 +68,28 @@ namespace micm
     {
       if (reactants_.empty())
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
+        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::EmptyReactants, micm::MicmSeverity::Error, "");
       }
       if (products_.empty())
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyProducts));
+        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::EmptyProducts, micm::MicmSeverity::Error, "");
       }
       if (equilibrium_constant_ <= 0)
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::InvalidEquilibriumConstant));
+        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::InvalidEquilibriumConstant, micm::MicmSeverity::Error, "");
       }
       for (const auto& r : reactants_)
       {
         if (r.coefficient_ <= 0)
         {
-          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
+          throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
         }
       }
       for (const auto& p : products_)
       {
         if (p.coefficient_ <= 0)
         {
-          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
+          throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
         }
       }
 

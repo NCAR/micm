@@ -67,8 +67,7 @@ namespace micm
       if (this != &other)
       {
         if (!other.coefficient_)
-          throw std::system_error(
-              make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+          throw micm::MicmException<MicmProcessErrc>(MicmProcessErrc::TransferCoefficientIsNotSet, micm::MicmSeverity::Error,
               "Cannot copy from a PhaseTransferProcess with null coefficient");
 
         gas_phase_ = other.gas_phase_;
@@ -87,8 +86,7 @@ namespace micm
     void Validate() const
     {
       if (!coefficient_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+        throw micm::MicmException<MicmProcessErrc>(MicmProcessErrc::TransferCoefficientIsNotSet, micm::MicmSeverity::Error,
             "Phase Transfer Coefficient pointer cannot be null");
     }
   };

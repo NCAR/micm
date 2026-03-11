@@ -7,7 +7,6 @@
 
 #include <cstddef>
 #include <string>
-#include <system_error>
 #include <vector>
 
 namespace micm
@@ -51,7 +50,7 @@ namespace micm
     {
       if (terms_.empty())
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
+        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::EmptyReactants, micm::MicmSeverity::Error, "");
       }
       for (const auto& term : terms_)
       {

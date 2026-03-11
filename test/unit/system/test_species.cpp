@@ -34,65 +34,65 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<std::string>("not there");
         }
-        catch (std::system_error& e)
+        catch (micm::MicmException<MicmSpeciesErrc>& e)
         {
-          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      std::runtime_error);
+      micm::MicmException<MicmSpeciesErrc>);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<double>("not there");
         }
-        catch (std::system_error& e)
+        catch (micm::MicmException<MicmSpeciesErrc>& e)
         {
-          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      std::runtime_error);
+      micm::MicmException<MicmSpeciesErrc>);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<int>("not there");
         }
-        catch (std::system_error& e)
+        catch (micm::MicmException<MicmSpeciesErrc>& e)
         {
-          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      std::runtime_error);
+      micm::MicmException<MicmSpeciesErrc>);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<bool>("not there");
         }
-        catch (std::system_error& e)
+        catch (micm::MicmException<MicmSpeciesErrc>& e)
         {
-          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      std::runtime_error);
+      micm::MicmException<MicmSpeciesErrc>);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<long double>("name [units]");
         }
-        catch (std::system_error& e)
+        catch (micm::MicmException<MicmSpeciesErrc>& e)
         {
-          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::InvalidTypeForProperty));
+          EXPECT_EQ(e.code_, MicmSpeciesErrc::InvalidTypeForProperty);
           throw;
         }
       },
-      std::runtime_error);
+      micm::MicmException<MicmSpeciesErrc>);
 }
 
 TEST(Species, SetThirdBody)

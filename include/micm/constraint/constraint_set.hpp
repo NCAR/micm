@@ -12,8 +12,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <stdexcept>
-#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -135,15 +133,18 @@ namespace micm
       auto row_it = variable_map.find(algebraic_species);
       if (row_it == variable_map.end())
       {
-        throw std::system_error(
-            make_error_code(MicmConstraintErrc::UnknownSpecies),
+        throw micm::MicmException<MicmConstraintErrc>(
+            MicmConstraintErrc::UnknownSpecies,
+            micm::MicmSeverity::Error,
             "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
       }
       info.constraint_row_ = row_it->second;
 
       if (!algebraic_variable_ids_.insert(info.constraint_row_).second)
       {
-        throw std::runtime_error(
+        throw micm::MicmException<MicmConstraintErrc>(
+            MicmConstraintErrc::InvalidStoichiometry,
+            micm::MicmSeverity::Error,
             "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
       }
 
@@ -163,8 +164,9 @@ namespace micm
         auto it = variable_map.find(species_name);
         if (it == variable_map.end())
         {
-          throw std::system_error(
-              make_error_code(MicmConstraintErrc::UnknownSpecies),
+          throw micm::MicmException<MicmConstraintErrc>(
+              MicmConstraintErrc::UnknownSpecies,
+              micm::MicmSeverity::Error,
               "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
         }
         dependency_ids_.push_back(it->second);
