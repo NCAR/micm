@@ -3,9 +3,7 @@
 #pragma once
 
 #include <micm/util/error.hpp>
-
-#include <string>
-#include <system_error>
+#include <micm/util/micm_exception.hpp>
 
 enum class MicmConstraintErrc
 {
@@ -15,44 +13,3 @@ enum class MicmConstraintErrc
   EmptyProducts = MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS,
   InvalidStoichiometry = MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
 };
-
-namespace std
-{
-  template<>
-  struct is_error_code_enum<MicmConstraintErrc> : true_type
-  {
-  };
-}  // namespace std
-
-class MicmConstraintErrorCategory : public std::error_category
-{
- public:
-  const char* name() const noexcept override
-  {
-    return MICM_ERROR_CATEGORY_CONSTRAINT;
-  }
-
-  std::string message(int ev) const override
-  {
-    switch (static_cast<MicmConstraintErrc>(ev))
-    {
-      case MicmConstraintErrc::InvalidEquilibriumConstant: return "Equilibrium constant must be positive";
-      case MicmConstraintErrc::UnknownSpecies: return "Unknown species in constraint";
-      case MicmConstraintErrc::EmptyReactants: return "Equilibrium constraint requires at least one reactant";
-      case MicmConstraintErrc::EmptyProducts: return "Equilibrium constraint requires at least one product";
-      case MicmConstraintErrc::InvalidStoichiometry: return "Stoichiometric coefficients must be positive";
-      default: return "Unknown error";
-    }
-  }
-};
-
-inline const MicmConstraintErrorCategory& MicmConstraintError()
-{
-  static const MicmConstraintErrorCategory instance;
-  return instance;
-}
-
-inline std::error_code make_error_code(MicmConstraintErrc e)
-{
-  return { static_cast<int>(e), MicmConstraintError() };
-}

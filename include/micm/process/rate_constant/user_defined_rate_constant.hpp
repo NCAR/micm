@@ -69,7 +69,7 @@ namespace micm
 
   inline double UserDefinedRateConstant::Calculate(const Conditions& conditions) const
   {
-    throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant), "");
+    throw micm::MicmException<MicmRateConstantErrc>(MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant, micm::MicmSeverity::Error, "");
   }
 
   inline double UserDefinedRateConstant::Calculate(

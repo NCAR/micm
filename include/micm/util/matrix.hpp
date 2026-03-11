@@ -115,7 +115,7 @@ namespace micm
         {
           std::string msg = "In matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
                             " elements, but expected " + std::to_string(y_dim_);
-          throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
+          throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::RowSizeMismatch, micm::MicmSeverity::Error, msg);
         }
         auto other_elem = other.begin();
         for (auto &elem : *this)
@@ -230,7 +230,7 @@ namespace micm
                   {
                     std::string msg = "In matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), "");
+                    throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error, "");
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {
@@ -402,8 +402,7 @@ namespace micm
     {
       if (column_index >= y_dim_)
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error,
             "Column index " + std::to_string(column_index) + " out of range for matrix with " +
                 std::to_string(y_dim_) + " columns");
       }
@@ -417,8 +416,7 @@ namespace micm
     {
       if (column_index >= y_dim_)
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error,
             "Column index " + std::to_string(column_index) + " out of range for matrix with " +
                 std::to_string(y_dim_) + " columns");
       }
@@ -656,8 +654,7 @@ namespace micm
             }
             else if (arg.size() != num_rows)
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
+              throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
                   "Vector size must match matrix row count. Expected " + std::to_string(num_rows) + 
                       " elements but got " + std::to_string(arg.size()));
             }
@@ -673,8 +670,7 @@ namespace micm
             {
               if (arg.NumRows() != num_rows)
               {
-                throw std::system_error(
-                    make_error_code(MicmMatrixErrc::InvalidVector),
+                throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
                     "All matrices must have the same number of rows when invoking function. Expected " + 
                         std::to_string(num_rows) + " rows but got " + std::to_string(arg.NumRows()));
               }
@@ -683,8 +679,7 @@ namespace micm
             // Always validate column count against captured value
             if (arg.NumColumns() != num_cols[idx])
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
+              throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
                   "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + 
                       " columns but got " + std::to_string(arg.NumColumns()));
             }

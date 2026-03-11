@@ -11,7 +11,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -147,8 +146,9 @@ namespace micm
         auto it = variable_map.find(species_name);
         if (it == variable_map.end())
         {
-          throw std::system_error(
-              make_error_code(MicmConstraintErrc::UnknownSpecies),
+          throw micm::MicmException<MicmConstraintErrc>(
+              MicmConstraintErrc::UnknownSpecies,
+              micm::MicmSeverity::Error,
               "Constraint '" + constraint->name_ + "' depends on unknown species '" + species_name + "'");
         }
         dependency_ids_.push_back(it->second);
