@@ -14,16 +14,28 @@ namespace micm
     Critical
   };
 
-  template<typename ErrorCode>
+  /// @brief Base exception for all MICM errors. Catch this to handle any MICM error.
   struct MicmException : public std::runtime_error
   {
-    ErrorCode code_;
     MicmSeverity severity_;
 
-    MicmException(ErrorCode code, MicmSeverity severity, const std::string& message)
+    MicmException(MicmSeverity severity, const std::string& message)
         : std::runtime_error(message),
-          code_(code),
           severity_(severity)
+    {
+    }
+  };
+
+  /// @brief Typed MICM exception carrying a domain-specific error code.
+  /// Catch this when you need to inspect or match the specific error code.
+  template<typename ErrorCode>
+  struct MicmCodedError : public MicmException
+  {
+    ErrorCode code_;
+
+    MicmCodedError(ErrorCode code, MicmSeverity severity, const std::string& message)
+        : MicmException(severity, message),
+          code_(code)
     {
     }
   };

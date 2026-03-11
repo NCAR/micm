@@ -146,7 +146,7 @@ namespace micm
         auto it = variable_map.find(species_name);
         if (it == variable_map.end())
         {
-          throw micm::MicmException<MicmConstraintErrc>(
+          throw micm::MicmCodedError<MicmConstraintErrc>(
               MicmConstraintErrc::UnknownSpecies,
               micm::MicmSeverity::Error,
               "Constraint '" + constraint->name_ + "' depends on unknown species '" + species_name + "'");
