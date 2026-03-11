@@ -291,7 +291,7 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::MissingBlockIndex, micm::MicmSeverity::Error, "");
+        throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::MissingBlockIndex, micm::MicmSeverity::Error, "");
       return VectorIndex(0, row, column);
     }
 
@@ -393,13 +393,13 @@ namespace micm
     {
       if (row >= block_size_ || col >= block_size_)
       {
-        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error,
+        throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error,
             "Block element (" + std::to_string(row) + "," + std::to_string(col) + 
             ") out of range for matrix with block size " + std::to_string(block_size_));
       }
       if (this->IsZero(row, col))
       {
-        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ZeroElementAccess, micm::MicmSeverity::Error,
+        throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::ZeroElementAccess, micm::MicmSeverity::Error,
             "Cannot create view for zero block element (" + std::to_string(row) + "," + 
             std::to_string(col) + ")");
       }
@@ -424,13 +424,13 @@ namespace micm
     {
       if (row >= block_size_ || col >= block_size_)
       {
-        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error,
+        throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error,
             "Block element (" + std::to_string(row) + "," + std::to_string(col) + 
             ") out of range for matrix with block size " + std::to_string(block_size_));
       }
       if (this->IsZero(row, col))
       {
-        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ZeroElementAccess, micm::MicmSeverity::Error,
+        throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::ZeroElementAccess, micm::MicmSeverity::Error,
             "Cannot create view for zero block element (" + std::to_string(row) + "," + 
             std::to_string(col) + ")");
       }
@@ -503,7 +503,7 @@ namespace micm
           
           if (matrix_L != expected_L)
           {
-            throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
+            throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
                 "Incompatible matrix orderings: Matrix " + std::to_string(index) + 
                 " has GroupVectorSize=" + std::to_string(matrix_L) +
                 " but expected " + std::to_string(expected_L) +
@@ -542,7 +542,7 @@ namespace micm
             }
             else if (arg.size() != num_blocks)
             {
-              throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
+              throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
                   "Vector size " + std::to_string(arg.size()) + 
                   " does not match expected block count " + std::to_string(num_blocks) +
                   " when invoking function");
@@ -571,7 +571,7 @@ namespace micm
             }
             else if (arg_blocks != num_blocks)
             {
-              throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
+              throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::InvalidVector, micm::MicmSeverity::Error,
                   "All matrices must have the same number of blocks/rows when invoking function. Expected " + 
                   std::to_string(num_blocks) + " but got " + std::to_string(arg_blocks));
             }
@@ -687,7 +687,7 @@ namespace micm
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw micm::MicmException<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error, "");
+        throw micm::MicmCodedError<MicmMatrixErrc>(MicmMatrixErrc::ElementOutOfRange, micm::MicmSeverity::Error, "");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

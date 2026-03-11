@@ -65,7 +65,7 @@ namespace micm
     Process Build()
     {
       if (!rate_constant_)
-        throw micm::MicmException<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error, "Rate Constant pointer cannot be null.");
+        throw micm::MicmCodedError<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error, "Rate Constant pointer cannot be null.");
 
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));

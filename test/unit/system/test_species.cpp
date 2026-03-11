@@ -34,65 +34,65 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<std::string>("not there");
         }
-        catch (micm::MicmException<MicmSpeciesErrc>& e)
+        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
         {
           EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      micm::MicmException<MicmSpeciesErrc>);
+      micm::MicmException);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<double>("not there");
         }
-        catch (micm::MicmException<MicmSpeciesErrc>& e)
+        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
         {
           EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      micm::MicmException<MicmSpeciesErrc>);
+      micm::MicmException);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<int>("not there");
         }
-        catch (micm::MicmException<MicmSpeciesErrc>& e)
+        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
         {
           EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      micm::MicmException<MicmSpeciesErrc>);
+      micm::MicmException);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<bool>("not there");
         }
-        catch (micm::MicmException<MicmSpeciesErrc>& e)
+        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
         {
           EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
           throw;
         }
       },
-      micm::MicmException<MicmSpeciesErrc>);
+      micm::MicmException);
   EXPECT_THROW(
       {
         try
         {
           species.GetProperty<long double>("name [units]");
         }
-        catch (micm::MicmException<MicmSpeciesErrc>& e)
+        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
         {
           EXPECT_EQ(e.code_, MicmSpeciesErrc::InvalidTypeForProperty);
           throw;
         }
       },
-      micm::MicmException<MicmSpeciesErrc>);
+      micm::MicmException);
 }
 
 TEST(Species, SetThirdBody)

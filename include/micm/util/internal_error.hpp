@@ -22,6 +22,6 @@ namespace micm
   {
     std::string message = std::string("Please file a bug report at https://github.com/NCAR/micm. Error detail: (") +
                           file + ":" + std::to_string(line) + ") " + msg;
-    throw MicmException<MicmInternalErrc>(e, MicmSeverity::Critical, message);
+    throw MicmCodedError<MicmInternalErrc>(e, MicmSeverity::Critical, message);
   }
 }  // namespace micm

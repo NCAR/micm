@@ -68,28 +68,28 @@ namespace micm
     {
       if (reactants_.empty())
       {
-        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::EmptyReactants, micm::MicmSeverity::Error, "");
+        throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::EmptyReactants, micm::MicmSeverity::Error, "");
       }
       if (products_.empty())
       {
-        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::EmptyProducts, micm::MicmSeverity::Error, "");
+        throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::EmptyProducts, micm::MicmSeverity::Error, "");
       }
       if (equilibrium_constant_ <= 0)
       {
-        throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::InvalidEquilibriumConstant, micm::MicmSeverity::Error, "");
+        throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::InvalidEquilibriumConstant, micm::MicmSeverity::Error, "");
       }
       for (const auto& r : reactants_)
       {
         if (r.coefficient_ <= 0)
         {
-          throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
+          throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
         }
       }
       for (const auto& p : products_)
       {
         if (p.coefficient_ <= 0)
         {
-          throw micm::MicmException<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
+          throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
         }
       }
 

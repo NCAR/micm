@@ -97,23 +97,23 @@ TEST(SparseCompressedColumnMatrix, PrintNonZero)
 TEST(SparseMatrixBuilder, BadConfiguration)
 {
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(3, 0); } catch (micm::MicmException<MicmMatrixErrc>& e) {
+      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(3, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
         EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
         throw;
       },
-      micm::MicmException<MicmMatrixErrc>);
+      micm::MicmException);
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(2, 4); } catch (micm::MicmException<MicmMatrixErrc>& e) {
+      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(2, 4); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
         EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
         throw;
       },
-      micm::MicmException<MicmMatrixErrc>);
+      micm::MicmException);
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(6, 7); } catch (micm::MicmException<MicmMatrixErrc>& e) {
+      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(6, 7); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
         EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
         throw;
       },
-      micm::MicmException<MicmMatrixErrc>);
+      micm::MicmException);
 }
 
 TEST(SparseCompressedColumnMatrix, ArrayFunction)

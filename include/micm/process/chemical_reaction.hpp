@@ -58,7 +58,7 @@ namespace micm
       if (this != &other)
       {
         if (!other.rate_constant_)
-          throw micm::MicmException<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error,
+          throw micm::MicmCodedError<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error,
               "Cannot copy from a ChemicalReaction with null rate constant");
 
         reactants_ = other.reactants_;
@@ -100,7 +100,7 @@ namespace micm
     void Validate() const
     {
       if (!rate_constant_)
-        throw micm::MicmException<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error, "Rate Constant pointer cannot be null");
+        throw micm::MicmCodedError<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error, "Rate Constant pointer cannot be null");
     }
   };
 

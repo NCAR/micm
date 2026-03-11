@@ -23,7 +23,7 @@ namespace micm
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::operator double() const
   {
     if (state_.variables_.NumRows() != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot convert multi-gridcell State variable to single double value");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot convert multi-gridcell State variable to single double value");
     return state_.variables_[0][index_];
   }
 
@@ -38,7 +38,7 @@ namespace micm
       double value)
   {
     if (state_.variables_.NumRows() != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot assign single value to multi-gridcell State variable");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot assign single value to multi-gridcell State variable");
     state_.variables_[0][index_] = value;
     return *this;
   }
@@ -54,7 +54,7 @@ namespace micm
       const std::vector<double>& values)
   {
     if (values.size() != state_.number_of_grid_cells_)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Number of values does not match number of grid cells in State");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Number of values does not match number of grid cells in State");
     for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       state_.variables_[i][index_] = values[i];
@@ -73,7 +73,7 @@ namespace micm
       const VariableProxy& other)
   {
     if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Number of grid cells does not match between State variables");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Number of grid cells does not match between State variables");
     for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       state_.variables_[i][index_] = other.state_.variables_[i][other.index_];
@@ -92,7 +92,7 @@ namespace micm
       double value)
   {
     if (state_.number_of_grid_cells_ != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot add single value to multi-gridcell State variable");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot add single value to multi-gridcell State variable");
     state_.variables_[0][index_] += value;
     return *this;
   }
@@ -108,7 +108,7 @@ namespace micm
       double value)
   {
     if (state_.number_of_grid_cells_ != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot subtract single value from multi-gridcell State variable");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot subtract single value from multi-gridcell State variable");
     state_.variables_[0][index_] -= value;
     return *this;
   }
@@ -124,7 +124,7 @@ namespace micm
       double value)
   {
     if (state_.number_of_grid_cells_ != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot multiply single value with multi-gridcell State variable");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot multiply single value with multi-gridcell State variable");
     state_.variables_[0][index_] *= value;
     return *this;
   }
@@ -140,7 +140,7 @@ namespace micm
       double value)
   {
     if (state_.number_of_grid_cells_ != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot divide multi-gridcell State variable by single value");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot divide multi-gridcell State variable by single value");
     state_.variables_[0][index_] /= value;
     return *this;
   }
@@ -184,7 +184,7 @@ namespace micm
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::ConstVariableProxy::operator double() const
   {
     if (state_.variables_.NumRows() != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot convert multi-gridcell State variable to single double value");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "Cannot convert multi-gridcell State variable to single double value");
     return state_.variables_[0][index_];
   }
 
@@ -382,7 +382,7 @@ namespace micm
   { 
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, name);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, name);
     return VariableProxy(*this, var->second);
   }
 
@@ -398,7 +398,7 @@ namespace micm
   {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, name);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, name);
     return ConstVariableProxy(*this, var->second);
   }
 
@@ -456,9 +456,9 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, species.name_);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, species.name_);
     if (variables_.NumRows() != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
@@ -475,9 +475,9 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, species.name_);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, species.name_);
     if (variables_.NumRows() != concentration.size())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
     std::size_t i_species = variable_map_[species.name_];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -496,9 +496,9 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, element);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, element);
     if (variables_.NumRows() != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
     variables_[0][variable_map_[element]] = concentration;
   }
 
@@ -515,9 +515,9 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, element);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownSpecies, micm::MicmSeverity::Error, element);
     if (variables_.NumRows() != concentration.size())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
     std::size_t i_species = variable_map_[element];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -533,10 +533,10 @@ namespace micm
       UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
 
     if (parameters[0].size() != custom_rate_parameters_.NumColumns())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValues, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValues, micm::MicmSeverity::Error, "");
 
     for (size_t i = 0; i < number_of_grid_cells_; ++i)
     {
@@ -571,9 +571,9 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownRateConstantParameter, micm::MicmSeverity::Error, label);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownRateConstantParameter, micm::MicmSeverity::Error, label);
     if (custom_rate_parameters_.NumRows() != 1)
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
     custom_rate_parameters_[0][param->second] = value;
   }
 
@@ -590,9 +590,9 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::UnknownRateConstantParameter, micm::MicmSeverity::Error, label);
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::UnknownRateConstantParameter, micm::MicmSeverity::Error, label);
     if (custom_rate_parameters_.NumRows() != values.size())
-      throw micm::MicmException<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
+      throw micm::MicmCodedError<MicmStateErrc>(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState, micm::MicmSeverity::Error, "");
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }

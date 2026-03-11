@@ -44,7 +44,7 @@ TEST(SolverBuilder, ThrowsMissingSystem)
 {
   EXPECT_THROW(
       micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{}).Build(),
-      micm::MicmException<MicmSolverErrc>);
+      micm::MicmException);
 }
 
 TEST(SolverBuilder, CanBuildBackwardEuler)

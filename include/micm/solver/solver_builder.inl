@@ -225,7 +225,7 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw micm::MicmException<MicmSolverErrc>(MicmSolverErrc::UnusedSpecies, micm::MicmSeverity::Warning, err_msg);
+      throw micm::MicmCodedError<MicmSolverErrc>(MicmSolverErrc::UnusedSpecies, micm::MicmSeverity::Warning, err_msg);
     }
   }
 
@@ -371,13 +371,13 @@ namespace micm
   {
     if (!valid_system_)
     {
-      throw micm::MicmException<MicmSolverErrc>(MicmSolverErrc::MissingChemicalSystem, micm::MicmSeverity::Error, "Missing chemical system.");
+      throw micm::MicmCodedError<MicmSolverErrc>(MicmSolverErrc::MissingChemicalSystem, micm::MicmSeverity::Error, "Missing chemical system.");
     }
 
     std::size_t number_of_species = this->system_.StateSize();
     if (number_of_species == 0)
     {
-      throw micm::MicmException<MicmSolverErrc>(MicmSolverErrc::MissingChemicalSpecies, micm::MicmSeverity::Error, "Provided chemical system contains no species.");
+      throw micm::MicmCodedError<MicmSolverErrc>(MicmSolverErrc::MissingChemicalSpecies, micm::MicmSeverity::Error, "Provided chemical system contains no species.");
     }
 
     using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
