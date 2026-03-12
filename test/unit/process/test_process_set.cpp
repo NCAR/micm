@@ -42,3 +42,11 @@ TEST(RandomProcessSet, Matrix)
   testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>(300, 30, 20);
   testRandomSystem<micm::Matrix<double>, SparseMatrixTest, micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>(400, 100, 80);
 }
+
+TEST(ProcessSetAlgebraicVariables, CudaMatrix)
+{
+  testAlgebraicMasking<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  testAlgebraicMasking<Group2VectorMatrix, Group2SparseVectorMatrix, micm::ProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  testAlgebraicMasking<Group3VectorMatrix, Group3SparseVectorMatrix, micm::ProcessSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  testAlgebraicMasking<Group4VectorMatrix, Group4SparseVectorMatrix, micm::ProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix>>();
+}

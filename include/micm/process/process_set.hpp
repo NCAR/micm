@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <unordered_map>
 #include <vector>
 
@@ -43,7 +44,7 @@ namespace micm
     std::vector<std::size_t> jacobian_product_ids_;
     std::vector<double> jacobian_yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
-    std::vector<bool> is_algebraic_variable_;
+    std::vector<uint8_t> is_algebraic_variable_;  // uint8_t instead of bool for CUDA compatibility
     std::unordered_map<std::string, std::size_t> variable_map_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
     std::vector<std::function<void(

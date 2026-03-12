@@ -21,6 +21,11 @@ namespace micm
     /// to calculated Jacobian terms to the device
     void CopyJacobianParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
 
+    /// @brief Copies algebraic variable data from host to device memory
+    /// @param hoststruct Host-side struct containing pointers to algebraic variable data
+    /// @param devstruct Device-side struct with pre-allocated memory for algebraic variables
+    void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
+
     /// This is the host function that will call the CUDA kernel
     ///   to calculate the forcing terms
     void AddForcingTermsKernelDriver(
