@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <numeric>
 
 template<class T>
@@ -718,7 +719,11 @@ void TestSingleBlockMatrixAddOneElement()
 
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), number_of_columns * cuda_matrix_vector_length);
-  EXPECT_EQ(matrix.NumberOfGroups(), std::ceil(number_of_grid_cells / (double)cuda_matrix_vector_length));
+  // Work around NVHPC compiler bug - force runtime evaluation
+  double num_cells_d = static_cast<double>(number_of_grid_cells);
+  double vec_length_d = static_cast<double>(cuda_matrix_vector_length);
+  std::size_t expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  EXPECT_EQ(matrix.NumberOfGroups(), expected_groups);
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
@@ -749,7 +754,11 @@ void TestMultiBlockMatrixAddOneElement()
 
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), number_of_columns * cuda_matrix_vector_length);
-  EXPECT_EQ(matrix.NumberOfGroups(), std::ceil(number_of_grid_cells / (double)cuda_matrix_vector_length));
+  // Work around NVHPC compiler bug - force runtime evaluation
+  double num_cells_d = static_cast<double>(number_of_grid_cells);
+  double vec_length_d = static_cast<double>(cuda_matrix_vector_length);
+  std::size_t expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  EXPECT_EQ(matrix.NumberOfGroups(), expected_groups);
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
