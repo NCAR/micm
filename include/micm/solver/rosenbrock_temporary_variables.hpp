@@ -23,7 +23,12 @@ namespace micm
     RosenbrockTemporaryVariables(RosenbrockTemporaryVariables&& other) = default;
     RosenbrockTemporaryVariables& operator=(const RosenbrockTemporaryVariables& other) = default;
     RosenbrockTemporaryVariables& operator=(RosenbrockTemporaryVariables&& other) = default;
-    ~RosenbrockTemporaryVariables() = default;
+    ~RosenbrockTemporaryVariables() override = default;
+
+    std::unique_ptr<TemporaryVariables> Clone() const override
+    {
+      return std::make_unique<RosenbrockTemporaryVariables>(*this);
+    }
 
     RosenbrockTemporaryVariables(
         const auto& state_parameters,

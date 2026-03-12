@@ -313,6 +313,7 @@ namespace micm
         custom_rate_parameters_(),
         rate_constants_(),
         conditions_(),
+        upper_left_identity_diagonal_(),
         jacobian_(),
         jacobian_diagonal_elements_(),
         variable_map_(),
@@ -321,6 +322,7 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(0),
+        constraint_size_(0),
         number_of_grid_cells_(0),
         temporary_variables_(nullptr),
         relative_tolerance_(1e-06),
@@ -344,11 +346,13 @@ namespace micm
         variable_map_(),
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
+        upper_left_identity_diagonal_(),
         jacobian_(),
         jacobian_diagonal_elements_(),
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
+        constraint_size_(parameters.number_of_constraints_),
         number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
@@ -359,6 +363,23 @@ namespace micm
     index = 0;
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
+
+    if (!parameters.mass_matrix_diagonal_.empty())
+    {
+      if (parameters.mass_matrix_diagonal_.size() != state_size_)
+      {
+        throw std::runtime_error(
+            "StateParameters::mass_matrix_diagonal_ size must equal number_of_species when provided.");
+      }
+      upper_left_identity_diagonal_ = parameters.mass_matrix_diagonal_;
+    }
+    else
+    {
+      // Default: all ODE variables (diagonal = 1.0)
+      for (std::size_t i = 0; i < state_size_; i++) {
+        upper_left_identity_diagonal_.push_back(1.0);
+      }
+    }
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {

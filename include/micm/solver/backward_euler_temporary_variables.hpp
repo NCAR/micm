@@ -19,7 +19,12 @@ namespace micm
     BackwardEulerTemporaryVariables(BackwardEulerTemporaryVariables&& other) = default;
     BackwardEulerTemporaryVariables& operator=(const BackwardEulerTemporaryVariables& other) = default;
     BackwardEulerTemporaryVariables& operator=(BackwardEulerTemporaryVariables&& other) = default;
-    ~BackwardEulerTemporaryVariables() = default;
+    ~BackwardEulerTemporaryVariables() override = default;
+
+    std::unique_ptr<TemporaryVariables> Clone() const override
+    {
+      return std::make_unique<BackwardEulerTemporaryVariables>(*this);
+    }
 
     BackwardEulerTemporaryVariables(const auto& state_parameters, const std::size_t number_of_grid_cells)
         : Yn_(number_of_grid_cells, state_parameters.number_of_species_),
