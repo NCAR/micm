@@ -11,12 +11,6 @@
 #include <memory>
 #include <vector>
 
-enum class MicmRateConstantErrc
-{
-  MissingArgumentsForSurfaceRateConstant = MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT,
-  MissingArgumentsForUserDefinedRateConstant = MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_USER_DEFINED_RATE_CONSTANT
-};
-
 namespace micm
 {
   /// @brief A base class for any type of rate constant

@@ -12,7 +12,7 @@ namespace micm
       if (err != cudaSuccess)
       {
         std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
-        ThrowInternalError(MicmInternalErrc::Cuda, file, line, msg.c_str());
+        ThrowInternalError(file, line, msg.c_str());
       }
     }
 
@@ -21,7 +21,7 @@ namespace micm
       if (err != CUBLAS_STATUS_SUCCESS)
       {
         std::string msg = std::to_string(err) + " : " + str;
-        ThrowInternalError(MicmInternalErrc::Cublas, file, line, msg.c_str());
+        ThrowInternalError(file, line, msg.c_str());
       }
     }
 

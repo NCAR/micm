@@ -71,9 +71,10 @@ namespace micm
     }
     else
     {
-      throw micm::MicmCodedError<MicmSpeciesErrc>(
-          MicmSpeciesErrc::PropertyNotFound,
-          micm::MicmSeverity::Error,
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SPECIES,
+          MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
           "Diffusion coefficient for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
     }
     try
@@ -81,13 +82,14 @@ namespace micm
       double molecular_weight = parameters.phase_species_.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT);
       mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * molecular_weight);
     }
-    catch (const micm::MicmCodedError<MicmSpeciesErrc>& e)
+    catch (const MicmException& e)
     {
-      if (e.code_ == MicmSpeciesErrc::PropertyNotFound)
+      if (e.code_ == MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND)
       {
-        throw micm::MicmCodedError<MicmSpeciesErrc>(
-            MicmSpeciesErrc::PropertyNotFound,
-            micm::MicmSeverity::Error,
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SPECIES,
+            MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
             "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
       }
       else
@@ -104,7 +106,7 @@ namespace micm
 
   inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const
   {
-    throw micm::MicmCodedError<MicmRateConstantErrc>(MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant, micm::MicmSeverity::Error, "");
+    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_RATE_CONSTANT, MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT, "");
   }
 
   inline double SurfaceRateConstant::Calculate(

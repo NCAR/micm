@@ -34,9 +34,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<std::string>("not there");
         }
-        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
+        catch (micm::MicmException& e)
         {
-          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
+          EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND);
           throw;
         }
       },
@@ -47,9 +47,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<double>("not there");
         }
-        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
+        catch (micm::MicmException& e)
         {
-          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
+          EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND);
           throw;
         }
       },
@@ -60,9 +60,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<int>("not there");
         }
-        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
+        catch (micm::MicmException& e)
         {
-          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
+          EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND);
           throw;
         }
       },
@@ -73,9 +73,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<bool>("not there");
         }
-        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
+        catch (micm::MicmException& e)
         {
-          EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
+          EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND);
           throw;
         }
       },
@@ -86,9 +86,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<long double>("name [units]");
         }
-        catch (micm::MicmCodedError<MicmSpeciesErrc>& e)
+        catch (micm::MicmException& e)
         {
-          EXPECT_EQ(e.code_, MicmSpeciesErrc::InvalidTypeForProperty);
+          EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY);
           throw;
         }
       },

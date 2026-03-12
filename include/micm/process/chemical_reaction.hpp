@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process_error.hpp>
 #include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
@@ -58,7 +57,7 @@ namespace micm
       if (this != &other)
       {
         if (!other.rate_constant_)
-          throw micm::MicmCodedError<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error,
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
               "Cannot copy from a ChemicalReaction with null rate constant");
 
         reactants_ = other.reactants_;
@@ -100,7 +99,7 @@ namespace micm
     void Validate() const
     {
       if (!rate_constant_)
-        throw micm::MicmCodedError<MicmProcessErrc>(MicmProcessErrc::RateConstantIsNotSet, micm::MicmSeverity::Error, "Rate Constant pointer cannot be null");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET, "Rate Constant pointer cannot be null");
     }
   };
 

@@ -81,7 +81,7 @@ TEST(SurfaceRateConstant, DiffusionCoefficientIsMissing)
   }
   catch (const micm::MicmException& e)
   {
-    EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
+    EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND);
     EXPECT_NE(std::string(e.what()).find("Diffusion coefficient for species 'foo' is not defined"), std::string::npos);
     return;
   }
@@ -101,7 +101,7 @@ TEST(SurfaceRateConstant, MolecularWeightIsMissing)
   }
   catch (const micm::MicmException& e)
   {
-    EXPECT_EQ(e.code_, MicmSpeciesErrc::PropertyNotFound);
+    EXPECT_EQ(e.code_, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND);
     EXPECT_NE(std::string(e.what()).find("Molecular weight for species 'foo' is not defined"), std::string::npos);
     return;
   }
