@@ -16,68 +16,68 @@ MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][0][4] = 2.0; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[0][0][4] = 2.0; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[1][0][0] = 2.0; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[1][0][0] = 2.0; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][3][0] = 2.0; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[0][3][0] = 2.0; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][1][1] = 2.0; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { matrix[0][1][1] = 2.0; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
@@ -96,44 +96,44 @@ MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
@@ -179,56 +179,56 @@ MatrixPolicy<double, OrderingPolicy> testSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 45);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[0][0][4] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[1][0][0] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[1][0][0] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[0][5][0] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][3][3] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { matrix[0][3][3] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
@@ -272,32 +272,32 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 45);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
@@ -350,62 +350,62 @@ MatrixPolicy<double, OrderingPolicy> testMultiBlockMatrix()
   EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(2, 1, 1));
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(54, 0, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { std::size_t elem = matrix.VectorIndex(54, 0, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 2, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(1, 2, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::MissingBlockIndex);
+      try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[0][0][4] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[53][0][0] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[53][0][0] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ElementOutOfRange);
+      try { matrix[0][5][0] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { matrix[0][3][3] = 2; } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::ZeroElementAccess);
+      try { matrix[0][3][3] = 2; } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
@@ -2136,8 +2136,8 @@ void testFunctionInvocationWithWrongSizedVectorSparse()
       [](auto&&, auto&&) {}, matrix, vec1);
   
   EXPECT_THROW(
-      try { func(matrix, vec2); } catch (micm::MicmCodedError<MicmMatrixErrc>& e) {
-        EXPECT_EQ(e.code_, MicmMatrixErrc::InvalidVector);
+      try { func(matrix, vec2); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR);
         throw;
       },
       micm::MicmException);

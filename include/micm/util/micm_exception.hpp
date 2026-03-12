@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/error.hpp>
+
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace micm
 {
@@ -14,27 +17,16 @@ namespace micm
     Critical
   };
 
-  /// @brief Base exception for all MICM errors. Catch this to handle any MICM error.
   struct MicmException : public std::runtime_error
   {
     MicmSeverity severity_;
+    std::string_view category_;
+    int code_;
 
-    MicmException(MicmSeverity severity, const std::string& message)
+    MicmException(MicmSeverity severity, std::string_view category, int code, const std::string& message)
         : std::runtime_error(message),
-          severity_(severity)
-    {
-    }
-  };
-
-  /// @brief Typed MICM exception carrying a domain-specific error code.
-  /// Catch this when you need to inspect or match the specific error code.
-  template<typename ErrorCode>
-  struct MicmCodedError : public MicmException
-  {
-    ErrorCode code_;
-
-    MicmCodedError(ErrorCode code, MicmSeverity severity, const std::string& message)
-        : MicmException(severity, message),
+          severity_(severity),
+          category_(category),
           code_(code)
     {
     }

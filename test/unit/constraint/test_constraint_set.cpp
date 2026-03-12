@@ -274,7 +274,7 @@ TEST(ConstraintSet, UnknownSpeciesThrows)
 
   EXPECT_THROW(
       ConstraintSet(std::move(constraints), variable_map),
-      micm::MicmException<MicmConstraintErrc>);
+      micm::MicmException);
 }
 
 /// @brief Test 3D state (3 species) with 1 constraint

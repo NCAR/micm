@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/constraint_error.hpp>
+#include <micm/constraint/constraint.hpp>
 #include <micm/system/stoich_species.hpp>
 
 #include <cmath>
@@ -68,28 +68,28 @@ namespace micm
     {
       if (reactants_.empty())
       {
-        throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::EmptyReactants, micm::MicmSeverity::Error, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
       }
       if (products_.empty())
       {
-        throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::EmptyProducts, micm::MicmSeverity::Error, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS, "");
       }
       if (equilibrium_constant_ <= 0)
       {
-        throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::InvalidEquilibriumConstant, micm::MicmSeverity::Error, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT, "");
       }
       for (const auto& r : reactants_)
       {
         if (r.coefficient_ <= 0)
         {
-          throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "");
         }
       }
       for (const auto& p : products_)
       {
         if (p.coefficient_ <= 0)
         {
-          throw micm::MicmCodedError<MicmConstraintErrc>(MicmConstraintErrc::InvalidStoichiometry, micm::MicmSeverity::Error, "");
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "");
         }
       }
 

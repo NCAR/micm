@@ -7,21 +7,14 @@
 
 #include <string>
 
-#define INTERNAL_ERROR(msg) micm::ThrowInternalError(MicmInternalErrc::General, __FILE__, __LINE__, msg);
-
-enum class MicmInternalErrc
-{
-  General = MICM_INTERNAL_ERROR_CODE_GENERAL,
-  Cuda = MICM_INTERNAL_ERROR_CODE_CUDA,
-  Cublas = MICM_INTERNAL_ERROR_CODE_CUBLAS
-};
+#define INTERNAL_ERROR(msg) micm::ThrowInternalError(__FILE__, __LINE__, msg);
 
 namespace micm
 {
-  inline void ThrowInternalError(MicmInternalErrc e, const char* file, int line, const char* msg)
+  inline void ThrowInternalError(const char* file, int line, const char* msg)
   {
     std::string message = std::string("Please file a bug report at https://github.com/NCAR/micm. Error detail: (") +
                           file + ":" + std::to_string(line) + ") " + msg;
-    throw MicmCodedError<MicmInternalErrc>(e, MicmSeverity::Critical, message);
+    throw MicmException(MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_GENERAL, message);
   }
 }  // namespace micm

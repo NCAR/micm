@@ -8,7 +8,6 @@
 #include <micm/util/internal_error.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/matrix_error.hpp>
 #include <micm/util/property_keys.hpp>
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix.hpp>

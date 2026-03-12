@@ -12,12 +12,6 @@
 #include <string>
 #include <vector>
 
-enum class MicmSpeciesErrc
-{
-  PropertyNotFound = MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
-  InvalidTypeForProperty = MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY
-};
-
 namespace micm
 {
 
@@ -137,7 +131,7 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw micm::MicmCodedError<MicmSpeciesErrc>(MicmSpeciesErrc::PropertyNotFound, micm::MicmSeverity::Error, "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND, "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, double>::value)
@@ -148,7 +142,7 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw micm::MicmCodedError<MicmSpeciesErrc>(MicmSpeciesErrc::PropertyNotFound, micm::MicmSeverity::Error, "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND, "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, bool>::value)
@@ -159,7 +153,7 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw micm::MicmCodedError<MicmSpeciesErrc>(MicmSpeciesErrc::PropertyNotFound, micm::MicmSeverity::Error, "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND, "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, int>::value)
@@ -170,12 +164,12 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw micm::MicmCodedError<MicmSpeciesErrc>(MicmSpeciesErrc::PropertyNotFound, micm::MicmSeverity::Error, "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND, "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else
     {
-      throw micm::MicmCodedError<MicmSpeciesErrc>(MicmSpeciesErrc::InvalidTypeForProperty, micm::MicmSeverity::Error, "Species: '" + name_ + "'");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY, "Species: '" + name_ + "'");
     }
   }
 
@@ -200,7 +194,7 @@ namespace micm
     }
     else
     {
-      throw micm::MicmCodedError<MicmSpeciesErrc>(MicmSpeciesErrc::InvalidTypeForProperty, micm::MicmSeverity::Error, "Species: '" + name_ + "'");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY, "Species: '" + name_ + "'");
     }
   }
 
