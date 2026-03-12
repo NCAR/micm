@@ -61,28 +61,28 @@ namespace micm
     {
       if (reactants_.empty())
       {
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "Equilibrium constraint requires at least one reactant");
       }
       if (products_.empty())
       {
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS, "Equilibrium constraint requires at least one product");
       }
       if (equilibrium_constant_ <= 0)
       {
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT, "Equilibrium constant must be positive");
       }
       for (const auto& r : reactants_)
       {
         if (r.coefficient_ <= 0)
         {
-          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "");
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "Stoichiometric coefficients must be positive");
         }
       }
       for (const auto& p : products_)
       {
         if (p.coefficient_ <= 0)
         {
-          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "");
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "Stoichiometric coefficients must be positive");
         }
       }
 

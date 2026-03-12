@@ -106,7 +106,7 @@ namespace micm
 
   inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const
   {
-    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_RATE_CONSTANT, MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT, "");
+    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_RATE_CONSTANT, MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT, "Missing required arguments for surface rate constant");
   }
 
   inline double SurfaceRateConstant::Calculate(

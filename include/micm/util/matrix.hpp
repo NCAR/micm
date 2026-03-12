@@ -230,7 +230,7 @@ namespace micm
                   {
                     std::string msg = "In matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, "");
+                    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {
