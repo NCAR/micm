@@ -448,7 +448,7 @@ namespace micm
     if (var == variable_map_.end())
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != 1)
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "Concentration vector size does not match the number of grid cells");
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
@@ -467,7 +467,7 @@ namespace micm
     if (var == variable_map_.end())
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != concentration.size())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "Concentration vector size does not match the number of grid cells");
     std::size_t i_species = variable_map_[species.name_];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -488,7 +488,7 @@ namespace micm
     if (var == variable_map_.end())
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
     if (variables_.NumRows() != 1)
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "Concentration vector size does not match the number of grid cells");
     variables_[0][variable_map_[element]] = concentration;
   }
 
@@ -507,7 +507,7 @@ namespace micm
     if (var == variable_map_.end())
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
     if (variables_.NumRows() != concentration.size())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID, "Concentration vector size does not match the number of grid cells");
     std::size_t i_species = variable_map_[element];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -523,10 +523,10 @@ namespace micm
       UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID, "Custom rate parameter vector size does not match the number of grid cells");
 
     if (parameters[0].size() != custom_rate_parameters_.NumColumns())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT, "Custom rate parameter count does not match the number of rate constants");
 
     for (size_t i = 0; i < number_of_grid_cells_; ++i)
     {
@@ -563,7 +563,7 @@ namespace micm
     if (param == custom_rate_parameter_map_.end())
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != 1)
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID, "Custom rate parameter vector size does not match the number of grid cells");
     custom_rate_parameters_[0][param->second] = value;
   }
 
@@ -582,7 +582,7 @@ namespace micm
     if (param == custom_rate_parameter_map_.end())
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != values.size())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID, "");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID, "Custom rate parameter vector size does not match the number of grid cells");
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }

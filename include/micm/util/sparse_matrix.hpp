@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -290,7 +291,7 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX, "Matrix has multiple blocks; use the (block, row, col) overload of VectorIndex instead");
       return VectorIndex(0, row, column);
     }
 
@@ -686,7 +687,7 @@ namespace micm
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }
