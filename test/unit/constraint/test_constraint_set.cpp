@@ -16,7 +16,6 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <system_error>
 #include <vector>
 
 using namespace micm;
@@ -255,7 +254,7 @@ TEST(ConstraintSet, UnknownSpeciesThrows)
 
   EXPECT_THROW(
       ConstraintSet(std::move(constraints), variable_map, 2),
-      std::system_error);
+      micm::MicmException);
 }
 
 /// @brief Test 3D state (3 species) with 1 constraint

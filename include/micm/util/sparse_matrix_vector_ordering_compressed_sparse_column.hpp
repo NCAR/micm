@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/matrix_error.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -77,12 +76,12 @@ namespace micm
     std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
       if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1 || block >= number_of_blocks)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       auto begin = std::next(column_ids_.begin(), column_start_[column]);
       auto end = std::next(column_ids_.begin(), column_start_[column + 1]);
       auto elem = std::find(begin, end, row);
       if (elem == end)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS, "Zero element access");
       return std::size_t{ (elem - column_ids_.begin()) * L + block % L + (block / L) * L * column_ids_.size() };
     }
 
@@ -110,12 +109,12 @@ namespace micm
     std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
     {
       if (col >= column_start_.size() - 1 || row >= column_start_.size() - 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       auto begin = std::next(column_ids_.begin(), column_start_[col]);
       auto end = std::next(column_ids_.begin(), column_start_[col + 1]);
       auto elem = std::find(begin, end, row);
       if (elem == end)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS, "Zero element access");
       return std::distance(column_ids_.begin(), elem);
     }
 
@@ -517,7 +516,7 @@ namespace micm
     bool IsZero(const std::size_t row, const std::size_t column) const
     {
       if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       auto begin = std::next(column_ids_.begin(), column_start_[column]);
       auto end = std::next(column_ids_.begin(), column_start_[column + 1]);
       auto elem = std::find(begin, end, row);

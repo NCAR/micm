@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/matrix_error.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -291,7 +291,7 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::MissingBlockIndex));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX, "Matrix has multiple blocks; use the (block, row, col) overload of VectorIndex instead");
       return VectorIndex(0, row, column);
     }
 
@@ -393,16 +393,14 @@ namespace micm
     {
       if (row >= block_size_ || col >= block_size_)
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ElementOutOfRange),
-            "Block element (" + std::to_string(row) + "," + std::to_string(col) + 
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Block element (" + std::to_string(row) + "," + std::to_string(col) +
             ") out of range for matrix with block size " + std::to_string(block_size_));
       }
       if (this->IsZero(row, col))
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ZeroElementAccess),
-            "Cannot create view for zero block element (" + std::to_string(row) + "," + 
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+            "Cannot create view for zero block element (" + std::to_string(row) + "," +
             std::to_string(col) + ")");
       }
       std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
@@ -426,16 +424,14 @@ namespace micm
     {
       if (row >= block_size_ || col >= block_size_)
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ElementOutOfRange),
-            "Block element (" + std::to_string(row) + "," + std::to_string(col) + 
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Block element (" + std::to_string(row) + "," + std::to_string(col) +
             ") out of range for matrix with block size " + std::to_string(block_size_));
       }
       if (this->IsZero(row, col))
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ZeroElementAccess),
-            "Cannot create view for zero block element (" + std::to_string(row) + "," + 
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+            "Cannot create view for zero block element (" + std::to_string(row) + "," +
             std::to_string(col) + ")");
       }
       std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
@@ -507,9 +503,8 @@ namespace micm
           
           if (matrix_L != expected_L)
           {
-            throw std::system_error(
-                make_error_code(MicmMatrixErrc::InvalidVector),
-                "Incompatible matrix orderings: Matrix " + std::to_string(index) + 
+            throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                "Incompatible matrix orderings: Matrix " + std::to_string(index) +
                 " has GroupVectorSize=" + std::to_string(matrix_L) +
                 " but expected " + std::to_string(expected_L) +
                 ". Cannot mix standard-ordered (L=1) and vector-ordered (L>1) matrices, " +
@@ -547,9 +542,8 @@ namespace micm
             }
             else if (arg.size() != num_blocks)
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Vector size " + std::to_string(arg.size()) + 
+              throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                  "Vector size " + std::to_string(arg.size()) +
                   " does not match expected block count " + std::to_string(num_blocks) +
                   " when invoking function");
             }
@@ -577,9 +571,8 @@ namespace micm
             }
             else if (arg_blocks != num_blocks)
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "All matrices must have the same number of blocks/rows when invoking function. Expected " + 
+              throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                  "All matrices must have the same number of blocks/rows when invoking function. Expected " +
                   std::to_string(num_blocks) + " but got " + std::to_string(arg_blocks));
             }
           }
@@ -694,7 +687,7 @@ namespace micm
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

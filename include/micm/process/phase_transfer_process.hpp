@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process_error.hpp>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
@@ -67,8 +66,7 @@ namespace micm
       if (this != &other)
       {
         if (!other.coefficient_)
-          throw std::system_error(
-              make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
               "Cannot copy from a PhaseTransferProcess with null coefficient");
 
         gas_phase_ = other.gas_phase_;
@@ -87,8 +85,7 @@ namespace micm
     void Validate() const
     {
       if (!coefficient_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
             "Phase Transfer Coefficient pointer cannot be null");
     }
   };

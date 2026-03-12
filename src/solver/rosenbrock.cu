@@ -3,7 +3,7 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/util/internal_error.hpp>
+#include <micm/util/micm_exception.hpp>
 
 #include <cublas_v2.h>
 
@@ -255,7 +255,7 @@ namespace micm
       {
         std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
                           " but got: " + std::to_string(y_error_param.number_of_elements_);
-        INTERNAL_ERROR(msg.c_str());
+        throw micm::MicmException(micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_GENERAL, msg);
       }
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
