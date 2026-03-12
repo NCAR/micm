@@ -5,7 +5,7 @@
 
 #include <micm/util/constants.hpp>
 #include <micm/util/error.hpp>
-#include <micm/util/internal_error.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/property_keys.hpp>
