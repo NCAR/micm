@@ -7,7 +7,9 @@
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cmath>
+#include <fstream>
 #include <functional>
+#include <iostream>
 
 namespace micm
 {

@@ -7,10 +7,6 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/solver/lu_decomposition_mozart_in_place.hpp>
 
-#include <fstream>
-#include <iostream>
-#include <tuple>
-
 namespace micm
 {
   /// This CudaLuDecompositionMozartInPlace class inherits everything from the base class "LuDecompositionMozartInPlace"
@@ -69,58 +65,6 @@ namespace micm
 
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
-
-      // Write const index arrays to a text file
-      {
-        std::ofstream outfile("lu_decomposition_const_arrays.txt");
-        if (outfile.is_open())
-        {
-          outfile << "aii_nji_nki_size: " << this->aii_nji_nki_.size() << "\n";
-          outfile << "aii_nji_nki_0:";
-          for (const auto& t : this->aii_nji_nki_)
-            outfile << " " << std::get<0>(t);
-          outfile << "\n";
-          outfile << "aii_nji_nki_1:";
-          for (const auto& t : this->aii_nji_nki_)
-            outfile << " " << std::get<1>(t);
-          outfile << "\n";
-          outfile << "aii_nji_nki_2:";
-          for (const auto& t : this->aii_nji_nki_)
-            outfile << " " << std::get<2>(t);
-          outfile << "\n";
-
-          outfile << "aji_size: " << this->aji_.size() << "\n";
-          outfile << "aji:";
-          for (const auto& v : this->aji_)
-            outfile << " " << v;
-          outfile << "\n";
-
-          outfile << "aik_njk_size: " << this->aik_njk_.size() << "\n";
-          outfile << "aik_njk_first:";
-          for (const auto& p : this->aik_njk_)
-            outfile << " " << p.first;
-          outfile << "\n";
-          outfile << "aik_njk_second:";
-          for (const auto& p : this->aik_njk_)
-            outfile << " " << p.second;
-          outfile << "\n";
-
-          outfile << "ajk_aji_size: " << this->ajk_aji_.size() << "\n";
-          outfile << "ajk_aji_first:";
-          for (const auto& p : this->ajk_aji_)
-            outfile << " " << p.first;
-          outfile << "\n";
-          outfile << "ajk_aji_second:";
-          for (const auto& p : this->ajk_aji_)
-            outfile << " " << p.second;
-          outfile << "\n";
-
-          outfile << "number_of_non_zeros: " << hoststruct.number_of_non_zeros_ << "\n";
-
-          outfile.close();
-          std::cout << "Wrote LU decomposition const arrays to: lu_decomposition_const_arrays.txt" << std::endl;
-        }
-      }
     };
 
     /// This is destructor that will free the device memory of

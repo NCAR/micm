@@ -51,6 +51,55 @@ namespace micm
       // There must always be a non-zero element on the diagonal
       nUij_Uii_.push_back(std::make_pair(nUij, lu.VectorIndex(0, i, i)));
     }
+
+    // Write const index arrays to a text file
+    {
+      std::size_t number_of_non_zeros = lu.GroupSize() / SparseMatrixPolicy::GroupVectorSize();
+      std::ofstream outfile("linear_solver_in_place_const_arrays.txt");
+      if (outfile.is_open())
+      {
+        outfile << "nLij_size: " << nLij_.size() << "\n";
+        outfile << "nLij:";
+        for (const auto& v : nLij_)
+          outfile << " " << v;
+        outfile << "\n";
+
+        outfile << "Lij_yj_size: " << Lij_yj_.size() << "\n";
+        outfile << "Lij_yj_first:";
+        for (const auto& p : Lij_yj_)
+          outfile << " " << p.first;
+        outfile << "\n";
+        outfile << "Lij_yj_second:";
+        for (const auto& p : Lij_yj_)
+          outfile << " " << p.second;
+        outfile << "\n";
+
+        outfile << "nUij_Uii_size: " << nUij_Uii_.size() << "\n";
+        outfile << "nUij_Uii_first:";
+        for (const auto& p : nUij_Uii_)
+          outfile << " " << p.first;
+        outfile << "\n";
+        outfile << "nUij_Uii_second:";
+        for (const auto& p : nUij_Uii_)
+          outfile << " " << p.second;
+        outfile << "\n";
+
+        outfile << "Uij_xj_size: " << Uij_xj_.size() << "\n";
+        outfile << "Uij_xj_first:";
+        for (const auto& p : Uij_xj_)
+          outfile << " " << p.first;
+        outfile << "\n";
+        outfile << "Uij_xj_second:";
+        for (const auto& p : Uij_xj_)
+          outfile << " " << p.second;
+        outfile << "\n";
+
+        outfile << "number_of_non_zeros: " << number_of_non_zeros << "\n";
+
+        outfile.close();
+        std::cout << "Wrote linear solver const arrays to: linear_solver_in_place_const_arrays.txt" << std::endl;
+      }
+    }
   };
 
   template<class SparseMatrixPolicy, class LuDecompositionPolicy>

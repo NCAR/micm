@@ -4,6 +4,10 @@
 
 #include <micm/util/sparse_matrix.hpp>
 
+#include <fstream>
+#include <iostream>
+#include <tuple>
+
 namespace micm
 {
 
