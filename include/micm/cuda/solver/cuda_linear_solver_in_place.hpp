@@ -8,6 +8,9 @@
 #include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/solver/lu_decomposition_mozart_in_place.hpp>
 
+#include <fstream>
+#include <iostream>
+
 namespace micm
 {
   template<class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace>
@@ -72,6 +75,54 @@ namespace micm
 
       /// Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+
+      // Write const index arrays to a text file
+      {
+        std::ofstream outfile("linear_solver_in_place_const_arrays.txt");
+        if (outfile.is_open())
+        {
+          outfile << "nLij_size: " << this->nLij_.size() << "\n";
+          outfile << "nLij:";
+          for (const auto& v : this->nLij_)
+            outfile << " " << v;
+          outfile << "\n";
+
+          outfile << "Lij_yj_size: " << this->Lij_yj_.size() << "\n";
+          outfile << "Lij_yj_first:";
+          for (const auto& p : this->Lij_yj_)
+            outfile << " " << p.first;
+          outfile << "\n";
+          outfile << "Lij_yj_second:";
+          for (const auto& p : this->Lij_yj_)
+            outfile << " " << p.second;
+          outfile << "\n";
+
+          outfile << "nUij_Uii_size: " << this->nUij_Uii_.size() << "\n";
+          outfile << "nUij_Uii_first:";
+          for (const auto& p : this->nUij_Uii_)
+            outfile << " " << p.first;
+          outfile << "\n";
+          outfile << "nUij_Uii_second:";
+          for (const auto& p : this->nUij_Uii_)
+            outfile << " " << p.second;
+          outfile << "\n";
+
+          outfile << "Uij_xj_size: " << this->Uij_xj_.size() << "\n";
+          outfile << "Uij_xj_first:";
+          for (const auto& p : this->Uij_xj_)
+            outfile << " " << p.first;
+          outfile << "\n";
+          outfile << "Uij_xj_second:";
+          for (const auto& p : this->Uij_xj_)
+            outfile << " " << p.second;
+          outfile << "\n";
+
+          outfile << "number_of_non_zeros: " << hoststruct.number_of_non_zeros_ << "\n";
+
+          outfile.close();
+          std::cout << "Wrote linear solver const arrays to: linear_solver_in_place_const_arrays.txt" << std::endl;
+        }
+      }
     }
 
     /// This is the destructor that will free the device memory of
