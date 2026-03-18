@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/equilibrium_constraint.hpp>
-#include <micm/constraint/linear_constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/constraint/constraint_info.hpp>
 
 #include <cstddef>
 #include <string>
@@ -42,9 +43,16 @@ namespace micm
       return std::visit([](const auto& c) { return c.name_; }, constraint_);
     }
 
+    /// @brief Returns the species whose state row should be replaced by this algebraic constraint
+    /// @return Algebraic species name
+    const std::string& AlgebraicSpecies() const
+    {
+      return std::visit([](const auto& c) -> const std::string& { return c.AlgebraicSpecies(); }, constraint_);
+    }
+
     /// @brief Get species dependencies
     /// @return Vector of species names this constraint depends on
-    const std::vector<std::string>& GetSpeciesDependencies() const
+    const std::vector<std::string>& SpeciesDependencies() const
     {
       return std::visit([](const auto& c) -> const std::vector<std::string>& { return c.species_dependencies_; }, constraint_);
     }
@@ -56,29 +64,41 @@ namespace micm
       return std::visit([](const auto& c) { return c.species_dependencies_.size(); }, constraint_);
     }
 
-    /// @brief Evaluate the constraint residual G(y)
-    /// @param concentrations Pointer to species concentrations (row of state matrix)
-    /// @param indices Pointer to indices mapping species_dependencies_ to positions in concentrations
-    /// @return Residual value (should be 0 when constraint is satisfied)
-    double Residual(const double* concentrations, const std::size_t* indices) const
+    /// @brief Get a function object to compute the constraint residual
+    ///        This returns a reusable function that can be invoked multiple times
+    /// @param info Constraint information including species indices and row index
+    /// @param state_variable_indices Map from species names to state variable indices
+    /// @return Function object that takes (state_variables, forcing) and computes the residual
+    template<typename DenseMatrixPolicy>
+    auto ResidualFunction(const ConstraintInfo& info, const auto& state_variable_indices) const
     {
-      return std::visit([&](const auto& c) { return c.Residual(concentrations, indices); }, constraint_);
+      return std::visit(
+        [&info, &state_variable_indices](const auto& c) { 
+          return c.template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices); 
+        }, 
+        constraint_);
     }
 
-    /// @brief Compute partial derivatives dG/d[species] for each dependent species
-    /// @param concentrations Pointer to species concentrations (row of state matrix)
-    /// @param indices Pointer to indices mapping species_dependencies_ to positions in concentrations
-    /// @param jacobian Output buffer for partial derivatives dG/d[species] (same order as species_dependencies_)
-    void Jacobian(const double* concentrations, const std::size_t* indices, double* jacobian) const
+    /// @brief Get a function object to compute the constraint Jacobian
+    ///        This returns a reusable function that can be invoked multiple times
+    /// @param info Constraint information including species indices and Jacobian flat IDs
+    /// @param state_variable_indices Map from species names to state variable indices
+    /// @param jacobian_flat_ids Iterator to the jacobian flat IDs for this constraint
+    /// @param jacobian Sparse matrix to store Jacobian values
+    /// @return Function object that takes (state_variables, jacobian) and computes partials
+    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    auto JacobianFunction(
+        const ConstraintInfo& info, 
+        const auto& state_variable_indices,
+        auto jacobian_flat_ids,
+        SparseMatrixPolicy& jacobian) const
     {
-      std::visit([&](const auto& c) { c.Jacobian(concentrations, indices, jacobian); }, constraint_);
-    }
-
-    /// @brief Returns the species whose state row should be replaced by this algebraic constraint
-    /// @return Algebraic species name
-    const std::string& GetAlgebraicSpecies() const
-    {
-      return std::visit([](const auto& c) -> const std::string& { return c.AlgebraicSpecies(); }, constraint_);
+      return std::visit(
+        [&info, &state_variable_indices, jacobian_flat_ids, &jacobian](const auto& c) { 
+          return c.template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
+              info, state_variable_indices, jacobian_flat_ids, jacobian); 
+        }, 
+        constraint_);
     }
   };
 

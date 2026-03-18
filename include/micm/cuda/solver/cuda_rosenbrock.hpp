@@ -14,11 +14,12 @@ namespace micm
 {
   struct CudaRosenbrockSolverParameters;
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class CudaRosenbrockSolver : public AbstractRosenbrockSolver<
                                    RatesPolicy,
                                    LinearSolverPolicy,
-                                   CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+                                   ConstraintSetPolicy,
+                                   CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>
   {
     ///@brief Default constructor
    public:
@@ -28,12 +29,12 @@ namespace micm
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(other)){};
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
-      RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::operator=(std::move(other));
       return *this;
     };
 
@@ -47,8 +48,8 @@ namespace micm
     CudaRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        ConstraintSet&& constraints)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+        ConstraintSetPolicy&& constraints)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
               std::move(constraints)) {};

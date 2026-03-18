@@ -3,8 +3,8 @@
 namespace micm
 {
 
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
-  inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::Solve(
       double time_step,
       auto& state,
       const RosenbrockSolverParameters& parameters) const noexcept
@@ -54,11 +54,8 @@ namespace micm
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state, Y, initial_forcing);
 
-      // Add constraint residuals to forcing (for DAE systems)
-      if (has_constraints)
-      {
+      if (has_constraints) 
         constraints_.AddForcingTerms(Y, initial_forcing);
-      }
 
       result.stats_.function_calls_ += 1;
 
@@ -66,11 +63,8 @@ namespace micm
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
 
-      // Add constraint Jacobian terms (for DAE systems)
       if (has_constraints)
-      {
         constraints_.SubtractJacobianTerms(Y, state.jacobian_);
-      }
 
       result.stats_.jacobian_updates_ += 1;
 
@@ -111,7 +105,6 @@ namespace micm
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state, Ynew, K[stage]);
-              // Add constraint residuals for DAE systems
               if (has_constraints)
               {
                 constraints_.AddForcingTerms(Ynew, K[stage]);
@@ -223,9 +216,7 @@ namespace micm
             rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
             // Subtract constraint Jacobian terms (for DAE systems)
             if (has_constraints)
-            {
               constraints_.SubtractJacobianTerms(Y, state.jacobian_);
-            }
             result.stats_.jacobian_updates_ += 1;
           }
         }
@@ -242,9 +233,9 @@ namespace micm
     return result;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   template<class SparseMatrixPolicy>
-  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
       auto& state,
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy>)
@@ -262,9 +253,9 @@ namespace micm
     }
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   template<class SparseMatrixPolicy>
-  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
       auto& state,
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy>)
@@ -284,8 +275,8 @@ namespace micm
     }
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
-  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::LinearFactor(
       const double alpha,
       SolverStats& stats,
       auto& state) const
@@ -306,9 +297,9 @@ namespace micm
     stats.decompositions_ += 1;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   template<class DenseMatrixPolicy>
-  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
+  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors,
@@ -349,9 +340,9 @@ namespace micm
     return std::max(std::sqrt(error / N), error_min);
   }
 
-   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   template<class DenseMatrixPolicy>
-  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
+  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors,

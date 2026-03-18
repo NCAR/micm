@@ -4,8 +4,8 @@
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
-#include <micm/constraint/equilibrium_constraint.hpp>
-#include <micm/constraint/linear_constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/constraint/types/linear_constraint.hpp>
 
 #include <gtest/gtest.h>
 

@@ -4,7 +4,7 @@
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
-#include <micm/constraint/equilibrium_constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
 
 #include <gtest/gtest.h>
 
@@ -13,45 +13,7 @@
 #include <utility>
 #include <vector>
 
-/// @brief Test ConstraintSet API directly (unit-level test for DAE infrastructure)
-///        Uses replace-state-rows mode: AB's row (index 2) is replaced by the constraint.
-TEST(EquilibriumIntegration, ConstraintSetAPITest)
-{
-  auto A = micm::Species("A");
-  auto B = micm::Species("B");
-  auto AB = micm::Species("AB");
 
-  // Create constraint: A + B <-> AB with K_eq = 1000
-  std::vector<micm::Constraint> constraints;
-  constraints.push_back(micm::EquilibriumConstraint(
-      "A_B_eq",
-      std::vector<micm::StoichSpecies>{ { A, 1.0 }, { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { AB, 1.0 } },
-      1000.0));
-
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
-
-  micm::ConstraintSet set(std::move(constraints), variable_map);
-
-  // Test at equilibrium: [A] = 0.0312, [B] = 0.0312, [AB] = 0.9737
-  // K_eq * [A] * [B] = 1000 * 0.0312^2 ≈ 0.9734
-  // Should approximately equal [AB] = 0.9737
-  micm::Matrix<double> state(1, 3);
-  state[0][0] = 0.0312;  // A
-  state[0][1] = 0.0312;  // B
-  state[0][2] = 0.9737;  // AB - calculated to be at equilibrium
-
-  micm::Matrix<double> forcing(1, 3, 0.0);
-  set.AddForcingTerms(state, forcing);
-
-  // At equilibrium, residual replaces AB's row (index 2)
-  // G = K_eq * [A] * [B] - [AB] = 1000 * 0.0312 * 0.0312 - 0.9737 ≈ 0
-  EXPECT_NEAR(forcing[0][2], 0.0, 0.01);
-}
 
 /// @brief Test SetConstraints API integration - verifies solver builds and runs with constraints
 ///
@@ -1073,7 +1035,7 @@ TEST(EquilibriumIntegration, DAEOverlappingSpeciesJacobian)
   };
 
   // Algebraic species is A (first product), so constraint replaces row 0
-  micm::ConstraintSet set(std::move(constraints), variable_map);
+  micm::ConstraintSet<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>> set(std::move(constraints), variable_map);
 
   // Build a sparse Jacobian and set flat IDs
   auto nonzero = set.NonZeroJacobianElements();

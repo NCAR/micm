@@ -4,7 +4,7 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
-#include <micm/constraint/equilibrium_constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>

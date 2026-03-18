@@ -14,6 +14,7 @@ enum class MicmConstraintErrc
   EmptyReactants = MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS,
   EmptyProducts = MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS,
   InvalidStoichiometry = MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
+  DuplicateAlgebraicSpecies = MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_ALGEBRAIC_SPECIES,
 };
 
 namespace std
@@ -41,6 +42,7 @@ class MicmConstraintErrorCategory : public std::error_category
       case MicmConstraintErrc::EmptyReactants: return "Equilibrium constraint requires at least one reactant";
       case MicmConstraintErrc::EmptyProducts: return "Equilibrium constraint requires at least one product";
       case MicmConstraintErrc::InvalidStoichiometry: return "Stoichiometric coefficients must be positive";
+      case MicmConstraintErrc::DuplicateAlgebraicSpecies: return "Multiple constraints map to the same algebraic species";
       default: return "Unknown error";
     }
   }

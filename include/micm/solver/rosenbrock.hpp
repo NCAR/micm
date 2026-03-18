@@ -37,6 +37,7 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Linear solver
+  /// @tparam ConstraintSetPolicy Constraint set for algebraic constraints
   /// @tparam Derived Implementation of the Rosenbock solver
   ///
   /// This implements the Curiously Recurring Template Pattern to allow
@@ -44,13 +45,13 @@ namespace micm
   /// in extending classes and called from the base class Solve() function.
   /// https://en.cppreference.com/w/cpp/language/crtp
   ///
-  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   class AbstractRosenbrockSolver
   {
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
-    ConstraintSet constraints_;
+    ConstraintSetPolicy constraints_;
 
     static constexpr double DEFAULT_H_MIN = 1.0e-15;   // Minimum internal time step relative to overall time step
     static constexpr double DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
@@ -66,7 +67,7 @@ namespace micm
     AbstractRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        ConstraintSet&& constraints)
+        ConstraintSetPolicy&& constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
           constraints_(std::move(constraints))
@@ -123,9 +124,9 @@ namespace micm
       requires(VectorizableDense<DenseMatrixPolicy>);
   };  // end of Abstract Rosenbrock Solver
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class RosenbrockSolver
-      : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+      : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>
   {
    public:
     /// @brief Default constructor
@@ -137,8 +138,8 @@ namespace micm
     RosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        ConstraintSet&& constraints)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+        ConstraintSetPolicy&& constraints)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
               std::move(constraints))

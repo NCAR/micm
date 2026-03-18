@@ -27,13 +27,13 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class AbstractBackwardEuler
   {
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
-    ConstraintSet constraints_;
+    ConstraintSetPolicy constraints_;
 
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
@@ -45,7 +45,7 @@ namespace micm
     AbstractBackwardEuler(
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        ConstraintSet&& constraints)
+        ConstraintSetPolicy&& constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
           constraints_(std::move(constraints))

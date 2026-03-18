@@ -67,7 +67,8 @@ void CheckIsConverged()
 {
   using LinearSolverPolicy = micm::LinearSolver<micm::StandardSparseMatrix>;
   using RatesPolicy = micm::ProcessSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
-  using BackwardEuler = micm::AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>;
+  using ConstraintSetPolicy = micm::ConstraintSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
+  using BackwardEuler = micm::AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };

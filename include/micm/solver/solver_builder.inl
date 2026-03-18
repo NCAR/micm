@@ -205,9 +205,9 @@ namespace micm
     // Include species referenced by constraints (dependencies and algebraic targets)
     for (const auto& constraint : constraints_)
     {
-      for (const auto& dep : constraint.GetSpeciesDependencies())
+      for (const auto& dep : constraint.SpeciesDependencies())
         used_species.insert(dep);
-      used_species.insert(constraint.GetAlgebraicSpecies());
+      used_species.insert(constraint.AlgebraicSpecies());
     }
 
     auto available_species = system_.UniqueNames();
@@ -381,7 +381,8 @@ namespace micm
           make_error_code(MicmSolverErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
     }
 
-    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
+    using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
+    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
     auto species_map = this->GetSpeciesMap();
     auto params_map = this->GetCustomParameterMap();
 
@@ -391,7 +392,7 @@ namespace micm
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
     // Create ConstraintSet from stored constraints (if any)
-    ConstraintSet constraint_set;
+    ConstraintSetPolicy constraint_set;
     std::set<std::size_t> algebraic_variable_ids;
 
     std::size_t number_of_constraints = constraints_.size();
@@ -401,7 +402,7 @@ namespace micm
       auto constraints_copy = constraints_;
       // Constraints replace selected species rows in the mass-matrix DAE formulation.
       // Pass species_map so constraints can resolve dependencies and row targets to species indices.
-      constraint_set = ConstraintSet(std::move(constraints_copy), species_map);
+      constraint_set = ConstraintSetPolicy(std::move(constraints_copy), species_map);
       algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
 
@@ -431,10 +432,10 @@ namespace micm
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
-    // Set Jacobian flat IDs for constraints
     if (constraint_set.Size() > 0)
     {
       constraint_set.SetJacobianFlatIds(jacobian);
+      constraint_set.SetConstraintFunctions(species_map, jacobian);
     }
 
     std::vector<std::string> variable_names{ number_of_species };

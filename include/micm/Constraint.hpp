@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/constraint/types/linear_constraint.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
-#include <micm/constraint/equilibrium_constraint.hpp>
