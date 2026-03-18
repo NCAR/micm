@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/constraint_error.hpp>
+#include <micm/constraint/constraint.hpp>
 #include <micm/system/stoich_species.hpp>
 
 #include <cmath>
 #include <cstddef>
 #include <string>
-#include <system_error>
 #include <vector>
 
 namespace micm
@@ -69,28 +68,28 @@ namespace micm
     {
       if (reactants_.empty())
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "Equilibrium constraint requires at least one reactant");
       }
       if (products_.empty())
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyProducts));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS, "Equilibrium constraint requires at least one product");
       }
       if (equilibrium_constant_ <= 0)
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::InvalidEquilibriumConstant));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT, "Equilibrium constant must be positive");
       }
       for (const auto& r : reactants_)
       {
         if (r.coefficient_ <= 0)
         {
-          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "Stoichiometric coefficients must be positive");
         }
       }
       for (const auto& p : products_)
       {
         if (p.coefficient_ <= 0)
         {
-          throw std::system_error(make_error_code(MicmConstraintErrc::InvalidStoichiometry));
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY, "Stoichiometric coefficients must be positive");
         }
       }
 

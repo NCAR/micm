@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/matrix_error.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/view_category.hpp>
 
 #include <algorithm>
@@ -12,7 +12,6 @@
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <system_error>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
@@ -124,7 +123,7 @@ namespace micm
         {
           std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
                             " elements, but expected " + std::to_string(y_dim_);
-          throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
+          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -244,7 +243,7 @@ namespace micm
                   {
                     std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), msg);
+                    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)
@@ -466,8 +465,7 @@ namespace micm
     {
       if (column_index >= y_dim_)
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Column index " + std::to_string(column_index) + " out of range for matrix with " +
                 std::to_string(y_dim_) + " columns");
       }
@@ -481,8 +479,7 @@ namespace micm
     {
       if (column_index >= y_dim_)
       {
-        throw std::system_error(
-            make_error_code(MicmMatrixErrc::ElementOutOfRange),
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Column index " + std::to_string(column_index) + " out of range for matrix with " +
                 std::to_string(y_dim_) + " columns");
       }
@@ -791,9 +788,8 @@ namespace micm
             }
             else if (arg.size() != num_rows)
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Vector size must match matrix row count. Expected " + std::to_string(num_rows) + 
+              throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                  "Vector size must match matrix row count. Expected " + std::to_string(num_rows) +
                       " elements but got " + std::to_string(arg.size()));
             }
           }
@@ -808,9 +804,8 @@ namespace micm
             {
               if (arg.NumRows() != num_rows)
               {
-                throw std::system_error(
-                    make_error_code(MicmMatrixErrc::InvalidVector),
-                    "All matrices must have the same number of rows when invoking function. Expected " + 
+                throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                    "All matrices must have the same number of rows when invoking function. Expected " +
                         std::to_string(num_rows) + " rows but got " + std::to_string(arg.NumRows()));
               }
             }
@@ -818,9 +813,8 @@ namespace micm
             // Always validate column count against captured value
             if (arg.NumColumns() != num_cols[idx])
             {
-              throw std::system_error(
-                  make_error_code(MicmMatrixErrc::InvalidVector),
-                  "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + 
+              throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                  "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) +
                       " columns but got " + std::to_string(arg.NumColumns()));
             }
           }

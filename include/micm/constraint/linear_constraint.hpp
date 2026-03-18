@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/constraint_error.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/system/stoich_species.hpp>
 
 #include <cstddef>
 #include <string>
-#include <system_error>
 #include <vector>
 
 namespace micm
@@ -51,7 +50,7 @@ namespace micm
     {
       if (terms_.empty())
       {
-        throw std::system_error(make_error_code(MicmConstraintErrc::EmptyReactants));
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
       }
       for (const auto& term : terms_)
       {

@@ -13,7 +13,6 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
-#include <micm/solver/solver_error.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
@@ -22,7 +21,6 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <memory>
-#include <system_error>
 #include <unordered_map>
 
 namespace micm

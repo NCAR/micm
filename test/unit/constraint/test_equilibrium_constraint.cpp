@@ -10,7 +10,6 @@
 
 #include <cmath>
 #include <memory>
-#include <system_error>
 #include <vector>
 
 using namespace micm;
@@ -140,7 +139,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           -1.0),
-      std::system_error);
+      micm::MicmException);
 
   EXPECT_THROW(
       EquilibriumConstraint(
@@ -148,7 +147,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           0.0),
-      std::system_error);
+      micm::MicmException);
 }
 
 TEST(EquilibriumConstraint, EmptyReactantsThrows)
@@ -159,7 +158,7 @@ TEST(EquilibriumConstraint, EmptyReactantsThrows)
           std::vector<StoichSpecies>{},  // empty reactants
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
-      std::system_error);
+      micm::MicmException);
 }
 
 TEST(EquilibriumConstraint, EmptyProductsThrows)
@@ -170,7 +169,7 @@ TEST(EquilibriumConstraint, EmptyProductsThrows)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{},  // empty products
           1.0),
-      std::system_error);
+      micm::MicmException);
 }
 
 TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
@@ -182,7 +181,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
-      std::system_error);
+      micm::MicmException);
 
   // Negative stoichiometry for reactant
   EXPECT_THROW(
@@ -191,7 +190,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), -1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
           1.0),
-      std::system_error);
+      micm::MicmException);
 
   // Zero stoichiometry for product
   EXPECT_THROW(
@@ -200,7 +199,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 0.0) },
           1.0),
-      std::system_error);
+      micm::MicmException);
 
   // Negative stoichiometry for product
   EXPECT_THROW(
@@ -209,5 +208,5 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), -2.0) },
           1.0),
-      std::system_error);
+      micm::MicmException);
 }
