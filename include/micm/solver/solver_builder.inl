@@ -225,7 +225,7 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw std::system_error(make_error_code(MicmSolverErrc::UnusedSpecies), err_msg);
+      throw MicmException(MicmSeverity::Warning, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
     }
   }
 
@@ -371,14 +371,13 @@ namespace micm
   {
     if (!valid_system_)
     {
-      throw std::system_error(make_error_code(MicmSolverErrc::MissingChemicalSystem), "Missing chemical system.");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
     }
 
     std::size_t number_of_species = this->system_.StateSize();
     if (number_of_species == 0)
     {
-      throw std::system_error(
-          make_error_code(MicmSolverErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES, "Provided chemical system contains no species.");
     }
 
     using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;

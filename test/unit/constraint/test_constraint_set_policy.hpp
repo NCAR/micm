@@ -286,7 +286,7 @@ void testUnknownSpeciesThrows()
     { "B", 1 }
   };
 
-  EXPECT_THROW((ConstraintSetPolicy(std::move(constraints), variable_map)), std::system_error);
+  EXPECT_THROW((ConstraintSetPolicy(std::move(constraints), variable_map)), micm::MicmException);
 }
 
 /// @brief Test 3D state (3 species) with 1 constraint

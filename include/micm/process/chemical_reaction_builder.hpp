@@ -4,7 +4,6 @@
 
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
-#include <micm/process/process_error.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
@@ -65,8 +64,7 @@ namespace micm
     Process Build()
     {
       if (!rate_constant_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null.");
+        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET, "Rate Constant pointer cannot be null.");
 
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));
