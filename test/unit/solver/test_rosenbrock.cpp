@@ -1,7 +1,7 @@
 #include "test_rosenbrock_solver_policy.hpp"
 
 #include <micm/constraint/constraint.hpp>
-#include <micm/constraint/equilibrium_constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>

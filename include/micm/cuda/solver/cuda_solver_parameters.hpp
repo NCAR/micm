@@ -12,8 +12,8 @@ namespace micm
   /// @brief Parameters for the CUDA Rosenbrock solver
   struct CudaRosenbrockSolverParameters : public RosenbrockSolverParameters
   {
-    template<class RatesPolicy, class LinearSolverPolicy>
-    using SolverType = CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>;
+    template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+    using SolverType = CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
     /// @brief Constructor from base class
     /// @param base

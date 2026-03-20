@@ -3,11 +3,13 @@
 #pragma once
 
 #include <micm/constraint/constraint.hpp>
+#include <micm/constraint/constraint_info.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cstddef>
+#include <functional>
 #include <unordered_map>
 #include <memory>
 #include <set>
@@ -22,36 +24,30 @@ namespace micm
   ///        ConstraintSet handles the computation of constraint residuals (forcing terms)
   ///        and Jacobian contributions for a set of constraints. It follows the same
   ///        pattern as ProcessSet for integration with the Rosenbrock solver.
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   class ConstraintSet
   {
-   protected:
-    /// @brief Information for each constraint
-    struct ConstraintInfo
-    {
-      std::size_t constraint_index_;       // Index in constraints_ vector
-      std::size_t constraint_row_;         // Row in the forcing/Jacobian
-      std::size_t number_of_dependencies_; // Number of species this constraint depends on
-      std::size_t dependency_offset_;      // Starting offset in dependency_ids_
-      std::size_t jacobian_flat_offset_;   // Starting offset in jacobian_flat_ids_
-    };
-
+   private:
     /// @brief The constraints
     std::vector<Constraint> constraints_;
-
-    /// @brief Flat list of species indices for each constraint's dependencies
-    std::vector<std::size_t> dependency_ids_;
 
     /// @brief Information about each constraint for forcing/Jacobian computation
     std::vector<ConstraintInfo> constraint_info_;
 
+    /// @brief Flat list of species indices for each constraint's dependencies
+    std::vector<std::size_t> dependency_ids_;
+    
     /// @brief Flat indices into the Jacobian sparse matrix for each constraint's Jacobian entries
     std::vector<std::size_t> jacobian_flat_ids_;
 
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<std::size_t> algebraic_variable_ids_;
 
-    /// @brief Maximum number of dependencies across all constraints (for buffer allocation)
-    std::size_t max_dependencies_{ 0 };
+    /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> constraint_forcing_functions_;
+
+    /// @brief Pre-compiled constraint Jacobian functions (initialized during solver build via SetConstraintFunctions)
+    std::vector<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>> constraint_jacobian_functions_;
 
    public:
     /// @brief Default constructor
@@ -63,12 +59,68 @@ namespace micm
     /// @param variable_map Map from species names to state variable indices
     ConstraintSet(
         std::vector<Constraint>&& constraints,
-        const std::unordered_map<std::string, std::size_t>& variable_map);
+        const std::unordered_map<std::string, std::size_t>& variable_map)
+        : constraints_(std::move(constraints))
+    {
+      // Build constraint info and dependency indices
+      std::size_t dependency_offset = 0;
+      for (std::size_t i = 0; i < constraints_.size(); ++i)
+      {
+        const auto& constraint = constraints_[i];
 
-    /// @brief Move constructor
+        ConstraintInfo info;
+        info.index_ = i;
+
+        const auto& algebraic_species = constraint.AlgebraicSpecies();
+        auto row_it = variable_map.find(algebraic_species);
+        if (row_it == variable_map.end())
+        {
+          throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_CONSTRAINT,
+            MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+              "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
+        }
+        info.row_index_ = row_it->second;
+
+        if (!algebraic_variable_ids_.insert(info.row_index_).second)
+        {
+          throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_CONSTRAINT,
+            MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
+              "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
+        }
+
+        info.number_of_dependencies_ = constraint.NumberOfDependencies();
+        info.dependency_offset_ = dependency_offset;
+        info.jacobian_flat_offset_ = 0;  // Set later in SetJacobianFlatIds
+
+        // Map species dependencies to variable indices
+        for (const auto& species_name : constraint.SpeciesDependencies())
+        {
+          auto it = variable_map.find(species_name);
+          if (it == variable_map.end())
+          {
+            throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_CONSTRAINT,
+              MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
+          }
+          dependency_ids_.push_back(it->second);
+          info.state_indices_.push_back(it->second);  // Also store in ConstraintInfo
+        }
+
+        dependency_offset += info.number_of_dependencies_;
+        constraint_info_.push_back(info);
+      }
+    }
+
+    /// @brief Move constructor - default implementation
     ConstraintSet(ConstraintSet&& other) noexcept = default;
 
-    /// @brief Move assignment
+    /// @brief Move assignment operator
     ConstraintSet& operator=(ConstraintSet&& other) noexcept = default;
 
     /// @brief Copy constructor
@@ -83,10 +135,6 @@ namespace micm
       return constraints_.size();
     }
 
-    /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
-    /// @return Set of (row, column) index pairs
-    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const;
-
     /// @brief Returns species ids whose rows are algebraic when constraints replace state rows
     /// @return Set of variable ids for algebraic rows
     const std::set<std::size_t>& AlgebraicVariableIds() const
@@ -94,248 +142,96 @@ namespace micm
       return algebraic_variable_ids_;
     }
 
-    /// @brief Computes and stores flat indices for Jacobian elements
-    /// @param matrix The sparse Jacobian matrix
-    template<typename OrderingPolicy>
-    void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
-
     /// @brief Add constraint residuals to forcing vector (constraint rows)
     ///        For each constraint G_i, writes or adds G_i(x) to forcing[constraint_row]
     /// @param state_variables Current species concentrations (grid cell, species)
     /// @param forcing Forcing terms (grid cell, state variable) - constraint rows will be modified
-    template<typename DenseMatrixPolicy>
-    void AddForcingTerms(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const;
+    void AddForcingTerms(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+    {
+      for (const auto& forcing_fn : constraint_forcing_functions_)
+        forcing_fn(state_variables, forcing);
+    }
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
     ///        For each constraint G_i, subtracts dG_i/dx_j from jacobian[constraint_row, j]
     ///        (Subtraction matches the convention used by ProcessSet)
     /// @param state_variables Current species concentrations (grid cell, species)
     /// @param jacobian Sparse Jacobian matrix (grid cell, row, column)
-    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-    void SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian) const;
-  };
-
-  inline ConstraintSet::ConstraintSet(
-      std::vector<Constraint>&& constraints,
-      const std::unordered_map<std::string, std::size_t>& variable_map)
-      : constraints_(std::move(constraints))
-  {
-    // Build constraint info and dependency indices
-    std::size_t dependency_offset = 0;
-    for (std::size_t i = 0; i < constraints_.size(); ++i)
+    void SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian) const
     {
-      const auto& constraint = constraints_[i];
-
-      ConstraintInfo info;
-      info.constraint_index_ = i;
-
-      const auto& algebraic_species = constraint.GetAlgebraicSpecies();
-      auto row_it = variable_map.find(algebraic_species);
-      if (row_it == variable_map.end())
-      {
-        throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_CONSTRAINT,
-            MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
-            "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
-      }
-      info.constraint_row_ = row_it->second;
-
-      if (!algebraic_variable_ids_.insert(info.constraint_row_).second)
-      {
-        throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_CONSTRAINT,
-            MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
-            "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
-      }
-
-      info.number_of_dependencies_ = constraint.NumberOfDependencies();
-      info.dependency_offset_ = dependency_offset;
-      info.jacobian_flat_offset_ = 0;  // Set later in SetJacobianFlatIds
-
-      // Track maximum dependencies for buffer allocation
-      if (info.number_of_dependencies_ > max_dependencies_)
-      {
-        max_dependencies_ = info.number_of_dependencies_;
-      }
-
-      // Map species dependencies to variable indices
-      for (const auto& species_name : constraint.GetSpeciesDependencies())
-      {
-        auto it = variable_map.find(species_name);
-        if (it == variable_map.end())
-        {
-          throw MicmException(
-              MicmSeverity::Error,
-              MICM_ERROR_CATEGORY_CONSTRAINT,
-              MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
-              "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
-        }
-        dependency_ids_.push_back(it->second);
-      }
-
-      dependency_offset += info.number_of_dependencies_;
-      constraint_info_.push_back(info);
-    }
-  }
-
-  inline std::set<std::pair<std::size_t, std::size_t>> ConstraintSet::NonZeroJacobianElements() const
-  {
-    std::set<std::pair<std::size_t, std::size_t>> ids;
-
-    auto dep_id = dependency_ids_.begin();
-    for (const auto& info : constraint_info_)
-    {
-      // Ensure the diagonal element exists for the constraint row (required by AlphaMinusJacobian and LU decomposition)
-      ids.insert(std::make_pair(info.constraint_row_, info.constraint_row_));
-      // Each constraint contributes Jacobian entries at (constraint_row, dependency_column)
-      for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
-      {
-        ids.insert(std::make_pair(info.constraint_row_, dep_id[i]));
-      }
-      dep_id += info.number_of_dependencies_;
+      for (const auto& jacobian_fn : constraint_jacobian_functions_)
+        jacobian_fn(state_variables, jacobian);
     }
 
-    return ids;
-  }
-
-  template<typename OrderingPolicy>
-  inline void ConstraintSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
-  {
-    jacobian_flat_ids_.clear();
-
-    std::size_t flat_offset = 0;
-    for (auto& info : constraint_info_)
+    /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
+    /// @return Set of (row, column) index pairs
+    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const
     {
-      info.jacobian_flat_offset_ = flat_offset;
+      std::set<std::pair<std::size_t, std::size_t>> ids;
 
-      // Store flat indices for each dependency of this constraint
-      const std::size_t* dep_id = dependency_ids_.data() + info.dependency_offset_;
-      for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
-      {
-        jacobian_flat_ids_.push_back(matrix.VectorIndex(0, info.constraint_row_, dep_id[i]));
-      }
-
-      flat_offset += info.number_of_dependencies_;
-    }
-  }
-
-  template<typename DenseMatrixPolicy>
-  inline void ConstraintSet::AddForcingTerms(
-      const DenseMatrixPolicy& state_variables,
-      DenseMatrixPolicy& forcing) const
-  {
-    if constexpr (VectorizableDense<DenseMatrixPolicy>)
-    {
-      // Vectorized dense layouts are not row-contiguous, so build a contiguous row buffer.
-      std::vector<double> concentrations(state_variables.NumColumns());
-      for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
-      {
-        for (std::size_t i_var = 0; i_var < state_variables.NumColumns(); ++i_var)
-        {
-          concentrations[i_var] = state_variables[i_cell][i_var];
-        }
-
-        auto cell_forcing = forcing[i_cell];
-        for (const auto& info : constraint_info_)
-        {
-          const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
-          double residual = constraints_[info.constraint_index_].Residual(concentrations.data(), indices);
-          cell_forcing[info.constraint_row_] = residual;
-        }
-      }
-    }
-    else
-    {
-      // Loop over grid cells
-      for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
-      {
-        auto cell_state = state_variables[i_cell];
-        auto cell_forcing = forcing[i_cell];
-
-        // Get pointer to concentration data for this cell
-        const double* concentrations = &cell_state[0];
-
-        for (const auto& info : constraint_info_)
-        {
-          // Get pointer to indices for this constraint
-          const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
-
-          // Evaluate constraint residual: replaces the algebraic species row
-          double residual = constraints_[info.constraint_index_].Residual(concentrations, indices);
-          cell_forcing[info.constraint_row_] = residual;
-        }
-      }
-    }
-  }
-
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void ConstraintSet::SubtractJacobianTerms(
-      const DenseMatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
-  {
-    // Allocate reusable buffer for constraint Jacobian values
-    std::vector<double> jac_buffer(max_dependencies_);
-
-    [[maybe_unused]] std::vector<double> concentrations;
-    if constexpr (VectorizableDense<DenseMatrixPolicy>)
-    {
-      concentrations.resize(state_variables.NumColumns());
-    }
-
-    [[maybe_unused]] auto cell_jacobian = jacobian.AsVector().begin();
-
-    // Loop over grid cells
-    for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
-    {
-      const double* concentration_ptr;
-      if constexpr (VectorizableDense<DenseMatrixPolicy>)
-      {
-        // Vectorized dense layouts are not row-contiguous, so build a contiguous row buffer.
-        for (std::size_t i_var = 0; i_var < state_variables.NumColumns(); ++i_var)
-        {
-          concentrations[i_var] = state_variables[i_cell][i_var];
-        }
-        concentration_ptr = concentrations.data();
-      }
-      else
-      {
-        auto cell_state = state_variables[i_cell];
-        concentration_ptr = &cell_state[0];
-      }
-
+      auto dep_id = dependency_ids_.begin();
       for (const auto& info : constraint_info_)
       {
-        const std::size_t* indices = dependency_ids_.data() + info.dependency_offset_;
-        constraints_[info.constraint_index_].Jacobian(concentration_ptr, indices, jac_buffer.data());
-
-        // In replace mode, the Jacobian row is already zeroed (Fill(0) + ProcessSet skips algebraic rows),
-        // so -= is safe and correctly accumulates when a species appears in multiple dependency slots.
-        if constexpr (VectorizableSparse<SparseMatrixPolicy>)
+        // Ensure the diagonal element exists for the constraint row (required by AlphaMinusJacobian and LU decomposition)
+        ids.insert(std::make_pair(info.row_index_, info.row_index_));
+        // Each constraint contributes Jacobian entries at (constraint_row, dependency_column)
+        for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
         {
-          const std::size_t* dep_id = dependency_ids_.data() + info.dependency_offset_;
-          for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
-          {
-            jacobian[i_cell][info.constraint_row_][dep_id[i]] -= jac_buffer[i];
-          }
+          ids.insert(std::make_pair(info.row_index_, dep_id[i]));
         }
-        else
-        {
-          const std::size_t* flat_ids = jacobian_flat_ids_.data() + info.jacobian_flat_offset_;
-          for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
-          {
-            cell_jacobian[flat_ids[i]] -= jac_buffer[i];
-          }
-        }
+        dep_id += info.number_of_dependencies_;
       }
 
-      if constexpr (!VectorizableSparse<SparseMatrixPolicy>)
+      return ids;
+    }
+
+    /// @brief Computes and stores flat indices for Jacobian elements
+    /// @param matrix The sparse Jacobian matrix
+    template<typename OrderingPolicy>
+    void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
+    {
+      jacobian_flat_ids_.clear();
+
+      std::size_t flat_offset = 0;
+      for (auto& info : constraint_info_)
       {
-        // Advance to next grid cell's Jacobian block
-        cell_jacobian += jacobian.FlatBlockSize();
+        info.jacobian_flat_offset_ = flat_offset;
+
+        // Store flat indices for each dependency of this constraint
+        const std::size_t* dep_id = dependency_ids_.data() + info.dependency_offset_;
+        for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
+        {
+          jacobian_flat_ids_.push_back(matrix.VectorIndex(0, info.row_index_, dep_id[i]));
+        }
+
+        flat_offset += info.number_of_dependencies_;
       }
     }
-  }
+
+    /// @brief Pre-compiles constraint residual and Jacobian functions for efficient evaluation
+    ///        Creates reusable function objects from each constraint's ResidualFunction and JacobianFunction.
+    ///        Must be called after SetJacobianFlatIds and before solver execution.
+    /// @param state_variable_indices Map from species names to state variable indices
+    /// @param jacobian The sparse Jacobian matrix (used for function template instantiation)
+    void SetConstraintFunctions(
+        const auto& state_variable_indices, // acts like std::unordered_map<std::string, std::size_t>
+        SparseMatrixPolicy& jacobian)
+    {
+      constraint_forcing_functions_.clear();
+      constraint_jacobian_functions_.clear();
+      for (const auto& info : constraint_info_)
+      {
+        constraint_forcing_functions_.push_back(
+          constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices));
+
+        constraint_jacobian_functions_.push_back(
+          constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
+            info, 
+            state_variable_indices, 
+            jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
+            jacobian));
+      }
+    }
+  };
 
 }  // namespace micm

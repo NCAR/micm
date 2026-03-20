@@ -3,8 +3,8 @@
 
 namespace micm
 {
-  template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+  inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::Solve(
       double time_step,
       auto& state,
       const BackwardEulerSolverParameters& parameters) const
@@ -150,9 +150,9 @@ namespace micm
     return result;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
@@ -179,9 +179,9 @@ namespace micm
     return true;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
