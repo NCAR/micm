@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/micm_exception.hpp>
 #include <micm/constraint/constraint_info.hpp>
 #include <micm/system/stoich_species.hpp>
+#include <micm/util/micm_exception.hpp>
 
 #include <cstddef>
 #include <functional>
@@ -43,17 +43,15 @@ namespace micm
     /// @param name Constraint identifier
     /// @param terms Vector of StoichSpecies (species, coefficient) in the linear sum
     /// @param constant The value that sum(coeff[i] * [species[i]]) should equal
-    LinearConstraint(
-        const std::string& name,
-        const std::vector<StoichSpecies>& terms,
-        double constant)
+    LinearConstraint(const std::string& name, const std::vector<StoichSpecies>& terms, double constant)
         : name_(name),
           terms_(terms),
           constant_(constant)
     {
       if (terms_.empty())
       {
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
+        throw MicmException(
+            MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
       }
       for (const auto& term : terms_)
       {
@@ -76,12 +74,11 @@ namespace micm
     /// @param state_variable_indices Mapping of state variable names to indices
     /// @return Function object that takes (state_variables, forcing) and computes residual
     template<typename DenseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-    ResidualFunction(
-      const ConstraintInfo& info,
-      const auto& state_variable_indices) const
+    std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ResidualFunction(
+        const ConstraintInfo& info,
+        const auto& state_variable_indices) const
     {
-      DenseMatrixPolicy temp_state_variables{1, state_variable_indices.size(), 0.0};
+      DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
 
       // Copy data to avoid issues when ConstraintSet is moved
       std::vector<double> coeffs;
@@ -95,37 +92,33 @@ namespace micm
       std::size_t row_idx = info.row_index_;
 
       return DenseMatrixPolicy::Function(
-        [coeffs, species_indices, constant, row_idx](auto&& state, auto&& force)
-        {
-          // Create a variable for accumulating the linear sum
-          auto linear_sum = force.GetRowVariable();
-          
-          // Initialize linear_sum to 0.0 before accumulation
-          state.ForEachRow([](double& sum)
+          [coeffs, species_indices, constant, row_idx](auto&& state, auto&& force)
           {
-            sum = 0.0;
-          }, linear_sum);
+            // Create a variable for accumulating the linear sum
+            auto linear_sum = force.GetRowVariable();
 
-          for (std::size_t i = 0; i < coeffs.size(); ++i)
-          {
-            const double coeff = coeffs[i];
-            const std::size_t species_idx = species_indices[i];
-            
-            state.ForEachRow([coeff](const double& conc, double& sum)
+            // Initialize linear_sum to 0.0 before accumulation
+            state.ForEachRow([](double& sum) { sum = 0.0; }, linear_sum);
+
+            for (std::size_t i = 0; i < coeffs.size(); ++i)
             {
-              sum += coeff * conc;
-            }, state.GetConstColumnView(species_idx), linear_sum);
-          }
-          
-          // Forcing term = sum(coeff[i] * [species[i]]) - constant
-          state.ForEachRow([constant](const double& sum_val, double& forcing_term)
-          {
-            forcing_term = sum_val - constant;
-          }, linear_sum, force.GetColumnView(row_idx));
-        },
-        temp_state_variables, 
-        temp_state_variables
-      );
+              const double coeff = coeffs[i];
+              const std::size_t species_idx = species_indices[i];
+
+              state.ForEachRow(
+                  [coeff](const double& conc, double& sum) { sum += coeff * conc; },
+                  state.GetConstColumnView(species_idx),
+                  linear_sum);
+            }
+
+            // Forcing term = sum(coeff[i] * [species[i]]) - constant
+            state.ForEachRow(
+                [constant](const double& sum_val, double& forcing_term) { forcing_term = sum_val - constant; },
+                linear_sum,
+                force.GetColumnView(row_idx));
+          },
+          temp_state_variables,
+          temp_state_variables);
     }
 
     /// @brief Create a function to compute Jacobian entries dG/d[species]
@@ -137,14 +130,13 @@ namespace micm
     /// @param jacobian Sparse matrix to store Jacobian values
     /// @return Function object that takes (state_variables, jacobian) and computes partials
     template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>
-    JacobianFunction(
-      const ConstraintInfo& info,
-      const auto& state_variable_indices,
-      auto jacobian_flat_ids,
-      SparseMatrixPolicy& jacobian) const
+    std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+        const ConstraintInfo& info,
+        const auto& state_variable_indices,
+        auto jacobian_flat_ids,
+        SparseMatrixPolicy& jacobian) const
     {
-      DenseMatrixPolicy temp_state_variables{1, state_variable_indices.size(), 0.0};
+      DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
 
       // Pre-compute flat IDs and store them in a vector
       // This avoids iterator issues when the lambda is called multiple times
@@ -163,26 +155,20 @@ namespace micm
       }
 
       return SparseMatrixPolicy::Function(
-        [coeffs, flat_ids](auto&& state, auto&& jacobian_values)
-        {
-          // For linear constraints, dG/d[species[i]] = coeff[i]
-          // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
-          for (std::size_t i = 0; i < coeffs.size(); ++i)
+          [coeffs, flat_ids](auto&& state, auto&& jacobian_values)
           {
-            const double coeff = coeffs[i];
-            
-            jacobian_values.ForEachBlock(
-              [coeff](double& jac)
-              {
-                jac -= coeff;
-              },
-              jacobian_values.GetBlockView(flat_ids[i])
-            );
-          }
-        },
-        temp_state_variables,
-        jacobian
-      );
+            // For linear constraints, dG/d[species[i]] = coeff[i]
+            // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
+            for (std::size_t i = 0; i < coeffs.size(); ++i)
+            {
+              const double coeff = coeffs[i];
+
+              jacobian_values.ForEachBlock(
+                  [coeff](double& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
+            }
+          },
+          temp_state_variables,
+          jacobian);
     }
   };
 

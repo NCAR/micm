@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 namespace micm
 {
-/// @brief Information for each constraint (built during ConstraintSet construction)
+  /// @brief Information for each constraint (built during ConstraintSet construction)
   struct ConstraintInfo
   {
     std::size_t index_;                       // Index in constraints_ vector
@@ -17,4 +17,4 @@ namespace micm
     std::size_t jacobian_flat_offset_;        // Starting offset in jacobian_flat_ids_
     std::vector<std::size_t> state_indices_;  // Dependency indices in state_variables_
   };
-}
+}  // namespace micm

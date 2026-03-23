@@ -4,16 +4,16 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_info.hpp>
-#include <micm/util/micm_exception.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cstddef>
 #include <functional>
-#include <unordered_map>
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -36,7 +36,7 @@ namespace micm
 
     /// @brief Flat list of species indices for each constraint's dependencies
     std::vector<std::size_t> dependency_ids_;
-    
+
     /// @brief Flat indices into the Jacobian sparse matrix for each constraint's Jacobian entries
     std::vector<std::size_t> jacobian_flat_ids_;
 
@@ -57,9 +57,7 @@ namespace micm
     ///        Constraints replace selected species rows in the state/Jacobian (DAE formulation)
     /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
-    ConstraintSet(
-        std::vector<Constraint>&& constraints,
-        const std::unordered_map<std::string, std::size_t>& variable_map)
+    ConstraintSet(std::vector<Constraint>&& constraints, const std::unordered_map<std::string, std::size_t>& variable_map)
         : constraints_(std::move(constraints))
     {
       // Build constraint info and dependency indices
@@ -76,9 +74,9 @@ namespace micm
         if (row_it == variable_map.end())
         {
           throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_CONSTRAINT,
-            MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_CONSTRAINT,
+              MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
               "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
         }
         info.row_index_ = row_it->second;
@@ -86,9 +84,9 @@ namespace micm
         if (!algebraic_variable_ids_.insert(info.row_index_).second)
         {
           throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_CONSTRAINT,
-            MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_CONSTRAINT,
+              MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
               "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
         }
 
@@ -103,9 +101,9 @@ namespace micm
           if (it == variable_map.end())
           {
             throw MicmException(
-              MicmSeverity::Error,
-              MICM_ERROR_CATEGORY_CONSTRAINT,
-              MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                MicmSeverity::Error,
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
                 "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
           }
           dependency_ids_.push_back(it->second);
@@ -214,7 +212,7 @@ namespace micm
     /// @param state_variable_indices Map from species names to state variable indices
     /// @param jacobian The sparse Jacobian matrix (used for function template instantiation)
     void SetConstraintFunctions(
-        const auto& state_variable_indices, // acts like std::unordered_map<std::string, std::size_t>
+        const auto& state_variable_indices,  // acts like std::unordered_map<std::string, std::size_t>
         SparseMatrixPolicy& jacobian)
     {
       constraint_forcing_functions_.clear();
@@ -222,14 +220,11 @@ namespace micm
       for (const auto& info : constraint_info_)
       {
         constraint_forcing_functions_.push_back(
-          constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices));
+            constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices));
 
         constraint_jacobian_functions_.push_back(
-          constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-            info, 
-            state_variable_indices, 
-            jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
-            jacobian));
+            constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
+                info, state_variable_indices, jacobian_flat_ids_.begin() + info.jacobian_flat_offset_, jacobian));
       }
     }
   };

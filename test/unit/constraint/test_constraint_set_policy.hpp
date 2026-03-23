@@ -29,11 +29,7 @@ void testConstruction()
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
 
@@ -50,11 +46,7 @@ void testReplaceStateRowsMapsToAlgebraicSpecies()
       std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
       10.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
 
@@ -78,11 +70,7 @@ void testNonZeroJacobianElements()
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
 
@@ -113,11 +101,7 @@ void testMultipleConstraints()
       500.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 },
-    { "C", 3 },
-    { "D", 4 }
+    { "A", 0 }, { "B", 1 }, { "AB", 2 }, { "C", 3 }, { "D", 4 }
   };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
@@ -148,11 +132,7 @@ void testAddForcingTerms()
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t num_species = 3;
 
@@ -160,9 +140,7 @@ void testAddForcingTerms()
 
   // Build sparse Jacobian for SetConstraintFunctions
   auto non_zero_elements = set.NonZeroJacobianElements();
-  auto builder = SparseMatrixPolicy::Create(num_species)
-    .SetNumberOfBlocks(2)
-    .InitialValue(0.0);
+  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
   for (auto& elem : non_zero_elements)
@@ -198,11 +176,7 @@ void testSubtractJacobianTerms()
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t num_species = 3;
 
@@ -212,9 +186,7 @@ void testSubtractJacobianTerms()
   auto non_zero_elements = set.NonZeroJacobianElements();
 
   // Build a 3x3 sparse Jacobian (constraint replaces AB's row)
-  auto builder = SparseMatrixPolicy::Create(num_species)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);  // Diagonals
@@ -281,10 +253,7 @@ void testUnknownSpeciesThrows()
       std::vector<StoichSpecies>{ StoichSpecies(Species("XY"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
   EXPECT_THROW((ConstraintSetPolicy(std::move(constraints), variable_map)), micm::MicmException);
 }
@@ -304,11 +273,7 @@ void testThreeDStateOneConstraint()
       std::vector<StoichSpecies>{ StoichSpecies(Species("Y"), 1.0) },
       K_eq));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "X", 0 },
-    { "Y", 1 },
-    { "Z", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
 
@@ -317,15 +282,15 @@ void testThreeDStateOneConstraint()
   // Check non-zero Jacobian elements
   // Algebraic species = Y (index 1), constraint replaces row 1
   auto non_zero_elements = set.NonZeroJacobianElements();
-  EXPECT_EQ(non_zero_elements.size(), 2);  // (1,0) dG/dX, (1,1) dG/dY + diagonal
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));  // dG/dX at row 1, col 0
-  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 1)));  // dG/dY at row 1, col 1 + diagonal
-  EXPECT_FALSE(non_zero_elements.count(std::make_pair(1, 2))); // Z not involved
+  EXPECT_EQ(non_zero_elements.size(), 2);                       // (1,0) dG/dX, (1,1) dG/dY + diagonal
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));   // dG/dX at row 1, col 0
+  EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 1)));   // dG/dY at row 1, col 1 + diagonal
+  EXPECT_FALSE(non_zero_elements.count(std::make_pair(1, 2)));  // Z not involved
 
   // Build sparse Jacobian (3x3)
   auto builder = SparseMatrixPolicy::Create(num_species)
-    .SetNumberOfBlocks(2)  // Test with 2 grid cells
-    .InitialValue(0.0);
+                     .SetNumberOfBlocks(2)  // Test with 2 grid cells
+                     .InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
@@ -339,9 +304,9 @@ void testThreeDStateOneConstraint()
   // State with 2 grid cells
   DenseMatrixPolicy state(2, num_species);
   // Grid cell 0: Away from equilibrium
-  state[0][0] = 0.1;   // X
-  state[0][1] = 0.3;   // Y
-  state[0][2] = 0.5;   // Z (uninvolved)
+  state[0][0] = 0.1;  // X
+  state[0][1] = 0.3;  // Y
+  state[0][2] = 0.5;  // Z (uninvolved)
   // Grid cell 1: At equilibrium (Y/X = 50)
   state[1][0] = 0.02;  // X
   state[1][1] = 1.0;   // Y = 50 * 0.02 = 1.0
@@ -402,12 +367,7 @@ void testFourDStateTwoConstraints()
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
       K_eq2));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 },
-    { "D", 3 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
 
@@ -430,8 +390,8 @@ void testFourDStateTwoConstraints()
 
   // Build sparse Jacobian (4x4)
   auto builder = SparseMatrixPolicy::Create(num_species)
-    .SetNumberOfBlocks(3)  // Test with 3 grid cells
-    .InitialValue(0.0);
+                     .SetNumberOfBlocks(3)  // Test with 3 grid cells
+                     .InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
@@ -446,22 +406,22 @@ void testFourDStateTwoConstraints()
   DenseMatrixPolicy state(3, num_species);
 
   // Grid cell 0: Both constraints satisfied
-  state[0][0] = 0.1;    // A
-  state[0][1] = 1.0;    // B = 10 * 0.1
-  state[0][2] = 0.1;    // C
-  state[0][3] = 0.01;   // D, so C*D = 0.001, K_eq2*C*D = 0.1 = A
+  state[0][0] = 0.1;   // A
+  state[0][1] = 1.0;   // B = 10 * 0.1
+  state[0][2] = 0.1;   // C
+  state[0][3] = 0.01;  // D, so C*D = 0.001, K_eq2*C*D = 0.1 = A
 
   // Grid cell 1: First constraint satisfied, second not
-  state[1][0] = 0.2;    // A
-  state[1][1] = 2.0;    // B = 10 * 0.2 (constraint 1 satisfied)
-  state[1][2] = 0.1;    // C
-  state[1][3] = 0.1;    // D, C*D = 0.01, K_eq2*C*D = 1.0 != 0.2
+  state[1][0] = 0.2;  // A
+  state[1][1] = 2.0;  // B = 10 * 0.2 (constraint 1 satisfied)
+  state[1][2] = 0.1;  // C
+  state[1][3] = 0.1;  // D, C*D = 0.01, K_eq2*C*D = 1.0 != 0.2
 
   // Grid cell 2: Neither constraint satisfied
-  state[2][0] = 0.5;    // A
-  state[2][1] = 3.0;    // B != 10 * 0.5 = 5.0
-  state[2][2] = 0.2;    // C
-  state[2][3] = 0.3;    // D, C*D = 0.06, K_eq2*C*D = 6.0 != 0.5
+  state[2][0] = 0.5;  // A
+  state[2][1] = 3.0;  // B != 10 * 0.5 = 5.0
+  state[2][2] = 0.2;  // C
+  state[2][3] = 0.3;  // D, C*D = 0.06, K_eq2*C*D = 6.0 != 0.5
 
   // Test forcing terms
   DenseMatrixPolicy forcing(3, num_species, 0.0);
@@ -469,16 +429,16 @@ void testFourDStateTwoConstraints()
 
   // Constraint 1 replaces row 1, Constraint 2 replaces row 0
   // Grid cell 0: Both at equilibrium
-  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);   // G1 = 10 * 0.1 - 1.0 = 0
-  EXPECT_NEAR(forcing[0][0], 0.0, 1e-10);   // G2 = 100 * 0.1 * 0.01 - 0.1 = 0
+  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);  // G1 = 10 * 0.1 - 1.0 = 0
+  EXPECT_NEAR(forcing[0][0], 0.0, 1e-10);  // G2 = 100 * 0.1 * 0.01 - 0.1 = 0
 
   // Grid cell 1: First satisfied, second not
-  EXPECT_NEAR(forcing[1][1], 0.0, 1e-10);   // G1 = 10 * 0.2 - 2.0 = 0
-  EXPECT_NEAR(forcing[1][0], 0.8, 1e-10);   // G2 = 100 * 0.1 * 0.1 - 0.2 = 0.8
+  EXPECT_NEAR(forcing[1][1], 0.0, 1e-10);  // G1 = 10 * 0.2 - 2.0 = 0
+  EXPECT_NEAR(forcing[1][0], 0.8, 1e-10);  // G2 = 100 * 0.1 * 0.1 - 0.2 = 0.8
 
   // Grid cell 2: Neither satisfied
-  EXPECT_NEAR(forcing[2][1], 2.0, 1e-10);   // G1 = 10 * 0.5 - 3.0 = 2.0
-  EXPECT_NEAR(forcing[2][0], 5.5, 1e-10);   // G2 = 100 * 0.2 * 0.3 - 0.5 = 5.5
+  EXPECT_NEAR(forcing[2][1], 2.0, 1e-10);  // G1 = 10 * 0.5 - 3.0 = 2.0
+  EXPECT_NEAR(forcing[2][0], 5.5, 1e-10);  // G2 = 100 * 0.2 * 0.3 - 0.5 = 5.5
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, jacobian);
@@ -531,11 +491,7 @@ void testCoupledConstraintsSharedSpecies()
       std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
       K_eq2));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
 
@@ -555,9 +511,7 @@ void testCoupledConstraintsSharedSpecies()
   EXPECT_EQ(non_zero_elements.size(), 4);
 
   // Build Jacobian (3x3)
-  auto builder = SparseMatrixPolicy::Create(num_species)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
@@ -570,9 +524,9 @@ void testCoupledConstraintsSharedSpecies()
 
   // State at dual equilibrium: [B]/[A] = 5, [C]/[A] = 20
   DenseMatrixPolicy state(1, num_species);
-  state[0][0] = 0.1;   // A
-  state[0][1] = 0.5;   // B = 5 * 0.1
-  state[0][2] = 2.0;   // C = 20 * 0.1
+  state[0][0] = 0.1;  // A
+  state[0][1] = 0.5;  // B = 5 * 0.1
+  state[0][2] = 2.0;  // C = 20 * 0.1
 
   // Test forcing terms
   DenseMatrixPolicy forcing(1, num_species, 0.0);
@@ -606,19 +560,13 @@ void testVectorizedMatricesRespectGridCellIndexing()
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set(std::move(constraints), variable_map);
   auto non_zero_elements = set.NonZeroJacobianElements();
 
   // Constraint replaces AB's row (index 2), Jacobian is 3x3
-  auto builder = SparseMatrixPolicy::Create(num_species)
-    .SetNumberOfBlocks(3)
-    .InitialValue(0.0);
+  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(3).InitialValue(0.0);
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
   for (const auto& elem : non_zero_elements)

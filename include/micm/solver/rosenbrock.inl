@@ -54,7 +54,7 @@ namespace micm
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state, Y, initial_forcing);
 
-      if (has_constraints) 
+      if (has_constraints)
         constraints_.AddForcingTerms(Y, initial_forcing);
 
       result.stats_.function_calls_ += 1;
@@ -130,8 +130,7 @@ namespace micm
               {
                 for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
                 {
-                  K[stage][i_cell][i_var] +=
-                      c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
+                  K[stage][i_cell][i_var] += c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
                 }
               }
             }
@@ -340,7 +339,7 @@ namespace micm
     return std::max(std::sqrt(error / N), error_min);
   }
 
-   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   template<class DenseMatrixPolicy>
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,

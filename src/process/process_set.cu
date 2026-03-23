@@ -177,7 +177,8 @@ namespace micm
           cudaMallocAsync(&(devstruct.number_of_products_), number_of_products_bytes, cuda_stream_id), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.product_ids_), product_ids_bytes, cuda_stream_id), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.yields_), yields_bytes, cuda_stream_id), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.is_algebraic_variable_), algebraic_variable_bytes, cuda_stream_id), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.is_algebraic_variable_), algebraic_variable_bytes, cuda_stream_id), "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
@@ -208,7 +209,12 @@ namespace micm
           cudaMemcpyAsync(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice, cuda_stream_id),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.is_algebraic_variable_, hoststruct.is_algebraic_variable_, algebraic_variable_bytes, cudaMemcpyHostToDevice, cuda_stream_id),
+          cudaMemcpyAsync(
+              devstruct.is_algebraic_variable_,
+              hoststruct.is_algebraic_variable_,
+              algebraic_variable_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
           "cudaMemcpy");
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;

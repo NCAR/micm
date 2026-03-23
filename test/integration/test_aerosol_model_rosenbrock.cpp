@@ -387,4 +387,3 @@ TEST(AerosolModelIntegration, CanSolveMultiGridCellWithTwoStubAerosolModels)
   test_solve_with_two_stub_aerosol_models_multi_cell(rosenbrock_vector_mozart_csc_3);
   test_solve_with_two_stub_aerosol_models_multi_cell(rosenbrock_vector_mozart_csc_4);
 }
-

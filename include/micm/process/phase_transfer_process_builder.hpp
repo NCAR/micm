@@ -77,7 +77,10 @@ namespace micm
     Process Build()
     {
       if (!coefficient_)
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_PROCESS,
+            MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
             "Phase Transfer Coefficient pointer cannot be null");
 
       PhaseTransferProcess process(

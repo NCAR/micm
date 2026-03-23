@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <micm/constraint/constraint_set.hpp>
 #include <micm/cuda/process/cuda_process_set.cuh>
 #include <micm/cuda/process/cuda_process_set.hpp>
 #include <micm/cuda/solver/cuda_linear_solver_in_place.cuh>
@@ -20,7 +21,6 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
-#include <micm/constraint/constraint_set.hpp>
 #include <micm/solver/solver_builder.hpp>
 
 namespace micm
@@ -30,8 +30,10 @@ namespace micm
 
   using GpuState = CudaState<CudaDenseMatrixVector, CudaSparseMatrixVector, CudaLuDecompositionMozartInPlace>;
 
-  using CudaRosenbrockVectorType = typename CudaRosenbrockSolverParameters::
-      template SolverType<CudaProcessSet<CudaDenseMatrixVector, CudaSparseMatrixVector>, CudaLinearSolverInPlace<CudaSparseMatrixVector>, ConstraintSet<CudaDenseMatrixVector, CudaSparseMatrixVector>>;
+  using CudaRosenbrockVectorType = typename CudaRosenbrockSolverParameters::template SolverType<
+      CudaProcessSet<CudaDenseMatrixVector, CudaSparseMatrixVector>,
+      CudaLinearSolverInPlace<CudaSparseMatrixVector>,
+      ConstraintSet<CudaDenseMatrixVector, CudaSparseMatrixVector>>;
   using CudaRosenbrock = Solver<CudaRosenbrockVectorType, GpuState>;
 
   using GpuRosenbrockThreeStageBuilder = CudaSolverBuilderInPlace<CudaRosenbrockSolverParameters>;

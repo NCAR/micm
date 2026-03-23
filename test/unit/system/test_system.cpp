@@ -46,7 +46,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
   System system = { SystemParameters{ .gas_phase_ = gas_phase } };
 
   EXPECT_EQ(system.gas_phase_.phase_species_.size(), 3);
-  EXPECT_EQ(system.StateSize(), 3 - 1); // One parameterized species
+  EXPECT_EQ(system.StateSize(), 3 - 1);  // One parameterized species
 
   auto names = system.UniqueNames();
   std::vector<std::string> expected = { "foo", "bar" };

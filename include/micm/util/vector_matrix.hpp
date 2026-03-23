@@ -42,7 +42,7 @@ namespace micm
       friend class VectorMatrix;
       const VectorMatrix* matrix_;
       std::size_t column_index_;
-      
+
       explicit ConstColumnView(const VectorMatrix* matrix, std::size_t column_index)
           : matrix_(matrix),
             column_index_(column_index)
@@ -51,8 +51,14 @@ namespace micm
 
      public:
       using category = DenseMatrixColumnViewTag;
-      std::size_t ColumnIndex() const { return column_index_; }
-      const VectorMatrix* GetMatrix() const { return matrix_; }
+      std::size_t ColumnIndex() const
+      {
+        return column_index_;
+      }
+      const VectorMatrix* GetMatrix() const
+      {
+        return matrix_;
+      }
     };
 
     /// @brief A lightweight descriptor for a mutable column in a matrix
@@ -61,7 +67,7 @@ namespace micm
       friend class VectorMatrix;
       VectorMatrix* matrix_;
       std::size_t column_index_;
-      
+
       explicit ColumnView(VectorMatrix* matrix, std::size_t column_index)
           : matrix_(matrix),
             column_index_(column_index)
@@ -70,8 +76,14 @@ namespace micm
 
      public:
       using category = DenseMatrixColumnViewTag;
-      std::size_t ColumnIndex() const { return column_index_; }
-      VectorMatrix* GetMatrix() { return matrix_; }
+      std::size_t ColumnIndex() const
+      {
+        return column_index_;
+      }
+      VectorMatrix* GetMatrix()
+      {
+        return matrix_;
+      }
     };
 
     /// @brief A row-local temporary variable with its own storage
@@ -79,37 +91,43 @@ namespace micm
     {
       friend class VectorMatrix;
       alignas(32) std::array<T, L> storage_;  // Stack-allocated SIMD-aligned array
-      
+
      public:
       using category = BlockVariableTag;
       RowVariable() = default;
-      std::array<T, L>& Get() { return storage_; }
-      const std::array<T, L>& Get() const { return storage_; }
+      std::array<T, L>& Get()
+      {
+        return storage_;
+      }
+      const std::array<T, L>& Get() const
+      {
+        return storage_;
+      }
     };
 
    private:
    protected:
     std::vector<T> data_;  // Memory alignment depends on std::vector's allocator
-    std::size_t x_dim_;  // number of rows
-    std::size_t y_dim_;  // number of columns
+    std::size_t x_dim_;    // number of rows
+    std::size_t y_dim_;    // number of columns
 
    private:
     friend class Proxy;
     friend class ConstProxy;
-    
+
     // Allow SparseMatrix::GroupView to access data_ for cross-matrix operations
     template<typename U, typename OrderingPolicy>
     friend class SparseMatrix;
 
     class Proxy
     {
-      VectorMatrix &matrix_;
+      VectorMatrix& matrix_;
       std::size_t group_index_;
       std::size_t row_index_;
       std::size_t y_dim_;
 
      public:
-      Proxy(VectorMatrix &matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
+      Proxy(VectorMatrix& matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
           : matrix_(matrix),
             group_index_(group_index),
             row_index_(row_index),
@@ -117,19 +135,20 @@ namespace micm
       {
       }
 
-      Proxy &operator=(const std::vector<T> &other)
+      Proxy& operator=(const std::vector<T>& other)
       {
         if (other.size() < y_dim_)
         {
           std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
                             " elements, but expected " + std::to_string(y_dim_);
-          throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
+          throw MicmException(
+              MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
             other.begin(),
             std::next(other.begin(), y_dim_),
-            [&](T const &elem)
+            [&](T const& elem)
             {
               *iter = elem;
               // don't iterate past the end of the vector
@@ -143,7 +162,7 @@ namespace micm
       {
         std::vector<T> vec(y_dim_);
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
-        for (auto &elem : vec)
+        for (auto& elem : vec)
         {
           elem = *iter;
           // don't iterate past the end of the vector
@@ -158,7 +177,7 @@ namespace micm
         return y_dim_;
       }
 
-      T &operator[](std::size_t y)
+      T& operator[](std::size_t y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
       }
@@ -166,13 +185,13 @@ namespace micm
 
     class ConstProxy
     {
-      const VectorMatrix &matrix_;
+      const VectorMatrix& matrix_;
       std::size_t group_index_;
       std::size_t row_index_;
       std::size_t y_dim_;
 
      public:
-      ConstProxy(const VectorMatrix &matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
+      ConstProxy(const VectorMatrix& matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
           : matrix_(matrix),
             group_index_(group_index),
             row_index_(row_index),
@@ -184,7 +203,7 @@ namespace micm
       {
         std::vector<T> vec(y_dim_);
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
-        for (auto &elem : vec)
+        for (auto& elem : vec)
         {
           elem = *iter;
           iter += L;
@@ -197,7 +216,7 @@ namespace micm
         return y_dim_;
       }
 
-      const T &operator[](std::size_t y) const
+      const T& operator[](std::size_t y) const
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
       }
@@ -225,7 +244,7 @@ namespace micm
     {
     }
 
-    VectorMatrix(const std::vector<std::vector<T>> &other)
+    VectorMatrix(const std::vector<std::vector<T>>& other)
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(
@@ -237,16 +256,17 @@ namespace micm
                 std::size_t y_dim = other[0].size();
                 std::vector<T> data(std::ceil(x_dim / (double)L) * L * y_dim);
                 std::size_t i_row = 0;
-                for (auto &other_row : other)
+                for (auto& other_row : other)
                 {
                   if (other_row.size() != y_dim)
                   {
                     std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
+                    throw MicmException(
+                        MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
-                  for (auto &elem : other_row)
+                  for (auto& elem : other_row)
                   {
                     *iter = elem;
                     // don't iterate past the end of the vector
@@ -332,9 +352,9 @@ namespace micm
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
-    VectorMatrix &operator=(T val)
+    VectorMatrix& operator=(T val)
     {
-      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _) { return val; });
       return *this;
     }
 
@@ -342,7 +362,7 @@ namespace micm
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
     /// @param x The input VectorMatrix
-    void Axpy(const double &alpha, const VectorMatrix &x)
+    void Axpy(const double& alpha, const VectorMatrix& x)
     {
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
@@ -363,21 +383,21 @@ namespace micm
 
     /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant
     /// @param x The scalar constant to compare against
-    void Max(const T &x)
+    void Max(const T& x)
     {
-      for (auto &y : data_)
+      for (auto& y : data_)
         y = std::max(y, x);
     }
 
     /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
     /// @param x The scalar constant to compare against
-    void Min(const T &x)
+    void Min(const T& x)
     {
-      for (auto &y : data_)
+      for (auto& y : data_)
         y = std::min(y, x);
     }
 
-    void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
+    void ForEach(const std::function<void(T&, const T&)> f, const VectorMatrix& a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -396,7 +416,7 @@ namespace micm
       }
     }
 
-    void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
+    void ForEach(const std::function<void(T&, const T&, const T&)> f, const VectorMatrix& a, const VectorMatrix& b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -420,14 +440,14 @@ namespace micm
     }
 
     // Copy the values from the other VectorMatrix into this one
-    void Copy(const VectorMatrix &other)
+    void Copy(const VectorMatrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
         throw std::runtime_error("Both vector matrices must have the same size.");
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
-    void Swap(VectorMatrix &other)
+    void Swap(VectorMatrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
         throw std::runtime_error("Both vector matrices must have the same size.");
@@ -435,7 +455,7 @@ namespace micm
     }
 
     // Print the VectorMatrix to the output stream
-    friend std::ostream &operator<<(std::ostream &os, const VectorMatrix &matrix)
+    friend std::ostream& operator<<(std::ostream& os, const VectorMatrix& matrix)
     {
       for (std::size_t i = 0; i < matrix.x_dim_; ++i)
       {
@@ -465,9 +485,12 @@ namespace micm
     {
       if (column_index >= y_dim_)
       {
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " +
-                std::to_string(y_dim_) + " columns");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
+                " columns");
       }
       return ConstColumnView(this, column_index);
     }
@@ -479,9 +502,12 @@ namespace micm
     {
       if (column_index >= y_dim_)
       {
-        throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " +
-                std::to_string(y_dim_) + " columns");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
+                " columns");
       }
       return ColumnView(this, column_index);
     }
@@ -520,7 +546,7 @@ namespace micm
           func(GetRowElement(row, group, row_in_group, args)...);
         }
       }
-      
+
       // Process remaining rows (if x_dim_ is not a multiple of L)
       std::size_t remaining = x_dim_ % L;
       if (remaining > 0)
@@ -552,7 +578,7 @@ namespace micm
           func(GetRowElement(row, group, row_in_group, args)...);
         }
       }
-      
+
       // Process remaining rows (if x_dim_ is not a multiple of L)
       std::size_t remaining = x_dim_ % L;
       if (remaining > 0)
@@ -603,7 +629,8 @@ namespace micm
      public:
       /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
       ConstGroupView(const VectorMatrix& matrix, std::size_t group)
-          : matrix_(matrix), group_(group)
+          : matrix_(matrix),
+            group_(group)
       {
         // Calculate how many rows are in this group (typically L, except possibly the last group)
         // Optimized: avoid calling NumberOfGroups() which does division+ceil
@@ -613,7 +640,9 @@ namespace micm
 
       /// @brief Constructor with explicit num_rows_in_group
       ConstGroupView(const VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
-          : matrix_(matrix), group_(group), num_rows_in_group_(num_rows_in_group)
+          : matrix_(matrix),
+            group_(group),
+            num_rows_in_group_(num_rows_in_group)
       {
       }
 
@@ -638,8 +667,14 @@ namespace micm
         }
       }
 
-      std::size_t NumRows() const { return matrix_.NumRows(); }
-      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+      std::size_t NumRows() const
+      {
+        return matrix_.NumRows();
+      }
+      std::size_t NumColumns() const
+      {
+        return matrix_.NumColumns();
+      }
     };
 
     /// @brief GroupView provides a view of a single group of L rows for iteration
@@ -679,7 +714,8 @@ namespace micm
      public:
       /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
       GroupView(VectorMatrix& matrix, std::size_t group)
-          : matrix_(matrix), group_(group)
+          : matrix_(matrix),
+            group_(group)
       {
         // Calculate how many rows are in this group (typically L, except possibly the last group)
         // Optimized: avoid calling NumberOfGroups() which does division+ceil
@@ -689,7 +725,9 @@ namespace micm
 
       /// @brief Constructor with explicit num_rows_in_group
       GroupView(VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
-          : matrix_(matrix), group_(group), num_rows_in_group_(num_rows_in_group)
+          : matrix_(matrix),
+            group_(group),
+            num_rows_in_group_(num_rows_in_group)
       {
       }
 
@@ -719,30 +757,36 @@ namespace micm
         }
       }
 
-      std::size_t NumRows() const { return matrix_.NumRows(); }
-      std::size_t NumColumns() const { return matrix_.NumColumns(); }
+      std::size_t NumRows() const
+      {
+        return matrix_.NumRows();
+      }
+      std::size_t NumColumns() const
+      {
+        return matrix_.NumColumns();
+      }
     };
 
     /// @brief Create a function that can be applied to vector matrices and vectors
-    /// 
+    ///
     /// Creates a reusable callable that validates matrix dimensions and applies a user function
     /// across row groups. The function iterates over groups of L rows at a time for vectorization,
     /// where L is the compile-time template parameter.
-    /// 
+    ///
     /// @tparam Func The lambda/function type
     /// @tparam Args The matrix and vector types
     /// @param func The function to wrap - receives GroupView objects for matrices and vectors
     /// @param args The matrices and vectors to validate and capture dimensions from
     /// @return A callable that validates dimensions and applies the function
-    /// 
+    ///
     /// @note Validation occurs in two phases:
     ///   1. At function creation: Validates row counts match across all matrices and vector sizes
     ///   2. At invocation: Re-validates dimensions in case matrices/vectors were resized
-    /// 
+    ///
     /// @note Column view creation happens inside user lambda and is validated
     ///       at invocation time, not at function creation time. Ensure all column indices
     ///       are within matrix bounds to avoid runtime errors.
-    /// 
+    ///
     /// @throws std::system_error if column counts don't match at creation, or if at invocation time:
     ///         matrices/vectors have mismatched row counts, column counts don't match creation,
     ///         or dimensions mismatch
@@ -751,132 +795,160 @@ namespace micm
     {
       // Capture column counts for matrices at creation time using helper
       // Row counts can differ between args at creation, but must match at invocation
-      auto populate_cols = [](auto&... args_inner) {
+      auto populate_cols = [](auto&... args_inner)
+      {
         std::vector<std::size_t> cols(sizeof...(args_inner));
         std::size_t idx = 0;
-        ([&](auto& arg) {
-          using ArgType = std::remove_cvref_t<decltype(arg)>;
-          if constexpr (VectorLike<ArgType>) {
-            cols[idx] = 0;  // Not used for vectors
-          }
-          else {
-            cols[idx] = arg.NumColumns();
-          }
-          ++idx;
-        }(args_inner), ...);
+        (
+            [&](auto& arg)
+            {
+              using ArgType = std::remove_cvref_t<decltype(arg)>;
+              if constexpr (VectorLike<ArgType>)
+              {
+                cols[idx] = 0;  // Not used for vectors
+              }
+              else
+              {
+                cols[idx] = arg.NumColumns();
+              }
+              ++idx;
+            }(args_inner),
+            ...);
         return cols;
       };
-      
+
       std::vector<std::size_t> num_cols = populate_cols(args...);
 
       // Store in variable to ensure fold expression completes before lambda construction
-      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable {
+      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable
+      {
         // Validate dimensions and determine row count in a single pass
         std::size_t num_rows = 0;
         bool found_first = false;
         std::size_t idx = 0;
-        
-        ([&](auto& arg) {
-          using ArgType = std::remove_cvref_t<decltype(arg)>;
-          
-          if constexpr (VectorLike<ArgType>) {
-            // Vector - validate size matches row count
-            if (!found_first)
+
+        (
+            [&](auto& arg)
             {
-              num_rows = arg.size();
-              found_first = true;
-            }
-            else if (arg.size() != num_rows)
-            {
-              throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
-                  "Vector size must match matrix row count. Expected " + std::to_string(num_rows) +
-                      " elements but got " + std::to_string(arg.size()));
-            }
-          }
-          else if constexpr (requires { arg.NumRows(); arg.NumColumns(); }) {
-            // Matrix - validate dimensions
-            if (!found_first)
-            {
-              num_rows = arg.NumRows();
-              found_first = true;
-            }
-            else
-            {
-              if (arg.NumRows() != num_rows)
+              using ArgType = std::remove_cvref_t<decltype(arg)>;
+
+              if constexpr (VectorLike<ArgType>)
               {
-                throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
-                    "All matrices must have the same number of rows when invoking function. Expected " +
-                        std::to_string(num_rows) + " rows but got " + std::to_string(arg.NumRows()));
+                // Vector - validate size matches row count
+                if (!found_first)
+                {
+                  num_rows = arg.size();
+                  found_first = true;
+                }
+                else if (arg.size() != num_rows)
+                {
+                  throw MicmException(
+                      MicmSeverity::Error,
+                      MICM_ERROR_CATEGORY_MATRIX,
+                      MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                      "Vector size must match matrix row count. Expected " + std::to_string(num_rows) +
+                          " elements but got " + std::to_string(arg.size()));
+                }
               }
-            }
-            
-            // Always validate column count against captured value
-            if (arg.NumColumns() != num_cols[idx])
-            {
-              throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
-                  "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) +
-                      " columns but got " + std::to_string(arg.NumColumns()));
-            }
-          }
-          ++idx;
-        }(invoked_args), ...);
-        
+              else if constexpr (requires {
+                                   arg.NumRows();
+                                   arg.NumColumns();
+                                 })
+              {
+                // Matrix - validate dimensions
+                if (!found_first)
+                {
+                  num_rows = arg.NumRows();
+                  found_first = true;
+                }
+                else
+                {
+                  if (arg.NumRows() != num_rows)
+                  {
+                    throw MicmException(
+                        MicmSeverity::Error,
+                        MICM_ERROR_CATEGORY_MATRIX,
+                        MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                        "All matrices must have the same number of rows when invoking function. Expected " +
+                            std::to_string(num_rows) + " rows but got " + std::to_string(arg.NumRows()));
+                  }
+                }
+
+                // Always validate column count against captured value
+                if (arg.NumColumns() != num_cols[idx])
+                {
+                  throw MicmException(
+                      MicmSeverity::Error,
+                      MICM_ERROR_CATEGORY_MATRIX,
+                      MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                      "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + " columns but got " +
+                          std::to_string(arg.NumColumns()));
+                }
+              }
+              ++idx;
+            }(invoked_args),
+            ...);
+
         // Iterate over groups, processing L rows at a time
         std::size_t num_complete_groups = std::floor(num_rows / (double)L);
         for (std::size_t group = 0; group < num_complete_groups; ++group)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
           // For vectors, just pass them through
-          func([&](auto&& arg) -> decltype(auto) {
-            using ArgType = std::remove_reference_t<decltype(arg)>;
-            using ArgTypeNoConst = std::remove_const_t<ArgType>;
-            if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
-            {
-              // Vector: just forward it
-              return std::forward<decltype(arg)>(arg);
-            }
-            else
-            {
-              // Matrix: create appropriate GroupView
-              if constexpr (std::is_const_v<ArgType>)
+          func(
+              [&](auto&& arg) -> decltype(auto)
               {
-                return typename ArgTypeNoConst::ConstGroupView(arg, group, L);
-              }
-              else
-              {
-                return typename ArgTypeNoConst::GroupView(arg, group, L);
-              }
-            }
-          }(invoked_args)...);
+                using ArgType = std::remove_reference_t<decltype(arg)>;
+                using ArgTypeNoConst = std::remove_const_t<ArgType>;
+                if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+                {
+                  // Vector: just forward it
+                  return std::forward<decltype(arg)>(arg);
+                }
+                else
+                {
+                  // Matrix: create appropriate GroupView
+                  if constexpr (std::is_const_v<ArgType>)
+                  {
+                    return typename ArgTypeNoConst::ConstGroupView(arg, group, L);
+                  }
+                  else
+                  {
+                    return typename ArgTypeNoConst::GroupView(arg, group, L);
+                  }
+                }
+              }(invoked_args)...);
         }
-        
+
         // Process remaining rows (if num_rows is not a multiple of L)
         std::size_t remaining = num_rows % L;
         if (remaining > 0)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
           // For vectors, just pass them through
-          func([&](auto&& arg) -> decltype(auto) {
-            using ArgType = std::remove_reference_t<decltype(arg)>;
-            using ArgTypeNoConst = std::remove_const_t<ArgType>;
-            if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
-            {
-              // Vector: just forward it
-              return std::forward<decltype(arg)>(arg);
-            }
-            else
-            {
-              // Matrix: create appropriate GroupView
-              if constexpr (std::is_const_v<ArgType>)
+          func(
+              [&](auto&& arg) -> decltype(auto)
               {
-                return typename ArgTypeNoConst::ConstGroupView(arg, num_complete_groups, remaining);
-              }
-              else
-              {
-                return typename ArgTypeNoConst::GroupView(arg, num_complete_groups, remaining);
-              }
-            }
-          }(invoked_args)...);
+                using ArgType = std::remove_reference_t<decltype(arg)>;
+                using ArgTypeNoConst = std::remove_const_t<ArgType>;
+                if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+                {
+                  // Vector: just forward it
+                  return std::forward<decltype(arg)>(arg);
+                }
+                else
+                {
+                  // Matrix: create appropriate GroupView
+                  if constexpr (std::is_const_v<ArgType>)
+                  {
+                    return typename ArgTypeNoConst::ConstGroupView(arg, num_complete_groups, remaining);
+                  }
+                  else
+                  {
+                    return typename ArgTypeNoConst::GroupView(arg, num_complete_groups, remaining);
+                  }
+                }
+              }(invoked_args)...);
         }
       };
       return result;
