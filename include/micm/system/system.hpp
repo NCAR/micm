@@ -8,10 +8,10 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <set>
 
 namespace micm
 {
@@ -38,8 +38,7 @@ namespace micm
     System() = default;
 
     /// @brief Parameterized constructor
-    System(
-        const Phase& gas_phase)
+    System(const Phase& gas_phase)
         : gas_phase_(gas_phase),
           external_models_()
     {
@@ -47,15 +46,14 @@ namespace micm
 
     /// @brief Constructor with external models
     template<typename... ExternalModels>
-    System(
-        const Phase& gas_phase,
-        ExternalModels&&... external_models)
+    System(const Phase& gas_phase, ExternalModels&&... external_models)
         : gas_phase_(gas_phase),
           external_models_{ ExternalModelSystem{ std::forward<ExternalModels>(external_models) }... }
     {
       if (StateSize() != UniqueNames().size())
       {
-        throw std::invalid_argument("Mismatch between system state size and number of unique names. Likely duplicate species names.");
+        throw std::invalid_argument(
+            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
       }
     }
 
@@ -72,7 +70,8 @@ namespace micm
     {
       if (StateSize() != UniqueNames().size())
       {
-        throw std::invalid_argument("Mismatch between system state size and number of unique names. Likely duplicate species names.");
+        throw std::invalid_argument(
+            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
       }
     }
 

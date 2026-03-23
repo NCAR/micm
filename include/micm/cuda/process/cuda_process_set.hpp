@@ -69,13 +69,11 @@ namespace micm
     /// @param variable_ids Set of variable ids whose forcing/Jacobian rows should not receive kinetic contributions
     void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids);
 
-    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing)
-    const requires(VectorizableDense<DenseMatrixPolicy>);
+    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+      requires(VectorizableDense<DenseMatrixPolicy>);
 
-    void SubtractJacobianTerms(
-      const auto& state,
-      const DenseMatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
+    void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
+        const
       requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
   };
 
@@ -185,7 +183,8 @@ namespace micm
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
-  inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids)
+  inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(
+      const std::set<std::size_t>& variable_ids)
   {
     // Update the host-side is_algebraic_variable_ array
     ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(variable_ids);
@@ -194,7 +193,7 @@ namespace micm
     ProcessSetParam hoststruct;
     hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
     hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
-  
+
     // Copy the data from host struct to device struct
     micm::cuda::CopyAlgebraicVariableParams(hoststruct, this->devstruct_);
   }
@@ -202,9 +201,9 @@ namespace micm
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
-    const auto& state,
-    const DenseMatrixPolicy& state_variables,
-    DenseMatrixPolicy& forcing) const
+      const auto& state,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
     requires(VectorizableDense<DenseMatrixPolicy>)
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue

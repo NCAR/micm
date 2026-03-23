@@ -23,44 +23,41 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   micm::Phase gas_phase{ "gas", { Cl2, Cl, A, B, C } };
 
   micm::Process terminator_r1 = micm::ChemicalReactionBuilder()
-    .SetReactants({ Cl2 })
-    .SetProducts({ micm::StoichSpecies(Cl, 2.0) })
-    .SetPhase(gas_phase)
-    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "terminator_k1" }))
-    .Build();
+                                    .SetReactants({ Cl2 })
+                                    .SetProducts({ micm::StoichSpecies(Cl, 2.0) })
+                                    .SetPhase(gas_phase)
+                                    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "terminator_k1" }))
+                                    .Build();
 
   micm::Process terminator_r2 = micm::ChemicalReactionBuilder()
-    .SetReactants({ Cl, Cl })
-    .SetProducts({ micm::StoichSpecies(Cl2, 1.0) })
-    .SetPhase(gas_phase)
-    .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0 }))
-    .Build();
+                                    .SetReactants({ Cl, Cl })
+                                    .SetProducts({ micm::StoichSpecies(Cl2, 1.0) })
+                                    .SetPhase(gas_phase)
+                                    .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0 }))
+                                    .Build();
 
   micm::Process robertson_r1 = micm::ChemicalReactionBuilder()
-    .SetReactants({ A })
-    .SetProducts({ micm::StoichSpecies(B, 1) })
-    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r1" }))
-    .SetPhase(gas_phase)
-    .Build();
+                                   .SetReactants({ A })
+                                   .SetProducts({ micm::StoichSpecies(B, 1) })
+                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r1" }))
+                                   .SetPhase(gas_phase)
+                                   .Build();
 
   micm::Process robertson_r2 = micm::ChemicalReactionBuilder()
-    .SetReactants({ B, B })
-    .SetProducts({ micm::StoichSpecies(B, 1), micm::StoichSpecies(C, 1) })
-    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r2" }))
-    .SetPhase(gas_phase)
-    .Build();
+                                   .SetReactants({ B, B })
+                                   .SetProducts({ micm::StoichSpecies(B, 1), micm::StoichSpecies(C, 1) })
+                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r2" }))
+                                   .SetPhase(gas_phase)
+                                   .Build();
 
   micm::Process robertson_r3 = micm::ChemicalReactionBuilder()
-    .SetReactants({ B, C })
-    .SetProducts({ micm::StoichSpecies(A, 1), micm::StoichSpecies(C, 1) })
-    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r3" }))
-    .SetPhase(gas_phase)
-    .Build();
+                                   .SetReactants({ B, C })
+                                   .SetProducts({ micm::StoichSpecies(A, 1), micm::StoichSpecies(C, 1) })
+                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r3" }))
+                                   .SetPhase(gas_phase)
+                                   .Build();
 
-  std::vector<micm::Process> processes{
-    terminator_r1, terminator_r2,
-    robertson_r1, robertson_r2, robertson_r3
-  };
+  std::vector<micm::Process> processes{ terminator_r1, terminator_r2, robertson_r1, robertson_r2, robertson_r3 };
 
   // ---------------------------------------------------------------------------
   // Constraint: A + B + C = 1
@@ -70,33 +67,20 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   std::vector<micm::Constraint> constraints;
   constraints.push_back(
-    micm::LinearConstraint(
-      "mass_conservation",
-      {
-        { A, 1.0 },
-        { B, 1.0 },
-        { C, 1.0 }
-      },
-      sum_initial_conc
-    )
-  );
+      micm::LinearConstraint("mass_conservation", { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
 
   // ---------------------------------------------------------------------------
   // Solver
   // ---------------------------------------------------------------------------
 
-  auto options =
-    micm::RosenbrockSolverParameters::
-      FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
-  auto solver =
-    micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-      .SetSystem(micm::System(
-        micm::SystemParameters{ .gas_phase_ = gas_phase }))
-      .SetReactions(processes)
-      .SetConstraints(std::move(constraints))
-      .SetReorderState(false)
-      .Build();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions(processes)
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-8);
@@ -133,9 +117,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
     }
 
     // 1. Mass conservation enforced by DAE constraint
-    EXPECT_NEAR(state[A] + state[B] + state[C],
-                sum_initial_conc,
-                1e-10);
+    EXPECT_NEAR(state[A] + state[B] + state[C], sum_initial_conc, 1e-10);
 
     time_step *= 10.0;
   }

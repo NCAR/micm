@@ -88,7 +88,8 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::AddExternalModelProcesses(ExternalModel&& model)
   {
-    external_models_.emplace_back( ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) } );
+    external_models_.emplace_back(
+        ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) });
     return *this;
   }
 
@@ -317,11 +318,13 @@ namespace micm
     }
     if (params.size() != size)
     {
-      throw std::invalid_argument("Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate parameter labels.");
+      throw std::invalid_argument(
+          "Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate "
+          "parameter labels.");
     }
     return params;
   }
-  
+
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy,
@@ -371,22 +374,31 @@ namespace micm
   {
     if (!valid_system_)
     {
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM,
+          "Missing chemical system.");
     }
 
     std::size_t number_of_species = this->system_.StateSize();
     if (number_of_species == 0)
     {
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES, "Provided chemical system contains no species.");
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES,
+          "Provided chemical system contains no species.");
     }
 
     using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
-    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
+    using SolverPolicy =
+        typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
     auto species_map = this->GetSpeciesMap();
     auto params_map = this->GetCustomParameterMap();
 
     RatesPolicy rates(reactions_, species_map, external_models_);
-    
+
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
@@ -406,7 +418,7 @@ namespace micm
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
 
       // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
-      for (auto it = nonzero_elements.begin(); it != nonzero_elements.end(); )
+      for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
       {
         if (algebraic_variable_ids.count(it->first) > 0)
           it = nonzero_elements.erase(it);

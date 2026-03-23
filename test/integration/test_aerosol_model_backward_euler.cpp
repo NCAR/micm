@@ -392,4 +392,3 @@ TEST(AerosolModelIntegration, CanSolveMultiGridCellWithTwoStubAerosolModels)
   test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_in_place_3, 1e-1);
   test_solve_with_two_stub_aerosol_models_multi_cell(backward_euler_vector_mozart_in_place_4, 1e-1);
 }
-

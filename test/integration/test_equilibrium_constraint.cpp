@@ -13,8 +13,6 @@
 #include <utility>
 #include <vector>
 
-
-
 /// @brief Test SetConstraints API integration - verifies solver builds and runs with constraints
 ///
 /// This test verifies that the SolverBuilder correctly accepts constraints via SetConstraints
@@ -42,10 +40,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   double K_eq = 10.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   // Build solver with constraints - this verifies the API works
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
@@ -59,7 +54,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   auto state = solver.GetState(1);
 
   // Verify constraint metadata
-  ASSERT_EQ(state.state_size_, 3);       // A, B, and C
+  ASSERT_EQ(state.state_size_, 3);  // A, B, and C
   ASSERT_EQ(state.constraint_size_, 1);
   ASSERT_TRUE(state.variable_map_.count("A") > 0);
   ASSERT_TRUE(state.variable_map_.count("B") > 0);
@@ -123,15 +118,9 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq1));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq1));
   constraints.push_back(micm::EquilibriumConstraint(
-      "E_F_eq",
-      std::vector<micm::StoichSpecies>{ { E, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { F, 1.0 } },
-      K_eq2));
+      "E_F_eq", std::vector<micm::StoichSpecies>{ { E, 1.0 } }, std::vector<micm::StoichSpecies>{ { F, 1.0 } }, K_eq2));
 
   // Build solver with multiple constraints
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -201,10 +190,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -246,8 +232,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     // Verify constraint is maintained by the solver
     double constraint_residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
     EXPECT_NEAR(constraint_residual, 0.0, 1.0e-6)
-        << "Constraint not satisfied at step " << steps 
-        << ": K_eq*B - C = " << constraint_residual;
+        << "Constraint not satisfied at step " << steps << ": K_eq*B - C = " << constraint_residual;
 
     time += dt;
     steps++;
@@ -287,10 +272,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -325,8 +307,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   {
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
-    ASSERT_EQ(result.state_, micm::SolverState::Converged)
-        << "Reordered DAE solve did not converge at time=" << time;
+    ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
 
     // Constraint should hold at each step
     double residual = K_eq * state.variables_[0][B_idx] - state.variables_[0][C_idx];
@@ -359,10 +340,7 @@ TEST(EquilibriumIntegration, DAESolveWithFourStageDAEParameters)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -423,10 +401,7 @@ TEST(EquilibriumIntegration, DAESolveWithSixStageDAEParameters)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -490,15 +465,9 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   double K_eq2 = 5.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq1));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq1));
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_D_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { D, 1.0 } },
-      K_eq2));
+      "B_D_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { D, 1.0 } }, K_eq2));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -567,10 +536,7 @@ TEST(EquilibriumIntegration, DAEConservationLaw)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -638,10 +604,7 @@ TEST(EquilibriumIntegration, DAESolveStiffCoupling)
   double K_eq = 1000.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -713,10 +676,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   double K_eq = 10.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "A2_B_eq",
-      std::vector<micm::StoichSpecies>{ { A, 2.0 } },
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      K_eq));
+      "A2_B_eq", std::vector<micm::StoichSpecies>{ { A, 2.0 } }, std::vector<micm::StoichSpecies>{ { B, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -781,10 +741,7 @@ TEST(EquilibriumIntegration, DAESolveMultiGridCell)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -844,8 +801,7 @@ TEST(EquilibriumIntegration, DAESolveMultiGridCell)
     for (std::size_t cell = 0; cell < num_cells; ++cell)
     {
       double residual = K_eq * state.variables_[cell][B_idx] - state.variables_[cell][C_idx];
-      EXPECT_NEAR(residual, 0.0, 1.0e-6)
-          << "Constraint violated in cell " << cell << " at time=" << time;
+      EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated in cell " << cell << " at time=" << time;
 
       // No NaN or Inf in any cell
       ASSERT_FALSE(std::isnan(state.variables_[cell][A_idx])) << "NaN in A, cell " << cell;
@@ -865,8 +821,7 @@ TEST(EquilibriumIntegration, DAESolveMultiGridCell)
 
     // Mass conservation: A + B should be conserved
     double final_A_plus_B = state.variables_[cell][A_idx] + state.variables_[cell][B_idx];
-    EXPECT_NEAR(final_A_plus_B, initial_A_plus_B[cell], 0.01)
-        << "Mass not conserved in cell " << cell;
+    EXPECT_NEAR(final_A_plus_B, initial_A_plus_B[cell], 0.01) << "Mass not conserved in cell " << cell;
 
     // ODE variables non-negative
     EXPECT_GE(state.variables_[cell][A_idx], 0.0) << "Negative A in cell " << cell;
@@ -899,10 +854,7 @@ TEST(EquilibriumIntegration, DAEClampingDoesNotBreakAlgebraicVariables)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -961,10 +913,7 @@ TEST(EquilibriumIntegration, DAEStateCopyAndSolve)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -1028,26 +977,22 @@ TEST(EquilibriumIntegration, DAEOverlappingSpeciesJacobian)
       std::vector<micm::StoichSpecies>{ { A, 1.0 }, { C, 1.0 } },
       2.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   // Algebraic species is A (first product), so constraint replaces row 0
-  micm::ConstraintSet<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>> set(std::move(constraints), variable_map);
+  micm::ConstraintSet<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>> set(
+      std::move(constraints), variable_map);
 
   // Build a sparse Jacobian and set flat IDs
   auto nonzero = set.NonZeroJacobianElements();
-  auto jacobian = micm::BuildJacobian<micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>(
-      nonzero, 1, 3, false);
+  auto jacobian = micm::BuildJacobian<micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>(nonzero, 1, 3, false);
   set.SetJacobianFlatIds(jacobian);
 
   // Set concentrations: A=1.0, B=0.5, C=1.0 (K_eq*B = 2*0.5 = 1.0 = C, at equilibrium)
   micm::Matrix<double> state(1, 3);
-  state[0][0] = 1.0;   // A
-  state[0][1] = 0.5;   // B
-  state[0][2] = 1.0;   // C
+  state[0][0] = 1.0;  // A
+  state[0][1] = 0.5;  // B
+  state[0][2] = 1.0;  // C
 
   // Zero the Jacobian and subtract terms
   jacobian.Fill(0.0);
@@ -1060,10 +1005,8 @@ TEST(EquilibriumIntegration, DAEOverlappingSpeciesJacobian)
     {
       if (jacobian.IsZero(row, col))
         continue;
-      EXPECT_FALSE(std::isnan(jacobian[0][row][col]))
-          << "NaN in Jacobian[" << row << "][" << col << "]";
-      EXPECT_FALSE(std::isinf(jacobian[0][row][col]))
-          << "Inf in Jacobian[" << row << "][" << col << "]";
+      EXPECT_FALSE(std::isnan(jacobian[0][row][col])) << "NaN in Jacobian[" << row << "][" << col << "]";
+      EXPECT_FALSE(std::isinf(jacobian[0][row][col])) << "Inf in Jacobian[" << row << "][" << col << "]";
     }
   }
 
@@ -1097,10 +1040,7 @@ TEST(EquilibriumIntegration, DAEConstraintOnlySpeciesNotUnused)
   double K_eq = 2.0;
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_eq));
 
   // Build with SetIgnoreUnusedSpecies(false) - should NOT throw for constraint-only species
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();

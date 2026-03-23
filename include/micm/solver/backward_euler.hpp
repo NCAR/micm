@@ -42,10 +42,7 @@ namespace micm
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param constraints Algebraic constraints (not used by BackwardEuler, for API compatibility)
-    AbstractBackwardEuler(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        ConstraintSetPolicy&& constraints)
+    AbstractBackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
           constraints_(std::move(constraints))

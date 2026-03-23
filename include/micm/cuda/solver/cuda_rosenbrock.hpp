@@ -29,8 +29,11 @@ namespace micm
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
-              std::move(other)){};
+        : AbstractRosenbrockSolver<
+              RatesPolicy,
+              LinearSolverPolicy,
+              ConstraintSetPolicy,
+              CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(std::move(other)){};
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
@@ -45,14 +48,15 @@ namespace micm
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param constraints Algebraic constraints
-    CudaRosenbrockSolver(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        ConstraintSetPolicy&& constraints)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
+    CudaRosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
+        : AbstractRosenbrockSolver<
+              RatesPolicy,
+              LinearSolverPolicy,
+              ConstraintSetPolicy,
+              CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              std::move(constraints)) {};
+              std::move(constraints)){};
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"

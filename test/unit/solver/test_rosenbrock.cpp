@@ -104,7 +104,7 @@ void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, st
     for (std::size_t j = 0; j < state.state_size_; ++j)
     {
       const bool is_ode_variable = (state.upper_left_identity_diagonal_[j] > 0.0);
-      
+
       if (is_ode_variable)
       {
         // Normal values for ODE variables
@@ -115,8 +115,9 @@ void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, st
         const double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
         const double scale = atol[j] + rtol * ymax;
         expected_error += errors[i][j] * errors[i][j] / (scale * scale);
-        
-        if (i == 0) ++num_ode_variables;
+
+        if (i == 0)
+          ++num_ode_variables;
       }
       else
       {
@@ -220,19 +221,15 @@ TEST(RosenbrockSolver, VectorNormalizedError)
 TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
 {
   testNormalizedErrorIgnoresConstraintColumns(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
-      2);
+      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
   testNormalizedErrorIgnoresConstraintColumns(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
-      5);
+      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
 {
   testNormalizedErrorIgnoresConstraintColumns(
-      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
-      3);
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
   testNormalizedErrorIgnoresConstraintColumns(
-      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
-      5);
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }

@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/constraint/constraint_info.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
-#include <micm/constraint/constraint_info.hpp>
 
+#include <concepts>
 #include <cstddef>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
-#include <concepts>
-#include <type_traits>
 
 namespace micm
 {
@@ -29,8 +29,7 @@ namespace micm
     ConstraintVariant constraint_;
 
     template<typename T>
-      requires std::same_as<std::decay_t<T>, EquilibriumConstraint> || 
-               std::same_as<std::decay_t<T>, LinearConstraint>
+      requires std::same_as<std::decay_t<T>, EquilibriumConstraint> || std::same_as<std::decay_t<T>, LinearConstraint>
     Constraint(T&& constraint)
         : constraint_(std::forward<T>(constraint))
     {
@@ -54,7 +53,8 @@ namespace micm
     /// @return Vector of species names this constraint depends on
     const std::vector<std::string>& SpeciesDependencies() const
     {
-      return std::visit([](const auto& c) -> const std::vector<std::string>& { return c.species_dependencies_; }, constraint_);
+      return std::visit(
+          [](const auto& c) -> const std::vector<std::string>& { return c.species_dependencies_; }, constraint_);
     }
 
     /// @brief Get the number of species this constraint depends on
@@ -73,10 +73,9 @@ namespace micm
     auto ResidualFunction(const ConstraintInfo& info, const auto& state_variable_indices) const
     {
       return std::visit(
-        [&info, &state_variable_indices](const auto& c) { 
-          return c.template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices); 
-        }, 
-        constraint_);
+          [&info, &state_variable_indices](const auto& c)
+          { return c.template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices); },
+          constraint_);
     }
 
     /// @brief Get a function object to compute the constraint Jacobian
@@ -88,17 +87,18 @@ namespace micm
     /// @return Function object that takes (state_variables, jacobian) and computes partials
     template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     auto JacobianFunction(
-        const ConstraintInfo& info, 
+        const ConstraintInfo& info,
         const auto& state_variable_indices,
         auto jacobian_flat_ids,
         SparseMatrixPolicy& jacobian) const
     {
       return std::visit(
-        [&info, &state_variable_indices, jacobian_flat_ids, &jacobian](const auto& c) { 
-          return c.template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-              info, state_variable_indices, jacobian_flat_ids, jacobian); 
-        }, 
-        constraint_);
+          [&info, &state_variable_indices, jacobian_flat_ids, &jacobian](const auto& c)
+          {
+            return c.template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
+                info, state_variable_indices, jacobian_flat_ids, jacobian);
+          },
+          constraint_);
     }
   };
 

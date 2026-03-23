@@ -198,11 +198,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t num_species = 3;
 
@@ -210,10 +206,8 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
-  
-  auto builder = StandardSparseMatrix::Create(num_species)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
@@ -271,11 +265,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
       1000.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "AB", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   std::size_t num_species = 3;
 
@@ -283,10 +273,8 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
 
   // Create sparse matrix for Jacobian using builder
   auto non_zero_elements = set.NonZeroJacobianElements();
-  
-  auto builder = StandardSparseMatrix::Create(num_species)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);  // Diagonals
@@ -333,11 +321,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
       100.0));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
-    { "A", 0 },
-    { "B", 1 },
-    { "C", 2 }
-  };
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   std::size_t num_species = 3;
 
@@ -345,10 +329,8 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
-  
-  auto builder = StandardSparseMatrix::Create(num_species)
-    .SetNumberOfBlocks(1)
-    .InitialValue(0.0);
+
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
     builder = builder.WithElement(i, i);
@@ -375,4 +357,3 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   // The forcing term for B (row 1, first product) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 }
-

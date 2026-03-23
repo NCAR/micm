@@ -113,8 +113,10 @@ namespace micm
   concept VectorLike = requires(T t, std::size_t i) {
     { t[i] };  // Can index with []
     { t.size() } -> std::convertible_to<std::size_t>;
-  } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> &&
-       !requires(T t) { t.NumRows(); t.NumColumns(); };  // Exclude matrix types
+  } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> && !requires(T t) {
+    t.NumRows();
+    t.NumColumns();
+  };  // Exclude matrix types
 
   // ============================================================================
   // Concepts for Grouping Strategies

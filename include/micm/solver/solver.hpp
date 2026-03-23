@@ -10,8 +10,8 @@
 #include <micm/solver/solver_result.hpp>
 #include <micm/util/matrix.hpp>
 
-#include <type_traits>
 #include <algorithm>
+#include <type_traits>
 
 namespace micm
 {
@@ -25,8 +25,9 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>> update_state_parameters_functions_;
-  
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
+        update_state_parameters_functions_;
+
    public:
     using SolverPolicyType = SolverPolicy;
     using StatePolicyType = StatePolicy;
@@ -56,7 +57,8 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>& update_state_parameters_functions)
+        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+            update_state_parameters_functions)
         : solver_(std::move(solver)),
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),
@@ -181,8 +183,6 @@ namespace micm
         state.variables_.Max(0.0);
       }
     }
-
-
   };
 
 }  // namespace micm

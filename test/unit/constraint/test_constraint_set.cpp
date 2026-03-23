@@ -32,7 +32,10 @@ TEST(ConstraintSet, Construction)
 
 TEST(ConstraintSet, ReplaceStateRowsMapsToAlgebraicSpecies)
 {
-  testReplaceStateRowsMapsToAlgebraicSpecies<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  testReplaceStateRowsMapsToAlgebraicSpecies<
+      Matrix<double>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, NonZeroJacobianElements)
@@ -77,34 +80,76 @@ TEST(ConstraintSet, FourDStateTwoConstraints)
 
 TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
 {
-  testCoupledConstraintsSharedSpecies<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  testCoupledConstraintsSharedSpecies<
+      Matrix<double>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, VectorizedMatricesRespectGridCellIndexing)
 {
-  testVectorizedMatricesRespectGridCellIndexing<Group4VectorMatrix, Group4SparseVectorMatrix, ConstraintSet<Group4VectorMatrix, Group4SparseVectorMatrix>>();
+  testVectorizedMatricesRespectGridCellIndexing<
+      Group4VectorMatrix,
+      Group4SparseVectorMatrix,
+      ConstraintSet<Group4VectorMatrix, Group4SparseVectorMatrix>>();
 }
 
 TEST(ConstraintSet, VectorMatrix1)
 {
-  testConstruction<Group1VectorMatrix, Group1SparseVectorMatrix, ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
-  testNonZeroJacobianElements<Group1VectorMatrix, Group1SparseVectorMatrix, ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
-  testAddForcingTerms<Group1VectorMatrix, Group1SparseVectorMatrix, ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
-  testSubtractJacobianTerms<Group1VectorMatrix, Group1SparseVectorMatrix, ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  testConstruction<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  testNonZeroJacobianElements<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  testAddForcingTerms<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  testSubtractJacobianTerms<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      ConstraintSet<Group1VectorMatrix, Group1SparseVectorMatrix>>();
 }
 
 TEST(ConstraintSet, VectorMatrix2)
 {
-  testConstruction<Group2VectorMatrix, Group2SparseVectorMatrix, ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
-  testNonZeroJacobianElements<Group2VectorMatrix, Group2SparseVectorMatrix, ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
-  testAddForcingTerms<Group2VectorMatrix, Group2SparseVectorMatrix, ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
-  testSubtractJacobianTerms<Group2VectorMatrix, Group2SparseVectorMatrix, ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  testConstruction<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  testNonZeroJacobianElements<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  testAddForcingTerms<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  testSubtractJacobianTerms<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      ConstraintSet<Group2VectorMatrix, Group2SparseVectorMatrix>>();
 }
 
 TEST(ConstraintSet, VectorMatrix3)
 {
-  testConstruction<Group3VectorMatrix, Group3SparseVectorMatrix, ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
-  testNonZeroJacobianElements<Group3VectorMatrix, Group3SparseVectorMatrix, ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
-  testAddForcingTerms<Group3VectorMatrix, Group3SparseVectorMatrix, ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
-  testSubtractJacobianTerms<Group3VectorMatrix, Group3SparseVectorMatrix, ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  testConstruction<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  testNonZeroJacobianElements<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  testAddForcingTerms<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  testSubtractJacobianTerms<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
 }

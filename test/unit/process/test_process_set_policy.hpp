@@ -241,7 +241,6 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 }
 
-
 /// @brief Test that algebraic-row masking works correctly: algebraic species' rows remain unchanged
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
 void testAlgebraicMasking()
@@ -252,7 +251,7 @@ void testAlgebraicMasking()
   auto D = Species("D");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D } };
-  
+
   // Set up state with 2 grid cells
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 1, .variable_names_{ "A", "B", "C", "D" } }, 2);
@@ -281,7 +280,7 @@ void testAlgebraicMasking()
   // Initialize state variables
   state.variables_[0] = { 1.0, 2.0, 3.0, 4.0 };
   state.variables_[1] = { 5.0, 6.0, 7.0, 8.0 };
-  
+
   // Initialize rate constants
   DenseMatrixPolicy rate_constants{ 2, 1 };
   rate_constants[0] = { 10.0 };
@@ -349,7 +348,7 @@ void testAlgebraicMasking()
     // A->A: +d_rate/d_A (diagonal, reactant)
     EXPECT_DOUBLE_EQ(jacobian[0][0][0], 500.0 + 20.0);   // Cell 0
     EXPECT_DOUBLE_EQ(jacobian[1][0][0], 500.0 + 120.0);  // Cell 1
-    
+
     // A->B: +d_rate/d_B (off-diagonal, reactant)
     EXPECT_DOUBLE_EQ(jacobian[0][0][1], 500.0 + 10.0);   // Cell 0
     EXPECT_DOUBLE_EQ(jacobian[1][0][1], 500.0 + 100.0);  // Cell 1
@@ -365,7 +364,7 @@ void testAlgebraicMasking()
     // C->A: -d_rate/d_A (product contribution)
     EXPECT_DOUBLE_EQ(jacobian[0][2][0], 500.0 - 20.0);   // Cell 0
     EXPECT_DOUBLE_EQ(jacobian[1][2][0], 500.0 - 120.0);  // Cell 1
-    
+
     // C->B: -d_rate/d_B (product contribution)
     EXPECT_DOUBLE_EQ(jacobian[0][2][1], 500.0 - 10.0);   // Cell 0
     EXPECT_DOUBLE_EQ(jacobian[1][2][1], 500.0 - 100.0);  // Cell 1

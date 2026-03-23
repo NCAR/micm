@@ -64,10 +64,7 @@ namespace micm
     /// @param rates Rates calculator
     /// @param constraints Algebraic constraints
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    AbstractRosenbrockSolver(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        ConstraintSetPolicy&& constraints)
+    AbstractRosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
           constraints_(std::move(constraints))
@@ -125,8 +122,11 @@ namespace micm
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
-  class RosenbrockSolver
-      : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>
+  class RosenbrockSolver : public AbstractRosenbrockSolver<
+                               RatesPolicy,
+                               LinearSolverPolicy,
+                               ConstraintSetPolicy,
+                               RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>
   {
    public:
     /// @brief Default constructor
@@ -135,11 +135,12 @@ namespace micm
     /// @param constraints Algebraic constraints
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    RosenbrockSolver(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        ConstraintSetPolicy&& constraints)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
+    RosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
+        : AbstractRosenbrockSolver<
+              RatesPolicy,
+              LinearSolverPolicy,
+              ConstraintSetPolicy,
+              RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
               std::move(constraints))
