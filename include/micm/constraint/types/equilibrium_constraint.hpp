@@ -5,6 +5,8 @@
 #include <micm/constraint/constraint_info.hpp>
 #include <micm/system/stoich_species.hpp>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/constants.hpp>
+#include <micm/system/conditions.hpp>
 
 #include <cmath>
 #include <cstddef>
@@ -15,6 +17,15 @@
 
 namespace micm
 {
+  /// @brief Define parameters for Van't Hoff equation
+  struct VantHoffParam
+  {
+    double K_HLC_ref;                    // Henry’s Law constant at the reference temperature (typically 298K)
+    double delta_H;                      // Enthalpy of dissolution (J/mol)
+    double R = constants::GAS_CONSTANT;  // (J/mol·K)
+    double T_ref = 298.0;
+  };
+
   /// @brief Constraint for chemical equilibrium: K_eq = [products]^stoich / [reactants]^stoich
   ///        For a reversible reaction: aA + bB <-> cC + dD
   ///        The equilibrium constraint is: G = K_eq * [A]^a * [B]^b - [C]^c * [D]^d = 0
@@ -36,8 +47,8 @@ namespace micm
     /// @brief Product species and their stoichiometric coefficients
     std::vector<StoichSpecies> products_;
 
-    /// @brief Equilibrium constant K_eq = k_forward / k_backward
-    double equilibrium_constant_;
+    /// TODO @brief Equilibrium constant K_eq = k_forward / k_backward
+    std::function<double(const Conditions&)>equilibrium_constant_function_;
 
    private:
     /// @brief Indices into the reactants_ vector for each species dependency
@@ -45,6 +56,9 @@ namespace micm
 
     /// @brief Indices into the products_ vector for each species dependency
     std::vector<std::size_t> product_dependency_indices_;
+
+    // // TODO
+    VantHoffParam vant_hoff_param_;
 
    public:
     /// @brief Default constructor
@@ -57,16 +71,17 @@ namespace micm
     /// @param name Constraint identifier
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
+    /// TODO K_eq(T) = HLC(298K) * e^(C * ( 1/T - 1/298K ))
     /// @param equilibrium_constant K_eq = [products]/[reactants] at equilibrium
     EquilibriumConstraint(
-        const std::string& name,
-        const std::vector<StoichSpecies>& reactants,
-        const std::vector<StoichSpecies>& products,
-        double equilibrium_constant)
+        std::string&& name,
+        std::vector<StoichSpecies>&& reactants,
+        std::vector<StoichSpecies>&& products,
+        VantHoffParam&& vant_hoff_param)
         : name_(name),
           reactants_(reactants),
           products_(products),
-          equilibrium_constant_(equilibrium_constant)
+          vant_hoff_param_(vant_hoff_param)
     {
       if (reactants_.empty())
       {
@@ -83,14 +98,6 @@ namespace micm
             MICM_ERROR_CATEGORY_CONSTRAINT,
             MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS,
             "Equilibrium constraint requires at least one product");
-      }
-      if (equilibrium_constant_ <= 0)
-      {
-        throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_CONSTRAINT,
-            MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT,
-            "Equilibrium constant must be positive");
       }
       for (const auto& r : reactants_)
       {
@@ -127,6 +134,13 @@ namespace micm
         species_dependencies_.push_back(p.species_.name_);
         product_dependency_indices_.push_back(idx++);
       }
+
+      // K_eq(T) = HLC(298K) * e^(C * ( 1/T - 1/298K ))
+      equilibrium_constant_function_ = [p = vant_hoff_param_](const Conditions& condition)
+      {
+        double T = condition.temperature_;
+        return p.K_HLC_ref * std::exp((p.delta_H / p.R) * (1.0 / T - 1.0 / p.T_ref));
+      };
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
