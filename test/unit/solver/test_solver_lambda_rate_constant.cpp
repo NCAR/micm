@@ -17,10 +17,9 @@ namespace
 
   micm::LambdaRateConstant makeLambdaRateConstant()
   {
-    return micm::LambdaRateConstant(
-        micm::LambdaRateConstantParameters{ .label_ = "lambda_rc",
-                                            .lambda_function_ = [](const micm::Conditions& conditions)
-                                            { return 1.0e-3 * conditions.temperature_; } });
+    return micm::LambdaRateConstant(micm::LambdaRateConstantParameters{
+        .label_ = "lambda_rc",
+        .lambda_function_ = [](const micm::Conditions& conditions) { return 1.0e-3 * conditions.temperature_; } });
   }
 }  // namespace
 
