@@ -167,6 +167,26 @@ namespace micm
       }
     }
 
+    LambdaRateConstant& GetRateConstantByName(const std::string& name)
+    {
+      for (auto& process : processes_)
+      {
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_PROCESS,
+          MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Rate constant with name '" + name + "' not found in any process");
+    }
+
    private:
     /// @brief Clamp state variables to non-negative after a solve
     ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
@@ -183,24 +203,6 @@ namespace micm
       {
         state.variables_.Max(0.0);
       }
-    }
-
-    LambdaRateConstant& GetRateConstantByName(const std::string& name)
-    {
-      for (auto& process : processes_)
-      {
-        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
-        {
-          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
-          if (ptr && ptr->parameters_.label_ == name)
-          {
-            return *ptr;
-          }
-        }
-      }
-      throw std::system_error(
-          make_error_code(MicmProcessErrc::InvalidConfiguration),
-          "Rate constant with name '" + name + "' not found in any process");
     }
   };
 
