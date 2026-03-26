@@ -4,6 +4,7 @@
 
 #include <micm/util/error.hpp>
 
+#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -29,6 +30,16 @@ namespace micm
           code_(code)
     {
     }
+  };
+
+  /// @brief Wraps a successfully constructed value alongside an optional warning.
+  ///        Use with TryBuild() to receive the built object even when non-fatal
+  ///        issues (e.g. unused species) are detected.
+  template<typename T>
+  struct MicmResult
+  {
+    T value_;
+    std::optional<MicmException> warning_;
   };
 
 }  // namespace micm

@@ -111,13 +111,20 @@ namespace micm
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
+    /// @throws MicmException on fatal errors (missing system, no species)
     auto Build() const;
+
+    /// @brief Creates an instance of Solver, returning warnings alongside the built solver
+    /// @return MicmResult containing the Solver in value_ and an optional Warning in warning_
+    ///         if non-fatal issues (e.g. unused species) are detected
+    /// @throws MicmException on fatal errors (missing system, no species)
+    auto TryBuild() const;
 
    protected:
     /// @brief Checks for unused species
     /// @param rates The rates policy instance containing information about processes
-    /// @throws std::system_error if an unused species is found
-    void UnusedSpeciesCheck(const RatesPolicy& rates) const;
+    /// @return A MicmException with Warning severity if unused species are found, otherwise std::nullopt
+    std::optional<MicmException> UnusedSpeciesCheck(const RatesPolicy& rates) const;
 
     /// @brief Gets a map of species to their index
     /// @return The species map

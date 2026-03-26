@@ -187,7 +187,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline void SolverBuilder<
+  inline std::optional<MicmException> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -198,7 +198,7 @@ namespace micm
   {
     if (ignore_unused_species_)
     {
-      return;
+      return std::nullopt;
     }
 
     auto used_species = rates.SpeciesUsed(reactions_);
@@ -225,8 +225,9 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw MicmException(MicmSeverity::Warning, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
+      return MicmException(MicmSeverity::Warning, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
     }
+    return std::nullopt;
   }
 
   template<
@@ -367,8 +368,12 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::Build() const
+      StatePolicy>::TryBuild() const
   {
+    using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
+    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
+    using SolverType = Solver<SolverPolicy, StatePolicy>;
+
     if (!valid_system_)
     {
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
@@ -380,14 +385,12 @@ namespace micm
       throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES, "Provided chemical system contains no species.");
     }
 
-    using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
-    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
     auto species_map = this->GetSpeciesMap();
     auto params_map = this->GetCustomParameterMap();
 
     RatesPolicy rates(reactions_, species_map, external_models_);
-    
-    this->UnusedSpeciesCheck(rates);
+
+    auto warning = this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
     // Create ConstraintSet from stored constraints (if any)
@@ -472,13 +475,41 @@ namespace micm
     // this matters because the absolute tolerances must be set to match the system size, and that may change
     auto options = this->options_;
 
-    return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set)),
-        state_parameters,
-        options,
-        reactions_,
-        system_,
-        update_funcs);
+    return MicmResult<SolverType>{
+      SolverType(
+          SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set)),
+          state_parameters,
+          options,
+          reactions_,
+          system_,
+          update_funcs),
+      std::move(warning)
+    };
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline auto SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::Build() const
+  {
+    auto result = TryBuild();
+    if (result.warning_)
+    {
+      throw std::move(*result.warning_);
+    }
+    return std::move(result.value_);
   }
 
 }  // namespace micm

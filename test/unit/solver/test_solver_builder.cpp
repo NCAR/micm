@@ -9,6 +9,8 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+#include <micm/util/micm_exception.hpp>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -153,4 +155,57 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 
   EXPECT_EQ(solver.solver_parameters_.h_min_, 15.0);
   EXPECT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
+}
+
+TEST(SolverBuilder, TryBuildReturnsWarningForUnusedSpecies)
+{
+  // Add an extra species not referenced by any reaction
+  auto d = micm::Species("D");
+  micm::Phase gas_phase_with_extra{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
+  micm::System system_with_extra{ micm::SystemParameters{ .gas_phase_ = gas_phase_with_extra } };
+
+  auto result = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(system_with_extra)
+                    .SetReactions(reactions)
+                    .SetIgnoreUnusedSpecies(false)
+                    .TryBuild();
+
+  ASSERT_TRUE(result.warning_.has_value());
+  EXPECT_EQ(result.warning_->severity_, micm::MicmSeverity::Warning);
+  // Solver is still usable despite the warning
+  auto state = result.value_.GetState(1);
+  EXPECT_EQ(state.variables_[0].size(), 4);
+}
+
+TEST(SolverBuilder, BuildThrowsForUnusedSpecies)
+{
+  auto d = micm::Species("D");
+  micm::Phase gas_phase_with_extra{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
+  micm::System system_with_extra{ micm::SystemParameters{ .gas_phase_ = gas_phase_with_extra } };
+
+  EXPECT_THROW(
+      micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+          micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+          .SetSystem(system_with_extra)
+          .SetReactions(reactions)
+          .SetIgnoreUnusedSpecies(false)
+          .Build(),
+      micm::MicmException);
+}
+
+TEST(SolverBuilder, TryBuildNoWarningWhenUnusedSpeciesIgnored)
+{
+  auto d = micm::Species("D");
+  micm::Phase gas_phase_with_extra{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
+  micm::System system_with_extra{ micm::SystemParameters{ .gas_phase_ = gas_phase_with_extra } };
+
+  auto result = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(system_with_extra)
+                    .SetReactions(reactions)
+                    .SetIgnoreUnusedSpecies(true)
+                    .TryBuild();
+
+  EXPECT_FALSE(result.warning_.has_value());
 }
