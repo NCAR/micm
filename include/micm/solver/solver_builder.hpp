@@ -53,8 +53,8 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::vector<Constraint> constraints_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
+    std::vector<Constraint> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -94,6 +94,11 @@ namespace micm
     template<class ExternalModel>
     SolverBuilder& AddExternalModelProcesses(ExternalModel&& model);
 
+    /// @brief Set algebraic constraints for DAE solving
+    /// @param constraints Vector of constraints
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
+
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored
     /// @return Updated SolverBuilder
@@ -103,11 +108,6 @@ namespace micm
     /// @param reorder_state True if the state should be reordered
     /// @return Updated SolverBuilder
     SolverBuilder& SetReorderState(bool reorder_state);
-
-    /// @brief Set algebraic constraints for DAE solving
-    /// @param constraints Vector of constraints
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver

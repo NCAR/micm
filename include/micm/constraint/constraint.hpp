@@ -13,6 +13,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <unordered_set>
 
 namespace micm
 {
@@ -40,6 +41,13 @@ namespace micm
     std::string GetName() const
     {
       return std::visit([](const auto& c) { return c.name_; }, constraint_);
+    }
+
+    /// @brief Get the custom paramter names
+    /// @return A set of parameter names
+    std::unordered_set<std::string> GetParameterNames() const
+    {
+      return std::visit([](const auto& c) { return c.parameters_; }, constraint_);
     }
 
     /// @brief Returns the species whose state row should be replaced by this algebraic constraint

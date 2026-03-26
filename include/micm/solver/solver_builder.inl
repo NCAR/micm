@@ -116,6 +116,35 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
+      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
+  {
+    constraints_ = std::move(constraints);
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
       StatePolicy>::SetIgnoreUnusedSpecies(bool ignore_unused_species)
   {
     ignore_unused_species_ = ignore_unused_species;
@@ -148,35 +177,6 @@ namespace micm
       StatePolicy>::SetReorderState(bool reorder_state)
   {
     reorder_state_ = reorder_state;
-    return *this;
-  }
-
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class RatesPolicy,
-      class LuDecompositionPolicy,
-      class LinearSolverPolicy,
-      class StatePolicy>
-  inline SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>&
-  SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      RatesPolicy,
-      LuDecompositionPolicy,
-      LinearSolverPolicy,
-      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
-  {
-    constraints_ = std::move(constraints);
     return *this;
   }
 
@@ -294,34 +294,51 @@ namespace micm
       StatePolicy>::GetCustomParameterMap() const
   {
     std::unordered_map<std::string, std::size_t> params{};
+    std::vector<std::string> duplicates;
 
+    auto add_param = [&params](const std::string& label, const std::string& source)
+    {
+      auto [it, added] = params.emplace_back(label, params.size());
+      if (!added)
+        duplicates.push_back(label + " (from " + source + ")");
+    };
+
+    // Include custom parameter labels from chemical reactions
     for (const auto& reaction : reactions_)
     {
       if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
       {
         for (auto& label : process->rate_constant_->CustomParameters())
-        {
-          params[label] = params.size();
-        }
+          add_params(label, "reaction");
       }
     }
-    std::size_t size = params.size();
+
     // Include custom parameter labels from external models
     for (const auto& model : system_.external_models_)
     {
       auto param_names = model.parameter_names_func_();
       for (const auto& label : param_names)
-      {
-        params[label] = params.size();
-      }
-      size += std::get<1>(model.state_size_func_());
+        add_param(label, "external_model");
     }
-    if (params.size() != size)
+
+    // Include custom parameter labels from constraints
+    for (const auto& constraint : constraints_)
     {
-      throw std::invalid_argument(
-          "Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate "
-          "parameter labels.");
+      auto param_names = constraint.GetParameterNames();
+      for (const auto& label : param_names)
+        add_param(label, "constraint");
     }
+
+    if (!duplicates.empty())
+    {
+      std::ostringstream oss;
+      oss << "Duplicate parameter labels detected:\n";
+      for (const auto& d : duplicates)
+          oss << "  - " << d << "\n";
+
+      throw std::invalid_argument(oss.str());
+    }
+
     return params;
   }
 
@@ -394,26 +411,24 @@ namespace micm
     using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
     using SolverPolicy =
         typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
+
     auto species_map = this->GetSpeciesMap();
-    auto params_map = this->GetCustomParameterMap();
 
     RatesPolicy rates(reactions_, species_map, external_models_);
 
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
-    // Create ConstraintSet from stored constraints (if any)
     ConstraintSetPolicy constraint_set;
     std::set<std::size_t> algebraic_variable_ids;
 
-    std::size_t number_of_constraints = constraints_.size();
-    if (number_of_constraints > 0)
+    if (!constraints_.empty())
     {
-      // Copy constraints so that the builder can be reused
-      auto constraints_copy = constraints_;
       // Constraints replace selected species rows in the mass-matrix DAE formulation.
-      // Pass species_map so constraints can resolve dependencies and row targets to species indices.
-      constraint_set = ConstraintSetPolicy(std::move(constraints_copy), species_map);
+      // Pass species_map so constraints can resolve dependencies.
+      constraint_set = ConstraintSetPolicy(constraints_, species_map);
+      // Must set unqiue parameter names before the builder creates the parameter map.
+      constraint_set.SetUniqueParameterNames();
       algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
 
@@ -431,6 +446,7 @@ namespace micm
       nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
     }
 
+
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
@@ -440,13 +456,18 @@ namespace micm
       auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
       jacobian = std::move(lu);
     }
+
+    // constraint set must ensure parameter names are unique before creating params map
+    auto params_map = this->GetCustomParameterMap();
+
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
     if (constraint_set.Size() > 0)
     {
       constraint_set.SetJacobianFlatIds(jacobian);
-      constraint_set.SetConstraintFunctions(species_map, jacobian);
+      // TODO
+      constraint_set.SetConstraintFunctions(params_map, species_map, jacobian);
     }
 
     std::vector<std::string> variable_names{ number_of_species };
@@ -464,7 +485,7 @@ namespace micm
     }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
-                                         .number_of_constraints_ = number_of_constraints,
+                                         .number_of_constraints_ = constraints_.size(),
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,

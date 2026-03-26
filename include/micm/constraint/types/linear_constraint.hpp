@@ -11,6 +11,7 @@
 #include <string>
 #include <system_error>
 #include <vector>
+#include <unordered_set>
 
 namespace micm
 {
@@ -32,6 +33,9 @@ namespace micm
 
     /// @brief The constant value the linear sum should equal
     double constant_;
+
+    /// @brief Parameter set (unused for this class, always empty).
+    std::unordered_set<std::string> parameters_;
 
    public:
     /// @brief Default constructor
