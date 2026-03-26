@@ -167,7 +167,7 @@ namespace micm
       }
     }
 
-    LambdaRateConstant& GetRateConstantByName(const std::string& name)
+    LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name)
     {
       for (auto& process : processes_)
       {
@@ -182,9 +182,29 @@ namespace micm
       }
       throw MicmException(
           MicmSeverity::Error,
-          MICM_ERROR_CATEGORY_PROCESS,
-          MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
-          "Rate constant with name '" + name + "' not found in any process");
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Lambda rate constant with name '" + name + "' not found in any process");
+    }
+
+    const LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name) const
+    {
+      for (const auto& process : processes_)
+      {
+        if (const auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          const auto ptr = dynamic_cast<const LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Lambda rate constant with name '" + name + "' not found in any process");
     }
 
    private:

@@ -24,7 +24,7 @@ namespace
   }
 }  // namespace
 
-TEST(Solver, GetRateConstantByNameCanOverrideLambda)
+TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
 {
   auto lambda_rate_constant = makeLambdaRateConstant();
   micm::Process reaction = micm::ChemicalReactionBuilder()
@@ -41,7 +41,7 @@ TEST(Solver, GetRateConstantByNameCanOverrideLambda)
                     .SetReactions({ reaction })
                     .Build();
 
-  auto& lambda_ref = solver.GetRateConstantByName("lambda_rc");
+  auto& lambda_ref = solver.GetLambdaRateConstantByName("lambda_rc");
   lambda_ref.parameters_.lambda_function_ = [](const micm::Conditions& conditions)
   { return 2.0e-3 * conditions.temperature_; };
 
