@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -164,6 +165,46 @@ namespace micm
       {
         update_func(state.conditions_, state.custom_rate_parameters_);
       }
+    }
+
+    LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name)
+    {
+      for (auto& process : processes_)
+      {
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Lambda rate constant with name '" + name + "' not found in any process");
+    }
+
+    const LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name) const
+    {
+      for (const auto& process : processes_)
+      {
+        if (const auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          const auto ptr = dynamic_cast<const LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Lambda rate constant with name '" + name + "' not found in any process");
     }
 
    private:
