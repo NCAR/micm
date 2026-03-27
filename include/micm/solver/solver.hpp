@@ -160,6 +160,11 @@ namespace micm
     void CalculateRateConstants(StatePolicy& state)
     {
       Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
+    }
+
+    // TODO for temperature-dependent constraints, not just kinetics
+    void UpdateStateParameters(StatePolicy& state)
+    {
       for (const auto& update_func : update_state_parameters_functions_)
       {
         update_func(state.conditions_, state.custom_rate_parameters_);

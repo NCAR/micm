@@ -119,8 +119,6 @@ namespace micm
         dependency_offset += info.number_of_dependencies_;
         constraint_info_.push_back(info);
       }
-
-      SetUniqueParameterNames();
     }
 
     /// @brief Move constructor - default implementation
@@ -180,6 +178,24 @@ namespace micm
           }
         }, each.constraint_);
       }
+    }
+
+    /// @brief Returns all unique parameter names from all constraints in the set
+    /// @return Set of parameter names
+    std::unordered_set<std::string> GetParameterNames() const
+    {
+      std::unordered_set<std::string> param_names;
+
+      for (auto& each : constraints_)
+      {
+        std::visit([&](auto& c)
+        {
+          for (auto& label : c.parameters_)
+            param_names.insert(label);
+        }, each.constraint_);
+      }
+      
+      return param_names;
     }
 
     /// @brief Add constraint residuals to forcing vector (constraint rows)
@@ -278,6 +294,11 @@ namespace micm
             constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
                 info, state_variable_indices, state_parameter_indices, jacobian_flat_ids_.begin() + info.jacobian_flat_offset_, jacobian));
       }
+    }
+
+    GetUpdateStateParamFunctions()
+    {
+
     }
 
     void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
