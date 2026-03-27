@@ -296,9 +296,9 @@ namespace micm
     std::unordered_map<std::string, std::size_t> params{};
     std::vector<std::string> duplicates;
 
-    auto add_param = [&params](const std::string& label, const std::string& source)
+    auto add_param = [&params, &duplicates](const std::string& label, const std::string& source)
     {
-      auto [it, added] = params.emplace_back(label, params.size());
+      auto [it, added] = params.emplace(label, params.size());
       if (!added)
         duplicates.push_back(label + " (from " + source + ")");
     };
@@ -309,7 +309,7 @@ namespace micm
       if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
       {
         for (auto& label : process->rate_constant_->CustomParameters())
-          add_params(label, "reaction");
+          add_param(label, "reaction");
       }
     }
 
@@ -424,7 +424,8 @@ namespace micm
     {
       // Constraints replace selected species rows in the mass-matrix DAE formulation.
       // Pass species_map so constraints can resolve dependencies.
-      constraint_set = ConstraintSetPolicy(constraints_, species_map, params_map);
+      std::vector<Constraint> constraints_copy = constraints_;
+      constraint_set = ConstraintSetPolicy(std::move(constraints_copy), species_map);
 
       // Must set unqiue parameter names before the builder creates the parameter map.
       constraint_set.SetUniqueParameterNames();
