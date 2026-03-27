@@ -106,6 +106,17 @@ struct CudaJacobianDiagonalElementsParam
   std::size_t size_;
 };
 
+/// Device-side struct for cached conditions (SOA layout)
+struct CudaConditionsParam
+{
+  double* d_temperature_ = nullptr;
+  double* d_pressure_ = nullptr;
+  double* d_air_density_ = nullptr;
+  double* d_fixed_reactants_ = nullptr;  // pre-computed parameterized reactant factors
+  std::size_t num_cells_ = 0;
+  std::size_t fixed_reactants_size_ = 0;  // total elements in fixed_reactants (= rate_constants_.AsVector().size())
+};
+
 /// Tagged enum for GPU-portable rate constant types
 enum class CudaRateConstantType : uint8_t
 {

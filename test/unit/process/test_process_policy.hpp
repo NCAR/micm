@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/cuda/process/cuda_process.hpp>
+#include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
@@ -57,7 +58,7 @@ void testCudaProcessRateConstants(const std::size_t number_of_grid_cells)
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -89,6 +90,7 @@ void testCudaProcessRateConstants(const std::size_t number_of_grid_cells)
 
   // Compute on GPU
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   // Copy results back to host
@@ -149,7 +151,7 @@ void testCudaProcessMixedRateConstants(const std::size_t number_of_grid_cells)
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -197,6 +199,7 @@ void testCudaProcessMixedRateConstants(const std::size_t number_of_grid_cells)
 
   // Compute on GPU
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   // Copy results back to host
@@ -257,7 +260,7 @@ void testCudaProcessTroeRateConstants(const std::size_t number_of_grid_cells)
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -286,6 +289,7 @@ void testCudaProcessTroeRateConstants(const std::size_t number_of_grid_cells)
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -298,7 +302,7 @@ void testCudaProcessTroeRateConstants(const std::size_t number_of_grid_cells)
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -343,7 +347,7 @@ void testCudaProcessTunnelingRateConstants(const std::size_t number_of_grid_cell
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -372,6 +376,7 @@ void testCudaProcessTunnelingRateConstants(const std::size_t number_of_grid_cell
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -384,7 +389,7 @@ void testCudaProcessTunnelingRateConstants(const std::size_t number_of_grid_cell
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -432,7 +437,7 @@ void testCudaProcessBranchedAlkoxyRateConstants(const std::size_t number_of_grid
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -461,6 +466,7 @@ void testCudaProcessBranchedAlkoxyRateConstants(const std::size_t number_of_grid
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -473,7 +479,7 @@ void testCudaProcessBranchedAlkoxyRateConstants(const std::size_t number_of_grid
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -521,7 +527,7 @@ void testCudaProcessBranchedNitrateRateConstants(const std::size_t number_of_gri
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -550,6 +556,7 @@ void testCudaProcessBranchedNitrateRateConstants(const std::size_t number_of_gri
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -562,7 +569,7 @@ void testCudaProcessBranchedNitrateRateConstants(const std::size_t number_of_gri
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -615,7 +622,7 @@ void testCudaProcessTernaryChemicalActivationRateConstants(const std::size_t num
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -644,6 +651,7 @@ void testCudaProcessTernaryChemicalActivationRateConstants(const std::size_t num
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -656,7 +664,7 @@ void testCudaProcessTernaryChemicalActivationRateConstants(const std::size_t num
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -701,7 +709,7 @@ void testCudaProcessReversibleRateConstants(const std::size_t number_of_grid_cel
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -730,6 +738,7 @@ void testCudaProcessReversibleRateConstants(const std::size_t number_of_grid_cel
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -742,7 +751,7 @@ void testCudaProcessReversibleRateConstants(const std::size_t number_of_grid_cel
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -787,7 +796,7 @@ void testCudaProcessSurfaceRateConstants(const std::size_t number_of_grid_cells)
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -855,6 +864,7 @@ void testCudaProcessSurfaceRateConstants(const std::size_t number_of_grid_cells)
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -867,7 +877,7 @@ void testCudaProcessSurfaceRateConstants(const std::size_t number_of_grid_cells)
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-8)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -912,7 +922,7 @@ void testCudaProcessUserDefinedRateConstants(const std::size_t number_of_grid_ce
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -953,6 +963,7 @@ void testCudaProcessUserDefinedRateConstants(const std::size_t number_of_grid_ce
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -965,7 +976,7 @@ void testCudaProcessUserDefinedRateConstants(const std::size_t number_of_grid_ce
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-10)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else
@@ -1027,7 +1038,7 @@ void testCudaProcessAllRateConstants(const std::size_t number_of_grid_cells)
     }
   }
 
-  State<DenseMatrixPolicy> state{ StateParameters{
+  CudaState<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
@@ -1074,6 +1085,7 @@ void testCudaProcessAllRateConstants(const std::size_t number_of_grid_cells)
   Process::CalculateRateConstants(processes, cpu_state);
 
   CudaProcess<DenseMatrixPolicy> cuda_process(processes);
+  state.SyncConditionsToDevice();
   cuda_process.CalculateRateConstants(processes, state);
 
   state.rate_constants_.CopyToHost();
@@ -1086,7 +1098,7 @@ void testCudaProcessAllRateConstants(const std::size_t number_of_grid_cells)
       double actual = state.rate_constants_[i_cell][i_rxn];
       if (std::abs(expected) > 1.0e-30)
       {
-        EXPECT_NEAR(actual / expected, 1.0, 1.0e-8)
+        EXPECT_NEAR(actual / expected, 1.0, 1.0e-15)
             << "grid cell " << i_cell << "; reaction " << i_rxn << "; expected " << expected << "; actual " << actual;
       }
       else

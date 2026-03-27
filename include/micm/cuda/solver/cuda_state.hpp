@@ -10,7 +10,10 @@
 namespace micm
 {
   /// @brief Construct a state variable for CUDA tests
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<
+      class DenseMatrixPolicy = StandardDenseMatrix,
+      class SparseMatrixPolicy = StandardSparseMatrix,
+      class LuDecompositionPolicy = LuDecomposition>
   struct CudaState : public State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
@@ -21,13 +24,23 @@ namespace micm
 
     CudaErrorParam errors_param_;
     CudaJacobianDiagonalElementsParam jacobian_diagonal_elements_param_;
+    CudaConditionsParam conditions_param_;
 
     ~CudaState()
     {
+      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(absolute_tolerance_param_), "cudaFree");
       CHECK_CUDA_ERROR(micm::cuda::FreeArray(errors_param_.errors_input_), "cudaFree");
       CHECK_CUDA_ERROR(micm::cuda::FreeArray(errors_param_.errors_output_), "cudaFree");
       CHECK_CUDA_ERROR(micm::cuda::FreeArray(jacobian_diagonal_elements_param_.data_), "cudaFree");
+      if (conditions_param_.d_temperature_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(conditions_param_.d_temperature_, stream), "cudaFree");
+      if (conditions_param_.d_pressure_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(conditions_param_.d_pressure_, stream), "cudaFree");
+      if (conditions_param_.d_air_density_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(conditions_param_.d_air_density_, stream), "cudaFree");
+      if (conditions_param_.d_fixed_reactants_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(conditions_param_.d_fixed_reactants_, stream), "cudaFree");
     }
 
     /// @brief Constructor which takes the state dimension information as input
@@ -64,14 +77,32 @@ namespace micm
           "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
 
+      auto cuda_stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
               jacobian_diagonal_elements_param_.data_,
               diagonal_indices.data(),
               sizeof(std::size_t) * diagonal_indices.size(),
               cudaMemcpyHostToDevice,
-              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+              cuda_stream),
           "cudaMemcpy");
+
+      // Allocate persistent device buffers for conditions
+      conditions_param_.num_cells_ = number_of_grid_cells;
+      conditions_param_.fixed_reactants_size_ = this->rate_constants_.AsVector().size();
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&conditions_param_.d_temperature_, sizeof(double) * number_of_grid_cells, cuda_stream), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&conditions_param_.d_pressure_, sizeof(double) * number_of_grid_cells, cuda_stream), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&conditions_param_.d_air_density_, sizeof(double) * number_of_grid_cells, cuda_stream), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &conditions_param_.d_fixed_reactants_,
+              sizeof(double) * conditions_param_.fixed_reactants_size_,
+              cuda_stream),
+          "cudaMalloc");
     };
 
     /// @brief Move constructor
@@ -84,6 +115,8 @@ namespace micm
       other.errors_param_ = {};
       jacobian_diagonal_elements_param_ = other.jacobian_diagonal_elements_param_;
       other.jacobian_diagonal_elements_param_ = {};
+      conditions_param_ = other.conditions_param_;
+      other.conditions_param_ = {};
     }
 
     /// @brief Move assignment operator
@@ -98,6 +131,8 @@ namespace micm
         other.errors_param_ = {};
         jacobian_diagonal_elements_param_ = other.jacobian_diagonal_elements_param_;
         other.jacobian_diagonal_elements_param_ = {};
+        conditions_param_ = other.conditions_param_;
+        other.conditions_param_ = {};
       }
       return *this;
     }
@@ -107,6 +142,35 @@ namespace micm
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absoluteTolerance);
       CHECK_CUDA_ERROR(
           micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
+    }
+
+    /// @brief Copy conditions (temperature, pressure, air_density) to the device
+    void SyncConditionsToDevice()
+      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+    {
+      const std::size_t num_cells = conditions_param_.num_cells_;
+      std::vector<double> h_temperature(num_cells);
+      std::vector<double> h_pressure(num_cells);
+      std::vector<double> h_air_density(num_cells);
+      for (std::size_t i = 0; i < num_cells; ++i)
+      {
+        h_temperature[i] = this->conditions_[i].temperature_;
+        h_pressure[i] = this->conditions_[i].pressure_;
+        h_air_density[i] = this->conditions_[i].air_density_;
+      }
+      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              conditions_param_.d_temperature_, h_temperature.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, stream),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              conditions_param_.d_pressure_, h_pressure.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, stream),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              conditions_param_.d_air_density_, h_air_density.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, stream),
+          "cudaMemcpy");
     }
 
     /// @brief Copy input variables to the device

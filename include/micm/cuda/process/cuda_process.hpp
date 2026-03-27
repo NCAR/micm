@@ -16,6 +16,7 @@
 #include <micm/process/rate_constant/troe_rate_constant.hpp>
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
+#include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/solver/state.hpp>
 
 #include <cassert>
@@ -69,15 +70,11 @@ namespace micm
 
     /// @brief Calculate rate constants on GPU
     /// @param processes The processes (needed for parameterized reactant evaluation on CPU)
-    /// @param state The solver state (conditions, custom params, rate constants output)
-    template<
-        class SparseMatrixPolicy,
-        class LuDecompositionPolicy,
-        class LMatrixPolicy,
-        class UMatrixPolicy>
+    /// @param state The CUDA solver state (conditions must be synced to device beforehand via SyncConditionsToDevice())
+    template<class SparseMatrixPolicy, class LuDecompositionPolicy>
     void CalculateRateConstants(
         const std::vector<Process>& processes,
-        State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state) const;
+        CudaState<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state) const;
 
    private:
     /// @brief Pack a rate constant into a CudaRateConstantData descriptor
@@ -199,14 +196,10 @@ namespace micm
 
   template<typename DenseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
-  template<
-      class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void CudaProcess<DenseMatrixPolicy>::CalculateRateConstants(
       const std::vector<Process>& processes,
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state) const
+      CudaState<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state) const
   {
     const std::size_t num_cells = state.conditions_.size();
     const std::size_t num_reactions = h_rate_constants_.size();
@@ -224,40 +217,12 @@ namespace micm
 
     auto cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
-    // 1. Extract conditions into SOA arrays and copy to device
-    std::vector<double> h_temperature(num_cells);
-    std::vector<double> h_pressure(num_cells);
-    std::vector<double> h_air_density(num_cells);
-
-    for (std::size_t i = 0; i < num_cells; ++i)
-    {
-      h_temperature[i] = state.conditions_[i].temperature_;
-      h_pressure[i] = state.conditions_[i].pressure_;
-      h_air_density[i] = state.conditions_[i].air_density_;
-    }
-
-    double* d_temperature = nullptr;
-    double* d_pressure = nullptr;
-    double* d_air_density = nullptr;
-
-    CHECK_CUDA_ERROR(cudaMallocAsync(&d_temperature, sizeof(double) * num_cells, cuda_stream_id), "cudaMalloc");
-    CHECK_CUDA_ERROR(cudaMallocAsync(&d_pressure, sizeof(double) * num_cells, cuda_stream_id), "cudaMalloc");
-    CHECK_CUDA_ERROR(cudaMallocAsync(&d_air_density, sizeof(double) * num_cells, cuda_stream_id), "cudaMalloc");
-
-    CHECK_CUDA_ERROR(
-        cudaMemcpyAsync(d_temperature, h_temperature.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, cuda_stream_id),
-        "cudaMemcpy");
-    CHECK_CUDA_ERROR(
-        cudaMemcpyAsync(d_pressure, h_pressure.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, cuda_stream_id),
-        "cudaMemcpy");
-    CHECK_CUDA_ERROR(
-        cudaMemcpyAsync(
-            d_air_density, h_air_density.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, cuda_stream_id),
-        "cudaMemcpy");
+    // 1. Conditions (temperature, pressure, air_density) are already on device
+    //    via state.SyncConditionsToDevice() called by the caller
 
     // 2. Pre-compute parameterized reactant factors on CPU
     //    Layout matches rate_constants_ vectorized layout: groups of L cells x num_reactions columns
-    std::vector<double> h_fixed_reactants(state.rate_constants_.AsVector().size(), 1.0);
+    std::vector<double> h_fixed_reactants(state.conditions_param_.fixed_reactants_size_, 1.0);
 
     // Collect chemical reactions
     std::vector<const ChemicalReaction*> reactions;
@@ -290,13 +255,10 @@ namespace micm
       }
     }
 
-    // Copy fixed_reactants to device
-    double* d_fixed_reactants = nullptr;
-    CHECK_CUDA_ERROR(
-        cudaMallocAsync(&d_fixed_reactants, sizeof(double) * h_fixed_reactants.size(), cuda_stream_id), "cudaMalloc");
+    // Copy fixed_reactants to pre-allocated device buffer
     CHECK_CUDA_ERROR(
         cudaMemcpyAsync(
-            d_fixed_reactants,
+            state.conditions_param_.d_fixed_reactants_,
             h_fixed_reactants.data(),
             sizeof(double) * h_fixed_reactants.size(),
             cudaMemcpyHostToDevice,
@@ -311,13 +273,13 @@ namespace micm
     auto custom_rate_params = state.custom_rate_parameters_.AsDeviceParam();
 
     micm::cuda::CalculateRateConstantsKernelDriver(
-        d_temperature, d_pressure, d_air_density, custom_rate_params, d_fixed_reactants, rate_constants_param, devstruct_);
-
-    // 5. Free temporary device memory
-    CHECK_CUDA_ERROR(cudaFreeAsync(d_temperature, cuda_stream_id), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(d_pressure, cuda_stream_id), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(d_air_density, cuda_stream_id), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(d_fixed_reactants, cuda_stream_id), "cudaFree");
+        state.conditions_param_.d_temperature_,
+        state.conditions_param_.d_pressure_,
+        state.conditions_param_.d_air_density_,
+        custom_rate_params,
+        state.conditions_param_.d_fixed_reactants_,
+        rate_constants_param,
+        devstruct_);
   }
 
 }  // namespace micm
