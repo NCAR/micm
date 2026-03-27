@@ -168,10 +168,10 @@ namespace micm
         const CudaRateConstantData& rc = devstruct.rate_constants_[i_rxn];
 
         // Gather custom params for this cell (vectorized layout: col * L + local_tid)
-        double custom_vals[2] = { 0.0, 0.0 };
+        double custom_vals[MAX_CUSTOM_PARAMETERS] = {};
         if (custom_base != nullptr && rc.number_of_custom_parameters_ > 0)
         {
-          for (std::size_t i = 0; i < rc.number_of_custom_parameters_ && i < 2; ++i)
+          for (std::size_t i = 0; i < rc.number_of_custom_parameters_ && i < MAX_CUSTOM_PARAMETERS; ++i)
           {
             custom_vals[i] = custom_base[(custom_offset + i) * L + local_tid];
           }

@@ -115,6 +115,13 @@ namespace micm
     CudaRateConstantData data{};
     data.number_of_custom_parameters_ = rate_constant->SizeCustomParameters();
 
+    if (data.number_of_custom_parameters_ > MAX_CUSTOM_PARAMETERS)
+    {
+      throw std::runtime_error(
+          "CudaProcess: Rate constant requires " + std::to_string(data.number_of_custom_parameters_) +
+          " custom parameters, but the GPU kernel supports at most " + std::to_string(MAX_CUSTOM_PARAMETERS) + ".");
+    }
+
     if (auto* rc = dynamic_cast<const ArrheniusRateConstant*>(rate_constant))
     {
       data.type_ = CudaRateConstantType::Arrhenius;

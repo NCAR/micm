@@ -130,6 +130,10 @@ enum class CudaRateConstantType : uint8_t
   UserDefined = 7,
 };
 
+/// Maximum number of custom parameters per reaction supported by the GPU kernel
+/// (Surface uses 2: radius + number_concentration; UserDefined uses 1)
+const std::size_t MAX_CUSTOM_PARAMETERS = 2;
+
 /// GPU-portable rate constant descriptor
 /// Replaces virtual RateConstant::Calculate() dispatch with a tagged union
 struct CudaRateConstantData
