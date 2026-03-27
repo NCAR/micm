@@ -49,7 +49,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
     PRIVATE micm
   )
   
-  target_link_libraries(micm_cuda 
+  target_link_libraries(micm_cuda
     PUBLIC CUDA::cudart CUDA::cublas
   )
   

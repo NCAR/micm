@@ -105,3 +105,32 @@ struct CudaJacobianDiagonalElementsParam
   std::size_t* data_ = nullptr;
   std::size_t size_;
 };
+
+/// Tagged enum for GPU-portable rate constant types
+enum class CudaRateConstantType : uint8_t
+{
+  Arrhenius = 0,
+  Troe = 1,
+  Tunneling = 2,
+  Branched = 3,
+  TernaryChemicalActivation = 4,
+  Reversible = 5,
+  Surface = 6,
+  UserDefined = 7,
+};
+
+/// GPU-portable rate constant descriptor
+/// Replaces virtual RateConstant::Calculate() dispatch with a tagged union
+struct CudaRateConstantData
+{
+  CudaRateConstantType type_;
+  double params_[10];              // fixed-size parameter block (max is 8 for Troe/TCA)
+  std::size_t num_custom_params_;  // number of custom params this reaction consumes from state
+};
+
+/// Device-side struct for CudaProcess rate constant computation
+struct ProcessParam
+{
+  CudaRateConstantData* rate_constants_ = nullptr;
+  std::size_t num_reactions_ = 0;
+};
