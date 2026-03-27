@@ -413,9 +413,7 @@ namespace micm
         typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
     auto species_map = this->GetSpeciesMap();
-
     RatesPolicy rates(reactions_, species_map, external_models_);
-
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
@@ -426,9 +424,11 @@ namespace micm
     {
       // Constraints replace selected species rows in the mass-matrix DAE formulation.
       // Pass species_map so constraints can resolve dependencies.
-      constraint_set = ConstraintSetPolicy(constraints_, species_map);
+      constraint_set = ConstraintSetPolicy(constraints_, species_map, params_map);
+
       // Must set unqiue parameter names before the builder creates the parameter map.
       constraint_set.SetUniqueParameterNames();
+
       algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
 
@@ -446,7 +446,6 @@ namespace micm
       nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
     }
 
-
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
@@ -463,11 +462,10 @@ namespace micm
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
-    if (constraint_set.Size() > 0)
+    if (!constraints_.empty())
     {
       constraint_set.SetJacobianFlatIds(jacobian);
-      // TODO
-      constraint_set.SetConstraintFunctions(params_map, species_map, jacobian);
+      constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
     }
 
     std::vector<std::string> variable_names{ number_of_species };

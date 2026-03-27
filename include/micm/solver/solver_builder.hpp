@@ -125,6 +125,11 @@ namespace micm
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
+
+    /// @brief Builds a map of unique custom parameter labels to indices by
+    ///        collecting parameters from reactions, external models, and constraints.
+    /// @throws std::invalid_argument if duplicate parameter labels are found.
+    /// @return An unordered_map mapping each unique parameter label to its index.
     std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
 
     /// @brief Sets the absolute tolerances per species
