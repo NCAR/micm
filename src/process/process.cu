@@ -136,7 +136,7 @@ namespace micm
       std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
-      const std::size_t num_reactions = devstruct.num_reactions_;
+      const std::size_t number_of_reactions = devstruct.number_of_reactions_;
       const std::size_t L = rate_constants_param.vector_length_;
       const std::size_t number_of_groups = (number_of_grid_cells + L - 1) / L;
 
@@ -163,15 +163,15 @@ namespace micm
       const double* fixed_base = d_fixed_reactants + group_id * (rate_constants_param.number_of_elements_ / number_of_groups);
 
       std::size_t custom_offset = 0;
-      for (std::size_t i_rxn = 0; i_rxn < num_reactions; ++i_rxn)
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
         const CudaRateConstantData& rc = devstruct.rate_constants_[i_rxn];
 
         // Gather custom params for this cell (vectorized layout: col * L + local_tid)
         double custom_vals[2] = { 0.0, 0.0 };
-        if (custom_base != nullptr && rc.num_custom_params_ > 0)
+        if (custom_base != nullptr && rc.number_of_custom_parameters_ > 0)
         {
-          for (std::size_t i = 0; i < rc.num_custom_params_ && i < 2; ++i)
+          for (std::size_t i = 0; i < rc.number_of_custom_parameters_ && i < 2; ++i)
           {
             custom_vals[i] = custom_base[(custom_offset + i) * L + local_tid];
           }
@@ -182,7 +182,7 @@ namespace micm
 
         rc_base[i_rxn * L + local_tid] = rate * fixed;
 
-        custom_offset += rc.num_custom_params_;
+        custom_offset += rc.number_of_custom_parameters_;
       }
     }
 
@@ -193,9 +193,9 @@ namespace micm
     ProcessParam CopyProcessConstData(ProcessParam& hoststruct)
     {
       ProcessParam devstruct;
-      devstruct.num_reactions_ = hoststruct.num_reactions_;
+      devstruct.number_of_reactions_ = hoststruct.number_of_reactions_;
 
-      std::size_t rate_constants_bytes = sizeof(CudaRateConstantData) * hoststruct.num_reactions_;
+      std::size_t rate_constants_bytes = sizeof(CudaRateConstantData) * hoststruct.number_of_reactions_;
 
       auto cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 

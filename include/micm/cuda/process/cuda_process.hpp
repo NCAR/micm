@@ -103,7 +103,7 @@ namespace micm
     // Copy to device
     ProcessParam hoststruct;
     hoststruct.rate_constants_ = h_rate_constants_.data();
-    hoststruct.num_reactions_ = h_rate_constants_.size();
+    hoststruct.number_of_reactions_ = h_rate_constants_.size();
 
     devstruct_ = micm::cuda::CopyProcessConstData(hoststruct);
   }
@@ -113,7 +113,7 @@ namespace micm
   inline CudaRateConstantData CudaProcess<DenseMatrixPolicy>::PackRateConstant(const RateConstant* rate_constant)
   {
     CudaRateConstantData data{};
-    data.num_custom_params_ = rate_constant->SizeCustomParameters();
+    data.number_of_custom_parameters_ = rate_constant->SizeCustomParameters();
 
     if (auto* rc = dynamic_cast<const ArrheniusRateConstant*>(rate_constant))
     {
@@ -201,18 +201,20 @@ namespace micm
       const std::vector<Process>& processes,
       CudaState<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state) const
   {
-    const std::size_t num_cells = state.conditions_.size();
-    const std::size_t num_reactions = h_rate_constants_.size();
+    const std::size_t number_of_grid_cells = state.conditions_.size();
+    const std::size_t number_of_reactions = h_rate_constants_.size();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
 
     // Verify that the processes vector matches what was used at construction
-    std::size_t num_chemical_reactions = 0;
+    std::size_t number_of_chemical_reactions = 0;
     for (const auto& process : processes)
       if (std::holds_alternative<ChemicalReaction>(process.process_))
-        ++num_chemical_reactions;
-    assert(num_chemical_reactions == num_reactions && "processes must match the vector used to construct CudaProcess");
+        ++number_of_chemical_reactions;
+    assert(
+        number_of_chemical_reactions == number_of_reactions &&
+        "processes must match the vector used to construct CudaProcess");
 
-    if (num_reactions == 0)
+    if (number_of_reactions == 0)
       return;
 
     auto cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
@@ -221,8 +223,8 @@ namespace micm
     //    via state.SyncConditionsToDevice() called by the caller
 
     // 2. Pre-compute parameterized reactant factors on CPU
-    //    Layout matches rate_constants_ vectorized layout: groups of L cells x num_reactions columns
-    std::vector<double> h_fixed_reactants(state.conditions_param_.fixed_reactants_size_, 1.0);
+    //    Layout matches rate_constants_ vectorized layout
+    std::vector<double> h_fixed_reactants(state.conditions_param_.number_of_fixed_reactant_elements_, 1.0);
 
     // Collect chemical reactions
     std::vector<const ChemicalReaction*> reactions;
@@ -239,7 +241,7 @@ namespace micm
     {
       std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       std::size_t rate_const_size = std::min(L, state.rate_constants_.NumRows() - (i_group * L));
-      for (std::size_t i_rxn = 0; i_rxn < num_reactions; ++i_rxn)
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
         for (std::size_t i_cell = 0; i_cell < rate_const_size; ++i_cell)
         {

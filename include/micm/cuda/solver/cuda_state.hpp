@@ -89,8 +89,8 @@ namespace micm
           "cudaMemcpy");
 
       // Allocate persistent device buffers for conditions
-      conditions_param_.num_cells_ = number_of_grid_cells;
-      conditions_param_.fixed_reactants_size_ = this->rate_constants_.AsVector().size();
+      conditions_param_.number_of_grid_cells_ = number_of_grid_cells;
+      conditions_param_.number_of_fixed_reactant_elements_ = this->rate_constants_.AsVector().size();
       CHECK_CUDA_ERROR(
           cudaMallocAsync(&conditions_param_.d_temperature_, sizeof(double) * number_of_grid_cells, cuda_stream), "cudaMalloc");
       CHECK_CUDA_ERROR(
@@ -100,7 +100,7 @@ namespace micm
       CHECK_CUDA_ERROR(
           cudaMallocAsync(
               &conditions_param_.d_fixed_reactants_,
-              sizeof(double) * conditions_param_.fixed_reactants_size_,
+              sizeof(double) * conditions_param_.number_of_fixed_reactant_elements_,
               cuda_stream),
           "cudaMalloc");
     };
@@ -148,11 +148,11 @@ namespace micm
     void SyncConditionsToDevice()
       requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
     {
-      const std::size_t num_cells = conditions_param_.num_cells_;
-      std::vector<double> h_temperature(num_cells);
-      std::vector<double> h_pressure(num_cells);
-      std::vector<double> h_air_density(num_cells);
-      for (std::size_t i = 0; i < num_cells; ++i)
+      const std::size_t number_of_grid_cells = conditions_param_.number_of_grid_cells_;
+      std::vector<double> h_temperature(number_of_grid_cells);
+      std::vector<double> h_pressure(number_of_grid_cells);
+      std::vector<double> h_air_density(number_of_grid_cells);
+      for (std::size_t i = 0; i < number_of_grid_cells; ++i)
       {
         h_temperature[i] = this->conditions_[i].temperature_;
         h_pressure[i] = this->conditions_[i].pressure_;
@@ -161,15 +161,15 @@ namespace micm
       auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              conditions_param_.d_temperature_, h_temperature.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, stream),
+              conditions_param_.d_temperature_, h_temperature.data(), sizeof(double) * number_of_grid_cells, cudaMemcpyHostToDevice, stream),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              conditions_param_.d_pressure_, h_pressure.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, stream),
+              conditions_param_.d_pressure_, h_pressure.data(), sizeof(double) * number_of_grid_cells, cudaMemcpyHostToDevice, stream),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              conditions_param_.d_air_density_, h_air_density.data(), sizeof(double) * num_cells, cudaMemcpyHostToDevice, stream),
+              conditions_param_.d_air_density_, h_air_density.data(), sizeof(double) * number_of_grid_cells, cudaMemcpyHostToDevice, stream),
           "cudaMemcpy");
     }
 

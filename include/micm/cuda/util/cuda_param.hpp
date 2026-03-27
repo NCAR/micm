@@ -113,8 +113,8 @@ struct CudaConditionsParam
   double* d_pressure_ = nullptr;
   double* d_air_density_ = nullptr;
   double* d_fixed_reactants_ = nullptr;  // pre-computed parameterized reactant factors
-  std::size_t num_cells_ = 0;
-  std::size_t fixed_reactants_size_ = 0;  // total elements in fixed_reactants (= rate_constants_.AsVector().size())
+  std::size_t number_of_grid_cells_ = 0;
+  std::size_t number_of_fixed_reactant_elements_ = 0;  // total elements in fixed_reactants (= rate_constants_.AsVector().size())
 };
 
 /// Tagged enum for GPU-portable rate constant types
@@ -136,12 +136,12 @@ struct CudaRateConstantData
 {
   CudaRateConstantType type_;
   double params_[10];              // fixed-size parameter block (max is 8 for Troe/TCA)
-  std::size_t num_custom_params_;  // number of custom params this reaction consumes from state
+  std::size_t number_of_custom_parameters_;  // number of custom params this reaction consumes from state
 };
 
 /// Device-side struct for CudaProcess rate constant computation
 struct ProcessParam
 {
   CudaRateConstantData* rate_constants_ = nullptr;
-  std::size_t num_reactions_ = 0;
+  std::size_t number_of_reactions_ = 0;
 };
