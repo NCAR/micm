@@ -78,7 +78,7 @@ void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, st
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
-      10.0));
+      micm::VantHoffParam{ .K_HLC_ref = 10.0, .delta_H = -2400.0 }));
 
   auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ reaction })

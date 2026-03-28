@@ -132,7 +132,8 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Create state matrix with 1 grid cell and 2 species
   DenseMatrix state(1, 2);
@@ -144,7 +145,8 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   state[0][1] = 0.7;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for B (row 1, last term) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
@@ -155,7 +157,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   state[0][1] = 0.6;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.1, 1e-10);
 }
@@ -194,7 +196,8 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
   StandardSparseMatrix jacobian{ builder };
 
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Create state matrix
   DenseMatrix state(1, 2);
@@ -202,7 +205,8 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
   state[0][1] = 0.7;  // B
 
   // Compute Jacobian
-  set.SubtractJacobianTerms(state, jacobian);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Due to SubtractJacobianTerms convention, the values are negated
   // Row 1 (B, the algebraic species): contains dG/d[A], dG/d[B]
@@ -242,7 +246,8 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -254,7 +259,8 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   state[0][2] = 3.0;  // C
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for C (row 2, last term) should be the constraint residual
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
@@ -265,7 +271,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
     elem = 0.0;
   }
 
-  set.SubtractJacobianTerms(state, jacobian);
+  set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Row 2 (C, the algebraic species): contains dG/d[A], dG/d[B], dG/d[C]
   // Due to SubtractJacobianTerms convention, the values are negated
@@ -306,7 +312,8 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -317,7 +324,8 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   state[0][2] = 5.0;  // C
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
 
@@ -328,7 +336,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   state[0][2] = 6.0;  // C
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][2], 1.0, 1e-10);
 }
@@ -362,7 +370,8 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 2);
   DenseMatrix forcing(1, 2);
@@ -372,7 +381,8 @@ TEST(LinearConstraint, ZeroConstantResidual)
   state[0][1] = 0.5;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
@@ -382,7 +392,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
   state[0][1] = 0.5;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.1, 1e-10);
 }
@@ -418,7 +428,8 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 2);
   DenseMatrix forcing(1, 2);
@@ -429,12 +440,13 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
   state[0][1] = 1.0;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
   // Test Jacobian computation
-  set.SubtractJacobianTerms(state, jacobian);
+  set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Due to SubtractJacobianTerms convention, the values are negated
   EXPECT_NEAR(jacobian[0][1][0], -0.5, 1e-10);  // -dG/d[A] = -0.5
@@ -469,7 +481,8 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   StandardSparseMatrix jacobian{ builder };
 
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Test at two different concentration points
   DenseMatrix state1(1, 2);
@@ -481,7 +494,8 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   state2[0][1] = 20.0;  // B
 
   // Compute Jacobian at first state
-  set.SubtractJacobianTerms(state1, jacobian);
+  DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  set.SubtractJacobianTerms(state1, state_parameters, jacobian);
 
   double jac1_dA = jacobian[0][1][0];
   double jac1_dB = jacobian[0][1][1];
@@ -492,7 +506,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
     elem = 0.0;
   }
 
-  set.SubtractJacobianTerms(state2, jacobian);
+  set.SubtractJacobianTerms(state2, state_parameters, jacobian);
 
   double jac2_dA = jacobian[0][1][0];
   double jac2_dB = jacobian[0][1][1];

@@ -21,10 +21,10 @@ namespace micm
   /// @brief Define parameters for Van't Hoff equation
   struct VantHoffParam
   {
-    double K_HLC_ref;                    // Henry’s Law constant at the reference temperature (typically 298K)
+    double K_HLC_ref;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
     double delta_H;                      // Enthalpy of dissolution (J/mol)
     double R = constants::GAS_CONSTANT;  // (J/mol·K)
-    double T_ref = 298.0;
+    double T_ref = 298.15;
   };
 
   /// @brief Constraint for chemical equilibrium: K_eq = [products]^stoich / [reactants]^stoich
@@ -76,7 +76,7 @@ namespace micm
     /// @param name Constraint identifier
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
-    /// TODO K_eq(T) = HLC(298K) * e^(C * ( 1/T - 1/298K ))
+    /// TODO K_eq(T) = HLC(298.15K) * e^(C * ( 1/T - 1/298.15K ))
     /// @param equilibrium_constant K_eq = [products]/[reactants] at equilibrium
     EquilibriumConstraint(
         std::string&& name,
@@ -149,7 +149,7 @@ namespace micm
         product_dependency_indices_.push_back(idx++);
       }
 
-      // K_eq(T) = HLC(298K) * e^(C * ( 1/T - 1/298K ))
+      // K_eq(T) = HLC(298.15K) * e^(C * ( 1/T - 1/298.15K ))
       equilibrium_constant_function_ = [p = vant_hoff_param_](const Conditions& condition)
       {
         double T = condition.temperature_;
