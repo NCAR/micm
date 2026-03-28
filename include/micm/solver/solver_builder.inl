@@ -206,7 +206,7 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::Build() &&
+      StatePolicy>::Build()
   {
     if (!valid_system_)
     {
@@ -236,21 +236,8 @@ namespace micm
     RatesPolicy rates(reactions_, species_map, external_models_);
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
-    
-    // The actual number of grid cells is not needed to construct the various solver objects
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
-    LinearSolverPolicy linear_solver(jacobian, 0);
-    if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
-    {
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
-      jacobian = std::move(lu);
-    }
-
-    // TODO constraint set must ensure parameter names are unique before creating params map
     auto params_map = this->GetCustomParameterMap();
-    rates.SetJacobianFlatIds(jacobian);
-    rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
     // Create vector of functions to update external model state parameters
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
@@ -301,7 +288,22 @@ namespace micm
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
       nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
+    }
 
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
+
+    LinearSolverPolicy linear_solver(jacobian, 0);
+    if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
+    {
+      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
+      jacobian = std::move(lu);
+    }
+
+    rates.SetJacobianFlatIds(jacobian);
+    rates.SetExternalModelFunctions(params_map, species_map, jacobian);
+
+    if (constraint_set.Size() > 0)
+    {
       constraint_set.SetJacobianFlatIds(jacobian);
 
       // Set forcing, jacobian, updating state param functions
@@ -331,6 +333,7 @@ namespace micm
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
+    // TODO 
     // make a copy of the options so that the builder can be used repeatedly
     // this matters because the absolute tolerances must be set to match the system size, and that may change
     auto options = this->options_;

@@ -221,6 +221,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   while (time < total_time)
   {
+    // Updates temperature-dependent state parameters.
+    // Because state conditions remains constant within the while loop,
+    // these values do not change during execution.
+    // This behavior may be revised in the future.
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
 
@@ -305,6 +310,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
@@ -368,6 +374,7 @@ TEST(EquilibriumIntegration, DAESolveWithFourStageDAEParameters)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged) << "FourStageDAE did not converge at time=" << time;
@@ -429,6 +436,7 @@ TEST(EquilibriumIntegration, DAESolveWithSixStageDAEParameters)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged) << "SixStageDAE did not converge at time=" << time;
@@ -497,6 +505,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
@@ -570,6 +579,7 @@ TEST(EquilibriumIntegration, DAEConservationLaw)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged);
@@ -632,6 +642,7 @@ TEST(EquilibriumIntegration, DAESolveStiffCoupling)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
 
@@ -705,6 +716,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged) << "NonUnit stoich did not converge at time=" << time;
@@ -793,6 +805,7 @@ TEST(EquilibriumIntegration, DAESolveMultiGridCell)
 
   while (time < total_time)
   {
+    solver.UpdateStateParameters(state);
     solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, micm::SolverState::Converged) << "Multi-grid DAE did not converge at time=" << time;
@@ -878,6 +891,7 @@ TEST(EquilibriumIntegration, DAEClampingDoesNotBreakAlgebraicVariables)
 
   // After a solve, C should be K_eq * B, and the constraint should be satisfied
   // This verifies that clamping doesn't interfere with algebraic variable values
+  solver.UpdateStateParameters(state);
   solver.CalculateRateConstants(state);
   auto result = solver.Solve(0.01, state);
   ASSERT_EQ(result.state_, micm::SolverState::Converged);
@@ -939,11 +953,13 @@ TEST(EquilibriumIntegration, DAEStateCopyAndSolve)
   auto state_copy = state;
 
   // Solve with the original state
+  solver.UpdateStateParameters(state);
   solver.CalculateRateConstants(state);
   auto result1 = solver.Solve(0.01, state);
   ASSERT_EQ(result1.state_, micm::SolverState::Converged);
 
   // Solve with the copied state
+  solver.UpdateStateParameters(state_copy);
   solver.CalculateRateConstants(state_copy);
   auto result2 = solver.Solve(0.01, state_copy);
   ASSERT_EQ(result2.state_, micm::SolverState::Converged);

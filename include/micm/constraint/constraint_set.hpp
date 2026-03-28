@@ -296,9 +296,9 @@ namespace micm
       }
     }
 
-    GetUpdateStateParamFunctions()
+    auto GetUpdateStateParamFunctions()
     {
-
+      return constraint_param_functions_;
     }
 
     void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
