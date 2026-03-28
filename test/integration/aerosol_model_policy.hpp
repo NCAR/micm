@@ -461,6 +461,7 @@ void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder, double base_
   double stub2_rxn2_delta = stub2_mode3_baz_initial * (1.0 - std::exp(-temperature * 0.005 * time_step));
 
   // Solve the system for a single time step
+  solver.UpdateStateParameters(state);
   solver.CalculateRateConstants(state);
   auto results = solver.Solve(time_step, state);
 
@@ -537,6 +538,7 @@ void test_solve_with_stub_aerosol_model_1_multi_cell(BuilderPolicy builder, doub
   }
 
   // Solve the system for a single time step
+  solver.UpdateStateParameters(state);
   solver.CalculateRateConstants(state);
   auto results = solver.Solve(time_step, state);
 
@@ -634,6 +636,7 @@ void test_solve_with_two_stub_aerosol_models_multi_cell(BuilderPolicy builder, d
   }
 
   // Solve the system for a single time step
+  solver.UpdateStateParameters(state);
   solver.CalculateRateConstants(state);
   auto results = solver.Solve(time_step, state);
 
