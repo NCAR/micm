@@ -43,7 +43,7 @@ namespace micm
       return std::visit([](const auto& c) { return c.name_; }, constraint_);
     }
 
-    /// @brief Get the custom paramter names
+    /// @brief Get the custom parameter names
     /// @return A set of parameter names
     std::vector<std::string> GetParameterNames() const
     {
@@ -72,9 +72,12 @@ namespace micm
       return std::visit([](const auto& c) { return c.species_dependencies_.size(); }, constraint_);
     }
 
-    /// @brief Get a function object to compute constraint parameter(s)
-    ///        This returns a reusable function that can be invoked multiple times
-    // TODO
+    /// @brief Get a function object to update constraint-specific parameters
+    ///        Returns a function that updates parameters (e.g., temperature-dependent K_eq) based on current conditions
+    ///        Called during solver build to create the update function, which is then invoked by UpdateStateParameters
+    ///        before each solve to recompute parameters from the latest temperature and other conditions
+    /// @param info Constraint information including state parameter indices
+    /// @return Function object that takes (conditions, state_param) and updates constraint parameters
     template<typename DenseMatrixPolicy>
     auto ConstraintParameterFunction(const ConstraintInfo& info) const
     {

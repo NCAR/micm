@@ -45,7 +45,7 @@ namespace micm
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<std::size_t> algebraic_variable_ids_;
 
-    /// @brief TODO Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
+    /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
     std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
 
     /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
@@ -62,7 +62,6 @@ namespace micm
     ///        Constraints replace selected species rows in the state/Jacobian (DAE formulation)
     /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
-    /// @param parameter_map Map from species names to state variable indices
     ConstraintSet(std::vector<Constraint>&& constraints, const std::unordered_map<std::string, std::size_t>& variable_map)
         : constraints_(std::move(constraints))
     {
@@ -296,11 +295,19 @@ namespace micm
       }
     }
 
+    /// @brief Returns pre-compiled constraint parameter update functions
+    ///        These functions compute temperature-dependent parameters (e.g., K_eq) for each constraint
+    ///        Called by solver builder to retrieve functions for UpdateStateParameters pipeline
+    /// @return Vector of function objects that take (conditions, state_param) and update constraint parameters
     auto GetUpdateStateParamFunctions()
     {
       return constraint_param_functions_;
     }
 
+    /// @brief Maps constraint parameter names to their column indices in the state parameter matrix
+    ///        Populates constraint_info_[i].state_param_indices_ for each constraint
+    ///        Called during SetConstraintFunctions after parameter map is finalized
+    /// @param state_parameter_indices Map from parameter names to column indices in state_param matrix
     void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
     {
       for (std::size_t i = 0; i < constraints_.size(); ++i)

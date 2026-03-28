@@ -11,7 +11,6 @@
 #include <string>
 #include <system_error>
 #include <vector>
-#include <unordered_set>
 
 namespace micm
 {

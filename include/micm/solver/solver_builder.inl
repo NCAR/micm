@@ -299,6 +299,16 @@ namespace micm
       jacobian = std::move(lu);
     }
 
+    std::vector<std::string> variable_names{ number_of_species };
+    for (auto& species_pair : species_map)
+      variable_names[species_pair.second] = species_pair.first;
+
+    // Build the params map after the constraint set is created,
+    // since it adds its parameters to the map.
+    std::vector<std::string> labels{ params_map.size() };
+    for (auto& param_pair : params_map)
+      labels[param_pair.second] = param_pair.first;
+
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
@@ -306,7 +316,9 @@ namespace micm
     {
       constraint_set.SetJacobianFlatIds(jacobian);
 
-      // Set forcing, jacobian, updating state param functions
+      // Set forcing, jacobian, updating state param functionsr
+      // The species map and parameter map are used to set indices in the state variables
+      // and custom parameters.
       constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
 
       // Add functions that update state parameters when temperature changes
@@ -314,14 +326,6 @@ namespace micm
       update_state_param_funcs.insert(
         update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
     }
-
-    std::vector<std::string> variable_names{ number_of_species };
-    for (auto& species_pair : species_map)
-      variable_names[species_pair.second] = species_pair.first;
-
-    std::vector<std::string> labels{ params_map.size() };
-    for (auto& param_pair : params_map)
-      labels[param_pair.second] = param_pair.first;
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
                                          .number_of_constraints_ = constraint_set.Size(),
@@ -333,7 +337,6 @@ namespace micm
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
-    // TODO 
     // make a copy of the options so that the builder can be used repeatedly
     // this matters because the absolute tolerances must be set to match the system size, and that may change
     auto options = this->options_;
