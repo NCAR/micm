@@ -304,9 +304,10 @@ namespace micm
       return constraint_param_functions_;
     }
 
+   private:
     /// @brief Maps constraint parameter names to their column indices in the state parameter matrix
     ///        Populates constraint_info_[i].state_param_indices_ for each constraint
-    ///        Called during SetConstraintFunctions after parameter map is finalized
+    ///        Called internally by SetConstraintFunctions after parameter map is finalized
     /// @param state_parameter_indices Map from parameter names to column indices in state_param matrix
     void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
     {
