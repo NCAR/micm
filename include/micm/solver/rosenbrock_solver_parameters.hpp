@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -12,14 +12,14 @@
 namespace micm
 {
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class RosenbrockSolver;
 
   /// @brief Rosenbrock solver parameters
   struct RosenbrockSolverParameters
   {
-    template<class RatesPolicy, class LinearSolverPolicy>
-    using SolverType = RosenbrockSolver<RatesPolicy, LinearSolverPolicy>;
+    template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+    using SolverType = RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
     std::size_t stages_{};
     std::size_t upper_limit_tolerance_{};

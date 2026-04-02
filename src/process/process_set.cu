@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
@@ -23,6 +23,7 @@ namespace micm
       const std::size_t* const __restrict__ d_number_of_products = devstruct.number_of_products_;
       const std::size_t* __restrict__ d_product_ids = devstruct.product_ids_;
       const double* __restrict__ d_yields = devstruct.yields_;
+      const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
       const double* __restrict__ d_state_variables = state_variables_param.d_data_;
@@ -52,12 +53,20 @@ namespace micm
           }
           for (int i_react = 0; i_react < number_of_reactants; ++i_react)
           {
-            d_forcing[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid] -= rate;
+            const std::size_t row_id = d_reactant_ids[i_react];
+            if (!d_is_algebraic_variable[row_id])
+            {
+              d_forcing[(row_id * cuda_matrix_vector_length) + local_tid] -= rate;
+            }
           }
           const std::size_t number_of_products = d_number_of_products[i_rxn];
           for (int i_prod = 0; i_prod < number_of_products; ++i_prod)
           {
-            d_forcing[d_product_ids[i_prod] * cuda_matrix_vector_length + local_tid] += d_yields[i_prod] * rate;
+            const std::size_t row_id = d_product_ids[i_prod];
+            if (!d_is_algebraic_variable[row_id])
+            {
+              d_forcing[row_id * cuda_matrix_vector_length + local_tid] += d_yields[i_prod] * rate;
+            }
           }
           d_reactant_ids += d_number_of_reactants[i_rxn];
           d_product_ids += d_number_of_products[i_rxn];
@@ -79,8 +88,10 @@ namespace micm
       /// Local device variables
       const ProcessInfoParam* const __restrict__ d_jacobian_process_info = devstruct.jacobian_process_info_;
       const std::size_t* __restrict__ d_reactant_ids = devstruct.jacobian_reactant_ids_;
+      const std::size_t* __restrict__ d_product_ids = devstruct.jacobian_product_ids_;
       const double* __restrict__ d_yields = devstruct.jacobian_yields_;
       const std::size_t* __restrict__ d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
+      const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const std::size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
       const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
@@ -109,18 +120,32 @@ namespace micm
           {
             d_rate_d_ind *= d_state_variables[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid];
           }
-          for (int i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
+          for (int i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
           {
-            d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
+            const std::size_t row_id = d_reactant_ids[i_dep];
+            if (!d_is_algebraic_variable[row_id])
+            {
+              d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
+            }
             ++d_jacobian_flat_ids;
           }
+          if (!d_is_algebraic_variable[process_info.independent_id_])
+          {
+            d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
+          }
+          ++d_jacobian_flat_ids;
           for (int i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
           {
-            std::size_t jacobian_idx = *d_jacobian_flat_ids + local_tid;
-            d_jacobian[jacobian_idx] -= d_yields[i_dep] * d_rate_d_ind;
+            const std::size_t row_id = d_product_ids[i_dep];
+            if (!d_is_algebraic_variable[row_id])
+            {
+              std::size_t jacobian_idx = *d_jacobian_flat_ids + local_tid;
+              d_jacobian[jacobian_idx] -= d_yields[i_dep] * d_rate_d_ind;
+            }
             ++d_jacobian_flat_ids;
           }
           d_reactant_ids += process_info.number_of_dependent_reactants_;
+          d_product_ids += process_info.number_of_products_;
           d_yields += process_info.number_of_products_;
         }  // end of loop over reactions in a grid cell
       }  // end of checking a CUDA thread id
@@ -137,6 +162,7 @@ namespace micm
       std::size_t number_of_products_bytes = sizeof(std::size_t) * hoststruct.number_of_products_size_;
       std::size_t product_ids_bytes = sizeof(std::size_t) * hoststruct.product_ids_size_;
       std::size_t yields_bytes = sizeof(double) * hoststruct.yields_size_;
+      std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       ProcessSetParam devstruct;
@@ -151,6 +177,8 @@ namespace micm
           cudaMallocAsync(&(devstruct.number_of_products_), number_of_products_bytes, cuda_stream_id), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.product_ids_), product_ids_bytes, cuda_stream_id), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.yields_), yields_bytes, cuda_stream_id), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.is_algebraic_variable_), algebraic_variable_bytes, cuda_stream_id), "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
@@ -180,12 +208,21 @@ namespace micm
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice, cuda_stream_id),
           "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.is_algebraic_variable_,
+              hoststruct.is_algebraic_variable_,
+              algebraic_variable_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;
       devstruct.reactant_ids_size_ = hoststruct.reactant_ids_size_;
       devstruct.number_of_products_size_ = hoststruct.number_of_products_size_;
       devstruct.product_ids_size_ = hoststruct.product_ids_size_;
       devstruct.yields_size_ = hoststruct.yields_size_;
+      devstruct.algebraic_variable_size_ = hoststruct.algebraic_variable_size_;
 
       return devstruct;
     }
@@ -263,6 +300,24 @@ namespace micm
       devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
     }
 
+    void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct)
+    {
+      std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
+
+      auto cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.is_algebraic_variable_,
+              hoststruct.is_algebraic_variable_,
+              algebraic_variable_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+
+      devstruct.algebraic_variable_size_ = hoststruct.algebraic_variable_size_;
+    }
+
     /// This is the function that will delete the constant data
     ///   members of class "CudaProcessSet" on the device
     void FreeConstData(ProcessSetParam& devstruct)
@@ -279,6 +334,8 @@ namespace micm
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.product_ids_, cuda_stream_id), "cudaFree");
       if (devstruct.yields_ != nullptr)
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.yields_, cuda_stream_id), "cudaFree");
+      if (devstruct.is_algebraic_variable_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.is_algebraic_variable_, cuda_stream_id), "cudaFree");
       if (devstruct.jacobian_process_info_ != nullptr)
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_process_info_, cuda_stream_id), "cudaFree");
       if (devstruct.jacobian_reactant_ids_ != nullptr)

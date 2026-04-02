@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -71,6 +71,16 @@ namespace micm
 
     /// @brief Returns a set of unique names for each non-parameterized species
     std::vector<std::string> UniqueNames() const
+    {
+      std::vector<std::string> names{};
+      for (const auto& phase_species : phase_species_)
+        if (!phase_species.species_.IsParameterized())
+          names.push_back(name_ + '.' + phase_species.species_.name_);
+      return names;
+    }
+
+    /// @brief Returns a set of unique names for each non-parameterized species (excludes phase name prefix)
+    std::vector<std::string> SpeciesNames() const
     {
       std::vector<std::string> names{};
       for (const auto& phase_species : phase_species_)

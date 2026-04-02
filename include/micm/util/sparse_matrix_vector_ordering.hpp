@@ -1,9 +1,10 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include "sparse_matrix_vector_ordering_compressed_sparse_column.hpp"
 #include "sparse_matrix_vector_ordering_compressed_sparse_row.hpp"
+#include "view_category.hpp"
 
 namespace micm
 {
@@ -33,4 +34,5 @@ namespace micm
                   })
       matrix.CopyToHost();
   }
+
 }  // namespace micm

@@ -1,7 +1,9 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
+
+#include <memory>
 
 namespace micm
 {
@@ -16,5 +18,8 @@ namespace micm
     TemporaryVariables& operator=(const TemporaryVariables& other) = default;
     TemporaryVariables& operator=(TemporaryVariables&& other) = default;
     virtual ~TemporaryVariables() = default;
+
+    /// @brief Clone this object, preserving the derived type
+    virtual std::unique_ptr<TemporaryVariables> Clone() const = 0;
   };
 }  // namespace micm

@@ -1,12 +1,15 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/matrix_error.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cmath>
 #include <iterator>
 #include <ostream>
 #include <set>
@@ -23,6 +26,24 @@ namespace micm
     t.GroupVectorSize();
     t.NumberOfGroups(0);
   };
+
+  /// @brief Type trait to extract GroupVectorSize (L) from matrix types at compile-time
+  /// Default: L=1 for types without GroupVectorSize
+  template<typename T>
+  struct GroupVectorSize : std::integral_constant<std::size_t, 1>
+  {
+  };
+
+  /// Specialization for types with static GroupVectorSize method
+  template<typename T>
+    requires requires { T::GroupVectorSize(); }
+  struct GroupVectorSize<T> : std::integral_constant<std::size_t, T::GroupVectorSize()>
+  {
+  };
+
+  /// Helper variable template
+  template<typename T>
+  inline constexpr std::size_t GroupVectorSize_v = GroupVectorSize<T>::value;
 
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
@@ -53,6 +74,65 @@ namespace micm
     using IntMatrix = SparseMatrix<int, OrderingPolicy>;
     using value_type = T;
 
+    /// @brief A lightweight descriptor for a const block element in a sparse matrix
+    class ConstBlockView
+    {
+      friend class SparseMatrix;
+      const SparseMatrix* matrix_;
+      std::size_t elem_position_;  // The nth non-zero element position (0-based)
+
+      explicit ConstBlockView(const SparseMatrix* matrix, std::size_t elem_position)
+          : matrix_(matrix),
+            elem_position_(elem_position)
+      {
+      }
+
+     public:
+      using category = SparseMatrixBlockViewTag;
+      std::size_t ElementPosition() const
+      {
+        return elem_position_;
+      }
+      const SparseMatrix* GetMatrix() const
+      {
+        return matrix_;
+      }
+    };
+
+    /// @brief A lightweight descriptor for a mutable block element in a sparse matrix
+    class BlockView
+    {
+      friend class SparseMatrix;
+      SparseMatrix* matrix_;
+      std::size_t elem_position_;  // The nth non-zero element position (0-based)
+
+      explicit BlockView(SparseMatrix* matrix, std::size_t elem_position)
+          : matrix_(matrix),
+            elem_position_(elem_position)
+      {
+      }
+
+     public:
+      using category = SparseMatrixBlockViewTag;
+      std::size_t ElementPosition() const
+      {
+        return elem_position_;
+      }
+      SparseMatrix* GetMatrix()
+      {
+        return matrix_;
+      }
+    };
+
+    /// @brief Alias for the ordering policy's BlockVariable type
+    using BlockVariable = typename OrderingPolicy::template BlockVariable<T>;
+
+    /// @brief Alias for the ordering policy's ConstGroupView type
+    using ConstGroupView = typename OrderingPolicy::template ConstGroupView<SparseMatrix>;
+
+    /// @brief Alias for the ordering policy's GroupView type
+    using GroupView = typename OrderingPolicy::template GroupView<SparseMatrix>;
+
    protected:
     std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
     std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
@@ -65,6 +145,8 @@ namespace micm
     friend class ConstProxyRow;
     friend class Proxy;
     friend class ConstProxy;
+    template<typename>
+    friend class Matrix;
 
     class Proxy
     {
@@ -226,7 +308,11 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::MissingBlockIndex));
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX,
+            "Matrix has multiple blocks; use the (block, row, col) overload of VectorIndex instead");
       return VectorIndex(0, row, column);
     }
 
@@ -310,6 +396,310 @@ namespace micm
               os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
       }
     }
+
+    /// @brief Create a const block view for accessing the nth non-zero element
+    /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
+    /// @return A ConstBlockView descriptor
+    ConstBlockView GetConstBlockView(std::size_t vector_index) const
+    {
+      std::size_t elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
+      return ConstBlockView(this, elem_position);
+    }
+
+    /// @brief Create a const block view for accessing a block element
+    /// @param row The row index of the block element
+    /// @param col The column index of the block element
+    /// @return A ConstBlockView descriptor
+    ConstBlockView GetConstBlockView(std::size_t row, std::size_t col) const
+    {
+      if (row >= block_size_ || col >= block_size_)
+      {
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Block element (" + std::to_string(row) + "," + std::to_string(col) +
+                ") out of range for matrix with block size " + std::to_string(block_size_));
+      }
+      if (this->IsZero(row, col))
+      {
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+            "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
+      }
+      std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
+      return ConstBlockView(this, vector_index);
+    }
+
+    /// @brief Create a mutable block view for accessing the nth non-zero element
+    /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
+    /// @return A BlockView descriptor
+    BlockView GetBlockView(std::size_t vector_index)
+    {
+      std::size_t elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
+      return BlockView(this, elem_position);
+    }
+
+    /// @brief Create a mutable block view for accessing a block element
+    /// @param row The row index of the block element
+    /// @param col The column index of the block element
+    /// @return A BlockView descriptor
+    BlockView GetBlockView(std::size_t row, std::size_t col)
+    {
+      if (row >= block_size_ || col >= block_size_)
+      {
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Block element (" + std::to_string(row) + "," + std::to_string(col) +
+                ") out of range for matrix with block size " + std::to_string(block_size_));
+      }
+      if (this->IsZero(row, col))
+      {
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+            "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
+      }
+      std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
+      return BlockView(this, vector_index);
+    }
+
+    /// @brief Get a block variable with persistent storage for temporary values
+    /// @return A BlockVariable with stack-allocated storage
+    BlockVariable GetBlockVariable()
+    {
+      return BlockVariable();
+    }
+
+    /// @brief Apply a function to each block of the matrix
+    /// @tparam Func The lambda/function type
+    /// @tparam Args The types of the block view arguments
+    /// @param func The function to apply to each block
+    /// @param args Block views or block variables
+    template<typename Func, typename... Args>
+    void ForEachBlock(Func&& func, Args&&... args)
+    {
+      for (std::size_t block = 0; block < number_of_blocks_; ++block)
+      {
+        func(GetBlockElement(block, args)...);
+      }
+    }
+
+    /// @brief Create a function that can be applied to sparse matrices and vectors
+    ///
+    /// Creates a reusable callable that validates dimensions and applies a user function
+    /// across block groups. The function iterates over groups of L blocks at a time, where L
+    /// is determined by the OrderingPolicy::GroupVectorSize(). Supports mixing sparse matrices,
+    /// dense matrices, and vector-like types.
+    ///
+    /// @tparam Func The lambda/function type
+    /// @tparam Args The matrix and vector types (can mix SparseMatrix, VectorMatrix, Matrix, and vectors)
+    /// @param func The function to wrap - receives GroupView objects for matrices and forwarded vectors
+    /// @param args The matrices and vectors to validate and capture dimensions from
+    /// @return A callable that validates dimensions and applies the function
+    ///
+    /// @note Validation occurs in two phases:
+    ///   1. At function creation: Validates matrix dimensions, vector sizes, and ordering compatibility
+    ///   2. At invocation: Re-validates dimensions in case matrices/vectors were resized
+    ///
+    /// @note Column/Block view creation happens inside user lambda and is validated
+    ///       at invocation time, not at function creation time. Ensure all view indices
+    ///       are within matrix bounds to avoid runtime errors.
+    ///
+    /// @throws std::system_error if matrices have incompatible orderings (different L values),
+    ///         mismatched block counts, or vectors have wrong sizes
+    template<typename Func, typename... Args>
+    static auto Function(Func&& func, Args&... args)
+    {
+      // Validate that all matrices have compatible ordering (same L value)
+      // Get L from this sparse matrix's ordering policy
+      constexpr std::size_t expected_L = OrderingPolicy::GroupVectorSize();
+
+      // Check each argument: matrices must have compatible L, vectors are skipped
+      std::size_t index = 0;
+      (
+          [&](auto& arg)
+          {
+            using ArgType = std::remove_cvref_t<decltype(arg)>;
+
+            // Only check L for matrix types (not vectors)
+            if constexpr (!VectorLike<ArgType>)
+            {
+              // Get the L value for this matrix using the type trait
+              constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+
+              if (matrix_L != expected_L)
+              {
+                throw MicmException(
+                    MicmSeverity::Error,
+                    MICM_ERROR_CATEGORY_MATRIX,
+                    MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                    "Incompatible matrix orderings: Matrix " + std::to_string(index) +
+                        " has GroupVectorSize=" + std::to_string(matrix_L) + " but expected " + std::to_string(expected_L) +
+                        ". Cannot mix standard-ordered (L=1) and vector-ordered (L>1) matrices, " +
+                        "or vector-ordered matrices with different L values.");
+              }
+            }
+            ++index;
+          }(args),
+          ...);
+
+      // At creation time, we only validate ordering compatibility (L value)
+      // Matrices can have different sparsity patterns and block sizes
+      // The actual sparsity pattern compatibility is validated at runtime
+      // when block views are accessed (will throw if element doesn't exist)
+
+      // Return a callable that validates dimensions at invocation time
+      return [func = std::forward<Func>(func)](auto&&... invoked_args) mutable
+      {
+        // At invocation: Validate that all matrices/vectors have compatible block counts/sizes
+        // For sparse matrices: NumberOfBlocks()
+        // For dense matrices: NumRows() (blocks correspond to rows)
+        // For vectors: size() (should match block count)
+        std::size_t num_blocks = 0;
+        bool found_first = false;
+        std::size_t idx = 0;
+
+        (
+            [&](auto& arg)
+            {
+              using ArgType = std::remove_cvref_t<decltype(arg)>;
+
+              if constexpr (VectorLike<ArgType>)
+              {
+                // Vector - validate size matches block count
+                if (!found_first)
+                {
+                  num_blocks = arg.size();
+                  found_first = true;
+                }
+                else if (arg.size() != num_blocks)
+                {
+                  throw MicmException(
+                      MicmSeverity::Error,
+                      MICM_ERROR_CATEGORY_MATRIX,
+                      MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                      "Vector size " + std::to_string(arg.size()) + " does not match expected block count " +
+                          std::to_string(num_blocks) + " when invoking function");
+                }
+              }
+              else
+              {
+                // Matrix - validate block count
+                std::size_t arg_blocks;
+                constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
+
+                if constexpr (is_sparse_matrix)
+                {
+                  arg_blocks = arg.NumberOfBlocks();
+                }
+                else
+                {
+                  // For dense matrices, rows correspond to blocks
+                  arg_blocks = arg.NumRows();
+                }
+
+                if (!found_first)
+                {
+                  num_blocks = arg_blocks;
+                  found_first = true;
+                }
+                else if (arg_blocks != num_blocks)
+                {
+                  throw MicmException(
+                      MicmSeverity::Error,
+                      MICM_ERROR_CATEGORY_MATRIX,
+                      MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
+                      "All matrices must have the same number of blocks/rows when invoking function. Expected " +
+                          std::to_string(num_blocks) + " but got " + std::to_string(arg_blocks));
+                }
+              }
+              ++idx;
+            }(invoked_args),
+            ...);
+
+        // Get the group vector size from the OrderingPolicy (compile-time constant)
+        // For standard ordering: L = 1
+        // For vector ordering: L > 1
+        constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+
+        // Iterate over groups, processing L blocks at a time
+        std::size_t num_groups = (num_blocks + L - 1) / L;  // Ceiling division
+        for (std::size_t group = 0; group < num_groups; ++group)
+        {
+          // For matrices: use ConstGroupView if const, otherwise GroupView
+          // For vectors: forward them directly
+          func(
+              [&](auto&& arg) -> decltype(auto)
+              {
+                using ArgType = std::remove_reference_t<decltype(arg)>;
+                using ArgTypeNoConst = std::remove_const_t<ArgType>;
+                if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+                {
+                  // Vector: just forward it
+                  return std::forward<decltype(arg)>(arg);
+                }
+                else
+                {
+                  // Matrix: create appropriate GroupView
+                  if constexpr (std::is_const_v<ArgType>)
+                  {
+                    return typename ArgTypeNoConst::ConstGroupView(arg, group);
+                  }
+                  else
+                  {
+                    return typename ArgTypeNoConst::GroupView(arg, group);
+                  }
+                }
+              }(invoked_args)...);
+        }
+      };
+    }
+
+   private:
+    /// @brief Get an element reference for a block (BlockView)
+    template<SparseMatrixBlockView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    {
+      auto* source_matrix = arg.GetMatrix();
+      constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+      std::size_t group = block / L;
+      std::size_t block_in_group = block % L;
+
+      // Delegate to the OrderingPolicy's GroupView::GetBlockElement
+      if constexpr (std::is_const_v<std::remove_pointer_t<decltype(source_matrix)>>)
+      {
+        ConstGroupView group_view(*source_matrix, group);
+        return group_view.GetBlockElement(block_in_group, std::forward<Arg>(arg));
+      }
+      else
+      {
+        GroupView group_view(*source_matrix, group);
+        return group_view.GetBlockElement(block_in_group, std::forward<Arg>(arg));
+      }
+    }
+
+    /// @brief Get an element reference for a block (BlockVariable)
+    template<BlockVariableView Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    {
+      return arg.Get();
+    }
+
+    /// @brief Get an element reference for a block (Vector-like)
+    template<VectorLike Arg>
+    [[gnu::always_inline]]
+    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    {
+      return arg[block];
+    }
   };
 
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
@@ -343,7 +733,11 @@ namespace micm
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Element out of range");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

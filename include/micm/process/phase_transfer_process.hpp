@@ -1,12 +1,11 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process_error.hpp>
 #include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 
 #include <memory>
 #include <utility>
@@ -24,7 +23,7 @@ namespace micm
     Phase condensed_phase_;
     Phase solvent_phase_;
     Species gas_species_;
-    std::vector<Yield> condensed_species_;
+    Species condensed_species_;
     Species solvent_;
     std::unique_ptr<TransferCoefficient> coefficient_;
 
@@ -36,7 +35,7 @@ namespace micm
         const Phase& condensed_phase,
         const Phase& solvent_phase,
         Species gas_species,
-        std::vector<Yield> condensed_species,
+        Species condensed_species,
         Species solvent,
         std::unique_ptr<TransferCoefficient> coefficient)
         : gas_phase_(gas_phase),
@@ -67,8 +66,10 @@ namespace micm
       if (this != &other)
       {
         if (!other.coefficient_)
-          throw std::system_error(
-              make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+          throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_PROCESS,
+              MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
               "Cannot copy from a PhaseTransferProcess with null coefficient");
 
         gas_phase_ = other.gas_phase_;
@@ -87,8 +88,10 @@ namespace micm
     void Validate() const
     {
       if (!coefficient_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::TransferCoefficientIsNotSet),
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_PROCESS,
+            MICM_PROCESS_ERROR_CODE_TRANSFER_COEFFICIENT_IS_NOT_SET,
             "Phase Transfer Coefficient pointer cannot be null");
     }
   };

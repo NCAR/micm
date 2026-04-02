@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -69,7 +69,11 @@ namespace micm
 
   inline double UserDefinedRateConstant::Calculate(const Conditions& conditions) const
   {
-    throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant), "");
+    throw MicmException(
+        MicmSeverity::Error,
+        MICM_ERROR_CATEGORY_RATE_CONSTANT,
+        MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_USER_DEFINED_RATE_CONSTANT,
+        "Missing required arguments for user-defined rate constant");
   }
 
   inline double UserDefinedRateConstant::Calculate(

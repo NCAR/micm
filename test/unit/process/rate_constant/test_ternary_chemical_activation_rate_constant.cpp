@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArugments)
+TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArguments)
 {
   micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
@@ -20,7 +20,7 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArugments)
   EXPECT_EQ(k, k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(k0 * 42.2 / kinf), 2))));
 }
 
-TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArugments)
+TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArguments)
 {
   double temperature = 301.24;  // [K]
   micm::Conditions conditions{

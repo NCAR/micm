@@ -1,62 +1,277 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-
-enum class MicmStateErrc
-{
-  UnknownSpecies = MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES,
-  UnknownRateConstantParameter = MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER,
-  IncorrectNumberOfConcentrationValuesForMultiGridcellState = MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
-  IncorrectNumberOfCustomRateParameterValues = MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
-  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState =
-      MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
-};
-
-namespace std
-{
-  template<>
-  struct is_error_code_enum<MicmStateErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-
-  class MicmStateErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return "MICM State";
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmStateErrc>(ev))
-      {
-        case MicmStateErrc::UnknownSpecies: return "Unknown species";
-        case MicmStateErrc::UnknownRateConstantParameter: return "Unknown rate constant parameter";
-        case MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState:
-          return "Incorrect number of concentration values for multi-gridcell State";
-        case MicmStateErrc::IncorrectNumberOfCustomRateParameterValues:
-          return "Incorrect number of custom rate parameter values per grid cell";
-        case MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState:
-          return "Incorrect number of custom rate parameter values for multi-gridcell State";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const MicmStateErrorCategory micmStateErrorCategory{};
-
-}  // namespace
-
-inline std::error_code make_error_code(MicmStateErrc e)
-{
-  return { static_cast<int>(e), micmStateErrorCategory };
-}
 
 namespace micm
 {
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+  operator double() const
+  {
+    if (state_.variables_.NumRows() != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot convert multi-gridcell State variable to single double value");
+    return state_.variables_[0][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator=(double value)
+  {
+    if (state_.variables_.NumRows() != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot assign single value to multi-gridcell State variable");
+    state_.variables_[0][index_] = value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator=(const std::vector<double>& values)
+  {
+    if (values.size() != state_.number_of_grid_cells_)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Number of values does not match number of grid cells in State");
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      state_.variables_[i][index_] = values[i];
+    }
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator=(const VariableProxy& other)
+  {
+    if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Number of grid cells does not match between State variables");
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      state_.variables_[i][index_] = other.state_.variables_[i][other.index_];
+    }
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator+=(double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot add single value to multi-gridcell State variable");
+    state_.variables_[0][index_] += value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator-=(double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot subtract single value from multi-gridcell State variable");
+    state_.variables_[0][index_] -= value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator*=(double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot multiply single value with multi-gridcell State variable");
+    state_.variables_[0][index_] *= value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy&
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      operator/=(double value)
+  {
+    if (state_.number_of_grid_cells_ != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot divide multi-gridcell State variable by single value");
+    state_.variables_[0][index_] /= value;
+    return *this;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy::operator[](std::size_t grid_cell_index)
+  {
+    if (grid_cell_index >= state_.number_of_grid_cells_)
+      throw std::out_of_range("Grid cell index out of range");
+    return state_.variables_[grid_cell_index][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy::operator[](std::size_t grid_cell_index) const
+  {
+    if (grid_cell_index >= state_.number_of_grid_cells_)
+      throw std::out_of_range("Grid cell index out of range");
+    return state_.variables_[grid_cell_index][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy::operator double() const
+  {
+    if (state_.variables_.NumRows() != 1)
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Cannot convert multi-gridcell State variable to single double value");
+    return state_.variables_[0][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy::operator[](std::size_t grid_cell_index) const
+  {
+    if (grid_cell_index >= state_.number_of_grid_cells_)
+      throw std::out_of_range("Grid cell index out of range");
+    return state_.variables_[grid_cell_index][index_];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy::operator==(const std::vector<double>& other) const
+  {
+    if (other.size() != state_.number_of_grid_cells_)
+      return false;
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      if (state_.variables_[i][index_] != other[i])
+        return false;
+    }
+    return true;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy::operator==(const std::vector<double>& other) const
+  {
+    if (other.size() != state_.number_of_grid_cells_)
+      return false;
+    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    {
+      if (state_.variables_[i][index_] != other[i])
+        return false;
+    }
+    return true;
+  }
 
   template<
       class DenseMatrixPolicy,
@@ -69,6 +284,7 @@ namespace micm
         custom_rate_parameters_(),
         rate_constants_(),
         conditions_(),
+        upper_left_identity_diagonal_(),
         jacobian_(),
         jacobian_diagonal_elements_(),
         variable_map_(),
@@ -77,6 +293,7 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(0),
+        constraint_size_(0),
         number_of_grid_cells_(0),
         temporary_variables_(nullptr),
         relative_tolerance_(1e-06),
@@ -100,11 +317,13 @@ namespace micm
         variable_map_(),
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
+        upper_left_identity_diagonal_(),
         jacobian_(),
         jacobian_diagonal_elements_(),
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
+        constraint_size_(parameters.number_of_constraints_),
         number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
@@ -115,6 +334,23 @@ namespace micm
     index = 0;
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
+
+    if (!parameters.mass_matrix_diagonal_.empty())
+    {
+      if (parameters.mass_matrix_diagonal_.size() != state_size_)
+      {
+        throw std::runtime_error("StateParameters::mass_matrix_diagonal_ size must equal number_of_species when provided.");
+      }
+      upper_left_identity_diagonal_ = parameters.mass_matrix_diagonal_;
+    }
+    else
+    {
+      // Default: all ODE variables (diagonal = 1.0)
+      for (std::size_t i = 0; i < state_size_; i++)
+      {
+        upper_left_identity_diagonal_.push_back(1.0);
+      }
+    }
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
@@ -135,6 +371,100 @@ namespace micm
       upper_matrix_ = upper_matrix;
     }
     jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          std::size_t index)
+  {
+    if (index >= state_size_)
+      throw std::out_of_range("Variable index out of range");
+    return VariableProxy(*this, index);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          std::size_t index) const
+  {
+    if (index >= state_size_)
+      throw std::out_of_range("Variable index out of range");
+    return ConstVariableProxy(*this, index);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const std::string& name)
+  {
+    auto var = variable_map_.find(name);
+    if (var == variable_map_.end())
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
+    return VariableProxy(*this, var->second);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const std::string& name) const
+  {
+    auto var = variable_map_.find(name);
+    if (var == variable_map_.end())
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
+    return ConstVariableProxy(*this, var->second);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      VariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const Species& species)
+  {
+    return operator[](species.name_);
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      ConstVariableProxy
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+          const Species& species) const
+  {
+    return operator[](species.name_);
   }
 
   template<
@@ -165,9 +495,14 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
+      throw MicmException(
+          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != 1)
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Concentration vector size does not match the number of grid cells");
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
@@ -184,9 +519,14 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
+      throw MicmException(
+          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != concentration.size())
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Concentration vector size does not match the number of grid cells");
     std::size_t i_species = variable_map_[species.name_];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -205,9 +545,13 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
-      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
     if (variables_.NumRows() != 1)
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Concentration vector size does not match the number of grid cells");
     variables_[0][variable_map_[element]] = concentration;
   }
 
@@ -224,9 +568,13 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
-      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), element);
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
     if (variables_.NumRows() != concentration.size())
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
+          "Concentration vector size does not match the number of grid cells");
     std::size_t i_species = variable_map_[element];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -242,11 +590,18 @@ namespace micm
       UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
-      throw std::system_error(
-          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
+          "Custom rate parameter vector size does not match the number of grid cells");
 
     if (parameters[0].size() != custom_rate_parameters_.NumColumns())
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValues));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
+          "Custom rate parameter count does not match the number of rate constants");
 
     for (size_t i = 0; i < number_of_grid_cells_; ++i)
     {
@@ -281,10 +636,14 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
+      throw MicmException(
+          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != 1)
-      throw std::system_error(
-          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
+          "Custom rate parameter vector size does not match the number of grid cells");
     custom_rate_parameters_[0][param->second] = value;
   }
 
@@ -301,10 +660,14 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
+      throw MicmException(
+          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != values.size())
-      throw std::system_error(
-          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_STATE,
+          MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
+          "Custom rate parameter vector size does not match the number of grid cells");
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
@@ -355,7 +718,7 @@ namespace micm
       std::cout << "," << std::setw(6) << "grid";
     }
 
-    for (const auto& [species, index] : variable_map_)
+    for (const auto& species : variable_names_)
     {
       std::cout << "," << std::setw(width) << species;
     }
@@ -389,12 +752,13 @@ namespace micm
       }
 
       bool first = true;
-      for (const auto& [species, index] : variable_map_)
+      for (const auto& species : variable_names_)
       {
         if (!first)
         {
           std::cout << ",";
         }
+        std::size_t index = variable_map_.at(species);
         std::cout << std::scientific << std::setw(width) << std::setprecision(2) << variables_[i][index];
         first = false;
       }

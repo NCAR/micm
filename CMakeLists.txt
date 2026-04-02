@@ -1,9 +1,9 @@
 ################################################################################
 # Preamble
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.24)
 
 # project and version must be on the same line so that the docs can extract it
-project(micm VERSION 3.11.0 LANGUAGES CXX)
+project(micm VERSION 3.12.0 LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -30,17 +30,11 @@ option(MICM_ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
-option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
+option(MICM_BUILD_SHARED_LIBS "Build micm_cuda as shared libraries" OFF)
 set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
-
-# on ubuntu with clang, an incorrect version of the c++ standard library was being linked
-if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    # If the compiler is Clang, use libc++
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-endif()
 
 # on Windows with MSVC, add the /bigobj flag to allow for large object files
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -74,8 +68,8 @@ if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_TESTS)
         NAME coverage
         EXECUTABLE "ctest"
         EXCLUDE "${PROJECT_SOURCE_DIR}/test/*"
-        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
-
+        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src"
+        LCOV_ARGS "--ignore-errors" "mismatch")
   endif()
 
   enable_testing()
@@ -88,12 +82,4 @@ endif()
 # only include packaging if we are the top level project being built
 if(PROJECT_IS_TOP_LEVEL)
   add_subdirectory(packaging)
-endif()
-
-################################################################################
-
-# on ubuntu with clang, an incorrect version of the c++ standard library was being linked
-if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    # If the compiler is Clang, use libc++
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 endif()

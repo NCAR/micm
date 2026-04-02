@@ -14,7 +14,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
 
 
-Copyright (C) 2018-2025 University Corporation for Atmospheric Research
+Copyright (C) 2018-2026 University Corporation for Atmospheric Research
 
 
 <p align="center">
@@ -54,8 +54,7 @@ If you would later like to uninstall MICM, you can run
 
 ## Options
 
-There are multiple options for running micm. You can use [json](https://github.com/nlohmann/json)
-to configure a solver, [llvm](https://llvm.org/) to JIT-compile
+There are multiple options for running micm. You can use our
 solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
 Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
 to learn how to enable these options.
@@ -121,14 +120,14 @@ int main(const int argc, const char *argv[])
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
-                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetProducts({ StoichSpecies(bar, 0.8), StoichSpecies(baz, 0.2) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
-                   .SetProducts({ Yield(baz, 1) })
+                   .SetProducts({ StoichSpecies(baz, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
                    .SetPhase(gas_phase)
                    .Build();
@@ -145,7 +144,7 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.conditions_[0].CalculateIdealAirDensity();
-  state.SetConcentration(foo, 20.0);           // mol m-3
+  state[foo] = 20.0;                           // mol m-3
 
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
@@ -161,23 +160,23 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.11.0/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.12.0/include -std=c++20
 ./foo_chem
 ```
 
 Output:
 ```
- time,        Bar,        Baz,        Foo
-    0,   5.90e+00,   1.91e+00,   1.18e+01
-  500,   9.05e+00,   3.32e+00,   6.79e+00
- 1000,   1.07e+01,   4.21e+00,   3.83e+00
- 1500,   1.17e+01,   4.74e+00,   2.14e+00
- 2000,   1.22e+01,   5.04e+00,   1.19e+00
- 2500,   1.24e+01,   5.21e+00,   6.58e-01
- 3000,   1.26e+01,   5.31e+00,   3.64e-01
- 3500,   1.27e+01,   5.36e+00,   2.01e-01
- 4000,   1.27e+01,   5.39e+00,   1.11e-01
- 4500,   1.28e+01,   5.41e+00,   6.13e-02
+ time,        Foo,        Bar,        Baz
+    0,   1.18e+01,   5.90e+00,   1.91e+00
+  500,   6.79e+00,   9.05e+00,   3.32e+00
+ 1000,   3.83e+00,   1.07e+01,   4.21e+00
+ 1500,   2.14e+00,   1.17e+01,   4.74e+00
+ 2000,   1.19e+00,   1.22e+01,   5.04e+00
+ 2500,   6.58e-01,   1.24e+01,   5.21e+00
+ 3000,   3.64e-01,   1.26e+01,   5.31e+00
+ 3500,   2.01e-01,   1.27e+01,   5.36e+00
+ 4000,   1.11e-01,   1.27e+01,   5.39e+00
+ 4500,   6.13e-02,   1.28e+01,   5.41e+00
 ```
 # Citation
 
@@ -220,4 +219,4 @@ installation and usage instructions.
 
 - [Apache 2.0](/LICENSE)
 
-Copyright (C) 2018-2025 University Corporation for Atmospheric Research
+Copyright (C) 2018-2026 University Corporation for Atmospheric Research

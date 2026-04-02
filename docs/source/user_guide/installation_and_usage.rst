@@ -106,7 +106,7 @@ for use with cmake's `find_package <https://cmake.org/cmake/help/latest/command/
       └── micm
 
 micm only installs its header and cmake files. If you intend to use any of the additional features of micm
-like JIT compiling or json parsing, you'll need to have it's dependencies installed.
+like GPU solving, you'll need to have those dependencies installed.
 
 Specify include path
 ~~~~~~~~~~~~~~~~~~~~

@@ -124,8 +124,178 @@ TEST(Matrix, Min)
 {
   testMin<micm::Matrix>();
 }
+TEST(Matrix, ArrayFunction)
+{
+  testArrayFunction<micm::Matrix>();
+}
+
+TEST(Matrix, MultiMatrixArrayFunction)
+{
+  testMultiMatrixArrayFunction<micm::Matrix>();
+}
+
+TEST(Matrix, MismatchedRowDimensions)
+{
+  testMismatchedRowDimensions<micm::Matrix>();
+}
+
+TEST(Matrix, MismatchedColumnDimensions)
+{
+  testMismatchedColumnDimensions<micm::Matrix>();
+}
+
+TEST(Matrix, WrongMatrixDimensions)
+{
+  testWrongMatrixDimensions<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleTemporaries)
+{
+  testMultipleTemporaries<micm::Matrix>();
+}
+
+TEST(Matrix, ColumnViewReuse)
+{
+  testColumnViewReuse<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionReusability)
+{
+  testFunctionReusability<micm::Matrix>();
+}
+
+TEST(Matrix, ConstMatrixFunction)
+{
+  testConstMatrixFunction<micm::Matrix>();
+}
+
+TEST(Matrix, EmptyMatrixFunction)
+{
+  testEmptyMatrixFunction<micm::Matrix>();
+}
+
+// Flexible row count tests
+TEST(Matrix, MultiMatrixDifferentRowsFromCreation)
+{
+  testMultiMatrixDifferentRowsFromCreation<micm::Matrix>();
+}
+
+TEST(Matrix, MatrixVectorDifferentRowsFromCreation)
+{
+  testMatrixVectorDifferentRowsFromCreation<micm::Matrix>();
+}
+
+TEST(Matrix, MismatchedRowsAtInvocation)
+{
+  testMismatchedRowsAtInvocation<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleMatricesMismatchedRowsAtInvocation)
+{
+  testMultipleMatricesMismatchedRowsAtInvocation<micm::Matrix>();
+}
+
+TEST(Matrix, WrongColumnCountAtInvocation)
+{
+  testWrongColumnCountAtInvocation<micm::Matrix>();
+}
 
 TEST(Matrix, Print)
 {
   testPrint<micm::Matrix>();
+}
+// Vector support tests
+TEST(Matrix, VectorInMatrixFunction)
+{
+  testVectorInMatrixFunction<micm::Matrix>();
+}
+
+TEST(Matrix, VectorTooSmall)
+{
+  testVectorTooSmall<micm::Matrix>();
+}
+
+TEST(Matrix, VectorTooLarge)
+{
+  testVectorTooLarge<micm::Matrix>();
+}
+
+TEST(Matrix, EmptyVectorNonEmptyMatrix)
+{
+  testEmptyVectorNonEmptyMatrix<micm::Matrix>();
+}
+
+TEST(Matrix, NonEmptyVectorEmptyMatrix)
+{
+  testNonEmptyVectorEmptyMatrix<micm::Matrix>();
+}
+
+TEST(Matrix, EmptyVectorEmptyMatrix)
+{
+  testEmptyVectorEmptyMatrix<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleVectorsDifferentSizes)
+{
+  testMultipleVectorsDifferentSizes<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleVectorsSameSize)
+{
+  testMultipleVectorsSameSize<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleMatricesOneVector)
+{
+  testMultipleMatricesOneVector<micm::Matrix>();
+}
+
+TEST(Matrix, MultipleMatricesDifferentRowsVector)
+{
+  testMultipleMatricesDifferentRowsVector<micm::Matrix>();
+}
+
+TEST(Matrix, VectorSizeMatchesOneMatrixOnly)
+{
+  testVectorSizeMatchesOneMatrixOnly<micm::Matrix>();
+}
+
+TEST(Matrix, ConstVector)
+{
+  testConstVector<micm::Matrix>();
+}
+
+TEST(Matrix, MutableVector)
+{
+  testMutableVector<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionReusabilityWithVectors)
+{
+  testFunctionReusabilityWithVectors<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionInvocationWithWrongSizedVector)
+{
+  testFunctionInvocationWithWrongSizedVector<micm::Matrix>();
+}
+
+TEST(Matrix, ArraySupport)
+{
+  testArraySupport<micm::Matrix>();
+}
+
+TEST(Matrix, MixedVectorColumnViewRowVariable)
+{
+  testMixedVectorColumnViewRowVariable<micm::Matrix>();
+}
+
+TEST(Matrix, IntegerVector)
+{
+  testIntegerVector<micm::Matrix>();
+}
+
+TEST(Matrix, FunctionWithConstSignature)
+{
+  testFunctionWithConstSignature<micm::Matrix>();
 }

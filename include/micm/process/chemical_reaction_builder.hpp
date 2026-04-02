@@ -1,14 +1,12 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/process.hpp>
-#include <micm/process/process_error.hpp>
-#include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 
 #include <memory>
 #include <utility>
@@ -20,28 +18,22 @@ namespace micm
 
   class ChemicalReactionBuilder
   {
-   private:
-    std::vector<Species> reactants_;
-    std::vector<Yield> products_;
-    std::unique_ptr<RateConstant> rate_constant_;
-    Phase phase_;
-
    public:
-    /// @brief Sets the list of reactant species involved in the chemical reaction
-    /// @param reactants A vector of Species objects representing the reactants
+    /// @brief Sets the list of reactant species involved in the chemical reaction.
+    /// @param reactants A list of Species objects representing the reactants
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetReactants(std::vector<Species> reactants)
+    ChemicalReactionBuilder& SetReactants(const std::vector<Species>& reactants)
     {
-      reactants_ = std::move(reactants);
+      reactants_ = reactants;
       return *this;
     }
 
-    /// @brief Sets the list of product species and their yields for the chemical reaction
-    /// @param products A vector of Yield objects representing the products
+    /// @brief Sets the list of product species and their yields for the chemical reaction.
+    /// @param products A list of StoichSpecies objects representing the products
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetProducts(std::vector<Yield> products)
+    ChemicalReactionBuilder& SetProducts(const std::vector<StoichSpecies>& products)
     {
-      products_ = std::move(products);
+      products_ = products;
       return *this;
     }
 
@@ -72,12 +64,21 @@ namespace micm
     Process Build()
     {
       if (!rate_constant_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_PROCESS,
+            MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
+            "Rate Constant pointer cannot be null.");
 
       ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
       return Process(std::move(reaction));
     }
+
+   private:
+    std::vector<Species> reactants_;
+    std::vector<StoichSpecies> products_;
+    std::unique_ptr<RateConstant> rate_constant_;
+    Phase phase_;
   };
 
 }  // namespace micm

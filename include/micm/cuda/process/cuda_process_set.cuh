@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -20,6 +20,11 @@ namespace micm
     /// This is the function that will copy the information needed
     /// to calculated Jacobian terms to the device
     void CopyJacobianParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
+
+    /// @brief Copies algebraic variable data from host to device memory
+    /// @param hoststruct Host-side struct containing pointers to algebraic variable data
+    /// @param devstruct Device-side struct with pre-allocated memory for algebraic variables
+    void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
 
     /// This is the host function that will call the CUDA kernel
     ///   to calculate the forcing terms

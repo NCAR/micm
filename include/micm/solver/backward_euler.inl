@@ -1,10 +1,10 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
 {
-  template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+  inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::Solve(
       double time_step,
       auto& state,
       const BackwardEulerSolverParameters& parameters) const
@@ -54,12 +54,12 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         forcing.Fill(0.0);
-        rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        rates_.AddForcingTerms(state, Yn1, forcing);
         result.stats_.function_calls_++;
 
         // calculate the negative jacobian
         state.jacobian_.Fill(0.0);
-        rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        rates_.SubtractJacobianTerms(state, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
         // add the inverse of the time step from the diagonal
@@ -150,9 +150,9 @@ namespace micm
     return result;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
@@ -179,9 +179,9 @@ namespace micm
     return true;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,

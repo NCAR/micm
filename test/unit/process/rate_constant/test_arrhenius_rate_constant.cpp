@@ -48,7 +48,7 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
-TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments)
+TEST(ArrheniusRateConstant, CalculateWithPrescribedArguments)
 {
   micm::Conditions conditions = {
     .temperature_ = 301.24  // [K]

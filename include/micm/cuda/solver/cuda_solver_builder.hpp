@@ -1,4 +1,4 @@
-/* Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+/* Copyright (C) 2023-2026 University Corporation for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,7 +25,7 @@ namespace micm
       SolverParametersPolicy,
       CudaDenseMatrix<double, L>,
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
-      CudaProcessSet,
+      CudaProcessSet<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>,
       CudaLuDecompositionMozartInPlace,
       CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecompositionMozartInPlace>,
       CudaState<

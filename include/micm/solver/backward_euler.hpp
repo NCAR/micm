@@ -1,7 +1,8 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/constraint/constraint_set.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/linear_solver.hpp>
@@ -26,12 +27,13 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class AbstractBackwardEuler
   {
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
+    ConstraintSetPolicy constraints_;
 
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
@@ -39,13 +41,11 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    AbstractBackwardEuler(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
+    /// @param constraints Algebraic constraints (not used by BackwardEuler, for API compatibility)
+    AbstractBackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
         : linear_solver_(std::move(linear_solver)),
-          rates_(std::move(rates))
+          rates_(std::move(rates)),
+          constraints_(std::move(constraints))
     {
     }
 

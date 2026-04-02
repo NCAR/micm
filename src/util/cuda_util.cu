@@ -1,7 +1,7 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_util.cuh>
-#include <micm/util/internal_error.hpp>
+#include <micm/util/micm_exception.hpp>
 
 namespace micm
 {
@@ -12,7 +12,8 @@ namespace micm
       if (err != cudaSuccess)
       {
         std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
-        ThrowInternalError(MicmInternalErrc::Cuda, file, line, msg.c_str());
+        throw micm::MicmException(
+            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
       }
     }
 
@@ -21,7 +22,8 @@ namespace micm
       if (err != CUBLAS_STATUS_SUCCESS)
       {
         std::string msg = std::to_string(err) + " : " + str;
-        ThrowInternalError(MicmInternalErrc::Cublas, file, line, msg.c_str());
+        throw micm::MicmException(
+            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
       }
     }
 

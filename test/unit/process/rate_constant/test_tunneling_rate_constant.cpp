@@ -6,7 +6,7 @@
 
 constexpr double TOLERANCE = 1e-13;
 
-TEST(TunnelingRateConstant, CalculateWithMinimalArugments)
+TEST(TunnelingRateConstant, CalculateWithMinimalArguments)
 {
   micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
@@ -18,7 +18,7 @@ TEST(TunnelingRateConstant, CalculateWithMinimalArugments)
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
-TEST(TunnelingRateConstant, CalculateWithAllArugments)
+TEST(TunnelingRateConstant, CalculateWithAllArguments)
 {
   double temperature = 301.24;
   micm::Conditions conditions{

@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
@@ -59,7 +59,37 @@ namespace micm
       StatePolicy>::SetReactions(const std::vector<Process>& reactions)
   {
     reactions_ = reactions;
-    valid_reactions_ = reactions_.size() > 0;
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  template<class ExternalModel>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::AddExternalModelProcesses(ExternalModel&& model)
+  {
+    external_models_.emplace_back(
+        ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) });
     return *this;
   }
 
@@ -129,6 +159,35 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetConstraints(std::vector<Constraint>&& constraints)
+  {
+    constraints_ = std::move(constraints);
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
   inline void SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -136,14 +195,22 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::UnusedSpeciesCheck() const
+      StatePolicy>::UnusedSpeciesCheck(const RatesPolicy& rates) const
   {
     if (ignore_unused_species_)
     {
       return;
     }
 
-    auto used_species = RatesPolicy::SpeciesUsed(reactions_);
+    auto used_species = rates.SpeciesUsed(reactions_);
+    // Include species referenced by constraints (dependencies and algebraic targets)
+    for (const auto& constraint : constraints_)
+    {
+      for (const auto& dep : constraint.SpeciesDependencies())
+        used_species.insert(dep);
+      used_species.insert(constraint.AlgebraicSpecies());
+    }
+
     auto available_species = system_.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
     std::set<std::string> unused_species;
@@ -159,7 +226,7 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw std::system_error(make_error_code(MicmSolverErrc::UnusedSpecies), err_msg);
+      throw MicmException(MicmSeverity::Warning, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
     }
   }
 
@@ -171,7 +238,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -180,7 +247,7 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetSpeciesMap() const
   {
-    std::map<std::string, std::size_t> species_map;
+    std::unordered_map<std::string, std::size_t> species_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     std::size_t index = 0;
     for (auto& name : system_.UniqueNames())
@@ -189,7 +256,7 @@ namespace micm
     if (reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
-      auto unsorted_rates = RatesPolicy(reactions_, species_map);
+      auto unsorted_rates = RatesPolicy(reactions_, species_map, external_models_);
       auto unsorted_jac_elements = unsorted_rates.NonZeroJacobianElements();
 
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
@@ -217,36 +284,45 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline void SolverBuilder<
+  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const
+      StatePolicy>::GetCustomParameterMap() const
   {
-    tolerances = std::vector<double>(species_map.size(), 1e-3);
-    for (auto& phase_species : system_.gas_phase_.phase_species_)
+    std::unordered_map<std::string, std::size_t> params{};
+
+    for (const auto& reaction : reactions_)
     {
-      auto& species = phase_species.species_;
-      if (species.HasProperty("absolute tolerance"))
+      if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
       {
-        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
-      }
-    }
-    for (auto& phase : system_.phases_)
-    {
-      for (auto& phase_species : phase.second.phase_species_)
-      {
-        auto& species = phase_species.species_;
-        if (species.HasProperty("absolute tolerance"))
+        for (auto& label : process->rate_constant_->CustomParameters())
         {
-          tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
+          params[label] = params.size();
         }
       }
     }
+    std::size_t size = params.size();
+    // Include custom parameter labels from external models
+    for (const auto& model : system_.external_models_)
+    {
+      auto param_names = model.parameter_names_func_();
+      for (const auto& label : param_names)
+      {
+        params[label] = params.size();
+      }
+      size += std::get<1>(model.state_size_func_());
+    }
+    if (params.size() != size)
+    {
+      throw std::invalid_argument(
+          "Mismatch between expected number of custom parameter labels and actual number collected. Likely duplicate "
+          "parameter labels.");
+    }
+    return params;
   }
 
   template<
@@ -257,28 +333,26 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::vector<std::string> SolverBuilder<
+  inline void SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::GetCustomParameterLabels() const
+      StatePolicy>::
+      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
+          const
   {
-    std::vector<std::string> param_labels{};
-
-    for (const auto& reaction : reactions_)
+    tolerances = std::vector<double>(species_map.size(), 1e-3);
+    for (auto& phase_species : system_.gas_phase_.phase_species_)
     {
-      if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
+      auto& species = phase_species.species_;
+      if (species.HasProperty("absolute tolerance"))
       {
-        for (auto& label : process->rate_constant_->CustomParameters())
-        {
-          param_labels.push_back(label);
-        }
+        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
       }
     }
-    return param_labels;
   }
 
   template<
@@ -298,32 +372,65 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::Build() const
   {
-    // make a copy of the options so that the builder can be used repeatedly
-    // this matters because the absolute tolerances must be set to match the system size, and that may change
-    auto options = this->options_;
-
     if (!valid_system_)
     {
-      throw std::system_error(make_error_code(MicmSolverErrc::MissingChemicalSystem), "Missing chemical system.");
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM,
+          "Missing chemical system.");
     }
-    if (!valid_reactions_)
-    {
-      throw std::system_error(make_error_code(MicmSolverErrc::MissingProcesses), "Missing processes.");
-    }
-    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
-    auto species_map = this->GetSpeciesMap();
-    auto labels = this->GetCustomParameterLabels();
+
     std::size_t number_of_species = this->system_.StateSize();
     if (number_of_species == 0)
     {
-      throw std::system_error(
-          make_error_code(MicmSolverErrc::MissingChemicalSpecies), "Provided chemical system contains no species.");
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES,
+          "Provided chemical system contains no species.");
     }
 
-    this->UnusedSpeciesCheck();
+    using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
+    using SolverPolicy =
+        typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
+    auto species_map = this->GetSpeciesMap();
+    auto params_map = this->GetCustomParameterMap();
 
-    RatesPolicy rates(this->reactions_, species_map);
+    RatesPolicy rates(reactions_, species_map, external_models_);
+
+    this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
+
+    // Create ConstraintSet from stored constraints (if any)
+    ConstraintSetPolicy constraint_set;
+    std::set<std::size_t> algebraic_variable_ids;
+
+    std::size_t number_of_constraints = constraints_.size();
+    if (number_of_constraints > 0)
+    {
+      // Copy constraints so that the builder can be reused
+      auto constraints_copy = constraints_;
+      // Constraints replace selected species rows in the mass-matrix DAE formulation.
+      // Pass species_map so constraints can resolve dependencies and row targets to species indices.
+      constraint_set = ConstraintSetPolicy(std::move(constraints_copy), species_map);
+      algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
+      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
+
+      // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
+      for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
+      {
+        if (algebraic_variable_ids.count(it->first) > 0)
+          it = nonzero_elements.erase(it);
+        else
+          ++it;
+      }
+
+      // Merge constraint Jacobian elements with ODE Jacobian elements
+      auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
+      nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
+    }
+
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
@@ -334,25 +441,56 @@ namespace micm
       jacobian = std::move(lu);
     }
     rates.SetJacobianFlatIds(jacobian);
+    rates.SetExternalModelFunctions(params_map, species_map, jacobian);
+
+    if (constraint_set.Size() > 0)
+    {
+      constraint_set.SetJacobianFlatIds(jacobian);
+      constraint_set.SetConstraintFunctions(species_map, jacobian);
+    }
 
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
       variable_names[species_pair.second] = species_pair.first;
+    std::vector<std::string> labels{ params_map.size() };
+    for (auto& param_pair : params_map)
+      labels[param_pair.second] = param_pair.first;
+
+    // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
+    std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
+    for (const auto variable_id : algebraic_variable_ids)
+    {
+      mass_matrix_diagonal[variable_id] = 0.0;
+    }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
+                                         .number_of_constraints_ = number_of_constraints,
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
-                                         .nonzero_jacobian_elements_ = nonzero_elements };
+                                         .nonzero_jacobian_elements_ = nonzero_elements,
+                                         .mass_matrix_diagonal_ = mass_matrix_diagonal };
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
+    // Create vector of functions to update external model state parameters
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_funcs;
+    for (const auto& model : external_models_)
+    {
+      update_funcs.push_back(model.update_state_parameters_function_(params_map));
+    }
+
+    // make a copy of the options so that the builder can be used repeatedly
+    // this matters because the absolute tolerances must be set to match the system size, and that may change
+    auto options = this->options_;
+
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
+        SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set)),
         state_parameters,
         options,
-        this->reactions_,
-        this->system_);
+        reactions_,
+        system_,
+        update_funcs);
   }
 
 }  // namespace micm

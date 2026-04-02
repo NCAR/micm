@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(TroeRateConstant, CalculateWithMinimalArugments)
+TEST(TroeRateConstant, CalculateWithMinimalArguments)
 {
   micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
@@ -20,7 +20,7 @@ TEST(TroeRateConstant, CalculateWithMinimalArugments)
   EXPECT_EQ(k, 42.2 * k0 / (1.0 + 42.2 * k0 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(42.2 * k0 / kinf), 2))));
 }
 
-TEST(TroeRateConstant, CalculateWithAllArugments)
+TEST(TroeRateConstant, CalculateWithAllArguments)
 {
   double temperature = 301.24;  // [K]
   micm::Conditions conditions{

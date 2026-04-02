@@ -14,16 +14,50 @@ import os
 import sys
 import datetime
 import re
+import subprocess
 sys.path.insert(0, os.path.abspath('.'))
+
+DOCS_SOURCE_DIR = os.path.abspath(os.path.dirname(__file__))
+REPO_ROOT_DIR = os.path.abspath(os.path.join(DOCS_SOURCE_DIR, '..', '..'))
+BUILD_DIR = os.path.join(REPO_ROOT_DIR, 'build')
+DOXYGEN_XML_DIR = os.path.join(BUILD_DIR, 'docs', 'doxygen', 'xml')
+
+
+def _run_command(command, cwd=None):
+    try:
+        subprocess.run(command, cwd=cwd, check=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        sys.stderr.write(f"Command failed: {command}\n{exc}\n")
+        raise
+
+
+def _ensure_doxygen_xml():
+    read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+    if not read_the_docs_build:
+        return
+
+    cache_file = os.path.join(BUILD_DIR, 'CMakeCache.txt')
+    if not os.path.exists(cache_file):
+        _run_command([
+            'cmake',
+            '-S', REPO_ROOT_DIR,
+            '-B', BUILD_DIR,
+            '-D', 'MICM_BUILD_DOCS=ON'
+        ])
+
+    _run_command([
+        'cmake',
+        '--build', BUILD_DIR,
+        '--target', 'Doxygen'
+    ])
 
 # -- Project information -----------------------------------------------------
 
-project = 'MICM'
-copyright = f'2022-{datetime.datetime.now().year}, NCAR/UCAR'
-author = 'NCAR/UCAR'
 
-suffix = os.getenv("SWITCHER_SUFFIX", "")
-# the suffix is required. This is controlled by the dockerfile that builds the docs
+project = 'MICM'
+copyright = f'2022-{datetime.datetime.now().year}, NSF-NCAR/ACOM'
+author = 'NSF-NCAR/ACOM'
+
 regex = r'project\(\w+\s+VERSION\s+(\d+\.\d+\.\d+)'
 version = '0.0.0'
 # read the version from the cmake files
@@ -32,7 +66,7 @@ with open(f'../../CMakeLists.txt', 'r') as f:
         match = re.match(regex, line)
         if match:
             version = match.group(1)
-release = f'{version}{suffix}'
+release = f'{version}'
 
 # -- General configuration ---------------------------------------------------
 
@@ -40,17 +74,20 @@ release = f'{version}{suffix}'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-  'breathe',
-  'sphinx_copybutton',
-  'sphinx_design',
-  'sphinxcontrib.bibtex',
-  'sphinx.ext.intersphinx'
+    'breathe',
+    'sphinx_copybutton',
+    'sphinx_design',
+    'sphinxcontrib.bibtex',
+    'sphinx.ext.intersphinx'
 ]
 
 bibtex_bibfiles = ['references.bib']
 suppress_warnings = ["bibtex.missing_field"]
 
 breathe_default_project = "micm"
+breathe_projects = {
+    "micm": DOXYGEN_XML_DIR
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -65,7 +102,7 @@ exclude_patterns = []
 intersphinx_mapping = {
     'musica': ('https://ncar.github.io/musica/', None),
     'mc': ('https://ncar.github.io/MechanismConfiguration/', None),
-    'mb': ('https://ncar.github.io/music-box/',None)
+    'mb': ('https://ncar.github.io/music-box/', None)
 }
 
 # -- Options for HTML output -------------------------------------------------
@@ -78,13 +115,9 @@ html_theme = 'pydata_sphinx_theme'
 html_theme_options = {
     "external_links": [],
     "github_url": "https://github.com/NCAR/micm",
-    "navbar_end": ["version-switcher", "navbar-icon-links"],
-    "switcher": {
-        "json_url": "https://ncar.github.io/micm/_static/switcher.json",
-        "version_match": release,
-    },
-   "pygment_light_style": "tango",
-   "pygment_dark_style": "monokai"
+    "navbar_end": ["navbar-icon-links"],
+    "pygment_light_style": "tango",
+    "pygment_dark_style": "monokai"
 }
 
 html_css_files = [
@@ -97,3 +130,7 @@ html_css_files = [
 html_static_path = ['_static']
 
 html_favicon = '_static/favicon/favicon.ico'
+
+
+def setup(app):
+    app.connect("builder-inited", lambda _app: _ensure_doxygen_xml())

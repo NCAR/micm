@@ -1,8 +1,9 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -10,6 +11,7 @@
 #include <micm/solver/solver_result.hpp>
 #include <micm/util/matrix.hpp>
 
+#include <algorithm>
 #include <type_traits>
 
 namespace micm
@@ -24,12 +26,16 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
+    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
+        update_state_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;
     using StatePolicyType = StatePolicy;
     SolverPolicy solver_;
     SolverParametersType solver_parameters_;
+
+    Solver(const Solver&) = delete;
 
     Solver(
         SolverPolicy&& solver,
@@ -41,22 +47,40 @@ namespace micm
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
-          system_(std::move(system))
-
+          system_(std::move(system)),
+          update_state_parameters_functions_()
     {
     }
 
-    Solver(const Solver&) = delete;
-    Solver& operator=(const Solver&) = delete;
+    Solver(
+        SolverPolicy&& solver,
+        StateParameters state_parameters,
+        SolverParametersType solver_parameters,
+        std::vector<micm::Process> processes,
+        System system,
+        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+            update_state_parameters_functions)
+        : solver_(std::move(solver)),
+          state_parameters_(state_parameters),
+          solver_parameters_(solver_parameters),
+          processes_(std::move(processes)),
+          system_(std::move(system)),
+          update_state_parameters_functions_(update_state_parameters_functions)
+    {
+    }
 
     Solver(Solver&& other)
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
           state_parameters_(other.state_parameters_),
           solver_parameters_(other.solver_parameters_),
-          system_(std::move(other.system_))
+          system_(std::move(other.system_)),
+          update_state_parameters_functions_(std::move(other.update_state_parameters_functions_))
     {
     }
+
+    Solver& operator=(const Solver&) = delete;
+
     Solver& operator=(Solver&& other)
     {
       std::swap(this->solver_, other.solver_);
@@ -64,13 +88,14 @@ namespace micm
       solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
       std::swap(this->system_, other.system_);
+      std::swap(this->update_state_parameters_functions_, other.update_state_parameters_functions_);
       return *this;
     }
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
       auto result = solver_.Solve(time_step, state, solver_parameters_);
-      state.variables_.Max(0.0);
+      PostSolveClamp(state);
       return result;
     }
 
@@ -78,7 +103,9 @@ namespace micm
     SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
     {
       solver_parameters_ = params;
-      return solver_.Solve(time_step, state, params);
+      auto result = solver_.Solve(time_step, state, params);
+      PostSolveClamp(state);
+      return result;
     }
 
     /// @brief Returns the maximum number of grid cells per state
@@ -98,21 +125,10 @@ namespace micm
       }
     }
 
-    /// @brief Returns the number of species
-    /// @return
-    std::size_t GetNumberOfSpecies() const
-    {
-      return state_parameters_.number_of_species_;
-    }
-
-    std::size_t GetNumberOfReactions() const
-    {
-      return state_parameters_.number_of_rate_constants_;
-    }
-
     StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const
     {
-      auto state = std::move(StatePolicy(state_parameters_, number_of_grid_cells));
+      StatePolicy state(state_parameters_, number_of_grid_cells);
+
       if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
         state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(
@@ -145,6 +161,68 @@ namespace micm
     void CalculateRateConstants(StatePolicy& state)
     {
       Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
+      for (const auto& update_func : update_state_parameters_functions_)
+      {
+        update_func(state.conditions_, state.custom_rate_parameters_);
+      }
+    }
+
+    LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name)
+    {
+      for (auto& process : processes_)
+      {
+        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Lambda rate constant with name '" + name + "' not found in any process");
+    }
+
+    const LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name) const
+    {
+      for (const auto& process : processes_)
+      {
+        if (const auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        {
+          const auto ptr = dynamic_cast<const LambdaRateConstant*>(reaction->rate_constant_.get());
+          if (ptr && ptr->parameters_.label_ == name)
+          {
+            return *ptr;
+          }
+        }
+      }
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SOLVER,
+          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
+          "Lambda rate constant with name '" + name + "' not found in any process");
+    }
+
+   private:
+    /// @brief Clamp state variables to non-negative after a solve
+    ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
+    void PostSolveClamp(StatePolicy& state)
+    {
+      if (state.constraint_size_ > 0)
+      {
+        for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
+          for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
+            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+              state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
+      }
+      else
+      {
+        state.variables_.Max(0.0);
+      }
     }
   };
 

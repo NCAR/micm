@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -10,14 +10,14 @@
 namespace micm
 {
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class AbstractBackwardEuler;
 
-  /// @brief BackwardEuler solver parameters
+  /// @brief Backward Euler solver parameters
   struct BackwardEulerSolverParameters
   {
-    template<class RatesPolicy, class LinearSolverPolicy>
-    using SolverType = AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>;
+    template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+    using SolverType = AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
     double small_{ 1.0e-40 };
     double h_start_{ 0.0 };

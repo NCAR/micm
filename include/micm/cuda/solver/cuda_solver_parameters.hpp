@@ -1,4 +1,4 @@
-/* Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+/* Copyright (C) 2023-2026 University Corporation for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -12,8 +12,8 @@ namespace micm
   /// @brief Parameters for the CUDA Rosenbrock solver
   struct CudaRosenbrockSolverParameters : public RosenbrockSolverParameters
   {
-    template<class RatesPolicy, class LinearSolverPolicy>
-    using SolverType = CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>;
+    template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+    using SolverType = CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
     /// @brief Constructor from base class
     /// @param base

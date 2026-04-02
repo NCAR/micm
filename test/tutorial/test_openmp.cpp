@@ -73,21 +73,21 @@ int main()
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
-                         .SetProducts({ micm::Yield(b, 1), micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1), micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
-                         .SetProducts({ micm::Yield(a, 1), micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(a, 1), micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase)
                          .Build();

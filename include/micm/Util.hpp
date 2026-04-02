@@ -1,14 +1,13 @@
-// Copyright (C) 2024-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2024-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
 #include <micm/util/constants.hpp>
 #include <micm/util/error.hpp>
-#include <micm/util/internal_error.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/matrix_error.hpp>
+#include <micm/util/micm_exception.hpp>
 #include <micm/util/property_keys.hpp>
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix.hpp>

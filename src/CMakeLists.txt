@@ -37,19 +37,22 @@ if(MICM_ENABLE_MPI)
   target_link_libraries(micm INTERFACE MPI::MPI_CXX)
 endif()
 
-if(MICM_ENABLE_LLVM)
-  target_link_libraries(micm INTERFACE ${llvm_libs})
-endif()
-
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
-  add_library(micm_cuda)
+  if(MICM_BUILD_SHARED_LIBS)
+    add_library(micm_cuda SHARED)
+  else()
+    add_library(micm_cuda STATIC)
+  endif()
+
   add_library(musica::micm_cuda ALIAS micm_cuda)
   target_link_libraries(micm_cuda
     PRIVATE micm
   )
+  
   target_link_libraries(micm_cuda 
     PUBLIC CUDA::cudart CUDA::cublas
   )
+  
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 

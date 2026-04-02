@@ -1,10 +1,12 @@
-// Copyright (C) 2025 University Corporation for Atmospheric Research
+// Copyright (C) 2025-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/matrix_error.hpp>
+#include <micm/util/micm_exception.hpp>
+#include <micm/util/view_category.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <iterator>
 #include <set>
@@ -68,12 +70,20 @@ namespace micm
     std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
       if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1 || block >= number_of_blocks)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Element out of range");
       auto begin = std::next(column_ids_.begin(), column_start_[column]);
       auto end = std::next(column_ids_.begin(), column_start_[column + 1]);
       auto elem = std::find(begin, end, row);
       if (elem == end)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+            "Zero element access");
       return std::size_t{ (elem - column_ids_.begin()) + block * column_ids_.size() };
     }
 
@@ -89,6 +99,39 @@ namespace micm
           data[block_start + i] += value;
     }
 
+    /// @brief Convert row and column indices to vector index within a block
+    /// @param row The row index
+    /// @param col The column index
+    /// @return The index of the nth non-zero element within a block (0-based)
+    std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
+    {
+      if (col >= column_start_.size() - 1 || row >= column_start_.size() - 1)
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Element out of range");
+      auto begin = std::next(column_ids_.begin(), column_start_[col]);
+      auto end = std::next(column_ids_.begin(), column_start_[col + 1]);
+      auto elem = std::find(begin, end, row);
+      if (elem == end)
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+            "Zero element access");
+      return std::distance(column_ids_.begin(), elem);
+    }
+
+    /// @brief Extract element position from VectorIndex(0, row, col) result
+    /// @param vector_index_block_zero The result of VectorIndex(0, row, col)
+    /// @return The element position (0 to number_of_non_zero_elements-1)
+    std::size_t ElementPositionFromVectorIndex(std::size_t vector_index_block_zero) const
+    {
+      // For standard ordering: VectorIndex(0, row, col) = elem_position
+      return vector_index_block_zero;
+    }
+
     /// @brief Returns the indices along the diagonal of each block
     /// @param number_of_blocks Number of block sub-matrices in the overall matrix
     /// @param block_id Block index
@@ -101,6 +144,259 @@ namespace micm
         if (!IsZero(i, i))
           indices.push_back(VectorIndex(number_of_blocks, block_id, i, i));
       return indices;
+    }
+
+   public:
+    /// @brief A block-local temporary variable with its own storage
+    /// For standard ordering: single value
+    template<typename T>
+    class BlockVariable
+    {
+     public:
+      using category = BlockVariableTag;
+      BlockVariable() = default;
+
+      T& Get()
+      {
+        return storage_;
+      }
+      const T& Get() const
+      {
+        return storage_;
+      }
+
+     private:
+      T storage_;
+    };
+
+    /// @brief ConstGroupView provides a const view of a single group of blocks for iteration
+    /// For standard ordering: L=1, so each group contains 1 block
+    template<typename SparseMatrixType>
+    class ConstGroupView
+    {
+     private:
+      const SparseMatrixType& matrix_;
+      std::size_t group_;
+
+      /// @brief Get element from sparse matrix ConstBlockView
+      template<SparseMatrixBlockView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        auto* source_matrix = arg.GetMatrix();
+        std::size_t elem_position = arg.ElementPosition();
+        std::size_t num_non_zero = source_matrix->FlatBlockSize();
+        // For standard ordering: block * num_non_zero + elem_position
+        std::size_t data_index = group_ * num_non_zero + elem_position;
+        return source_matrix->AsVector()[data_index];
+      }
+
+      /// @brief Get element from Matrix or VectorMatrix ConstColumnView
+      /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
+      template<DenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        auto* source_matrix = arg.GetMatrix();
+        // Verify L=1 for VectorMatrix types
+        if constexpr (requires { source_matrix->GroupVectorSize(); })
+        {
+          assert(
+              source_matrix->GroupVectorSize() == 1 &&
+              "Standard ordering sparse matrices require L=1 (use VectorMatrix<1>)");
+        }
+        return source_matrix->AsVector()[group_ * source_matrix->NumColumns() + arg.ColumnIndex()];
+      }
+
+      /// @brief Get element from BlockVariable
+      template<BlockVariableView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg.Get();
+      }
+
+      /// @brief Get element from Vector-like
+      template<VectorLike Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg[group_];
+      }
+
+     public:
+      ConstGroupView(const SparseMatrixType& matrix, std::size_t group)
+          : matrix_(matrix),
+            group_(group)
+      {
+      }
+
+      auto GetConstBlockView(std::size_t vector_index) const
+      {
+        return matrix_.GetConstBlockView(vector_index);
+      }
+
+      auto GetConstBlockView(std::size_t row, std::size_t col) const
+      {
+        return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockVariable() const
+      {
+        using T = typename SparseMatrixType::value_type;
+        return BlockVariable<T>();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachBlock(Func&& func, Args&&... args) const
+      {
+        // For standard ordering, only one block per group
+        func(GetBlockElement(0, std::forward<Args>(args))...);
+      }
+
+      std::size_t NumberOfBlocks() const
+      {
+        return matrix_.NumberOfBlocks();
+      }
+      std::size_t NumRows() const
+      {
+        return matrix_.NumRows();
+      }
+      std::size_t NumColumns() const
+      {
+        return matrix_.NumColumns();
+      }
+    };
+
+    /// @brief GroupView provides a view of a single group of blocks for iteration
+    /// For standard ordering: L=1, so each group contains 1 block
+    template<typename SparseMatrixType>
+    class GroupView
+    {
+     private:
+      SparseMatrixType& matrix_;
+      std::size_t group_;
+
+      /// @brief Get element from sparse matrix BlockView
+      template<SparseMatrixBlockView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        auto* source_matrix = arg.GetMatrix();
+        std::size_t elem_position = arg.ElementPosition();
+        std::size_t num_non_zero = source_matrix->FlatBlockSize();
+        // For standard ordering: block * num_non_zero + elem_position
+        std::size_t data_index = group_ * num_non_zero + elem_position;
+        return source_matrix->AsVector()[data_index];
+      }
+
+      /// @brief Get element from Matrix or VectorMatrix ColumnView
+      /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
+      template<DenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        auto* source_matrix = arg.GetMatrix();
+        // Verify L=1 for VectorMatrix types
+        if constexpr (requires { source_matrix->GroupVectorSize(); })
+        {
+          assert(
+              source_matrix->GroupVectorSize() == 1 &&
+              "Standard ordering sparse matrices require L=1 (use VectorMatrix<1>)");
+        }
+        return source_matrix->AsVector()[group_ * source_matrix->NumColumns() + arg.ColumnIndex()];
+      }
+
+      /// @brief Get element from BlockVariable
+      template<BlockVariableView Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg.Get();
+      }
+
+      /// @brief Get element from Vector-like
+      template<VectorLike Arg>
+      [[gnu::always_inline]]
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg[group_];
+      }
+
+     public:
+      GroupView(SparseMatrixType& matrix, std::size_t group)
+          : matrix_(matrix),
+            group_(group)
+      {
+      }
+
+      auto GetConstBlockView(std::size_t vector_index) const
+      {
+        return matrix_.GetConstBlockView(vector_index);
+      }
+
+      auto GetConstBlockView(std::size_t row, std::size_t col) const
+      {
+        return matrix_.GetConstBlockView(row, col);
+      }
+
+      auto GetBlockView(std::size_t vector_index)
+      {
+        return matrix_.GetBlockView(vector_index);
+      }
+
+      auto GetBlockView(std::size_t row, std::size_t col)
+      {
+        return matrix_.GetBlockView(row, col);
+      }
+
+      auto GetBlockVariable()
+      {
+        using T = typename SparseMatrixType::value_type;
+        return BlockVariable<T>();
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachBlock(Func&& func, Args&&... args)
+      {
+        // For standard ordering, only one block per group
+        func(GetBlockElement(0, std::forward<Args>(args))...);
+      }
+
+      std::size_t NumberOfBlocks() const
+      {
+        return matrix_.NumberOfBlocks();
+      }
+      std::size_t NumRows() const
+      {
+        return matrix_.NumRows();
+      }
+      std::size_t NumColumns() const
+      {
+        return matrix_.NumColumns();
+      }
+    };
+
+    /// @brief Returns the number of blocks included in each group of blocks
+    /// @return Number of blocks in each group (1 for standard ordering)
+    static constexpr std::size_t GroupVectorSize()
+    {
+      return 1;
+    }
+
+    /// @brief Returns the size of each group of blocks in the compressed data vector
+    /// @return Size of each group of blocks
+    std::size_t GroupSize(std::size_t number_of_non_zero_elements) const
+    {
+      return number_of_non_zero_elements;
+    }
+
+    /// @brief Returns the total number of groups of blocks in the compressed data
+    /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
+    /// @return Number of groups of blocks (equal to number_of_blocks for standard ordering)
+    std::size_t NumberOfGroups(std::size_t number_of_blocks) const
+    {
+      return number_of_blocks;
     }
 
    private:
@@ -143,7 +439,9 @@ namespace micm
           starts[(curr_col++) + 1] = total_elem;
         ++total_elem;
       }
-      starts[curr_col + 1] = total_elem;
+      // Fill all remaining entries from curr_col + 1 to block_size
+      for (std::size_t i = curr_col + 1; i <= block_size; ++i)
+        starts[i] = total_elem;
       return starts;
     }
 
@@ -155,11 +453,16 @@ namespace micm
     bool IsZero(std::size_t row, std::size_t column) const
     {
       if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1)
-        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_MATRIX,
+            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
+            "Element out of range");
       auto begin = std::next(column_ids_.begin(), column_start_[column]);
       auto end = std::next(column_ids_.begin(), column_start_[column + 1]);
       auto elem = std::find(begin, end, row);
       return (elem == end);
     }
   };
+
 }  // namespace micm

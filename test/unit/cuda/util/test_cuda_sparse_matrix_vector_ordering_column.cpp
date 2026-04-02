@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+
 /* Below are the policy tests on the CPU */
 
 TEST(SparseVectorCompressedColumnMatrix, ZeroMatrix)
@@ -284,7 +286,11 @@ void TestMultiBlockMatrixAddOneElement()
   }
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), cuda_matrix_vector_length * 5);
-  EXPECT_EQ(matrix.NumberOfGroups(53), std::ceil(53 / static_cast<double>(cuda_matrix_vector_length)));
+  // Work around NVHPC compiler bug - force runtime evaluation
+  double num_cells_d = 53.0;
+  double vec_length_d = static_cast<double>(cuda_matrix_vector_length);
+  std::size_t expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  EXPECT_EQ(matrix.NumberOfGroups(53), expected_groups);
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();

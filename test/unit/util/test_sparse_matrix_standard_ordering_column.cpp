@@ -97,21 +97,210 @@ TEST(SparseCompressedColumnMatrix, PrintNonZero)
 TEST(SparseMatrixBuilder, BadConfiguration)
 {
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(3, 0); } catch (const std::system_error& e) {
-        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
+      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(3, 0); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
-      std::system_error);
+      micm::MicmException);
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(2, 4); } catch (const std::system_error& e) {
-        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
+      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(2, 4); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
-      std::system_error);
+      micm::MicmException);
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(6, 7); } catch (const std::system_error& e) {
-        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
+      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(6, 7); } catch (micm::MicmException& e) {
+        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
-      std::system_error);
+      micm::MicmException);
+}
+
+TEST(SparseCompressedColumnMatrix, ArrayFunction)
+{
+  testArrayFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultiMatrixArrayFunction)
+{
+  testMultiMatrixArrayFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MismatchedBlockDimensions)
+{
+  testMismatchedBlockDimensions<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MismatchedElementDimensions)
+{
+  testMismatchedElementDimensions<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, WrongMatrixDimensions)
+{
+  testWrongMatrixDimensions<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleTemporaries)
+{
+  testMultipleTemporaries<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, BlockViewReuse)
+{
+  testBlockViewReuse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, FunctionReusability)
+{
+  testFunctionReusability<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, TwoSparseMatricesDifferentStructure)
+{
+  testTwoSparseMatricesDifferentStructure<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, SparseAndDenseMatrixFunction)
+{
+  testSparseAndDenseMatrixFunction<micm::SparseMatrix, StandardOrdering, micm::Matrix>();
+}
+
+TEST(SparseCompressedColumnMatrix, ConstSparseMatrixFunction)
+{
+  testConstSparseMatrixFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, EmptySparseMatrixFunction)
+{
+  testEmptySparseMatrixFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleSparseMatricesDifferentBlocksFromCreation)
+{
+  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, SparseMatrixVectorDifferentBlocksFromCreation)
+{
+  testSparseMatrixVectorDifferentBlocksFromCreation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MismatchedBlocksAtInvocation)
+{
+  testMismatchedBlocksAtInvocation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
+{
+  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, WrongStructureAtInvocation)
+{
+  testWrongStructureAtInvocation<micm::SparseMatrix, StandardOrdering>();
+}
+
+// ============================================================================
+// Vector Support Tests
+// ============================================================================
+
+TEST(SparseCompressedColumnMatrix, VectorInSparseMatrixFunction)
+{
+  testVectorInSparseMatrixFunction<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, VectorTooSmall)
+{
+  testVectorTooSmall<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, VectorTooLarge)
+{
+  testVectorTooLarge<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, EmptyVectorNonEmptySparseMatrix)
+{
+  testEmptyVectorNonEmptySparseMatrix<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, NonEmptyVectorEmptySparseMatrix)
+{
+  testNonEmptyVectorEmptySparseMatrix<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, EmptyVectorEmptySparseMatrix)
+{
+  testEmptyVectorEmptySparseMatrix<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleVectorsDifferentSizes)
+{
+  testMultipleVectorsDifferentSizes<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleVectorsSameSize)
+{
+  testMultipleVectorsSameSize<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleSparseMatricesOneVector)
+{
+  testMultipleSparseMatricesOneVector<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MultipleSparseMatricesDifferentBlocksVector)
+{
+  testMultipleSparseMatricesDifferentBlocksVector<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, VectorSizeMatchesOneSparseMatrixOnly)
+{
+  testVectorSizeMatchesOneSparseMatrixOnly<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, ConstVectorSparse)
+{
+  testConstVectorSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MutableVectorSparse)
+{
+  testMutableVectorSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, FunctionReusabilityWithVectorsSparse)
+{
+  testFunctionReusabilityWithVectorsSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, FunctionInvocationWithWrongSizedVectorSparse)
+{
+  testFunctionInvocationWithWrongSizedVectorSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, ArraySupportSparse)
+{
+  testArraySupportSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, MixedVectorBlockViewBlockVariable)
+{
+  testMixedVectorBlockViewBlockVariable<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, IntegerVectorSparse)
+{
+  testIntegerVectorSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, FunctionWithConstSignatureSparse)
+{
+  testFunctionWithConstSignatureSparse<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, GetBlockViewByVectorIndex)
+{
+  testGetBlockViewByVectorIndex<micm::SparseMatrix, StandardOrdering>();
 }

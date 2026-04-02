@@ -17,14 +17,14 @@ int main(const int argc, const char *argv[])
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
-                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetProducts({ StoichSpecies(bar, 0.8), StoichSpecies(baz, 0.2) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
-                   .SetProducts({ Yield(baz, 1) })
+                   .SetProducts({ StoichSpecies(baz, 1) })
                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
                    .SetPhase(gas_phase)
                    .Build();
@@ -42,7 +42,7 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.conditions_[0].CalculateIdealAirDensity();
-  state.SetConcentration(foo, 20.0);  // mol m-3
+  state[foo] = 20.0;                           // mol m-3
 
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)

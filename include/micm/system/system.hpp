@@ -1,22 +1,27 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/external_model.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 
 #include <functional>
+#include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace micm
 {
+
   struct SystemParameters
   {
+    /// @brief  @brief The gas phase
     Phase gas_phase_{};
-    std::unordered_map<std::string, Phase> phases_{};
-    std::unordered_map<std::string, std::string> others_{};
+    /// @brief External models (e.g., aerosol models) that provide additional components to the system
+    std::vector<ExternalModelSystem> external_models_{};
   };
 
   /// @brief Represents the complete chemical state of a grid cell
@@ -26,51 +31,30 @@ namespace micm
    public:
     /// @brief The gas phase, defining a set of species present in the system
     Phase gas_phase_;
-    /// @brief Additional phases (e.g., aqueous, aerosol), mapped by name and representing non-gas phase
-    std::unordered_map<std::string, Phase> phases_;
-    /// @brief Tracks non-phase elements (e.g., number concentrations) associated with a model.
-    ///        Elements are mapped using a prefix specific to the model's name and representation.
-    std::unordered_map<std::string, std::string> others_;
+    /// @brief External models (e.g., aerosol models) that provide additional components to the system
+    std::vector<ExternalModelSystem> external_models_;
 
     /// @brief Default constructor
     System() = default;
 
     /// @brief Parameterized constructor
-    System(
-        const Phase& gas_phase,
-        const std::unordered_map<std::string, Phase>& phases,
-        const std::unordered_map<std::string, std::string>& others)
+    System(const Phase& gas_phase)
         : gas_phase_(gas_phase),
-          phases_(phases),
-          others_(others)
+          external_models_()
     {
     }
 
-    /// @brief Parameterized constructor
-    System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases)
+    /// @brief Constructor with external models
+    template<typename... ExternalModels>
+    System(const Phase& gas_phase, ExternalModels&&... external_models)
         : gas_phase_(gas_phase),
-          phases_(phases),
-          others_()
+          external_models_{ ExternalModelSystem{ std::forward<ExternalModels>(external_models) }... }
     {
-    }
-
-    /// @brief Parameterized constructor with move semantics
-    System(
-        Phase&& gas_phase,
-        std::unordered_map<std::string, Phase>&& phases,
-        const std::unordered_map<std::string, std::string>& others)
-        : gas_phase_(std::move(gas_phase)),
-          phases_(std::move(phases)),
-          others_(std::move(others))
-    {
-    }
-
-    /// @brief Parameterized constructor with move semantics
-    System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases)
-        : gas_phase_(std::move(gas_phase)),
-          phases_(std::move(phases)),
-          others_()
-    {
+      if (StateSize() != UniqueNames().size())
+      {
+        throw std::invalid_argument(
+            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
+      }
     }
 
     /// @brief Copy constructor
@@ -82,9 +66,13 @@ namespace micm
     /// @brief Constructor from SystemParameters
     System(const SystemParameters& parameters)
         : gas_phase_(parameters.gas_phase_),
-          phases_(parameters.phases_),
-          others_(parameters.others_)
+          external_models_(parameters.external_models_)
     {
+      if (StateSize() != UniqueNames().size())
+      {
+        throw std::invalid_argument(
+            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
+      }
     }
 
     /// @brief Copy assignment operator
@@ -109,12 +97,11 @@ namespace micm
 
   inline size_t System::StateSize() const
   {
-    size_t state_size = gas_phase_.StateSize();
-    for (const auto& phase : phases_)
+    std::size_t state_size = gas_phase_.StateSize();
+    for (const auto& model : external_models_)
     {
-      state_size += phase.second.StateSize();
+      state_size += std::get<0>(model.state_size_func_());
     }
-    state_size += others_.size();
 
     return state_size;
   }
@@ -127,22 +114,30 @@ namespace micm
   inline std::vector<std::string> System::UniqueNames(
       const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
-    std::vector<std::string> names = gas_phase_.UniqueNames();
-    for (const auto& phase : phases_)
+    std::vector<std::string> names;
+    names.reserve(StateSize());
+
+    // Exclude phase name for gas phase species to maintain consistency with prior behavior
+    // e.g., "O3" instead of "GAS.O3"
+    auto gas_names = gas_phase_.SpeciesNames();
+    names.insert(names.end(), std::make_move_iterator(gas_names.begin()), std::make_move_iterator(gas_names.end()));
+
+    // Include names from external models
+    for (const auto& model : external_models_)
     {
-      for (const auto& species_name : phase.second.UniqueNames())
-        names.push_back(phase.first + "." + species_name);
+      auto model_names = model.variable_names_func_();
+      names.insert(names.end(), model_names.begin(), model_names.end());
     }
-    for (const auto& other : others_)
-    {
-      names.push_back(other.first + "." + other.second);
-    }
+
     if (f)
     {
-      const auto orig_names = names;
-      for (std::size_t i = 0; i < orig_names.size(); ++i)
-        names[i] = f(orig_names, i);
+      std::vector<std::string> reordered;
+      reordered.reserve(names.size());
+      for (std::size_t i = 0; i < names.size(); ++i)
+        reordered.push_back(f(names, i));
+      return reordered;
     }
+
     return names;
   }
 

@@ -151,27 +151,3 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   find_package(CUDAToolkit REQUIRED)
   set(CUDA_STANDARD_REQUIRED ON)
 endif()
-
-################################################################################
-# LLVM Support
-#
-# TODO: Try to use fetch content for LLVM libraries
-
-if(MICM_ENABLE_LLVM)
-  find_package(LLVM REQUIRED CONFIG)
-  if(LLVM_FOUND)
-    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-    message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-    include_directories(${LLVM_INCLUDE_DIRS})
-    separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-    add_definitions(${LLVM_DEFINITIONS_LIST})
-
-    llvm_map_components_to_libnames(llvm_libs support core orcjit native irreader)
-  else()
-    set(LLVM_CMD "llvm-config --cxxflags --ldflags --system-libs --libs support core orcjit native irreader | tr '\\n' ' '")
-    execute_process(COMMAND bash "-c" ${LLVM_CMD}
-                    OUTPUT_VARIABLE llvm_libs)
-    separate_arguments(llvm_libs)
-  endif()
-endif()

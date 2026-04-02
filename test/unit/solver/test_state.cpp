@@ -284,46 +284,37 @@ TEST(State, SetSingleConcentration)
 TEST(State, SetConcentrationByElementSingleValue)
 {
   micm::SystemParameters params;
-  params.others_["modal.aitken"] = "number_concentration";
-  params.others_["modal.accumulation"] = "number_concentration";
-
-  std::string aitken_num_conc = "modal.aitken.number_concentration";
-  std::string accum_num_conc = "modal.accumulation.number_concentration";
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
-                         .variable_names_{ "foo", "bar", "baz", "quz", aitken_num_conc, accum_num_conc },
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
                          .custom_rate_parameter_labels_{ "quux", "corge" },
                      },
                      1 };
 
-  state.SetConcentration(aitken_num_conc, 42.0);
-  state.SetConcentration(accum_num_conc, 12.0);
+  state.SetConcentration("baz", 42.0);
+  state.SetConcentration("quz", 12.0);
 
-  EXPECT_EQ(state.variables_[0][state.variable_map_[aitken_num_conc]], 42.0);
-  EXPECT_EQ(state.variables_[0][state.variable_map_[accum_num_conc]], 12.0);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["baz"]], 42.0);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["quz"]], 12.0);
 }
 
 TEST(State, SetConcentrationByElementVector)
 {
   micm::SystemParameters params;
-  params.others_["modal.aitken"] = "number_concentration";
-
-  std::string aitken_num_conc = "modal.aitken.number_concentration";
-
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
-                         .variable_names_{ "foo", "bar", "baz", "quz", aitken_num_conc },
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
                          .custom_rate_parameter_labels_{ "quux", "corge" },
                      },
                      3 };
 
   std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
 
-  state.SetConcentration(aitken_num_conc, concentrations);
+  state.SetConcentration("foo", concentrations);
 
   for (std::size_t i = 0; i < concentrations.size(); ++i)
-    EXPECT_EQ(state.variables_[i][state.variable_map_[aitken_num_conc]], concentrations[i]);
+    EXPECT_EQ(state.variables_[i][state.variable_map_["foo"]], concentrations[i]);
 }
 
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
@@ -374,6 +365,81 @@ TEST(State, SetConcentrations)
       EXPECT_EQ(state.variables_[i][j], concentrations_in_order[idx]);
     }
   }
+}
+
+TEST(State, SetStateWithSquareBracketOperator)
+{
+  micm::State state{ micm::StateParameters{
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "quux", "corge" },
+                     },
+                     1 };
+
+  state["foo"] = 42.0;
+  state["bar"] = 12.0;
+
+  EXPECT_EQ(state.variables_[0][state.variable_map_["foo"]], 42.0);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["bar"]], 12.0);
+
+  state[micm::Species{ "baz" }] = 35.2;
+  state[micm::Species{ "quz" }] = 24.2;
+
+  EXPECT_EQ(state.variables_[0][state.variable_map_["baz"]], 35.2);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["quz"]], 24.2);
+
+  // make const copy and confirm that operator[] works for const state as well
+  const auto& const_state = state;
+  EXPECT_EQ(const_state["foo"], 42.0);
+  EXPECT_EQ(const_state["bar"], 12.0);
+  EXPECT_EQ(const_state[micm::Species{ "baz" }], 35.2);
+  EXPECT_EQ(const_state[micm::Species{ "quz" }], 24.2);
+
+  // also test math operations
+  state["foo"] += 8.0;
+  EXPECT_EQ(state["foo"], 50.0);
+  state["foo"] -= 20.0;
+  EXPECT_EQ(state["foo"], 30.0);
+  state["foo"] *= 2.0;
+  EXPECT_EQ(state["foo"], 60.0);
+  state["foo"] /= 3.0;
+  EXPECT_EQ(state["foo"], 20.0);
+}
+
+TEST(State, SetMultiCellStateWithSquareBrackets)
+{
+  micm::State state{ micm::StateParameters{
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "quux", "corge" },
+                     },
+                     3 };
+
+  state["foo"] = std::vector{ 1.0, 2.0, 3.0 };
+  state["bar"] = std::vector{ 4.0, 5.0, 6.0 };
+
+  EXPECT_EQ(state.variables_[0][state.variable_map_["foo"]], 1.0);
+  EXPECT_EQ(state.variables_[1][state.variable_map_["foo"]], 2.0);
+  EXPECT_EQ(state.variables_[2][state.variable_map_["foo"]], 3.0);
+  EXPECT_EQ(state.variables_[0][state.variable_map_["bar"]], 4.0);
+  EXPECT_EQ(state.variables_[1][state.variable_map_["bar"]], 5.0);
+  EXPECT_EQ(state.variables_[2][state.variable_map_["bar"]], 6.0);
+
+  EXPECT_EQ(state["foo"][0], 1.0);
+  EXPECT_EQ(state["foo"][1], 2.0);
+  EXPECT_EQ(state["foo"][2], 3.0);
+  EXPECT_EQ(state["bar"][0], 4.0);
+  EXPECT_EQ(state["bar"][1], 5.0);
+  EXPECT_EQ(state["bar"][2], 6.0);
+
+  // make const copy and confirm that operator[] works for const state as well
+  const auto& const_state = state;
+  EXPECT_EQ(const_state["foo"][0], 1.0);
+  EXPECT_EQ(const_state["foo"][1], 2.0);
+  EXPECT_EQ(const_state["foo"][2], 3.0);
+  EXPECT_EQ(const_state["bar"][0], 4.0);
+  EXPECT_EQ(const_state["bar"][1], 5.0);
+  EXPECT_EQ(const_state["bar"][2], 6.0);
 }
 
 TEST(State, SettingCustomRateParameterWithInvalidVectorSizeThrowsException)

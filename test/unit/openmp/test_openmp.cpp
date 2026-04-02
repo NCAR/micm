@@ -22,21 +22,21 @@ TEST(OpenMP, OneSolverManyStates)
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ Yield(b, 1) })
+                         .SetProducts({ StoichSpecies(b, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
-                         .SetProducts({ Yield(b, 1), Yield(c, 1) })
+                         .SetProducts({ StoichSpecies(b, 1), StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
-                         .SetProducts({ Yield(a, 1), Yield(c, 1) })
+                         .SetProducts({ StoichSpecies(a, 1), StoichSpecies(c, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase)
                          .Build();

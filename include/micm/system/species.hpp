@@ -1,58 +1,16 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/system/conditions.hpp>
 #include <micm/util/error.hpp>
+#include <micm/util/micm_exception.hpp>
 
 #include <functional>
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <system_error>
 #include <vector>
-
-enum class MicmSpeciesErrc
-{
-  PropertyNotFound = MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
-  InvalidTypeForProperty = MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY
-};
-
-namespace std
-{
-  template<>
-  struct is_error_code_enum<MicmSpeciesErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmSpeciesErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return MICM_ERROR_CATEGORY_SPECIES;
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmSpeciesErrc>(ev))
-      {
-        case MicmSpeciesErrc::PropertyNotFound: return "Property not found";
-        case MicmSpeciesErrc::InvalidTypeForProperty: return "Invalid type for property";
-        default: return "Unknown error";
-      }
-    }
-  };
-
-  const MicmSpeciesErrorCategory MICM_SPECIES_ERROR{};
-}  // namespace
-
-inline std::error_code make_error_code(MicmSpeciesErrc e)
-{
-  return { static_cast<int>(e), MICM_SPECIES_ERROR };
-}
 
 namespace micm
 {
@@ -173,8 +131,11 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw std::system_error(
-            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SPECIES,
+            MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
+            "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, double>::value)
@@ -185,8 +146,11 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw std::system_error(
-            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SPECIES,
+            MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
+            "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, bool>::value)
@@ -197,8 +161,11 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw std::system_error(
-            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SPECIES,
+            MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
+            "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, int>::value)
@@ -209,13 +176,20 @@ namespace micm
       }
       catch (const std::out_of_range& e)
       {
-        throw std::system_error(
-            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SPECIES,
+            MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
+            "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else
     {
-      throw std::system_error(make_error_code(MicmSpeciesErrc::InvalidTypeForProperty), "Species: '" + name_ + "'");
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SPECIES,
+          MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY,
+          "Species: '" + name_ + "'");
     }
   }
 
@@ -240,7 +214,11 @@ namespace micm
     }
     else
     {
-      throw std::system_error(make_error_code(MicmSpeciesErrc::InvalidTypeForProperty), "Species: '" + name_ + "'");
+      throw MicmException(
+          MicmSeverity::Error,
+          MICM_ERROR_CATEGORY_SPECIES,
+          MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY,
+          "Species: '" + name_ + "'");
     }
   }
 

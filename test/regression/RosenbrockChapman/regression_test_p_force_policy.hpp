@@ -58,7 +58,7 @@ void testForcing(SolverPolicy& solver)
 
   MatrixPolicy forcing(3, 9);
   forcing.Fill(0.0);
-  solver.solver_.rates_.AddForcingTerms(state.rate_constants_, state.variables_, forcing);
+  solver.solver_.rates_.AddForcingTerms(state, state.variables_, forcing);
 
   for (std::size_t i{}; i < 3; ++i)
   {

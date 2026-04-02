@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
 // Much of this solver was formulated and implemented from this book:
@@ -12,6 +12,7 @@
 // https://doi.org/10.1016/S1352-2310(97)83212-8
 #pragma once
 
+#include <micm/constraint/constraint_set.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
@@ -23,11 +24,9 @@
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <functional>
-#include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
@@ -38,6 +37,7 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Linear solver
+  /// @tparam ConstraintSetPolicy Constraint set for algebraic constraints
   /// @tparam Derived Implementation of the Rosenbock solver
   ///
   /// This implements the Curiously Recurring Template Pattern to allow
@@ -45,12 +45,13 @@ namespace micm
   /// in extending classes and called from the base class Solve() function.
   /// https://en.cppreference.com/w/cpp/language/crtp
   ///
-  template<class RatesPolicy, class LinearSolverPolicy, class Dervied>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   class AbstractRosenbrockSolver
   {
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
+    ConstraintSetPolicy constraints_;
 
     static constexpr double DEFAULT_H_MIN = 1.0e-15;   // Minimum internal time step relative to overall time step
     static constexpr double DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
@@ -61,14 +62,12 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
+    /// @param constraints Algebraic constraints
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    AbstractRosenbrockSolver(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
+    AbstractRosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
         : linear_solver_(std::move(linear_solver)),
-          rates_(std::move(rates))
+          rates_(std::move(rates)),
+          constraints_(std::move(constraints))
     {
     }
 
@@ -122,23 +121,29 @@ namespace micm
       requires(VectorizableDense<DenseMatrixPolicy>);
   };  // end of Abstract Rosenbrock Solver
 
-  template<class RatesPolicy, class LinearSolverPolicy>
-  class RosenbrockSolver
-      : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
+  class RosenbrockSolver : public AbstractRosenbrockSolver<
+                               RatesPolicy,
+                               LinearSolverPolicy,
+                               ConstraintSetPolicy,
+                               RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>
   {
    public:
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    /// @param jacobian Jacobian matrix
+    /// @param constraints Algebraic constraints
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    RosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+    RosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
+        : AbstractRosenbrockSolver<
+              RatesPolicy,
+              LinearSolverPolicy,
+              ConstraintSetPolicy,
+              RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              jacobian,
-              number_of_species)
+              std::move(constraints))
     {
     }
     RosenbrockSolver(const RosenbrockSolver&) = delete;

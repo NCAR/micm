@@ -7,3 +7,4 @@ doc/latex/
 .vscode
 xcode/
 __pycache__
+.claude

@@ -1,8 +1,9 @@
-// Copyright (C) 2024-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2024-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
+#include <micm/constraint/constraint_set.hpp>
 #include <micm/cuda/process/cuda_process_set.cuh>
 #include <micm/cuda/process/cuda_process_set.hpp>
 #include <micm/cuda/solver/cuda_linear_solver_in_place.cuh>
@@ -29,8 +30,10 @@ namespace micm
 
   using GpuState = CudaState<CudaDenseMatrixVector, CudaSparseMatrixVector, CudaLuDecompositionMozartInPlace>;
 
-  using CudaRosenbrockVectorType = typename CudaRosenbrockSolverParameters::
-      template SolverType<CudaProcessSet, CudaLinearSolverInPlace<CudaSparseMatrixVector>>;
+  using CudaRosenbrockVectorType = typename CudaRosenbrockSolverParameters::template SolverType<
+      CudaProcessSet<CudaDenseMatrixVector, CudaSparseMatrixVector>,
+      CudaLinearSolverInPlace<CudaSparseMatrixVector>,
+      ConstraintSet<CudaDenseMatrixVector, CudaSparseMatrixVector>>;
   using CudaRosenbrock = Solver<CudaRosenbrockVectorType, GpuState>;
 
   using GpuRosenbrockThreeStageBuilder = CudaSolverBuilderInPlace<CudaRosenbrockSolverParameters>;

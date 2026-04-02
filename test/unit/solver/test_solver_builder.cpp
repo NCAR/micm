@@ -3,10 +3,6 @@
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#ifdef MICM_ENABLE_LLVM
-  #include <micm/solver/jit/jit_solver_builder.hpp>
-  #include <micm/solver/jit/jit_solver_parameters.hpp>
-#endif
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -28,14 +24,14 @@ namespace
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
-                         .SetProducts({ micm::Yield(b, 1) })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
-                         .SetProducts({ micm::Yield(c, 1) })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::ArrheniusRateConstant(
                              micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
                          .SetPhase(gas_phase)
@@ -48,22 +44,7 @@ TEST(SolverBuilder, ThrowsMissingSystem)
 {
   EXPECT_THROW(
       micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{}).Build(),
-      std::system_error);
-}
-
-TEST(SolverBuilder, ThrowsMissingReactions)
-{
-  EXPECT_THROW(
-      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
-          .SetSystem(the_system)
-          .Build(),
-      std::system_error);
-  EXPECT_THROW(
-      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
-          .SetSystem(the_system)
-          .SetReactions({})
-          .Build(),
-      std::system_error);
+      micm::MicmException);
 }
 
 TEST(SolverBuilder, CanBuildBackwardEuler)
@@ -84,7 +65,6 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           .Build();
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
-  EXPECT_EQ(backward_euler_vector.GetSystem().phases_.size(), the_system.phases_.size());
   EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
 }
@@ -109,7 +89,6 @@ TEST(SolverBuilder, CanBuildRosenbrock)
 
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
-  EXPECT_EQ(rosenbrock_vector.GetSystem().phases_.size(), the_system.phases_.size());
   EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -14,11 +14,12 @@ namespace micm
 {
   struct CudaRosenbrockSolverParameters;
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class CudaRosenbrockSolver : public AbstractRosenbrockSolver<
                                    RatesPolicy,
                                    LinearSolverPolicy,
-                                   CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+                                   ConstraintSetPolicy,
+                                   CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>
   {
     ///@brief Default constructor
    public:
@@ -28,12 +29,15 @@ namespace micm
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
-              std::move(other)){};
+        : AbstractRosenbrockSolver<
+              RatesPolicy,
+              LinearSolverPolicy,
+              ConstraintSetPolicy,
+              CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(std::move(other)){};
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
-      RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::operator=(std::move(other));
       return *this;
     };
 
@@ -41,20 +45,18 @@ namespace micm
     CudaRosenbrockSolver(){};
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
-    /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    /// @param jacobian Jacobian matrix
-    CudaRosenbrockSolver(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+    /// @param constraints Algebraic constraints
+    CudaRosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, ConstraintSetPolicy&& constraints)
+        : AbstractRosenbrockSolver<
+              RatesPolicy,
+              LinearSolverPolicy,
+              ConstraintSetPolicy,
+              CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              jacobian,
-              number_of_species){};
+              std::move(constraints)){};
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"

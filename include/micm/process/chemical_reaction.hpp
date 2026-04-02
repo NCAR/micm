@@ -1,13 +1,13 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process_error.hpp>
+#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/yield.hpp>
+#include <micm/system/stoich_species.hpp>
 #include <micm/util/error.hpp>
 
 #include <memory>
@@ -23,7 +23,7 @@ namespace micm
   {
    public:
     std::vector<Species> reactants_;
-    std::vector<Yield> products_;
+    std::vector<StoichSpecies> products_;
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
@@ -32,7 +32,7 @@ namespace micm
 
     ChemicalReaction(
         std::vector<Species> reactants,
-        std::vector<Yield> products,
+        std::vector<StoichSpecies> products,
         std::unique_ptr<RateConstant> rate_constant,
         const Phase& phase)
         : reactants_(std::move(reactants)),
@@ -57,8 +57,10 @@ namespace micm
       if (this != &other)
       {
         if (!other.rate_constant_)
-          throw std::system_error(
-              make_error_code(MicmProcessErrc::RateConstantIsNotSet),
+          throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_PROCESS,
+              MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
               "Cannot copy from a ChemicalReaction with null rate constant");
 
         reactants_ = other.reactants_;
@@ -100,8 +102,11 @@ namespace micm
     void Validate() const
     {
       if (!rate_constant_)
-        throw std::system_error(
-            make_error_code(MicmProcessErrc::RateConstantIsNotSet), "Rate Constant pointer cannot be null");
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_PROCESS,
+            MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
+            "Rate Constant pointer cannot be null");
     }
   };
 
