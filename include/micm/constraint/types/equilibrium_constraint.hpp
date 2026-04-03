@@ -226,7 +226,7 @@ namespace micm
 
             // Initialize reactant_product to K_eq and product_product to 1.0
             state.ForEachRow(
-                [K_eq_idx](const double& K_eq, double& rp, double& pp)
+                [](const double& K_eq, double& rp, double& pp)
                 {
                   rp = K_eq;
                   pp = 1.0;
@@ -332,7 +332,7 @@ namespace micm
             auto partial_derivative = jacobian_values.GetBlockVariable();
 
             jacobian_values.ForEachBlock(
-                [K_eq_idx](const double& K_eq, double& rp, double& pp)
+                [](const double& K_eq, double& rp, double& pp)
                 {
                   rp = K_eq;
                   pp = 1.0;
