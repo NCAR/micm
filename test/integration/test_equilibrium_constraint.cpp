@@ -85,13 +85,11 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   state.conditions_[0].temperature_ = 300.0;
   state.conditions_[0].pressure_ = 101325.0;
 
-  // Verify UpdateStateParameters and CalculateRateConstants work
+  // Verify UpdateStateParameters works
   solver.UpdateStateParameters(state);
 
   double expected_K_eq = compute_equilibrium_constant(K_eq, -2400.0, 300.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
-
-  solver.CalculateRateConstants(state);
 }
 
 /// @brief Verifies that multiple constraints can be added via SetConstraints and the solver
@@ -157,7 +155,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("E")], 1.0);  // E is ODE
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("F")], 0.0);  // F is algebraic
 
-  // Initialize state and verify CalculateRateConstants works
+  // Initialize state and verify UpdateStateParameters works
   state.variables_[0][state.variable_map_.at("A")] = 1.0;
   state.variables_[0][state.variable_map_.at("B")] = 0.1;
   state.variables_[0][state.variable_map_.at("C")] = K_eq1 * 0.1;  // C should satisfy C = K_eq1 * B
@@ -176,8 +174,6 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   double expected_K_eq2 = compute_equilibrium_constant(K_eq2, delta_H2, current_temp);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq1, 1e-10);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")], expected_K_eq2, 1e-10);
-
-  solver.CalculateRateConstants(state);
 }
 
 /// @brief Test DAE solving - actually calls Solve() with algebraic constraints
@@ -248,7 +244,6 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     // these values do not change during execution.
     // This behavior may be revised in the future.
     solver.UpdateStateParameters(state);
-    solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
 
     if (result.state_ != SolverState::Converged)
@@ -336,7 +331,6 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   while (time < total_time)
   {
     solver.UpdateStateParameters(state);
-    solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
 
@@ -419,7 +413,6 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   while (time < total_time)
   {
     solver.UpdateStateParameters(state);
-    solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
 
@@ -499,7 +492,6 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   while (time < total_time)
   {
     solver.UpdateStateParameters(state);
-    solver.CalculateRateConstants(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "NonUnit stoich did not converge at time=" << time;
 

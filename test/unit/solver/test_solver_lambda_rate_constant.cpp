@@ -51,7 +51,7 @@ TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
   state.conditions_[0].pressure_ = 101253.3;
   state.conditions_[0].air_density_ = 1.0e6;
 
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
   EXPECT_NEAR(state.rate_constants_[0][0], 0.6, 1.0e-12);
 
   EXPECT_NO_THROW({

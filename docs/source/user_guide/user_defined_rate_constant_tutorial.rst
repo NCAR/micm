@@ -144,7 +144,7 @@ Finally, set and upate the rate constants as needed:
           // solving until we finish
           double elapsed_solve_time = 0;
       +   state.SetCustomRateParameter("my photolysis rate", photo_rate);
-          solver.CalculateRateConstants(state);
+          solver.UpdateStateParameters(state);
 
           while (elapsed_solve_time < time_step)
           {
@@ -180,7 +180,7 @@ Finally, set and upate the rate constants as needed:
           // solving until we finish
           double elapsed_solve_time = 0;
       +   state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
-          solver.CalculateRateConstants(state);
+          solver.UpdateStateParameters(state);
 
           while (elapsed_solve_time < time_step)
           {

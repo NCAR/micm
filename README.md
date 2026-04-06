@@ -149,7 +149,7 @@ int main(const int argc, const char *argv[])
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
     auto result = solver.Solve(500.0, state);
     state.PrintState(i * 500);
   }
