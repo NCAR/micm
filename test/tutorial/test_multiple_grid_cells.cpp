@@ -85,7 +85,7 @@ int main()
 
     while (elapsed_solve_time < time_step)
     {
-      solver.CalculateRateConstants(state);
+      solver.UpdateStateParameters(state);
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time += result.stats_.final_time_;;
     }

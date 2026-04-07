@@ -23,7 +23,7 @@ void testRateConstants(SolverPolicy& solver)
   state.conditions_[2].temperature_ = 299.31;  // [K]
   state.conditions_[2].pressure_ = 101398.0;   // [Pa]
 
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
 
   for (size_t i{}; i < 3; ++i)
   {

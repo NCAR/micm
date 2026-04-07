@@ -189,7 +189,7 @@ void test_simple_system(
   times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
     prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
@@ -307,7 +307,7 @@ void test_simple_stiff_system(
   times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
     prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
@@ -1428,7 +1428,7 @@ void test_analytical_robertson(
   double time_step = 1.0;
   std::vector<double> times;
   times.push_back(0);
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
     double solve_time = time_step + i_time * time_step;
@@ -1621,7 +1621,7 @@ void test_analytical_oregonator(
   state.SetCustomRateParameter("r5", 1);
 
   state.variables_[0] = model_concentrations[0];
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
   std::vector<double> times;
@@ -1817,7 +1817,7 @@ void test_analytical_hires(
   state.SetCustomRateParameter("r9", 280.0);
 
   state.variables_[0] = model_concentrations[0];
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
   std::vector<double> times;
@@ -1984,7 +1984,7 @@ void test_analytical_e5(
   state.SetCustomRateParameter("r4", 1.13e3);
 
   state.variables_[0] = model_concentrations[0];
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
   std::vector<double> times;

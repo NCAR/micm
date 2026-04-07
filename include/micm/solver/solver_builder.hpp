@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <sstream>
 
 namespace micm
 {
@@ -53,8 +54,8 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::vector<Constraint> constraints_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
+    std::vector<Constraint> constraints_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -81,37 +82,63 @@ namespace micm
     /// @brief Set the chemical system
     /// @param system The chemical system
     /// @return Updated SolverBuilder
-    SolverBuilder& SetSystem(const System& system);
+    SolverBuilder& SetSystem(const System& system)
+    {
+      system_ = system;
+      valid_system_ = true;
+      return *this;
+    }
 
     /// @brief Set the reactions
     /// @param reactions The reactions
     /// @return Updated SolverBuilder
-    SolverBuilder& SetReactions(const std::vector<Process>& reactions);
+    SolverBuilder& SetReactions(const std::vector<Process>& reactions)
+    {
+      reactions_ = reactions;
+      return *this;
+    }
 
     /// @brief Add processes from an external model
     /// @param model The external model
     /// @return Updated SolverBuilder
     template<class ExternalModel>
-    SolverBuilder& AddExternalModelProcesses(ExternalModel&& model);
-
-    /// @brief Set whether to ignore unused species
-    /// @param ignore_unused_species True if unused species should be ignored
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetIgnoreUnusedSpecies(bool ignore_unused_species);
-
-    /// @brief Set whether to reorder the state to optimize the LU decomposition
-    /// @param reorder_state True if the state should be reordered
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetReorderState(bool reorder_state);
+    SolverBuilder& AddExternalModelProcesses(ExternalModel&& model)
+    {
+      external_models_.emplace_back(
+          ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<decltype(model)>(model) });
+      return *this;
+    }
 
     /// @brief Set algebraic constraints for DAE solving
     /// @param constraints Vector of constraints
     /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
+    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints)
+    {
+      constraints_ = std::move(constraints);
+      return *this;
+    }
+
+    /// @brief Set whether to ignore unused species
+    /// @param ignore_unused_species True if unused species should be ignored
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetIgnoreUnusedSpecies(bool ignore_unused_species)
+    {
+      ignore_unused_species_ = ignore_unused_species;
+      return *this;
+    }
+
+    /// @brief Set whether to reorder the state to optimize the LU decomposition
+    /// @param reorder_state True if the state should be reordered
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetReorderState(bool reorder_state)
+    {
+      reorder_state_ = reorder_state;
+      return *this;
+    }
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
-    auto Build() const;
+    auto Build();
 
    protected:
     /// @brief Checks for unused species
@@ -125,6 +152,11 @@ namespace micm
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
+
+    /// @brief Builds a map of unique custom parameter labels to indices by
+    ///        collecting parameters from reactions, external models, and constraints.
+    /// @throws MicmException if duplicate parameter labels are found.
+    /// @return An unordered_map mapping each unique parameter label to its index.
     std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
 
     /// @brief Sets the absolute tolerances per species

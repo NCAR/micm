@@ -158,9 +158,15 @@ namespace micm
       return processes_;
     }
 
-    void CalculateRateConstants(StatePolicy& state)
+    /// @brief Update state parameters based on current conditions (temperature, pressure, etc.)
+    ///        Invokes all registered parameter update functions for external models and constraints
+    ///        to recompute temperature-dependent values (e.g., aerosol rate constants, equilibrium constants)
+    ///        Should be called before solving if conditions have changed since the last solve
+    /// @param state State object containing conditions and custom_rate_parameters to be updated
+    void UpdateStateParameters(StatePolicy& state)
     {
       Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
+
       for (const auto& update_func : update_state_parameters_functions_)
       {
         update_func(state.conditions_, state.custom_rate_parameters_);

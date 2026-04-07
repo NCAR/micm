@@ -95,7 +95,7 @@ void test_analytical_surface_rxn(
   for (int i = 1; i <= nstep; ++i)
   {
     double elapsed_solve_time = 0;
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
 
     prepare_for_solve(state);
     // first iteration

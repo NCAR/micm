@@ -169,7 +169,7 @@ void test_flow_tube(
   state.conditions_[0].pressure_ = 101325;
   state.conditions_[0].air_density_ = calculate_air_density_mol_m3(101325, 298.15);
 
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
 
   prepare_for_solve(state);
 

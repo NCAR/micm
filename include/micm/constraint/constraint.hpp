@@ -13,6 +13,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <unordered_set>
 
 namespace micm
 {
@@ -42,6 +43,13 @@ namespace micm
       return std::visit([](const auto& c) { return c.name_; }, constraint_);
     }
 
+    /// @brief Get the custom parameter names
+    /// @return A set of parameter names
+    std::vector<std::string> GetParameterNames() const
+    {
+      return std::visit([](const auto& c) { return c.parameters_; }, constraint_);
+    }
+
     /// @brief Returns the species whose state row should be replaced by this algebraic constraint
     /// @return Algebraic species name
     const std::string& AlgebraicSpecies() const
@@ -64,17 +72,33 @@ namespace micm
       return std::visit([](const auto& c) { return c.species_dependencies_.size(); }, constraint_);
     }
 
+    /// @brief Get a function object to update constraint-specific parameters
+    ///        Returns a function that updates parameters (e.g., temperature-dependent K_eq) based on current conditions
+    ///        Called during solver build to create the update function, which is then invoked by UpdateStateParameters
+    ///        before each solve to recompute parameters from the latest temperature and other conditions
+    /// @param info Constraint information including state parameter indices
+    /// @return Function object that takes (conditions, state_param) and updates constraint parameters
+    template<typename DenseMatrixPolicy>
+    auto ConstraintParameterFunction(const ConstraintInfo& info) const
+    {
+      return std::visit(
+          [&info](const auto& c)
+          { return c.template ConstraintParameterFunction<DenseMatrixPolicy>(info); },
+          constraint_);
+    }
+
     /// @brief Get a function object to compute the constraint residual
     ///        This returns a reusable function that can be invoked multiple times
     /// @param info Constraint information including species indices and row index
     /// @param state_variable_indices Map from species names to state variable indices
-    /// @return Function object that takes (state_variables, forcing) and computes the residual
+    /// @param state_parameter_indices Map from parameter names to state parameter indices
+    /// @return Function object that takes (state_variables, state_parameters, forcing) and computes the residual
     template<typename DenseMatrixPolicy>
-    auto ResidualFunction(const ConstraintInfo& info, const auto& state_variable_indices) const
+    auto ResidualFunction(const ConstraintInfo& info, const auto& state_variable_indices, const auto& state_parameter_indices) const
     {
       return std::visit(
-          [&info, &state_variable_indices](const auto& c)
-          { return c.template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices); },
+          [&info, &state_variable_indices, &state_parameter_indices](const auto& c)
+          { return c.template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices, state_parameter_indices); },
           constraint_);
     }
 
@@ -82,21 +106,23 @@ namespace micm
     ///        This returns a reusable function that can be invoked multiple times
     /// @param info Constraint information including species indices and Jacobian flat IDs
     /// @param state_variable_indices Map from species names to state variable indices
+    /// @param state_parameter_indices Map from parameter names to state parameter indices
     /// @param jacobian_flat_ids Iterator to the jacobian flat IDs for this constraint
     /// @param jacobian Sparse matrix to store Jacobian values
-    /// @return Function object that takes (state_variables, jacobian) and computes partials
+    /// @return Function object that takes (state_variables, state_parameters, jacobian) and computes partials
     template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     auto JacobianFunction(
         const ConstraintInfo& info,
         const auto& state_variable_indices,
+        const auto& state_parameter_indices,
         auto jacobian_flat_ids,
         SparseMatrixPolicy& jacobian) const
     {
       return std::visit(
-          [&info, &state_variable_indices, jacobian_flat_ids, &jacobian](const auto& c)
+          [&info, &state_variable_indices, &state_parameter_indices, jacobian_flat_ids, &jacobian](const auto& c)
           {
             return c.template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info, state_variable_indices, jacobian_flat_ids, jacobian);
+                info, state_variable_indices, state_parameter_indices, jacobian_flat_ids, jacobian);
           },
           constraint_);
     }
