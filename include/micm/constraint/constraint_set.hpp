@@ -4,10 +4,10 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_info.hpp>
+#include <micm/system/conditions.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/system/conditions.hpp>
 
 #include <cstddef>
 #include <functional>
@@ -49,10 +49,12 @@ namespace micm
     std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
 
     /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>> constraint_forcing_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+        constraint_forcing_functions_;
 
     /// @brief Pre-compiled constraint Jacobian functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>> constraint_jacobian_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
+        constraint_jacobian_functions_;
 
    public:
     /// @brief Default constructor
@@ -146,7 +148,7 @@ namespace micm
     }
 
     /// @brief Deduplicates parameter names across all constraints in the set
-    ///        Ensures all constraint parameters have globally unique names by appending 
+    ///        Ensures all constraint parameters have globally unique names by appending
     ///        numeric suffixes (_1, _2, etc.) to duplicates.
     ///        This should be called immediately after construction so that parameter
     ///        names are finalized before the solver builder creates the parameter map.
@@ -159,23 +161,26 @@ namespace micm
 
       for (auto& each : constraints_)
       {
-        std::visit([&](auto& c)
-        {
-          for (auto& label : c.parameters_)
-          {
-            const std::string original = label;
-
-            if (used_names.count(label) > 0)
+        std::visit(
+            [&](auto& c)
             {
-              auto& count = name_counts[original];
-              do {
-                count++;
-                label = original + "_" + std::to_string(count);
-              } while (used_names.count(label) > 0);
-            }
-            used_names.insert(label);
-          }
-        }, each.constraint_);
+              for (auto& label : c.parameters_)
+              {
+                const std::string original = label;
+
+                if (used_names.count(label) > 0)
+                {
+                  auto& count = name_counts[original];
+                  do
+                  {
+                    count++;
+                    label = original + "_" + std::to_string(count);
+                  } while (used_names.count(label) > 0);
+                }
+                used_names.insert(label);
+              }
+            },
+            each.constraint_);
       }
     }
 
@@ -187,13 +192,15 @@ namespace micm
 
       for (auto& each : constraints_)
       {
-        std::visit([&](auto& c)
-        {
-          for (auto& label : c.parameters_)
-            param_names.insert(label);
-        }, each.constraint_);
+        std::visit(
+            [&](auto& c)
+            {
+              for (auto& label : c.parameters_)
+                param_names.insert(label);
+            },
+            each.constraint_);
       }
-      
+
       return param_names;
     }
 
@@ -202,7 +209,10 @@ namespace micm
     /// @param state_variables Current species concentrations (grid cell, species)
     /// @param state_parameters Current state parameters (grid cell, parameter) - e.g., temperature-dependent K_eq values
     /// @param forcing Forcing terms (grid cell, state variable) - constraint rows will be modified
-    void AddForcingTerms(const DenseMatrixPolicy& state_variables, const DenseMatrixPolicy& state_parameters, DenseMatrixPolicy& forcing) const
+    void AddForcingTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        DenseMatrixPolicy& forcing) const
     {
       for (const auto& forcing_fn : constraint_forcing_functions_)
         forcing_fn(state_variables, state_parameters, forcing);
@@ -214,7 +224,10 @@ namespace micm
     /// @param state_variables Current species concentrations (grid cell, species)
     /// @param state_parameters Current state parameters (grid cell, parameter) - e.g., temperature-dependent K_eq values
     /// @param jacobian Sparse Jacobian matrix (grid cell, row, column)
-    void SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, const DenseMatrixPolicy& state_parameters, SparseMatrixPolicy& jacobian) const
+    void SubtractJacobianTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        SparseMatrixPolicy& jacobian) const
     {
       for (const auto& jacobian_fn : constraint_jacobian_functions_)
         jacobian_fn(state_variables, state_parameters, jacobian);
@@ -286,12 +299,16 @@ namespace micm
         constraint_param_functions_.push_back(
             constraints_[info.index_].template ConstraintParameterFunction<DenseMatrixPolicy>(info));
 
-        constraint_forcing_functions_.push_back(
-            constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices, state_parameter_indices));
+        constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
+            info, state_variable_indices, state_parameter_indices));
 
         constraint_jacobian_functions_.push_back(
             constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info, state_variable_indices, state_parameter_indices, jacobian_flat_ids_.begin() + info.jacobian_flat_offset_, jacobian));
+                info,
+                state_variable_indices,
+                state_parameter_indices,
+                jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
+                jacobian));
       }
     }
 

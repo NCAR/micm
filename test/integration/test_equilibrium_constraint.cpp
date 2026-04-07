@@ -34,27 +34,29 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   double k = 0.1;
   Process rxn = ChemicalReactionBuilder()
-                  .SetReactants({ A })
-                  .SetProducts({ { B, 1 } })
-                  .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
-                  .SetPhase(gas_phase)
-                  .Build();
+                    .SetReactants({ A })
+                    .SetProducts({ { B, 1 } })
+                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetPhase(gas_phase)
+                    .Build();
 
   // C is an algebraic variable (not in any kinetic reaction)
   double K_eq = 0.034;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
-      "B_C_eq", std::vector<StoichSpecies>{ { B, 1.0 } }, std::vector<StoichSpecies>{ { C, 1.0 } }, 
+      "B_C_eq",
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                  .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
-                  .SetReactions({ rxn })
-                  .SetConstraints(std::move(constraints))
-                  .SetReorderState(false)
-                  .Build();
+                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
 
   auto state = solver.GetState(1);
 
@@ -106,31 +108,35 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 
   // Simple kinetic reactions
   Process rxn1 = ChemicalReactionBuilder()
-                  .SetReactants({ A })
-                  .SetProducts({ { B, 1 } })
-                  .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.5, .B_ = 0, .C_ = 0 }))
-                  .SetPhase(gas_phase)
-                  .Build();
+                     .SetReactants({ A })
+                     .SetProducts({ { B, 1 } })
+                     .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.5, .B_ = 0, .C_ = 0 }))
+                     .SetPhase(gas_phase)
+                     .Build();
 
   Process rxn2 = ChemicalReactionBuilder()
-                  .SetReactants({ D })
-                  .SetProducts({ { E, 1 } })
-                  .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.2, .B_ = 0, .C_ = 0 }))
-                  .SetPhase(gas_phase)
-                  .Build();
+                     .SetReactants({ D })
+                     .SetProducts({ { E, 1 } })
+                     .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.2, .B_ = 0, .C_ = 0 }))
+                     .SetPhase(gas_phase)
+                     .Build();
 
   // Two equilibrium constraints
-  double K_eq1 = 0.034;   // CO2-like equilibrium
-  double K_eq2 = 0.012;   // Different gas equilibrium
+  double K_eq1 = 0.034;  // CO2-like equilibrium
+  double K_eq2 = 0.012;  // Different gas equilibrium
   double delta_H1 = -2400.0;
   double delta_H2 = -2000.0;
 
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
-      "B_C_eq", std::vector<StoichSpecies>{ { B, 1.0 } }, std::vector<StoichSpecies>{ { C, 1.0 } }, 
+      "B_C_eq",
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = delta_H1 }));
   constraints.push_back(EquilibriumConstraint(
-      "E_F_eq", std::vector<StoichSpecies>{ { E, 1.0 } }, std::vector<StoichSpecies>{ { F, 1.0 } }, 
+      "E_F_eq",
+      std::vector<StoichSpecies>{ { E, 1.0 } },
+      std::vector<StoichSpecies>{ { F, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = delta_H2 }));
 
   // Build solver with multiple constraints
@@ -189,11 +195,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // Simple reaction: A -> B with rate k
   double k = 1.0;
   Process rxn = ChemicalReactionBuilder()
-                          .SetReactants({ A })
-                          .SetProducts({ { B, 1 } })
-                          .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
-                          .SetPhase(gas_phase)
-                          .Build();
+                    .SetReactants({ A })
+                    .SetProducts({ { B, 1 } })
+                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetPhase(gas_phase)
+                    .Build();
 
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   // This couples B (ODE variable) to C (algebraic variable)
@@ -201,7 +207,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   double delta_H = -2400.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
-      "B_C_eq", std::vector<StoichSpecies>{ { B, 1.0 } }, std::vector<StoichSpecies>{ { C, 1.0 } }, 
+      "B_C_eq",
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -252,8 +260,8 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     }
 
     // Verify constraint is maintained by the solver
-    double constraint_residual = 
-      state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    double constraint_residual =
+        state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
     EXPECT_NEAR(constraint_residual, 0.0, 1.0e-6)
         << "Constraint not satisfied at step " << steps << ": K_eq*B - C = " << constraint_residual;
 
@@ -263,7 +271,8 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   // Verify constraint is satisfied: C = K_eq * B
   double expected_C = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx];
-  double final_residual = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double final_residual =
+      state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
 
   EXPECT_NEAR(state.variables_[0][C_idx], expected_C, 1.0e-6);
   EXPECT_NEAR(final_residual, 0.0, 1.0e-6);
@@ -285,17 +294,19 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   // Simple reaction: A -> B with rate k
   double k = 1.0;
   Process rxn = ChemicalReactionBuilder()
-                          .SetReactants({ A })
-                          .SetProducts({ { B, 1 } })
-                          .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
-                          .SetPhase(gas_phase)
-                          .Build();
+                    .SetReactants({ A })
+                    .SetProducts({ { B, 1 } })
+                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetPhase(gas_phase)
+                    .Build();
 
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   double K_eq = 2.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
-      "B_C_eq", std::vector<StoichSpecies>{ { B, 1.0 } }, std::vector<StoichSpecies>{ { C, 1.0 } }, 
+      "B_C_eq",
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -345,7 +356,6 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
 }
 
-
 /// @brief Test DAE solve with two coupled constraints sharing a species
 /// A -> B (kinetic), B <-> C (constraint 1), B <-> D (constraint 2)
 TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
@@ -359,20 +369,24 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   double k = 1.0;
   Process rxn = ChemicalReactionBuilder()
-                          .SetReactants({ A })
-                          .SetProducts({ { B, 1 } })
-                          .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
-                          .SetPhase(gas_phase)
-                          .Build();
+                    .SetReactants({ A })
+                    .SetProducts({ { B, 1 } })
+                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetPhase(gas_phase)
+                    .Build();
 
   double K_eq1 = 3.0;
   double K_eq2 = 5.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
-      "B_C_eq", std::vector<StoichSpecies>{ { B, 1.0 } }, std::vector<StoichSpecies>{ { C, 1.0 } }, 
+      "B_C_eq",
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = -2400.0 }));
   constraints.push_back(EquilibriumConstraint(
-      "B_D_eq", std::vector<StoichSpecies>{ { B, 1.0 } }, std::vector<StoichSpecies>{ { D, 1.0 } }, 
+      "B_D_eq",
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { D, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -416,8 +430,10 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
 
-    double residual1 = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
-    double residual2 = state.custom_rate_parameters_[0][B_D_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][D_idx];
+    double residual1 =
+        state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    double residual2 =
+        state.custom_rate_parameters_[0][B_D_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][D_idx];
     EXPECT_NEAR(residual1, 0.0, 1.0e-6) << "Constraint 1 violated at time=" << time;
     EXPECT_NEAR(residual2, 0.0, 1.0e-6) << "Constraint 2 violated at time=" << time;
 
@@ -430,7 +446,6 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   // Mass conservation: A + B should be conserved
   EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
 }
-
 
 /// @brief Test DAE solve with non-unit stoichiometric coefficient
 /// 2A <-> B means K_eq * [A]^2 - [B] = 0
@@ -445,17 +460,19 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   // Reaction: C -> A (to produce A for the equilibrium)
   double k = 0.5;
   Process rxn = ChemicalReactionBuilder()
-                  .SetReactants({ C })
-                  .SetProducts({ { A, 1 } })
-                  .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
-                  .SetPhase(gas_phase)
-                  .Build();
+                    .SetReactants({ C })
+                    .SetProducts({ { A, 1 } })
+                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetPhase(gas_phase)
+                    .Build();
 
   // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
   double K_eq = 10.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
-      "A2_B_eq", std::vector<StoichSpecies>{ { A, 2.0 } }, std::vector<StoichSpecies>{ { B, 1.0 } }, 
+      "A2_B_eq",
+      std::vector<StoichSpecies>{ { A, 2.0 } },
+      std::vector<StoichSpecies>{ { B, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();

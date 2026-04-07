@@ -149,13 +149,10 @@ namespace micm
       std::ostringstream oss;
       oss << "Duplicate parameter labels detected:\n";
       for (const auto& d : duplicates)
-          oss << "  - " << d << "\n";
+        oss << "  - " << d << "\n";
 
       throw MicmException(
-          MicmSeverity::Error,
-          MICM_ERROR_CATEGORY_SOLVER,
-          MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
-          oss.str());
+          MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, oss.str());
     }
 
     return params;
@@ -324,7 +321,7 @@ namespace micm
       // Add functions that update state parameters when temperature changes
       auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
       update_state_param_funcs.insert(
-        update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
+          update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
     }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,

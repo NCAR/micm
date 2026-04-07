@@ -71,7 +71,7 @@ namespace micm
     }
 
     template<typename DenseMatrixPolicy>
-    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>ConstraintParameterFunction(
+    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
         const ConstraintInfo& info) const
     {
       // Linear constraints have no temperature-dependent parameters
