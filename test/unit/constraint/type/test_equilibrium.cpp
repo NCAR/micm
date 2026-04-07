@@ -31,7 +31,7 @@ TEST(EquilibriumConstraint, Construction)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      VantHoffParam{.K_HLC_ref = K_eq, .delta_H = -2400.0});
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "A_B_equilibrium");
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
@@ -51,7 +51,7 @@ TEST(EquilibriumConstraint, AlgebraicSpecies)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      VantHoffParam{.K_HLC_ref = K_eq, .delta_H = -2400.0});
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.AlgebraicSpecies(), "AB");
 }
@@ -67,7 +67,7 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
       "A_B_simple",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-      VantHoffParam{.K_HLC_ref = K_eq, .delta_H = -2400.0});
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "A_B_simple");
   EXPECT_EQ(constraint.species_dependencies_.size(), 2);
@@ -87,7 +87,7 @@ TEST(EquilibriumConstraint, MultipleReactantsAndProducts)
       "dissociation",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
-      VantHoffParam{.K_HLC_ref = K_eq, .delta_H = -2400.0});
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "dissociation");
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
@@ -108,7 +108,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          VantHoffParam{.K_HLC_ref = -1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = -1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   EXPECT_THROW(
@@ -116,7 +116,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          VantHoffParam{.K_HLC_ref = 0.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 0.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -127,7 +127,7 @@ TEST(EquilibriumConstraint, EmptyReactantsThrows)
           "invalid",
           std::vector<StoichSpecies>{},  // empty reactants
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          VantHoffParam{.K_HLC_ref = 1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -138,7 +138,7 @@ TEST(EquilibriumConstraint, EmptyProductsThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{},  // empty products
-          VantHoffParam{.K_HLC_ref = 1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -150,7 +150,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          VantHoffParam{.K_HLC_ref = 1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   // Negative stoichiometry for reactant
@@ -159,7 +159,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), -1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          VantHoffParam{.K_HLC_ref = 1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   // Zero stoichiometry for product
@@ -168,7 +168,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 0.0) },
-          VantHoffParam{.K_HLC_ref = 1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   // Negative stoichiometry for product
@@ -177,7 +177,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), -2.0) },
-          VantHoffParam{.K_HLC_ref = 1.0, .delta_H = -2400.0}),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -195,7 +195,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      VantHoffParam{.K_HLC_ref = 1000.0, .delta_H = -2400.0}));
+      VantHoffParam{ .K_HLC_ref = 1000.0, .delta_H = -2400.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -264,7 +264,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      VantHoffParam{.K_HLC_ref = 1000.0, .delta_H = -2400.0}));
+      VantHoffParam{ .K_HLC_ref = 1000.0, .delta_H = -2400.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -322,7 +322,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
       "dissociation",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
-      VantHoffParam{.K_HLC_ref = 100.0, .delta_H = -2400.0}));
+      VantHoffParam{ .K_HLC_ref = 100.0, .delta_H = -2400.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 

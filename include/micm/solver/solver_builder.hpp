@@ -21,8 +21,8 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <memory>
-#include <unordered_map>
 #include <sstream>
+#include <unordered_map>
 
 namespace micm
 {

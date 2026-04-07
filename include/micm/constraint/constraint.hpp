@@ -10,10 +10,10 @@
 #include <cstddef>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
-#include <unordered_set>
 
 namespace micm
 {
@@ -82,9 +82,7 @@ namespace micm
     auto ConstraintParameterFunction(const ConstraintInfo& info) const
     {
       return std::visit(
-          [&info](const auto& c)
-          { return c.template ConstraintParameterFunction<DenseMatrixPolicy>(info); },
-          constraint_);
+          [&info](const auto& c) { return c.template ConstraintParameterFunction<DenseMatrixPolicy>(info); }, constraint_);
     }
 
     /// @brief Get a function object to compute the constraint residual
@@ -94,7 +92,10 @@ namespace micm
     /// @param state_parameter_indices Map from parameter names to state parameter indices
     /// @return Function object that takes (state_variables, state_parameters, forcing) and computes the residual
     template<typename DenseMatrixPolicy>
-    auto ResidualFunction(const ConstraintInfo& info, const auto& state_variable_indices, const auto& state_parameter_indices) const
+    auto ResidualFunction(
+        const ConstraintInfo& info,
+        const auto& state_variable_indices,
+        const auto& state_parameter_indices) const
     {
       return std::visit(
           [&info, &state_variable_indices, &state_parameter_indices](const auto& c)
