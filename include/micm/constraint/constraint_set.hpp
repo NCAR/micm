@@ -4,6 +4,7 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_info.hpp>
+#include <micm/external_model.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -48,6 +49,20 @@ namespace micm
 
     /// @brief Pre-compiled constraint Jacobian functions (initialized during solver build via SetConstraintFunctions)
     std::vector<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>> constraint_jacobian_functions_;
+
+    /// @brief External model constraint wrappers
+    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraint_models_;
+
+    /// @brief Runtime count of algebraic variables contributed by external models
+    std::size_t external_constraint_count_ = 0;
+
+    /// @brief Pre-compiled external constraint residual functions
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+        external_constraint_forcing_functions_;
+
+    /// @brief Pre-compiled external constraint Jacobian functions
+    std::vector<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
+        external_constraint_jacobian_functions_;
 
    public:
     /// @brief Default constructor
@@ -127,10 +142,10 @@ namespace micm
     /// @brief Copy assignment
     ConstraintSet& operator=(const ConstraintSet&) = default;
 
-    /// @brief Get the number of constraints
+    /// @brief Get the number of constraints (built-in + external model)
     std::size_t Size() const
     {
-      return constraints_.size();
+      return constraints_.size() + external_constraint_count_;
     }
 
     /// @brief Returns species ids whose rows are algebraic when constraints replace state rows
@@ -148,6 +163,8 @@ namespace micm
     {
       for (const auto& forcing_fn : constraint_forcing_functions_)
         forcing_fn(state_variables, forcing);
+      for (const auto& forcing_fn : external_constraint_forcing_functions_)
+        forcing_fn(state_variables, forcing);
     }
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
@@ -158,6 +175,8 @@ namespace micm
     void SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian) const
     {
       for (const auto& jacobian_fn : constraint_jacobian_functions_)
+        jacobian_fn(state_variables, jacobian);
+      for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
         jacobian_fn(state_variables, jacobian);
     }
 
@@ -225,6 +244,98 @@ namespace micm
         constraint_jacobian_functions_.push_back(
             constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
                 info, state_variable_indices, jacobian_flat_ids_.begin() + info.jacobian_flat_offset_, jacobian));
+      }
+    }
+
+    /// @brief Set external model constraint wrappers
+    /// @param models Vector of type-erased external model constraint wrappers
+    void SetExternalConstraintModels(
+        std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>>&& models)
+    {
+      external_constraint_models_ = std::move(models);
+    }
+
+    /// @brief Resolve external model constraints at runtime
+    ///
+    /// Calls each external model's `algebraic_variable_names_func_()` to determine which
+    /// (if any) algebraic variables it contributes. Models returning empty sets are skipped.
+    /// Populates `external_constraint_count_` and adds to `algebraic_variable_ids_`.
+    ///
+    /// @param variable_map Map from species names to state variable indices
+    void ResolveExternalConstraints(const std::unordered_map<std::string, std::size_t>& variable_map)
+    {
+      external_constraint_count_ = 0;
+      for (const auto& model : external_constraint_models_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        for (const auto& name : alg_names)
+        {
+          auto it = variable_map.find(name);
+          if (it == variable_map.end())
+          {
+            throw MicmException(
+                MicmSeverity::Error,
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                "External model constraint targets unknown algebraic species '" + name + "'");
+          }
+          if (!algebraic_variable_ids_.insert(it->second).second)
+          {
+            throw MicmException(
+                MicmSeverity::Error,
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_ALGEBRAIC_SPECIES,
+                "Multiple constraints map to the same algebraic species row '" + name + "'");
+          }
+          ++external_constraint_count_;
+        }
+      }
+    }
+
+    /// @brief Returns non-zero Jacobian elements contributed by external model constraints
+    /// @param variable_map Map from species names to state variable indices
+    /// @return Set of (row, column) index pairs
+    std::set<std::pair<std::size_t, std::size_t>> ExternalNonZeroJacobianElements(
+        const std::unordered_map<std::string, std::size_t>& variable_map) const
+    {
+      std::set<std::pair<std::size_t, std::size_t>> ids;
+      for (const auto& model : external_constraint_models_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+          continue;
+        auto model_ids = model.non_zero_jacobian_elements_func_(variable_map);
+        ids.insert(model_ids.begin(), model_ids.end());
+        // Ensure diagonal elements exist for algebraic rows
+        for (const auto& name : alg_names)
+        {
+          auto it = variable_map.find(name);
+          if (it != variable_map.end())
+            ids.insert(std::make_pair(it->second, it->second));
+        }
+      }
+      return ids;
+    }
+
+    /// @brief Pre-compiles external constraint residual and Jacobian functions
+    ///        Must be called after ResolveExternalConstraints and after Jacobian is built.
+    /// @param state_variable_indices Map from species names to state variable indices
+    /// @param jacobian The sparse Jacobian matrix
+    void SetExternalModelConstraintFunctions(
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const SparseMatrixPolicy& jacobian)
+    {
+      external_constraint_forcing_functions_.clear();
+      external_constraint_jacobian_functions_.clear();
+      for (const auto& model : external_constraint_models_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+          continue;
+        external_constraint_forcing_functions_.push_back(
+            model.get_residual_function_(state_variable_indices));
+        external_constraint_jacobian_functions_.push_back(
+            model.get_jacobian_function_(state_variable_indices, jacobian));
       }
     }
   };

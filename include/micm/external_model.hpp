@@ -61,6 +61,36 @@
 ///   - Note: Each partial derivative matrix element should be subtracted from the Jacobian (i.e.,
 ///   `jacobian[dependent][independent] -= value`)
 ///
+/// **Constraint Definition Methods (Optional — detected via HasConstraints concept):**
+///
+/// External models can optionally provide algebraic constraints for DAE formulation. If a model
+/// implements the following methods, the `HasConstraints` concept is satisfied and constraints will
+/// be automatically detected and wrapped when `AddExternalModel()` is called.
+///
+/// Even when constraint methods are present, the model may return empty sets at runtime to disable
+/// constraint activation (e.g., based on constructor parameters).
+///
+/// - `std::set<std::string> ConstraintAlgebraicVariableNames() const`
+///   - Returns names of state variables whose ODE rows are replaced by algebraic constraints.
+///     Return an empty set to indicate no constraints (pure ODE mode).
+///
+/// - `std::set<std::string> ConstraintSpeciesDependencies() const`
+///   - Returns all species names the constraints depend on (for unused-species checking)
+///
+/// - `std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
+///     const std::unordered_map<std::string, std::size_t>& state_indices) const`
+///   - Returns (row, column) pairs for non-zero elements in the constraint Jacobian
+///
+/// - `template<typename DenseMatrixPolicy> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+///   ConstraintResidualFunction(const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
+///   - Returns a function that computes constraint residuals G(y), where G(y) = 0 when satisfied
+///
+/// - `template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+///   std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>
+///   ConstraintJacobianFunction(const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+///     const SparseMatrixPolicy& jacobian) const`
+///   - Returns a function that subtracts ∂G/∂y entries (matching the solver's -J convention)
+///
 /// @section external_model_usage Usage
 ///
 /// **1. Add the external model to the system:**
@@ -72,11 +102,11 @@
 /// });
 /// ```
 ///
-/// **2. Add the external model's processes to the solver:**
+/// **2. Add the external model's processes (and optionally constraints) to the solver:**
 /// ```cpp
 /// auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
 ///   .SetSystem(system)
-///   .AddExternalModelProcesses(aerosol_model)
+///   .AddExternalModel(aerosol_model)  // wraps processes AND constraints automatically
 ///   .Build();
 /// ```
 ///
@@ -231,6 +261,86 @@ namespace micm
       {
         return shared_model->template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
             state_parameter_indices, state_variable_indices, jacobian);
+      };
+    }
+  };
+
+  /// @brief Concept to detect whether an external model provides constraint methods
+  ///
+  /// A model satisfies `HasConstraints` if it provides at least `ConstraintAlgebraicVariableNames()`
+  /// and `ConstraintSpeciesDependencies()`. At runtime, the model may return empty sets to indicate
+  /// that constraints are not active for a given configuration.
+  template<typename T>
+  concept HasConstraints = requires(const T& m) {
+    { m.ConstraintAlgebraicVariableNames() } -> std::same_as<std::set<std::string>>;
+    { m.ConstraintSpeciesDependencies() } -> std::same_as<std::set<std::string>>;
+  };
+
+  /// @brief Wrapper for external model constraint information
+  ///
+  /// This struct encapsulates an external model's constraint definitions (algebraic variables,
+  /// residual functions, Jacobian functions) and provides a type-erased interface that MICM
+  /// can use to incorporate the model's constraints into the DAE solver. Instances are constructed
+  /// when `AddExternalModel()` is called on a solver builder for a model satisfying `HasConstraints`.
+  ///
+  /// @tparam DenseMatrixPolicy Policy for dense matrices (state variables, forcing)
+  /// @tparam SparseMatrixPolicy Policy for sparse matrices (Jacobian)
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  struct ExternalModelConstraintSet
+  {
+    /// @brief Type-erased function returning names of algebraic variables (may be empty at runtime)
+    std::function<std::set<std::string>()> algebraic_variable_names_func_;
+
+    /// @brief Type-erased function returning species dependencies for constraints
+    std::function<std::set<std::string>()> species_dependencies_func_;
+
+    /// @brief Type-erased function returning non-zero constraint Jacobian element positions
+    std::function<std::set<std::pair<std::size_t, std::size_t>>(const std::unordered_map<std::string, std::size_t>&)>
+        non_zero_jacobian_elements_func_;
+
+    /// @brief Type-erased function factory for constraint residual computation
+    /// Returns a function that computes G(y) for the constraint rows
+    std::function<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices)>
+        get_residual_function_;
+
+    /// @brief Type-erased function factory for constraint Jacobian computation
+    /// Returns a function that computes ∂G/∂y for the constraint rows
+    std::function<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const SparseMatrixPolicy& jacobian)>
+        get_jacobian_function_;
+
+    /// @brief Constructs a type-erased wrapper from an external model instance
+    ///
+    /// @tparam ModelType Type of the external model (must satisfy HasConstraints)
+    /// @param model External model instance
+    template<
+        typename ModelType,
+        typename = std::enable_if_t<!std::is_same_v<std::decay_t<ModelType>, ExternalModelConstraintSet>>>
+    ExternalModelConstraintSet(ModelType&& model)
+    {
+      auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
+      algebraic_variable_names_func_ = [shared_model]() -> std::set<std::string>
+      { return shared_model->ConstraintAlgebraicVariableNames(); };
+      species_dependencies_func_ = [shared_model]() -> std::set<std::string>
+      { return shared_model->ConstraintSpeciesDependencies(); };
+      non_zero_jacobian_elements_func_ =
+          [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
+          -> std::set<std::pair<std::size_t, std::size_t>>
+      { return shared_model->NonZeroConstraintJacobianElements(species_map); };
+      get_residual_function_ = [shared_model](const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+          -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+      {
+        return shared_model->template ConstraintResidualFunction<DenseMatrixPolicy>(state_variable_indices);
+      };
+      get_jacobian_function_ = [shared_model](
+                                   const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+                                   const SparseMatrixPolicy& jacobian)
+          -> std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>
+      {
+        return shared_model->template ConstraintJacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
+            state_variable_indices, jacobian);
       };
     }
   };

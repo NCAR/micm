@@ -101,6 +101,79 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
+  template<class ExternalModel>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::AddExternalModelConstraints(ExternalModel&& model)
+  {
+    static_assert(
+        HasConstraints<std::decay_t<ExternalModel>>,
+        "External model passed to AddExternalModelConstraints() must satisfy the HasConstraints concept");
+    external_constraint_models_.emplace_back(
+        ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<ExternalModel>(model) });
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
+  template<class ExternalModel>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::AddExternalModel(ExternalModel&& model)
+  {
+    // Always wrap process info
+    auto model_copy = model;
+    external_models_.emplace_back(
+        ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model_copy) });
+    // Conditionally wrap constraint info
+    if constexpr (HasConstraints<std::decay_t<ExternalModel>>)
+    {
+      external_constraint_models_.emplace_back(
+          ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<ExternalModel>(model) });
+    }
+    return *this;
+  }
+
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy>
   inline SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -209,6 +282,14 @@ namespace micm
       for (const auto& dep : constraint.SpeciesDependencies())
         used_species.insert(dep);
       used_species.insert(constraint.AlgebraicSpecies());
+    }
+    // Include species referenced by external model constraints
+    for (const auto& model : external_constraint_models_)
+    {
+      auto deps = model.species_dependencies_func_();
+      used_species.insert(deps.begin(), deps.end());
+      auto alg_names = model.algebraic_variable_names_func_();
+      used_species.insert(alg_names.begin(), alg_names.end());
     }
 
     auto available_species = system_.UniqueNames();
@@ -431,6 +512,38 @@ namespace micm
       nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
     }
 
+    // Resolve external model constraints (runtime activation)
+    if (!external_constraint_models_.empty())
+    {
+      auto ext_constraint_models_copy = external_constraint_models_;
+      constraint_set.SetExternalConstraintModels(std::move(ext_constraint_models_copy));
+      constraint_set.ResolveExternalConstraints(species_map);
+
+      auto ext_algebraic_ids = constraint_set.AlgebraicVariableIds();
+      // Find newly added algebraic IDs from external models
+      for (const auto& id : ext_algebraic_ids)
+      {
+        if (algebraic_variable_ids.insert(id).second)
+        {
+          // Filter kinetic sparsity entries from this new algebraic row
+          for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
+          {
+            if (it->first == id)
+              it = nonzero_elements.erase(it);
+            else
+              ++it;
+          }
+        }
+      }
+      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
+
+      // Merge external constraint Jacobian sparsity
+      auto ext_jac_elements = constraint_set.ExternalNonZeroJacobianElements(species_map);
+      nonzero_elements.insert(ext_jac_elements.begin(), ext_jac_elements.end());
+
+      number_of_constraints += constraint_set.Size() - constraints_.size();
+    }
+
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
@@ -447,6 +560,7 @@ namespace micm
     {
       constraint_set.SetJacobianFlatIds(jacobian);
       constraint_set.SetConstraintFunctions(species_map, jacobian);
+      constraint_set.SetExternalModelConstraintFunctions(species_map, jacobian);
     }
 
     std::vector<std::string> variable_names{ number_of_species };

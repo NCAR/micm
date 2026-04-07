@@ -55,6 +55,7 @@ namespace micm
     std::vector<Process> reactions_;
     std::vector<Constraint> constraints_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
+    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraint_models_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -91,8 +92,27 @@ namespace micm
     /// @brief Add processes from an external model
     /// @param model The external model
     /// @return Updated SolverBuilder
+    /// @deprecated Use AddExternalModel() instead
     template<class ExternalModel>
     SolverBuilder& AddExternalModelProcesses(ExternalModel&& model);
+
+    /// @brief Add constraints from an external model
+    ///
+    /// Only wraps constraint information. The model must satisfy the HasConstraints concept.
+    /// Use this when processes are added separately or not needed.
+    /// @param model The external model
+    /// @return Updated SolverBuilder
+    template<class ExternalModel>
+    SolverBuilder& AddExternalModelConstraints(ExternalModel&& model);
+
+    /// @brief Add an external model (processes and optionally constraints)
+    ///
+    /// If the model satisfies the HasConstraints concept, both process and constraint
+    /// wrappers are created. Otherwise, only processes are wrapped.
+    /// @param model The external model
+    /// @return Updated SolverBuilder
+    template<class ExternalModel>
+    SolverBuilder& AddExternalModel(ExternalModel&& model);
 
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored
