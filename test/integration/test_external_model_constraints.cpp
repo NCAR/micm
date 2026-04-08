@@ -6,6 +6,7 @@
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/util/jacobian_verification.hpp>
 
 #include <gtest/gtest.h>
 
@@ -1065,4 +1066,145 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
                + state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")];
     EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated at step " << step;
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Finite-Difference Jacobian Verification for External Models
+// ═══════════════════════════════════════════════════════════════
+
+using DenseMatrix = micm::Matrix<double>;
+using SparseMatrixFD = micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>;
+
+/// Verify StubAerosolWithConstraints process ForcingFunction/JacobianFunction
+TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
+{
+  double k = 3.5;
+  StubAerosolWithConstraints aerosol(k);
+
+  std::unordered_map<std::string, std::size_t> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
+  std::unordered_map<std::string, std::size_t> param_map;
+  const std::size_t num_species = 2;
+
+  auto forcing_fn = aerosol.ForcingFunction<DenseMatrix>(param_map, var_map);
+  auto nz_elements = aerosol.NonZeroJacobianElements(var_map);
+
+  auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (auto& elem : nz_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  SparseMatrixFD analytical_jac{ builder };
+
+  auto jacobian_fn = aerosol.JacobianFunction<DenseMatrix, SparseMatrixFD>(param_map, var_map, analytical_jac);
+
+  DenseMatrix variables(2, num_species, 0.0);
+  variables[0][0] = 0.8;
+  variables[0][1] = 0.2;
+  variables[1][0] = 0.3;
+  variables[1][1] = 0.7;
+
+  DenseMatrix params(2, 0, 0.0);
+
+  jacobian_fn(params, variables, analytical_jac);
+
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { forcing_fn(params, vars, forcing); };
+
+  auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison =
+      micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Process Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+
+  auto sparsity =
+      micm::CheckJacobianSparsityCompleteness<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
+                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
+}
+
+/// Verify StubAerosolWithConstraints constraint ConstraintResidualFunction/ConstraintJacobianFunction
+TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
+{
+  double k = 0.1;
+  double total = 1.0;
+  StubAerosolWithConstraints aerosol(k, total);
+
+  std::unordered_map<std::string, std::size_t> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
+  const std::size_t num_species = 2;
+
+  auto residual_fn = aerosol.ConstraintResidualFunction<DenseMatrix>(var_map);
+  auto nz_elements = aerosol.NonZeroConstraintJacobianElements(var_map);
+
+  auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (auto& elem : nz_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  SparseMatrixFD analytical_jac{ builder };
+
+  auto jacobian_fn = aerosol.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(var_map, analytical_jac);
+
+  DenseMatrix variables(2, num_species, 0.0);
+  variables[0][0] = 0.6;
+  variables[0][1] = 0.4;
+  variables[1][0] = 0.2;
+  variables[1][1] = 0.8;
+
+  jacobian_fn(variables, analytical_jac);
+
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { residual_fn(vars, forcing); };
+
+  auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison =
+      micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Constraint Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+}
+
+/// Verify EquilibriumConstraintModel constraint residual/Jacobian pair
+TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
+{
+  double K_eq = 2.5;
+  EquilibriumConstraintModel model("A", "B", K_eq);
+
+  std::unordered_map<std::string, std::size_t> var_map = { { "A", 0 }, { "B", 1 } };
+  const std::size_t num_species = 2;
+
+  auto residual_fn = model.ConstraintResidualFunction<DenseMatrix>(var_map);
+  auto nz_elements = model.NonZeroConstraintJacobianElements(var_map);
+
+  auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  for (auto& elem : nz_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  SparseMatrixFD analytical_jac{ builder };
+
+  auto jacobian_fn = model.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(var_map, analytical_jac);
+
+  DenseMatrix variables(1, num_species, 0.0);
+  variables[0][0] = 3.0;
+  variables[0][1] = 5.0;
+
+  jacobian_fn(variables, analytical_jac);
+
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { residual_fn(vars, forcing); };
+
+  auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison =
+      micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "EquilibriumConstraintModel Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+
+  auto sparsity =
+      micm::CheckJacobianSparsityCompleteness<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
+                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
 }
