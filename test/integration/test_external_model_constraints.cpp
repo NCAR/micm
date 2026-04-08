@@ -1009,3 +1009,60 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   EXPECT_NEAR(K1 * ext_B_val - ext_C_val, 0.0, 1e-6);
   EXPECT_NEAR(K2 * ext_B_val - ext_D_val, 0.0, 1e-6);
 }
+
+/// @brief Verify that process Jacobian elements in algebraic rows not covered by constraints
+/// don't cause "Zero element access" exceptions.
+///
+/// StubAerosolWithSolvent declares process element (A_AQ, S) but the constraint only
+/// declares (A_AQ, A_GAS) and (A_AQ, A_AQ). Without the fix, (A_AQ, S) is filtered
+/// from the sparsity pattern because A_AQ is algebraic, and the external model's
+/// JacobianFunction closure throws when accessing jac[block][A_AQ][S].
+TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFiltering)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  auto S = micm::Species("S");
+  micm::Phase gas_phase{ "gas", { A_GAS, S } };
+
+  double total = 1.0;
+  double k = 0.1;
+  StubAerosolWithSolvent aerosol(k, total);
+
+  auto system = micm::System(micm::SystemParameters{
+      .gas_phase_ = gas_phase,
+      .external_models_ = { aerosol } });
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+
+  // This Build() call would throw "Zero element access" without the fix
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // Verify A_AQ is algebraic
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 0.0);
+
+  // Initialize state
+  state.variables_[0][state.variable_map_.at("A_GAS")] = 0.9;
+  state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")] = 0.1;
+  state.variables_[0][state.variable_map_.at("S")] = 1.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  // Solve several steps — verifies no runtime exceptions from Jacobian access
+  double dt = 10.0;
+  for (int step = 0; step < 10; ++step)
+  {
+    auto result = solver.Solve(dt, state);
+    EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Step " << step;
+
+    double sum = state.variables_[0][state.variable_map_.at("A_GAS")]
+               + state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")];
+    EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated at step " << step;
+  }
+}

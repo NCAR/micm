@@ -544,6 +544,23 @@ namespace micm
       number_of_constraints += constraint_set.Size() - constraints_.size();
     }
 
+    // Re-add external model process Jacobian elements for algebraic rows.
+    // Built-in ProcessSet is protected by is_algebraic_variable_ guards that skip
+    // algebraic rows, but external models' JacobianFunction closures pre-compute
+    // VectorIndex at setup time and need these elements to exist in the sparse matrix.
+    if (!algebraic_variable_ids.empty())
+    {
+      for (const auto& model : external_models_)
+      {
+        auto ext_process_elements = model.non_zero_jacobian_elements_func_(species_map);
+        for (const auto& elem : ext_process_elements)
+        {
+          if (algebraic_variable_ids.count(elem.first) > 0)
+            nonzero_elements.insert(elem);
+        }
+      }
+    }
+
     // The actual number of grid cells is not needed to construct the various solver objects
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
