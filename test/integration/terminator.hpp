@@ -77,7 +77,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
       state.conditions_[i_cell].air_density_ = 42.0;   // mol m-3
     }
     state.SetCustomRateParameters(custom_rate_constants);
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
 
     double dt = 30.0;
     auto result = solver.Solve(dt, state);

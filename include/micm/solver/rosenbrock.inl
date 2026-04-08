@@ -55,7 +55,7 @@ namespace micm
       rates_.AddForcingTerms(state, Y, initial_forcing);
 
       if (has_constraints)
-        constraints_.AddForcingTerms(Y, initial_forcing);
+        constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, initial_forcing);
 
       result.stats_.function_calls_ += 1;
 
@@ -64,7 +64,7 @@ namespace micm
       rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
 
       if (has_constraints)
-        constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+        constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
 
       result.stats_.jacobian_updates_ += 1;
 
@@ -107,7 +107,7 @@ namespace micm
               rates_.AddForcingTerms(state, Ynew, K[stage]);
               if (has_constraints)
               {
-                constraints_.AddForcingTerms(Ynew, K[stage]);
+                constraints_.AddForcingTerms(Ynew, state.custom_rate_parameters_, K[stage]);
               }
               result.stats_.function_calls_ += 1;
             }
@@ -215,7 +215,7 @@ namespace micm
             rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
             // Subtract constraint Jacobian terms (for DAE systems)
             if (has_constraints)
-              constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+              constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
             result.stats_.jacobian_updates_ += 1;
           }
         }

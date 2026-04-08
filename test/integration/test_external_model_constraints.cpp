@@ -398,7 +398,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
       "B_C_eq",
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      K_eq));
+      micm::VantHoffParam{ K_eq, 0.0 }));
 
   // Process: A_GAS -> B
   double k_rxn = 0.05;
@@ -623,7 +623,7 @@ namespace
     double dt = 1.0;
     for (int step = 0; step < 200; ++step)
     {
-      solver.CalculateRateConstants(state);
+      solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
       EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Kinetic solve failed at step " << step;
     }
@@ -672,7 +672,7 @@ namespace
     double dt = 1.0;
     for (int step = 0; step < 200; ++step)
     {
-      solver.CalculateRateConstants(state);
+      solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
       EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Conservative constraint solve failed at step " << step;
     }
@@ -720,7 +720,7 @@ namespace
     double dt = 1.0;
     for (int step = 0; step < 200; ++step)
     {
-      solver.CalculateRateConstants(state);
+      solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
       EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Simple constraint solve failed at step " << step;
     }
@@ -807,7 +807,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   // Built-in constraint solver
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, K_EQ));
+      "B_C_eq", std::vector<micm::StoichSpecies>{ { B, 1.0 } }, std::vector<micm::StoichSpecies>{ { C, 1.0 } }, micm::VantHoffParam{ K_EQ, 0.0 }));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto builtin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -841,8 +841,8 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   double dt = 0.5;
   for (int step = 0; step < 100; ++step)
   {
-    builtin_solver.CalculateRateConstants(state_bi);
-    ext_solver.CalculateRateConstants(state_ext);
+    builtin_solver.UpdateStateParameters(state_bi);
+    ext_solver.UpdateStateParameters(state_ext);
 
     auto res_bi = builtin_solver.Solve(dt, state_bi);
     auto res_ext = ext_solver.Solve(dt, state_ext);
@@ -966,8 +966,8 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   double dt = 1.0;
   for (int step = 0; step < 200; ++step)
   {
-    kin_solver.CalculateRateConstants(state_kin);
-    ext_solver.CalculateRateConstants(state_ext);
+    kin_solver.UpdateStateParameters(state_kin);
+    ext_solver.UpdateStateParameters(state_ext);
 
     auto res_kin = kin_solver.Solve(dt, state_kin);
     auto res_ext = ext_solver.Solve(dt, state_ext);

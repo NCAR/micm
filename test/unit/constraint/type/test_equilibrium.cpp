@@ -31,10 +31,9 @@ TEST(EquilibriumConstraint, Construction)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      K_eq);
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "A_B_equilibrium");
-  EXPECT_EQ(constraint.equilibrium_constant_, K_eq);
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
   EXPECT_EQ(constraint.species_dependencies_[0], "A");
   EXPECT_EQ(constraint.species_dependencies_[1], "B");
@@ -52,7 +51,7 @@ TEST(EquilibriumConstraint, AlgebraicSpecies)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      K_eq);
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.AlgebraicSpecies(), "AB");
 }
@@ -68,7 +67,7 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
       "A_B_simple",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-      K_eq);
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "A_B_simple");
   EXPECT_EQ(constraint.species_dependencies_.size(), 2);
@@ -88,7 +87,7 @@ TEST(EquilibriumConstraint, MultipleReactantsAndProducts)
       "dissociation",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
-      K_eq);
+      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "dissociation");
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
@@ -109,7 +108,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          -1.0),
+          VantHoffParam{ .K_HLC_ref = -1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   EXPECT_THROW(
@@ -117,7 +116,7 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          0.0),
+          VantHoffParam{ .K_HLC_ref = 0.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -128,7 +127,7 @@ TEST(EquilibriumConstraint, EmptyReactantsThrows)
           "invalid",
           std::vector<StoichSpecies>{},  // empty reactants
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          1.0),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -139,7 +138,7 @@ TEST(EquilibriumConstraint, EmptyProductsThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{},  // empty products
-          1.0),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -151,7 +150,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          1.0),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   // Negative stoichiometry for reactant
@@ -160,7 +159,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), -1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-          1.0),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   // Zero stoichiometry for product
@@ -169,7 +168,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 0.0) },
-          1.0),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 
   // Negative stoichiometry for product
@@ -178,7 +177,7 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
           "invalid",
           std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(Species("B"), -2.0) },
-          1.0),
+          VantHoffParam{ .K_HLC_ref = 1.0, .delta_H = -2400.0 }),
       micm::MicmException);
 }
 
@@ -196,7 +195,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      VantHoffParam{ .K_HLC_ref = 1000.0, .delta_H = -2400.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -216,7 +215,8 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_equilibrium", 0 } };
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Create state matrix with 1 grid cell and 3 species
   DenseMatrix state(1, 3);
@@ -230,7 +230,8 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   state[0][2] = 0.001;  // AB
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 1, 1000.0);  // K_eq = 1000.0 for all grid cells
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for AB (row 2) should be the constraint residual
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
@@ -243,7 +244,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   state[0][2] = 0.05;  // AB
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][2], 0.55, 1e-10);
 }
@@ -263,7 +264,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
       "A_B_equilibrium",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
-      1000.0));
+      VantHoffParam{ .K_HLC_ref = 1000.0, .delta_H = -2400.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -284,7 +285,8 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   StandardSparseMatrix jacobian{ builder };
 
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_equilibrium", 0 } };
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Create state matrix
   DenseMatrix state(1, 3);
@@ -293,7 +295,8 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   state[0][2] = 0.05;  // AB
 
   // Compute Jacobian
-  set.SubtractJacobianTerms(state, jacobian);
+  DenseMatrix state_parameters(1, 1, 1000.0);  // K_eq = 1000.0
+  set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // The Jacobian computation uses subtraction convention
   // Row 2 (AB, the algebraic species): contains dG/d[A], dG/d[B], dG/d[AB]
@@ -319,7 +322,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
       "dissociation",
       std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
-      100.0));
+      VantHoffParam{ .K_HLC_ref = 100.0, .delta_H = -2400.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
@@ -339,7 +342,8 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.SetConstraintFunctions(variable_map, jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "dissociation", 0 } };
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -352,7 +356,8 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   state[0][2] = 2.0;  // C
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, forcing);
+  DenseMatrix state_parameters(1, 1, 100.0);  // K_eq = 100.0
+  set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for B (row 1, first product) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);

@@ -5,6 +5,7 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_info.hpp>
 #include <micm/external_model.hpp>
+#include <micm/system/conditions.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -15,6 +16,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -44,11 +46,16 @@ namespace micm
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<std::size_t> algebraic_variable_ids_;
 
+    /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
+    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
+
     /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> constraint_forcing_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+        constraint_forcing_functions_;
 
     /// @brief Pre-compiled constraint Jacobian functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>> constraint_jacobian_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
+        constraint_jacobian_functions_;
 
     /// @brief External model constraint wrappers
     std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraint_models_;
@@ -155,14 +162,75 @@ namespace micm
       return algebraic_variable_ids_;
     }
 
+    /// @brief Deduplicates parameter names across all constraints in the set
+    ///        Ensures all constraint parameters have globally unique names by appending
+    ///        numeric suffixes (_1, _2, etc.) to duplicates.
+    ///        This should be called immediately after construction so that parameter
+    ///        names are finalized before the solver builder creates the parameter map.
+    ///        This logic is not part of the constructor because it mutates the constraint
+    ///        parameters, which is considered beyond the scope of construction.
+    void SetUniqueParameterNames()
+    {
+      std::unordered_set<std::string> used_names;
+      std::unordered_map<std::string, int> name_counts;
+
+      for (auto& each : constraints_)
+      {
+        std::visit(
+            [&](auto& c)
+            {
+              for (auto& label : c.parameters_)
+              {
+                const std::string original = label;
+
+                if (used_names.count(label) > 0)
+                {
+                  auto& count = name_counts[original];
+                  do
+                  {
+                    count++;
+                    label = original + "_" + std::to_string(count);
+                  } while (used_names.count(label) > 0);
+                }
+                used_names.insert(label);
+              }
+            },
+            each.constraint_);
+      }
+    }
+
+    /// @brief Returns all unique parameter names from all constraints in the set
+    /// @return Set of parameter names
+    std::unordered_set<std::string> GetParameterNames() const
+    {
+      std::unordered_set<std::string> param_names;
+
+      for (auto& each : constraints_)
+      {
+        std::visit(
+            [&](auto& c)
+            {
+              for (auto& label : c.parameters_)
+                param_names.insert(label);
+            },
+            each.constraint_);
+      }
+
+      return param_names;
+    }
+
     /// @brief Add constraint residuals to forcing vector (constraint rows)
     ///        For each constraint G_i, writes or adds G_i(x) to forcing[constraint_row]
     /// @param state_variables Current species concentrations (grid cell, species)
+    /// @param state_parameters Current state parameters (grid cell, parameter) - e.g., temperature-dependent K_eq values
     /// @param forcing Forcing terms (grid cell, state variable) - constraint rows will be modified
-    void AddForcingTerms(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+    void AddForcingTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        DenseMatrixPolicy& forcing) const
     {
       for (const auto& forcing_fn : constraint_forcing_functions_)
-        forcing_fn(state_variables, forcing);
+        forcing_fn(state_variables, state_parameters, forcing);
       for (const auto& forcing_fn : external_constraint_forcing_functions_)
         forcing_fn(state_variables, forcing);
     }
@@ -171,11 +239,15 @@ namespace micm
     ///        For each constraint G_i, subtracts dG_i/dx_j from jacobian[constraint_row, j]
     ///        (Subtraction matches the convention used by ProcessSet)
     /// @param state_variables Current species concentrations (grid cell, species)
+    /// @param state_parameters Current state parameters (grid cell, parameter) - e.g., temperature-dependent K_eq values
     /// @param jacobian Sparse Jacobian matrix (grid cell, row, column)
-    void SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian) const
+    void SubtractJacobianTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        SparseMatrixPolicy& jacobian) const
     {
       for (const auto& jacobian_fn : constraint_jacobian_functions_)
-        jacobian_fn(state_variables, jacobian);
+        jacobian_fn(state_variables, state_parameters, jacobian);
       for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
         jacobian_fn(state_variables, jacobian);
     }
@@ -231,20 +303,41 @@ namespace micm
     /// @param state_variable_indices Map from species names to state variable indices
     /// @param jacobian The sparse Jacobian matrix (used for function template instantiation)
     void SetConstraintFunctions(
-        const auto& state_variable_indices,  // acts like std::unordered_map<std::string, std::size_t>
+        const auto& state_variable_indices,   // std::unordered_map<std::string, std::size_t>
+        const auto& state_parameter_indices,  // std::unordered_map<std::string, std::size_t>
         SparseMatrixPolicy& jacobian)
     {
+      SetConstraintParamIndices(state_parameter_indices);
+
+      constraint_param_functions_.clear();
       constraint_forcing_functions_.clear();
       constraint_jacobian_functions_.clear();
+
       for (const auto& info : constraint_info_)
       {
-        constraint_forcing_functions_.push_back(
-            constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices));
+        constraint_param_functions_.push_back(
+            constraints_[info.index_].template ConstraintParameterFunction<DenseMatrixPolicy>(info));
+
+        constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
+            info, state_variable_indices, state_parameter_indices));
 
         constraint_jacobian_functions_.push_back(
             constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info, state_variable_indices, jacobian_flat_ids_.begin() + info.jacobian_flat_offset_, jacobian));
+                info,
+                state_variable_indices,
+                state_parameter_indices,
+                jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
+                jacobian));
       }
+    }
+
+    /// @brief Returns pre-compiled constraint parameter update functions
+    ///        These functions compute temperature-dependent parameters (e.g., K_eq) for each constraint
+    ///        Called by solver builder to retrieve functions for UpdateStateParameters pipeline
+    /// @return Vector of function objects that take (conditions, state_param) and update constraint parameters
+    auto GetUpdateStateParamFunctions()
+    {
+      return constraint_param_functions_;
     }
 
     /// @brief Set external model constraint wrappers
@@ -336,6 +429,31 @@ namespace micm
             model.get_residual_function_(state_variable_indices));
         external_constraint_jacobian_functions_.push_back(
             model.get_jacobian_function_(state_variable_indices, jacobian));
+      }
+    }
+
+   private:
+    /// @brief Maps constraint parameter names to their column indices in the state parameter matrix
+    ///        Populates constraint_info_[i].state_param_indices_ for each constraint
+    ///        Called internally by SetConstraintFunctions after parameter map is finalized
+    /// @param state_parameter_indices Map from parameter names to column indices in state_param matrix
+    void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
+    {
+      for (std::size_t i = 0; i < constraints_.size(); ++i)
+      {
+        for (const auto& name : constraints_[i].GetParameterNames())
+        {
+          auto it = state_parameter_indices.find(name);
+          if (it == state_parameter_indices.end())
+          {
+            throw MicmException(
+                MicmSeverity::Error,
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                "Constraint '" + constraints_[i].GetName() + "' depends on unknown parameter '" + name + "'");
+          }
+          constraint_info_[i].state_param_indices_.push_back(it->second);  // store in ConstraintInfo
+        }
       }
     }
   };

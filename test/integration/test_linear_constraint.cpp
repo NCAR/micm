@@ -101,7 +101,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   state.conditions_[0].pressure_ = 101300.0;
   state.conditions_[0].air_density_ = 42.0;
 
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
 
   constexpr size_t N = 12;
   double time_step = 1.0;
