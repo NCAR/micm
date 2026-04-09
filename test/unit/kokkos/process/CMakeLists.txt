@@ -1,0 +1,1 @@
+create_standard_test(NAME kokkos_process_set SOURCES test_kokkos_process_set.cpp LIBRARIES musica::micm_kokkos)

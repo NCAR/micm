@@ -1,0 +1,1 @@
+create_standard_test(NAME kokkos_dense_matrix SOURCES test_kokkos_dense_matrix.cpp LIBRARIES musica::micm_kokkos)
