@@ -9,6 +9,7 @@ create_standard_test(NAME lu_decomposition_mozart SOURCES test_lu_decomposition_
 create_standard_test(NAME lu_decomposition_doolittle_in_place SOURCES test_lu_decomposition_doolittle_in_place.cpp)
 create_standard_test(NAME lu_decomposition_mozart_in_place SOURCES test_lu_decomposition_mozart_in_place.cpp)
 create_standard_test(NAME rosenbrock SOURCES test_rosenbrock.cpp)
+create_standard_test(NAME constraint_initialization SOURCES test_constraint_initialization.cpp)
 create_standard_test(NAME state SOURCES test_state.cpp)
 create_standard_test(NAME backward_euler SOURCES test_backward_euler.cpp)
 create_standard_test(NAME solver_builder SOURCES test_solver_builder.cpp)

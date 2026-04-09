@@ -28,6 +28,17 @@ namespace micm
 
     const bool has_constraints = constraints_.Size() > 0;
 
+    // Initialize algebraic constraint variables before time stepping
+    if (has_constraints)
+    {
+      auto init_state = InitializeConstraints(state, parameters, result.stats_);
+      if (init_state != SolverState::Converged)
+      {
+        result.state_ = init_state;
+        return result;
+      }
+    }
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -381,6 +392,105 @@ namespace micm
     const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
 
     return std::max(std::sqrt(error / N), error_min);
+  }
+
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  inline SolverState
+  AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::InitializeConstraints(
+      auto& state,
+      const RosenbrockSolverParameters& parameters,
+      SolverStats& stats) const noexcept
+  {
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
+
+    auto& Y = state.variables_;
+    auto derived_class_temporary_variables =
+        static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
+    // Reuse initial_forcing_ as the residual/delta workspace
+    auto& delta = derived_class_temporary_variables->initial_forcing_;
+
+    for (std::size_t iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
+    {
+      // 1. Evaluate constraint residuals: G(y)
+      delta.Fill(0);
+      constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
+
+      // 2. Check convergence: ||G||_inf over algebraic rows only
+      double max_residual = 0;
+      for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+      {
+        for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
+        {
+          if (state.upper_left_identity_diagonal_[i_var] == 0.0)
+          {
+            double val = std::abs(delta[i_cell][i_var]);
+            if (std::isnan(val))
+              return SolverState::NaNDetected;
+            if (std::isinf(val))
+              return SolverState::InfDetected;
+            max_residual = std::max(max_residual, val);
+          }
+        }
+      }
+
+      stats.constraint_init_iterations_ = iter + 1;
+
+      if (max_residual < parameters.constraint_init_tolerance_)
+        return SolverState::Converged;
+
+      // 3. Compute constraint Jacobian: -dG/dy
+      state.jacobian_.Fill(0);
+      constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+      stats.jacobian_updates_ += 1;
+
+      // 4. Form system matrix with alpha=1.0:
+      //    ODE rows (M=1): identity on diagonal (constraint Jacobian has no ODE-row entries)
+      //    Algebraic rows (M=0): -dG/dy from SubtractJacobianTerms (no alpha contribution)
+      static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, 1.0);
+
+      // 5. Factor the system matrix
+      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        linear_solver_.Factor(state.jacobian_);
+      }
+      else
+      {
+        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+      }
+      stats.decompositions_ += 1;
+
+      // 6. Solve: -J * delta = G  =>  delta = -J^{-1} * G
+      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        linear_solver_.Solve(delta, state.jacobian_);
+      }
+      else
+      {
+        linear_solver_.Solve(delta, state.lower_matrix_, state.upper_matrix_);
+      }
+      stats.solves_ += 1;
+
+      // 7. Apply update only to algebraic variables
+      for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+      {
+        for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
+        {
+          if (state.upper_left_identity_diagonal_[i_var] == 0.0)
+          {
+            double update = delta[i_cell][i_var];
+            if (std::isnan(update))
+              return SolverState::NaNDetected;
+            if (std::isinf(update))
+              return SolverState::InfDetected;
+            Y[i_cell][i_var] += update;
+          }
+        }
+      }
+    }
+
+    // Did not converge within max iterations
+    return SolverState::ConstraintInitializationFailed;
   }
 
 }  // namespace micm
