@@ -9,6 +9,10 @@
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cassert>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -399,6 +403,49 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
+    // Write const index arrays to file (once)
+    {
+      static std::once_flag write_flag;
+      std::call_once(write_flag, [&]() {
+        std::ofstream ofs("subtract_jacobian_terms_const_arrays.txt");
+        if (ofs.is_open()) {
+          // Number of species
+          ofs << "num_species " << state_variables.NumColumns() << "\n";
+          // Jacobian flat block size
+          ofs << "jacobian_flat_block_size " << jacobian.FlatBlockSize() << "\n";
+          // Number of reactions (for rate constants)
+          ofs << "num_reactions " << rate_constants.NumColumns() << "\n";
+
+          // jacobian_process_info
+          ofs << "jacobian_process_info_size " << jacobian_process_info_.size() << "\n";
+          for (const auto& pi : jacobian_process_info_) {
+            ofs << pi.process_id_ << " " << pi.independent_id_ << " "
+                << pi.number_of_dependent_reactants_ << " " << pi.number_of_products_ << "\n";
+          }
+
+          // jacobian_reactant_ids
+          ofs << "jacobian_reactant_ids_size " << jacobian_reactant_ids_.size() << "\n";
+          for (const auto& v : jacobian_reactant_ids_) ofs << v << "\n";
+
+          // jacobian_product_ids
+          ofs << "jacobian_product_ids_size " << jacobian_product_ids_.size() << "\n";
+          for (const auto& v : jacobian_product_ids_) ofs << v << "\n";
+
+          // jacobian_yields
+          ofs << "jacobian_yields_size " << jacobian_yields_.size() << "\n";
+          ofs << std::setprecision(17);
+          for (const auto& v : jacobian_yields_) ofs << v << "\n";
+
+          // jacobian_flat_ids
+          ofs << "jacobian_flat_ids_size " << jacobian_flat_ids_.size() << "\n";
+          for (const auto& v : jacobian_flat_ids_) ofs << v << "\n";
+
+          ofs.close();
+          std::cout << "Wrote subtract_jacobian_terms_const_arrays.txt" << std::endl;
+        }
+      });
+    }
+
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_jacobian = jacobian.AsVector();
