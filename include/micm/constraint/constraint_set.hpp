@@ -415,17 +415,27 @@ namespace micm
     }
 
     /// @brief Returns all unique state parameter names from external constraint models
-    /// @return Set of parameter names
-    std::set<std::string> ExternalConstraintParameterNames() const
+    /// @return Vector of parameter names (duplicates across models are detected and rejected)
+    std::vector<std::string> ExternalConstraintParameterNames() const
     {
-      std::set<std::string> names;
+      std::set<std::string> seen;
+      std::vector<std::string> names;
       for (const auto& model : external_constraint_models_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
           continue;
         auto param_names = model.state_parameter_names_func_();
-        names.insert(param_names.begin(), param_names.end());
+        for (const auto& name : param_names)
+        {
+          if (!seen.insert(name).second)
+            throw MicmException(
+                MicmSeverity::Error,
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate external constraint parameter name across models: " + name);
+          names.push_back(name);
+        }
       }
       return names;
     }
