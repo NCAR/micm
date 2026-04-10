@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 namespace micm
 {
   /// @brief The final state the solver was in after the Solve function finishes
