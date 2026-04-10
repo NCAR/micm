@@ -265,6 +265,16 @@ namespace micm
     }
   };
 
+  /// @brief Concept to detect whether an external model provides process methods
+  ///
+  /// A model satisfies `HasProcesses` if it provides `SpeciesUsed()` and
+  /// `NonZeroJacobianElements()`.
+  template<typename T>
+  concept HasProcesses = requires(const T& m, const std::unordered_map<std::string, std::size_t>& map) {
+    { m.SpeciesUsed() } -> std::same_as<std::set<std::string>>;
+    { m.NonZeroJacobianElements(map) } -> std::same_as<std::set<std::pair<std::size_t, std::size_t>>>;
+  };
+
   /// @brief Concept to detect whether an external model provides constraint methods
   ///
   /// A model satisfies `HasConstraints` if it provides at least `ConstraintAlgebraicVariableNames()`

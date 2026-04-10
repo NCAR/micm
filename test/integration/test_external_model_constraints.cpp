@@ -15,7 +15,7 @@
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
 ///
 /// This model contributes no state variables and no processes — only an algebraic
-/// equilibrium constraint. Used with AddExternalModelConstraints() to test that
+/// equilibrium constraint. Used with AddExternalModel() to test that
 /// external model constraints produce results equivalent to kinetic systems and
 /// built-in EquilibriumConstraint.
 class EquilibriumConstraintModel
@@ -460,7 +460,7 @@ TEST(ExternalModelConstraints, BackwardCompatAddExternalModelProcesses)
   EXPECT_EQ(state.constraint_size_, 0);
 }
 
-/// @brief Verify AddExternalModelConstraints() adds only constraints (processes added separately)
+/// @brief Verify AddExternalModel() adds only constraints when model lacks processes
 TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
 {
   auto A_GAS = micm::Species("A_GAS");
@@ -477,8 +477,7 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
-                    .AddExternalModelProcesses(aerosol)    // processes only
-                    .AddExternalModelConstraints(aerosol)   // constraints only
+                    .AddExternalModel(aerosol)
                     .SetReorderState(false)
                     .Build();
 
@@ -659,7 +658,7 @@ namespace
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                       .SetReactions({ rxn_ab })
-                      .AddExternalModelConstraints(eq_model)
+                      .AddExternalModel(eq_model)
                       .SetReorderState(false)
                       .Build();
 
@@ -707,7 +706,7 @@ namespace
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                       .SetReactions({ rxn_ab })
-                      .AddExternalModelConstraints(eq_model)
+                      .AddExternalModel(eq_model)
                       .SetReorderState(false)
                       .Build();
 
@@ -823,7 +822,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                         .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                         .SetReactions({ rxn_ab })
-                        .AddExternalModelConstraints(eq_model)
+                        .AddExternalModel(eq_model)
                         .SetReorderState(false)
                         .Build();
 
@@ -944,9 +943,9 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
                         .SetSystem(system)
                         .SetReactions({ rxn_ab })
-                        .AddExternalModelConstraints(eq_bc)
-                        .AddExternalModelConstraints(eq_bd)
-                        .AddExternalModelConstraints(conservation)
+                        .AddExternalModel(eq_bc)
+                        .AddExternalModel(eq_bd)
+                        .AddExternalModel(conservation)
                         .SetReorderState(false)
                         .Build();
 

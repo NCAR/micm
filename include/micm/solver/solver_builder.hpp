@@ -111,38 +111,35 @@ namespace micm
       return *this;
     }
 
-    /// @brief Add constraints from an external model
+    /// @brief Add an external model (processes and/or constraints)
     ///
-    /// Only wraps constraint information. The model must satisfy the HasConstraints concept.
-    /// Use this when processes are added separately or not needed.
-    /// @param model The external model
-    /// @return Updated SolverBuilder
-    template<class ExternalModel>
-    SolverBuilder& AddExternalModelConstraints(ExternalModel&& model)
-    {
-      static_assert(
-          HasConstraints<std::decay_t<ExternalModel>>,
-          "External model passed to AddExternalModelConstraints() must satisfy the HasConstraints concept");
-      external_constraint_models_.emplace_back(
-          ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<ExternalModel>(model) });
-      return *this;
-    }
-
-    /// @brief Add an external model (processes and optionally constraints)
-    ///
-    /// If the model satisfies the HasConstraints concept, both process and constraint
-    /// wrappers are created. Otherwise, only processes are wrapped.
+    /// If the model satisfies the HasProcesses concept, process wrappers are created.
+    /// If the model satisfies the HasConstraints concept, constraint wrappers are created.
+    /// At least one of the two concepts must be satisfied.
     /// @param model The external model
     /// @return Updated SolverBuilder
     template<class ExternalModel>
     SolverBuilder& AddExternalModel(ExternalModel&& model)
     {
-      // Always wrap process info
-      auto model_copy = model;
-      external_models_.emplace_back(
-          ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model_copy) });
-      // Conditionally wrap constraint info
-      if constexpr (HasConstraints<std::decay_t<ExternalModel>>)
+      static_assert(
+          HasProcesses<std::decay_t<ExternalModel>> || HasConstraints<std::decay_t<ExternalModel>>,
+          "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
+
+      if constexpr (HasProcesses<std::decay_t<ExternalModel>> && HasConstraints<std::decay_t<ExternalModel>>)
+      {
+        // Model has both — copy for processes, forward for constraints
+        auto model_copy = model;
+        external_models_.emplace_back(
+            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model_copy) });
+        external_constraint_models_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<ExternalModel>(model) });
+      }
+      else if constexpr (HasProcesses<std::decay_t<ExternalModel>>)
+      {
+        external_models_.emplace_back(
+            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<ExternalModel>(model) });
+      }
+      else
       {
         external_constraint_models_.emplace_back(
             ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::forward<ExternalModel>(model) });
