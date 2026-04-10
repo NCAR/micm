@@ -410,6 +410,61 @@ namespace micm
     // Reuse initial_forcing_ as the residual/delta workspace
     auto& delta = derived_class_temporary_variables->initial_forcing_;
 
+    const auto& diagonal = state.upper_left_identity_diagonal_;
+    double max_residual = 0;
+    bool nan_detected = false;
+    bool inf_detected = false;
+
+    // Pre-build reusable Function objects outside the iteration loop
+    auto check_convergence = DenseMatrixPolicy::Function(
+        [&max_residual, &nan_detected, &inf_detected, &diagonal](auto&& delta_view)
+        {
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              delta_view.ForEachRow(
+                  [&](const double& val)
+                  {
+                    double abs_val = std::abs(val);
+                    if (std::isnan(abs_val))
+                      nan_detected = true;
+                    else if (std::isinf(abs_val))
+                      inf_detected = true;
+                    else
+                      max_residual = std::max(max_residual, abs_val);
+                  },
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        delta);
+
+    auto apply_update = DenseMatrixPolicy::Function(
+        [&nan_detected, &inf_detected, &diagonal](auto&& y_view, auto&& delta_view)
+        {
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              y_view.ForEachRow(
+                  [&](double& y_val, const double& d_val)
+                  {
+                    if (std::isnan(d_val))
+                      nan_detected = true;
+                    else if (std::isinf(d_val))
+                      inf_detected = true;
+                    else
+                      y_val += d_val;
+                  },
+                  y_view.GetColumnView(i_var),
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        Y,
+        delta);
+
     for (std::size_t iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
     {
       // 1. Evaluate constraint residuals: G(y)
@@ -417,22 +472,15 @@ namespace micm
       constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
 
       // 2. Check convergence: ||G||_inf over algebraic rows only
-      double max_residual = 0;
-      for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-      {
-        for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
-        {
-          if (state.upper_left_identity_diagonal_[i_var] == 0.0)
-          {
-            double val = std::abs(delta[i_cell][i_var]);
-            if (std::isnan(val))
-              return SolverState::NaNDetected;
-            if (std::isinf(val))
-              return SolverState::InfDetected;
-            max_residual = std::max(max_residual, val);
-          }
-        }
-      }
+      max_residual = 0;
+      nan_detected = false;
+      inf_detected = false;
+      check_convergence(delta);
+
+      if (nan_detected)
+        return SolverState::NaNDetected;
+      if (inf_detected)
+        return SolverState::InfDetected;
 
       stats.constraint_init_iterations_ = iter + 1;
 
@@ -472,21 +520,14 @@ namespace micm
       stats.solves_ += 1;
 
       // 7. Apply update only to algebraic variables
-      for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-      {
-        for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
-        {
-          if (state.upper_left_identity_diagonal_[i_var] == 0.0)
-          {
-            double update = delta[i_cell][i_var];
-            if (std::isnan(update))
-              return SolverState::NaNDetected;
-            if (std::isinf(update))
-              return SolverState::InfDetected;
-            Y[i_cell][i_var] += update;
-          }
-        }
-      }
+      nan_detected = false;
+      inf_detected = false;
+      apply_update(Y, delta);
+
+      if (nan_detected)
+        return SolverState::NaNDetected;
+      if (inf_detected)
+        return SolverState::InfDetected;
     }
 
     // Did not converge within max iterations
