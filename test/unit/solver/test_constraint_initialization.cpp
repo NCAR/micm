@@ -77,10 +77,6 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
 
   solver.UpdateStateParameters(state);
 
-  double A_before = state.variables_[0][A_idx];
-  double B_before = state.variables_[0][B_idx];
-  double C_before = state.variables_[0][C_idx];
-
   auto result = solver.Solve(0.001, state);
 
   EXPECT_EQ(result.state_, SolverState::Converged);

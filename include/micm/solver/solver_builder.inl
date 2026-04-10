@@ -232,6 +232,20 @@ namespace micm
           "Provided chemical system contains no species.");
     }
 
+    // Constraints are not supported with CUDA matrix policies
+    constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) { m.CopyToDevice(); m.CopyToHost(); };
+    if constexpr (is_cuda_policy)
+    {
+      if (!constraints_.empty() || !external_constraint_models_.empty())
+      {
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SOLVER,
+            MICM_SOLVER_ERROR_CODE_CUDA_CONSTRAINTS_UNSUPPORTED,
+            "Constraints are not supported with CUDA matrix policies.");
+      }
+    }
+
     using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
     using SolverPolicy =
         typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
