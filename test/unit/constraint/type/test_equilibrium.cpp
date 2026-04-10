@@ -414,7 +414,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
   auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species, /*atol=*/1e-7, /*rtol=*/1e-7);
+      jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Equilibrium constraint Jacobian mismatch: block=" << comparison.worst_block
                                  << " row=" << comparison.worst_row << " col=" << comparison.worst_col
@@ -473,7 +473,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
   auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species, /*atol=*/1e-7, /*rtol=*/1e-7);
+      jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Complex stoichiometry Jacobian mismatch: block=" << comparison.worst_block
                                  << " row=" << comparison.worst_row << " col=" << comparison.worst_col

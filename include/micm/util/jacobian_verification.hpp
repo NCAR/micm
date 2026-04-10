@@ -117,8 +117,8 @@ namespace micm
       const SparseMatrixPolicy& analytical_jacobian,
       const DenseMatrixPolicy& fd_jacobian,
       std::size_t num_species,
-      double atol = 1.0e-5,
-      double rtol = 1.0e-4)
+      double atol = 1.0e-7,
+      double rtol = 1.0e-7)
   {
     JacobianComparisonResult result;
     const std::size_t num_blocks = analytical_jacobian.NumberOfBlocks();

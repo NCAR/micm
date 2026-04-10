@@ -451,7 +451,7 @@ void testProcessSetFiniteDifferenceJacobian()
 
   // Compare: analytical stores -df/dx, FD stores +df/dx
   auto comparison = micm::CompareJacobianToFiniteDifference<DenseMatrixPolicy, SparseMatrixPolicy>(
-      analytical_jacobian, fd_jacobian, num_species, /*atol=*/1e-5, /*rtol=*/1e-4);
+      analytical_jacobian, fd_jacobian, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Worst error at block=" << comparison.worst_block << " row=" << comparison.worst_row
                                  << " col=" << comparison.worst_col << " analytical=" << comparison.worst_analytical
