@@ -81,15 +81,31 @@
 ///     const std::unordered_map<std::string, std::size_t>& state_indices) const`
 ///   - Returns (row, column) pairs for non-zero elements in the constraint Jacobian
 ///
-/// - `template<typename DenseMatrixPolicy> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-///   ConstraintResidualFunction(const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
+/// - `std::set<std::string> ConstraintStateParameterNames() const`
+///   - Returns unique names for constraint-specific state parameters (e.g., temperature-dependent
+///     equilibrium constants). These are added to the global parameter map and updated before each
+///     solve step. Return an empty set if constraints have no parameters.
+///
+/// - `template<typename DenseMatrixPolicy> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
+///   ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, std::size_t>&
+///   state_parameter_indices) const`
+///   - Returns a function that updates constraint parameters (e.g., temperature-dependent K_eq)
+///     based on environmental conditions before each solve step
+///
+/// - `template<typename DenseMatrixPolicy>
+///   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+///   ConstraintResidualFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+///     const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
 ///   - Returns a function that computes constraint residuals G(y), where G(y) = 0 when satisfied
+///   - Function signature: `void(state_parameters, state_variables, forcing)`
 ///
 /// - `template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-///   std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>
-///   ConstraintJacobianFunction(const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+///   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
+///   ConstraintJacobianFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+///     const std::unordered_map<std::string, std::size_t>& state_variable_indices,
 ///     const SparseMatrixPolicy& jacobian) const`
 ///   - Returns a function that subtracts ∂G/∂y entries (matching the solver's -J convention)
+///   - Function signature: `void(state_parameters, state_variables, jacobian)`
 ///
 /// @section external_model_usage Usage
 ///
@@ -308,15 +324,26 @@ namespace micm
     std::function<std::set<std::pair<std::size_t, std::size_t>>(const std::unordered_map<std::string, std::size_t>&)>
         non_zero_jacobian_elements_func_;
 
+    /// @brief Type-erased function returning constraint state parameter names
+    std::function<std::set<std::string>()> state_parameter_names_func_;
+
+    /// @brief Type-erased function factory for constraint state parameter updates
+    /// Returns a function that updates constraint parameters based on environmental conditions
+    std::function<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices)>
+        update_state_parameters_function_;
+
     /// @brief Type-erased function factory for constraint residual computation
     /// Returns a function that computes G(y) for the constraint rows
-    std::function<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
+    std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
         const std::unordered_map<std::string, std::size_t>& state_variable_indices)>
         get_residual_function_;
 
     /// @brief Type-erased function factory for constraint Jacobian computation
     /// Returns a function that computes ∂G/∂y for the constraint rows
-    std::function<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
+    std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
         const std::unordered_map<std::string, std::size_t>& state_variable_indices,
         const SparseMatrixPolicy& jacobian)>
         get_jacobian_function_;
@@ -339,18 +366,31 @@ namespace micm
           [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
           -> std::set<std::pair<std::size_t, std::size_t>>
       { return shared_model->NonZeroConstraintJacobianElements(species_map); };
-      get_residual_function_ = [shared_model](const std::unordered_map<std::string, std::size_t>& state_variable_indices)
-          -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+      state_parameter_names_func_ = [shared_model]() -> std::set<std::string>
+      { return shared_model->ConstraintStateParameterNames(); };
+      update_state_parameters_function_ =
+          [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices)
+          -> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
       {
-        return shared_model->template ConstraintResidualFunction<DenseMatrixPolicy>(state_variable_indices);
+        return shared_model->template ConstraintUpdateStateParametersFunction<DenseMatrixPolicy>(
+            state_parameter_indices);
+      };
+      get_residual_function_ = [shared_model](
+                                   const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+                                   const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+          -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+      {
+        return shared_model->template ConstraintResidualFunction<DenseMatrixPolicy>(
+            state_parameter_indices, state_variable_indices);
       };
       get_jacobian_function_ = [shared_model](
+                                   const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
                                    const std::unordered_map<std::string, std::size_t>& state_variable_indices,
                                    const SparseMatrixPolicy& jacobian)
-          -> std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>
+          -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
       {
         return shared_model->template ConstraintJacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-            state_variable_indices, jacobian);
+            state_parameter_indices, state_variable_indices, jacobian);
       };
     }
   };

@@ -64,12 +64,16 @@ namespace micm
     std::size_t external_constraint_count_ = 0;
 
     /// @brief Pre-compiled external constraint residual functions
-    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
         external_constraint_forcing_functions_;
 
     /// @brief Pre-compiled external constraint Jacobian functions
-    std::vector<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
         external_constraint_jacobian_functions_;
+
+    /// @brief Pre-compiled external constraint parameter update functions
+    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>>
+        external_constraint_param_functions_;
 
    public:
     /// @brief Default constructor
@@ -232,7 +236,7 @@ namespace micm
       for (const auto& forcing_fn : constraint_forcing_functions_)
         forcing_fn(state_variables, state_parameters, forcing);
       for (const auto& forcing_fn : external_constraint_forcing_functions_)
-        forcing_fn(state_variables, forcing);
+        forcing_fn(state_variables, state_parameters, forcing);
     }
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
@@ -249,7 +253,7 @@ namespace micm
       for (const auto& jacobian_fn : constraint_jacobian_functions_)
         jacobian_fn(state_variables, state_parameters, jacobian);
       for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
-        jacobian_fn(state_variables, jacobian);
+        jacobian_fn(state_variables, state_parameters, jacobian);
     }
 
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
@@ -410,25 +414,52 @@ namespace micm
       return ids;
     }
 
-    /// @brief Pre-compiles external constraint residual and Jacobian functions
-    ///        Must be called after ResolveExternalConstraints and after Jacobian is built.
-    /// @param state_variable_indices Map from species names to state variable indices
-    /// @param jacobian The sparse Jacobian matrix
-    void SetExternalModelConstraintFunctions(
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-        const SparseMatrixPolicy& jacobian)
+    /// @brief Returns all unique state parameter names from external constraint models
+    /// @return Set of parameter names
+    std::set<std::string> ExternalConstraintParameterNames() const
     {
-      external_constraint_forcing_functions_.clear();
-      external_constraint_jacobian_functions_.clear();
+      std::set<std::string> names;
       for (const auto& model : external_constraint_models_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
           continue;
+        auto param_names = model.state_parameter_names_func_();
+        names.insert(param_names.begin(), param_names.end());
+      }
+      return names;
+    }
+
+    /// @brief Returns pre-compiled external constraint parameter update functions
+    auto GetExternalUpdateStateParamFunctions() const
+    {
+      return external_constraint_param_functions_;
+    }
+
+    /// @brief Pre-compiles external constraint residual, Jacobian, and parameter update functions
+    ///        Must be called after ResolveExternalConstraints and after Jacobian is built.
+    /// @param state_parameter_indices Map from parameter names to state parameter indices
+    /// @param state_variable_indices Map from species names to state variable indices
+    /// @param jacobian The sparse Jacobian matrix
+    void SetExternalModelConstraintFunctions(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const SparseMatrixPolicy& jacobian)
+    {
+      external_constraint_forcing_functions_.clear();
+      external_constraint_jacobian_functions_.clear();
+      external_constraint_param_functions_.clear();
+      for (const auto& model : external_constraint_models_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+          continue;
+        external_constraint_param_functions_.push_back(
+            model.update_state_parameters_function_(state_parameter_indices));
         external_constraint_forcing_functions_.push_back(
-            model.get_residual_function_(state_variable_indices));
+            model.get_residual_function_(state_parameter_indices, state_variable_indices));
         external_constraint_jacobian_functions_.push_back(
-            model.get_jacobian_function_(state_variable_indices, jacobian));
+            model.get_jacobian_function_(state_parameter_indices, state_variable_indices, jacobian));
       }
     }
 

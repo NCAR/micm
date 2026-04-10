@@ -303,6 +303,18 @@ namespace micm
       constraint_set.SetExternalConstraintModels(std::move(ext_constraint_models_copy));
       constraint_set.ResolveExternalConstraints(species_map);
 
+      // Add external constraint parameter names to the params map
+      for (const auto& label : constraint_set.ExternalConstraintParameterNames())
+      {
+        if (params_map.count(label) > 0)
+          throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_SOLVER,
+              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
+              "Duplicate parameter name: " + label);
+        params_map.emplace(label, params_map.size());
+      }
+
       auto ext_algebraic_ids = constraint_set.AlgebraicVariableIds();
       // Find newly added algebraic IDs from external models
       for (const auto& id : ext_algebraic_ids)
@@ -374,7 +386,12 @@ namespace micm
       // The species map and parameter map are used to set indices in the state variables
       // and custom parameters.
       constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
-      constraint_set.SetExternalModelConstraintFunctions(species_map, jacobian);
+      constraint_set.SetExternalModelConstraintFunctions(params_map, species_map, jacobian);
+
+      // Add external constraint parameter update functions to the pipeline
+      auto ext_constraint_param_funcs = constraint_set.GetExternalUpdateStateParamFunctions();
+      update_state_param_funcs.insert(
+          update_state_param_funcs.end(), ext_constraint_param_funcs.begin(), ext_constraint_param_funcs.end());
 
       // Add functions that update state parameters when temperature changes
       auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();

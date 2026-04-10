@@ -147,15 +147,28 @@ class StubAerosolWithConstraints
     return { { i_aq, i_gas }, { i_aq, i_aq } };
   }
 
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+      const std::unordered_map<std::string, std::size_t>&) const
+  {
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+  }
+
   /// Constraint residual: G(y) = [A_GAS] + [A_AQ] - total = 0
   template<typename DenseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
     double total = total_mass_.value();
-    return [=](const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
       {
@@ -167,13 +180,14 @@ class StubAerosolWithConstraints
   /// Constraint Jacobian: dG/d[A_GAS] = 1, dG/d[A_AQ] = 1
   /// Subtracted per solver convention: jacobian -= dG/dy
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
-    return [=](const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
+    return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
       for (std::size_t i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
       {
@@ -321,14 +335,27 @@ class StubAerosolWithSolvent
     return { { i_aq, i_gas }, { i_aq, i_aq } };
   }
 
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
   template<typename DenseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+      const std::unordered_map<std::string, std::size_t>&) const
+  {
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
     double total = total_mass_;
-    return [=](const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
       {
@@ -338,13 +365,14 @@ class StubAerosolWithSolvent
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
-    return [=](const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
+    return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
       for (std::size_t i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
       {

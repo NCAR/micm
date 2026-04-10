@@ -48,15 +48,28 @@ class EquilibriumConstraintModel
     return { { i_p, i_r }, { i_p, i_p } };
   }
 
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+      const std::unordered_map<std::string, std::size_t>&) const
+  {
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+  }
+
   /// Residual: G = K_eq * [reactant] - [product]
   template<typename DenseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& var) const
   {
     auto i_r = var.at(reactant_);
     auto i_p = var.at(product_);
     double K = K_eq_;
-    return [=](const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
         forcing[i][i_p] = K * state[i][i_r] - state[i][i_p];
@@ -66,14 +79,15 @@ class EquilibriumConstraintModel
   /// Jacobian: dG/d[reactant] = K_eq, dG/d[product] = -1
   /// Subtracted per solver convention: jac -= dG/dy
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& var,
       const SparseMatrixPolicy&) const
   {
     auto i_r = var.at(reactant_);
     auto i_p = var.at(product_);
     double K = K_eq_;
-    return [=](const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
+    return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
       for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
       {
@@ -139,8 +153,21 @@ class ConservativeEquilibriumConstraintModel
     };
   }
 
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
   template<typename DenseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+      const std::unordered_map<std::string, std::size_t>&) const
+  {
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& var) const
   {
     auto i_a = var.at(species_a_);
@@ -148,7 +175,7 @@ class ConservativeEquilibriumConstraintModel
     auto i_c = var.at(species_c_);
     double K = K_eq_;
     double tot = total_;
-    return [=](const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
       {
@@ -161,7 +188,8 @@ class ConservativeEquilibriumConstraintModel
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& var,
       const SparseMatrixPolicy&) const
   {
@@ -169,7 +197,7 @@ class ConservativeEquilibriumConstraintModel
     auto i_b = var.at(species_b_);
     auto i_c = var.at(species_c_);
     double K = K_eq_;
-    return [=](const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
+    return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
       for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
       {
@@ -229,8 +257,21 @@ class MassConservationModel
     return elements;
   }
 
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
   template<typename DenseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+      const std::unordered_map<std::string, std::size_t>&) const
+  {
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& var) const
   {
     auto i_ctrl = var.at(controlled_species_);
@@ -238,7 +279,7 @@ class MassConservationModel
     for (auto& sp : all_species_)
       indices.push_back(var.at(sp));
     double tot = total_;
-    return [=](const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
       {
@@ -251,7 +292,8 @@ class MassConservationModel
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& var,
       const SparseMatrixPolicy&) const
   {
@@ -259,7 +301,7 @@ class MassConservationModel
     std::vector<std::size_t> indices;
     for (auto& sp : all_species_)
       indices.push_back(var.at(sp));
-    return [=](const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
+    return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
       for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
         for (auto idx : indices)
@@ -1130,10 +1172,11 @@ TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
   double total = 1.0;
   StubAerosolWithConstraints aerosol(k, total);
 
+  std::unordered_map<std::string, std::size_t> param_map;
   std::unordered_map<std::string, std::size_t> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
   const std::size_t num_species = 2;
 
-  auto residual_fn = aerosol.ConstraintResidualFunction<DenseMatrix>(var_map);
+  auto residual_fn = aerosol.ConstraintResidualFunction<DenseMatrix>(param_map, var_map);
   auto nz_elements = aerosol.NonZeroConstraintJacobianElements(var_map);
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
@@ -1141,18 +1184,19 @@ TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixFD analytical_jac{ builder };
 
-  auto jacobian_fn = aerosol.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(var_map, analytical_jac);
+  auto jacobian_fn = aerosol.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(param_map, var_map, analytical_jac);
 
   DenseMatrix variables(2, num_species, 0.0);
   variables[0][0] = 0.6;
   variables[0][1] = 0.4;
   variables[1][0] = 0.2;
   variables[1][1] = 0.8;
+  DenseMatrix dummy_params(2, 1, 0.0);
 
-  jacobian_fn(variables, analytical_jac);
+  jacobian_fn(variables, dummy_params, analytical_jac);
 
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { residual_fn(vars, forcing); };
+  { residual_fn(vars, dummy_params, forcing); };
 
   auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
@@ -1170,10 +1214,11 @@ TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
   double K_eq = 2.5;
   EquilibriumConstraintModel model("A", "B", K_eq);
 
+  std::unordered_map<std::string, std::size_t> param_map;
   std::unordered_map<std::string, std::size_t> var_map = { { "A", 0 }, { "B", 1 } };
   const std::size_t num_species = 2;
 
-  auto residual_fn = model.ConstraintResidualFunction<DenseMatrix>(var_map);
+  auto residual_fn = model.ConstraintResidualFunction<DenseMatrix>(param_map, var_map);
   auto nz_elements = model.NonZeroConstraintJacobianElements(var_map);
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
@@ -1181,16 +1226,17 @@ TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixFD analytical_jac{ builder };
 
-  auto jacobian_fn = model.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(var_map, analytical_jac);
+  auto jacobian_fn = model.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(param_map, var_map, analytical_jac);
 
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;
   variables[0][1] = 5.0;
+  DenseMatrix dummy_params(1, 1, 0.0);
 
-  jacobian_fn(variables, analytical_jac);
+  jacobian_fn(variables, dummy_params, analytical_jac);
 
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { residual_fn(vars, forcing); };
+  { residual_fn(vars, dummy_params, forcing); };
 
   auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
@@ -1206,4 +1252,200 @@ TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
 
   EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
                                << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
+}
+
+/// @brief External model constraint with a temperature-dependent K_eq stored as a state parameter
+///
+/// Enforces: K_eq(T) * [reactant] - [product] = 0
+/// where K_eq(T) = K_eq_ref * exp(delta_H / R * (1/T_ref - 1/T))
+///
+/// This exercises the constraint state parameter pipeline: the model declares a parameter name,
+/// provides an update function that computes K_eq from temperature, and the residual/Jacobian
+/// functions read K_eq from the state parameter matrix.
+class TemperatureDependentEquilibriumModel
+{
+ public:
+  TemperatureDependentEquilibriumModel(
+      const std::string& reactant,
+      const std::string& product,
+      double K_eq_ref,
+      double delta_H_over_R,
+      double T_ref = 298.15)
+      : reactant_(reactant),
+        product_(product),
+        K_eq_ref_(K_eq_ref),
+        delta_H_over_R_(delta_H_over_R),
+        T_ref_(T_ref),
+        param_name_(product + "_K_eq")
+  {
+  }
+
+  std::set<std::string> ConstraintAlgebraicVariableNames() const
+  {
+    return { product_ };
+  }
+
+  std::set<std::string> ConstraintSpeciesDependencies() const
+  {
+    return { reactant_, product_ };
+  }
+
+  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  {
+    auto i_r = state_indices.at(reactant_);
+    auto i_p = state_indices.at(product_);
+    return { { i_p, i_r }, { i_p, i_p } };
+  }
+
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return { param_name_ };
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+      const std::unordered_map<std::string, std::size_t>& param_indices) const
+  {
+    auto i_K = param_indices.at(param_name_);
+    double K_ref = K_eq_ref_;
+    double dH_R = delta_H_over_R_;
+    double T_ref = T_ref_;
+    return [=](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& params)
+    {
+      for (std::size_t i = 0; i < conditions.size(); ++i)
+      {
+        double T = conditions[i].temperature_;
+        params[i][i_K] = K_ref * std::exp(dH_R * (1.0 / T_ref - 1.0 / T));
+      }
+    };
+  }
+
+  /// Residual: G = K_eq(T) * [reactant] - [product]
+  template<typename DenseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, std::size_t>& param_indices,
+      const std::unordered_map<std::string, std::size_t>& var) const
+  {
+    auto i_r = var.at(reactant_);
+    auto i_p = var.at(product_);
+    auto i_K = param_indices.at(param_name_);
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy& params, DenseMatrixPolicy& forcing)
+    {
+      for (std::size_t i = 0; i < state.NumRows(); ++i)
+        forcing[i][i_p] = params[i][i_K] * state[i][i_r] - state[i][i_p];
+    };
+  }
+
+  /// Jacobian: dG/d[reactant] = K_eq(T), dG/d[product] = -1
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, std::size_t>& param_indices,
+      const std::unordered_map<std::string, std::size_t>& var,
+      const SparseMatrixPolicy&) const
+  {
+    auto i_r = var.at(reactant_);
+    auto i_p = var.at(product_);
+    auto i_K = param_indices.at(param_name_);
+    return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& params, SparseMatrixPolicy& jac)
+    {
+      for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
+      {
+        jac[i][i_p][i_r] -= params[i][i_K];
+        jac[i][i_p][i_p] -= -1.0;
+      }
+    };
+  }
+
+ private:
+  std::string reactant_;
+  std::string product_;
+  double K_eq_ref_;
+  double delta_H_over_R_;
+  double T_ref_;
+  std::string param_name_;
+};
+
+/// @brief Verify that external model constraints can use temperature-dependent state parameters
+///
+/// System: A → B (kinetic), K_eq(T) * [B] - [C] = 0 (algebraic)
+/// At T=298.15 K, K_eq = K_eq_ref. At T=350 K, K_eq shifts.
+/// The test solves at two temperatures and verifies that [C]/[B] = K_eq(T) at each.
+TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  micm::Phase gas_phase{ "gas", { A, B, C } };
+
+  const double K_DRIVE = 0.1;
+  const double K_EQ_REF = 2.0;
+  const double DELTA_H_OVER_R = 3000.0;  // Positive => K_eq increases with T
+  const double T_REF = 298.15;
+
+  micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                             .SetReactants({ A })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 }))
+                             .SetPhase(gas_phase)
+                             .Build();
+
+  TemperatureDependentEquilibriumModel eq_model("B", "C", K_EQ_REF, DELTA_H_OVER_R, T_REF);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ rxn_ab })
+                    .AddExternalModel(eq_model)
+                    .SetReorderState(false)
+                    .Build();
+
+  // Solve at T = 298.15 K  (K_eq = K_EQ_REF = 2.0)
+  {
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = T_REF;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    double dt = 1.0;
+    for (int step = 0; step < 200; ++step)
+    {
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "T=298 solve failed at step " << step;
+    }
+
+    double B_val = state.variables_[0][state.variable_map_.at("B")];
+    double C_val = state.variables_[0][state.variable_map_.at("C")];
+    double K_eq_expected = K_EQ_REF;
+    EXPECT_GT(B_val, 0.0);
+    EXPECT_NEAR(C_val / B_val, K_eq_expected, 1e-4) << "At T=298.15K, [C]/[B] should equal K_eq_ref";
+  }
+
+  // Solve at T = 350 K  (K_eq > K_EQ_REF due to positive delta_H)
+  {
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = 350.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    double dt = 1.0;
+    for (int step = 0; step < 200; ++step)
+    {
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "T=350 solve failed at step " << step;
+    }
+
+    double B_val = state.variables_[0][state.variable_map_.at("B")];
+    double C_val = state.variables_[0][state.variable_map_.at("C")];
+    double K_eq_350 = K_EQ_REF * std::exp(DELTA_H_OVER_R * (1.0 / T_REF - 1.0 / 350.0));
+    EXPECT_GT(B_val, 0.0);
+    EXPECT_GT(K_eq_350, K_EQ_REF) << "K_eq should increase with temperature for positive delta_H";
+    EXPECT_NEAR(C_val / B_val, K_eq_350, 1e-4) << "At T=350K, [C]/[B] should equal K_eq(350)";
+  }
 }
