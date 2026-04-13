@@ -259,11 +259,8 @@ namespace micm
     auto params_map = this->GetCustomParameterMap();
 
     // Create vector of functions to update external model state parameters
+    // (compiled after all params are added to params_map — see below)
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
-    for (const auto& model : external_models_)
-    {
-      update_state_param_funcs.push_back(model.update_state_parameters_function_(params_map));
-    }
 
     // Build constraint set
     ConstraintSetPolicy constraint_set;
@@ -319,6 +316,18 @@ namespace micm
 
       // Add external constraint parameter names to the params map
       for (const auto& label : constraint_set.ExternalConstraintParameterNames())
+      {
+        if (params_map.count(label) > 0)
+          throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_SOLVER,
+              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
+              "Duplicate parameter name: " + label);
+        params_map.emplace(label, params_map.size());
+      }
+
+      // Add initialize constraint parameter names to the params map
+      for (const auto& label : constraint_set.ExternalInitializeConstraintParameterNames())
       {
         if (params_map.count(label) > 0)
           throw MicmException(
@@ -392,6 +401,14 @@ namespace micm
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
+    // Compile external model update functions now that params_map is finalized
+    for (const auto& model : external_models_)
+    {
+      update_state_param_funcs.push_back(model.update_state_parameters_function_(params_map));
+    }
+
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> init_constraint_param_funcs;
+
     if (constraint_set.Size() > 0)
     {
       constraint_set.SetJacobianFlatIds(jacobian);
@@ -411,6 +428,11 @@ namespace micm
       auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
       update_state_param_funcs.insert(
           update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
+
+      // Collect constraint parameter initialization functions
+      auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();
+      init_constraint_param_funcs.insert(
+          init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());
     }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
@@ -433,7 +455,8 @@ namespace micm
         options,
         reactions_,
         system_,
-        update_state_param_funcs);
+        update_state_param_funcs,
+        init_constraint_param_funcs);
   }
 
 }  // namespace micm

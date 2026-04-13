@@ -75,6 +75,11 @@ namespace micm
     std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>>
         external_constraint_param_functions_;
 
+    /// @brief Pre-compiled external constraint parameter initialization functions
+    ///        These diagnose constraint parameters from state variables at the start of each Solve()
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+        external_constraint_init_functions_;
+
    public:
     /// @brief Default constructor
     ConstraintSet() = default;
@@ -446,6 +451,50 @@ namespace micm
       return external_constraint_param_functions_;
     }
 
+    /// @brief Returns all unique state parameter names that need initialization from state variables
+    /// @return Vector of parameter names for state-diagnosed constraint parameters
+    std::vector<std::string> ExternalInitializeConstraintParameterNames() const
+    {
+      std::set<std::string> seen;
+      std::vector<std::string> names;
+      for (const auto& model : external_constraint_models_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+          continue;
+        auto init_names = model.initialize_constraint_parameter_names_func_();
+        for (const auto& name : init_names)
+        {
+          if (!seen.insert(name).second)
+            throw MicmException(
+                MicmSeverity::Error,
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate external initialize constraint parameter name across models: " + name);
+          names.push_back(name);
+        }
+      }
+      return names;
+    }
+
+    /// @brief Returns pre-compiled external constraint parameter initialization functions
+    auto GetExternalInitializeConstraintParamFunctions() const
+    {
+      return external_constraint_init_functions_;
+    }
+
+    /// @brief Initializes constraint parameters from current state variables
+    ///        Called at the beginning of each Solve() to diagnose state-dependent constraint constants
+    /// @param state_variables Current species concentrations
+    /// @param state_parameters State parameters to be updated with diagnosed values
+    void InitializeConstraintParameters(
+        const DenseMatrixPolicy& state_variables,
+        DenseMatrixPolicy& state_parameters) const
+    {
+      for (const auto& init_func : external_constraint_init_functions_)
+        init_func(state_variables, state_parameters);
+    }
+
     /// @brief Pre-compiles external constraint residual, Jacobian, and parameter update functions
     ///        Must be called after ResolveExternalConstraints and after Jacobian is built.
     /// @param state_parameter_indices Map from parameter names to state parameter indices
@@ -459,6 +508,7 @@ namespace micm
       external_constraint_forcing_functions_.clear();
       external_constraint_jacobian_functions_.clear();
       external_constraint_param_functions_.clear();
+      external_constraint_init_functions_.clear();
       for (const auto& model : external_constraint_models_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
@@ -470,6 +520,8 @@ namespace micm
             model.get_residual_function_(state_parameter_indices, state_variable_indices));
         external_constraint_jacobian_functions_.push_back(
             model.get_jacobian_function_(state_parameter_indices, state_variable_indices, jacobian));
+        external_constraint_init_functions_.push_back(
+            model.get_initialize_constraint_parameters_function_(state_parameter_indices, state_variable_indices));
       }
     }
 

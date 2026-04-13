@@ -107,6 +107,23 @@
 ///   - Returns a function that subtracts ∂G/∂y entries (matching the solver's -J convention)
 ///   - Function signature: `void(state_parameters, state_variables, jacobian)`
 ///
+/// **Constraint Initialization Methods (Optional — detected via HasInitializeConstraintParameters concept):**
+///
+/// External models can optionally provide a function that diagnoses constraint parameters from the
+/// current state at the beginning of each solve step. This is used for constraints whose constants
+/// depend on the current state (e.g., mass conservation totals that must be recomputed each step
+/// to account for emissions, transport, or deposition between steps).
+///
+/// - `template<typename DenseMatrixPolicy>
+///   std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+///   InitializeConstraintParametersFunction(
+///     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+///     const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
+///   - Returns a function that computes constraint parameters from the current state variables
+///   - Function signature: `void(state_variables, state_parameters)`
+///   - Called at the beginning of each Solve() before the internal time integration begins
+///   - Per grid cell: each row of state_parameters gets its own diagnosed value
+///
 /// @section external_model_usage Usage
 ///
 /// **1. Add the external model to the system:**
@@ -302,6 +319,17 @@ namespace micm
     { m.ConstraintSpeciesDependencies() } -> std::same_as<std::set<std::string>>;
   };
 
+  /// @brief Concept to detect whether an external model provides constraint parameter initialization
+  ///
+  /// A model satisfies `HasInitializeConstraintParameters` if it provides
+  /// `InitializeConstraintParameterNames()`. This is used for constraints whose parameters
+  /// must be diagnosed from the current state at the beginning of each solve step
+  /// (e.g., mass conservation totals).
+  template<typename T>
+  concept HasInitializeConstraintParameters = requires(const T& m) {
+    { m.InitializeConstraintParameterNames() } -> std::same_as<std::set<std::string>>;
+  };
+
   /// @brief Wrapper for external model constraint information
   ///
   /// This struct encapsulates an external model's constraint definitions (algebraic variables,
@@ -348,6 +376,18 @@ namespace micm
         const SparseMatrixPolicy& jacobian)>
         get_jacobian_function_;
 
+    /// @brief Type-erased function returning parameter names that need initialization from state
+    /// Returns an empty set if the model does not need state-diagnosed parameters
+    std::function<std::set<std::string>()> initialize_constraint_parameter_names_func_;
+
+    /// @brief Type-erased function factory for constraint parameter initialization from state
+    /// Returns a function that diagnoses constraint parameters from current state variables
+    /// at the beginning of each Solve() call
+    std::function<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices)>
+        get_initialize_constraint_parameters_function_;
+
     /// @brief Constructs a type-erased wrapper from an external model instance
     ///
     /// @tparam ModelType Type of the external model (must satisfy HasConstraints)
@@ -392,6 +432,30 @@ namespace micm
         return shared_model->template ConstraintJacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
             state_parameter_indices, state_variable_indices, jacobian);
       };
+
+      // Wire initialize constraint parameters if the model provides them
+      if constexpr (HasInitializeConstraintParameters<std::decay_t<ModelType>>)
+      {
+        initialize_constraint_parameter_names_func_ = [shared_model]() -> std::set<std::string>
+        { return shared_model->InitializeConstraintParameterNames(); };
+        get_initialize_constraint_parameters_function_ =
+            [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+                           const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+            -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+        {
+          return shared_model->template InitializeConstraintParametersFunction<DenseMatrixPolicy>(
+              state_parameter_indices, state_variable_indices);
+        };
+      }
+      else
+      {
+        initialize_constraint_parameter_names_func_ = []() -> std::set<std::string> { return {}; };
+        get_initialize_constraint_parameters_function_ =
+            [](const std::unordered_map<std::string, std::size_t>&,
+               const std::unordered_map<std::string, std::size_t>&)
+            -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
+        { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
+      }
     }
   };
 }  // namespace micm
