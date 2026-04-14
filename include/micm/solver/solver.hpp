@@ -4,6 +4,7 @@
 
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/lambda_rate_constant.hpp>
+#include <micm/process/reaction_rate_store.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -28,6 +29,7 @@ namespace micm
     System system_;
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
+    ReactionRateStore store_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -48,7 +50,8 @@ namespace micm
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
-          update_state_parameters_functions_()
+          update_state_parameters_functions_(),
+          store_(ReactionRateStore::BuildFrom(processes_))
     {
     }
 
@@ -65,7 +68,8 @@ namespace micm
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
-          update_state_parameters_functions_(update_state_parameters_functions)
+          update_state_parameters_functions_(update_state_parameters_functions),
+          store_(ReactionRateStore::BuildFrom(processes_))
     {
     }
 
@@ -165,7 +169,8 @@ namespace micm
     /// @param state State object containing conditions and custom_rate_parameters to be updated
     void UpdateStateParameters(StatePolicy& state)
     {
-      Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
+      ReactionRateStore::EvaluateCpuRates(store_, state);
+      ReactionRateStore::CalculateRates(store_, state);
 
       for (const auto& update_func : update_state_parameters_functions_)
       {
@@ -173,16 +178,16 @@ namespace micm
       }
     }
 
-    LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name)
+    LambdaRateConstantParameters& GetLambdaRateConstantByName(const std::string& name)
     {
       for (auto& process : processes_)
       {
         if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
         {
-          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
-          if (ptr && ptr->parameters_.label_ == name)
+          if (auto* params = std::get_if<LambdaRateConstantParameters>(&reaction->rate_constant_))
           {
-            return *ptr;
+            if (params->label_ == name)
+              return *params;
           }
         }
       }
@@ -193,16 +198,16 @@ namespace micm
           "Lambda rate constant with name '" + name + "' not found in any process");
     }
 
-    const LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name) const
+    const LambdaRateConstantParameters& GetLambdaRateConstantByName(const std::string& name) const
     {
       for (const auto& process : processes_)
       {
         if (const auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
         {
-          const auto ptr = dynamic_cast<const LambdaRateConstant*>(reaction->rate_constant_.get());
-          if (ptr && ptr->parameters_.label_ == name)
+          if (const auto* params = std::get_if<LambdaRateConstantParameters>(&reaction->rate_constant_))
           {
-            return *ptr;
+            if (params->label_ == name)
+              return *params;
           }
         }
       }

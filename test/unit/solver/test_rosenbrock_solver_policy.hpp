@@ -34,21 +34,21 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
                          .SetReactants({ foo, baz })
                          .SetProducts({ micm::StoichSpecies(bar, 1), micm::StoichSpecies(quuz, 2.4) })
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 })
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ bar })
                          .SetProducts({ micm::StoichSpecies(foo, 1), micm::StoichSpecies(quz, 1.4) })
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 1.0e-6 })
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ quz })
                          .SetProducts({})
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.5e-6 })
                          .Build();
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))

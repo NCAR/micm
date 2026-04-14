@@ -1,6 +1,6 @@
 #pragma once
 
-#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/process/rate_constant/rate_constant_functions.hpp>
 #include <micm/solver/state.hpp>
 
 #include <algorithm>
@@ -512,53 +512,53 @@ namespace micm
     // O1D
     {
       // k_O3_1: O3 -> 1*O1D + 1*O2
-      force[5] = force[5] + rate_constants[1] * number_densities[8];
+      force[5] = force[5] + rate_constants[5] * number_densities[8];
       // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-      force[5] = force[5] - rate_constants[3] * number_densities[4] * number_densities[5];
+      force[5] = force[5] - rate_constants[0] * number_densities[4] * number_densities[5];
       // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-      force[5] = force[5] - rate_constants[4] * number_densities[5] * number_densities[7];
+      force[5] = force[5] - rate_constants[1] * number_densities[5] * number_densities[7];
     }
 
     // O
     {
       // k_O2_1: O2 -> 2*O
-      force[6] = force[6] + 2 * rate_constants[0] * number_densities[7];
+      force[6] = force[6] + 2 * rate_constants[4] * number_densities[7];
       // k_O3_2: O3 -> 1*O + 1*O2
-      force[6] = force[6] + rate_constants[2] * number_densities[8];
+      force[6] = force[6] + rate_constants[6] * number_densities[8];
       // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-      force[6] = force[6] + rate_constants[3] * number_densities[4] * number_densities[5];
+      force[6] = force[6] + rate_constants[0] * number_densities[4] * number_densities[5];
       // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-      force[6] = force[6] + rate_constants[4] * number_densities[5] * number_densities[7];
+      force[6] = force[6] + rate_constants[1] * number_densities[5] * number_densities[7];
       // k_O_O3_1: O + O3 -> 2*O2
-      force[6] = force[6] - rate_constants[5] * number_densities[6] * number_densities[8];
+      force[6] = force[6] - rate_constants[2] * number_densities[6] * number_densities[8];
       // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-      force[6] = force[6] - rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
+      force[6] = force[6] - rate_constants[3] * number_densities[0] * number_densities[6] * number_densities[7];
     }
 
     // O2
     {
       // k_O2_1: O2 -> 2*O
-      force[7] = force[7] - rate_constants[0] * number_densities[7];
+      force[7] = force[7] - rate_constants[4] * number_densities[7];
       // k_O3_1: O3 -> 1*O1D + 1*O2
-      force[7] = force[7] + rate_constants[1] * number_densities[8];
+      force[7] = force[7] + rate_constants[5] * number_densities[8];
       // k_O3_2: O3 -> 1*O + 1*O2
-      force[7] = force[7] + rate_constants[2] * number_densities[8];
+      force[7] = force[7] + rate_constants[6] * number_densities[8];
       // k_O_O3_1: O + O3 -> 2*O2
-      force[7] = force[7] + 2 * rate_constants[5] * number_densities[6] * number_densities[8];
+      force[7] = force[7] + 2 * rate_constants[2] * number_densities[6] * number_densities[8];
       // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-      force[7] = force[7] - rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
+      force[7] = force[7] - rate_constants[3] * number_densities[0] * number_densities[6] * number_densities[7];
     }
 
     // O3
     {
       // k_O3_1: O3 -> 1*O1D + 1*O2
-      force[8] = force[8] - rate_constants[1] * number_densities[8];
+      force[8] = force[8] - rate_constants[5] * number_densities[8];
       // k_O3_2: O3 -> 1*O + 1*O2
-      force[8] = force[8] - rate_constants[2] * number_densities[8];
+      force[8] = force[8] - rate_constants[6] * number_densities[8];
       // k_O_O3_1: O + O3 -> 2*O2
-      force[8] = force[8] - rate_constants[5] * number_densities[6] * number_densities[8];
+      force[8] = force[8] - rate_constants[2] * number_densities[6] * number_densities[8];
       // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-      force[8] = force[8] + rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
+      force[8] = force[8] + rate_constants[3] * number_densities[0] * number_densities[6] * number_densities[7];
     }
 
     stats_.function_calls += 1;
@@ -733,43 +733,43 @@ namespace micm
     double temperature = state.conditions_[0].temperature_;
     double pressure = state.conditions_[0].pressure_;
 
-    // O2_1
-    // k_O2_1: O2 -> 2*O
-    state.rate_constants_[0][0] = state.custom_rate_parameters_[0][0];
-
-    // O3_1
-    // k_O3_1: O3 -> 1*O1D + 1*O2
-    state.rate_constants_[0][1] = state.custom_rate_parameters_[0][1];
-
-    // O3_2
-    // k_O3_2: O3 -> 1*O + 1*O2
-    state.rate_constants_[0][2] = state.custom_rate_parameters_[0][2];
-
-    // N2_O1D_1
+    // N2_O1D_1 (Arrhenius r1, sorted index 0)
     // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     ArrheniusRateConstantParameters params;
     params.A_ = 2.15e-11;
     params.C_ = 110;
-    state.rate_constants_[0][3] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
+    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][0]);
 
-    // O1D_O2_1
+    // O1D_O2_1 (Arrhenius r2, sorted index 1)
     // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     params.A_ = 3.3e-11;
     params.C_ = 55;
-    state.rate_constants_[0][4] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
+    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][1]);
 
-    // O_O3_1
+    // O_O3_1 (Arrhenius r3, sorted index 2)
     // k_O_O3_1: O + O3 -> 2*O2
     params.A_ = 8e-12;
     params.C_ = -2060;
-    state.rate_constants_[0][5] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
+    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][2]);
 
-    // M_O_O2_1
+    // M_O_O2_1 (Arrhenius r4, sorted index 3)
     // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     params.A_ = 6e-34;
     params.B_ = 2.4;
     params.C_ = 0;
-    state.rate_constants_[0][6] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
+    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][3]);
+
+    // O2_1 (UserDefined photo_1 jO2, sorted index 4)
+    // k_O2_1: O2 -> 2*O
+    state.rate_constants_[0][4] = state.custom_rate_parameters_[0][0];
+
+    // O3_1 (UserDefined photo_2 jO3a, sorted index 5)
+    // k_O3_1: O3 -> 1*O1D + 1*O2
+    state.rate_constants_[0][5] = state.custom_rate_parameters_[0][1];
+
+    // O3_2 (UserDefined photo_3 jO3b, sorted index 6)
+    // k_O3_2: O3 -> 1*O + 1*O2
+    state.rate_constants_[0][6] = state.custom_rate_parameters_[0][2];
   }
 
   inline std::vector<double> ChapmanODESolver::lin_factor(
@@ -813,114 +813,114 @@ namespace micm
 
     // df_O/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[1] = jacobian[1] - rate_constants[6] * number_densities[6] * number_densities[7];
+    jacobian[1] = jacobian[1] - rate_constants[3] * number_densities[6] * number_densities[7];
 
     // df_O2/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[2] = jacobian[2] - rate_constants[6] * number_densities[6] * number_densities[7];
+    jacobian[2] = jacobian[2] - rate_constants[3] * number_densities[6] * number_densities[7];
 
     // df_O3/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[3] = jacobian[3] + rate_constants[6] * number_densities[6] * number_densities[7];
+    jacobian[3] = jacobian[3] + rate_constants[3] * number_densities[6] * number_densities[7];
 
     // df_O1D/d[N2]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    jacobian[8] = jacobian[8] - rate_constants[3] * number_densities[5];
+    jacobian[8] = jacobian[8] - rate_constants[0] * number_densities[5];
 
     // df_O/d[N2]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    jacobian[9] = jacobian[9] + rate_constants[3] * number_densities[5];
+    jacobian[9] = jacobian[9] + rate_constants[0] * number_densities[5];
 
     // df_O1D/d[O1D]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    jacobian[10] = jacobian[10] - rate_constants[3] * number_densities[4];
+    jacobian[10] = jacobian[10] - rate_constants[0] * number_densities[4];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    jacobian[10] = jacobian[10] - rate_constants[4] * number_densities[7];
+    jacobian[10] = jacobian[10] - rate_constants[1] * number_densities[7];
 
     // df_O/d[O1D]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    jacobian[11] = jacobian[11] + rate_constants[3] * number_densities[4];
+    jacobian[11] = jacobian[11] + rate_constants[0] * number_densities[4];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    jacobian[11] = jacobian[11] + rate_constants[4] * number_densities[7];
+    jacobian[11] = jacobian[11] + rate_constants[1] * number_densities[7];
 
     // df_O/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[12] = jacobian[12] - rate_constants[5] * number_densities[8];
+    jacobian[12] = jacobian[12] - rate_constants[2] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[12] = jacobian[12] - rate_constants[6] * number_densities[0] * number_densities[7];
+    jacobian[12] = jacobian[12] - rate_constants[3] * number_densities[0] * number_densities[7];
 
     // df_O2/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[13] = jacobian[13] + 2 * rate_constants[5] * number_densities[8];
+    jacobian[13] = jacobian[13] + 2 * rate_constants[2] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[13] = jacobian[13] - rate_constants[6] * number_densities[0] * number_densities[7];
+    jacobian[13] = jacobian[13] - rate_constants[3] * number_densities[0] * number_densities[7];
 
     // df_O3/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[14] = jacobian[14] - rate_constants[5] * number_densities[8];
+    jacobian[14] = jacobian[14] - rate_constants[2] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[14] = jacobian[14] + rate_constants[6] * number_densities[0] * number_densities[7];
+    jacobian[14] = jacobian[14] + rate_constants[3] * number_densities[0] * number_densities[7];
 
     // df_O1D/d[O2]
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    jacobian[15] = jacobian[15] - rate_constants[4] * number_densities[5];
+    jacobian[15] = jacobian[15] - rate_constants[1] * number_densities[5];
 
     // df_O/d[O2]
     //  k_O2_1: O2 -> 2*O
-    jacobian[16] = jacobian[16] + 2 * rate_constants[0];
+    jacobian[16] = jacobian[16] + 2 * rate_constants[4];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    jacobian[16] = jacobian[16] + rate_constants[4] * number_densities[5];
+    jacobian[16] = jacobian[16] + rate_constants[1] * number_densities[5];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[16] = jacobian[16] - rate_constants[6] * number_densities[0] * number_densities[6];
+    jacobian[16] = jacobian[16] - rate_constants[3] * number_densities[0] * number_densities[6];
 
     // df_O2/d[O2]
     //  k_O2_1: O2 -> 2*O
-    jacobian[17] = jacobian[17] - rate_constants[0];
+    jacobian[17] = jacobian[17] - rate_constants[4];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[17] = jacobian[17] - rate_constants[6] * number_densities[0] * number_densities[6];
+    jacobian[17] = jacobian[17] - rate_constants[3] * number_densities[0] * number_densities[6];
 
     // df_O3/d[O2]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    jacobian[18] = jacobian[18] + rate_constants[6] * number_densities[0] * number_densities[6];
+    jacobian[18] = jacobian[18] + rate_constants[3] * number_densities[0] * number_densities[6];
 
     // df_O1D/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
-    jacobian[19] = jacobian[19] + rate_constants[1];
+    jacobian[19] = jacobian[19] + rate_constants[5];
 
     // df_O/d[O3]
     //  k_O3_2: O3 -> 1*O + 1*O2
-    jacobian[20] = jacobian[20] + rate_constants[2];
+    jacobian[20] = jacobian[20] + rate_constants[6];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[20] = jacobian[20] - rate_constants[5] * number_densities[6];
+    jacobian[20] = jacobian[20] - rate_constants[2] * number_densities[6];
 
     // df_O2/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
-    jacobian[21] = jacobian[21] + rate_constants[1];
+    jacobian[21] = jacobian[21] + rate_constants[5];
 
     //  k_O3_2: O3 -> 1*O + 1*O2
-    jacobian[21] = jacobian[21] + rate_constants[2];
+    jacobian[21] = jacobian[21] + rate_constants[6];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[21] = jacobian[21] + 2 * rate_constants[5] * number_densities[6];
+    jacobian[21] = jacobian[21] + 2 * rate_constants[2] * number_densities[6];
 
     // df_O3/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
-    jacobian[22] = jacobian[22] - rate_constants[1];
+    jacobian[22] = jacobian[22] - rate_constants[5];
 
     //  k_O3_2: O3 -> 1*O + 1*O2
-    jacobian[22] = jacobian[22] - rate_constants[2];
+    jacobian[22] = jacobian[22] - rate_constants[6];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[22] = jacobian[22] - rate_constants[5] * number_densities[6];
+    jacobian[22] = jacobian[22] - rate_constants[2] * number_densities[6];
 
     return jacobian;
   }

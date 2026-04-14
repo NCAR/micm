@@ -1,3 +1,5 @@
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
@@ -15,21 +17,22 @@ namespace
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b } };
 
-  micm::LambdaRateConstant makeLambdaRateConstant()
+  micm::LambdaRateConstantParameters makeLambdaRateConstantParams()
   {
-    return micm::LambdaRateConstant(micm::LambdaRateConstantParameters{
-        .label_ = "lambda_rc",
-        .lambda_function_ = [](const micm::Conditions& conditions) { return 1.0e-3 * conditions.temperature_; } });
+    return micm::LambdaRateConstantParameters{
+      .label_ = "lambda_rc",
+      .lambda_function_ = [](const micm::Conditions& conditions) { return 1.0e-3 * conditions.temperature_; }
+    };
   }
 }  // namespace
 
 TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
 {
-  auto lambda_rate_constant = makeLambdaRateConstant();
+  auto lambda_params = makeLambdaRateConstantParams();
   micm::Process reaction = micm::ChemicalReactionBuilder()
                                .SetReactants({ a })
                                .SetProducts({ micm::StoichSpecies(b, 1) })
-                               .SetRateConstant(lambda_rate_constant)
+                               .SetRateConstant(lambda_params)
                                .SetPhase(gas_phase)
                                .Build();
 
@@ -41,7 +44,7 @@ TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
                     .Build();
 
   auto& lambda_ref = solver.GetLambdaRateConstantByName("lambda_rc");
-  lambda_ref.parameters_.lambda_function_ = [](const micm::Conditions& conditions)
+  lambda_ref.lambda_function_ = [](const micm::Conditions& conditions)
   { return 2.0e-3 * conditions.temperature_; };
 
   auto state = solver.GetState(1);

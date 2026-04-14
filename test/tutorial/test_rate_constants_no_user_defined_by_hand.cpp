@@ -42,7 +42,7 @@ int main(const int argc, const char* argv[])
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
                    .SetProducts({ StoichSpecies(b, 1) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-4, .B_ = 0, .C_ = 110 }))
+                   .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 2.15e-4, .B_ = 0, .C_ = 110 })
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -54,7 +54,7 @@ int main(const int argc, const char* argv[])
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b })
                    .SetProducts({ StoichSpecies(c, 1) })
-                   .SetRateConstant(BranchedRateConstant(branched_params))
+                   .SetRateConstant(branched_params)
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -62,7 +62,7 @@ int main(const int argc, const char* argv[])
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b })
                    .SetProducts({ StoichSpecies(d, 1) })
-                   .SetRateConstant(BranchedRateConstant(branched_params))
+                   .SetRateConstant(branched_params)
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -71,21 +71,21 @@ int main(const int argc, const char* argv[])
   Process r4 = ChemicalReactionBuilder()
                    .SetReactants({ c })
                    .SetProducts({ StoichSpecies(e, 1) })
-                   .SetRateConstant(SurfaceRateConstant({ .label_ = "C", .phase_species_ = phase_species_list[surface_c_index], .reaction_probability_ = 0.90 }))
+                   .SetRateConstant(SurfaceRateConstantParameters{ .label_ = "C", .phase_species_ = phase_species_list[surface_c_index], .reaction_probability_ = 0.90 })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r5 = ChemicalReactionBuilder()
                    .SetReactants({ d })
                    .SetProducts({ StoichSpecies(f, 2) })
-                   .SetRateConstant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
-                                                                            .k0_B_ = 2.3,
-                                                                            .k0_C_ = 302.3,
-                                                                            .kinf_A_ = 2.6 / MOLES_M3_TO_MOLECULES_CM3,
-                                                                            .kinf_B_ = -3.1,
-                                                                            .kinf_C_ = 402.1,
-                                                                            .Fc_ = 0.9,
-                                                                            .N_ = 1.2 }))
+                   .SetRateConstant(TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2,
+                                                                                   .k0_B_ = 2.3,
+                                                                                   .k0_C_ = 302.3,
+                                                                                   .kinf_A_ = 2.6 / MOLES_M3_TO_MOLECULES_CM3,
+                                                                                   .kinf_B_ = -3.1,
+                                                                                   .kinf_C_ = 402.1,
+                                                                                   .Fc_ = 0.9,
+                                                                                   .N_ = 1.2 })
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -95,21 +95,21 @@ int main(const int argc, const char* argv[])
       ChemicalReactionBuilder()
           .SetReactants({ e, e })
           .SetProducts({ StoichSpecies(g, 1) })
-          .SetRateConstant(TroeRateConstant({ .k0_A_ = 1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
-                                              .k0_B_ = 167.0,
-                                              .k0_C_ = 3.0,
-                                              .kinf_A_ = 136.0 * MOLES_M3_TO_MOLECULES_CM3,
-                                              .kinf_B_ = 5.0,
-                                              .kinf_C_ = 24.0,
-                                              .Fc_ = 0.9,
-                                              .N_ = 0.8 }))
+          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
+                                                     .k0_B_ = 167.0,
+                                                     .k0_C_ = 3.0,
+                                                     .kinf_A_ = 136.0 * MOLES_M3_TO_MOLECULES_CM3,
+                                                     .kinf_B_ = 5.0,
+                                                     .kinf_C_ = 24.0,
+                                                     .Fc_ = 0.9,
+                                                     .N_ = 0.8 })
           .SetPhase(gas_phase)
           .Build();
 
   Process r7 = ChemicalReactionBuilder()
                    .SetReactants({ f })
                    .SetProducts({ StoichSpecies(g, 1) })
-                   .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
+                   .SetRateConstant(TunnelingRateConstantParameters{ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 })
                    .SetPhase(gas_phase)
                    .Build();
 

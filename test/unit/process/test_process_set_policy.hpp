@@ -1,6 +1,7 @@
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/solver/state.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
@@ -32,33 +33,33 @@ void testProcessSet()
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 3, .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 2);
 
-  ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+  ArrheniusRateConstantParameters arrhenius_params{ .A_ = 12.2, .C_ = 300.0 };
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo, baz })
                    .SetProducts({ StoichSpecies(bar, 1), StoichSpecies(quuz, 2.4) })
-                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetRateConstant(arrhenius_params)
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ bar, qux })
                    .SetProducts({ StoichSpecies(foo, 1), StoichSpecies(quz, 1.4) })
-                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetRateConstant(arrhenius_params)
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ quz })
                    .SetProducts({})
-                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetRateConstant(arrhenius_params)
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r4 = ChemicalReactionBuilder()
                    .SetReactants({ baz, qux })
                    .SetProducts({ StoichSpecies(bar, 1), StoichSpecies(quz, 2.5) })
-                   .SetRateConstant(arrhenius_rate_constant)
+                   .SetRateConstant(arrhenius_params)
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -193,7 +194,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   }
   Phase gas_phase{ "gas", phase_species };
 
-  ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+  ArrheniusRateConstantParameters arrhenius_rate_constant{ .A_ = 12.2, .C_ = 300.0 };
   State<DenseMatrixPolicy, SparseMatrixPolicy> state{ StateParameters{
                                                           .number_of_rate_constants_ = n_reactions,
                                                           .variable_names_{ species_names },
@@ -256,7 +257,7 @@ void testAlgebraicMasking()
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 1, .variable_names_{ "A", "B", "C", "D" } }, 2);
 
-  ArrheniusRateConstant arrhenius_rate_constant({ .A_ = 12.2, .C_ = 300.0 });
+  ArrheniusRateConstantParameters arrhenius_rate_constant{ .A_ = 12.2, .C_ = 300.0 };
 
   // Create a single reaction: A + B -> C + D
   Process r1 = ChemicalReactionBuilder()
