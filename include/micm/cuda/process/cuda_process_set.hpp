@@ -3,10 +3,13 @@
 #pragma once
 
 #include <micm/cuda/process/cuda_process_set.cuh>
+#include <micm/cuda/process/cuda_rate_constant_kernel.cuh>
+#include <micm/cuda/process/cuda_reaction_rate_store.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/process/reaction_rate_store.hpp>
 
 namespace micm
 {
@@ -22,12 +25,16 @@ namespace micm
     ///   the constant data of "ProcessSet" class on the device
     ProcessSetParam devstruct_;
 
+    /// GPU-resident analytic rate constant parameter store (built once per solver build)
+    CudaReactionRateStore cuda_rate_store_;
+
     CudaProcessSet() = default;
 
     CudaProcessSet(const CudaProcessSet&) = delete;
     CudaProcessSet& operator=(const CudaProcessSet&) = delete;
     CudaProcessSet(CudaProcessSet&& other)
-        : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other))
+        : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other)),
+          cuda_rate_store_(std::move(other.cuda_rate_store_))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
@@ -35,6 +42,7 @@ namespace micm
     {
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
+      cuda_rate_store_ = std::move(other.cuda_rate_store_);
       return *this;
     };
 
@@ -55,6 +63,59 @@ namespace micm
     ~CudaProcessSet()
     {
       micm::cuda::FreeConstData(this->devstruct_);
+    }
+
+    /// @brief Upload all analytic parameter arrays from cpu_store to device memory.
+    ///        Called once by Solver after ReactionRateStore is built.
+    void BuildCudaStore(const ReactionRateStore& cpu_store)
+    {
+      cuda_rate_store_.BuildFrom(cpu_store);
+    }
+
+    /// @brief GPU-accelerated rate constant calculation (Phase D).
+    ///
+    ///   1. EvaluateCpuRates for any lambda entries (CPU-only, writes to host rate_constants_).
+    ///   2. If lambdas exist: CopyToDevice for the full rate_constants_ (lambda slots land on device).
+    ///   3. Upload conditions and custom_rate_parameters_ to device.
+    ///   4. Launch CalculateRateConstantsKernel to fill analytic slots on device.
+    ///   5. If parameterized multipliers exist: download, apply on CPU, re-upload.
+    ///
+    /// After this call, device rate_constants_ is fully populated for the current step.
+    template<class StatePolicy>
+    void GpuCalculateRateConstants(const ReactionRateStore& cpu_store, StatePolicy& state)
+      requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
+               VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
+    {
+      // Phase 1: CPU lambda evaluation
+      if (!cpu_store.lambda_entries.empty())
+      {
+        ReactionRateStore::EvaluateCpuRates(cpu_store, state);
+        // Upload lambda values (analytic slots carry stale data; kernel overwrites them)
+        state.rate_constants_.CopyToDevice();
+      }
+
+      // Upload per-step transient data
+      const Conditions* d_conditions = cuda_rate_store_.UploadConditions(state.conditions_);
+      state.custom_rate_parameters_.CopyToDevice();
+
+      // Phase 2: GPU analytic calculation
+      auto rc_param = state.rate_constants_.AsDeviceParam();
+      auto cp_param = state.custom_rate_parameters_.AsDeviceParam();
+      micm::cuda::CalculateRateConstantsKernelDriver(cuda_rate_store_.GetParam(), d_conditions, rc_param, cp_param);
+
+      // Parameterized multipliers are CPU-only (std::function); apply via round-trip if needed
+      if (!cpu_store.parameterized_multipliers.empty())
+      {
+        state.rate_constants_.CopyToHost();
+        const std::size_t n_cells = state.rate_constants_.NumRows();
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        {
+          const auto& cond = state.conditions_[i_cell];
+          for (const auto& mult : cpu_store.parameterized_multipliers)
+            state.rate_constants_[i_cell][mult.rc_index] *= mult.evaluate(cond);
+        }
+        state.rate_constants_.CopyToDevice();
+      }
     }
 
     /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;

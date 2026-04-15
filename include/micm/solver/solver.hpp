@@ -53,6 +53,8 @@ namespace micm
           update_state_parameters_functions_(),
           store_(ReactionRateStore::BuildFrom(processes_))
     {
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+        solver_.rates_.BuildCudaStore(store_);
     }
 
     Solver(
@@ -71,6 +73,8 @@ namespace micm
           update_state_parameters_functions_(update_state_parameters_functions),
           store_(ReactionRateStore::BuildFrom(processes_))
     {
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+        solver_.rates_.BuildCudaStore(store_);
     }
 
     Solver(Solver&& other)
@@ -169,8 +173,15 @@ namespace micm
     /// @param state State object containing conditions and custom_rate_parameters to be updated
     void UpdateStateParameters(StatePolicy& state)
     {
-      ReactionRateStore::EvaluateCpuRates(store_, state);
-      ReactionRateStore::CalculateRates(store_, state);
+      // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
+      // GpuCalculateRateConstants; otherwise use the CPU path.
+      if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })
+        solver_.rates_.GpuCalculateRateConstants(store_, state);
+      else
+      {
+        ReactionRateStore::EvaluateCpuRates(store_, state);
+        ReactionRateStore::CalculateRates(store_, state);
+      }
 
       for (const auto& update_func : update_state_parameters_functions_)
       {
