@@ -81,7 +81,8 @@ namespace micm
           state_parameters_(other.state_parameters_),
           solver_parameters_(other.solver_parameters_),
           system_(std::move(other.system_)),
-          update_state_parameters_functions_(std::move(other.update_state_parameters_functions_))
+          update_state_parameters_functions_(std::move(other.update_state_parameters_functions_)),
+          store_(std::move(other.store_))
     {
     }
 
@@ -95,6 +96,7 @@ namespace micm
       std::swap(this->processes_, other.processes_);
       std::swap(this->system_, other.system_);
       std::swap(this->update_state_parameters_functions_, other.update_state_parameters_functions_);
+      std::swap(this->store_, other.store_);
       return *this;
     }
 
@@ -171,6 +173,11 @@ namespace micm
     /// @param state State object containing conditions and custom_rate_parameters to be updated
     void UpdateStateParameters(StatePolicy& state)
     {
+      // External update functions must run first: they populate custom_rate_parameters_
+      // which user-defined and surface rate constants read during calculation.
+      for (const auto& update_func : update_state_parameters_functions_)
+        update_func(state.conditions_, state.custom_rate_parameters_);
+
       // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
       // GpuCalculateRateConstants; otherwise use the CPU path.
       if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })
@@ -179,11 +186,6 @@ namespace micm
       {
         ReactionRateStore::EvaluateCpuRates(store_, state);
         ReactionRateStore::CalculateRates(store_, state);
-      }
-
-      for (const auto& update_func : update_state_parameters_functions_)
-      {
-        update_func(state.conditions_, state.custom_rate_parameters_);
       }
     }
 

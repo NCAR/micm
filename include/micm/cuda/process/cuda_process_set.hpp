@@ -129,15 +129,15 @@ namespace micm
     /// @param variable_ids Set of variable ids whose forcing/Jacobian rows should not receive kinetic contributions
     void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids);
 
-   private:
-    void InitDevStruct();
-
     void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
       requires(VectorizableDense<DenseMatrixPolicy>);
 
     void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
         const
       requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
+
+   private:
+    void InitDevStruct();
   };
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
