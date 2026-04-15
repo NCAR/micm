@@ -65,3 +65,7 @@ if (MICM_ENABLE_PROFILE)
   target_compile_definitions(micm INTERFACE MICM_PROFILE)
 endif()
 
+if (MICM_ENABLE_TESTS)
+  target_compile_definitions(micm INTERFACE MICM_ENABLE_TESTS)
+endif()
+
