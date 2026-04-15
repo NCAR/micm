@@ -45,16 +45,14 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system)
-        : solver_(std::move(solver)),
-          state_parameters_(state_parameters),
-          solver_parameters_(solver_parameters),
-          processes_(std::move(processes)),
-          system_(std::move(system)),
-          update_state_parameters_functions_(),
-          store_(ReactionRateStore::BuildFrom(processes_))
+        : Solver(
+              std::move(solver),
+              state_parameters,
+              solver_parameters,
+              std::move(processes),
+              std::move(system),
+              {})
     {
-      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
-        solver_.rates_.BuildCudaStore(store_);
     }
 
     Solver(
@@ -191,22 +189,7 @@ namespace micm
 
     LambdaRateConstantParameters& GetLambdaRateConstantByName(const std::string& name)
     {
-      for (auto& process : processes_)
-      {
-        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
-        {
-          if (auto* params = std::get_if<LambdaRateConstantParameters>(&reaction->rate_constant_))
-          {
-            if (params->label_ == name)
-              return *params;
-          }
-        }
-      }
-      throw MicmException(
-          MicmSeverity::Error,
-          MICM_ERROR_CATEGORY_SOLVER,
-          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
-          "Lambda rate constant with name '" + name + "' not found in any process");
+      return const_cast<LambdaRateConstantParameters&>(std::as_const(*this).GetLambdaRateConstantByName(name));
     }
 
     const LambdaRateConstantParameters& GetLambdaRateConstantByName(const std::string& name) const

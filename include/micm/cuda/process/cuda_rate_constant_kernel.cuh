@@ -16,14 +16,13 @@
 
 #include <cstddef>
 
-/// @brief GPU-side mirror of ReactionRateStore analytic parameters.
+/// @brief Device-side mirror of ReactionRateStore for use in GPU kernels.
 ///
-/// All pointer members must be device pointers when passed to
-/// CalculateRateConstantsKernelDriver.  The offset fields are pre-computed
-/// cumulative sums matching the ReactionRateStore offset helpers.
+/// All pointers must be device pointers.  Offsets match ReactionRateStore's
+/// offset helpers (cumulative type counts).
 struct CudaReactionRateStoreParam
 {
-  // Analytic parameter arrays (device pointers, read-only during kernel)
+  // Device parameter arrays (read-only in kernel)
   const micm::ArrheniusRateConstantParameters*                 d_arrhenius_    = nullptr;
   const micm::TroeRateConstantParameters*                      d_troe_         = nullptr;
   const micm::TernaryChemicalActivationRateConstantParameters* d_ternary_      = nullptr;
@@ -34,7 +33,7 @@ struct CudaReactionRateStoreParam
   const micm::UserDefinedRateConstantData*                     d_user_defined_ = nullptr;
   const micm::SurfaceRateConstantData*                         d_surface_      = nullptr;
 
-  // Counts for each type
+  // Reaction counts per type
   std::size_t n_arrhenius_    = 0;
   std::size_t n_troe_         = 0;
   std::size_t n_ternary_      = 0;
@@ -45,9 +44,8 @@ struct CudaReactionRateStoreParam
   std::size_t n_user_defined_ = 0;
   std::size_t n_surface_      = 0;
 
-  // Pre-computed contiguous-block offsets into rate_constants_[cell]
-  // (same semantics as the inline helpers in ReactionRateStore)
-  std::size_t troe_offset_         = 0;  // = n_arrhenius
+  // Offsets into rate_constants_[cell] (cumulative type counts)
+  std::size_t troe_offset_         = 0;
   std::size_t ternary_offset_      = 0;
   std::size_t branched_offset_     = 0;
   std::size_t tunneling_offset_    = 0;
@@ -61,19 +59,7 @@ namespace micm
 {
   namespace cuda
   {
-    /// @brief Host-callable driver that launches the rate constant kernel on the GPU.
-    ///
-    /// Phase 2 of the two-phase calculation: computes all analytic rate constants for
-    /// every grid cell in parallel and writes them into the correct type-block offsets
-    /// of rate_constants_ (VectorMatrix interleaved layout).
-    ///
-    /// Lambda entries (written by EvaluateCpuRates / CopyToDevice before this call)
-    /// are NOT touched by the kernel — they occupy positions beyond surface_offset.
-    ///
-    /// @param store_param   Device-side analytic parameter arrays
-    /// @param d_conditions  Device array of Conditions structs, length ≥ n_cells
-    /// @param rc_param      Rate constants matrix device param (interleaved layout)
-    /// @param cp_param      Custom rate parameters matrix device param (interleaved layout)
+    /// @brief Launch the rate constant kernel.  Lambda entries are not touched.
     void CalculateRateConstantsKernelDriver(
         const CudaReactionRateStoreParam& store_param,
         const micm::Conditions*           d_conditions,

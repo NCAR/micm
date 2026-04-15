@@ -63,6 +63,23 @@ namespace micm
                   (1.0 + params[i].E_ * pressure);
   }
 
+  /// @brief Shared falloff kernel for Troe and TernaryChemicalActivation.
+  ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
+  ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
+  template<class FalloffParams>
+  MICM_HOST_DEVICE inline double FalloffKernel(
+      const FalloffParams& p,
+      double temperature,
+      double air_density,
+      double numerator_scale)
+  {
+    double k0    = p.k0_A_ * std::exp(p.k0_C_ / temperature) * std::pow(temperature / 300.0, p.k0_B_);
+    double kinf  = p.kinf_A_ * std::exp(p.kinf_C_ / temperature) * std::pow(temperature / 300.0, p.kinf_B_);
+    double ratio = k0 * air_density / kinf;
+    return k0 * numerator_scale / (1.0 + ratio) *
+           std::pow(p.Fc_, p.N_ / (p.N_ + std::pow(std::log10(ratio), 2.0)));
+  }
+
   /// @brief Calculate Troe rate constants for a contiguous block of reactions.
   /// @param params      Array of Troe parameters, length n
   /// @param n           Number of reactions
@@ -77,16 +94,7 @@ namespace micm
       double* output)
   {
     for (std::size_t i = 0; i < n; ++i)
-    {
-      double k0 = params[i].k0_A_ * std::exp(params[i].k0_C_ / temperature) *
-                  std::pow(temperature / 300.0, params[i].k0_B_);
-      double kinf = params[i].kinf_A_ * std::exp(params[i].kinf_C_ / temperature) *
-                    std::pow(temperature / 300.0, params[i].kinf_B_);
-      double ratio = k0 * air_density / kinf;
-      output[i] =
-          k0 * air_density / (1.0 + ratio) *
-          std::pow(params[i].Fc_, params[i].N_ / (params[i].N_ + std::pow(std::log10(ratio), 2.0)));
-    }
+      output[i] = FalloffKernel(params[i], temperature, air_density, air_density);
   }
 
   /// @brief Calculate Ternary Chemical Activation rate constants for a contiguous block of reactions.
@@ -103,16 +111,7 @@ namespace micm
       double* output)
   {
     for (std::size_t i = 0; i < n; ++i)
-    {
-      double k0 = params[i].k0_A_ * std::exp(params[i].k0_C_ / temperature) *
-                  std::pow(temperature / 300.0, params[i].k0_B_);
-      double kinf = params[i].kinf_A_ * std::exp(params[i].kinf_C_ / temperature) *
-                    std::pow(temperature / 300.0, params[i].kinf_B_);
-      double ratio = k0 * air_density / kinf;
-      output[i] =
-          k0 / (1.0 + ratio) *
-          std::pow(params[i].Fc_, params[i].N_ / (params[i].N_ + std::pow(std::log10(ratio), 2.0)));
-    }
+      output[i] = FalloffKernel(params[i], temperature, air_density, 1.0);
   }
 
   /// @brief Calculate Tunneling rate constants for a contiguous block of reactions.
@@ -219,14 +218,22 @@ namespace micm
       output[i] = custom_params[params[i].custom_param_index_] * params[i].scaling_factor_;
   }
 
-  /// @brief Calculate surface reaction rate constants for a contiguous block of reactions.
-  ///        Reads aerosol effective radius [m] and particle number concentration [# m-3]
-  ///        from custom_params at params[i].custom_param_base_index_ and +1 respectively.
-  /// @param params        Array of Surface data, length n
-  /// @param n             Number of reactions
-  /// @param temperature   Temperature [K]
-  /// @param custom_params Row of custom_rate_parameters_ for this grid cell
-  /// @param output        Destination array of length n
+  /// @brief Calculate one surface rate constant given pre-fetched aerosol parameters.
+  /// @param radius    Aerosol effective radius [m]
+  /// @param num_conc  Particle number concentration [# m-3]
+  MICM_HOST_DEVICE inline double CalculateSurfaceOne(
+      const SurfaceRateConstantData& p,
+      double temperature,
+      double radius,
+      double num_conc)
+  {
+    double mean_free_speed = std::sqrt(p.mean_free_speed_factor_ * temperature);
+    return 4.0 * num_conc * M_PI * radius * radius /
+           (radius / p.diffusion_coefficient_ + 4.0 / (mean_free_speed * p.reaction_probability_));
+  }
+
+  /// @brief Calculate surface rate constants for n reactions.
+  ///        Reads radius and num_conc from custom_params[custom_param_base_index_] and +1.
   MICM_HOST_DEVICE inline void CalculateSurface(
       const SurfaceRateConstantData* params,
       std::size_t n,
@@ -235,14 +242,11 @@ namespace micm
       double* output)
   {
     for (std::size_t i = 0; i < n; ++i)
-    {
-      double mean_free_speed = std::sqrt(params[i].mean_free_speed_factor_ * temperature);
-      double radius          = custom_params[params[i].custom_param_base_index_];
-      double num_conc        = custom_params[params[i].custom_param_base_index_ + 1];
-      output[i] = 4.0 * num_conc * M_PI * radius * radius /
-                  (radius / params[i].diffusion_coefficient_ +
-                   4.0 / (mean_free_speed * params[i].reaction_probability_));
-    }
+      output[i] = CalculateSurfaceOne(
+          params[i],
+          temperature,
+          custom_params[params[i].custom_param_base_index_],
+          custom_params[params[i].custom_param_base_index_ + 1]);
   }
 
 }  // namespace micm

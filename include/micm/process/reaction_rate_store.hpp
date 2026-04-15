@@ -5,17 +5,11 @@
 /// @file reaction_rate_store.hpp
 /// @brief Structure-of-arrays store for all reaction rate constant parameters.
 ///
-/// Reactions must be stable-sorted by RateConstantTypeOrder before BuildFrom is
-/// called (the SolverBuilder does this).  With sorted input each type occupies a
-/// contiguous block and cumulative-size offsets make it easy to write batch
-/// calculations directly into the correct locations in state.rate_constants_.  The
-/// offsets are computed using the inline helper functions below.
+/// Reactions must be stable-sorted by RateConstantTypeOrder before BuildFrom is called
+/// (the SolverBuilder does this).  Each type occupies a contiguous block; offset helpers
+/// below give the start of each block within state.rate_constants_[cell].
 ///
-/// **Two-phase calculation per step:**
-///   Phase 1 — EvaluateCpuRates:  evaluate all LambdaRateConstantParameters entries
-///                                  per grid cell, write results to state.rate_constants_.
-///   Phase 2 — CalculateRates:    call batch analytic functions at the correct offsets,
-///                                  then apply parameterized-species multipliers.
+/// Each step: call EvaluateCpuRates (lambda entries), then CalculateRates (analytic types).
 
 #define _USE_MATH_DEFINES
 
@@ -42,11 +36,9 @@
 namespace micm
 {
 
-  /// @brief Structure-of-arrays container for all reaction rate constant parameters.
+  /// @brief Structure-of-arrays store for all reaction rate constant parameters.
   ///
-  /// Requires that processes are sorted by RateConstantTypeOrder before BuildFrom is called.
-  /// Each type occupies a contiguous block within state.rate_constants_[cell]; the block
-  /// start is given by the inline offset helpers below.
+  /// Processes must be sorted by RateConstantTypeOrder before BuildFrom is called.
   struct ReactionRateStore
   {
     // ----------------------------------------------------------------
@@ -110,15 +102,10 @@ namespace micm
     // CPU-only lambda entries
     // ----------------------------------------------------------------
 
-    /// @brief One entry per LambdaRateConstantParameters reaction.
-    ///        Stores a non-owning pointer into the Solver's processes_ so that
-    ///        mutations via Solver::GetLambdaRateConstantByName propagate immediately.
     struct LambdaEntry
     {
-      /// @brief Non-owning pointer; valid for the lifetime of the owning Solver.
-      LambdaRateConstantParameters* source;
-      /// @brief Column index in state.rate_constants_[cell] for this reaction.
-      std::size_t rc_index;
+      LambdaRateConstantParameters* source;  ///< Non-owning; valid for the lifetime of the owning Solver.
+      std::size_t rc_index;                  ///< Column index in state.rate_constants_[cell].
     };
     std::vector<LambdaEntry> lambda_entries;
 
@@ -126,8 +113,7 @@ namespace micm
     // Parameterized-species multipliers
     // ----------------------------------------------------------------
 
-    /// @brief Applied as a final pass after all batch calculations.
-    ///        One entry per reaction that has at least one parameterized reactant.
+    /// @brief One entry per reaction with at least one parameterized reactant.
     struct ParameterizedMultiplier
     {
       std::function<double(const Conditions&)> evaluate;
@@ -140,14 +126,7 @@ namespace micm
     // ================================================================
 
     /// @brief Build a ReactionRateStore from a sorted process list.
-    ///
-    ///        Requires that processes are stable-sorted by RateConstantTypeOrder
-    ///        (done by SolverBuilder) before this call so the type blocks are contiguous
-    ///        and the offset helpers return correct values.
-    ///
-    /// @param processes  Non-const ref to the solver's process list (allows non-const
-    ///                   pointers into LambdaRateConstantParameters for runtime mutation)
-    /// @return           Populated store ready for two-phase calculation
+    /// @param processes  Non-const ref so LambdaRateConstantParameters pointers remain mutable at runtime.
     static ReactionRateStore BuildFrom(std::vector<Process>& processes)
     {
       ReactionRateStore store;
@@ -160,8 +139,7 @@ namespace micm
         if (!reaction)
           continue;
 
-        // Collect parameterized-reactant multiplier for this reaction.
-        {
+        {  // parameterized-reactant multiplier
           std::vector<std::function<double(const Conditions&)>> param_funcs;
           for (const auto& reactant : reaction->reactants_)
             if (reactant.IsParameterized())
@@ -200,7 +178,7 @@ namespace micm
         else if (auto* p = std::get_if<BranchedRateConstantParameters>(&rc))
         {
           BranchedRateConstantParameters params = *p;
-          // Compute precomputed derived fields (same formulae as the old BranchedRateConstant ctor)
+          // Pre-compute derived fields needed by CalculateBranched
           params.k0_ = 2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(static_cast<double>(params.n_));
           double air_ref = 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6;
           double a = params.k0_ * air_ref;
@@ -258,12 +236,8 @@ namespace micm
       return store;
     }
 
-    // ================================================================
-    // Phase 1 — CPU-only lambda evaluation
-    // ================================================================
-
-    /// @brief Evaluate all lambda rate constants and write results to
-    ///        state.rate_constants_.  Must be called every step before CalculateRates.
+    /// @brief Evaluate all lambda rate constants into state.rate_constants_.
+    ///        Must be called each step before CalculateRates.
     template<class StatePolicy>
     static void EvaluateCpuRates(const ReactionRateStore& store, StatePolicy& state)
     {
@@ -301,14 +275,8 @@ namespace micm
       }
     }
 
-    // ================================================================
-    // Phase 2 — batch analytic calculation
-    // ================================================================
-
-    /// @brief Calculate all analytic rate constants and write them into
-    ///        state.rate_constants_ at the correct type-block offsets.
-    ///        Lambda entries (written by EvaluateCpuRates) are untouched.
-    ///        Parameterized-species multipliers are applied last.
+    /// @brief Calculate all analytic rate constants into state.rate_constants_.
+    ///        Lambda entries are untouched; parameterized multipliers applied last.
     template<class StatePolicy>
     static void CalculateRates(const ReactionRateStore& store, StatePolicy& state)
     {
@@ -320,86 +288,52 @@ namespace micm
     }
 
    private:
-    // ----------------------------------------------------------------
-    // Scalar implementation
-    // ----------------------------------------------------------------
+    /// @brief Calculate all analytic rate constants for one cell into a contiguous buffer.
+    /// @param cp   Custom rate parameters for this cell (contiguous)
+    /// @param out  Output buffer, size >= lambda_offset()
+    static void CalculateOneCellRates(
+        const ReactionRateStore& store,
+        double temperature,
+        double pressure,
+        double air_density,
+        const double* cp,
+        double* out)
+    {
+      CalculateArrhenius(store.arrhenius.data(), store.arrhenius.size(), temperature, pressure, out);
+      CalculateTroe(store.troe.data(), store.troe.size(), temperature, air_density, out + store.troe_offset());
+      CalculateTernaryChemicalActivation(
+          store.ternary.data(), store.ternary.size(), temperature, air_density, out + store.ternary_offset());
+      CalculateBranched(
+          store.branched.data(), store.branched.size(), temperature, air_density, out + store.branched_offset());
+      CalculateTunneling(store.tunneling.data(), store.tunneling.size(), temperature, out + store.tunneling_offset());
+      CalculateTaylorSeries(
+          store.taylor.data(), store.taylor.size(), temperature, pressure, out + store.taylor_offset());
+      CalculateReversible(store.reversible.data(), store.reversible.size(), temperature, out + store.reversible_offset());
+      CalculateUserDefined(store.user_defined.data(), store.user_defined.size(), cp, out + store.user_defined_offset());
+      CalculateSurface(store.surface.data(), store.surface.size(), temperature, cp, out + store.surface_offset());
+    }
 
     template<class StatePolicy>
     static void CalculateRatesScalar(const ReactionRateStore& store, StatePolicy& state)
     {
       const std::size_t n_cells = state.rate_constants_.NumRows();
+      const std::size_t n_rc = state.rate_constants_.NumColumns();
+      const std::size_t n_cp = state.custom_rate_parameters_.NumColumns();
+      double* rc_data = state.rate_constants_.AsVector().data();
+      const double* cp_data = state.custom_rate_parameters_.AsVector().data();
 
       for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
       {
         const auto& cond = state.conditions_[i_cell];
-        const std::vector<double> cp_row = state.custom_rate_parameters_[i_cell];
-        const double* cp = cp_row.data();
+        double* rc_row = rc_data + i_cell * n_rc;
+        const double* cp_row = cp_data + i_cell * n_cp;
 
-        // Helper: call batch function, write directly at offset+k
-        auto run = [&](auto batch_fn, std::size_t n, std::size_t offset)
-        {
-          if (n == 0)
-            return;
-          std::vector<double> buf(n);
-          batch_fn(buf.data());
-          for (std::size_t k = 0; k < n; ++k)
-            state.rate_constants_[i_cell][offset + k] = buf[k];
-        };
-
-        run([&](double* buf)
-            { CalculateArrhenius(store.arrhenius.data(), store.arrhenius.size(), cond.temperature_, cond.pressure_, buf); },
-            store.arrhenius.size(),
-            0);
-
-        run([&](double* buf)
-            { CalculateTroe(store.troe.data(), store.troe.size(), cond.temperature_, cond.air_density_, buf); },
-            store.troe.size(),
-            store.troe_offset());
-
-        run(
-            [&](double* buf)
-            {
-              CalculateTernaryChemicalActivation(
-                  store.ternary.data(), store.ternary.size(), cond.temperature_, cond.air_density_, buf);
-            },
-            store.ternary.size(),
-            store.ternary_offset());
-
-        run([&](double* buf)
-            { CalculateBranched(store.branched.data(), store.branched.size(), cond.temperature_, cond.air_density_, buf); },
-            store.branched.size(),
-            store.branched_offset());
-
-        run([&](double* buf) { CalculateTunneling(store.tunneling.data(), store.tunneling.size(), cond.temperature_, buf); },
-            store.tunneling.size(),
-            store.tunneling_offset());
-
-        run([&](double* buf)
-            { CalculateTaylorSeries(store.taylor.data(), store.taylor.size(), cond.temperature_, cond.pressure_, buf); },
-            store.taylor.size(),
-            store.taylor_offset());
-
-        run([&](double* buf)
-            { CalculateReversible(store.reversible.data(), store.reversible.size(), cond.temperature_, buf); },
-            store.reversible.size(),
-            store.reversible_offset());
-
-        run([&](double* buf) { CalculateUserDefined(store.user_defined.data(), store.user_defined.size(), cp, buf); },
-            store.user_defined.size(),
-            store.user_defined_offset());
-
-        run([&](double* buf) { CalculateSurface(store.surface.data(), store.surface.size(), cond.temperature_, cp, buf); },
-            store.surface.size(),
-            store.surface_offset());
+        CalculateOneCellRates(store, cond.temperature_, cond.pressure_, cond.air_density_, cp_row, rc_row);
 
         for (const auto& mult : store.parameterized_multipliers)
-          state.rate_constants_[i_cell][mult.rc_index] *= mult.evaluate(cond);
+          rc_row[mult.rc_index] *= mult.evaluate(cond);
       }
     }
-
-    // ----------------------------------------------------------------
-    // Vectorizable implementation
-    // ----------------------------------------------------------------
 
     template<class DenseMatrixPolicy, class StatePolicy>
     static void CalculateRatesVectorized(const ReactionRateStore& store, StatePolicy& state)
@@ -408,6 +342,10 @@ namespace micm
       const auto& v_cp = state.custom_rate_parameters_.AsVector();
       constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
       const std::size_t n_cp = state.custom_rate_parameters_.NumColumns();
+      const std::size_t n_analytic = store.lambda_offset();
+
+      std::vector<double> cp(n_cp);
+      std::vector<double> buf(n_analytic);
 
       for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
       {
@@ -420,75 +358,14 @@ namespace micm
           const auto& cond = state.conditions_[i_group * L + i_cell];
 
           // Gather per-cell custom params from interleaved storage
-          std::vector<double> cp(n_cp);
           for (std::size_t j = 0; j < n_cp; ++j)
             cp[j] = v_cp[cp_base + j * L + i_cell];
 
-          // Helper: call batch function, write at offset+k in interleaved layout
-          auto run = [&](auto batch_fn, std::size_t n, std::size_t offset)
-          {
-            if (n == 0)
-              return;
-            std::vector<double> buf(n);
-            batch_fn(buf.data());
-            for (std::size_t k = 0; k < n; ++k)
-              v_rc[rc_base + (offset + k) * L + i_cell] = buf[k];
-          };
+          CalculateOneCellRates(store, cond.temperature_, cond.pressure_, cond.air_density_, cp.data(), buf.data());
 
-          run(
-              [&](double* buf)
-              {
-                CalculateArrhenius(store.arrhenius.data(), store.arrhenius.size(), cond.temperature_, cond.pressure_, buf);
-              },
-              store.arrhenius.size(),
-              0);
-
-          run([&](double* buf)
-              { CalculateTroe(store.troe.data(), store.troe.size(), cond.temperature_, cond.air_density_, buf); },
-              store.troe.size(),
-              store.troe_offset());
-
-          run(
-              [&](double* buf)
-              {
-                CalculateTernaryChemicalActivation(
-                    store.ternary.data(), store.ternary.size(), cond.temperature_, cond.air_density_, buf);
-              },
-              store.ternary.size(),
-              store.ternary_offset());
-
-          run(
-              [&](double* buf)
-              {
-                CalculateBranched(store.branched.data(), store.branched.size(), cond.temperature_, cond.air_density_, buf);
-              },
-              store.branched.size(),
-              store.branched_offset());
-
-          run([&](double* buf)
-              { CalculateTunneling(store.tunneling.data(), store.tunneling.size(), cond.temperature_, buf); },
-              store.tunneling.size(),
-              store.tunneling_offset());
-
-          run([&](double* buf)
-              { CalculateTaylorSeries(store.taylor.data(), store.taylor.size(), cond.temperature_, cond.pressure_, buf); },
-              store.taylor.size(),
-              store.taylor_offset());
-
-          run([&](double* buf)
-              { CalculateReversible(store.reversible.data(), store.reversible.size(), cond.temperature_, buf); },
-              store.reversible.size(),
-              store.reversible_offset());
-
-          run([&](double* buf)
-              { CalculateUserDefined(store.user_defined.data(), store.user_defined.size(), cp.data(), buf); },
-              store.user_defined.size(),
-              store.user_defined_offset());
-
-          run([&](double* buf)
-              { CalculateSurface(store.surface.data(), store.surface.size(), cond.temperature_, cp.data(), buf); },
-              store.surface.size(),
-              store.surface_offset());
+          // Scatter results to interleaved layout
+          for (std::size_t k = 0; k < n_analytic; ++k)
+            v_rc[rc_base + k * L + i_cell] = buf[k];
 
           for (const auto& mult : store.parameterized_multipliers)
             v_rc[rc_base + mult.rc_index * L + i_cell] *= mult.evaluate(cond);

@@ -48,8 +48,9 @@ namespace micm
     // Helpers
     // ----------------------------------------------------------------
     template<class T>
-    static void AllocAndUpload(T*& d_ptr, const std::vector<T>& host_vec)
+    static void ReallocAndUpload(T*& d_ptr, const std::vector<T>& host_vec)
     {
+      FreeDevice(d_ptr);
       if (host_vec.empty())
         return;
       auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
@@ -92,31 +93,19 @@ namespace micm
     CudaReactionRateStore& operator=(const CudaReactionRateStore&) = delete;
 
     CudaReactionRateStore(CudaReactionRateStore&& other) noexcept
-        : d_arrhenius_(other.d_arrhenius_),
-          d_troe_(other.d_troe_),
-          d_ternary_(other.d_ternary_),
-          d_branched_(other.d_branched_),
-          d_tunneling_(other.d_tunneling_),
-          d_taylor_(other.d_taylor_),
-          d_reversible_(other.d_reversible_),
-          d_user_defined_(other.d_user_defined_),
-          d_surface_(other.d_surface_),
-          d_conditions_(other.d_conditions_),
-          d_conditions_capacity_(other.d_conditions_capacity_),
-          param_(other.param_)
+        : d_arrhenius_(std::exchange(other.d_arrhenius_, nullptr)),
+          d_troe_(std::exchange(other.d_troe_, nullptr)),
+          d_ternary_(std::exchange(other.d_ternary_, nullptr)),
+          d_branched_(std::exchange(other.d_branched_, nullptr)),
+          d_tunneling_(std::exchange(other.d_tunneling_, nullptr)),
+          d_taylor_(std::exchange(other.d_taylor_, nullptr)),
+          d_reversible_(std::exchange(other.d_reversible_, nullptr)),
+          d_user_defined_(std::exchange(other.d_user_defined_, nullptr)),
+          d_surface_(std::exchange(other.d_surface_, nullptr)),
+          d_conditions_(std::exchange(other.d_conditions_, nullptr)),
+          d_conditions_capacity_(std::exchange(other.d_conditions_capacity_, 0)),
+          param_(std::exchange(other.param_, {}))
     {
-      other.d_arrhenius_    = nullptr;
-      other.d_troe_         = nullptr;
-      other.d_ternary_      = nullptr;
-      other.d_branched_     = nullptr;
-      other.d_tunneling_    = nullptr;
-      other.d_taylor_       = nullptr;
-      other.d_reversible_   = nullptr;
-      other.d_user_defined_ = nullptr;
-      other.d_surface_      = nullptr;
-      other.d_conditions_          = nullptr;
-      other.d_conditions_capacity_ = 0;
-      other.param_                 = {};
     }
 
     CudaReactionRateStore& operator=(CudaReactionRateStore&& other) noexcept
@@ -140,26 +129,15 @@ namespace micm
     ///        Any previous device allocations are freed before re-uploading.
     void BuildFrom(const ReactionRateStore& cpu_store)
     {
-      // Free any previous device memory
-      FreeDevice(d_arrhenius_);
-      FreeDevice(d_troe_);
-      FreeDevice(d_ternary_);
-      FreeDevice(d_branched_);
-      FreeDevice(d_tunneling_);
-      FreeDevice(d_taylor_);
-      FreeDevice(d_reversible_);
-      FreeDevice(d_user_defined_);
-      FreeDevice(d_surface_);
-
-      AllocAndUpload(d_arrhenius_,    cpu_store.arrhenius);
-      AllocAndUpload(d_troe_,         cpu_store.troe);
-      AllocAndUpload(d_ternary_,      cpu_store.ternary);
-      AllocAndUpload(d_branched_,     cpu_store.branched);
-      AllocAndUpload(d_tunneling_,    cpu_store.tunneling);
-      AllocAndUpload(d_taylor_,       cpu_store.taylor);
-      AllocAndUpload(d_reversible_,   cpu_store.reversible);
-      AllocAndUpload(d_user_defined_, cpu_store.user_defined);
-      AllocAndUpload(d_surface_,      cpu_store.surface);
+      ReallocAndUpload(d_arrhenius_,    cpu_store.arrhenius);
+      ReallocAndUpload(d_troe_,         cpu_store.troe);
+      ReallocAndUpload(d_ternary_,      cpu_store.ternary);
+      ReallocAndUpload(d_branched_,     cpu_store.branched);
+      ReallocAndUpload(d_tunneling_,    cpu_store.tunneling);
+      ReallocAndUpload(d_taylor_,       cpu_store.taylor);
+      ReallocAndUpload(d_reversible_,   cpu_store.reversible);
+      ReallocAndUpload(d_user_defined_, cpu_store.user_defined);
+      ReallocAndUpload(d_surface_,      cpu_store.surface);
 
       // Populate the kernel param struct
       param_.d_arrhenius_    = d_arrhenius_;
