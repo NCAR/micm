@@ -4,9 +4,10 @@
 
 #include <micm/kokkos/util/kokkos_util.hpp>
 #include <micm/util/vector_matrix.hpp>
+
 #include <Kokkos_Core.hpp>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 namespace micm
 {
@@ -25,10 +26,13 @@ namespace micm
   class KokkosDenseMatrix : public VectorMatrix<T, L>
   {
    public:
-    static constexpr std::size_t GroupVectorSize() { return L; }
+    static constexpr std::size_t GroupVectorSize()
+    {
+      return L;
+    }
     using value_type = T;
     using ViewType = Kokkos::View<T*>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = Kokkos::View<T*, Kokkos::HostSpace>;
 
    private:
     ViewType d_view_;
@@ -62,7 +66,9 @@ namespace micm
         h_view_ = Kokkos::create_mirror_view(d_view_);
       }
       for (std::size_t i = 0; i < this->data_.size(); ++i)
+      {
         h_view_(i) = this->data_[i];
+      }
       Kokkos::deep_copy(d_view_, h_view_);
     }
 
@@ -72,7 +78,9 @@ namespace micm
       {
         Kokkos::deep_copy(h_view_, d_view_);
         for (std::size_t i = 0; i < this->data_.size(); ++i)
+        {
           this->data_[i] = h_view_(i);
+        }
       }
     }
 
