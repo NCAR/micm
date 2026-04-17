@@ -166,6 +166,11 @@ namespace micm
       return processes_;
     }
 
+    const ReactionRateStore& GetStore() const
+    {
+      return store_;
+    }
+
     /// @brief Update state parameters based on current conditions (temperature, pressure, etc.)
     ///        Invokes all registered parameter update functions for external models and constraints
     ///        to recompute temperature-dependent values (e.g., aerosol rate constants, equilibrium constants)
