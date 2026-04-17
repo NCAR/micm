@@ -60,10 +60,19 @@ namespace micm
       Kokkos::deep_copy(devstruct_.is_algebraic_variable_, h_is_algebraic_variable);
     }
 
+    void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids)
+    {
+      ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(variable_ids);
+
+      devstruct_.is_algebraic_variable_ = Kokkos::View<uint8_t*>("is_algebraic_variable", this->is_algebraic_variable_.size());
+      auto h_is_algebraic_variable = Kokkos::create_mirror_view(devstruct_.is_algebraic_variable_);
+      for (std::size_t i = 0; i < this->is_algebraic_variable_.size(); ++i) h_is_algebraic_variable(i) = this->is_algebraic_variable_[i];
+      Kokkos::deep_copy(devstruct_.is_algebraic_variable_, h_is_algebraic_variable);
+    }
+
     void SetJacobianFlatIds(const SparseMatrixPolicy& matrix)
     {
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetJacobianFlatIds(matrix);
-
       devstruct_.jacobian_process_info_ = Kokkos::View<kokkos::ProcessInfoParam*>("jacobian_process_info", this->jacobian_process_info_.size());
       auto h_jacobian_process_info = Kokkos::create_mirror_view(devstruct_.jacobian_process_info_);
       for (std::size_t i = 0; i < this->jacobian_process_info_.size(); ++i)
@@ -107,6 +116,7 @@ namespace micm
       std::size_t number_of_grid_cells = state_variables.NumRows();
       std::size_t number_of_reactions = this->number_of_reactants_.size();
       std::size_t number_of_species = state_variables.NumColumns();
+      std::size_t number_of_forcing_species = forcing.NumColumns();
       std::size_t L = DenseMatrixPolicy::GroupVectorSize();
 
       Kokkos::parallel_for("AddForcingTerms", number_of_grid_cells, KOKKOS_LAMBDA(const std::size_t i_cell) {
@@ -131,7 +141,7 @@ namespace micm
             std::size_t row_id = devstruct.reactant_ids_(reactant_offset + i_react);
             if (!devstruct.is_algebraic_variable_(row_id))
             {
-              std::size_t forcing_idx = (group_id * number_of_species + row_id) * L + local_tid;
+              std::size_t forcing_idx = (group_id * number_of_forcing_species + row_id) * L + local_tid;
               Kokkos::atomic_add(&d_forcing(forcing_idx), -rate);
             }
           }
@@ -141,7 +151,7 @@ namespace micm
             std::size_t row_id = devstruct.product_ids_(product_offset + i_prod);
             if (!devstruct.is_algebraic_variable_(row_id))
             {
-              std::size_t forcing_idx = (group_id * number_of_species + row_id) * L + local_tid;
+              std::size_t forcing_idx = (group_id * number_of_forcing_species + row_id) * L + local_tid;
               Kokkos::atomic_add(&d_forcing(forcing_idx), devstruct.yields_(product_offset + i_prod) * rate);
             }
           }
@@ -164,10 +174,12 @@ namespace micm
       std::size_t number_of_reactions = this->number_of_reactants_.size();
       std::size_t number_of_non_zeros = jacobian.FlatBlockSize();
       std::size_t L = DenseMatrixPolicy::GroupVectorSize();
+      std::size_t jacobian_group_size = number_of_non_zeros * L;
 
       Kokkos::parallel_for("SubtractJacobianTerms", number_of_grid_cells, KOKKOS_LAMBDA(const std::size_t i_cell) {
         std::size_t group_id = i_cell / L;
         std::size_t local_tid = i_cell % L;
+        std::size_t jac_group_offset = group_id * jacobian_group_size;
 
         std::size_t reactant_offset = 0;
         std::size_t product_offset = 0;
@@ -188,14 +200,14 @@ namespace micm
             std::size_t row_id = devstruct.jacobian_reactant_ids_(reactant_offset + i_dep);
             if (!devstruct.is_algebraic_variable_(row_id))
             {
-              std::size_t jac_idx = (group_id * number_of_non_zeros + devstruct.jacobian_flat_ids_(flat_id_offset)) * L + local_tid;
+              std::size_t jac_idx = jac_group_offset + devstruct.jacobian_flat_ids_(flat_id_offset) + local_tid;
               Kokkos::atomic_add(&d_jacobian(jac_idx), d_rate_d_ind);
             }
             flat_id_offset++;
           }
           if (!devstruct.is_algebraic_variable_(process_info.independent_id_))
           {
-            std::size_t jac_idx = (group_id * number_of_non_zeros + devstruct.jacobian_flat_ids_(flat_id_offset)) * L + local_tid;
+            std::size_t jac_idx = jac_group_offset + devstruct.jacobian_flat_ids_(flat_id_offset) + local_tid;
             Kokkos::atomic_add(&d_jacobian(jac_idx), d_rate_d_ind);
           }
           flat_id_offset++;
@@ -204,7 +216,7 @@ namespace micm
             std::size_t row_id = devstruct.jacobian_product_ids_(product_offset + i_dep);
             if (!devstruct.is_algebraic_variable_(row_id))
             {
-              std::size_t jac_idx = (group_id * number_of_non_zeros + devstruct.jacobian_flat_ids_(flat_id_offset)) * L + local_tid;
+              std::size_t jac_idx = jac_group_offset + devstruct.jacobian_flat_ids_(flat_id_offset) + local_tid;
               Kokkos::atomic_sub(&d_jacobian(jac_idx), devstruct.jacobian_yields_(product_offset + i_dep) * d_rate_d_ind);
             }
             flat_id_offset++;
