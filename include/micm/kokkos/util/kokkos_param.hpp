@@ -24,17 +24,17 @@ namespace micm
     /// This struct could be used within Kokkos kernels;
     struct ProcessSetParam
     {
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> number_of_reactants_;
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> reactant_ids_;
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> number_of_products_;
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> product_ids_;
-      Kokkos::View<double*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> yields_;
-      Kokkos::View<ProcessInfoParam*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> jacobian_process_info_;
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> jacobian_reactant_ids_;
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> jacobian_product_ids_;
-      Kokkos::View<double*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> jacobian_yields_;
-      Kokkos::View<std::size_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> jacobian_flat_ids_;
-      Kokkos::View<uint8_t*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> is_algebraic_variable_;
+      Kokkos::View<std::size_t*> number_of_reactants_;
+      Kokkos::View<std::size_t*> reactant_ids_;
+      Kokkos::View<std::size_t*> number_of_products_;
+      Kokkos::View<std::size_t*> product_ids_;
+      Kokkos::View<double*> yields_;
+      Kokkos::View<ProcessInfoParam*> jacobian_process_info_;
+      Kokkos::View<std::size_t*> jacobian_reactant_ids_;
+      Kokkos::View<std::size_t*> jacobian_product_ids_;
+      Kokkos::View<double*> jacobian_yields_;
+      Kokkos::View<std::size_t*> jacobian_flat_ids_;
+      Kokkos::View<uint8_t*> is_algebraic_variable_;
     };
   }  // namespace kokkos
 }  // namespace micm
