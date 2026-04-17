@@ -144,7 +144,9 @@ namespace micm
       Kokkos::deep_copy(devstruct_.jacobian_flat_ids_, h_jacobian_flat_ids);
     }
 
-    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+    template<typename StatePolicy>
+    void AddForcingTerms(const StatePolicy& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing)
+        const
     {
       auto d_rate_constants = state.rate_constants_.GetView();
       auto d_state_variables = state_variables.GetView();
@@ -201,8 +203,11 @@ namespace micm
           });
     }
 
-    void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
-        const
+    template<typename StatePolicy>
+    void SubtractJacobianTerms(
+        const StatePolicy& state,
+        const DenseMatrixPolicy& state_variables,
+        SparseMatrixPolicy& jacobian) const
     {
       auto d_rate_constants = state.rate_constants_.GetView();
       auto d_state_variables = state_variables.GetView();
