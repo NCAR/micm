@@ -21,38 +21,20 @@ using KokkosSparseMatrix4 = micm::KokkosSparseMatrix<double, micm::SparseMatrixV
 
 TEST(KokkosProcessSet, VectorMatrix)
 {
-  testProcessSet<
-      KokkosDenseMatrix1,
-      KokkosSparseMatrix1,
-      micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>();
-  testProcessSet<
-      KokkosDenseMatrix2,
-      KokkosSparseMatrix2,
-      micm::KokkosProcessSet<KokkosDenseMatrix2, KokkosSparseMatrix2>>();
-  testProcessSet<
-      KokkosDenseMatrix3,
-      KokkosSparseMatrix3,
-      micm::KokkosProcessSet<KokkosDenseMatrix3, KokkosSparseMatrix3>>();
-  testProcessSet<
-      KokkosDenseMatrix4,
-      KokkosSparseMatrix4,
-      micm::KokkosProcessSet<KokkosDenseMatrix4, KokkosSparseMatrix4>>();
+  testProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1, micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>();
+  testProcessSet<KokkosDenseMatrix2, KokkosSparseMatrix2, micm::KokkosProcessSet<KokkosDenseMatrix2, KokkosSparseMatrix2>>();
+  testProcessSet<KokkosDenseMatrix3, KokkosSparseMatrix3, micm::KokkosProcessSet<KokkosDenseMatrix3, KokkosSparseMatrix3>>();
+  testProcessSet<KokkosDenseMatrix4, KokkosSparseMatrix4, micm::KokkosProcessSet<KokkosDenseMatrix4, KokkosSparseMatrix4>>();
 }
 
 TEST(KokkosRandomProcessSet, VectorMatrix)
 {
-  testRandomSystem<
-      KokkosDenseMatrix1,
-      KokkosSparseMatrix1,
-      micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>(200, 50, 40);
-  testRandomSystem<
-      KokkosDenseMatrix1,
-      KokkosSparseMatrix1,
-      micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>(300, 30, 20);
-  testRandomSystem<
-      KokkosDenseMatrix1,
-      KokkosSparseMatrix1,
-      micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>(400, 100, 80);
+  testRandomSystem<KokkosDenseMatrix1, KokkosSparseMatrix1, micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>(
+      200, 50, 40);
+  testRandomSystem<KokkosDenseMatrix1, KokkosSparseMatrix1, micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>(
+      300, 30, 20);
+  testRandomSystem<KokkosDenseMatrix1, KokkosSparseMatrix1, micm::KokkosProcessSet<KokkosDenseMatrix1, KokkosSparseMatrix1>>(
+      400, 100, 80);
 }
 
 TEST(KokkosProcessSetAlgebraicVariables, VectorMatrix)
