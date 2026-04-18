@@ -233,7 +233,10 @@ namespace micm
     }
 
     // Constraints are not supported with CUDA matrix policies
-    constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) { m.CopyToDevice(); m.CopyToHost(); };
+    constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {
+      m.CopyToDevice();
+      m.CopyToHost();
+    };
     if constexpr (is_cuda_policy)
     {
       if (!constraints_.empty() || !external_constraint_models_.empty())
@@ -426,9 +429,8 @@ namespace micm
 
       // Collect constraint parameter initialization functions
       auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();
-      init_constraint_param_funcs.insert(
-          init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());
-          
+      init_constraint_param_funcs.insert(init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());
+
       // Add external constraint parameter update functions to the pipeline
       auto ext_constraint_param_funcs = constraint_set.GetExternalUpdateStateParamFunctions();
       update_state_param_funcs.insert(

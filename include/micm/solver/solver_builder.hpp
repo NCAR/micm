@@ -124,8 +124,7 @@ namespace micm
       }
       else if constexpr (HasProcesses<ExternalModel>)
       {
-        external_models_.emplace_back(
-            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+        external_models_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
       }
       else
       {

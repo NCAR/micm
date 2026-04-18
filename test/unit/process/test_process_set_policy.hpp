@@ -446,8 +446,7 @@ void testProcessSetFiniteDifferenceJacobian()
     CheckCopyToHost<DenseMatrixPolicy>(forcing);
   };
 
-  auto fd_jacobian =
-      micm::FiniteDifferenceJacobian<DenseMatrixPolicy>(forcing_wrapper, state.variables_, num_species);
+  auto fd_jacobian = micm::FiniteDifferenceJacobian<DenseMatrixPolicy>(forcing_wrapper, state.variables_, num_species);
 
   // Compare: analytical stores -df/dx, FD stores +df/dx
   auto comparison = micm::CompareJacobianToFiniteDifference<DenseMatrixPolicy, SparseMatrixPolicy>(
@@ -458,9 +457,8 @@ void testProcessSetFiniteDifferenceJacobian()
                                  << " fd=" << comparison.worst_fd;
 
   // Also verify sparsity completeness
-  auto sparsity_check =
-      micm::CheckJacobianSparsityCompleteness<DenseMatrixPolicy, SparseMatrixPolicy>(
-          analytical_jacobian, fd_jacobian, num_species);
+  auto sparsity_check = micm::CheckJacobianSparsityCompleteness<DenseMatrixPolicy, SparseMatrixPolicy>(
+      analytical_jacobian, fd_jacobian, num_species);
 
   EXPECT_TRUE(sparsity_check.passed) << "Undeclared non-zero at block=" << sparsity_check.worst_block
                                      << " row=" << sparsity_check.worst_row << " col=" << sparsity_check.worst_col

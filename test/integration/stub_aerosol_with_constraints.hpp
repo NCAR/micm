@@ -309,7 +309,7 @@ class StubAerosolWithSolvent
         jac[i_block][i_aq][i_gas] -= k * s_val;
         // d(rate)/d(S) = k * [A_GAS]
         jac[i_block][i_gas][i_s] -= (-k * gas_val);
-        jac[i_block][i_aq][i_s] -= k * gas_val;   // accesses (A_AQ, S) — triggers bug without fix
+        jac[i_block][i_aq][i_s] -= k * gas_val;  // accesses (A_AQ, S) — triggers bug without fix
       }
     };
   }

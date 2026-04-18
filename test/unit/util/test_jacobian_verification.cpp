@@ -94,10 +94,10 @@ TEST(JacobianVerification, ComparePassesForCorrectJacobian)
   SparseMatrix analytical{ builder };
 
   // Store -(df/dx): negate the true Jacobian values
-  analytical[0][0][0] = -5.0;   // -df0/dx
-  analytical[0][0][1] = -3.0;   // -df0/dy
-  analytical[0][1][0] = -6.0;   // -df1/dx
-  analytical[0][1][1] = 1.0;    // -df1/dy = -(-1) = 1
+  analytical[0][0][0] = -5.0;  // -df0/dx
+  analytical[0][0][1] = -3.0;  // -df0/dy
+  analytical[0][1][0] = -6.0;  // -df1/dx
+  analytical[0][1][1] = 1.0;   // -df1/dy = -(-1) = 1
 
   auto result = micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrix>(analytical, fd_jac, num_species);
 

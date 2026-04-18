@@ -402,8 +402,7 @@ namespace micm
       { return shared_model->ConstraintAlgebraicVariableNames(); };
       species_dependencies_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintSpeciesDependencies(); };
-      non_zero_jacobian_elements_func_ =
-          [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
+      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
           -> std::set<std::pair<std::size_t, std::size_t>>
       { return shared_model->NonZeroConstraintJacobianElements(species_map); };
       state_parameter_names_func_ = [shared_model]() -> std::set<std::string>
@@ -411,10 +410,7 @@ namespace micm
       update_state_parameters_function_ =
           [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices)
           -> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
-      {
-        return shared_model->template ConstraintUpdateStateParametersFunction<DenseMatrixPolicy>(
-            state_parameter_indices);
-      };
+      { return shared_model->template ConstraintUpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
       get_residual_function_ = [shared_model](
                                    const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
                                    const std::unordered_map<std::string, std::size_t>& state_variable_indices)
@@ -439,8 +435,9 @@ namespace micm
         initialize_constraint_parameter_names_func_ = [shared_model]() -> std::set<std::string>
         { return shared_model->InitializeConstraintParameterNames(); };
         get_initialize_constraint_parameters_function_ =
-            [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-                           const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+            [shared_model](
+                const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+                const std::unordered_map<std::string, std::size_t>& state_variable_indices)
             -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
         {
           return shared_model->template InitializeConstraintParametersFunction<DenseMatrixPolicy>(
@@ -450,9 +447,8 @@ namespace micm
       else
       {
         initialize_constraint_parameter_names_func_ = []() -> std::set<std::string> { return {}; };
-        get_initialize_constraint_parameters_function_ =
-            [](const std::unordered_map<std::string, std::size_t>&,
-               const std::unordered_map<std::string, std::size_t>&)
+        get_initialize_constraint_parameters_function_ = [](const std::unordered_map<std::string, std::size_t>&,
+                                                            const std::unordered_map<std::string, std::size_t>&)
             -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
         { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
       }

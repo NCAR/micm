@@ -88,8 +88,8 @@ namespace micm
     /// @param parameters Solver parameters (provides max iterations and tolerance)
     /// @param stats Solver stats to update with iteration counts
     /// @return SolverState::Converged on success, or an error state on failure
-    SolverState InitializeConstraints(auto& state, const RosenbrockSolverParameters& parameters, SolverStats& stats) const
-        noexcept;
+    SolverState InitializeConstraints(auto& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
+        const noexcept;
 
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)

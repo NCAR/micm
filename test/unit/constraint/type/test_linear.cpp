@@ -564,19 +564,16 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
-  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Linear constraint Jacobian mismatch: block=" << comparison.worst_block
                                  << " row=" << comparison.worst_row << " col=" << comparison.worst_col
                                  << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
 
-  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
-  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block
-                               << " row=" << sparsity.worst_row << " col=" << sparsity.worst_col
-                               << " fd_value=" << sparsity.worst_fd;
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
+                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
 }
 
 TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
@@ -622,8 +619,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
-  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Weighted linear constraint Jacobian mismatch: block=" << comparison.worst_block
                                  << " row=" << comparison.worst_row << " col=" << comparison.worst_col
