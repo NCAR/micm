@@ -419,11 +419,6 @@ namespace micm
       constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
       constraint_set.SetExternalModelConstraintFunctions(params_map, species_map, jacobian);
 
-      // Add external constraint parameter update functions to the pipeline
-      auto ext_constraint_param_funcs = constraint_set.GetExternalUpdateStateParamFunctions();
-      update_state_param_funcs.insert(
-          update_state_param_funcs.end(), ext_constraint_param_funcs.begin(), ext_constraint_param_funcs.end());
-
       // Add functions that update state parameters when temperature changes
       auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
       update_state_param_funcs.insert(
@@ -433,6 +428,11 @@ namespace micm
       auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();
       init_constraint_param_funcs.insert(
           init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());
+          
+      // Add external constraint parameter update functions to the pipeline
+      auto ext_constraint_param_funcs = constraint_set.GetExternalUpdateStateParamFunctions();
+      update_state_param_funcs.insert(
+          update_state_param_funcs.end(), ext_constraint_param_funcs.begin(), ext_constraint_param_funcs.end());
     }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,

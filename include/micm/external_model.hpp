@@ -216,7 +216,7 @@ namespace micm
   ///
   /// This struct encapsulates an external model's process definitions (forcing functions, Jacobian functions,
   /// and state parameter updates) and provides a type-erased interface that MICM can use to incorporate the
-  /// model's processes into the ODE solver. Instances are constructed when `AddExternalModelProcesses()` is
+  /// model's processes into the ODE solver. Instances are constructed when `AddExternalModel()` is
   /// called on a solver builder.
   ///
   /// The wrapped functions are used during the solve to:
@@ -228,7 +228,7 @@ namespace micm
   /// @tparam SparseMatrixPolicy Policy for sparse matrices (Jacobian)
   ///
   /// @note Users typically do not construct this directly; instead, pass external model instances to
-  ///       solver builder's `AddExternalModelProcesses()` method.
+  ///       solver builder's `AddExternalModel()` method.
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   struct ExternalModelProcessSet
   {

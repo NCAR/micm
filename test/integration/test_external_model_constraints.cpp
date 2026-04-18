@@ -477,8 +477,8 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_c], 0.0);
 }
 
-/// @brief Verify backward-compatible AddExternalModelProcesses() still works
-TEST(ExternalModelConstraints, BackwardCompatAddExternalModelProcesses)
+/// @brief Verify AddExternalModel() adds only processes when using standard Rosenbrock parameters
+TEST(ExternalModelConstraints, AddExternalModelOnlyStandardRosenbrock)
 {
   auto A_GAS = micm::Species("A_GAS");
   micm::Phase gas_phase{ "gas", { A_GAS } };
@@ -490,11 +490,11 @@ TEST(ExternalModelConstraints, BackwardCompatAddExternalModelProcesses)
       .external_models_ = { aerosol } });
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  // Use the old API — should still work (processes only, no constraints)
+  // Add only processes (constraints are not enabled with standard Rosenbrock parameters)
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
-                    .AddExternalModelProcesses(aerosol)
+                    .AddExternalModel(aerosol)
                     .SetReorderState(false)
                     .Build();
 

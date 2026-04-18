@@ -99,18 +99,6 @@ namespace micm
       return *this;
     }
 
-    /// @brief Add processes from an external model
-    /// @param model The external model (taken by value; caller decides whether to copy or move)
-    /// @return Updated SolverBuilder
-    /// @deprecated Use AddExternalModel() instead
-    template<class ExternalModel>
-    SolverBuilder& AddExternalModelProcesses(ExternalModel model)
-    {
-      external_models_.emplace_back(
-          ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      return *this;
-    }
-
     /// @brief Add an external model (processes and/or constraints)
     ///
     /// If the model satisfies the HasProcesses concept, process wrappers are created.
