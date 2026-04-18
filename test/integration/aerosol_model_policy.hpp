@@ -241,8 +241,8 @@ void test_single_cell_forcing_with_stub_aerosol_model(BuilderPolicy builder)
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                    .AddExternalModelProcesses(aerosol_1)
-                    .AddExternalModelProcesses(aerosol_2)
+                    .AddExternalModel(aerosol_1)
+                    .AddExternalModel(aerosol_2)
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
 
@@ -300,8 +300,8 @@ void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                    .AddExternalModelProcesses(aerosol_1)
-                    .AddExternalModelProcesses(aerosol_2)
+                    .AddExternalModel(aerosol_1)
+                    .AddExternalModel(aerosol_2)
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
 
@@ -367,7 +367,7 @@ void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder, double base_rel
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                    .AddExternalModelProcesses(aerosol_1)  // excluding aerosol 2 process for this test
+                    .AddExternalModel(aerosol_1)  // excluding aerosol 2 process for this test
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
 
@@ -419,8 +419,8 @@ void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder, double base_
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                    .AddExternalModelProcesses(aerosol_1)
-                    .AddExternalModelProcesses(aerosol_2)
+                    .AddExternalModel(aerosol_1)
+                    .AddExternalModel(aerosol_2)
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
 
@@ -502,7 +502,7 @@ void test_solve_with_stub_aerosol_model_1_multi_cell(BuilderPolicy builder, doub
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                    .AddExternalModelProcesses(aerosol_1)  // excluding aerosol 2 process for this test
+                    .AddExternalModel(aerosol_1)  // excluding aerosol 2 process for this test
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
 
@@ -577,8 +577,8 @@ void test_solve_with_two_stub_aerosol_models_multi_cell(BuilderPolicy builder, d
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver = builder.SetSystem(system)
-                    .AddExternalModelProcesses(aerosol_1)
-                    .AddExternalModelProcesses(aerosol_2)
+                    .AddExternalModel(aerosol_1)
+                    .AddExternalModel(aerosol_2)
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
 

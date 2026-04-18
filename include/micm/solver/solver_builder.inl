@@ -33,6 +33,14 @@ namespace micm
         used_species.insert(dep);
       used_species.insert(constraint.AlgebraicSpecies());
     }
+    // Include species referenced by external model constraints
+    for (const auto& model : external_constraint_models_)
+    {
+      auto deps = model.species_dependencies_func_();
+      used_species.insert(deps.begin(), deps.end());
+      auto alg_names = model.algebraic_variable_names_func_();
+      used_species.insert(alg_names.begin(), alg_names.end());
+    }
 
     auto available_species = system_.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
@@ -224,6 +232,20 @@ namespace micm
           "Provided chemical system contains no species.");
     }
 
+    // Constraints are not supported with CUDA matrix policies
+    constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) { m.CopyToDevice(); m.CopyToHost(); };
+    if constexpr (is_cuda_policy)
+    {
+      if (!constraints_.empty() || !external_constraint_models_.empty())
+      {
+        throw MicmException(
+            MicmSeverity::Error,
+            MICM_ERROR_CATEGORY_SOLVER,
+            MICM_SOLVER_ERROR_CODE_CUDA_CONSTRAINTS_UNSUPPORTED,
+            "Constraints are not supported with CUDA matrix policies.");
+      }
+    }
+
     using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
     using SolverPolicy =
         typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
@@ -237,17 +259,15 @@ namespace micm
     auto params_map = this->GetCustomParameterMap();
 
     // Create vector of functions to update external model state parameters
+    // (compiled after all params are added to params_map — see below)
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
-    for (const auto& model : external_models_)
-    {
-      update_state_param_funcs.push_back(model.update_state_parameters_function_(params_map));
-    }
 
     // Build constraint set
     ConstraintSetPolicy constraint_set;
 
     // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
     std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
+    std::set<std::size_t> algebraic_variable_ids;
 
     if (!constraints_.empty())
     {
@@ -268,7 +288,7 @@ namespace micm
         params_map.emplace(label, params_map.size());
       }
 
-      std::set<std::size_t> algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
+      algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
       for (const auto variable_id : algebraic_variable_ids)
         mass_matrix_diagonal[variable_id] = 0.0;
@@ -285,6 +305,78 @@ namespace micm
       // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
       nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
+    }
+
+    // Resolve external model constraints (runtime activation)
+    if (!external_constraint_models_.empty())
+    {
+      auto ext_constraint_models_copy = external_constraint_models_;
+      constraint_set.SetExternalConstraintModels(std::move(ext_constraint_models_copy));
+      constraint_set.ResolveExternalConstraints(species_map);
+
+      // Add external constraint parameter names to the params map
+      for (const auto& label : constraint_set.ExternalConstraintParameterNames())
+      {
+        if (params_map.count(label) > 0)
+          throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_SOLVER,
+              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
+              "Duplicate parameter name: " + label);
+        params_map.emplace(label, params_map.size());
+      }
+
+      // Add initialize constraint parameter names to the params map
+      for (const auto& label : constraint_set.ExternalInitializeConstraintParameterNames())
+      {
+        if (params_map.count(label) > 0)
+          throw MicmException(
+              MicmSeverity::Error,
+              MICM_ERROR_CATEGORY_SOLVER,
+              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
+              "Duplicate parameter name: " + label);
+        params_map.emplace(label, params_map.size());
+      }
+
+      auto ext_algebraic_ids = constraint_set.AlgebraicVariableIds();
+      // Find newly added algebraic IDs from external models
+      for (const auto& id : ext_algebraic_ids)
+      {
+        if (algebraic_variable_ids.insert(id).second)
+        {
+          // Filter kinetic sparsity entries from this new algebraic row
+          for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
+          {
+            if (it->first == id)
+              it = nonzero_elements.erase(it);
+            else
+              ++it;
+          }
+          mass_matrix_diagonal[id] = 0.0;
+        }
+      }
+      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
+
+      // Merge external constraint Jacobian sparsity
+      auto ext_jac_elements = constraint_set.ExternalNonZeroJacobianElements(species_map);
+      nonzero_elements.insert(ext_jac_elements.begin(), ext_jac_elements.end());
+    }
+
+    // Re-add external model process Jacobian elements for algebraic rows.
+    // Built-in ProcessSet is protected by is_algebraic_variable_ guards that skip
+    // algebraic rows, but external models' JacobianFunction closures pre-compute
+    // VectorIndex at setup time and need these elements to exist in the sparse matrix.
+    if (!algebraic_variable_ids.empty())
+    {
+      for (const auto& model : external_models_)
+      {
+        auto ext_process_elements = model.non_zero_jacobian_elements_func_(species_map);
+        for (const auto& elem : ext_process_elements)
+        {
+          if (algebraic_variable_ids.count(elem.first) > 0)
+            nonzero_elements.insert(elem);
+        }
+      }
     }
 
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
@@ -309,19 +401,38 @@ namespace micm
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
+    // Compile external model update functions now that params_map is finalized
+    for (const auto& model : external_models_)
+    {
+      update_state_param_funcs.push_back(model.update_state_parameters_function_(params_map));
+    }
+
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> init_constraint_param_funcs;
+
     if (constraint_set.Size() > 0)
     {
       constraint_set.SetJacobianFlatIds(jacobian);
 
-      // Set forcing, jacobian, updating state param functionsr
+      // Set forcing, jacobian, updating state param functions
       // The species map and parameter map are used to set indices in the state variables
       // and custom parameters.
       constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
+      constraint_set.SetExternalModelConstraintFunctions(params_map, species_map, jacobian);
 
       // Add functions that update state parameters when temperature changes
       auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
       update_state_param_funcs.insert(
           update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
+
+      // Collect constraint parameter initialization functions
+      auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();
+      init_constraint_param_funcs.insert(
+          init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());
+          
+      // Add external constraint parameter update functions to the pipeline
+      auto ext_constraint_param_funcs = constraint_set.GetExternalUpdateStateParamFunctions();
+      update_state_param_funcs.insert(
+          update_state_param_funcs.end(), ext_constraint_param_funcs.begin(), ext_constraint_param_funcs.end());
     }
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
@@ -344,7 +455,8 @@ namespace micm
         options,
         reactions_,
         system_,
-        update_state_param_funcs);
+        update_state_param_funcs,
+        init_constraint_param_funcs);
   }
 
 }  // namespace micm

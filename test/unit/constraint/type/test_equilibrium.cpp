@@ -6,6 +6,7 @@
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
+#include <micm/util/jacobian_verification.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
@@ -361,4 +362,127 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
 
   // The forcing term for B (row 1, first product) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
+}
+
+TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
+{
+  // A + B <-> AB, K_eq = 1000 (at 298.15 K with delta_H = 0)
+  // G = K_eq * [A] * [B] - [AB]
+  // dG/dA = K_eq * [B], dG/dB = K_eq * [A], dG/dAB = -1
+  using DenseMatrix = Matrix<double>;
+
+  std::vector<Constraint> constraints;
+  constraints.push_back(EquilibriumConstraint(
+      "eq",
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      VantHoffParam{ .K_HLC_ref = 1000.0, .delta_H = 0.0 }));
+
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  const std::size_t num_species = 3;
+
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+
+  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (std::size_t i = 0; i < num_species; ++i)
+    builder = builder.WithElement(i, i);
+  for (auto& elem : non_zero_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  StandardSparseMatrix jacobian{ builder };
+  set.SetJacobianFlatIds(jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "eq", 0 } };
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+
+  DenseMatrix variables(2, num_species, 0.0);
+  variables[0][0] = 0.02;   // A
+  variables[0][1] = 0.03;   // B
+  variables[0][2] = 0.05;   // AB
+  variables[1][0] = 0.1;
+  variables[1][1] = 0.2;
+  variables[1][2] = 5.0;
+
+  DenseMatrix state_parameters(2, 1, 1000.0);  // K_eq = 1000
+
+  // Analytical Jacobian
+  set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+
+  // FD Jacobian
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { set.AddForcingTerms(vars, state_parameters, forcing); };
+
+  auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
+      jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Equilibrium constraint Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(
+      jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block
+                               << " row=" << sparsity.worst_row << " col=" << sparsity.worst_col
+                               << " fd_value=" << sparsity.worst_fd;
+}
+
+TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
+{
+  // 2A <-> B + C, K_eq = 100
+  // G = K_eq * [A]^2 - [B] * [C]
+  // dG/dA = K_eq * 2 * [A], dG/dB = -[C], dG/dC = -[B]
+  using DenseMatrix = Matrix<double>;
+
+  std::vector<Constraint> constraints;
+  constraints.push_back(EquilibriumConstraint(
+      "dissociation",
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
+      VantHoffParam{ .K_HLC_ref = 100.0, .delta_H = 0.0 }));
+
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
+  const std::size_t num_species = 3;
+
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+
+  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  for (std::size_t i = 0; i < num_species; ++i)
+    builder = builder.WithElement(i, i);
+  for (auto& elem : non_zero_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  StandardSparseMatrix jacobian{ builder };
+  set.SetJacobianFlatIds(jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "dissociation", 0 } };
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+
+  DenseMatrix variables(1, num_species, 0.0);
+  variables[0][0] = 0.15;  // A
+  variables[0][1] = 0.8;   // B
+  variables[0][2] = 1.5;   // C
+
+  DenseMatrix state_parameters(1, 1, 100.0);
+
+  set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { set.AddForcingTerms(vars, state_parameters, forcing); };
+
+  auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
+      jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Complex stoichiometry Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(
+      jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block
+                               << " row=" << sparsity.worst_row << " col=" << sparsity.worst_col
+                               << " fd_value=" << sparsity.worst_fd;
 }

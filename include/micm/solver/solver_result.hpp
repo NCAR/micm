@@ -26,7 +26,9 @@ namespace micm
     /// @brief Can happen when unititialized memory is used in the solver
     InfDetected,
     /// @brief Used for backward euler. This allows us to "succeed" in the same way that cam-chem does
-    AcceptingUnconvergedIntegration
+    AcceptingUnconvergedIntegration,
+    /// @brief Newton iteration to initialize algebraic constraint variables failed to converge
+    ConstraintInitializationFailed
   };
 
   struct SolverStats
@@ -45,6 +47,8 @@ namespace micm
     uint64_t decompositions_{};
     /// @brief The number of linear solves
     uint64_t solves_{};
+    /// @brief The number of constraint initialization iterations performed
+    uint64_t constraint_init_iterations_{};
     /// @brief The final time the solver iterated to
     double final_time_{};
   };
@@ -62,6 +66,7 @@ namespace micm
       case SolverState::NaNDetected: return "NaNDetected";
       case SolverState::InfDetected: return "InfDetected";
       case SolverState::AcceptingUnconvergedIntegration: return "AcceptingUnconvergedIntegration";
+      case SolverState::ConstraintInitializationFailed: return "Constraint Initialization Failed";
       default: return "Unknown";
     }
   }

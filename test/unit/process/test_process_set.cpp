@@ -77,3 +77,11 @@ TEST(ProcessSetAlgebraicVariables, CudaMatrix)
       Group4SparseVectorMatrix,
       micm::ProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix>>();
 }
+
+TEST(ProcessSetFiniteDifferenceJacobian, Matrix)
+{
+  testProcessSetFiniteDifferenceJacobian<
+      micm::Matrix<double>,
+      SparseMatrixTest,
+      micm::ProcessSet<micm::Matrix<double>, SparseMatrixTest>>();
+}
