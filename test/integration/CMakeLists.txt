@@ -11,6 +11,7 @@ create_standard_test(NAME aerosol_model_rosenbrock SOURCES test_aerosol_model_ro
 create_standard_test(NAME equilibrium_constraint SOURCES test_equilibrium_constraint.cpp)
 create_standard_test(NAME linear_constraint SOURCES test_linear_constraint.cpp)
 create_standard_test(NAME external_model_constraints SOURCES test_external_model_constraints.cpp)
+create_standard_test(NAME dae_constraint_overshoot SOURCES test_dae_constraint_overshoot.cpp)
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)

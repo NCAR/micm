@@ -326,26 +326,19 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
-    std::size_t num_ode_variables = 0;
 
-    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        // Skip algebraic variables (mass matrix diagonal = 0)
-        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-        {
-          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-          error += errors_over_scale * errors_over_scale;
-          ++num_ode_variables;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+    const std::size_t N = Y.NumRows() * Y.NumColumns();
 
     return std::max(std::sqrt(error / N), error_min);
   }
@@ -362,7 +355,6 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
-    // Use row/column indexing to check mass matrix diagonal for algebraic variables
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
     const std::size_t n_vars = atol.size();
@@ -370,26 +362,19 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
-    std::size_t num_ode_variables = 0;
 
-    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        // Skip algebraic variables (mass matrix diagonal = 0)
-        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-        {
-          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-          error += errors_over_scale * errors_over_scale;
-          ++num_ode_variables;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+    const std::size_t N = Y.NumRows() * Y.NumColumns();
 
     return std::max(std::sqrt(error / N), error_min);
   }
