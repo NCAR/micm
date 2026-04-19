@@ -374,7 +374,7 @@ namespace micm
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = Y.NumRows() * Y.NumColumns();
+    const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
 
     return std::max(std::sqrt(error / N), error_min);
   }
