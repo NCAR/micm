@@ -59,7 +59,7 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
 }
 
 template<class SolverBuilderPolicy>
-void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -203,16 +203,16 @@ TEST(RosenbrockSolver, VectorNormalizedError)
 
 TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
 {
-  testNormalizedErrorIgnoresConstraintColumns(
+  testNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorIgnoresConstraintColumns(
+  testNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
 {
-  testNormalizedErrorIgnoresConstraintColumns(
+  testNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorIgnoresConstraintColumns(
+  testNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }

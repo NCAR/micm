@@ -69,6 +69,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
+  state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
 
   std::size_t A_idx = state.variable_map_.at("A");
   std::size_t B_idx = state.variable_map_.at("B");
@@ -168,6 +169,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
+  state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
 
   std::size_t A_gas_idx = state.variable_map_.at("A_gas");
   std::size_t A_aq_idx = state.variable_map_.at("A_aq");
