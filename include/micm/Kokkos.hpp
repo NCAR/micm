@@ -3,10 +3,9 @@
 
 #pragma once
 
+#include <micm/kokkos/process/kokkos_process_set.hpp>
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
-#include <micm/kokkos/process/kokkos_process_set.hpp>
-#include <micm/kokkos/util/kokkos_util.hpp>
 
 namespace micm
 {

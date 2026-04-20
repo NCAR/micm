@@ -1,5 +1,8 @@
-#include <gtest/gtest.h>
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+
+#include <gtest/gtest.h>
+
+#include <Kokkos_Core.hpp>
 
 TEST(KokkosDenseMatrix, DefaultConstructor)
 {
@@ -28,7 +31,8 @@ TEST(KokkosDenseMatrix, CopyToDeviceAndHost)
   matrix.CopyToDevice();
 
   // Clear host data manually (not using matrix.Fill(0.0) as it clears device data)
-  for (auto& elem : matrix.AsVector()) elem = 0.0;
+  for (auto& elem : matrix.AsVector())
+    elem = 0.0;
   EXPECT_EQ(matrix[0][0], 0.0);
 
   matrix.CopyToHost();
@@ -36,4 +40,13 @@ TEST(KokkosDenseMatrix, CopyToDeviceAndHost)
   EXPECT_EQ(matrix[0][1], 2.0);
   EXPECT_EQ(matrix[1][0], 3.0);
   EXPECT_EQ(matrix[1][1], 4.0);
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

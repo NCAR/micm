@@ -9,6 +9,8 @@
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Core.hpp>
+
 using KokkosDenseMatrix1 = micm::KokkosDenseMatrix<double, 1>;
 using KokkosDenseMatrix2 = micm::KokkosDenseMatrix<double, 2>;
 using KokkosDenseMatrix3 = micm::KokkosDenseMatrix<double, 3>;
@@ -55,4 +57,13 @@ TEST(KokkosProcessSetAlgebraicVariables, VectorMatrix)
       KokkosDenseMatrix4,
       KokkosSparseMatrix4,
       micm::KokkosProcessSet<KokkosDenseMatrix4, KokkosSparseMatrix4>>();
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

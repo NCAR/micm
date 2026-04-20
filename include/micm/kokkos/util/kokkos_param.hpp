@@ -5,11 +5,27 @@
 #include <Kokkos_Core.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 namespace micm
 {
   namespace kokkos
   {
+    /// @brief Copy a host std::vector into a new Kokkos::View on the default execution space
+    template<typename T>
+    Kokkos::View<T*> CopyVectorToView(const std::string& name, const std::vector<T>& src)
+    {
+      Kokkos::View<T*> view(name, src.size());
+      auto host = Kokkos::create_mirror_view(view);
+      for (std::size_t i = 0; i < src.size(); ++i)
+      {
+        host(i) = src[i];
+      }
+      Kokkos::deep_copy(view, host);
+      return view;
+    }
+
     /// This struct holds information about a process for the Jacobian calculation
     struct ProcessInfoParam
     {
@@ -19,9 +35,7 @@ namespace micm
       std::size_t number_of_products_;
     };
 
-    /// This struct holds the (1) pointer to, and (2) size of
-    ///   each constant data member from the class "ProcessSet";
-    /// This struct could be used within Kokkos kernels;
+    /// This struct holds device-side copies of ProcessSet data for use in Kokkos kernels
     struct ProcessSetParam
     {
       Kokkos::View<std::size_t*> number_of_reactants_;
