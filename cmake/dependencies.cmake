@@ -77,13 +77,28 @@ if(MICM_ENABLE_TESTS)
   FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG be03d00f5f0cc3a997d1a368bee8a1fe93651f48
-    FIND_PACKAGE_ARGS NAMES GTest
   )
 
   set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
   set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 
   FetchContent_MakeAvailable(googletest)
+
+  # Demote the fetched googletest include dirs from SYSTEM to regular INTERFACE so
+  # they are emitted as plain -I (in CXX_INCLUDES) instead of -isystem. This is
+  # required on NCAR systems where the compiler wrapper injects
+  # -I/glade/.../opt/view/include (which contains a different googletest version)
+  # into CXX_FLAGS. GCC searches all -I dirs before any -isystem dirs, so without
+  # this the system gtest headers would win over the fetched ones, causing ABI
+  # mismatches at link time.
+  foreach(gtest_tgt gtest gtest_main gmock gmock_main)
+    if(TARGET ${gtest_tgt})
+      get_target_property(_gtest_sys_inc ${gtest_tgt} INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
+      if(_gtest_sys_inc)
+        set_property(TARGET ${gtest_tgt} PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "")
+      endif()
+    endif()
+  endforeach()
 
   # don't run clang-tidy on google test (only when fetched, not when using system install)
   if(TARGET gtest)
