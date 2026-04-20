@@ -233,6 +233,25 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
   state.rate_constants_ = rate_constants;
 
+  // Compute reference forcing on CPU before device copies
+  std::vector<double> ref_forcing(n_cells * n_species, 1000.0);
+  for (std::size_t i_reaction = 0; i_reaction < processes.size(); ++i_reaction)
+  {
+    const auto* rxn = std::get_if<ChemicalReaction>(&processes[i_reaction].process_);
+    if (!rxn)
+      continue;
+    for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+    {
+      double rate = rate_constants[i_cell][i_reaction];
+      for (const auto& reactant : rxn->reactants_)
+        rate *= state.variables_[i_cell][state.variable_map_.at(reactant.name_)];
+      for (const auto& reactant : rxn->reactants_)
+        ref_forcing[i_cell * n_species + state.variable_map_.at(reactant.name_)] -= rate;
+      for (const auto& product : rxn->products_)
+        ref_forcing[i_cell * n_species + state.variable_map_.at(product.species_.name_)] += product.coefficient_ * rate;
+    }
+  }
+
   CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
   CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
@@ -240,6 +259,13 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   set.AddForcingTerms(state, state.variables_, forcing);
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
+
+  for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+    for (std::size_t i_species = 0; i_species < n_species; ++i_species)
+    {
+      double ref = ref_forcing[i_cell * n_species + i_species];
+      EXPECT_NEAR(forcing[i_cell][i_species], ref, std::max(std::abs(ref) * 1e-10, 1e-30));
+    }
 }
 
 /// @brief Test that algebraic-row masking works correctly: algebraic species' rows remain unchanged
