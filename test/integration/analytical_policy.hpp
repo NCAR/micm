@@ -1632,13 +1632,16 @@ void test_analytical_oregonator(
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    // Model results
+    // Model results: sub-step at tau/100 so backward Euler tracks the slow oscillation
+    // accurately. One large step (H=30*tau) converges Newton to the wrong attractor;
+    // smaller steps follow the limit cycle with O(H) first-order error.
     double actual_solve = 0;
+    double max_substep = tau / 1000.0;
     while (actual_solve < time_step)
     {
-      auto result = solver.Solve(time_step - actual_solve, state);
+      double dt = std::min(max_substep, time_step - actual_solve);
+      auto result = solver.Solve(dt, state);
       actual_solve += result.stats_.final_time_;
-      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];

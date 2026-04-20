@@ -262,25 +262,25 @@ TEST(AnalyticalExamples, HIRES)
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  // Backward Euler cannot accurately track the stiff, fast-oscillating Oregonator: relative errors
-  // up to ~65000x are observed at oscillation extrema where reference concentrations are near their
-  // species-scale minima. The large tolerance here checks the solver runs without crashing or
-  // producing numerically exploded values, not that it achieves physical accuracy.
-  test_analytical_oregonator(backward_euler, 1e5);
-  test_analytical_oregonator(backard_euler_vector_1, 1e5);
-  test_analytical_oregonator(backard_euler_vector_2, 1e5);
-  test_analytical_oregonator(backard_euler_vector_3, 1e5);
-  test_analytical_oregonator(backard_euler_vector_4, 1e5);
-  test_analytical_oregonator(backward_euler_vector_doolittle_1, 1e5);
-  test_analytical_oregonator(backward_euler_vector_doolittle_2, 1e5);
-  test_analytical_oregonator(backward_euler_vector_doolittle_3, 1e5);
-  test_analytical_oregonator(backward_euler_vector_doolittle_4, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_1, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_2, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_3, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_4, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_1, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_2, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_3, 1e5);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_4, 1e5);
+  // The oregonator (k2=1.6e9) is an extremely stiff oscillator with a period of ~48s.
+  // One large step (H=30*tau) causes Newton to converge to the wrong attractor, giving
+  // ~61000x relative error. Sub-stepping at tau/1000 (~0.00016s) lets backward Euler track
+  // the slow manifold with O(H) first-order accuracy (~1.2% relative error).
+  test_analytical_oregonator(backward_euler, 0.02);
+  test_analytical_oregonator(backard_euler_vector_1, 0.02);
+  test_analytical_oregonator(backard_euler_vector_2, 0.02);
+  test_analytical_oregonator(backard_euler_vector_3, 0.02);
+  test_analytical_oregonator(backard_euler_vector_4, 0.02);
+  test_analytical_oregonator(backward_euler_vector_doolittle_1, 0.02);
+  test_analytical_oregonator(backward_euler_vector_doolittle_2, 0.02);
+  test_analytical_oregonator(backward_euler_vector_doolittle_3, 0.02);
+  test_analytical_oregonator(backward_euler_vector_doolittle_4, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_1, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_2, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_3, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_4, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_1, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_2, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_3, 0.02);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_4, 0.02);
 }
