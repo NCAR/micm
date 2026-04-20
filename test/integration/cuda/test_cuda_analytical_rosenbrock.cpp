@@ -151,29 +151,29 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
 
 TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
 {
-  test_analytical_robertson(two_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(three_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(four_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(four_da_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(six_da_1_cell, 2e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson(two_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_robertson(three_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_robertson(four_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_robertson(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_robertson(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, E5)
 {
-  test_analytical_e5(two_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(three_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(four_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(four_da_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(six_da_1_cell, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_e5(two_1_cell, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_e5(three_1_cell, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_e5(four_1_cell, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_e5(four_da_1_cell, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_e5(six_da_1_cell, 1e-10, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 {
-  test_analytical_oregonator(two_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(three_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(four_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(four_da_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(six_da_1_cell, 2e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator(two_1_cell, 2e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(three_1_cell, 2e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(four_1_cell, 2e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(four_da_1_cell, 2e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(six_da_1_cell, 2e-2, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)

@@ -1425,25 +1425,27 @@ void test_analytical_robertson(
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
-  double time_step = 1.0;
+  double target_time = 1.0;
+  double current_time = 0.0;
   std::vector<double> times;
   times.push_back(0);
   solver.UpdateStateParameters(state);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
+    double delta_t = target_time - current_time;
+    times.push_back(target_time);
     prepare_for_solve(state);
     // Model results
     double actual_solve = 0;
-    while (actual_solve < time_step)
+    while (actual_solve < delta_t)
     {
-      auto result = solver.Solve(time_step - actual_solve, state);
+      auto result = solver.Solve(delta_t - actual_solve, state);
       actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
-    time_step *= 10;
+    current_time = target_time;
+    target_time *= 10;
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
@@ -1483,7 +1485,7 @@ void test_analytical_robertson(
 template<class BuilderPolicy>
 void test_analytical_oregonator(
     BuilderPolicy builder,
-    double absolute_tolerance = 1e-8,
+    double relative_tolerance = 1e-4,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
@@ -1658,11 +1660,30 @@ void test_analytical_oregonator(
   size_t _y = map.at("Y");
   size_t _z = map.at("Z");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  // X, Y, Z span very different orders of magnitude (alpha ~5e-11, eta ~3e-7, rho ~2.4e-8),
+  // so a single absolute tolerance cannot meaningfully cover all three. Use per-species absolute
+  // floors (the initial scale of each species) with a relative tolerance as the primary check.
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_x], analytical_concentrations[i][0], absolute_tolerance);
-    EXPECT_NEAR(model_concentrations[i][_y], analytical_concentrations[i][1], absolute_tolerance);
-    EXPECT_NEAR(model_concentrations[i][_z], analytical_concentrations[i][2], absolute_tolerance);
+    double rel_error_val, abs_error_val;
+
+    rel_error_val = relative_error(model_concentrations[i][_x], analytical_concentrations[i][0]);
+    abs_error_val = std::abs(model_concentrations[i][_x] - analytical_concentrations[i][0]);
+    EXPECT_TRUE(abs_error_val < alpha_const || rel_error_val < relative_tolerance)
+        << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val
+        << " and absolute error " << abs_error_val;
+
+    rel_error_val = relative_error(model_concentrations[i][_y], analytical_concentrations[i][1]);
+    abs_error_val = std::abs(model_concentrations[i][_y] - analytical_concentrations[i][1]);
+    EXPECT_TRUE(abs_error_val < eta_const || rel_error_val < relative_tolerance)
+        << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val
+        << " and absolute error " << abs_error_val;
+
+    rel_error_val = relative_error(model_concentrations[i][_z], analytical_concentrations[i][2]);
+    abs_error_val = std::abs(model_concentrations[i][_z] - analytical_concentrations[i][2]);
+    EXPECT_TRUE(abs_error_val < rho_const || rel_error_val < relative_tolerance)
+        << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val
+        << " and absolute error " << abs_error_val;
   }
 }
 
@@ -1989,22 +2010,23 @@ void test_analytical_e5(
 
   std::vector<double> times;
   times.push_back(0);
-  double time_step = 10;
+  double target_time = 10.0;
+  double current_time = 0.0;
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
+    double delta_t = target_time - current_time;
+    times.push_back(target_time);
     // Model results
     double actual_solve = 0;
-    while (actual_solve < time_step)
+    while (actual_solve < delta_t)
     {
-      auto result = solver.Solve(time_step - actual_solve, state);
+      auto result = solver.Solve(delta_t - actual_solve, state);
       actual_solve += result.stats_.final_time_;
-      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
-    time_step *= 100;
+    current_time = target_time;
+    target_time *= 100;
   }
 
   std::vector<std::string> header = { "time", "a1", "a2", "a3", "a4", "a5", "a6" };
