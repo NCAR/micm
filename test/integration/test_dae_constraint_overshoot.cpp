@@ -169,11 +169,19 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
-  state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
 
   std::size_t A_gas_idx = state.variable_map_.at("A_gas");
   std::size_t A_aq_idx = state.variable_map_.at("A_aq");
   std::size_t P_idx = state.variable_map_.at("P");
+
+  // Use reasonable absolute tolerances:
+  // - Differential variable (P): tight tolerance for accuracy
+  // - Algebraic variables (A_gas, A_aq): moderate tolerance to allow legitimate step changes
+  //   while still detecting overshoot via the step-change error estimate
+  std::vector<double> atols(3, 1.0e-12);
+  atols[A_gas_idx] = 1.0e-8;
+  atols[A_aq_idx] = 1.0e-8;
+  state.SetAbsoluteTolerances(atols);
 
   // Initial: most sulfur in gas phase, equilibrium satisfied, no product yet
   double A_gas_init = C_total / (1.0 + K_eq);  // ~ 9.09e-8

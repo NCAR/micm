@@ -136,14 +136,27 @@ namespace micm
             }
             else
             {
-              // DAE path: scale by mass matrix diagonal element-wise
-              for (std::size_t i_cell = 0; i_cell < K[stage].NumRows(); ++i_cell)
-              {
-                for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
-                {
-                  K[stage][i_cell][i_var] += c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
-                }
-              }
+              // DAE path: scale by mass matrix diagonal element-wise.
+              // For ODE variables (diagonal = 1), accumulate c/H * K[j].
+              // For algebraic variables (diagonal = 0), the coupling is zero.
+              const auto& diagonal = state.upper_left_identity_diagonal_;
+              auto mass_coupling = DenseMatrixPolicy::Function(
+                  [c_over_h, &diagonal](auto&& k_stage_view, auto&& k_j_view)
+                  {
+                    for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+                    {
+                      if (diagonal[i_var] != 0.0)
+                      {
+                        k_stage_view.ForEachRow(
+                            [c_over_h](double& ks, const double& kj) { ks += c_over_h * kj; },
+                            k_stage_view.GetColumnView(i_var),
+                            k_j_view.GetConstColumnView(i_var));
+                      }
+                    }
+                  },
+                  K[stage],
+                  K[j]);
+              mass_coupling(K[stage], K[j]);
             }
           }
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
@@ -164,6 +177,23 @@ namespace micm
         Yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Yerror.Axpy(parameters.e_[stage], K[stage]);
+
+        // For DAE systems, replace the near-zero algebraic error estimates with step changes.
+        // The embedded error formula produces Yerror ≈ 0 for algebraic rows (M_ii = 0 zeroes
+        // the inter-stage coupling terms), making the solver insensitive to algebraic tolerances.
+        // Setting Yerror[a] = Ynew[a] - Y[a] allows the solver to reject steps where algebraic
+        // variables change more than their tolerance permits, preventing overshoot.
+        //
+        // IMPORTANT: This uses the step change as-is without order scaling. For very stiff systems
+        // where the embedded error estimate K[3] ≈ 0 for all variables (including differential),
+        // this provides the ONLY non-trivial error signal for algebraic variables. The step change
+        // is O(H) while the true error is O(H^(p+1)), so this is conservative — the solver may
+        // take more steps than strictly necessary. However, it correctly prevents overshoot by
+        // rejecting steps where algebraic variables change more than their tolerance permits.
+        if (has_constraints)
+        {
+          constraints_.SetAlgebraicErrors(Yerror, Y, Ynew);
+        }
 
         // Compute the normalized error
         auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
