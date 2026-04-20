@@ -169,11 +169,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, E5)
 
 TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 {
-  test_analytical_oregonator(two_1_cell, 2e-2, copy_to_device, copy_to_host);
-  test_analytical_oregonator(three_1_cell, 2e-2, copy_to_device, copy_to_host);
-  test_analytical_oregonator(four_1_cell, 2e-2, copy_to_device, copy_to_host);
-  test_analytical_oregonator(four_da_1_cell, 2e-2, copy_to_device, copy_to_host);
-  test_analytical_oregonator(six_da_1_cell, 2e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(two_1_cell, 1e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(three_1_cell, 1e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(four_1_cell, 1e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(four_da_1_cell, 1e-2, copy_to_device, copy_to_host);
+  test_analytical_oregonator(six_da_1_cell, 1e-2, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)

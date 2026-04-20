@@ -611,36 +611,37 @@ TEST(AnalyticalExamples, E5)
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  test_analytical_oregonator(rosenbrock_2stage, 2e-2);
-  test_analytical_oregonator(rosenbrock_3stage, 2e-2);
-  test_analytical_oregonator(rosenbrock_4stage, 2e-2);
-  test_analytical_oregonator(rosenbrock_4stage_da, 2e-2);
-  test_analytical_oregonator(rosenbrock_6stage_da, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_1, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_2, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_3, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_4, 2e-2);
-  test_analytical_oregonator(rosenbrock_standard_mozart, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_1, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_2, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_3, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_4, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_1, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_2, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_3, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_4, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_csc_1, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_csc_2, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_csc_3, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_csc_4, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_1, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_2, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_3, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_4, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_1, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_2, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_3, 2e-2);
-  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_4, 2e-2);
+  double rel_tol = 1e-2;
+  test_analytical_oregonator(rosenbrock_2stage, rel_tol);
+  test_analytical_oregonator(rosenbrock_3stage, rel_tol);
+  test_analytical_oregonator(rosenbrock_4stage, rel_tol);
+  test_analytical_oregonator(rosenbrock_4stage_da, rel_tol);
+  test_analytical_oregonator(rosenbrock_6stage_da, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_1, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_2, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_3, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_4, rel_tol);
+  test_analytical_oregonator(rosenbrock_standard_mozart, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_1, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_2, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_3, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_4, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_1, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_2, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_3, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_csc_4, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_csc_1, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_csc_2, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_csc_3, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_csc_4, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_1, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_2, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_3, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_doolittle_in_place_4, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_1, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_2, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_3, rel_tol);
+  test_analytical_oregonator(rosenbrock_vector_mozart_in_place_4, rel_tol);
 }
 
 TEST(AnalyticalExamples, HIRES)
