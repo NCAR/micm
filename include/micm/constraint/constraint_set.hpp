@@ -77,8 +77,7 @@ namespace micm
 
     /// @brief Pre-compiled external constraint parameter initialization functions
     ///        These diagnose constraint parameters from state variables at the start of each Solve()
-    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
-        external_constraint_init_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> external_constraint_init_functions_;
 
    public:
     /// @brief Default constructor
@@ -351,8 +350,7 @@ namespace micm
 
     /// @brief Set external model constraint wrappers
     /// @param models Vector of type-erased external model constraint wrappers
-    void SetExternalConstraintModels(
-        std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>>&& models)
+    void SetExternalConstraintModels(std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>>&& models)
     {
       external_constraint_models_ = std::move(models);
     }
@@ -487,9 +485,7 @@ namespace micm
     ///        Called at the beginning of each Solve() to diagnose state-dependent constraint constants
     /// @param state_variables Current species concentrations
     /// @param state_parameters State parameters to be updated with diagnosed values
-    void InitializeConstraintParameters(
-        const DenseMatrixPolicy& state_variables,
-        DenseMatrixPolicy& state_parameters) const
+    void InitializeConstraintParameters(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& state_parameters) const
     {
       for (const auto& init_func : external_constraint_init_functions_)
         init_func(state_variables, state_parameters);
@@ -514,8 +510,7 @@ namespace micm
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
           continue;
-        external_constraint_param_functions_.push_back(
-            model.update_state_parameters_function_(state_parameter_indices));
+        external_constraint_param_functions_.push_back(model.update_state_parameters_function_(state_parameter_indices));
         external_constraint_forcing_functions_.push_back(
             model.get_residual_function_(state_parameter_indices, state_variable_indices));
         external_constraint_jacobian_functions_.push_back(

@@ -395,9 +395,9 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix variables(2, num_species, 0.0);
-  variables[0][0] = 0.02;   // A
-  variables[0][1] = 0.03;   // B
-  variables[0][2] = 0.05;   // AB
+  variables[0][0] = 0.02;  // A
+  variables[0][1] = 0.03;  // B
+  variables[0][2] = 0.05;  // AB
   variables[1][0] = 0.1;
   variables[1][1] = 0.2;
   variables[1][2] = 5.0;
@@ -413,19 +413,16 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
-  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Equilibrium constraint Jacobian mismatch: block=" << comparison.worst_block
                                  << " row=" << comparison.worst_row << " col=" << comparison.worst_col
                                  << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
 
-  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
-  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block
-                               << " row=" << sparsity.worst_row << " col=" << sparsity.worst_col
-                               << " fd_value=" << sparsity.worst_fd;
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
+                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
 }
 
 TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
@@ -472,17 +469,14 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
-  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed) << "Complex stoichiometry Jacobian mismatch: block=" << comparison.worst_block
                                  << " row=" << comparison.worst_row << " col=" << comparison.worst_col
                                  << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
 
-  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(
-      jacobian, fd_jac, num_species);
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
-  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block
-                               << " row=" << sparsity.worst_row << " col=" << sparsity.worst_col
-                               << " fd_value=" << sparsity.worst_fd;
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
+                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
 }

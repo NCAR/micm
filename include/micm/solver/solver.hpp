@@ -28,8 +28,7 @@ namespace micm
     System system_;
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
-    std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>
-        initialize_constraint_parameters_functions_;
+    std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;

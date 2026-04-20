@@ -53,10 +53,8 @@ struct SimpleConstrainedSystem
   }
 };
 
-using StandardBuilder = CpuSolverBuilder<
-    RosenbrockSolverParameters,
-    Matrix<double>,
-    SparseMatrix<double, SparseMatrixStandardOrdering>>;
+using StandardBuilder =
+    CpuSolverBuilder<RosenbrockSolverParameters, Matrix<double>, SparseMatrix<double, SparseMatrixStandardOrdering>>;
 
 /// @brief Test that consistent initial conditions don't change state
 TEST(ConstraintInitialization, ConsistentICsUnchanged)
