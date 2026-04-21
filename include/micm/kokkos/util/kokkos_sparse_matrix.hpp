@@ -36,6 +36,8 @@ namespace micm
     {
     }
 
+    using SparseMatrix<T, OrderingPolicy>::operator=;
+
     KokkosSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
         : SparseMatrix<T, OrderingPolicy>(builder, indexing_only),
           view_("sparse_matrix", SparseMatrix<T, OrderingPolicy>(builder, indexing_only).AsVector().size())
