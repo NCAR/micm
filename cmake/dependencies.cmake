@@ -151,3 +151,15 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   find_package(CUDAToolkit REQUIRED)
   set(CUDA_STANDARD_REQUIRED ON)
 endif()
+
+################################################################################
+# Kokkos
+
+if(MICM_ENABLE_KOKKOS)
+  FetchContent_Declare(kokkos
+    GIT_REPOSITORY https://github.com/kokkos/kokkos.git
+    GIT_TAG 5.1.0
+  )
+  FetchContent_MakeAvailable(kokkos)
+  message(STATUS "Compiling with Kokkos support")
+endif()

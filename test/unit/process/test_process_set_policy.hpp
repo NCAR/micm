@@ -234,6 +234,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
   state.rate_constants_ = rate_constants;
 
+  CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
   CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
