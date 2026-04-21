@@ -1673,20 +1673,20 @@ void test_analytical_oregonator(
     rel_error_val = relative_error(model_concentrations[i][_x], analytical_concentrations[i][0]);
     abs_error_val = std::abs(model_concentrations[i][_x] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error_val < alpha_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val
-        << " and absolute error " << abs_error_val;
+        << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val << " and absolute error "
+        << abs_error_val;
 
     rel_error_val = relative_error(model_concentrations[i][_y], analytical_concentrations[i][1]);
     abs_error_val = std::abs(model_concentrations[i][_y] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error_val < eta_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val
-        << " and absolute error " << abs_error_val;
+        << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val << " and absolute error "
+        << abs_error_val;
 
     rel_error_val = relative_error(model_concentrations[i][_z], analytical_concentrations[i][2]);
     abs_error_val = std::abs(model_concentrations[i][_z] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error_val < rho_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val
-        << " and absolute error " << abs_error_val;
+        << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val << " and absolute error "
+        << abs_error_val;
   }
 }
 
