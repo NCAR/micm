@@ -9,6 +9,11 @@
 
 namespace micm
 {
+  /// @brief Provides a Kokkos implementation to the SparseMatrix functionality.
+  ///
+  /// Inherits from SparseMatrix (the MICM host-side data layout) and maintains
+  /// a Kokkos::View as a device-side mirror. The caller must explicitly call
+  /// CopyToDevice() / CopyToHost() to synchronize, matching the CUDA matrix pattern.
   template<class T = double, class OrderingPolicy = SparseMatrixStandardOrdering>
   class KokkosSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
@@ -22,8 +27,8 @@ namespace micm
     using HostViewType = typename ViewType::host_mirror_type;
 
    private:
+    /// Device-side (or unified) view — the Kokkos mirror of MICM's data_
     ViewType view_;
-    HostViewType h_view_;
 
    public:
     KokkosSparseMatrix()
@@ -32,35 +37,31 @@ namespace micm
     }
 
     KokkosSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
-        : SparseMatrix<T, OrderingPolicy>(builder, indexing_only)
+        : SparseMatrix<T, OrderingPolicy>(builder, indexing_only),
+          view_("sparse_matrix", SparseMatrix<T, OrderingPolicy>(builder, indexing_only).AsVector().size())
     {
-      view_ = ViewType("sparse_matrix", this->data_.size());
-      h_view_ = Kokkos::create_mirror_view(view_);
     }
 
+    /// @brief Copy host data (MICM's data_) to the device view
     void CopyToDevice()
     {
       if (view_.extent(0) != this->data_.size())
       {
         view_ = ViewType("sparse_matrix", this->data_.size());
-        h_view_ = Kokkos::create_mirror_view(view_);
       }
-      for (std::size_t i = 0; i < this->data_.size(); ++i)
-      {
-        h_view_(i) = this->data_[i];
-      }
-      Kokkos::deep_copy(view_, h_view_);
+      auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+          this->data_.data(), this->data_.size());
+      Kokkos::deep_copy(view_, h_view);
     }
 
+    /// @brief Copy device view data back to host (MICM's data_)
     void CopyToHost()
     {
       if (view_.extent(0) != 0)
       {
-        Kokkos::deep_copy(h_view_, view_);
-        for (std::size_t i = 0; i < this->data_.size(); ++i)
-        {
-          this->data_[i] = h_view_(i);
-        }
+        auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+            this->data_.data(), this->data_.size());
+        Kokkos::deep_copy(h_view, view_);
       }
     }
 
@@ -69,12 +70,12 @@ namespace micm
       return view_;
     }
 
+    /// @brief Set every element on the device to a given value
     void Fill(T val)
     {
       if (view_.extent(0) != this->data_.size())
       {
         view_ = ViewType("sparse_matrix", this->data_.size());
-        h_view_ = Kokkos::create_mirror_view(view_);
       }
       Kokkos::deep_copy(view_, val);
     }
