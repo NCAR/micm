@@ -204,15 +204,32 @@ TEST(RosenbrockSolver, VectorNormalizedError)
 TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
 {
   testNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+    StandardBuilder(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 2);
   testNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+    StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
 {
   testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 3);
+
   testNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
