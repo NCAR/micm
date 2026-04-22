@@ -61,7 +61,4 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(util)
 endif()
 
-if (MICM_ENABLE_PROFILE)
-  target_compile_definitions(micm INTERFACE MICM_PROFILE)
-endif()
 
