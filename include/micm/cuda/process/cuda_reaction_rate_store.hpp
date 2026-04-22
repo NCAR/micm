@@ -6,7 +6,7 @@
 /// @brief GPU-resident store for analytic rate constant parameters.
 ///
 /// CudaReactionRateStore uploads all analytic parameter arrays from a
-/// ReactionRateStore to device memory once at construction (via BuildFrom).
+/// ReactionRateConstantStore to device memory once at construction (via BuildFrom).
 /// Per-step transient data (conditions, custom_params) is uploaded each step
 /// inside GpuCalculateRateConstants on CudaProcessSet.
 
@@ -17,7 +17,7 @@
 
 namespace micm
 {
-  /// @brief GPU-resident mirror of ReactionRateStore analytic data.
+  /// @brief GPU-resident mirror of ReactionRateConstantStore analytic data.
   ///
   /// Constructed once per solver build; never modified during a run.
   /// The device conditions buffer grows on demand (amortised allocation).
@@ -125,19 +125,19 @@ namespace micm
 
     /// @brief Upload all analytic parameter arrays from cpu_store to device memory.
     ///
-    ///        Called once after the ReactionRateStore is built in Solver's constructor.
+    ///        Called once after the ReactionRateConstantStore is built in Solver's constructor.
     ///        Any previous device allocations are freed before re-uploading.
-    void BuildFrom(const ReactionRateStore& cpu_store)
+    void BuildFrom(const ReactionRateConstantStore& cpu_store)
     {
-      ReallocAndUpload(d_arrhenius_,    cpu_store.arrhenius);
-      ReallocAndUpload(d_troe_,         cpu_store.troe);
-      ReallocAndUpload(d_ternary_,      cpu_store.ternary);
-      ReallocAndUpload(d_branched_,     cpu_store.branched);
-      ReallocAndUpload(d_tunneling_,    cpu_store.tunneling);
-      ReallocAndUpload(d_taylor_,       cpu_store.taylor);
-      ReallocAndUpload(d_reversible_,   cpu_store.reversible);
-      ReallocAndUpload(d_user_defined_, cpu_store.user_defined);
-      ReallocAndUpload(d_surface_,      cpu_store.surface);
+      ReallocAndUpload(d_arrhenius_,    cpu_store.arrhenius_);
+      ReallocAndUpload(d_troe_,         cpu_store.troe_);
+      ReallocAndUpload(d_ternary_,      cpu_store.ternary_);
+      ReallocAndUpload(d_branched_,     cpu_store.branched_);
+      ReallocAndUpload(d_tunneling_,    cpu_store.tunneling_);
+      ReallocAndUpload(d_taylor_,       cpu_store.taylor_);
+      ReallocAndUpload(d_reversible_,   cpu_store.reversible_);
+      ReallocAndUpload(d_user_defined_, cpu_store.user_defined_);
+      ReallocAndUpload(d_surface_,      cpu_store.surface_);
 
       // Populate the kernel param struct
       param_.d_arrhenius_    = d_arrhenius_;
@@ -150,15 +150,15 @@ namespace micm
       param_.d_user_defined_ = d_user_defined_;
       param_.d_surface_      = d_surface_;
 
-      param_.n_arrhenius_    = cpu_store.arrhenius.size();
-      param_.n_troe_         = cpu_store.troe.size();
-      param_.n_ternary_      = cpu_store.ternary.size();
-      param_.n_branched_     = cpu_store.branched.size();
-      param_.n_tunneling_    = cpu_store.tunneling.size();
-      param_.n_taylor_       = cpu_store.taylor.size();
-      param_.n_reversible_   = cpu_store.reversible.size();
-      param_.n_user_defined_ = cpu_store.user_defined.size();
-      param_.n_surface_      = cpu_store.surface.size();
+      param_.n_arrhenius_    = cpu_store.arrhenius_.size();
+      param_.n_troe_         = cpu_store.troe_.size();
+      param_.n_ternary_      = cpu_store.ternary_.size();
+      param_.n_branched_     = cpu_store.branched_.size();
+      param_.n_tunneling_    = cpu_store.tunneling_.size();
+      param_.n_taylor_       = cpu_store.taylor_.size();
+      param_.n_reversible_   = cpu_store.reversible_.size();
+      param_.n_user_defined_ = cpu_store.user_defined_.size();
+      param_.n_surface_      = cpu_store.surface_.size();
 
       param_.troe_offset_         = cpu_store.troe_offset();
       param_.ternary_offset_      = cpu_store.ternary_offset();

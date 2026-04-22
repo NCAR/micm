@@ -116,8 +116,8 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     param_labels.insert(param_labels.end(), labels.begin(), labels.end());
   }
 
-  // Build the ReactionRateStore
-  auto store = ReactionRateStore::BuildFrom(processes);
+  // Build the ReactionRateConstantStore
+  auto store = ReactionRateConstantStore::BuildFrom(processes);
 
   State<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
@@ -144,8 +144,8 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
         num_conc;
   }
 
-  ReactionRateStore::EvaluateCpuRates(store, state);
-  ReactionRateStore::CalculateRates(store, state);
+  ReactionRateConstantStore::EvaluateCpuRateConstants(store, state);
+  ReactionRateConstantStore::CpuCalculateRateConstants(store, state);
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {

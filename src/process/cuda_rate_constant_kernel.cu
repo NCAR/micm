@@ -5,7 +5,7 @@
 /// @brief GPU kernel for analytic rate constant calculation.
 ///
 /// One thread per grid cell.  Writes directly into the VectorMatrix interleaved
-/// layout of rate_constants_.  Lambda entries (written by EvaluateCpuRates on the
+/// layout of rate_constants_.  Lambda entries (written by EvaluateCpuRateConstants on the
 /// CPU) are not touched.
 
 #define _USE_MATH_DEFINES

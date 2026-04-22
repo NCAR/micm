@@ -16,9 +16,9 @@
 
 #include <cstddef>
 
-/// @brief Device-side mirror of ReactionRateStore for use in GPU kernels.
+/// @brief Device-side mirror of ReactionRateConstantStore for use in GPU kernels.
 ///
-/// All pointers must be device pointers.  Offsets match ReactionRateStore's
+/// All pointers must be device pointers.  Offsets match ReactionRateConstantStore's
 /// offset helpers (cumulative type counts).
 struct CudaReactionRateStoreParam
 {

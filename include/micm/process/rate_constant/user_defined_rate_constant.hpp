@@ -16,7 +16,7 @@ namespace micm
   };
 
   /// @brief GPU-safe calculation data for a user-defined rate constant.
-  ///        Populated by ReactionRateStore::BuildFrom from UserDefinedRateConstantParameters;
+  ///        Populated by ReactionRateConstantStore::BuildFrom from UserDefinedRateConstantParameters;
   ///        do not construct directly.
   struct UserDefinedRateConstantData
   {

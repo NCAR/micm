@@ -20,7 +20,7 @@ namespace micm
   };
 
   /// @brief GPU-safe calculation data for a surface reaction.
-  ///        Populated by ReactionRateStore::BuildFrom from SurfaceRateConstantParameters;
+  ///        Populated by ReactionRateConstantStore::BuildFrom from SurfaceRateConstantParameters;
   ///        do not construct directly.
   struct SurfaceRateConstantData
   {

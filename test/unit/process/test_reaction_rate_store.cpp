@@ -88,7 +88,7 @@ namespace
 // Offset arithmetic
 // ============================================================
 
-TEST(ReactionRateStore, OffsetsAreContiguousCumulativeSizes)
+TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
 {
   Species a("a"), b("b"), c("c", { { "molecular weight [kg mol-1]", 0.025 } });
   double c_diff = 1.0e-5;
@@ -134,18 +134,18 @@ TEST(ReactionRateStore, OffsetsAreContiguousCumulativeSizes)
                       .Build());
 
   SortByTypeOrder(procs);
-  auto store = ReactionRateStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
 
   // Arrhenius: 2, Troe: 1, Ternary: 0, Branched: 0, Tunneling: 1, Taylor: 0, Reversible: 0, UserDefined: 1, Surface: 1
-  EXPECT_EQ(store.arrhenius.size(), 2u);
-  EXPECT_EQ(store.troe.size(), 1u);
-  EXPECT_EQ(store.ternary.size(), 0u);
-  EXPECT_EQ(store.branched.size(), 0u);
-  EXPECT_EQ(store.tunneling.size(), 1u);
-  EXPECT_EQ(store.taylor.size(), 0u);
-  EXPECT_EQ(store.reversible.size(), 0u);
-  EXPECT_EQ(store.user_defined.size(), 1u);
-  EXPECT_EQ(store.surface.size(), 1u);
+  EXPECT_EQ(store.arrhenius_.size(), 2u);
+  EXPECT_EQ(store.troe_.size(), 1u);
+  EXPECT_EQ(store.ternary_.size(), 0u);
+  EXPECT_EQ(store.branched_.size(), 0u);
+  EXPECT_EQ(store.tunneling_.size(), 1u);
+  EXPECT_EQ(store.taylor_.size(), 0u);
+  EXPECT_EQ(store.reversible_.size(), 0u);
+  EXPECT_EQ(store.user_defined_.size(), 1u);
+  EXPECT_EQ(store.surface_.size(), 1u);
 
   // Verify cumulative offsets
   EXPECT_EQ(store.troe_offset(), 2u);
@@ -158,15 +158,15 @@ TEST(ReactionRateStore, OffsetsAreContiguousCumulativeSizes)
   EXPECT_EQ(store.surface_offset(), 5u);
   EXPECT_EQ(store.lambda_offset(), 6u);
 
-  // Total rate constants (lambda_offset + lambda_entries.size()) equals process count
-  EXPECT_EQ(store.lambda_offset() + store.lambda_entries.size(), procs.size());
+  // Total rate constants (lambda_offset + lambda_entries_.size()) equals process count
+  EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), procs.size());
 }
 
 // ============================================================
 // Single Arrhenius: parameters preserved
 // ============================================================
 
-TEST(ReactionRateStore, ArrheniusParametersPreserved)
+TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
 {
   Species a("a"), b("b");
   Phase gas = MakeGasPhase({ a, b });
@@ -179,19 +179,19 @@ TEST(ReactionRateStore, ArrheniusParametersPreserved)
                                    .SetPhase(gas)
                                    .Build() };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
-  ASSERT_EQ(store.arrhenius.size(), 1u);
-  EXPECT_DOUBLE_EQ(store.arrhenius[0].A_, 2.15e-4);
-  EXPECT_DOUBLE_EQ(store.arrhenius[0].B_, 1.2);
-  EXPECT_DOUBLE_EQ(store.arrhenius[0].C_, 110.0);
-  EXPECT_DOUBLE_EQ(store.arrhenius[0].D_, 300.0);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  ASSERT_EQ(store.arrhenius_.size(), 1u);
+  EXPECT_DOUBLE_EQ(store.arrhenius_[0].A_, 2.15e-4);
+  EXPECT_DOUBLE_EQ(store.arrhenius_[0].B_, 1.2);
+  EXPECT_DOUBLE_EQ(store.arrhenius_[0].C_, 110.0);
+  EXPECT_DOUBLE_EQ(store.arrhenius_[0].D_, 300.0);
 }
 
 // ============================================================
 // Branched: derived fields k0_ and z_ are computed
 // ============================================================
 
-TEST(ReactionRateStore, BranchedDerivedFieldsComputed)
+TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
 {
   Species a("a"), b("b");
   Phase gas = MakeGasPhase({ a, b });
@@ -206,12 +206,12 @@ TEST(ReactionRateStore, BranchedDerivedFieldsComputed)
                                    .SetPhase(gas)
                                    .Build() };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
-  ASSERT_EQ(store.branched.size(), 1u);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  ASSERT_EQ(store.branched_.size(), 1u);
 
   // k0_ = 2e-22 * N_A * 1e-6 * exp(n)
   double expected_k0 = 2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(3.0);
-  EXPECT_NEAR(store.branched[0].k0_, expected_k0, 1.0e-10 * expected_k0);
+  EXPECT_NEAR(store.branched_[0].k0_, expected_k0, 1.0e-10 * expected_k0);
 
   // z_ = A_val * (1 - a0) / a0
   double air_ref = 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6;
@@ -219,14 +219,14 @@ TEST(ReactionRateStore, BranchedDerivedFieldsComputed)
   double b_val = 0.43 * std::pow(293.0 / 298.0, -8.0);
   double A_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
   double expected_z = A_val * (1.0 - 0.5) / 0.5;
-  EXPECT_NEAR(store.branched[0].z_, expected_z, 1.0e-10 * std::abs(expected_z));
+  EXPECT_NEAR(store.branched_[0].z_, expected_z, 1.0e-10 * std::abs(expected_z));
 }
 
 // ============================================================
 // UserDefined: custom_param_index_ assigned correctly
 // ============================================================
 
-TEST(ReactionRateStore, UserDefinedCustomParamIndex)
+TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
 {
   Species a("a"), b("b");
   Phase gas = MakeGasPhase({ a, b });
@@ -238,21 +238,21 @@ TEST(ReactionRateStore, UserDefinedCustomParamIndex)
     ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(p2).SetPhase(gas).Build()
   };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
-  ASSERT_EQ(store.user_defined.size(), 2u);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  ASSERT_EQ(store.user_defined_.size(), 2u);
 
-  EXPECT_EQ(store.user_defined[0].custom_param_index_, 0u);
-  EXPECT_DOUBLE_EQ(store.user_defined[0].scaling_factor_, 2.0);
+  EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
+  EXPECT_DOUBLE_EQ(store.user_defined_[0].scaling_factor_, 2.0);
 
-  EXPECT_EQ(store.user_defined[1].custom_param_index_, 1u);
-  EXPECT_DOUBLE_EQ(store.user_defined[1].scaling_factor_, 0.5);
+  EXPECT_EQ(store.user_defined_[1].custom_param_index_, 1u);
+  EXPECT_DOUBLE_EQ(store.user_defined_[1].scaling_factor_, 0.5);
 }
 
 // ============================================================
 // Surface: data fields and custom_param_base_index_ assigned
 // ============================================================
 
-TEST(ReactionRateStore, SurfaceDataFieldsAndCustomParamIndex)
+TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
 {
   double mw = 0.025;
   double diff_coeff = 2.3e2;
@@ -271,16 +271,16 @@ TEST(ReactionRateStore, SurfaceDataFieldsAndCustomParamIndex)
                                    .SetPhase(gas)
                                    .Build() };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
-  ASSERT_EQ(store.surface.size(), 1u);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  ASSERT_EQ(store.surface_.size(), 1u);
 
-  EXPECT_DOUBLE_EQ(store.surface[0].diffusion_coefficient_, diff_coeff);
-  EXPECT_NEAR(store.surface[0].mean_free_speed_factor_, 8.0 * constants::GAS_CONSTANT / (M_PI * mw), 1.0e-14);
-  EXPECT_DOUBLE_EQ(store.surface[0].reaction_probability_, prob);
-  EXPECT_EQ(store.surface[0].custom_param_base_index_, 0u);
+  EXPECT_DOUBLE_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
+  EXPECT_NEAR(store.surface_[0].mean_free_speed_factor_, 8.0 * constants::GAS_CONSTANT / (M_PI * mw), 1.0e-14);
+  EXPECT_DOUBLE_EQ(store.surface_[0].reaction_probability_, prob);
+  EXPECT_EQ(store.surface_[0].custom_param_base_index_, 0u);
 }
 
-TEST(ReactionRateStore, SurfaceCustomParamIndexAfterUserDefined)
+TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
 {
   double mw = 0.025;
   double diff_coeff = 1.0e-5;
@@ -298,20 +298,20 @@ TEST(ReactionRateStore, SurfaceCustomParamIndexAfterUserDefined)
     ChemicalReactionBuilder().SetReactants({ c }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(surf_p).SetPhase(gas).Build()
   };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
-  ASSERT_EQ(store.user_defined.size(), 1u);
-  ASSERT_EQ(store.surface.size(), 1u);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  ASSERT_EQ(store.user_defined_.size(), 1u);
+  ASSERT_EQ(store.surface_.size(), 1u);
 
   // UserDefined takes slot 0; Surface takes slots 1 (radius) and 2 (num_conc)
-  EXPECT_EQ(store.user_defined[0].custom_param_index_, 0u);
-  EXPECT_EQ(store.surface[0].custom_param_base_index_, 1u);
+  EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
+  EXPECT_EQ(store.surface_[0].custom_param_base_index_, 1u);
 }
 
 // ============================================================
-// Lambda: lambda_entries populated with correct rc_index
+// Lambda: lambda_entries_ populated with correct rc_index
 // ============================================================
 
-TEST(ReactionRateStore, LambdaEntriesRcIndex)
+TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
 {
   Species a("a"), b("b");
   Phase gas = MakeGasPhase({ a, b });
@@ -328,24 +328,24 @@ TEST(ReactionRateStore, LambdaEntriesRcIndex)
     ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(lam).SetPhase(gas).Build()
   };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
 
-  EXPECT_EQ(store.arrhenius.size(), 1u);
-  ASSERT_EQ(store.lambda_entries.size(), 1u);
+  EXPECT_EQ(store.arrhenius_.size(), 1u);
+  ASSERT_EQ(store.lambda_entries_.size(), 1u);
 
   // Lambda is the second process → rc_index = 1
-  EXPECT_EQ(store.lambda_entries[0].rc_index, 1u);
+  EXPECT_EQ(store.lambda_entries_[0].rc_index, 1u);
   // Pointer should be non-null and function should work
-  ASSERT_NE(store.lambda_entries[0].source, nullptr);
+  ASSERT_NE(store.lambda_entries_[0].source, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
-  EXPECT_NEAR(store.lambda_entries[0].source->lambda_function_(cond), 0.3, 1.0e-14);
+  EXPECT_NEAR(store.lambda_entries_[0].source->lambda_function_(cond), 0.3, 1.0e-14);
 }
 
 // ============================================================
 // Parameterized multipliers: one per parameterized reactant reaction
 // ============================================================
 
-TEST(ReactionRateStore, ParameterizedMultipliers)
+TEST(ReactionRateConstantStore, ParameterizedMultipliers)
 {
   Species a("a"), b("b");
   b.parameterize_ = [](const Conditions& c) { return c.air_density_ * 2.0; };
@@ -359,21 +359,21 @@ TEST(ReactionRateStore, ParameterizedMultipliers)
     ChemicalReactionBuilder().SetReactants({ b }).SetProducts({ StoichSpecies(a, 1) }).SetRateConstant(arr_b).SetPhase(gas).Build()
   };
 
-  auto store = ReactionRateStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
 
   // Only the second reaction has a parameterized reactant
-  ASSERT_EQ(store.parameterized_multipliers.size(), 1u);
-  EXPECT_EQ(store.parameterized_multipliers[0].rc_index, 1u);
+  ASSERT_EQ(store.parameterized_multipliers_.size(), 1u);
+  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index, 1u);
 
   Conditions cond{ .air_density_ = 5.0 };
-  EXPECT_NEAR(store.parameterized_multipliers[0].evaluate(cond), 10.0, 1.0e-14);
+  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate(cond), 10.0, 1.0e-14);
 }
 
 // ============================================================
 // Total rate constants matches process count for mixed mechanism
 // ============================================================
 
-TEST(ReactionRateStore, TotalRateConstantsMatchesProcessCount)
+TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
 {
   Species a("a"), b("b"), c("c", { { "molecular weight [kg mol-1]", 0.025 } });
   PhaseSpecies gas_c(c, 1.0e-5);
@@ -417,22 +417,22 @@ TEST(ReactionRateStore, TotalRateConstantsMatchesProcessCount)
                       .Build());
 
   SortByTypeOrder(procs);
-  auto store = ReactionRateStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore::BuildFrom(procs);
 
-  // Total = lambda_offset() + lambda_entries.size() = number of chemical reactions
+  // Total = lambda_offset() + lambda_entries_.size() = number of chemical reactions
   std::size_t n_rxn = 0;
   for (const auto& p : procs)
     if (std::holds_alternative<ChemicalReaction>(p.process_))
       ++n_rxn;
 
-  EXPECT_EQ(store.lambda_offset() + store.lambda_entries.size(), n_rxn);
+  EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), n_rxn);
 }
 
 // ============================================================
 // Error: missing diffusion coefficient
 // ============================================================
 
-TEST(ReactionRateStore, SurfaceMissingDiffusionCoefficientThrows)
+TEST(ReactionRateConstantStore, SurfaceMissingDiffusionCoefficientThrows)
 {
   Species c("c", { { "molecular weight [kg mol-1]", 0.025 } });
   Species b("b");
@@ -447,14 +447,14 @@ TEST(ReactionRateStore, SurfaceMissingDiffusionCoefficientThrows)
                                    .SetPhase(gas)
                                    .Build() };
 
-  EXPECT_THROW({ auto store = ReactionRateStore::BuildFrom(procs); }, MicmException);
+  EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
 }
 
 // ============================================================
 // Error: missing molecular weight
 // ============================================================
 
-TEST(ReactionRateStore, SurfaceMissingMolecularWeightThrows)
+TEST(ReactionRateConstantStore, SurfaceMissingMolecularWeightThrows)
 {
   Species c("c");  // no properties at all
   Species b("b");
@@ -469,5 +469,5 @@ TEST(ReactionRateStore, SurfaceMissingMolecularWeightThrows)
                                    .SetPhase(gas)
                                    .Build() };
 
-  EXPECT_THROW({ auto store = ReactionRateStore::BuildFrom(procs); }, MicmException);
+  EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
 }

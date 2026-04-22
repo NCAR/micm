@@ -12,7 +12,7 @@
 ///
 /// **Output pointer contract:**
 /// The caller must position `output` at the correct type-group offset within
-/// `rate_constants[cell]`.  ReactionRateStore provides inline offset helpers
+/// `rate_constants[cell]`.  ReactionRateConstantStore provides inline offset helpers
 /// (e.g. troe_offset(), ternary_offset()) for this purpose.
 ///
 /// **CPU/GPU split:**
@@ -134,7 +134,7 @@ namespace micm
 
   /// @brief Calculate Branched rate constants for a contiguous block of reactions.
   ///        Requires params[i].k0_ and params[i].z_ to be precomputed by
-  ///        ReactionRateStore::BuildFrom before calling this function.
+  ///        ReactionRateConstantStore::BuildFrom before calling this function.
   /// @param params      Array of Branched parameters, length n
   /// @param n           Number of reactions
   /// @param temperature Temperature [K]

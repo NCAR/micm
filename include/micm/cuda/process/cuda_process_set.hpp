@@ -66,8 +66,8 @@ namespace micm
     }
 
     /// @brief Upload all analytic parameter arrays from cpu_store to device memory.
-    ///        Called once by Solver after ReactionRateStore is built.
-    void BuildCudaStore(const ReactionRateStore& cpu_store)
+    ///        Called once by Solver after ReactionRateConstantStore is built.
+    void BuildCudaStore(const ReactionRateConstantStore& cpu_store)
     {
       cuda_rate_store_.BuildFrom(cpu_store);
     }
@@ -81,14 +81,14 @@ namespace micm
     ///
     /// After this call, device rate_constants_ is fully populated for the current step.
     template<class StatePolicy>
-    void GpuCalculateRateConstants(const ReactionRateStore& cpu_store, StatePolicy& state)
+    void GpuCalculateRateConstants(const ReactionRateConstantStore& cpu_store, StatePolicy& state)
       requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
                VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
     {
       // CPU lambda evaluation
-      if (!cpu_store.lambda_entries.empty())
+      if (!cpu_store.lambda_entries_.empty())
       {
-        ReactionRateStore::EvaluateCpuRates(cpu_store, state);
+        ReactionRateConstantStore::EvaluateCpuRateConstants(cpu_store, state);
         // Upload lambda values (analytic slots carry stale data; kernel overwrites them)
         state.rate_constants_.CopyToDevice();
       }
@@ -103,14 +103,14 @@ namespace micm
       micm::cuda::CalculateRateConstantsKernelDriver(cuda_rate_store_.GetParam(), d_conditions, rc_param, cp_param);
 
       // Parameterized multipliers are CPU-only (std::function); apply via round-trip if needed
-      if (!cpu_store.parameterized_multipliers.empty())
+      if (!cpu_store.parameterized_multipliers_.empty())
       {
         state.rate_constants_.CopyToHost();
         const std::size_t n_cells = state.rate_constants_.NumRows();
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
         {
           const auto& cond = state.conditions_[i_cell];
-          for (const auto& mult : cpu_store.parameterized_multipliers)
+          for (const auto& mult : cpu_store.parameterized_multipliers_)
             state.rate_constants_[i_cell][mult.rc_index] *= mult.evaluate(cond);
         }
         state.rate_constants_.CopyToDevice();

@@ -24,7 +24,7 @@ namespace micm
 
   /// @brief Value-typed union of all supported rate constant parameter types.
   ///        Stored by value in ChemicalReaction; consumed at store-build time by
-  ///        ReactionRateStore::BuildFrom.  Never sent to GPU.
+  ///        ReactionRateConstantStore::BuildFrom.  Never sent to GPU.
   using RateConstantVariant = std::variant<
       ArrheniusRateConstantParameters,
       TroeRateConstantParameters,

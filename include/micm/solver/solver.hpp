@@ -29,7 +29,7 @@ namespace micm
     System system_;
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
-    ReactionRateStore store_;
+    ReactionRateConstantStore store_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -69,7 +69,7 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
-          store_(ReactionRateStore::BuildFrom(processes_))
+          store_(ReactionRateConstantStore::BuildFrom(processes_))
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
         solver_.rates_.BuildCudaStore(store_);
@@ -166,7 +166,7 @@ namespace micm
       return processes_;
     }
 
-    const ReactionRateStore& GetStore() const
+    const ReactionRateConstantStore& GetRateConstantStore() const
     {
       return store_;
     }
@@ -189,8 +189,8 @@ namespace micm
         solver_.rates_.GpuCalculateRateConstants(store_, state);
       else
       {
-        ReactionRateStore::EvaluateCpuRates(store_, state);
-        ReactionRateStore::CalculateRates(store_, state);
+        ReactionRateConstantStore::EvaluateCpuRateConstants(store_, state);
+        ReactionRateConstantStore::CpuCalculateRateConstants(store_, state);
       }
     }
 

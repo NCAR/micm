@@ -77,7 +77,7 @@ TEST(SurfaceRateConstant, DiffusionCoefficientIsMissing)
 
   try
   {
-    auto store = ReactionRateStore::BuildFrom(processes);
+    auto store = ReactionRateConstantStore::BuildFrom(processes);
     FAIL() << "Expected MicmException to be thrown";
   }
   catch (const micm::MicmException& e)
@@ -101,7 +101,7 @@ TEST(SurfaceRateConstant, MolecularWeightIsMissing)
 
   try
   {
-    auto store = ReactionRateStore::BuildFrom(processes);
+    auto store = ReactionRateConstantStore::BuildFrom(processes);
     FAIL() << "Expected MicmException to be thrown";
   }
   catch (const micm::MicmException& e)

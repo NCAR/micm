@@ -233,7 +233,7 @@ namespace micm
     using SolverPolicy =
         typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
-    // Sort reactions by rate constant type so ReactionRateStore and ProcessSet
+    // Sort reactions by rate constant type so ReactionRateConstantStore and ProcessSet
     // share a consistent ordering and each type occupies a contiguous block.
     std::stable_sort(
         reactions_.begin(),

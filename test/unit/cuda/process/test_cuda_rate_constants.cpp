@@ -161,7 +161,7 @@ TEST(CudaRateConstants, BranchedAlkoxy)
   state.rate_constants_.CopyToHost();
 
   // Retrieve the derived params populated by BuildFrom
-  const auto& store_params = solver.GetStore().branched[0];
+  const auto& store_params = solver.GetRateConstantStore().branched_[0];
   double expected;
   micm::CalculateBranched(&store_params, 1, kConditions.temperature_, kConditions.air_density_, &expected);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
@@ -195,7 +195,7 @@ TEST(CudaRateConstants, BranchedNitrate)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  const auto& store_params = solver.GetStore().branched[0];
+  const auto& store_params = solver.GetRateConstantStore().branched_[0];
   double expected;
   micm::CalculateBranched(&store_params, 1, kConditions.temperature_, kConditions.air_density_, &expected);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
@@ -370,7 +370,7 @@ TEST(CudaRateConstants, Surface)
   state.rate_constants_.CopyToHost();
 
   // Compute expected using the same SurfaceRateConstantData the store built
-  const auto& data = solver.GetStore().surface[0];
+  const auto& data = solver.GetRateConstantStore().surface_[0];
   double expected = micm::CalculateSurfaceOne(data, kConditions.temperature_, radius, num_conc);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
