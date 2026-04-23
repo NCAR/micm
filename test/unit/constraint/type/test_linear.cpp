@@ -6,6 +6,7 @@
 #include <micm/constraint/types/linear_constraint.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
+#include <micm/util/jacobian_verification.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
@@ -516,4 +517,111 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   EXPECT_NEAR(jac1_dB, jac2_dB, 1e-10);
   EXPECT_NEAR(jac1_dA, -2.0, 1e-10);  // -dG/d[A] = -2.0
   EXPECT_NEAR(jac1_dB, -3.0, 1e-10);  // -dG/d[B] = -3.0
+}
+
+TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
+{
+  // A + B = 1.0, algebraic species = B (last term)
+  // G = [A] + [B] - 1.0, dG/dA = 1, dG/dB = 1
+  using DenseMatrix = Matrix<double>;
+
+  std::vector<Constraint> constraints;
+  constraints.push_back(LinearConstraint(
+      "conservation",
+      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      1.0));
+
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
+  const std::size_t num_species = 2;
+
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+
+  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (std::size_t i = 0; i < num_species; ++i)
+    builder = builder.WithElement(i, i);
+  for (auto& elem : non_zero_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  StandardSparseMatrix jacobian{ builder };
+  set.SetJacobianFlatIds(jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+
+  DenseMatrix variables(2, num_species, 0.0);
+  variables[0][0] = 0.3;
+  variables[0][1] = 0.7;
+  variables[1][0] = 0.8;
+  variables[1][1] = 0.2;
+
+  DenseMatrix state_parameters(2, 0);
+
+  // Analytical Jacobian
+  set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+
+  // FD Jacobian — wrap the forcing function
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { set.AddForcingTerms(vars, state_parameters, forcing); };
+
+  auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Linear constraint Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
+                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
+}
+
+TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
+{
+  // 2*A + 3*B - C = 5.0, algebraic species = C (last term)
+  // G = 2[A] + 3[B] - [C] - 5, dG/dA = 2, dG/dB = 3, dG/dC = -1
+  using DenseMatrix = Matrix<double>;
+
+  std::vector<Constraint> constraints;
+  constraints.push_back(LinearConstraint(
+      "weighted",
+      std::vector<StoichSpecies>{
+          StoichSpecies(Species("A"), 2.0), StoichSpecies(Species("B"), 3.0), StoichSpecies(Species("C"), -1.0) },
+      5.0));
+
+  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
+  const std::size_t num_species = 3;
+
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+
+  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  for (std::size_t i = 0; i < num_species; ++i)
+    builder = builder.WithElement(i, i);
+  for (auto& elem : non_zero_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  StandardSparseMatrix jacobian{ builder };
+  set.SetJacobianFlatIds(jacobian);
+  std::unordered_map<std::string, std::size_t> state_parameter_indices;
+  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+
+  DenseMatrix variables(1, num_species, 0.0);
+  variables[0][0] = 1.5;
+  variables[0][1] = 0.8;
+  variables[0][2] = 2.0;
+
+  DenseMatrix state_parameters(1, 0);
+
+  set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  { set.AddForcingTerms(vars, state_parameters, forcing); };
+
+  auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Weighted linear constraint Jacobian mismatch: block=" << comparison.worst_block
+                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
+                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
 }

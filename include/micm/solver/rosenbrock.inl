@@ -28,6 +28,17 @@ namespace micm
 
     const bool has_constraints = constraints_.Size() > 0;
 
+    // Initialize algebraic constraint variables before time stepping
+    if (has_constraints)
+    {
+      auto init_state = InitializeConstraints(state, parameters, result.stats_);
+      if (init_state != SolverState::Converged)
+      {
+        result.state_ = init_state;
+        return result;
+      }
+    }
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -381,6 +392,146 @@ namespace micm
     const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
 
     return std::max(std::sqrt(error / N), error_min);
+  }
+
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  inline SolverState
+  AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::InitializeConstraints(
+      auto& state,
+      const RosenbrockSolverParameters& parameters,
+      SolverStats& stats) const noexcept
+  {
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
+
+    auto& Y = state.variables_;
+    auto derived_class_temporary_variables =
+        static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
+    // Reuse initial_forcing_ as the residual/delta workspace
+    auto& delta = derived_class_temporary_variables->initial_forcing_;
+
+    const auto& diagonal = state.upper_left_identity_diagonal_;
+    double max_residual = 0;
+    bool nan_detected = false;
+    bool inf_detected = false;
+
+    // Pre-build reusable Function objects outside the iteration loop
+    auto check_convergence = DenseMatrixPolicy::Function(
+        [&max_residual, &nan_detected, &inf_detected, &diagonal](auto&& delta_view)
+        {
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              delta_view.ForEachRow(
+                  [&](const double& val)
+                  {
+                    double abs_val = std::abs(val);
+                    if (std::isnan(abs_val))
+                      nan_detected = true;
+                    else if (std::isinf(abs_val))
+                      inf_detected = true;
+                    else
+                      max_residual = std::max(max_residual, abs_val);
+                  },
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        delta);
+
+    auto apply_update = DenseMatrixPolicy::Function(
+        [&nan_detected, &inf_detected, &diagonal](auto&& y_view, auto&& delta_view)
+        {
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              y_view.ForEachRow(
+                  [&](double& y_val, const double& d_val)
+                  {
+                    if (std::isnan(d_val))
+                      nan_detected = true;
+                    else if (std::isinf(d_val))
+                      inf_detected = true;
+                    else
+                      y_val += d_val;
+                  },
+                  y_view.GetColumnView(i_var),
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        Y,
+        delta);
+
+    for (std::size_t iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
+    {
+      // 1. Evaluate constraint residuals: G(y)
+      delta.Fill(0);
+      constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
+
+      // 2. Check convergence: ||G||_inf over algebraic rows only
+      max_residual = 0;
+      nan_detected = false;
+      inf_detected = false;
+      check_convergence(delta);
+
+      if (nan_detected)
+        return SolverState::NaNDetected;
+      if (inf_detected)
+        return SolverState::InfDetected;
+
+      stats.constraint_init_iterations_ = iter + 1;
+
+      if (max_residual < parameters.constraint_init_tolerance_)
+        return SolverState::Converged;
+
+      // 3. Compute constraint Jacobian: -dG/dy
+      state.jacobian_.Fill(0);
+      constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+      stats.jacobian_updates_ += 1;
+
+      // 4. Form system matrix with alpha=1.0:
+      //    ODE rows (M=1): identity on diagonal (constraint Jacobian has no ODE-row entries)
+      //    Algebraic rows (M=0): -dG/dy from SubtractJacobianTerms (no alpha contribution)
+      static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, 1.0);
+
+      // 5. Factor the system matrix
+      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        linear_solver_.Factor(state.jacobian_);
+      }
+      else
+      {
+        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+      }
+      stats.decompositions_ += 1;
+
+      // 6. Solve: -J * delta = G  =>  delta = -J^{-1} * G
+      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        linear_solver_.Solve(delta, state.jacobian_);
+      }
+      else
+      {
+        linear_solver_.Solve(delta, state.lower_matrix_, state.upper_matrix_);
+      }
+      stats.solves_ += 1;
+
+      // 7. Apply update only to algebraic variables
+      nan_detected = false;
+      inf_detected = false;
+      apply_update(Y, delta);
+
+      if (nan_detected)
+        return SolverState::NaNDetected;
+      if (inf_detected)
+        return SolverState::InfDetected;
+    }
+
+    // Did not converge within max iterations
+    return SolverState::ConstraintInitializationFailed;
   }
 
 }  // namespace micm

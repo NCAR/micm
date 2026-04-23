@@ -83,6 +83,14 @@ namespace micm
     /// @return A struct containing results and a status code
     SolverResult Solve(double time_step, auto& state, const RosenbrockSolverParameters& parameters) const noexcept;
 
+    /// @brief Newton-iterate algebraic variables to satisfy G(y) = 0 before time integration
+    /// @param state The solver state
+    /// @param parameters Solver parameters (provides max iterations and tolerance)
+    /// @param stats Solver stats to update with iteration counts
+    /// @return SolverState::Converged on success, or an error state on failure
+    SolverState InitializeConstraints(auto& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
+        const noexcept;
+
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha

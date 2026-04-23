@@ -30,6 +30,7 @@ namespace micm
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
     ReactionRateConstantStore store_;
+    std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -75,6 +76,26 @@ namespace micm
         solver_.rates_.BuildCudaStore(store_);
     }
 
+    Solver(
+        SolverPolicy&& solver,
+        StateParameters state_parameters,
+        SolverParametersType solver_parameters,
+        std::vector<micm::Process> processes,
+        System system,
+        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+            update_state_parameters_functions,
+        const std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>&
+            initialize_constraint_parameters_functions)
+        : solver_(std::move(solver)),
+          state_parameters_(state_parameters),
+          solver_parameters_(solver_parameters),
+          processes_(std::move(processes)),
+          system_(std::move(system)),
+          update_state_parameters_functions_(update_state_parameters_functions),
+          initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
+    {
+    }
+
     Solver(Solver&& other)
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
@@ -82,7 +103,8 @@ namespace micm
           solver_parameters_(other.solver_parameters_),
           system_(std::move(other.system_)),
           update_state_parameters_functions_(std::move(other.update_state_parameters_functions_)),
-          store_(std::move(other.store_))
+          store_(std::move(other.store_)),
+          initialize_constraint_parameters_functions_(std::move(other.initialize_constraint_parameters_functions_))
     {
     }
 
@@ -97,11 +119,14 @@ namespace micm
       std::swap(this->system_, other.system_);
       std::swap(this->update_state_parameters_functions_, other.update_state_parameters_functions_);
       std::swap(this->store_, other.store_);
+      std::swap(this->initialize_constraint_parameters_functions_, other.initialize_constraint_parameters_functions_);
       return *this;
     }
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
+      for (const auto& init_func : initialize_constraint_parameters_functions_)
+        init_func(state.variables_, state.custom_rate_parameters_);
       auto result = solver_.Solve(time_step, state, solver_parameters_);
       PostSolveClamp(state);
       return result;
@@ -111,6 +136,8 @@ namespace micm
     SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
     {
       solver_parameters_ = params;
+      for (const auto& init_func : initialize_constraint_parameters_functions_)
+        init_func(state.variables_, state.custom_rate_parameters_);
       auto result = solver_.Solve(time_step, state, params);
       PostSolveClamp(state);
       return result;

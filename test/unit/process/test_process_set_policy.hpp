@@ -2,6 +2,7 @@
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/util/jacobian_verification.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
@@ -377,4 +378,90 @@ void testAlgebraicMasking()
     EXPECT_DOUBLE_EQ(jacobian[0][3][1], 500.0);  // Cell 0
     EXPECT_DOUBLE_EQ(jacobian[1][3][1], 500.0);  // Cell 1
   }
+}
+
+/// @brief Verify ProcessSet analytical Jacobian against finite-difference approximation
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
+void testProcessSetFiniteDifferenceJacobian()
+{
+  // Simple 3-species system where all species participate:
+  //   r1: A + B -> 2C  (rate k1)
+  //   r2: C -> A       (rate k2)
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  const std::size_t num_species = 3;
+
+  State<DenseMatrixPolicy, SparseMatrixPolicy> state(
+      StateParameters{ .number_of_rate_constants_ = 2, .variable_names_{ "A", "B", "C" } }, 2);
+
+  ArrheniusRateConstant rate1({ .A_ = 1.0 });
+  ArrheniusRateConstant rate2({ .A_ = 1.0 });
+
+  Process r1 = ChemicalReactionBuilder()
+                   .SetReactants({ A, B })
+                   .SetProducts({ StoichSpecies(C, 2) })
+                   .SetRateConstant(rate1)
+                   .SetPhase(gas_phase)
+                   .Build();
+
+  Process r2 = ChemicalReactionBuilder()
+                   .SetReactants({ C })
+                   .SetProducts({ StoichSpecies(A, 1) })
+                   .SetRateConstant(rate2)
+                   .SetPhase(gas_phase)
+                   .Build();
+
+  RatesPolicy process_set = RatesPolicy(std::vector<Process>{ r1, r2 }, state.variable_map_);
+
+  state.variables_[0] = { 1.0, 2.0, 3.0 };
+  state.variables_[1] = { 0.5, 4.0, 1.5 };
+
+  DenseMatrixPolicy rate_constants{ 2, 2 };
+  rate_constants[0] = { 5.0, 10.0 };
+  rate_constants[1] = { 8.0, 12.0 };
+  state.rate_constants_ = rate_constants;
+
+  CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
+  CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
+
+  // Build analytical Jacobian
+  auto non_zero_elements = process_set.NonZeroJacobianElements();
+  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (auto& elem : non_zero_elements)
+    builder = builder.WithElement(elem.first, elem.second);
+  SparseMatrixPolicy analytical_jacobian{ builder };
+  process_set.SetJacobianFlatIds(analytical_jacobian);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(analytical_jacobian);
+  process_set.SubtractJacobianTerms(state, state.variables_, analytical_jacobian);
+  CheckCopyToHost<SparseMatrixPolicy>(analytical_jacobian);
+
+  // Compute FD Jacobian by wrapping the forcing function
+  auto forcing_wrapper = [&](const DenseMatrixPolicy& vars, DenseMatrixPolicy& forcing)
+  {
+    CheckCopyToDevice<DenseMatrixPolicy>(forcing);
+    process_set.AddForcingTerms(state, vars, forcing);
+    CheckCopyToHost<DenseMatrixPolicy>(forcing);
+  };
+
+  auto fd_jacobian = micm::FiniteDifferenceJacobian<DenseMatrixPolicy>(forcing_wrapper, state.variables_, num_species);
+
+  // Compare: analytical stores -df/dx, FD stores +df/dx
+  auto comparison = micm::CompareJacobianToFiniteDifference<DenseMatrixPolicy, SparseMatrixPolicy>(
+      analytical_jacobian, fd_jacobian, num_species);
+
+  EXPECT_TRUE(comparison.passed) << "Worst error at block=" << comparison.worst_block << " row=" << comparison.worst_row
+                                 << " col=" << comparison.worst_col << " analytical=" << comparison.worst_analytical
+                                 << " fd=" << comparison.worst_fd;
+
+  // Also verify sparsity completeness
+  auto sparsity_check = micm::CheckJacobianSparsityCompleteness<DenseMatrixPolicy, SparseMatrixPolicy>(
+      analytical_jacobian, fd_jacobian, num_species);
+
+  EXPECT_TRUE(sparsity_check.passed) << "Undeclared non-zero at block=" << sparsity_check.worst_block
+                                     << " row=" << sparsity_check.worst_row << " col=" << sparsity_check.worst_col
+                                     << " fd_value=" << sparsity_check.worst_fd;
 }
