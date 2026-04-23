@@ -47,6 +47,22 @@ TEST(SolverBuilder, ThrowsMissingSystem)
       micm::MicmException);
 }
 
+TEST(SolverBuilder, ThrowsUnusedSpecies)
+{
+  auto d = micm::Species("D");
+  micm::Phase phase_with_unused{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
+  micm::System system_with_unused = micm::System(micm::SystemParameters{ .gas_phase_ = phase_with_unused });
+
+  EXPECT_THROW(
+      micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+          micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+          .SetSystem(system_with_unused)
+          .SetReactions(reactions)
+          .SetIgnoreUnusedSpecies(false)
+          .Build(),
+      micm::MicmException);
+}
+
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
   auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
