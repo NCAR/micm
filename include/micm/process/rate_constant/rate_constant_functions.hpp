@@ -35,6 +35,15 @@
 #include <cstddef>
 #include <math.h>
 
+// constexpr <cmath> functions (std::exp, std::pow, std::sqrt, etc.) require C++23
+// and compiler support (P1383R2). Guard so MSVC and other compilers that haven't
+// implemented this yet still produce valid code.
+#ifdef __cpp_lib_constexpr_cmath
+#  define MICM_CONSTEXPR constexpr
+#else
+#  define MICM_CONSTEXPR
+#endif
+
 #ifndef M_PI
 #  define M_PI 3.14159265358979323846
 #endif
@@ -49,7 +58,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param pressure    Pressure [Pa]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateArrhenius(
+  MICM_CONSTEXPR inline void CalculateArrhenius(
       const ArrheniusRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -66,7 +75,7 @@ namespace micm
   ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
   ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
   template<class FalloffParams>
-  constexpr inline double FalloffKernel(
+  MICM_CONSTEXPR inline double FalloffKernel(
       const FalloffParams& p,
       double temperature,
       double air_density,
@@ -85,7 +94,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param air_density Air number density [mol m-3]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateTroe(
+  MICM_CONSTEXPR inline void CalculateTroe(
       const TroeRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -102,7 +111,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param air_density Air number density [mol m-3]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateTernaryChemicalActivation(
+  MICM_CONSTEXPR inline void CalculateTernaryChemicalActivation(
       const TernaryChemicalActivationRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -119,7 +128,7 @@ namespace micm
   /// @param n           Number of reactions
   /// @param temperature Temperature [K]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateTunneling(
+  MICM_CONSTEXPR inline void CalculateTunneling(
       const TunnelingRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -139,7 +148,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param air_density Air number density [mol m-3]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateBranched(
+  MICM_CONSTEXPR inline void CalculateBranched(
       const BranchedRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -166,7 +175,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param pressure    Pressure [Pa]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateTaylorSeries(
+  MICM_CONSTEXPR inline void CalculateTaylorSeries(
       const TaylorSeriesRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -191,7 +200,7 @@ namespace micm
   /// @param n           Number of reactions
   /// @param temperature Temperature [K]
   /// @param output      Destination array of length n
-  constexpr inline void CalculateReversible(
+  MICM_CONSTEXPR inline void CalculateReversible(
       const ReversibleRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -207,7 +216,7 @@ namespace micm
   /// @param n             Number of reactions
   /// @param custom_params Row of custom_rate_parameters_ for this grid cell
   /// @param output        Destination array of length n
-  constexpr inline void CalculateUserDefined(
+  MICM_CONSTEXPR inline void CalculateUserDefined(
       const UserDefinedRateConstantData* params,
       std::size_t n,
       const double* custom_params,
@@ -220,7 +229,7 @@ namespace micm
   /// @brief Calculate one surface rate constant given pre-fetched aerosol parameters.
   /// @param radius    Aerosol effective radius [m]
   /// @param num_conc  Particle number concentration [# m-3]
-  constexpr inline double CalculateSurfaceOne(
+  MICM_CONSTEXPR inline double CalculateSurfaceOne(
       const SurfaceRateConstantData& p,
       double temperature,
       double radius,
@@ -233,7 +242,7 @@ namespace micm
 
   /// @brief Calculate surface rate constants for n reactions.
   ///        Reads radius and num_conc from custom_params[custom_param_base_index_] and +1.
-  constexpr inline void CalculateSurface(
+  MICM_CONSTEXPR inline void CalculateSurface(
       const SurfaceRateConstantData* params,
       std::size_t n,
       double temperature,
