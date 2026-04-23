@@ -92,8 +92,11 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
+          store_(ReactionRateConstantStore::BuildFrom(processes_)),
           initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
     {
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+        solver_.rates_.BuildCudaStore(store_);
     }
 
     Solver(Solver&& other)

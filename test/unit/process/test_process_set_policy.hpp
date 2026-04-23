@@ -397,8 +397,8 @@ void testProcessSetFiniteDifferenceJacobian()
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 2, .variable_names_{ "A", "B", "C" } }, 2);
 
-  ArrheniusRateConstant rate1({ .A_ = 1.0 });
-  ArrheniusRateConstant rate2({ .A_ = 1.0 });
+  ArrheniusRateConstantParameters rate1{ .A_ = 1.0 };
+  ArrheniusRateConstantParameters rate2{ .A_ = 1.0 };
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ A, B })
