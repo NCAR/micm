@@ -146,8 +146,8 @@ void test_simple_system(
 
   for (int i = 0; i < NUM_CELLS; ++i)
   {
-    double temperature = temperatures[i];
-    double pressure = pressures[i];
+    double temperature = temperatures[i % temperatures.size()];
+    double pressure = pressures[i % pressures.size()];
     double air_density = calculate_air_density_mol_m3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
@@ -180,9 +180,9 @@ void test_simple_system(
     state.variables_[i][_a] = model_concentrations[0][i][idx_A];
     state.variables_[i][_b] = model_concentrations[0][i][idx_B];
     state.variables_[i][_c] = model_concentrations[0][i][idx_C];
-    state.conditions_[i].temperature_ = temperatures[i];
-    state.conditions_[i].pressure_ = pressures[i];
-    state.conditions_[i].air_density_ = calculate_air_density_mol_m3(pressures[i], temperatures[i]);
+    state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
+    state.conditions_[i].pressure_ = pressures[i % pressures.size()];
+    state.conditions_[i].air_density_ = calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
@@ -262,8 +262,8 @@ void test_simple_stiff_system(
 
   for (int i = 0; i < NUM_CELLS; ++i)
   {
-    double temperature = temperatures[i];
-    double pressure = pressures[i];
+    double temperature = temperatures[i % temperatures.size()];
+    double pressure = pressures[i % pressures.size()];
     double air_density = calculate_air_density_mol_m3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
@@ -298,9 +298,9 @@ void test_simple_stiff_system(
     state.variables_[i][_a2] = 0.5 * model_concentrations[0][i][idx_A];
     state.variables_[i][_b] = model_concentrations[0][i][idx_B];
     state.variables_[i][_c] = model_concentrations[0][i][idx_C];
-    state.conditions_[i].temperature_ = temperatures[i];
-    state.conditions_[i].pressure_ = pressures[i];
-    state.conditions_[i].air_density_ = calculate_air_density_mol_m3(pressures[i], temperatures[i]);
+    state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
+    state.conditions_[i].pressure_ = pressures[i % pressures.size()];
+    state.conditions_[i].air_density_ = calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
