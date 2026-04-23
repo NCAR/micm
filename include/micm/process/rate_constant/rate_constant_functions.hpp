@@ -8,7 +8,7 @@
 /// Each function processes a contiguous block of reactions of a single type for
 /// one grid cell.  The loop is inside the function so the compiler can
 /// SIMD-vectorize the inner pass; on GPU the same functions run per-thread via
-/// the MICM_HOST_DEVICE annotation.
+/// constexpr (callable from device code with --expt-relaxed-constexpr).
 ///
 /// **Output pointer contract:**
 /// The caller must position `output` at the correct type-group offset within
@@ -30,7 +30,6 @@
 #include <micm/process/rate_constant/troe_rate_constant.hpp>
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/util/host_device.hpp>
 
 #include <cmath>
 #include <cstddef>
@@ -50,7 +49,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param pressure    Pressure [Pa]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateArrhenius(
+  constexpr inline void CalculateArrhenius(
       const ArrheniusRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -67,7 +66,7 @@ namespace micm
   ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
   ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
   template<class FalloffParams>
-  MICM_HOST_DEVICE inline double FalloffKernel(
+  constexpr inline double FalloffKernel(
       const FalloffParams& p,
       double temperature,
       double air_density,
@@ -86,7 +85,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param air_density Air number density [mol m-3]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateTroe(
+  constexpr inline void CalculateTroe(
       const TroeRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -103,7 +102,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param air_density Air number density [mol m-3]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateTernaryChemicalActivation(
+  constexpr inline void CalculateTernaryChemicalActivation(
       const TernaryChemicalActivationRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -120,7 +119,7 @@ namespace micm
   /// @param n           Number of reactions
   /// @param temperature Temperature [K]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateTunneling(
+  constexpr inline void CalculateTunneling(
       const TunnelingRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -140,7 +139,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param air_density Air number density [mol m-3]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateBranched(
+  constexpr inline void CalculateBranched(
       const BranchedRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -167,7 +166,7 @@ namespace micm
   /// @param temperature Temperature [K]
   /// @param pressure    Pressure [Pa]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateTaylorSeries(
+  constexpr inline void CalculateTaylorSeries(
       const TaylorSeriesRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -192,7 +191,7 @@ namespace micm
   /// @param n           Number of reactions
   /// @param temperature Temperature [K]
   /// @param output      Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateReversible(
+  constexpr inline void CalculateReversible(
       const ReversibleRateConstantParameters* params,
       std::size_t n,
       double temperature,
@@ -208,7 +207,7 @@ namespace micm
   /// @param n             Number of reactions
   /// @param custom_params Row of custom_rate_parameters_ for this grid cell
   /// @param output        Destination array of length n
-  MICM_HOST_DEVICE inline void CalculateUserDefined(
+  constexpr inline void CalculateUserDefined(
       const UserDefinedRateConstantData* params,
       std::size_t n,
       const double* custom_params,
@@ -221,7 +220,7 @@ namespace micm
   /// @brief Calculate one surface rate constant given pre-fetched aerosol parameters.
   /// @param radius    Aerosol effective radius [m]
   /// @param num_conc  Particle number concentration [# m-3]
-  MICM_HOST_DEVICE inline double CalculateSurfaceOne(
+  constexpr inline double CalculateSurfaceOne(
       const SurfaceRateConstantData& p,
       double temperature,
       double radius,
@@ -234,7 +233,7 @@ namespace micm
 
   /// @brief Calculate surface rate constants for n reactions.
   ///        Reads radius and num_conc from custom_params[custom_param_base_index_] and +1.
-  MICM_HOST_DEVICE inline void CalculateSurface(
+  constexpr inline void CalculateSurface(
       const SurfaceRateConstantData* params,
       std::size_t n,
       double temperature,
