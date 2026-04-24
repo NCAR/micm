@@ -72,7 +72,6 @@ namespace micm
     else
     {
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SPECIES,
           MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
           "Diffusion coefficient for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
@@ -87,7 +86,6 @@ namespace micm
       if (e.code_ == MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_SPECIES,
             MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
             "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
@@ -107,7 +105,6 @@ namespace micm
   inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const
   {
     throw MicmException(
-        MicmSeverity::Error,
         MICM_ERROR_CATEGORY_RATE_CONSTANT,
         MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT,
         "Missing required arguments for surface rate constant");

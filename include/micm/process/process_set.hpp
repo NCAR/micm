@@ -159,7 +159,6 @@ namespace micm
             continue;  // Skip reactants that are parameterizations
           if (variable_map.count(reactant.name_) < 1)
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_PROCESS,
                 MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
                 reactant.name_);
@@ -173,7 +172,6 @@ namespace micm
             continue;  // Skip products that are parameterizations
           if (variable_map.count(product.species_.name_) < 1)
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_PROCESS,
                 MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST,
                 product.species_.name_);
@@ -219,7 +217,6 @@ namespace micm
                 continue;  // Skip reactants that are parameterizations
               if (variable_map.count(reactant.name_) < 1)
                 throw MicmException(
-                    MicmSeverity::Error,
                     MICM_ERROR_CATEGORY_PROCESS,
                     MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
                     reactant.name_);
@@ -237,7 +234,6 @@ namespace micm
                 continue;  // Skip products that are parameterizations
               if (variable_map.count(product.species_.name_) < 1)
                 throw MicmException(
-                    MicmSeverity::Error,
                     MICM_ERROR_CATEGORY_PROCESS,
                     MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST,
                     product.species_.name_);

@@ -104,7 +104,6 @@ namespace micm
         if (row_it == variable_map.end())
         {
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_CONSTRAINT,
               MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
               "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
@@ -114,7 +113,6 @@ namespace micm
         if (!algebraic_variable_ids_.insert(info.row_index_).second)
         {
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_CONSTRAINT,
               MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
               "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
@@ -131,7 +129,6 @@ namespace micm
           if (it == variable_map.end())
           {
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
                 "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
@@ -374,7 +371,6 @@ namespace micm
           if (it == variable_map.end())
           {
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
                 "External model constraint targets unknown algebraic species '" + name + "'");
@@ -382,7 +378,6 @@ namespace micm
           if (!algebraic_variable_ids_.insert(it->second).second)
           {
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_ALGEBRAIC_SPECIES,
                 "Multiple constraints map to the same algebraic species row '" + name + "'");
@@ -433,7 +428,6 @@ namespace micm
         {
           if (!seen.insert(name).second)
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
                 "Duplicate external constraint parameter name across models: " + name);
@@ -465,7 +459,6 @@ namespace micm
         {
           if (!seen.insert(name).second)
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
                 "Duplicate external initialize constraint parameter name across models: " + name);
@@ -535,7 +528,6 @@ namespace micm
           if (it == state_parameter_indices.end())
           {
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
                 "Constraint '" + constraints_[i].GetName() + "' depends on unknown parameter '" + name + "'");

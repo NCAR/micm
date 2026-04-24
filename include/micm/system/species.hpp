@@ -132,7 +132,6 @@ namespace micm
       catch (const std::out_of_range& e)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_SPECIES,
             MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
             "Species: '" + name_ + "' Property: '" + key + "'");
@@ -147,7 +146,6 @@ namespace micm
       catch (const std::out_of_range& e)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_SPECIES,
             MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
             "Species: '" + name_ + "' Property: '" + key + "'");
@@ -162,7 +160,6 @@ namespace micm
       catch (const std::out_of_range& e)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_SPECIES,
             MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
             "Species: '" + name_ + "' Property: '" + key + "'");
@@ -177,7 +174,6 @@ namespace micm
       catch (const std::out_of_range& e)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_SPECIES,
             MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
             "Species: '" + name_ + "' Property: '" + key + "'");
@@ -186,7 +182,6 @@ namespace micm
     else
     {
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SPECIES,
           MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY,
           "Species: '" + name_ + "'");
@@ -215,7 +210,6 @@ namespace micm
     else
     {
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SPECIES,
           MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY,
           "Species: '" + name_ + "'");

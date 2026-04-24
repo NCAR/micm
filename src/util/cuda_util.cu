@@ -13,7 +13,7 @@ namespace micm
       {
         std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
         throw micm::MicmException(
-            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
+            MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
       }
     }
 
@@ -23,7 +23,7 @@ namespace micm
       {
         std::string msg = std::to_string(err) + " : " + str;
         throw micm::MicmException(
-            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
+            MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
       }
     }
 

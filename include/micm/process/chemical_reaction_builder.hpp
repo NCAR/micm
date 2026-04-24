@@ -65,7 +65,6 @@ namespace micm
     {
       if (!rate_constant_)
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_PROCESS,
             MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
             "Rate Constant pointer cannot be null.");

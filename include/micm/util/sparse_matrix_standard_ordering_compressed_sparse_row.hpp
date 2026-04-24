@@ -71,7 +71,6 @@ namespace micm
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks)
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Element out of range");
@@ -80,7 +79,6 @@ namespace micm
       auto elem = std::find(begin, end, column);
       if (elem == end)
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
             "Zero element access");
@@ -106,7 +104,6 @@ namespace micm
     {
       if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1)
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Element out of range");
@@ -115,7 +112,6 @@ namespace micm
       auto elem = std::find(begin, end, col);
       if (elem == end)
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
             "Zero element access");
@@ -447,7 +443,6 @@ namespace micm
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Element out of range");

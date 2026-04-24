@@ -65,7 +65,8 @@ TEST(SolverBuilder, ThrowsUnusedSpecies)
   }
   catch (const micm::MicmException& e)
   {
-    EXPECT_EQ(e.severity_, micm::MicmSeverity::Error);
+    EXPECT_STREQ(e.Category(), MICM_ERROR_CATEGORY_SOLVER);
+    EXPECT_EQ(e.Code(), MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES);
   }
 }
 

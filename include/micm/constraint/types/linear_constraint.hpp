@@ -54,7 +54,7 @@ namespace micm
       if (terms_.empty())
       {
         throw MicmException(
-            MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
+            MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
       }
       for (const auto& term : terms_)
       {

@@ -87,7 +87,6 @@ namespace micm
       if (reactants_.empty())
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_CONSTRAINT,
             MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS,
             "Equilibrium constraint requires at least one reactant");
@@ -95,7 +94,6 @@ namespace micm
       if (products_.empty())
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_CONSTRAINT,
             MICM_CONSTRAINT_ERROR_CODE_EMPTY_PRODUCTS,
             "Equilibrium constraint requires at least one product");
@@ -105,7 +103,6 @@ namespace micm
         if (r.coefficient_ <= 0)
         {
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_CONSTRAINT,
               MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
               "Stoichiometric coefficients must be positive");
@@ -116,7 +113,6 @@ namespace micm
         if (p.coefficient_ <= 0)
         {
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_CONSTRAINT,
               MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
               "Stoichiometric coefficients must be positive");
@@ -125,7 +121,7 @@ namespace micm
       if (vant_hoff_param_.K_HLC_ref <= 0)
       {
         throw MicmException(
-            MicmSeverity::Error,
+
             MICM_ERROR_CATEGORY_CONSTRAINT,
             MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT,
             "Henry’s Law constant (K_HLC_ref) must be positive");

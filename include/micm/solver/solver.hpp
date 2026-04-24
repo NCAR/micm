@@ -214,7 +214,6 @@ namespace micm
         }
       }
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SOLVER,
           MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
           "Lambda rate constant with name '" + name + "' not found in any process");
@@ -234,7 +233,6 @@ namespace micm
         }
       }
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SOLVER,
           MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
           "Lambda rate constant with name '" + name + "' not found in any process");

@@ -21,7 +21,7 @@ namespace micm
     {
     }
 
-    const std::string& Category() const noexcept { return category_; }
+    const char* Category() const noexcept { return category_; }
 
     int Code() const noexcept { return code_; }
   };

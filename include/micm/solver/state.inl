@@ -15,7 +15,6 @@ namespace micm
   {
     if (state_.variables_.NumRows() != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot convert multi-gridcell State variable to single double value");
@@ -35,7 +34,6 @@ namespace micm
   {
     if (state_.variables_.NumRows() != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot assign single value to multi-gridcell State variable");
@@ -56,7 +54,6 @@ namespace micm
   {
     if (values.size() != state_.number_of_grid_cells_)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Number of values does not match number of grid cells in State");
@@ -80,7 +77,6 @@ namespace micm
   {
     if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Number of grid cells does not match between State variables");
@@ -104,7 +100,6 @@ namespace micm
   {
     if (state_.number_of_grid_cells_ != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot add single value to multi-gridcell State variable");
@@ -125,7 +120,6 @@ namespace micm
   {
     if (state_.number_of_grid_cells_ != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot subtract single value from multi-gridcell State variable");
@@ -146,7 +140,6 @@ namespace micm
   {
     if (state_.number_of_grid_cells_ != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot multiply single value with multi-gridcell State variable");
@@ -167,7 +160,6 @@ namespace micm
   {
     if (state_.number_of_grid_cells_ != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot divide multi-gridcell State variable by single value");
@@ -214,7 +206,6 @@ namespace micm
   {
     if (state_.variables_.NumRows() != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot convert multi-gridcell State variable to single double value");
@@ -418,7 +409,7 @@ namespace micm
   {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
     return VariableProxy(*this, var->second);
   }
 
@@ -435,7 +426,7 @@ namespace micm
   {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
     return ConstVariableProxy(*this, var->second);
   }
 
@@ -496,10 +487,9 @@ namespace micm
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
       throw MicmException(
-          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
+          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
@@ -520,10 +510,9 @@ namespace micm
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
       throw MicmException(
-          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
+          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != concentration.size())
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
@@ -545,10 +534,9 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
     if (variables_.NumRows() != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
@@ -568,10 +556,9 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
     if (variables_.NumRows() != concentration.size())
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
@@ -591,14 +578,12 @@ namespace micm
   {
     if (parameters.size() != variables_.NumRows())
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
 
     if (parameters[0].size() != custom_rate_parameters_.NumColumns())
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
           "Custom rate parameter count does not match the number of rate constants");
@@ -637,10 +622,9 @@ namespace micm
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
       throw MicmException(
-          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
+          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != 1)
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
@@ -661,10 +645,9 @@ namespace micm
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
       throw MicmException(
-          MicmSeverity::Error, MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
+          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != values.size())
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
