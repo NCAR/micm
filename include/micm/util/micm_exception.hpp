@@ -11,7 +11,6 @@ namespace micm
 {
   enum class MicmSeverity
   {
-    Warning,
     Error,
     Critical
   };

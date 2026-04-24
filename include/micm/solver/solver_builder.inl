@@ -57,7 +57,7 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw MicmException(MicmSeverity::Warning, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
+      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
     }
   }
 
