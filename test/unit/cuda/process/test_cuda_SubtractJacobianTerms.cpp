@@ -1,8 +1,7 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
-// CUDA benchmark and correctness test for SubtractJacobianTerms using TS1 mechanism const arrays.
-// Compares three kernel variants: original, 2D (atomicAdd), and compact (bandwidth-optimized).
+// CUDA benchmark test for SubtractJacobianTerms using TS1 mechanism const arrays.
 
 #include "subtract_jacobian_terms_ts1_arrays.hpp"
 
@@ -53,32 +52,6 @@ double* AllocRandomDoubles(std::size_t count, cudaStream_t stream, std::mt19937&
   return d_ptr;
 }
 
-// Helper: compute prefix-sum offset arrays from TS1 const arrays
-void ComputeOffsets(
-    std::vector<std::size_t>& reactant_offsets,
-    std::vector<std::size_t>& flat_id_offsets,
-    std::vector<std::size_t>& yield_offsets)
-{
-  using namespace ts1_arrays;
-  const std::size_t n = JACOBIAN_PROCESS_INFO_SIZE;
-  reactant_offsets.resize(n + 1);
-  flat_id_offsets.resize(n + 1);
-  yield_offsets.resize(n + 1);
-
-  reactant_offsets[0] = 0;
-  flat_id_offsets[0] = 0;
-  yield_offsets[0] = 0;
-
-  for (std::size_t i = 0; i < n; ++i)
-  {
-    std::size_t num_dep = jacobian_process_info_num_dep_reactants[i];
-    std::size_t num_prod = jacobian_process_info_num_products[i];
-    reactant_offsets[i + 1] = reactant_offsets[i] + num_dep;
-    flat_id_offsets[i + 1] = flat_id_offsets[i] + num_dep + 1 + num_prod;
-    yield_offsets[i + 1] = yield_offsets[i] + num_prod;
-  }
-}
-
 // Helper: set up common device data (ProcessSetParam, rate_constants, state_variables)
 struct TestDeviceData
 {
@@ -119,22 +92,6 @@ struct TestDeviceData
     devstruct.jacobian_flat_ids_ = AllocAndCopy(jacobian_flat_ids, JACOBIAN_FLAT_IDS_SIZE, stream);
     devstruct.jacobian_flat_ids_size_ = JACOBIAN_FLAT_IDS_SIZE;
 
-    // Compute and copy offset arrays for 2D kernel
-    std::vector<std::size_t> reactant_offsets, flat_id_offsets, yield_offsets;
-    ComputeOffsets(reactant_offsets, flat_id_offsets, yield_offsets);
-    micm::cuda::CopyJacobianOffsets(
-        reactant_offsets.data(), flat_id_offsets.data(), yield_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE + 1, devstruct);
-
-    // Copy compact arrays for bandwidth-optimized kernel
-    micm::cuda::CopyJacobianParamsCompact(
-        host_process_info.data(),
-        jacobian_reactant_ids,
-        jacobian_flat_ids,
-        JACOBIAN_PROCESS_INFO_SIZE,
-        JACOBIAN_REACTANT_IDS_SIZE,
-        JACOBIAN_FLAT_IDS_SIZE,
-        devstruct);
-
     // Allocate rate_constants and state_variables with random data
     std::mt19937 gen(42);
     const std::size_t rate_constants_total = NUM_GROUPS * NUM_REACTIONS * VECTOR_LENGTH;
@@ -165,12 +122,6 @@ struct TestDeviceData
     CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_product_ids_, stream), "cudaFree");
     CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_yields_, stream), "cudaFree");
     CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_ids_, stream), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_reactant_offsets_, stream), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_id_offsets_, stream), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_yield_offsets_, stream), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_process_info_compact_, stream), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_ids_compact_, stream), "cudaFree");
-    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_reactant_ids_compact_, stream), "cudaFree");
     CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize cleanup");
   }
 };
@@ -207,88 +158,6 @@ std::size_t CompareJacobians(
   std::cout << "  [" << label << "] Mismatches: " << mismatches << "  Max rel error: " << max_rel_error << std::endl;
   return mismatches;
 }
-
-// TEST(CudaSubtractJacobianTerms, Correctness)
-// {
-//   auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
-
-//   TestDeviceData data;
-//   data.Setup(stream);
-
-//   const std::size_t jacobian_bytes = sizeof(double) * data.jacobian_total;
-
-//   // Allocate three jacobian arrays (one for each kernel)
-//   double* d_jacobian_orig = nullptr;
-//   double* d_jacobian_2d = nullptr;
-//   double* d_jacobian_compact = nullptr;
-//   CHECK_CUDA_ERROR(cudaMallocAsync(&d_jacobian_orig, jacobian_bytes, stream), "cudaMalloc");
-//   CHECK_CUDA_ERROR(cudaMallocAsync(&d_jacobian_2d, jacobian_bytes, stream), "cudaMalloc");
-//   CHECK_CUDA_ERROR(cudaMallocAsync(&d_jacobian_compact, jacobian_bytes, stream), "cudaMalloc");
-//   CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian_orig, 0, jacobian_bytes, stream), "cudaMemset");
-//   CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian_2d, 0, jacobian_bytes, stream), "cudaMemset");
-//   CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian_compact, 0, jacobian_bytes, stream), "cudaMemset");
-
-//   CudaMatrixParam jacobian_param_orig{};
-//   jacobian_param_orig.d_data_ = d_jacobian_orig;
-//   jacobian_param_orig.number_of_elements_ = data.jacobian_total;
-//   jacobian_param_orig.number_of_grid_cells_ = NUM_GRID_CELLS;
-//   jacobian_param_orig.vector_length_ = VECTOR_LENGTH;
-
-//   CudaMatrixParam jacobian_param_2d{};
-//   jacobian_param_2d.d_data_ = d_jacobian_2d;
-//   jacobian_param_2d.number_of_elements_ = data.jacobian_total;
-//   jacobian_param_2d.number_of_grid_cells_ = NUM_GRID_CELLS;
-//   jacobian_param_2d.vector_length_ = VECTOR_LENGTH;
-
-//   CudaMatrixParam jacobian_param_compact{};
-//   jacobian_param_compact.d_data_ = d_jacobian_compact;
-//   jacobian_param_compact.number_of_elements_ = data.jacobian_total;
-//   jacobian_param_compact.number_of_grid_cells_ = NUM_GRID_CELLS;
-//   jacobian_param_compact.vector_length_ = VECTOR_LENGTH;
-
-//   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
-
-//   // Run all three kernels
-//   micm::cuda::SubtractJacobianTermsKernelDriver(
-//       data.rate_constants_param, data.state_variables_param, jacobian_param_orig, data.devstruct);
-//   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after original kernel");
-
-//   micm::cuda::SubtractJacobianTermsKernel2DDriver(
-//       data.rate_constants_param, data.state_variables_param, jacobian_param_2d, data.devstruct);
-//   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after 2D kernel");
-
-//   micm::cuda::SubtractJacobianTermsKernelCompactDriver(
-//       data.rate_constants_param, data.state_variables_param, jacobian_param_compact, data.devstruct);
-//   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after compact kernel");
-
-//   // Copy results back to host
-//   std::vector<double> h_jacobian_orig(data.jacobian_total);
-//   std::vector<double> h_jacobian_2d(data.jacobian_total);
-//   std::vector<double> h_jacobian_compact(data.jacobian_total);
-//   CHECK_CUDA_ERROR(
-//       cudaMemcpy(h_jacobian_orig.data(), d_jacobian_orig, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
-//   CHECK_CUDA_ERROR(
-//       cudaMemcpy(h_jacobian_2d.data(), d_jacobian_2d, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
-//   CHECK_CUDA_ERROR(
-//       cudaMemcpy(h_jacobian_compact.data(), d_jacobian_compact, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy
-//       D2H");
-
-//   // Compare each variant against the original
-//   std::cout << "=== Correctness Check ===" << std::endl;
-//   std::cout << "  Total elements: " << data.jacobian_total << std::endl;
-//   std::size_t mismatches_2d = CompareJacobians(h_jacobian_orig, h_jacobian_2d, "2D vs Original");
-//   std::size_t mismatches_compact = CompareJacobians(h_jacobian_orig, h_jacobian_compact, "Compact vs Original");
-//   std::cout << "=========================" << std::endl;
-
-//   EXPECT_EQ(mismatches_2d, 0u);
-//   EXPECT_EQ(mismatches_compact, 0u);
-
-//   // Cleanup
-//   CHECK_CUDA_ERROR(cudaFreeAsync(d_jacobian_orig, stream), "cudaFree");
-//   CHECK_CUDA_ERROR(cudaFreeAsync(d_jacobian_2d, stream), "cudaFree");
-//   CHECK_CUDA_ERROR(cudaFreeAsync(d_jacobian_compact, stream), "cudaFree");
-//   data.Cleanup(stream);
-// }
 
 TEST(CudaSubtractJacobianTerms, PerformanceComparison)
 {
@@ -332,59 +201,41 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   double total_orig_ms = std::chrono::duration<double, std::milli>(end_orig - start_orig).count();
   double avg_orig_ms = total_orig_ms / MEASURE_ITERATIONS;
 
-  // ---- Benchmark compact kernel (block size 64, compact types, __ldg) ----
+  // Snapshot the original kernel's output for correctness comparison below
+  std::vector<double> h_jacobian_orig(data.jacobian_total);
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(h_jacobian_orig.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+
+  // ---- Benchmark unrolled kernel (#pragma unroll on all loops) ----
   CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
 
   for (int i = 0; i < WARMUP_ITERATIONS; ++i)
   {
-    micm::cuda::SubtractJacobianTermsKernelCompactDriver(
+    micm::cuda::SubtractJacobianTermsKernelUnrolledDriver(
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
   }
-  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after warmup");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after unrolled warmup");
 
-  auto start_compact = std::chrono::high_resolution_clock::now();
+  auto start_unrolled = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
   {
-    micm::cuda::SubtractJacobianTermsKernelCompactDriver(
+    micm::cuda::SubtractJacobianTermsKernelUnrolledDriver(
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
-    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during measurement");
+    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during unrolled measurement");
   }
-  auto end_compact = std::chrono::high_resolution_clock::now();
-  double total_compact_ms = std::chrono::duration<double, std::milli>(end_compact - start_compact).count();
-  double avg_compact_ms = total_compact_ms / MEASURE_ITERATIONS;
+  auto end_unrolled = std::chrono::high_resolution_clock::now();
+  double total_unrolled_ms = std::chrono::duration<double, std::milli>(end_unrolled - start_unrolled).count();
+  double avg_unrolled_ms = total_unrolled_ms / MEASURE_ITERATIONS;
 
-  // ---- Benchmark persistent kernel: sweep K (number of blocks) ----
-  // Tests cache-vs-parallelism tradeoff. K=NUM_GROUPS matches non-persistent behavior.
-  // Smaller K = fewer concurrent groups = smaller working set = potentially better L2 hit rate.
-  const std::vector<int> K_values = {12, 27, 54, 108, 216, 540, static_cast<int>(NUM_GROUPS)};
-  std::vector<double> persistent_times;
-  for (int K : K_values)
-  {
-    CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
-    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
-
-    for (int i = 0; i < WARMUP_ITERATIONS; ++i)
-    {
-      micm::cuda::SubtractJacobianTermsKernelPersistentDriver(
-          data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct, K);
-    }
-    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after persistent warmup");
-
-    auto start_p = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < MEASURE_ITERATIONS; ++i)
-    {
-      micm::cuda::SubtractJacobianTermsKernelPersistentDriver(
-          data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct, K);
-      CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during persistent measurement");
-    }
-    auto end_p = std::chrono::high_resolution_clock::now();
-    double total_p_ms = std::chrono::duration<double, std::milli>(end_p - start_p).count();
-    persistent_times.push_back(total_p_ms / MEASURE_ITERATIONS);
-  }
+  // Correctness check: unrolled output should match the original element-for-element
+  std::vector<double> h_jacobian_unrolled(data.jacobian_total);
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(h_jacobian_unrolled.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+  std::size_t mismatches_unrolled = CompareJacobians(h_jacobian_orig, h_jacobian_unrolled, "Unrolled vs Original");
 
   // ---- Report ----
-  std::cout << "=== SubtractJacobianTerms Performance Comparison (TS1) ===" << std::endl;
+  std::cout << "=== SubtractJacobianTerms Performance (TS1) ===" << std::endl;
   std::cout << "  Grid cells:         " << NUM_GRID_CELLS << std::endl;
   std::cout << "  Vector length:      " << VECTOR_LENGTH << std::endl;
   std::cout << "  Num groups:         " << NUM_GROUPS << std::endl;
@@ -396,19 +247,13 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   std::cout << "  Measure iterations: " << MEASURE_ITERATIONS << std::endl;
   std::cout << "  ---" << std::endl;
   std::cout << "  Original kernel (bs=128): " << avg_orig_ms << " ms/iter (total " << total_orig_ms << " ms)" << std::endl;
-  std::cout << "  Compact kernel (bs=64):   " << avg_compact_ms << " ms/iter (total " << total_compact_ms << " ms)"
-            << "  speedup: " << avg_orig_ms / avg_compact_ms << "x" << std::endl;
-  std::cout << "  --- Persistent kernel K-sweep (cache-vs-parallelism) ---" << std::endl;
-  for (size_t i = 0; i < K_values.size(); ++i)
-  {
-    std::cout << "    K=" << K_values[i] << ":\t" << persistent_times[i] << " ms/iter"
-              << "  speedup: " << avg_orig_ms / persistent_times[i] << "x" << std::endl;
-  }
-  std::cout << "==========================================================" << std::endl;
+  std::cout << "  Unrolled kernel (bs=128): " << avg_unrolled_ms << " ms/iter (total " << total_unrolled_ms << " ms)"
+            << "  speedup: " << avg_orig_ms / avg_unrolled_ms << "x" << std::endl;
+  std::cout << "===============================================" << std::endl;
 
   // Cleanup
   CHECK_CUDA_ERROR(cudaFreeAsync(d_jacobian, stream), "cudaFree");
   data.Cleanup(stream);
 
-  EXPECT_TRUE(true);
+  EXPECT_EQ(mismatches_unrolled, 0u);
 }

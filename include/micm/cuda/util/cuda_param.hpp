@@ -3,7 +3,6 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
 #include <utility>
 
 // To make the NormalizedError function works properly on GPU,
@@ -17,15 +16,6 @@ struct ProcessInfoParam
   std::size_t independent_id_;
   std::size_t number_of_dependent_reactants_;
   std::size_t number_of_products_;
-};
-
-/// Compact version of ProcessInfoParam for bandwidth-optimized kernel (8 bytes vs 32 bytes)
-struct ProcessInfoCompact
-{
-  uint32_t process_id_;
-  uint16_t independent_id_;
-  uint8_t number_of_dependent_reactants_;
-  uint8_t number_of_products_;
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
@@ -53,15 +43,6 @@ struct ProcessSetParam
   std::size_t jacobian_product_ids_size_;
   std::size_t jacobian_yields_size_;
   std::size_t jacobian_flat_ids_size_;
-  // Pre-computed offset arrays for optimized 2D kernel
-  std::size_t* jacobian_reactant_offsets_ = nullptr;  // prefix sum of number_of_dependent_reactants_
-  std::size_t* jacobian_flat_id_offsets_ = nullptr;    // prefix sum of (num_dep_react + 1 + num_products)
-  std::size_t* jacobian_yield_offsets_ = nullptr;      // prefix sum of number_of_products_
-  std::size_t jacobian_offsets_size_;                   // = jacobian_process_info_size_ + 1
-  // Compact (narrowed) arrays for bandwidth-optimized kernel
-  ProcessInfoCompact* jacobian_process_info_compact_ = nullptr;
-  uint32_t* jacobian_flat_ids_compact_ = nullptr;
-  uint16_t* jacobian_reactant_ids_compact_ = nullptr;
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
