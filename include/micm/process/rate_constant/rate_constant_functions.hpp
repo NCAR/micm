@@ -38,7 +38,9 @@
 // constexpr <cmath> functions (std::exp, std::pow, std::sqrt, etc.) require C++23
 // and compiler support (P1383R2). Guard so MSVC and other compilers that haven't
 // implemented this yet still produce valid code.
-#ifdef __cpp_lib_constexpr_cmath
+// __CUDACC__: nvcc always needs constexpr so --expt-relaxed-constexpr can call
+// these from device code, even when the host compiler lacks P1383R2.
+#if defined(__cpp_lib_constexpr_cmath) || defined(__CUDACC__)
 #  define MICM_CONSTEXPR constexpr
 #else
 #  define MICM_CONSTEXPR
