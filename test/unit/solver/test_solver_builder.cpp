@@ -69,7 +69,6 @@ TEST(SolverBuilder, ThrowsUnusedSpecies)
   }
 }
 
-
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
   auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
