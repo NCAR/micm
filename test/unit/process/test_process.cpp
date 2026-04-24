@@ -156,8 +156,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]];
 
     // r1 (Arrhenius) at rc_index 0; bar is parameterized: air_density * 0.82
-    double expected_arr;
-    CalculateArrhenius(&rc1_params, 1, cond.temperature_, cond.pressure_, &expected_arr);
+    double expected_arr = CalculateArrhenius(rc1_params, cond.temperature_, cond.pressure_);
     expected_arr *= (cond.air_density_ * 0.82);
     EXPECT_NEAR(state.rate_constants_[i_cell][0], expected_arr, 1.0e-12 * expected_arr)
         << "grid cell " << i_cell << "; Arrhenius reaction";

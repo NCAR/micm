@@ -76,8 +76,8 @@ namespace micm
     ///
     ///   1. Evaluate any lambda entries on CPU; upload rate_constants_ to device.
     ///   2. Upload conditions and custom_rate_parameters_ to device.
-    ///   3. Launch CalculateRateConstantsKernel to fill analytic slots on device.
-    ///   4. If parameterized multipliers exist: download, apply on CPU, re-upload.
+    ///   3. Evaluate parameterized multipliers on CPU; pack and upload to device.
+    ///   4. Launch CalculateRateConstantsKernel to fill analytic slots and apply multipliers.
     ///
     /// After this call, device rate_constants_ is fully populated for the current step.
     template<class StatePolicy>
@@ -85,6 +85,8 @@ namespace micm
       requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
                VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
     {
+      using DM = typename StatePolicy::DenseMatrixPolicyType;
+
       // CPU lambda evaluation
       if (!cpu_store.lambda_entries_.empty())
       {
@@ -97,24 +99,15 @@ namespace micm
       const Conditions* d_conditions = cuda_rate_store_.UploadConditions(state.conditions_);
       state.custom_rate_parameters_.CopyToDevice();
 
-      // GPU analytic calculation
+      // Evaluate parameterized multipliers on CPU and upload in interleaved layout
+      const double* d_mult_vals = cuda_rate_store_.UploadMultiplierValues(
+          cpu_store, state.conditions_, DM::GroupVectorSize());
+
+      // GPU analytic calculation (includes multiplier application)
       auto rc_param = state.rate_constants_.AsDeviceParam();
       auto cp_param = state.custom_rate_parameters_.AsDeviceParam();
-      micm::cuda::CalculateRateConstantsKernelDriver(cuda_rate_store_.GetParam(), d_conditions, rc_param, cp_param);
-
-      // Parameterized multipliers are CPU-only (std::function); apply via round-trip if needed
-      if (!cpu_store.parameterized_multipliers_.empty())
-      {
-        state.rate_constants_.CopyToHost();
-        const std::size_t n_cells = state.rate_constants_.NumRows();
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        {
-          const auto& cond = state.conditions_[i_cell];
-          for (const auto& mult : cpu_store.parameterized_multipliers_)
-            state.rate_constants_[i_cell][mult.rc_index] *= mult.evaluate(cond);
-        }
-        state.rate_constants_.CopyToDevice();
-      }
+      micm::cuda::CalculateRateConstantsKernelDriver(
+          cuda_rate_store_.GetParam(), d_conditions, rc_param, cp_param, d_mult_vals);
     }
 
     /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;

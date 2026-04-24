@@ -738,26 +738,26 @@ namespace micm
     ArrheniusRateConstantParameters params;
     params.A_ = 2.15e-11;
     params.C_ = 110;
-    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][0]);
+    state.rate_constants_[0][0] = CalculateArrhenius(params, temperature, pressure);
 
     // O1D_O2_1 (Arrhenius r2, sorted index 1)
     // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     params.A_ = 3.3e-11;
     params.C_ = 55;
-    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][1]);
+    state.rate_constants_[0][1] = CalculateArrhenius(params, temperature, pressure);
 
     // O_O3_1 (Arrhenius r3, sorted index 2)
     // k_O_O3_1: O + O3 -> 2*O2
     params.A_ = 8e-12;
     params.C_ = -2060;
-    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][2]);
+    state.rate_constants_[0][2] = CalculateArrhenius(params, temperature, pressure);
 
     // M_O_O2_1 (Arrhenius r4, sorted index 3)
     // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     params.A_ = 6e-34;
     params.B_ = 2.4;
     params.C_ = 0;
-    CalculateArrhenius(&params, 1, temperature, pressure, &state.rate_constants_[0][3]);
+    state.rate_constants_[0][3] = CalculateArrhenius(params, temperature, pressure);
 
     // O2_1 (UserDefined photo_1 jO2, sorted index 4)
     // k_O2_1: O2 -> 2*O

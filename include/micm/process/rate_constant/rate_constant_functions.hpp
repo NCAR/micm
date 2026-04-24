@@ -5,20 +5,12 @@
 /// @file rate_constant_functions.hpp
 /// @brief Calculation functions for all supported rate constant types.
 ///
-/// Each function processes a contiguous block of reactions of a single type for
-/// one grid cell.  The loop is inside the function so the compiler can
-/// SIMD-vectorize the inner pass; on GPU the same functions run per-thread via
-/// constexpr (callable from device code with --expt-relaxed-constexpr).
+/// Each function takes a single parameter struct and returns a single double.
+/// CPU: called inside ForEachRow loops (one reaction at a time, all cells).
+/// GPU: called per-thread inside CalculateRatesForThread (one cell per thread).
 ///
-/// **Output pointer contract:**
-/// The caller must position `output` at the correct type-group offset within
-/// `rate_constants[cell]`.  ReactionRateConstantStore provides inline offset helpers
-/// (e.g. troe_offset(), ternary_offset()) for this purpose.
-///
-/// **CPU/GPU split:**
-/// Analytic functions (CalculateArrhenius, CalculateTroe, …) are safe on both
-/// CPU and GPU.  CalculateUserDefined and CalculateSurface read from
-/// `custom_params`, which must be the device pointer when called from a CUDA kernel.
+/// All functions are MICM_CONSTEXPR so they are callable from device code
+/// with --expt-relaxed-constexpr.
 
 #define _USE_MATH_DEFINES
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
@@ -53,26 +45,6 @@
 namespace micm
 {
 
-  /// @brief Calculate Arrhenius rate constants for a contiguous block of reactions.
-  ///        k = A * exp(C/T) * (T/D)^B * (1 + E*P)
-  /// @param params      Array of Arrhenius parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param pressure    Pressure [Pa]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateArrhenius(
-      const ArrheniusRateConstantParameters* params,
-      std::size_t n,
-      double temperature,
-      double pressure,
-      double* output)
-  {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = params[i].A_ * std::exp(params[i].C_ / temperature) *
-                  std::pow(temperature / params[i].D_, params[i].B_) *
-                  (1.0 + params[i].E_ * pressure);
-  }
-
   /// @brief Shared falloff kernel for Troe and TernaryChemicalActivation.
   ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
   ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
@@ -90,142 +62,94 @@ namespace micm
            std::pow(p.Fc_, p.N_ / (p.N_ + std::pow(std::log10(ratio), 2.0)));
   }
 
-  /// @brief Calculate Troe rate constants for a contiguous block of reactions.
-  /// @param params      Array of Troe parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param air_density Air number density [mol m-3]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateTroe(
-      const TroeRateConstantParameters* params,
-      std::size_t n,
+  /// @brief Calculate Arrhenius rate constant.
+  ///        k = A * exp(C/T) * (T/D)^B * (1 + E*P)
+  MICM_CONSTEXPR inline double CalculateArrhenius(
+      const ArrheniusRateConstantParameters& p,
       double temperature,
-      double air_density,
-      double* output)
+      double pressure)
   {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = FalloffKernel(params[i], temperature, air_density, air_density);
+    return p.A_ * std::exp(p.C_ / temperature) *
+           std::pow(temperature / p.D_, p.B_) *
+           (1.0 + p.E_ * pressure);
   }
 
-  /// @brief Calculate Ternary Chemical Activation rate constants for a contiguous block of reactions.
-  /// @param params      Array of TernaryChemicalActivation parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param air_density Air number density [mol m-3]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateTernaryChemicalActivation(
-      const TernaryChemicalActivationRateConstantParameters* params,
-      std::size_t n,
+  /// @brief Calculate Troe rate constant.
+  MICM_CONSTEXPR inline double CalculateTroe(
+      const TroeRateConstantParameters& p,
       double temperature,
-      double air_density,
-      double* output)
+      double air_density)
   {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = FalloffKernel(params[i], temperature, air_density, 1.0);
+    return FalloffKernel(p, temperature, air_density, air_density);
   }
 
-  /// @brief Calculate Tunneling rate constants for a contiguous block of reactions.
+  /// @brief Calculate Ternary Chemical Activation rate constant.
+  MICM_CONSTEXPR inline double CalculateTernaryChemicalActivation(
+      const TernaryChemicalActivationRateConstantParameters& p,
+      double temperature,
+      double air_density)
+  {
+    return FalloffKernel(p, temperature, air_density, 1.0);
+  }
+
+  /// @brief Calculate Tunneling rate constant.
   ///        k = A * exp(-B/T + C/T^3)
-  /// @param params      Array of Tunneling parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateTunneling(
-      const TunnelingRateConstantParameters* params,
-      std::size_t n,
-      double temperature,
-      double* output)
+  MICM_CONSTEXPR inline double CalculateTunneling(
+      const TunnelingRateConstantParameters& p,
+      double temperature)
   {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = params[i].A_ *
-                  std::exp(-params[i].B_ / temperature +
-                           params[i].C_ / (temperature * temperature * temperature));
+    return p.A_ * std::exp(-p.B_ / temperature + p.C_ / (temperature * temperature * temperature));
   }
 
-  /// @brief Calculate Branched rate constants for a contiguous block of reactions.
-  ///        Requires params[i].k0_ and params[i].z_ to be precomputed by
-  ///        ReactionRateConstantStore::BuildFrom before calling this function.
-  /// @param params      Array of Branched parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param air_density Air number density [mol m-3]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateBranched(
-      const BranchedRateConstantParameters* params,
-      std::size_t n,
+  /// @brief Calculate Branched rate constant.
+  ///        Requires p.k0_ and p.z_ to be precomputed by ReactionRateConstantStore::BuildFrom.
+  MICM_CONSTEXPR inline double CalculateBranched(
+      const BranchedRateConstantParameters& p,
       double temperature,
-      double air_density,
-      double* output)
+      double air_density)
   {
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      double a     = params[i].k0_ * air_density;
-      double b     = 0.43 * std::pow(temperature / 298.0, -8.0);
-      double A_val = a / (1.0 + a / b) *
-                     std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2.0)));
-      double pre = params[i].X_ * std::exp(-params[i].Y_ / temperature);
-      output[i]  = (params[i].branch_ == BranchedRateConstantParameters::Branch::Alkoxy)
-                       ? pre * (params[i].z_ / (params[i].z_ + A_val))
-                       : pre * (A_val / (A_val + params[i].z_));
-    }
+    double a     = p.k0_ * air_density;
+    double b     = 0.43 * std::pow(temperature / 298.0, -8.0);
+    double A_val = a / (1.0 + a / b) *
+                   std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2.0)));
+    double pre = p.X_ * std::exp(-p.Y_ / temperature);
+    return (p.branch_ == BranchedRateConstantParameters::Branch::Alkoxy)
+               ? pre * (p.z_ / (p.z_ + A_val))
+               : pre * (A_val / (A_val + p.z_));
   }
 
-  /// @brief Calculate Taylor Series rate constants for a contiguous block of reactions.
+  /// @brief Calculate Taylor Series rate constant.
   ///        k = (sum_{j=0}^{n-1} c_j * T^j) * A * exp(C/T) * (T/D)^B * (1 + E*P)
-  /// @param params      Array of TaylorSeries parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param pressure    Pressure [Pa]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateTaylorSeries(
-      const TaylorSeriesRateConstantParameters* params,
-      std::size_t n,
+  MICM_CONSTEXPR inline double CalculateTaylorSeries(
+      const TaylorSeriesRateConstantParameters& p,
       double temperature,
-      double pressure,
-      double* output)
+      double pressure)
   {
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      double poly  = 0.0;
-      double t_pow = 1.0;
-      for (std::size_t j = 0; j < params[i].n_coefficients_; ++j, t_pow *= temperature)
-        poly += params[i].coefficients_[j] * t_pow;
-      output[i] = poly * params[i].A_ * std::exp(params[i].C_ / temperature) *
-                  std::pow(temperature / params[i].D_, params[i].B_) *
-                  (1.0 + params[i].E_ * pressure);
-    }
+    double poly  = 0.0;
+    double t_pow = 1.0;
+    for (std::size_t j = 0; j < p.n_coefficients_; ++j, t_pow *= temperature)
+      poly += p.coefficients_[j] * t_pow;
+    return poly * p.A_ * std::exp(p.C_ / temperature) *
+           std::pow(temperature / p.D_, p.B_) *
+           (1.0 + p.E_ * pressure);
   }
 
-  /// @brief Calculate Reversible rate constants for a contiguous block of reactions.
+  /// @brief Calculate Reversible rate constant.
   ///        k = A * exp(C/T) * k_r
-  /// @param params      Array of Reversible parameters, length n
-  /// @param n           Number of reactions
-  /// @param temperature Temperature [K]
-  /// @param output      Destination array of length n
-  MICM_CONSTEXPR inline void CalculateReversible(
-      const ReversibleRateConstantParameters* params,
-      std::size_t n,
-      double temperature,
-      double* output)
+  MICM_CONSTEXPR inline double CalculateReversible(
+      const ReversibleRateConstantParameters& p,
+      double temperature)
   {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = params[i].A_ * std::exp(params[i].C_ / temperature) * params[i].k_r_;
+    return p.A_ * std::exp(p.C_ / temperature) * p.k_r_;
   }
 
-  /// @brief Apply user-defined rate constants from per-grid-cell custom parameters.
-  ///        output[i] = custom_params[params[i].custom_param_index_] * params[i].scaling_factor_
-  /// @param params        Array of UserDefined data, length n
-  /// @param n             Number of reactions
-  /// @param custom_params Row of custom_rate_parameters_ for this grid cell
-  /// @param output        Destination array of length n
-  MICM_CONSTEXPR inline void CalculateUserDefined(
-      const UserDefinedRateConstantData* params,
-      std::size_t n,
-      const double* custom_params,
-      double* output)
+  /// @brief Calculate user-defined rate constant.
+  ///        k = custom_param_value * scaling_factor
+  MICM_CONSTEXPR inline double CalculateUserDefined(
+      const UserDefinedRateConstantData& p,
+      double custom_param_value)
   {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = custom_params[params[i].custom_param_index_] * params[i].scaling_factor_;
+    return custom_param_value * p.scaling_factor_;
   }
 
   /// @brief Calculate one surface rate constant given pre-fetched aerosol parameters.
@@ -240,23 +164,6 @@ namespace micm
     double mean_free_speed = std::sqrt(p.mean_free_speed_factor_ * temperature);
     return 4.0 * num_conc * M_PI * radius * radius /
            (radius / p.diffusion_coefficient_ + 4.0 / (mean_free_speed * p.reaction_probability_));
-  }
-
-  /// @brief Calculate surface rate constants for n reactions.
-  ///        Reads radius and num_conc from custom_params[custom_param_base_index_] and +1.
-  MICM_CONSTEXPR inline void CalculateSurface(
-      const SurfaceRateConstantData* params,
-      std::size_t n,
-      double temperature,
-      const double* custom_params,
-      double* output)
-  {
-    for (std::size_t i = 0; i < n; ++i)
-      output[i] = CalculateSurfaceOne(
-          params[i],
-          temperature,
-          custom_params[params[i].custom_param_base_index_],
-          custom_params[params[i].custom_param_base_index_ + 1]);
   }
 
 }  // namespace micm

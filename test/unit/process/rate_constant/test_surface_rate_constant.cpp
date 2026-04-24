@@ -34,8 +34,7 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
 
   double temperature = 273.65;  // K
   double custom_params[2] = { 1.0e-7, 2.5e6 };  // effective radius [m], particle number concentration [# m-3]
-  double k;
-  CalculateSurface(&data, 1, temperature, custom_params, &k);
+  double k = CalculateSurfaceOne(data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
 
   double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                     (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025))));
@@ -56,8 +55,7 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
 
   double temperature = 273.65;
   double custom_params[2] = { 1.0e-7, 2.5e6 };
-  double k;
-  CalculateSurface(&data, 1, temperature, custom_params, &k);
+  double k = CalculateSurfaceOne(data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
 
   double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                     (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));

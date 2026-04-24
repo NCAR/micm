@@ -38,8 +38,7 @@ TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArguments)
   };
   ComputeDerivedFields(params);
 
-  double k;
-  micm::CalculateBranched(&params, 1, conditions.temperature_, conditions.air_density_, &k);
+  double k = micm::CalculateBranched(params, conditions.temperature_, conditions.air_density_);
 
   double air_dens_n_cm3 = 42.2 * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
   double a = 2.0e-22 * std::exp(2) * 2.45e19;
@@ -69,8 +68,7 @@ TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArguments)
   };
   ComputeDerivedFields(params);
 
-  double k;
-  micm::CalculateBranched(&params, 1, conditions.temperature_, conditions.air_density_, &k);
+  double k = micm::CalculateBranched(params, conditions.temperature_, conditions.air_density_);
 
   double air_dens_n_cm3 = 42.2 * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
   double a = 2.0e-22 * std::exp(2) * 2.45e19;

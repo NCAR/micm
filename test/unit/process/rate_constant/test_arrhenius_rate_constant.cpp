@@ -14,33 +14,32 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
   };
 
   micm::ArrheniusRateConstantParameters zero{};
-  double k;
-  micm::CalculateArrhenius(&zero, 1, conditions.temperature_, conditions.pressure_, &k);
+  double k = micm::CalculateArrhenius(zero, conditions.temperature_, conditions.pressure_);
   double expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = expected;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
   parameters.A_ = 2.2e-10;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   expected = 2.2e-10;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // O + HO2 -> OH + O2
   parameters.A_ = 3e-11;
   parameters.C_ = -200;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   expected = 3e-11 * std::exp(-200 / 301.24);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   expected = 2.6e-12 * std::exp(-350 / 301.24);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
@@ -52,33 +51,32 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArguments)
   };
 
   micm::ArrheniusRateConstantParameters zero{};
-  double k;
-  micm::CalculateArrhenius(&zero, 1, conditions.temperature_, conditions.pressure_, &k);
+  double k = micm::CalculateArrhenius(zero, conditions.temperature_, conditions.pressure_);
   double expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 1;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
   parameters.A_ = 2.2e-10;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   expected = 2.2e-10;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // O + HO2 -> OH + O2
   parameters.A_ = 3e-11;
   parameters.C_ = -200;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   expected = 3e-11 * std::exp(-200 / 301.24);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
-  micm::CalculateArrhenius(&parameters, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateArrhenius(parameters, conditions.temperature_, conditions.pressure_);
   expected = 2.6e-12 * std::exp(-350 / 301.24);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

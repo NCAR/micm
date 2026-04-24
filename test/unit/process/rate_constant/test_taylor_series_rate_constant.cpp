@@ -13,20 +13,19 @@ TEST(TaylorSeriesRateConstant, CalculateWithSystem)
   };
 
   micm::TaylorSeriesRateConstantParameters params{};
-  double k;
 
   // Default parameters: A=1, n_coefficients=1, coefficients[0]=1 → k=1
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  double k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   double expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   params.A_ = 1;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
   params.A_ = 2.2e-10;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   expected = 2.2e-10;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
@@ -37,7 +36,7 @@ TEST(TaylorSeriesRateConstant, CalculateWithSystem)
   params.coefficients_[1] = 1.3e-2;
   params.coefficients_[2] = 5.2e-4;
   params.n_coefficients_  = 3;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   expected = 3e-11 * std::exp(-200 / 301.24) * (12.5 + 1.3e-2 * 301.24 + 5.2e-4 * std::pow(301.24, 2));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
@@ -48,7 +47,7 @@ TEST(TaylorSeriesRateConstant, CalculateWithSystem)
   params.coefficients_[1] = 4.3e-1;
   params.coefficients_[2] = 7.3e-3;
   params.n_coefficients_  = 3;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   expected = 2.6e-12 * std::exp(-350 / 301.24) * (1.0 + 4.3e-1 * 301.24 + 7.3e-3 * std::pow(301.24, 2));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
@@ -60,19 +59,18 @@ TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArguments)
   };
 
   micm::TaylorSeriesRateConstantParameters params{};
-  double k;
 
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  double k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   double expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   params.A_ = 1;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
   params.A_ = 2.2e-10;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   expected = 2.2e-10;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
@@ -83,7 +81,7 @@ TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArguments)
   params.coefficients_[1] = 1.3e-2;
   params.coefficients_[2] = 5.2e-4;
   params.n_coefficients_  = 3;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   expected = 3e-11 * std::exp(-200 / 301.24) * (12.5 + 1.3e-2 * 301.24 + 5.2e-4 * std::pow(301.24, 2));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
@@ -94,7 +92,7 @@ TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArguments)
   params.coefficients_[1] = 4.3e-1;
   params.coefficients_[2] = 7.3e-3;
   params.n_coefficients_  = 3;
-  micm::CalculateTaylorSeries(&params, 1, conditions.temperature_, conditions.pressure_, &k);
+  k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
   expected = 2.6e-12 * std::exp(-350 / 301.24) * (1.0 + 4.3e-1 * 301.24 + 7.3e-3 * std::pow(301.24, 2));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

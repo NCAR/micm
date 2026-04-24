@@ -9,7 +9,7 @@ TEST(UserDefinedRateConstant, CalculateWithSystem)
   double custom_params[1] = { 0.5 };
   micm::UserDefinedRateConstantData data{ .scaling_factor_ = 1.0, .custom_param_index_ = 0 };
   double k;
-  micm::CalculateUserDefined(&data, 1, custom_params, &k);
+  k = micm::CalculateUserDefined(data, custom_params[data.custom_param_index_]);
   EXPECT_EQ(k, 0.5);
 }
 
@@ -18,7 +18,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRate)
   double custom_params[1] = { 1.1 };
   micm::UserDefinedRateConstantData data{ .scaling_factor_ = 1.0, .custom_param_index_ = 0 };
   double k;
-  micm::CalculateUserDefined(&data, 1, custom_params, &k);
+  k = micm::CalculateUserDefined(data, custom_params[data.custom_param_index_]);
   EXPECT_EQ(k, 1.1);
 }
 
@@ -27,7 +27,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
   double custom_params[1] = { 1.1 };
   micm::UserDefinedRateConstantData data{ .scaling_factor_ = 1.0, .custom_param_index_ = 0 };
   double k;
-  micm::CalculateUserDefined(&data, 1, custom_params, &k);
+  k = micm::CalculateUserDefined(data, custom_params[data.custom_param_index_]);
   EXPECT_EQ(k, 1.1);
 }
 
@@ -36,6 +36,6 @@ TEST(UserDefinedRateConstant, CustomScalingFactor)
   double custom_params[1] = { 1.2 };
   micm::UserDefinedRateConstantData data{ .scaling_factor_ = 2.0, .custom_param_index_ = 0 };
   double k;
-  micm::CalculateUserDefined(&data, 1, custom_params, &k);
+  k = micm::CalculateUserDefined(data, custom_params[data.custom_param_index_]);
   EXPECT_EQ(k, 1.2 * 2.0);
 }

@@ -293,7 +293,7 @@ namespace micm
               const auto& p = store.arrhenius_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateArrhenius(&p, 1, c.temperature_, c.pressure_, &out); },
+                  { out = CalculateArrhenius(p, c.temperature_, c.pressure_); },
                   rc.GetColumnView(i),
                   cond);
             }
@@ -302,7 +302,7 @@ namespace micm
               const auto& p = store.troe_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateTroe(&p, 1, c.temperature_, c.air_density_, &out); },
+                  { out = CalculateTroe(p, c.temperature_, c.air_density_); },
                   rc.GetColumnView(store.troe_offset() + i),
                   cond);
             }
@@ -311,7 +311,7 @@ namespace micm
               const auto& p = store.ternary_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateTernaryChemicalActivation(&p, 1, c.temperature_, c.air_density_, &out); },
+                  { out = CalculateTernaryChemicalActivation(p, c.temperature_, c.air_density_); },
                   rc.GetColumnView(store.ternary_offset() + i),
                   cond);
             }
@@ -320,7 +320,7 @@ namespace micm
               const auto& p = store.branched_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateBranched(&p, 1, c.temperature_, c.air_density_, &out); },
+                  { out = CalculateBranched(p, c.temperature_, c.air_density_); },
                   rc.GetColumnView(store.branched_offset() + i),
                   cond);
             }
@@ -329,7 +329,7 @@ namespace micm
               const auto& p = store.tunneling_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateTunneling(&p, 1, c.temperature_, &out); },
+                  { out = CalculateTunneling(p, c.temperature_); },
                   rc.GetColumnView(store.tunneling_offset() + i),
                   cond);
             }
@@ -338,7 +338,7 @@ namespace micm
               const auto& p = store.taylor_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateTaylorSeries(&p, 1, c.temperature_, c.pressure_, &out); },
+                  { out = CalculateTaylorSeries(p, c.temperature_, c.pressure_); },
                   rc.GetColumnView(store.taylor_offset() + i),
                   cond);
             }
@@ -347,7 +347,7 @@ namespace micm
               const auto& p = store.reversible_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
-                  { CalculateReversible(&p, 1, c.temperature_, &out); },
+                  { out = CalculateReversible(p, c.temperature_); },
                   rc.GetColumnView(store.reversible_offset() + i),
                   cond);
             }
@@ -355,8 +355,8 @@ namespace micm
             {
               const auto& p = store.user_defined_[i];
               rc.ForEachRow(
-                  [scaling = p.scaling_factor_](double& out, const double& cp_val)
-                  { out = cp_val * scaling; },
+                  [&p](double& out, const double& cp_val)
+                  { out = CalculateUserDefined(p, cp_val); },
                   rc.GetColumnView(store.user_defined_offset() + i),
                   cp.GetConstColumnView(p.custom_param_index_));
             }

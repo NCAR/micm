@@ -13,8 +13,7 @@ TEST(TunnelingRateConstant, CalculateWithMinimalArguments)
     .temperature_ = 301.24,  // [K]
   };
   micm::TunnelingRateConstantParameters tunneling_params;
-  double k;
-  micm::CalculateTunneling(&tunneling_params, 1, conditions.temperature_, &k);
+  double k = micm::CalculateTunneling(tunneling_params, conditions.temperature_);
   double expected = 1.0;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
@@ -26,8 +25,7 @@ TEST(TunnelingRateConstant, CalculateWithAllArguments)
     .temperature_ = temperature,  // [K]
   };
   micm::TunnelingRateConstantParameters tunneling_params{ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 };
-  double k;
-  micm::CalculateTunneling(&tunneling_params, 1, conditions.temperature_, &k);
+  double k = micm::CalculateTunneling(tunneling_params, conditions.temperature_);
   double expected = 1.2 * std::exp(-2.3 / temperature) * std::exp(302.3 / std::pow(temperature, 3));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

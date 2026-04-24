@@ -37,6 +37,13 @@ namespace micm
     UserDefinedRateConstantData*                     d_user_defined_ = nullptr;
     SurfaceRateConstantData*                         d_surface_      = nullptr;
 
+    // Parameterized-multiplier rc_index array (static, built once)
+    std::size_t* d_mult_rc_indices_ = nullptr;
+
+    // Per-step multiplier values buffer (interleaved layout, grows if needed)
+    double*     d_mult_vals_          = nullptr;
+    std::size_t d_mult_vals_capacity_ = 0;
+
     // Device buffer for per-step conditions (grows if needed)
     Conditions* d_conditions_          = nullptr;
     std::size_t d_conditions_capacity_ = 0;
@@ -82,6 +89,9 @@ namespace micm
       FreeDevice(d_reversible_);
       FreeDevice(d_user_defined_);
       FreeDevice(d_surface_);
+      FreeDevice(d_mult_rc_indices_);
+      FreeDevice(d_mult_vals_);
+      d_mult_vals_capacity_ = 0;
       FreeDevice(d_conditions_);
       d_conditions_capacity_ = 0;
     }
@@ -102,6 +112,9 @@ namespace micm
           d_reversible_(std::exchange(other.d_reversible_, nullptr)),
           d_user_defined_(std::exchange(other.d_user_defined_, nullptr)),
           d_surface_(std::exchange(other.d_surface_, nullptr)),
+          d_mult_rc_indices_(std::exchange(other.d_mult_rc_indices_, nullptr)),
+          d_mult_vals_(std::exchange(other.d_mult_vals_, nullptr)),
+          d_mult_vals_capacity_(std::exchange(other.d_mult_vals_capacity_, 0)),
           d_conditions_(std::exchange(other.d_conditions_, nullptr)),
           d_conditions_capacity_(std::exchange(other.d_conditions_capacity_, 0)),
           param_(std::exchange(other.param_, {}))
@@ -168,6 +181,66 @@ namespace micm
       param_.reversible_offset_   = cpu_store.reversible_offset();
       param_.user_defined_offset_ = cpu_store.user_defined_offset();
       param_.surface_offset_      = cpu_store.surface_offset();
+
+      // Upload parameterized-multiplier rc_indices (static per solver build)
+      const auto& mults = cpu_store.parameterized_multipliers_;
+      FreeDevice(d_mult_rc_indices_);
+      param_.n_multipliers_     = mults.size();
+      param_.d_mult_rc_indices_ = nullptr;
+      if (!mults.empty())
+      {
+        std::vector<std::size_t> rc_indices(mults.size());
+        for (std::size_t i = 0; i < mults.size(); ++i)
+          rc_indices[i] = mults[i].rc_index;
+        auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+        CHECK_CUDA_ERROR(
+            cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
+        CHECK_CUDA_ERROR(
+            cudaMemcpyAsync(
+                d_mult_rc_indices_, rc_indices.data(), sizeof(std::size_t) * mults.size(), cudaMemcpyHostToDevice, stream),
+            "cudaMemcpy");
+        param_.d_mult_rc_indices_ = d_mult_rc_indices_;
+      }
+    }
+
+    /// @brief Evaluate parameterized multipliers on CPU, pack into interleaved layout, and upload.
+    ///        Layout: [group * n_mults * L + mult * L + lane]
+    /// @return Device pointer to multiplier values, or nullptr if there are no multipliers.
+    const double* UploadMultiplierValues(
+        const ReactionRateConstantStore& cpu_store,
+        const std::vector<Conditions>&   conditions,
+        std::size_t                      L)
+    {
+      const auto& mults = cpu_store.parameterized_multipliers_;
+      if (mults.empty())
+        return nullptr;
+
+      const std::size_t n_mults  = mults.size();
+      const std::size_t n_cells  = conditions.size();
+      const std::size_t n_groups = (n_cells + L - 1) / L;
+      const std::size_t n_vals   = n_groups * n_mults * L;
+
+      std::vector<double> host_vals(n_vals, 0.0);
+      for (std::size_t g = 0; g < n_groups; ++g)
+        for (std::size_t i = 0; i < n_mults; ++i)
+          for (std::size_t j = 0; j < L; ++j)
+          {
+            const std::size_t cell = g * L + j;
+            if (cell < n_cells)
+              host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate(conditions[cell]);
+          }
+
+      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      if (n_vals > d_mult_vals_capacity_)
+      {
+        FreeDevice(d_mult_vals_);
+        CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_vals_, sizeof(double) * n_vals, stream), "cudaMalloc");
+        d_mult_vals_capacity_ = n_vals;
+      }
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(d_mult_vals_, host_vals.data(), sizeof(double) * n_vals, cudaMemcpyHostToDevice, stream),
+          "cudaMemcpy");
+      return d_mult_vals_;
     }
 
     /// @brief Upload the current conditions array to device, growing the buffer if needed.
