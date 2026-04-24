@@ -38,65 +38,38 @@ namespace micm
         std::size_t   local_tid,
         std::size_t   L)
     {
-#define WRITE_RC(offset, i, val) rc_base[((offset) + (i)) * L + local_tid] = (val)
+      auto out = [&](std::size_t offset, std::size_t i) -> double* {
+        return &rc_base[(offset + i) * L + local_tid];
+      };
 
       for (std::size_t i = 0; i < store.n_arrhenius_; ++i)
-      {
-        double val;
-        micm::CalculateArrhenius(store.d_arrhenius_ + i, 1, temperature, pressure, &val);
-        WRITE_RC(0, i, val);
-      }
+        micm::CalculateArrhenius(store.d_arrhenius_ + i, 1, temperature, pressure, out(0, i));
       for (std::size_t i = 0; i < store.n_troe_; ++i)
-      {
-        double val;
-        micm::CalculateTroe(store.d_troe_ + i, 1, temperature, air_density, &val);
-        WRITE_RC(store.troe_offset_, i, val);
-      }
+        micm::CalculateTroe(store.d_troe_ + i, 1, temperature, air_density, out(store.troe_offset_, i));
       for (std::size_t i = 0; i < store.n_ternary_; ++i)
-      {
-        double val;
-        micm::CalculateTernaryChemicalActivation(store.d_ternary_ + i, 1, temperature, air_density, &val);
-        WRITE_RC(store.ternary_offset_, i, val);
-      }
+        micm::CalculateTernaryChemicalActivation(store.d_ternary_ + i, 1, temperature, air_density, out(store.ternary_offset_, i));
       for (std::size_t i = 0; i < store.n_branched_; ++i)
-      {
-        double val;
-        micm::CalculateBranched(store.d_branched_ + i, 1, temperature, air_density, &val);
-        WRITE_RC(store.branched_offset_, i, val);
-      }
+        micm::CalculateBranched(store.d_branched_ + i, 1, temperature, air_density, out(store.branched_offset_, i));
       for (std::size_t i = 0; i < store.n_tunneling_; ++i)
-      {
-        double val;
-        micm::CalculateTunneling(store.d_tunneling_ + i, 1, temperature, &val);
-        WRITE_RC(store.tunneling_offset_, i, val);
-      }
+        micm::CalculateTunneling(store.d_tunneling_ + i, 1, temperature, out(store.tunneling_offset_, i));
       for (std::size_t i = 0; i < store.n_taylor_; ++i)
-      {
-        double val;
-        micm::CalculateTaylorSeries(store.d_taylor_ + i, 1, temperature, pressure, &val);
-        WRITE_RC(store.taylor_offset_, i, val);
-      }
+        micm::CalculateTaylorSeries(store.d_taylor_ + i, 1, temperature, pressure, out(store.taylor_offset_, i));
       for (std::size_t i = 0; i < store.n_reversible_; ++i)
-      {
-        double val;
-        micm::CalculateReversible(store.d_reversible_ + i, 1, temperature, &val);
-        WRITE_RC(store.reversible_offset_, i, val);
-      }
+        micm::CalculateReversible(store.d_reversible_ + i, 1, temperature, out(store.reversible_offset_, i));
       for (std::size_t i = 0; i < store.n_user_defined_; ++i)
       {
         const micm::UserDefinedRateConstantData& p = store.d_user_defined_[i];
-        double val = cp_base[p.custom_param_index_ * L + local_tid] * p.scaling_factor_;
-        WRITE_RC(store.user_defined_offset_, i, val);
+        *out(store.user_defined_offset_, i) = cp_base[p.custom_param_index_ * L + local_tid] * p.scaling_factor_;
       }
       for (std::size_t i = 0; i < store.n_surface_; ++i)
       {
         const micm::SurfaceRateConstantData& p = store.d_surface_[i];
-        double radius   = cp_base[p.custom_param_base_index_ * L + local_tid];
-        double num_conc = cp_base[(p.custom_param_base_index_ + 1) * L + local_tid];
-        WRITE_RC(store.surface_offset_, i, micm::CalculateSurfaceOne(p, temperature, radius, num_conc));
+        *out(store.surface_offset_, i) = micm::CalculateSurfaceOne(
+            p,
+            temperature,
+            cp_base[p.custom_param_base_index_ * L + local_tid],
+            cp_base[(p.custom_param_base_index_ + 1) * L + local_tid]);
       }
-
-#undef WRITE_RC
     }
 
     /// @brief Calculate all analytic rate constants for every grid cell (one thread per cell).

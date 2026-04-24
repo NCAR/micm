@@ -277,100 +277,112 @@ namespace micm
 
     /// @brief Calculate all analytic rate constants into state.rate_constants_.
     ///        Lambda entries are untouched; parameterized multipliers applied last.
+    ///        Uses DenseMatrixPolicy::Function so a single implementation handles both
+    ///        Matrix (scalar) and VectorMatrix (interleaved) layouts. Each reaction type
+    ///        is computed across all cells at once via ForEachRow, which is more
+    ///        SIMD-friendly than the previous per-cell loop.
     template<class StatePolicy>
     static void CpuCalculateRateConstants(const ReactionRateConstantStore& store, StatePolicy& state)
     {
       using DenseMatrixPolicy = typename StatePolicy::DenseMatrixPolicyType;
-      if constexpr (VectorizableDense<DenseMatrixPolicy>)
-        CpuCalculateRateConstantsVectorized<DenseMatrixPolicy>(store, state);
-      else
-        CpuCalculateRateConstantsScalar(store, state);
-    }
+      auto calc = DenseMatrixPolicy::Function(
+          [&store, &cond = state.conditions_](auto&& rc, auto&& cp)
+          {
+            for (std::size_t i = 0; i < store.arrhenius_.size(); ++i)
+            {
+              const auto& p = store.arrhenius_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateArrhenius(&p, 1, c.temperature_, c.pressure_, &out); },
+                  rc.GetColumnView(i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.troe_.size(); ++i)
+            {
+              const auto& p = store.troe_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateTroe(&p, 1, c.temperature_, c.air_density_, &out); },
+                  rc.GetColumnView(store.troe_offset() + i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.ternary_.size(); ++i)
+            {
+              const auto& p = store.ternary_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateTernaryChemicalActivation(&p, 1, c.temperature_, c.air_density_, &out); },
+                  rc.GetColumnView(store.ternary_offset() + i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.branched_.size(); ++i)
+            {
+              const auto& p = store.branched_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateBranched(&p, 1, c.temperature_, c.air_density_, &out); },
+                  rc.GetColumnView(store.branched_offset() + i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.tunneling_.size(); ++i)
+            {
+              const auto& p = store.tunneling_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateTunneling(&p, 1, c.temperature_, &out); },
+                  rc.GetColumnView(store.tunneling_offset() + i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.taylor_.size(); ++i)
+            {
+              const auto& p = store.taylor_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateTaylorSeries(&p, 1, c.temperature_, c.pressure_, &out); },
+                  rc.GetColumnView(store.taylor_offset() + i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.reversible_.size(); ++i)
+            {
+              const auto& p = store.reversible_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c)
+                  { CalculateReversible(&p, 1, c.temperature_, &out); },
+                  rc.GetColumnView(store.reversible_offset() + i),
+                  cond);
+            }
+            for (std::size_t i = 0; i < store.user_defined_.size(); ++i)
+            {
+              const auto& p = store.user_defined_[i];
+              rc.ForEachRow(
+                  [scaling = p.scaling_factor_](double& out, const double& cp_val)
+                  { out = cp_val * scaling; },
+                  rc.GetColumnView(store.user_defined_offset() + i),
+                  cp.GetConstColumnView(p.custom_param_index_));
+            }
+            for (std::size_t i = 0; i < store.surface_.size(); ++i)
+            {
+              const auto& p = store.surface_[i];
+              rc.ForEachRow(
+                  [&p](double& out, const Conditions& c, const double& radius, const double& num_conc)
+                  { out = CalculateSurfaceOne(p, c.temperature_, radius, num_conc); },
+                  rc.GetColumnView(store.surface_offset() + i),
+                  cond,
+                  cp.GetConstColumnView(p.custom_param_base_index_),
+                  cp.GetConstColumnView(p.custom_param_base_index_ + 1));
+            }
+            for (const auto& mult : store.parameterized_multipliers_)
+            {
+              rc.ForEachRow(
+                  [&mult](double& v, const Conditions& c) { v *= mult.evaluate(c); },
+                  rc.GetColumnView(mult.rc_index),
+                  cond);
+            }
+          },
+          state.rate_constants_,
+          state.custom_rate_parameters_);
 
-   private:
-    /// @brief Calculate all analytic rate constants for one cell into a contiguous buffer.
-    /// @param cp   Custom rate parameters for this cell (contiguous)
-    /// @param out  Output buffer, size >= lambda_offset()
-    static void CpuCalculateOneCellRateConstants(
-        const ReactionRateConstantStore& store,
-        double temperature,
-        double pressure,
-        double air_density,
-        const double* cp,
-        double* out)
-    {
-      CalculateArrhenius(store.arrhenius_.data(), store.arrhenius_.size(), temperature, pressure, out);
-      CalculateTroe(store.troe_.data(), store.troe_.size(), temperature, air_density, out + store.troe_offset());
-      CalculateTernaryChemicalActivation(
-          store.ternary_.data(), store.ternary_.size(), temperature, air_density, out + store.ternary_offset());
-      CalculateBranched(
-          store.branched_.data(), store.branched_.size(), temperature, air_density, out + store.branched_offset());
-      CalculateTunneling(store.tunneling_.data(), store.tunneling_.size(), temperature, out + store.tunneling_offset());
-      CalculateTaylorSeries(
-          store.taylor_.data(), store.taylor_.size(), temperature, pressure, out + store.taylor_offset());
-      CalculateReversible(store.reversible_.data(), store.reversible_.size(), temperature, out + store.reversible_offset());
-      CalculateUserDefined(store.user_defined_.data(), store.user_defined_.size(), cp, out + store.user_defined_offset());
-      CalculateSurface(store.surface_.data(), store.surface_.size(), temperature, cp, out + store.surface_offset());
-    }
-
-    template<class StatePolicy>
-    static void CpuCalculateRateConstantsScalar(const ReactionRateConstantStore& store, StatePolicy& state)
-    {
-      const std::size_t n_cells = state.rate_constants_.NumRows();
-      const std::size_t n_rc = state.rate_constants_.NumColumns();
-      const std::size_t n_cp = state.custom_rate_parameters_.NumColumns();
-      double* rc_data = state.rate_constants_.AsVector().data();
-      const double* cp_data = state.custom_rate_parameters_.AsVector().data();
-
-      for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-      {
-        const auto& cond = state.conditions_[i_cell];
-        double* rc_row = rc_data + i_cell * n_rc;
-        const double* cp_row = cp_data + i_cell * n_cp;
-
-        CpuCalculateOneCellRateConstants(store, cond.temperature_, cond.pressure_, cond.air_density_, cp_row, rc_row);
-
-        for (const auto& mult : store.parameterized_multipliers_)
-          rc_row[mult.rc_index] *= mult.evaluate(cond);
-      }
-    }
-
-    template<class DenseMatrixPolicy, class StatePolicy>
-    static void CpuCalculateRateConstantsVectorized(const ReactionRateConstantStore& store, StatePolicy& state)
-    {
-      auto& v_rc = state.rate_constants_.AsVector();
-      const auto& v_cp = state.custom_rate_parameters_.AsVector();
-      constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
-      const std::size_t n_cp = state.custom_rate_parameters_.NumColumns();
-      const std::size_t n_analytic = store.lambda_offset();
-
-      std::vector<double> cp(n_cp);
-      std::vector<double> buf(n_analytic);
-
-      for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
-      {
-        const std::size_t rc_base = i_group * state.rate_constants_.GroupSize();
-        const std::size_t cp_base = i_group * state.custom_rate_parameters_.GroupSize();
-        const std::size_t n_local = std::min(L, state.rate_constants_.NumRows() - i_group * L);
-
-        for (std::size_t i_cell = 0; i_cell < n_local; ++i_cell)
-        {
-          const auto& cond = state.conditions_[i_group * L + i_cell];
-
-          // Gather per-cell custom params from interleaved storage
-          for (std::size_t j = 0; j < n_cp; ++j)
-            cp[j] = v_cp[cp_base + j * L + i_cell];
-
-          CpuCalculateOneCellRateConstants(store, cond.temperature_, cond.pressure_, cond.air_density_, cp.data(), buf.data());
-
-          // Scatter results to interleaved layout
-          for (std::size_t k = 0; k < n_analytic; ++k)
-            v_rc[rc_base + k * L + i_cell] = buf[k];
-
-          for (const auto& mult : store.parameterized_multipliers_)
-            v_rc[rc_base + mult.rc_index * L + i_cell] *= mult.evaluate(cond);
-        }
-      }
+      calc(state.rate_constants_, state.custom_rate_parameters_);
     }
   };
 
