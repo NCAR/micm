@@ -59,8 +59,7 @@ TEST(CudaRateConstants, Arrhenius)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  double expected;
-  micm::CalculateArrhenius(&params, 1, kConditions.temperature_, kConditions.pressure_, &expected);
+  double expected = micm::CalculateArrhenius(params, kConditions.temperature_, kConditions.pressure_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -93,8 +92,7 @@ TEST(CudaRateConstants, Troe)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  double expected;
-  micm::CalculateTroe(&params, 1, kConditions.temperature_, kConditions.air_density_, &expected);
+  double expected = micm::CalculateTroe(params, kConditions.temperature_, kConditions.air_density_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -127,8 +125,7 @@ TEST(CudaRateConstants, TernaryChemicalActivation)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  double expected;
-  micm::CalculateTernaryChemicalActivation(&params, 1, kConditions.temperature_, kConditions.air_density_, &expected);
+  double expected = micm::CalculateTernaryChemicalActivation(params, kConditions.temperature_, kConditions.air_density_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -162,8 +159,7 @@ TEST(CudaRateConstants, BranchedAlkoxy)
 
   // Retrieve the derived params populated by BuildFrom
   const auto& store_params = solver.GetRateConstantStore().branched_[0];
-  double expected;
-  micm::CalculateBranched(&store_params, 1, kConditions.temperature_, kConditions.air_density_, &expected);
+  double expected = micm::CalculateBranched(store_params, kConditions.temperature_, kConditions.air_density_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -196,8 +192,7 @@ TEST(CudaRateConstants, BranchedNitrate)
   state.rate_constants_.CopyToHost();
 
   const auto& store_params = solver.GetRateConstantStore().branched_[0];
-  double expected;
-  micm::CalculateBranched(&store_params, 1, kConditions.temperature_, kConditions.air_density_, &expected);
+  double expected = micm::CalculateBranched(store_params, kConditions.temperature_, kConditions.air_density_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -226,8 +221,7 @@ TEST(CudaRateConstants, Tunneling)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  double expected;
-  micm::CalculateTunneling(&params, 1, kConditions.temperature_, &expected);
+  double expected = micm::CalculateTunneling(params, kConditions.temperature_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -264,8 +258,7 @@ TEST(CudaRateConstants, TaylorSeries)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  double expected;
-  micm::CalculateTaylorSeries(&params, 1, kConditions.temperature_, kConditions.pressure_, &expected);
+  double expected = micm::CalculateTaylorSeries(params, kConditions.temperature_, kConditions.pressure_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
@@ -294,8 +287,7 @@ TEST(CudaRateConstants, Reversible)
   solver.UpdateStateParameters(state);
   state.rate_constants_.CopyToHost();
 
-  double expected;
-  micm::CalculateReversible(&params, 1, kConditions.temperature_, &expected);
+  double expected = micm::CalculateReversible(params, kConditions.temperature_);
   EXPECT_NEAR(state.rate_constants_[0][0], expected, TOLERANCE * std::abs(expected));
 }
 
