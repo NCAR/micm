@@ -59,7 +59,7 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
 }
 
 template<class SolverBuilderPolicy>
-void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -95,7 +95,6 @@ void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, st
   MatrixPolicy errors(number_of_grid_cells, state.state_size_, 0.0);
 
   double expected_error = 0.0;
-  std::size_t num_ode_variables = 0;
   const auto& atol = state.absolute_tolerance_;
   const auto& rtol = state.relative_tolerance_;
 
@@ -103,33 +102,17 @@ void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, st
   {
     for (std::size_t j = 0; j < state.state_size_; ++j)
     {
-      const bool is_ode_variable = (state.upper_left_identity_diagonal_[j] > 0.0);
+      y_old[i][j] = 1.0 + i + 0.1 * j;
+      y_new[i][j] = 0.8 + 0.5 * i + 0.2 * j;
+      errors[i][j] = 0.01 * (1 + i + j);
 
-      if (is_ode_variable)
-      {
-        // Normal values for ODE variables
-        y_old[i][j] = 1.0 + i + 0.1 * j;
-        y_new[i][j] = 0.8 + 0.5 * i + 0.2 * j;
-        errors[i][j] = 0.01 * (1 + i + j);
-
-        const double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
-        const double scale = atol[j] + rtol * ymax;
-        expected_error += errors[i][j] * errors[i][j] / (scale * scale);
-
-        if (i == 0)
-          ++num_ode_variables;
-      }
-      else
-      {
-        // Set extreme values in algebraic variables to verify they are ignored by normalization
-        y_old[i][j] = (i + 1) * 1.0e11;
-        y_new[i][j] = (i + 1) * 1.0e12;
-        errors[i][j] = (i + 1) * 1.0e9;
-      }
+      const double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      const double scale = atol[j] + rtol * ymax;
+      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
 
-  expected_error = std::sqrt(expected_error / (number_of_grid_cells * num_ode_variables));
+  expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
   expected_error = std::max(expected_error, 1.0e-10);
 
   const double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
@@ -220,16 +203,33 @@ TEST(RosenbrockSolver, VectorNormalizedError)
 
 TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
 {
-  testNormalizedErrorIgnoresConstraintColumns(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorIgnoresConstraintColumns(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 2);
+  testNormalizedErrorIncludesAllVariables(
+    StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
 {
-  testNormalizedErrorIgnoresConstraintColumns(
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorIgnoresConstraintColumns(
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 3);
+  testNormalizedErrorIncludesAllVariables(
+    VectorBuilder<4>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 3);
+
+  testNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }

@@ -28,9 +28,34 @@ namespace micm
 
     const bool has_constraints = constraints_.Size() > 0;
 
-    // Initialize algebraic constraint variables before time stepping
+    // Declared here so they remain in scope for the solver loop below (captured by reference by mass_coupling).
+    // std::function gives mass_coupling a concrete, nameable type; the closure type returned by
+    // DenseMatrixPolicy::Function() is anonymous and cannot be named directly.
+    double current_c_over_h = 0.0;
+    const auto& diagonal = state.upper_left_identity_diagonal_;
+    std::function<void(DenseMatrixPolicy&, DenseMatrixPolicy&)> mass_coupling;
+
+    // Initialize algebraic constraint variables and pre-build the mass-coupling function.
+    // All K matrices have the same shape, so K[0] is used to capture column counts at creation time.
     if (has_constraints)
     {
+      mass_coupling = DenseMatrixPolicy::Function(
+          [&current_c_over_h, &diagonal](auto&& k_stage_view, auto&& k_j_view)
+          {
+            for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+            {
+              if (diagonal[i_var] != 0.0)
+              {
+                k_stage_view.ForEachRow(
+                    [&current_c_over_h](double& ks, const double& kj) { ks += current_c_over_h * kj; },
+                    k_stage_view.GetColumnView(i_var),
+                    k_j_view.GetConstColumnView(i_var));
+              }
+            }
+          },
+          K[0],
+          K[0]);
+
       auto init_state = InitializeConstraints(state, parameters, result.stats_);
       if (init_state != SolverState::Converged)
       {
@@ -136,14 +161,11 @@ namespace micm
             }
             else
             {
-              // DAE path: scale by mass matrix diagonal element-wise
-              for (std::size_t i_cell = 0; i_cell < K[stage].NumRows(); ++i_cell)
-              {
-                for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
-                {
-                  K[stage][i_cell][i_var] += c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
-                }
-              }
+              // DAE path: scale by mass matrix diagonal element-wise.
+              // For ODE variables (diagonal = 1), accumulate c/H * K[j].
+              // For algebraic variables (diagonal = 0), the coupling is zero.
+              current_c_over_h = c_over_h;
+              mass_coupling(K[stage], K[j]);
             }
           }
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
@@ -164,6 +186,23 @@ namespace micm
         Yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
           Yerror.Axpy(parameters.e_[stage], K[stage]);
+
+        // For DAE systems, replace the near-zero algebraic error estimates with step changes.
+        // The embedded error formula produces Yerror ≈ 0 for algebraic rows (M_ii = 0 zeroes
+        // the inter-stage coupling terms), making the solver insensitive to algebraic tolerances.
+        // Setting Yerror[a] = Ynew[a] - Y[a] allows the solver to reject steps where algebraic
+        // variables change more than their tolerance permits, preventing overshoot.
+        //
+        // IMPORTANT: This uses the step change as-is without order scaling. For very stiff systems
+        // where the embedded error estimate K[3] ≈ 0 for all variables (including differential),
+        // this provides the ONLY non-trivial error signal for algebraic variables. The step change
+        // is O(H) while the true error is O(H^(p+1)), so this is conservative — the solver may
+        // take more steps than strictly necessary. However, it correctly prevents overshoot by
+        // rejecting steps where algebraic variables change more than their tolerance permits.
+        if (has_constraints)
+        {
+          constraints_.SetAlgebraicErrors(Yerror, Y, Ynew);
+        }
 
         // Compute the normalized error
         auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
@@ -326,26 +365,19 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
-    std::size_t num_ode_variables = 0;
 
-    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        // Skip algebraic variables (mass matrix diagonal = 0)
-        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-        {
-          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-          error += errors_over_scale * errors_over_scale;
-          ++num_ode_variables;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+    const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
 
     return std::max(std::sqrt(error / N), error_min);
   }
@@ -362,7 +394,6 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
-    // Use row/column indexing to check mass matrix diagonal for algebraic variables
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
     const std::size_t n_vars = atol.size();
@@ -370,26 +401,19 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
-    std::size_t num_ode_variables = 0;
 
-    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        // Skip algebraic variables (mass matrix diagonal = 0)
-        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-        {
-          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-          error += errors_over_scale * errors_over_scale;
-          ++num_ode_variables;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+    const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
 
     return std::max(std::sqrt(error / N), error_min);
   }
