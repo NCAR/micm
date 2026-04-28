@@ -12,8 +12,7 @@ namespace micm
       if (err != cudaSuccess)
       {
         std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
-        throw micm::MicmException(
-            MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
+        throw micm::MicmException(MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
       }
     }
 
@@ -22,8 +21,7 @@ namespace micm
       if (err != CUBLAS_STATUS_SUCCESS)
       {
         std::string msg = std::to_string(err) + " : " + str;
-        throw micm::MicmException(
-            MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
+        throw micm::MicmException(MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
       }
     }
 

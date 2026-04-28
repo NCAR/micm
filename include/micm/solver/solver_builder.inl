@@ -164,8 +164,7 @@ namespace micm
       for (const auto& d : duplicates)
         oss << "  - " << d << "\n";
 
-      throw MicmException(
-          MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, oss.str());
+      throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, oss.str());
     }
 
     return params;
@@ -221,9 +220,7 @@ namespace micm
     if (!valid_system_)
     {
       throw MicmException(
-          MICM_ERROR_CATEGORY_SOLVER,
-          MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM,
-          "Missing chemical system.");
+          MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
     }
 
     std::size_t number_of_species = this->system_.StateSize();
@@ -328,9 +325,7 @@ namespace micm
       {
         if (params_map.count(label) > 0)
           throw MicmException(
-              MICM_ERROR_CATEGORY_SOLVER,
-              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
-              "Duplicate parameter name: " + label);
+              MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
         params_map.emplace(label, params_map.size());
       }
 
@@ -365,9 +360,7 @@ namespace micm
       {
         if (params_map.count(label) > 0)
           throw MicmException(
-              MICM_ERROR_CATEGORY_SOLVER,
-              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
-              "Duplicate parameter name: " + label);
+              MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
         params_map.emplace(label, params_map.size());
       }
 
@@ -376,9 +369,7 @@ namespace micm
       {
         if (params_map.count(label) > 0)
           throw MicmException(
-              MICM_ERROR_CATEGORY_SOLVER,
-              MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
-              "Duplicate parameter name: " + label);
+              MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
         params_map.emplace(label, params_map.size());
       }
 

@@ -725,10 +725,7 @@ namespace micm
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Element out of range");
+        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

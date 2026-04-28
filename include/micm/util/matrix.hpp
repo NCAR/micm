@@ -134,8 +134,7 @@ namespace micm
         {
           std::string msg = "In matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
                             " elements, but expected " + std::to_string(y_dim_);
-          throw MicmException(
-              MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
+          throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
         }
         auto other_elem = other.begin();
         for (auto& elem : *this)
@@ -250,8 +249,7 @@ namespace micm
                   {
                     std::string msg = "In matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw MicmException(
-                        MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
+                    throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {
