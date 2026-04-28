@@ -4,6 +4,7 @@
 
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/lambda_rate_constant.hpp>
+#include <micm/process/reaction_rate_store.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -28,6 +29,7 @@ namespace micm
     System system_;
     std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
+    ReactionRateConstantStore store_;
     std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
 
    public:
@@ -44,12 +46,7 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system)
-        : solver_(std::move(solver)),
-          state_parameters_(state_parameters),
-          solver_parameters_(solver_parameters),
-          processes_(std::move(processes)),
-          system_(std::move(system)),
-          update_state_parameters_functions_()
+        : Solver(std::move(solver), state_parameters, solver_parameters, std::move(processes), std::move(system), {})
     {
     }
 
@@ -66,8 +63,11 @@ namespace micm
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
-          update_state_parameters_functions_(update_state_parameters_functions)
+          update_state_parameters_functions_(update_state_parameters_functions),
+          store_(ReactionRateConstantStore::BuildFrom(processes_))
     {
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+        solver_.rates_.BuildCudaStore(store_);
     }
 
     Solver(
@@ -86,8 +86,11 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
+          store_(ReactionRateConstantStore::BuildFrom(processes_)),
           initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
     {
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+        solver_.rates_.BuildCudaStore(store_);
     }
 
     Solver(Solver&& other)
@@ -97,6 +100,7 @@ namespace micm
           solver_parameters_(other.solver_parameters_),
           system_(std::move(other.system_)),
           update_state_parameters_functions_(std::move(other.update_state_parameters_functions_)),
+          store_(std::move(other.store_)),
           initialize_constraint_parameters_functions_(std::move(other.initialize_constraint_parameters_functions_))
     {
     }
@@ -111,6 +115,7 @@ namespace micm
       std::swap(this->processes_, other.processes_);
       std::swap(this->system_, other.system_);
       std::swap(this->update_state_parameters_functions_, other.update_state_parameters_functions_);
+      std::swap(this->store_, other.store_);
       std::swap(this->initialize_constraint_parameters_functions_, other.initialize_constraint_parameters_functions_);
       return *this;
     }
@@ -185,6 +190,11 @@ namespace micm
       return processes_;
     }
 
+    const ReactionRateConstantStore& GetRateConstantStore() const
+    {
+      return store_;
+    }
+
     /// @brief Update state parameters based on current conditions (temperature, pressure, etc.)
     ///        Invokes all registered parameter update functions for external models and constraints
     ///        to recompute temperature-dependent values (e.g., aerosol rate constants, equilibrium constants)
@@ -192,43 +202,37 @@ namespace micm
     /// @param state State object containing conditions and custom_rate_parameters to be updated
     void UpdateStateParameters(StatePolicy& state)
     {
-      Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
-
+      // External update functions must run first: they populate custom_rate_parameters_
+      // which user-defined and surface rate constants read during calculation.
       for (const auto& update_func : update_state_parameters_functions_)
-      {
         update_func(state.conditions_, state.custom_rate_parameters_);
-      }
-    }
 
-    LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name)
-    {
-      for (auto& process : processes_)
+      // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
+      // GpuCalculateRateConstants; otherwise use the CPU path.
+      if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })
+        solver_.rates_.GpuCalculateRateConstants(store_, state);
+      else
       {
-        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
-        {
-          auto ptr = dynamic_cast<LambdaRateConstant*>(reaction->rate_constant_.get());
-          if (ptr && ptr->parameters_.label_ == name)
-          {
-            return *ptr;
-          }
-        }
+        ReactionRateConstantStore::EvaluateCpuRateConstants(store_, state);
+        ReactionRateConstantStore::CpuCalculateRateConstants(store_, state);
       }
-      throw MicmException(
-          MICM_ERROR_CATEGORY_SOLVER,
-          MICM_SOLVER_ERROR_CODE_RATE_CONSTANT_NOT_FOUND,
-          "Lambda rate constant with name '" + name + "' not found in any process");
     }
 
-    const LambdaRateConstant& GetLambdaRateConstantByName(const std::string& name) const
+    LambdaRateConstantParameters& GetLambdaRateConstantByName(const std::string& name)
+    {
+      return const_cast<LambdaRateConstantParameters&>(std::as_const(*this).GetLambdaRateConstantByName(name));
+    }
+
+    const LambdaRateConstantParameters& GetLambdaRateConstantByName(const std::string& name) const
     {
       for (const auto& process : processes_)
       {
         if (const auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
         {
-          const auto ptr = dynamic_cast<const LambdaRateConstant*>(reaction->rate_constant_.get());
-          if (ptr && ptr->parameters_.label_ == name)
+          if (const auto* params = std::get_if<LambdaRateConstantParameters>(&reaction->rate_constant_))
           {
-            return *ptr;
+            if (params->label_ == name)
+              return *params;
           }
         }
       }

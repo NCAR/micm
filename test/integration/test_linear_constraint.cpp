@@ -26,34 +26,34 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
                                     .SetReactants({ Cl2 })
                                     .SetProducts({ micm::StoichSpecies(Cl, 2.0) })
                                     .SetPhase(gas_phase)
-                                    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "terminator_k1" }))
+                                    .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "terminator_k1" })
                                     .Build();
 
   micm::Process terminator_r2 = micm::ChemicalReactionBuilder()
                                     .SetReactants({ Cl, Cl })
                                     .SetProducts({ micm::StoichSpecies(Cl2, 1.0) })
                                     .SetPhase(gas_phase)
-                                    .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0 }))
+                                    .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 1.0 })
                                     .Build();
 
   micm::Process robertson_r1 = micm::ChemicalReactionBuilder()
                                    .SetReactants({ A })
                                    .SetProducts({ micm::StoichSpecies(B, 1) })
-                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r1" }))
+                                   .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "robertson_r1" })
                                    .SetPhase(gas_phase)
                                    .Build();
 
   micm::Process robertson_r2 = micm::ChemicalReactionBuilder()
                                    .SetReactants({ B, B })
                                    .SetProducts({ micm::StoichSpecies(B, 1), micm::StoichSpecies(C, 1) })
-                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r2" }))
+                                   .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "robertson_r2" })
                                    .SetPhase(gas_phase)
                                    .Build();
 
   micm::Process robertson_r3 = micm::ChemicalReactionBuilder()
                                    .SetReactants({ B, C })
                                    .SetProducts({ micm::StoichSpecies(A, 1), micm::StoichSpecies(C, 1) })
-                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r3" }))
+                                   .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "robertson_r3" })
                                    .SetPhase(gas_phase)
                                    .Build();
 

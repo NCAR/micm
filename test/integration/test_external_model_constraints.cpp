@@ -444,7 +444,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   micm::Process rxn = micm::ChemicalReactionBuilder()
                           .SetReactants({ A_GAS })
                           .SetProducts({ { B, 1 } })
-                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k_rxn, .B_ = 0, .C_ = 0 }))
+                          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_rxn, .B_ = 0, .C_ = 0 })
                           .SetPhase(gas_phase)
                           .Build();
 
@@ -616,19 +616,19 @@ namespace
     micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                                .SetReactants({ A })
                                .SetProducts({ { B, 1 } })
-                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 }))
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
                                .SetPhase(gas_phase)
                                .Build();
     micm::Process rxn_bc = micm::ChemicalReactionBuilder()
                                .SetReactants({ B })
                                .SetProducts({ { C, 1 } })
-                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_FWD, .B_ = 0, .C_ = 0 }))
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_FWD, .B_ = 0, .C_ = 0 })
                                .SetPhase(gas_phase)
                                .Build();
     micm::Process rxn_cb = micm::ChemicalReactionBuilder()
                                .SetReactants({ C })
                                .SetProducts({ { B, 1 } })
-                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_BWD, .B_ = 0, .C_ = 0 }))
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_BWD, .B_ = 0, .C_ = 0 })
                                .SetPhase(gas_phase)
                                .Build();
 
@@ -676,7 +676,7 @@ namespace
     micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                                .SetReactants({ A })
                                .SetProducts({ { B, 1 } })
-                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 }))
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
                                .SetPhase(gas_phase)
                                .Build();
 
@@ -724,7 +724,7 @@ namespace
     micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                                .SetReactants({ A })
                                .SetProducts({ { B, 1 } })
-                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 }))
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
                                .SetPhase(gas_phase)
                                .Build();
 
@@ -829,7 +829,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                              .SetReactants({ A })
                              .SetProducts({ { B, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
 
@@ -931,31 +931,31 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                              .SetReactants({ A })
                              .SetProducts({ { B, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k_drive, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_drive, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
   micm::Process rxn_bc = micm::ChemicalReactionBuilder()
                              .SetReactants({ B })
                              .SetProducts({ { C, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k_f1, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_f1, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
   micm::Process rxn_cb = micm::ChemicalReactionBuilder()
                              .SetReactants({ C })
                              .SetProducts({ { B, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k_b1, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_b1, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
   micm::Process rxn_bd = micm::ChemicalReactionBuilder()
                              .SetReactants({ B })
                              .SetProducts({ { D, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k_f2, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_f2, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
   micm::Process rxn_db = micm::ChemicalReactionBuilder()
                              .SetReactants({ D })
                              .SetProducts({ { B, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k_b2, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_b2, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
 
@@ -1369,7 +1369,7 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                              .SetReactants({ A })
                              .SetProducts({ { B, 1 } })
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
                              .SetPhase(gas_phase)
                              .Build();
 

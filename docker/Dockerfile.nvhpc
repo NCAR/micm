@@ -46,6 +46,6 @@ RUN mkdir /build \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_GPU_TYPE="a100" \
         ../micm \
-      && make -j 8
+      && make -j 4
 
 WORKDIR /build

@@ -8,6 +8,8 @@ add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
 target_compile_features(micm INTERFACE cxx_std_20)
+set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD 23)
+set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
@@ -61,4 +63,8 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(util)
 endif()
 
+
+if (MICM_ENABLE_TESTS)
+  target_compile_definitions(micm INTERFACE MICM_ENABLE_TESTS)
+endif()
 

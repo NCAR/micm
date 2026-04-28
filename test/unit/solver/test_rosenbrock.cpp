@@ -69,7 +69,7 @@ void testNormalizedErrorIgnoresConstraintColumns(SolverBuilderPolicy builder, st
   micm::Process reaction = micm::ChemicalReactionBuilder()
                                .SetReactants({ A })
                                .SetProducts({ micm::StoichSpecies(B, 1) })
-                               .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.5, .B_ = 0.0, .C_ = 0.0 }))
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0.0, .C_ = 0.0 })
                                .SetPhase(gas_phase)
                                .Build();
 
@@ -175,7 +175,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ foo })
                          .SetProducts({ micm::StoichSpecies(bar, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 })
                          .SetPhase(gas_phase)
                          .Build();
 

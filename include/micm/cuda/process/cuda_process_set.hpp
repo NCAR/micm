@@ -3,10 +3,13 @@
 #pragma once
 
 #include <micm/cuda/process/cuda_process_set.cuh>
+#include <micm/cuda/process/cuda_rate_constant_kernel.cuh>
+#include <micm/cuda/process/cuda_reaction_rate_store.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/process/reaction_rate_store.hpp>
 
 namespace micm
 {
@@ -22,12 +25,16 @@ namespace micm
     ///   the constant data of "ProcessSet" class on the device
     ProcessSetParam devstruct_;
 
+    /// GPU-resident analytic rate constant parameter store (built once per solver build)
+    CudaReactionRateStore cuda_rate_store_;
+
     CudaProcessSet() = default;
 
     CudaProcessSet(const CudaProcessSet&) = delete;
     CudaProcessSet& operator=(const CudaProcessSet&) = delete;
     CudaProcessSet(CudaProcessSet&& other)
-        : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other))
+        : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other)),
+          cuda_rate_store_(std::move(other.cuda_rate_store_))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
@@ -35,6 +42,7 @@ namespace micm
     {
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
+      cuda_rate_store_ = std::move(other.cuda_rate_store_);
       return *this;
     };
 
@@ -57,6 +65,52 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     }
 
+    /// @brief Upload all analytic parameter arrays from cpu_store to device memory.
+    ///        Called once by Solver after ReactionRateConstantStore is built.
+    void BuildCudaStore(const ReactionRateConstantStore& cpu_store)
+    {
+      cuda_rate_store_.BuildFrom(cpu_store);
+    }
+
+    /// @brief GPU-accelerated rate constant calculation.
+    ///
+    ///   1. Evaluate any lambda entries on CPU; upload rate_constants_ to device.
+    ///   2. Upload conditions and custom_rate_parameters_ to device.
+    ///   3. Evaluate parameterized multipliers on CPU; pack and upload to device.
+    ///   4. Launch CalculateRateConstantsKernel to fill analytic slots and apply multipliers.
+    ///
+    /// After this call, device rate_constants_ is fully populated for the current step.
+    template<class StatePolicy>
+    void GpuCalculateRateConstants(const ReactionRateConstantStore& cpu_store, StatePolicy& state)
+      requires(
+          CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
+          VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
+    {
+      using DM = typename StatePolicy::DenseMatrixPolicyType;
+
+      // CPU lambda evaluation
+      if (!cpu_store.lambda_entries_.empty())
+      {
+        ReactionRateConstantStore::EvaluateCpuRateConstants(cpu_store, state);
+        // Upload lambda values (analytic slots carry stale data; kernel overwrites them)
+        state.rate_constants_.CopyToDevice();
+      }
+
+      // Upload per-step transient data
+      const Conditions* d_conditions = cuda_rate_store_.UploadConditions(state.conditions_);
+      state.custom_rate_parameters_.CopyToDevice();
+
+      // Evaluate parameterized multipliers on CPU and upload in interleaved layout
+      const double* d_mult_vals =
+          cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
+
+      // GPU analytic calculation (includes multiplier application)
+      auto rc_param = state.rate_constants_.AsDeviceParam();
+      auto cp_param = state.custom_rate_parameters_.AsDeviceParam();
+      micm::cuda::CalculateRateConstantsKernelDriver(
+          cuda_rate_store_.GetParam(), d_conditions, rc_param, cp_param, d_mult_vals);
+    }
+
     /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;
     /// @brief this will override the "SetJacobianFlatIds" function from the "ProcessSet" class
     /// @param matrix
@@ -75,7 +129,30 @@ namespace micm
     void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
         const
       requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
+
+   private:
+    void InitDevStruct();
   };
+
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
+  inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::InitDevStruct()
+  {
+    ProcessSetParam hoststruct;
+    hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
+    hoststruct.reactant_ids_ = this->reactant_ids_.data();
+    hoststruct.number_of_products_ = this->number_of_products_.data();
+    hoststruct.product_ids_ = this->product_ids_.data();
+    hoststruct.yields_ = this->yields_.data();
+    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
+    hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
+    hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
+    hoststruct.number_of_products_size_ = this->number_of_products_.size();
+    hoststruct.product_ids_size_ = this->product_ids_.size();
+    hoststruct.yields_size_ = this->yields_.size();
+    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
+    this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+  }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
@@ -84,29 +161,7 @@ namespace micm
       const std::unordered_map<std::string, std::size_t>& variable_map)
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map)
   {
-    /// Passing the class itself as an argument is not support by CUDA;
-    /// Thus we generate a host struct first to save the pointers to
-    ///   the actual data and size of each constant data member;
-
-    /// Allocate host memory space for an object of type "ProcessSetParam"
-    ProcessSetParam hoststruct;
-
-    hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
-    hoststruct.reactant_ids_ = this->reactant_ids_.data();
-    hoststruct.number_of_products_ = this->number_of_products_.data();
-    hoststruct.product_ids_ = this->product_ids_.data();
-    hoststruct.yields_ = this->yields_.data();
-    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
-
-    hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
-    hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
-    hoststruct.number_of_products_size_ = this->number_of_products_.size();
-    hoststruct.product_ids_size_ = this->product_ids_.size();
-    hoststruct.yields_size_ = this->yields_.size();
-    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
-
-    // Copy the data from host struct to device struct
-    this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+    InitDevStruct();
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
@@ -117,35 +172,9 @@ namespace micm
       const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models)
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map, external_models)
   {
-    // External models are not yet supported on GPU
     if (!external_models.empty())
-    {
       throw std::runtime_error("CudaProcessSet does not currently support external models.");
-    }
-
-    /// Passing the class itself as an argument is not support by CUDA;
-    /// Thus we generate a host struct first to save the pointers to
-    ///   the actual data and size of each constant data member;
-
-    /// Allocate host memory space for an object of type "ProcessSetParam"
-    ProcessSetParam hoststruct;
-
-    hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
-    hoststruct.reactant_ids_ = this->reactant_ids_.data();
-    hoststruct.number_of_products_ = this->number_of_products_.data();
-    hoststruct.product_ids_ = this->product_ids_.data();
-    hoststruct.yields_ = this->yields_.data();
-    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
-
-    hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
-    hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
-    hoststruct.number_of_products_size_ = this->number_of_products_.size();
-    hoststruct.product_ids_size_ = this->product_ids_.size();
-    hoststruct.yields_size_ = this->yields_.size();
-    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
-
-    // Copy the data from host struct to device struct
-    this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+    InitDevStruct();
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>

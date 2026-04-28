@@ -109,12 +109,14 @@ namespace micm
           micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
     }
 
-    /// @brief Copy input variables to the device
+    /// @brief Copy input variables to the device.
+    ///
+    ///        Rate constants are NOT copied here; they are computed directly on the
+    ///        GPU by Solver::UpdateStateParameters (via CudaProcessSet::GpuCalculateRateConstants).
     void SyncInputsToDevice()
       requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
     {
       this->variables_.CopyToDevice();
-      this->rate_constants_.CopyToDevice();
     }
 
     /// @brief Copy output variables to the host
@@ -122,6 +124,11 @@ namespace micm
       requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
     {
       this->variables_.CopyToHost();
+      // our tests require we check the rate constants
+      // therefore the copy back to host is only needed for tests
+#ifdef MICM_ENABLE_TESTS
+      this->rate_constants_.CopyToHost();
+#endif
     }
   };
 }  // namespace micm

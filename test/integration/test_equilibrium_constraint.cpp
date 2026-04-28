@@ -36,7 +36,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
@@ -110,14 +110,14 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   Process rxn1 = ChemicalReactionBuilder()
                      .SetReactants({ A })
                      .SetProducts({ { B, 1 } })
-                     .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.5, .B_ = 0, .C_ = 0 }))
+                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0, .C_ = 0 })
                      .SetPhase(gas_phase)
                      .Build();
 
   Process rxn2 = ChemicalReactionBuilder()
                      .SetReactants({ D })
                      .SetProducts({ { E, 1 } })
-                     .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.2, .B_ = 0, .C_ = 0 }))
+                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.2, .B_ = 0, .C_ = 0 })
                      .SetPhase(gas_phase)
                      .Build();
 
@@ -197,7 +197,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
@@ -296,7 +296,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
@@ -371,7 +371,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
@@ -462,7 +462,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ C })
                     .SetProducts({ { A, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 

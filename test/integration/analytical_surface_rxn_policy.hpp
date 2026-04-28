@@ -53,7 +53,9 @@ void test_analytical_surface_rxn(
   micm::System chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   // Rate
-  micm::SurfaceRateConstant surface{ { .label_ = "foo", .phase_species_ = gas_foo, .reaction_probability_ = rxn_gamma } };
+  micm::SurfaceRateConstantParameters surface{ .label_ = "foo",
+                                               .phase_species_ = gas_foo,
+                                               .reaction_probability_ = rxn_gamma };
 
   // Process
   micm::Process surface_process =

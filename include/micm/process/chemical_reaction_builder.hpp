@@ -7,8 +7,10 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
+#include <micm/util/error.hpp>
+#include <micm/util/micm_exception.hpp>
 
-#include <memory>
+#include <optional>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -37,14 +39,14 @@ namespace micm
       return *this;
     }
 
-    /// @brief Sets the rate constant by cloning the provided RateConstant object
-    ///        This method performs a deep copy of the given rate constant using its Clone() method.
-    ///        Useful when the original rate constant must remain unchanged.
-    /// @param rate_constant A reference to a RateConstant object to be cloned
+    /// @brief Sets the rate constant from any supported parameter struct.
+    ///        Accepts any type that is a member of RateConstantVariant.
+    /// @param rate_constant Parameter struct (e.g. ArrheniusRateConstantParameters)
     /// @return Reference to the builder
-    ChemicalReactionBuilder& SetRateConstant(const RateConstant& rate_constant)
+    template<class T>
+    ChemicalReactionBuilder& SetRateConstant(T&& rate_constant)
     {
-      rate_constant_ = rate_constant.Clone();
+      rate_constant_ = RateConstantVariant(std::forward<T>(rate_constant));
       return *this;
     }
 
@@ -60,23 +62,23 @@ namespace micm
     /// @brief Transfers ownership of all internally stored data into a ChemicalReaction,
     ///        then wraps it into a Process using std::variant
     /// @return A Process containing the constructed ChemicalReaction
-    /// @throws std::system_error if the provided rate constant pointer is null
+    /// @throws MicmException if the rate constant has not been set
     Process Build()
     {
-      if (!rate_constant_)
+      if (!rate_constant_.has_value())
         throw MicmException(
             MICM_ERROR_CATEGORY_PROCESS,
             MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
-            "Rate Constant pointer cannot be null.");
+            "Rate constant has not been set.");
 
-      ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_), phase_);
+      ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_.value()), phase_);
       return Process(std::move(reaction));
     }
 
    private:
     std::vector<Species> reactants_;
     std::vector<StoichSpecies> products_;
-    std::unique_ptr<RateConstant> rate_constant_;
+    std::optional<RateConstantVariant> rate_constant_;
     Phase phase_;
   };
 
