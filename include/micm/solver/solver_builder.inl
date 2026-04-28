@@ -57,7 +57,7 @@ namespace micm
       for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
-      throw MicmException(MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
+      throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
     }
   }
 
@@ -165,7 +165,7 @@ namespace micm
         oss << "  - " << d << "\n";
 
       throw MicmException(
-          MicmSeverity::Error, MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, oss.str());
+          MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, oss.str());
     }
 
     return params;
@@ -221,7 +221,6 @@ namespace micm
     if (!valid_system_)
     {
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SOLVER,
           MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM,
           "Missing chemical system.");
@@ -231,7 +230,6 @@ namespace micm
     if (number_of_species == 0)
     {
       throw MicmException(
-          MicmSeverity::Error,
           MICM_ERROR_CATEGORY_SOLVER,
           MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES,
           "Provided chemical system contains no species.");
@@ -247,7 +245,6 @@ namespace micm
       if (!constraints_.empty() || !external_constraint_models_.empty())
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_SOLVER,
             MICM_SOLVER_ERROR_CODE_CUDA_CONSTRAINTS_UNSUPPORTED,
             "Constraints are not supported with CUDA matrix policies.");
@@ -331,7 +328,6 @@ namespace micm
       {
         if (params_map.count(label) > 0)
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_SOLVER,
               MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
               "Duplicate parameter name: " + label);
@@ -369,7 +365,6 @@ namespace micm
       {
         if (params_map.count(label) > 0)
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_SOLVER,
               MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
               "Duplicate parameter name: " + label);
@@ -381,7 +376,6 @@ namespace micm
       {
         if (params_map.count(label) > 0)
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_SOLVER,
               MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
               "Duplicate parameter name: " + label);

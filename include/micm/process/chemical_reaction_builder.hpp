@@ -67,7 +67,6 @@ namespace micm
     {
       if (!rate_constant_.has_value())
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_PROCESS,
             MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
             "Rate constant has not been set.");

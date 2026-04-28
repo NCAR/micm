@@ -9,25 +9,21 @@
 
 namespace micm
 {
-  enum class MicmSeverity
-  {
-    Error,
-    Critical
-  };
-
   struct MicmException : public std::runtime_error
   {
-    MicmSeverity severity_;
-    const char* category_;
+    const char* category_;  // Must point to string literal
     int code_;
 
-    MicmException(MicmSeverity severity, const char* category, int code, const std::string& message)
+    MicmException(const char* category, int code, const std::string& message)
         : std::runtime_error(message),
-          severity_(severity),
           category_(category),
           code_(code)
     {
     }
+
+    const char* Category() const noexcept { return category_; }
+
+    int Code() const noexcept { return code_; }
   };
 
 }  // namespace micm
