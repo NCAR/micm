@@ -486,8 +486,7 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw MicmException(
-          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != 1)
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
@@ -509,8 +508,7 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw MicmException(
-          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
     if (variables_.NumRows() != concentration.size())
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
@@ -621,8 +619,7 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw MicmException(
-          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != 1)
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
@@ -644,8 +641,7 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw MicmException(
-          MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
+      throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
     if (custom_rate_parameters_.NumRows() != values.size())
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,

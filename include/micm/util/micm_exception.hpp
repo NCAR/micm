@@ -21,9 +21,15 @@ namespace micm
     {
     }
 
-    const char* Category() const noexcept { return category_; }
+    const char* Category() const noexcept
+    {
+      return category_;
+    }
 
-    int Code() const noexcept { return code_; }
+    int Code() const noexcept
+    {
+      return code_;
+    }
   };
 
 }  // namespace micm

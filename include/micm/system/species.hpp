@@ -182,9 +182,7 @@ namespace micm
     else
     {
       throw MicmException(
-          MICM_ERROR_CATEGORY_SPECIES,
-          MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY,
-          "Species: '" + name_ + "'");
+          MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY, "Species: '" + name_ + "'");
     }
   }
 
@@ -210,9 +208,7 @@ namespace micm
     else
     {
       throw MicmException(
-          MICM_ERROR_CATEGORY_SPECIES,
-          MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY,
-          "Species: '" + name_ + "'");
+          MICM_ERROR_CATEGORY_SPECIES, MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY, "Species: '" + name_ + "'");
     }
   }
 

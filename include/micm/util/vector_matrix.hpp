@@ -141,8 +141,7 @@ namespace micm
         {
           std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
                             " elements, but expected " + std::to_string(y_dim_);
-          throw MicmException(
-              MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
+          throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -262,8 +261,7 @@ namespace micm
                   {
                     std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw MicmException(
-                        MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
+                    throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto& elem : other_row)
