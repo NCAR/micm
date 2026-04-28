@@ -33,7 +33,7 @@ struct SimpleConstrainedSystem
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ A })
                       .SetProducts({ { B, 1 } })
-                      .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
 
@@ -163,7 +163,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = 0.5, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 

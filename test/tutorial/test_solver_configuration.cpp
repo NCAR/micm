@@ -90,21 +90,21 @@ int main()
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
                    .SetProducts({ StoichSpecies(b, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r1" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
                    .SetProducts({ StoichSpecies(b, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r2" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
                    .SetProducts({ StoichSpecies(a, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r3" })
                    .SetPhase(gas_phase)
                    .Build();
 

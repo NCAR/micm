@@ -25,15 +25,14 @@ namespace
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant(
-                             micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 })
                          .SetPhase(gas_phase)
                          .Build();
   micm::System the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });

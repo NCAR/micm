@@ -121,14 +121,14 @@ int main(const int argc, const char *argv[])
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
                    .SetProducts({ StoichSpecies(bar, 0.8), StoichSpecies(baz, 0.2) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 1.0e-3 })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
                    .SetProducts({ StoichSpecies(baz, 1) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 1.0e-5, .C_ = 110.0 })
                    .SetPhase(gas_phase)
                    .Build();
 

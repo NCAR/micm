@@ -2,14 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#define _USE_MATH_DEFINES
-#include <micm/process/rate_constant/rate_constant.hpp>
 #include <micm/system/phase.hpp>
-#include <micm/util/constants.hpp>
-#include <micm/util/property_keys.hpp>
 
-#include <cmath>
-#include <math.h>
+#include <cstddef>
 #include <string>
 
 namespace micm
@@ -24,115 +19,19 @@ namespace micm
     double reaction_probability_{ 1.0 };
   };
 
-  /// @brief A rate constant for surface reactions
-  class SurfaceRateConstant : public RateConstant
+  /// @brief GPU-safe calculation data for a surface reaction.
+  ///        Populated by ReactionRateConstantStore::BuildFrom from SurfaceRateConstantParameters;
+  ///        do not construct directly.
+  struct SurfaceRateConstantData
   {
-   public:
-    SurfaceRateConstantParameters parameters_;
-    double diffusion_coefficient_;   // [m2 s-1]
-    double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
-
-    /// @brief Constructs a SurfaceRateConstant by initializing the diffusion coefficient
-    ///        and mean free speed factor from the provided parameters
-    /// @throws std::system_error if required properties (diffusion coefficient or molecular weight) are missing
-    SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
-
-    /// @brief Deep copy
-    std::unique_ptr<RateConstant> Clone() const override;
-
-    /// @brief Returns labels for the surface rate constant parameters:
-    ///        aerosol effective radius [m]
-    ///        aerosol number concentration [# m-3]
-    /// @return Rate constant labels
-    std::vector<std::string> CustomParameters() const override;
-
-    /// @brief Returns the number of custom parameters
-    /// @return Number of custom parameters
-    std::size_t SizeCustomParameters() const override;
-
-    /// @brief Calculate the rate constant
-    /// @param conditions The current environmental conditions of the chemical system
-    /// @param custom_parameters User-defined rate constant parameters
-    /// @return A rate constant based off of the conditions in the system
-    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
-
-    /// @brief Calculate the rate constant
-    /// @param conditions The current environmental conditions of the chemical system
-    /// @return A rate constant based off of the conditions in the system
-    double Calculate(const Conditions& conditions) const override;
+    /// @brief Gas-phase diffusion coefficient for the reacting species [m2 s-1]
+    double diffusion_coefficient_;
+    /// @brief Precomputed factor for mean free speed: 8 * R / (pi * Mw) [K-1 m2 s-2]
+    double mean_free_speed_factor_;
+    /// @brief Reaction probability (0-1) [unitless]
+    double reaction_probability_;
+    /// @brief Index into custom_rate_parameters_[cell] for aerosol effective radius [m];
+    ///        particle number concentration [# m-3] is at custom_param_base_index_ + 1
+    std::size_t custom_param_base_index_;
   };
-
-  inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
-      : parameters_(parameters)
-  {
-    if (parameters.phase_species_.diffusion_coefficient_.has_value())
-    {
-      diffusion_coefficient_ = parameters.phase_species_.diffusion_coefficient_.value();
-    }
-    else
-    {
-      throw MicmException(
-          MicmSeverity::Error,
-          MICM_ERROR_CATEGORY_SPECIES,
-          MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
-          "Diffusion coefficient for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
-    }
-    try
-    {
-      double molecular_weight = parameters.phase_species_.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT);
-      mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * molecular_weight);
-    }
-    catch (const MicmException& e)
-    {
-      if (e.code_ == MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND)
-      {
-        throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_SPECIES,
-            MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
-            "Molecular weight for species '" + parameters.phase_species_.species_.name_ + "' is not defined");
-      }
-      else
-      {
-        throw;
-      }
-    }
-  }
-
-  inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
-  {
-    return std::make_unique<SurfaceRateConstant>(*this);
-  }
-
-  inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const
-  {
-    throw MicmException(
-        MicmSeverity::Error,
-        MICM_ERROR_CATEGORY_RATE_CONSTANT,
-        MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT,
-        "Missing required arguments for surface rate constant");
-  }
-
-  inline double SurfaceRateConstant::Calculate(
-      const Conditions& conditions,
-      std::vector<double>::const_iterator custom_parameters) const
-  {
-    const double mean_free_speed = std::sqrt(mean_free_speed_factor_ * conditions.temperature_);
-    const double radius = *(custom_parameters++);
-    const double number = *(custom_parameters);
-    double val = (double)4.0 * number * M_PI * radius * radius /
-                 (radius / diffusion_coefficient_ + 4.0 / (mean_free_speed * parameters_.reaction_probability_));
-    return val;
-  }
-
-  inline std::vector<std::string> SurfaceRateConstant::CustomParameters() const
-  {
-    return std::vector<std::string>{ parameters_.label_ + ".effective radius [m]",
-                                     parameters_.label_ + ".particle number concentration [# m-3]" };
-  }
-
-  inline std::size_t SurfaceRateConstant::SizeCustomParameters() const
-  {
-    return 2;
-  }
 }  // namespace micm

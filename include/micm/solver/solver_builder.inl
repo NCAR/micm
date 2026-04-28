@@ -139,8 +139,13 @@ namespace micm
     {
       if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
       {
-        for (auto& label : process->rate_constant_->CustomParameters())
-          add_param(label, "reaction");
+        if (auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process->rate_constant_))
+          add_param(ud->label_, "reaction");
+        else if (auto* surf = std::get_if<SurfaceRateConstantParameters>(&process->rate_constant_))
+        {
+          add_param(surf->label_ + ".effective radius [m]", "reaction");
+          add_param(surf->label_ + ".particle number concentration [# m-3]", "reaction");
+        }
       }
     }
 
@@ -252,6 +257,48 @@ namespace micm
     using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
     using SolverPolicy =
         typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
+
+    // Sort reactions by rate constant type so ReactionRateConstantStore and ProcessSet
+    // share a consistent ordering and each type occupies a contiguous block.
+    std::stable_sort(
+        reactions_.begin(),
+        reactions_.end(),
+        [](const Process& a, const Process& b)
+        {
+          auto type_order = [](const Process& p) -> int
+          {
+            const ChemicalReaction* rxn = std::get_if<ChemicalReaction>(&p.process_);
+            if (!rxn)
+              return 10;  // PhaseTransferProcess → end
+            return std::visit(
+                [](const auto& v) -> int
+                {
+                  using T = std::decay_t<decltype(v)>;
+                  if constexpr (std::is_same_v<T, ArrheniusRateConstantParameters>)
+                    return 0;
+                  else if constexpr (std::is_same_v<T, TroeRateConstantParameters>)
+                    return 1;
+                  else if constexpr (std::is_same_v<T, TernaryChemicalActivationRateConstantParameters>)
+                    return 2;
+                  else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
+                    return 3;
+                  else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
+                    return 4;
+                  else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
+                    return 5;
+                  else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
+                    return 6;
+                  else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
+                    return 7;
+                  else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
+                    return 8;
+                  else
+                    return 9;  // LambdaRateConstantParameters
+                },
+                rxn->rate_constant_);
+          };
+          return type_order(a) < type_order(b);
+        });
 
     // Build ProcessSet
     auto species_map = this->GetSpeciesMap();

@@ -1,6 +1,7 @@
-#include <micm/process/rate_constant/tunneling_rate_constant.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/system.hpp>
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+#include <micm/process/rate_constant/rate_constant_functions.hpp>
+#include <micm/system/conditions.hpp>
 
 #include <gtest/gtest.h>
 
@@ -12,8 +13,7 @@ TEST(TunnelingRateConstant, CalculateWithMinimalArguments)
     .temperature_ = 301.24,  // [K]
   };
   micm::TunnelingRateConstantParameters tunneling_params;
-  micm::TunnelingRateConstant tunneling{ tunneling_params };
-  auto k = tunneling.Calculate(conditions);
+  double k = micm::CalculateTunneling(tunneling_params, conditions.temperature_);
   double expected = 1.0;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
@@ -24,8 +24,8 @@ TEST(TunnelingRateConstant, CalculateWithAllArguments)
   micm::Conditions conditions{
     .temperature_ = temperature,  // [K]
   };
-  micm::TunnelingRateConstant tunneling{ micm::TunnelingRateConstantParameters{ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 } };
-  auto k = tunneling.Calculate(conditions);
+  micm::TunnelingRateConstantParameters tunneling_params{ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 };
+  double k = micm::CalculateTunneling(tunneling_params, conditions.temperature_);
   double expected = 1.2 * std::exp(-2.3 / temperature) * std::exp(302.3 / std::pow(temperature, 3));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

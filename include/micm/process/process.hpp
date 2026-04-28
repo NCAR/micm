@@ -9,7 +9,6 @@
 #include <micm/system/stoich_species.hpp>
 #include <micm/util/error.hpp>
 
-#include <memory>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -29,33 +28,6 @@ namespace micm
     Process(T&& process)
         : process_(std::forward<T>(process))
     {
-    }
-
-    /// @brief TODO - Temporary wrapper for rate constant calculation
-    ///        Calls ChemicalReaction::CalculateRateConstants for all ChemicalReaction processes
-    ///        issue - https://github.com/NCAR/micm/issues/812
-    template<
-        class DenseMatrixPolicy,
-        class SparseMatrixPolicy,
-        class LuDecompositionPolicy,
-        class LMatrixPolicy,
-        class UMatrixPolicy>
-    static void CalculateRateConstants(
-        const std::vector<Process>& processes,
-        State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state)
-    {
-      // Collect ChemicalReaction objects
-      std::vector<ChemicalReaction> reactions;
-      for (const auto& process : processes)
-      {
-        if (auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
-        {
-          reactions.push_back(*reaction);
-        }
-        // PhaseTransferProcess support can be added here in the future
-      }
-
-      ChemicalReaction::CalculateRateConstants(reactions, state);
     }
   };
 
