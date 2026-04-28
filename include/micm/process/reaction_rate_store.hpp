@@ -211,7 +211,6 @@ namespace micm
           SurfaceRateConstantData data;
           if (!p->phase_species_.diffusion_coefficient_.has_value())
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_SPECIES,
                 MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
                 "Diffusion coefficient for species '" + p->phase_species_.species_.name_ + "' is not defined");
