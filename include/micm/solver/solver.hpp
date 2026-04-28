@@ -46,13 +46,7 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system)
-        : Solver(
-              std::move(solver),
-              state_parameters,
-              solver_parameters,
-              std::move(processes),
-              std::move(system),
-              {})
+        : Solver(std::move(solver), state_parameters, solver_parameters, std::move(processes), std::move(system), {})
     {
     }
 

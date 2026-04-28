@@ -40,13 +40,12 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
           .SetPhase(gas_phase)
           .Build();
 
-  micm::Process r3 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ micm::Species("O"), micm::Species("O3") })
-          .SetProducts({ micm::StoichSpecies(micm::Species("O2"), 2) })
-          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ micm::Species("O"), micm::Species("O3") })
+                         .SetProducts({ micm::StoichSpecies(micm::Species("O2"), 2) })
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
   micm::Process r4 =
       micm::ChemicalReactionBuilder()

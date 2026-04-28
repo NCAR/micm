@@ -72,8 +72,7 @@ namespace micm
             MICM_PROCESS_ERROR_CODE_RATE_CONSTANT_IS_NOT_SET,
             "Rate constant has not been set.");
 
-      ChemicalReaction reaction(
-          std::move(reactants_), std::move(products_), std::move(rate_constant_.value()), phase_);
+      ChemicalReaction reaction(std::move(reactants_), std::move(products_), std::move(rate_constant_.value()), phase_);
       return Process(std::move(reaction));
     }
 

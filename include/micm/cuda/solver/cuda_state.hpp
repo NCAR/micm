@@ -126,7 +126,7 @@ namespace micm
       this->variables_.CopyToHost();
       // our tests require we check the rate constants
       // therefore the copy back to host is only needed for tests
-#ifdef MICM_ENABLE_TESTS 
+#ifdef MICM_ENABLE_TESTS
       this->rate_constants_.CopyToHost();
 #endif
     }

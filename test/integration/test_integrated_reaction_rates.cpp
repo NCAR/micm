@@ -24,13 +24,12 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r2 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ b })
-          .SetProducts({ micm::StoichSpecies(c, 1), micm::StoichSpecies(irr_2, 1) })
-          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r2 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ b })
+                         .SetProducts({ micm::StoichSpecies(c, 1), micm::StoichSpecies(irr_2, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" })
+                         .SetPhase(gas_phase)
+                         .Build();
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 

@@ -28,14 +28,7 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArguments)
     .air_density_ = 42.2,  // [mol mol-1]
   };
   micm::TernaryChemicalActivationRateConstantParameters params{
-    .k0_A_ = 1.2,
-    .k0_B_ = 2.3,
-    .k0_C_ = 302.3,
-    .kinf_A_ = 2.6,
-    .kinf_B_ = -3.1,
-    .kinf_C_ = 402.1,
-    .Fc_ = 0.9,
-    .N_ = 1.2
+    .k0_A_ = 1.2, .k0_B_ = 2.3, .k0_C_ = 302.3, .kinf_A_ = 2.6, .kinf_B_ = -3.1, .kinf_C_ = 402.1, .Fc_ = 0.9, .N_ = 1.2
   };
   double k = micm::CalculateTernaryChemicalActivation(params, conditions.temperature_, conditions.air_density_);
   double k0 = 1.2 * std::exp(302.3 / temperature) * std::pow(temperature / 300.0, 2.3);

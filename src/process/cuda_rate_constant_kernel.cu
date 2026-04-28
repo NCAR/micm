@@ -17,7 +17,7 @@
 #include <math.h>
 
 #ifndef M_PI
-#  define M_PI 3.14159265358979323846
+  #define M_PI 3.14159265358979323846
 #endif
 
 namespace micm
@@ -31,25 +31,24 @@ namespace micm
     /// @param local_tid Lane index within the VectorMatrix group (tid % L)
     __device__ __forceinline__ static void CalculateRatesForThread(
         const CudaReactionRateStoreParam& store,
-        double        temperature,
-        double        pressure,
-        double        air_density,
+        double temperature,
+        double pressure,
+        double air_density,
         const double* cp_base,
-        double*       rc_base,
+        double* rc_base,
         const double* mv_base,
-        std::size_t   local_tid,
-        std::size_t   L)
+        std::size_t local_tid,
+        std::size_t L)
     {
-      auto out = [&](std::size_t offset, std::size_t i) -> double* {
-        return &rc_base[(offset + i) * L + local_tid];
-      };
+      auto out = [&](std::size_t offset, std::size_t i) -> double* { return &rc_base[(offset + i) * L + local_tid]; };
 
       for (std::size_t i = 0; i < store.n_arrhenius_; ++i)
         *out(0, i) = micm::CalculateArrhenius(store.d_arrhenius_[i], temperature, pressure);
       for (std::size_t i = 0; i < store.n_troe_; ++i)
         *out(store.troe_offset_, i) = micm::CalculateTroe(store.d_troe_[i], temperature, air_density);
       for (std::size_t i = 0; i < store.n_ternary_; ++i)
-        *out(store.ternary_offset_, i) = micm::CalculateTernaryChemicalActivation(store.d_ternary_[i], temperature, air_density);
+        *out(store.ternary_offset_, i) =
+            micm::CalculateTernaryChemicalActivation(store.d_ternary_[i], temperature, air_density);
       for (std::size_t i = 0; i < store.n_branched_; ++i)
         *out(store.branched_offset_, i) = micm::CalculateBranched(store.d_branched_[i], temperature, air_density);
       for (std::size_t i = 0; i < store.n_tunneling_; ++i)
@@ -82,25 +81,25 @@ namespace micm
     ///   where base = group_id * group_size, local_tid = tid % L.
     __global__ void CalculateRateConstantsKernel(
         const CudaReactionRateStoreParam store,
-        const micm::Conditions*          d_conditions,
-        double*                          d_rc,
-        std::size_t                      rc_group_size,
-        const double*                    d_cp,
-        std::size_t                      cp_group_size,
-        const double*                    d_mult_vals,
-        std::size_t                      mult_group_size,
-        std::size_t                      n_cells,
-        std::size_t                      L)
+        const micm::Conditions* d_conditions,
+        double* d_rc,
+        std::size_t rc_group_size,
+        const double* d_cp,
+        std::size_t cp_group_size,
+        const double* d_mult_vals,
+        std::size_t mult_group_size,
+        std::size_t n_cells,
+        std::size_t L)
     {
-      const std::size_t tid       = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-      const std::size_t group_id  = tid / L;
+      const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      const std::size_t group_id = tid / L;
       const std::size_t local_tid = tid % L;
 
       if (tid >= n_cells)
         return;
 
       const double temperature = d_conditions[tid].temperature_;
-      const double pressure    = d_conditions[tid].pressure_;
+      const double pressure = d_conditions[tid].pressure_;
       const double air_density = d_conditions[tid].air_density_;
 
       CalculateRatesForThread(
@@ -117,19 +116,19 @@ namespace micm
 
     void CalculateRateConstantsKernelDriver(
         const CudaReactionRateStoreParam& store_param,
-        const micm::Conditions*           d_conditions,
-        CudaMatrixParam&                  rc_param,
-        const CudaMatrixParam&            cp_param,
-        const double*                     d_mult_vals)
+        const micm::Conditions* d_conditions,
+        CudaMatrixParam& rc_param,
+        const CudaMatrixParam& cp_param,
+        const double* d_mult_vals)
     {
       const std::size_t n_cells = rc_param.number_of_grid_cells_;
       if (n_cells == 0)
         return;
 
-      const std::size_t L               = rc_param.vector_length_;
-      const std::size_t n_groups        = (n_cells + L - 1) / L;
-      const std::size_t rc_group_size   = rc_param.number_of_elements_ / n_groups;
-      const std::size_t cp_group_size   = (cp_param.number_of_elements_ > 0) ? cp_param.number_of_elements_ / n_groups : 0;
+      const std::size_t L = rc_param.vector_length_;
+      const std::size_t n_groups = (n_cells + L - 1) / L;
+      const std::size_t rc_group_size = rc_param.number_of_elements_ / n_groups;
+      const std::size_t cp_group_size = (cp_param.number_of_elements_ > 0) ? cp_param.number_of_elements_ / n_groups : 0;
       const std::size_t mult_group_size = store_param.n_multipliers_ * L;
 
       const std::size_t number_of_blocks = (n_cells + BLOCK_SIZE - 1) / BLOCK_SIZE;

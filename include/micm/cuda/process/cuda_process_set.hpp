@@ -82,8 +82,9 @@ namespace micm
     /// After this call, device rate_constants_ is fully populated for the current step.
     template<class StatePolicy>
     void GpuCalculateRateConstants(const ReactionRateConstantStore& cpu_store, StatePolicy& state)
-      requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
-               VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
+      requires(
+          CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
+          VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
     {
       using DM = typename StatePolicy::DenseMatrixPolicyType;
 
@@ -100,8 +101,8 @@ namespace micm
       state.custom_rate_parameters_.CopyToDevice();
 
       // Evaluate parameterized multipliers on CPU and upload in interleaved layout
-      const double* d_mult_vals = cuda_rate_store_.UploadMultiplierValues(
-          cpu_store, state.conditions_, DM::GroupVectorSize());
+      const double* d_mult_vals =
+          cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
 
       // GPU analytic calculation (includes multiplier application)
       auto rc_param = state.rate_constants_.AsDeviceParam();
@@ -138,18 +139,18 @@ namespace micm
   inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::InitDevStruct()
   {
     ProcessSetParam hoststruct;
-    hoststruct.number_of_reactants_      = this->number_of_reactants_.data();
-    hoststruct.reactant_ids_             = this->reactant_ids_.data();
-    hoststruct.number_of_products_       = this->number_of_products_.data();
-    hoststruct.product_ids_              = this->product_ids_.data();
-    hoststruct.yields_                   = this->yields_.data();
-    hoststruct.is_algebraic_variable_    = this->is_algebraic_variable_.data();
+    hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
+    hoststruct.reactant_ids_ = this->reactant_ids_.data();
+    hoststruct.number_of_products_ = this->number_of_products_.data();
+    hoststruct.product_ids_ = this->product_ids_.data();
+    hoststruct.yields_ = this->yields_.data();
+    hoststruct.is_algebraic_variable_ = this->is_algebraic_variable_.data();
     hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
-    hoststruct.reactant_ids_size_        = this->reactant_ids_.size();
-    hoststruct.number_of_products_size_  = this->number_of_products_.size();
-    hoststruct.product_ids_size_         = this->product_ids_.size();
-    hoststruct.yields_size_              = this->yields_.size();
-    hoststruct.algebraic_variable_size_  = this->is_algebraic_variable_.size();
+    hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
+    hoststruct.number_of_products_size_ = this->number_of_products_.size();
+    hoststruct.product_ids_size_ = this->product_ids_.size();
+    hoststruct.yields_size_ = this->yields_.size();
+    hoststruct.algebraic_variable_size_ = this->is_algebraic_variable_.size();
     this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
   }
 

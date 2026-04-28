@@ -9,10 +9,9 @@ constexpr double TOLERANCE = 1e-13;
 
 TEST(LambdaRateConstant, CalculateWithSystem)
 {
-  micm::LambdaRateConstantParameters params{
-    .label_ = "test lambda",
-    .lambda_function_ = [](const micm::Conditions& conditions) { return 2.0 * conditions.temperature_; }
-  };
+  micm::LambdaRateConstantParameters params{ .label_ = "test lambda",
+                                             .lambda_function_ = [](const micm::Conditions& conditions)
+                                             { return 2.0 * conditions.temperature_; } };
   micm::Conditions conditions = {
     .temperature_ = 300.0  // [K]
   };
