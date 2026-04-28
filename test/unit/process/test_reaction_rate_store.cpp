@@ -19,7 +19,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #ifndef M_PI
-#  define M_PI 3.14159265358979323846
+  #define M_PI 3.14159265358979323846
 #endif
 
 using namespace micm;
@@ -79,8 +79,8 @@ namespace
           },
           rxn->rate_constant_);
     };
-    std::stable_sort(procs.begin(), procs.end(), [&](const Process& a, const Process& b)
-                     { return type_order(a) < type_order(b); });
+    std::stable_sort(
+        procs.begin(), procs.end(), [&](const Process& a, const Process& b) { return type_order(a) < type_order(b); });
   }
 }  // namespace
 
@@ -173,11 +173,11 @@ TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
 
   ArrheniusRateConstantParameters params{ .A_ = 2.15e-4, .B_ = 1.2, .C_ = 110.0, .D_ = 300.0, .E_ = 0.0 };
   std::vector<Process> procs{ ChemicalReactionBuilder()
-                                   .SetReactants({ a })
-                                   .SetProducts({ StoichSpecies(b, 1) })
-                                   .SetRateConstant(params)
-                                   .SetPhase(gas)
-                                   .Build() };
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(params)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.arrhenius_.size(), 1u);
@@ -200,11 +200,11 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
     .branch_ = BranchedRateConstantParameters::Branch::Alkoxy, .X_ = 1.0, .Y_ = 0.0, .a0_ = 0.5, .n_ = 3
   };
   std::vector<Process> procs{ ChemicalReactionBuilder()
-                                   .SetReactants({ a })
-                                   .SetProducts({ StoichSpecies(b, 1) })
-                                   .SetRateConstant(params)
-                                   .SetPhase(gas)
-                                   .Build() };
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(params)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.branched_.size(), 1u);
@@ -233,10 +233,18 @@ TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
 
   UserDefinedRateConstantParameters p1{ .label_ = "rate1", .scaling_factor_ = 2.0 };
   UserDefinedRateConstantParameters p2{ .label_ = "rate2", .scaling_factor_ = 0.5 };
-  std::vector<Process> procs{
-    ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(p1).SetPhase(gas).Build(),
-    ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(p2).SetPhase(gas).Build()
-  };
+  std::vector<Process> procs{ ChemicalReactionBuilder()
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(p1)
+                                  .SetPhase(gas)
+                                  .Build(),
+                              ChemicalReactionBuilder()
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(p2)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.user_defined_.size(), 2u);
@@ -265,11 +273,11 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
 
   SurfaceRateConstantParameters params{ .label_ = "surf", .phase_species_ = gas_c, .reaction_probability_ = prob };
   std::vector<Process> procs{ ChemicalReactionBuilder()
-                                   .SetReactants({ c })
-                                   .SetProducts({ StoichSpecies(b, 1) })
-                                   .SetRateConstant(params)
-                                   .SetPhase(gas)
-                                   .Build() };
+                                  .SetReactants({ c })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(params)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.surface_.size(), 1u);
@@ -293,10 +301,18 @@ TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
   SurfaceRateConstantParameters surf_p{ .label_ = "surf", .phase_species_ = gas_c };
 
   // Sorted: UserDefined (7) < Surface (8)
-  std::vector<Process> procs{
-    ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(ud_p).SetPhase(gas).Build(),
-    ChemicalReactionBuilder().SetReactants({ c }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(surf_p).SetPhase(gas).Build()
-  };
+  std::vector<Process> procs{ ChemicalReactionBuilder()
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(ud_p)
+                                  .SetPhase(gas)
+                                  .Build(),
+                              ChemicalReactionBuilder()
+                                  .SetReactants({ c })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(surf_p)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.user_defined_.size(), 1u);
@@ -317,16 +333,22 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
   Phase gas = MakeGasPhase({ a, b });
 
   ArrheniusRateConstantParameters arr{};
-  LambdaRateConstantParameters lam{
-    .label_ = "lam",
-    .lambda_function_ = [](const Conditions& c) { return c.temperature_ * 1.0e-3; }
-  };
+  LambdaRateConstantParameters lam{ .label_ = "lam",
+                                    .lambda_function_ = [](const Conditions& c) { return c.temperature_ * 1.0e-3; } };
 
   // Sorted: Arrhenius (0) before Lambda (9)
-  std::vector<Process> procs{
-    ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(arr).SetPhase(gas).Build(),
-    ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(lam).SetPhase(gas).Build()
-  };
+  std::vector<Process> procs{ ChemicalReactionBuilder()
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(arr)
+                                  .SetPhase(gas)
+                                  .Build(),
+                              ChemicalReactionBuilder()
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(lam)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
@@ -354,10 +376,18 @@ TEST(ReactionRateConstantStore, ParameterizedMultipliers)
   ArrheniusRateConstantParameters arr_a{};  // no parameterized reactants
   ArrheniusRateConstantParameters arr_b{};  // b is parameterized
 
-  std::vector<Process> procs{
-    ChemicalReactionBuilder().SetReactants({ a }).SetProducts({ StoichSpecies(b, 1) }).SetRateConstant(arr_a).SetPhase(gas).Build(),
-    ChemicalReactionBuilder().SetReactants({ b }).SetProducts({ StoichSpecies(a, 1) }).SetRateConstant(arr_b).SetPhase(gas).Build()
-  };
+  std::vector<Process> procs{ ChemicalReactionBuilder()
+                                  .SetReactants({ a })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(arr_a)
+                                  .SetPhase(gas)
+                                  .Build(),
+                              ChemicalReactionBuilder()
+                                  .SetReactants({ b })
+                                  .SetProducts({ StoichSpecies(a, 1) })
+                                  .SetRateConstant(arr_b)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
@@ -379,9 +409,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
   PhaseSpecies gas_c(c, 1.0e-5);
   Phase gas{ "gas", { PhaseSpecies(a), PhaseSpecies(b), gas_c } };
 
-  LambdaRateConstantParameters lam{
-    .label_ = "lam", .lambda_function_ = [](const Conditions&) { return 1.0; }
-  };
+  LambdaRateConstantParameters lam{ .label_ = "lam", .lambda_function_ = [](const Conditions&) { return 1.0; } };
   SurfaceRateConstantParameters surf{ .label_ = "surf", .phase_species_ = gas_c };
 
   std::vector<Process> procs;
@@ -441,11 +469,11 @@ TEST(ReactionRateConstantStore, SurfaceMissingDiffusionCoefficientThrows)
 
   SurfaceRateConstantParameters params{ .label_ = "surf", .phase_species_ = gas_c_no_diff };
   std::vector<Process> procs{ ChemicalReactionBuilder()
-                                   .SetReactants({ c })
-                                   .SetProducts({ StoichSpecies(b, 1) })
-                                   .SetRateConstant(params)
-                                   .SetPhase(gas)
-                                   .Build() };
+                                  .SetReactants({ c })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(params)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
 }
@@ -463,11 +491,11 @@ TEST(ReactionRateConstantStore, SurfaceMissingMolecularWeightThrows)
 
   SurfaceRateConstantParameters params{ .label_ = "surf", .phase_species_ = gas_c };
   std::vector<Process> procs{ ChemicalReactionBuilder()
-                                   .SetReactants({ c })
-                                   .SetProducts({ StoichSpecies(b, 1) })
-                                   .SetRateConstant(params)
-                                   .SetPhase(gas)
-                                   .Build() };
+                                  .SetReactants({ c })
+                                  .SetProducts({ StoichSpecies(b, 1) })
+                                  .SetRateConstant(params)
+                                  .SetPhase(gas)
+                                  .Build() };
 
   EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
 }

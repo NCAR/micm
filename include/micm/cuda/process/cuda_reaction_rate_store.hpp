@@ -27,25 +27,25 @@ namespace micm
     // ----------------------------------------------------------------
     // Owned device pointers — freed in destructor
     // ----------------------------------------------------------------
-    ArrheniusRateConstantParameters*                 d_arrhenius_    = nullptr;
-    TroeRateConstantParameters*                      d_troe_         = nullptr;
-    TernaryChemicalActivationRateConstantParameters* d_ternary_      = nullptr;
-    BranchedRateConstantParameters*                  d_branched_     = nullptr;
-    TunnelingRateConstantParameters*                 d_tunneling_    = nullptr;
-    TaylorSeriesRateConstantParameters*              d_taylor_       = nullptr;
-    ReversibleRateConstantParameters*                d_reversible_   = nullptr;
-    UserDefinedRateConstantData*                     d_user_defined_ = nullptr;
-    SurfaceRateConstantData*                         d_surface_      = nullptr;
+    ArrheniusRateConstantParameters* d_arrhenius_ = nullptr;
+    TroeRateConstantParameters* d_troe_ = nullptr;
+    TernaryChemicalActivationRateConstantParameters* d_ternary_ = nullptr;
+    BranchedRateConstantParameters* d_branched_ = nullptr;
+    TunnelingRateConstantParameters* d_tunneling_ = nullptr;
+    TaylorSeriesRateConstantParameters* d_taylor_ = nullptr;
+    ReversibleRateConstantParameters* d_reversible_ = nullptr;
+    UserDefinedRateConstantData* d_user_defined_ = nullptr;
+    SurfaceRateConstantData* d_surface_ = nullptr;
 
     // Parameterized-multiplier rc_index array (static, built once)
     std::size_t* d_mult_rc_indices_ = nullptr;
 
     // Per-step multiplier values buffer (interleaved layout, grows if needed)
-    double*     d_mult_vals_          = nullptr;
+    double* d_mult_vals_ = nullptr;
     std::size_t d_mult_vals_capacity_ = 0;
 
     // Device buffer for per-step conditions (grows if needed)
-    Conditions* d_conditions_          = nullptr;
+    Conditions* d_conditions_ = nullptr;
     std::size_t d_conditions_capacity_ = 0;
 
     // Cached kernel param struct (populated by BuildFrom)
@@ -99,7 +99,7 @@ namespace micm
    public:
     CudaReactionRateStore() = default;
 
-    CudaReactionRateStore(const CudaReactionRateStore&)            = delete;
+    CudaReactionRateStore(const CudaReactionRateStore&) = delete;
     CudaReactionRateStore& operator=(const CudaReactionRateStore&) = delete;
 
     CudaReactionRateStore(CudaReactionRateStore&& other) noexcept
@@ -142,50 +142,50 @@ namespace micm
     ///        Any previous device allocations are freed before re-uploading.
     void BuildFrom(const ReactionRateConstantStore& cpu_store)
     {
-      ReallocAndUpload(d_arrhenius_,    cpu_store.arrhenius_);
-      ReallocAndUpload(d_troe_,         cpu_store.troe_);
-      ReallocAndUpload(d_ternary_,      cpu_store.ternary_);
-      ReallocAndUpload(d_branched_,     cpu_store.branched_);
-      ReallocAndUpload(d_tunneling_,    cpu_store.tunneling_);
-      ReallocAndUpload(d_taylor_,       cpu_store.taylor_);
-      ReallocAndUpload(d_reversible_,   cpu_store.reversible_);
+      ReallocAndUpload(d_arrhenius_, cpu_store.arrhenius_);
+      ReallocAndUpload(d_troe_, cpu_store.troe_);
+      ReallocAndUpload(d_ternary_, cpu_store.ternary_);
+      ReallocAndUpload(d_branched_, cpu_store.branched_);
+      ReallocAndUpload(d_tunneling_, cpu_store.tunneling_);
+      ReallocAndUpload(d_taylor_, cpu_store.taylor_);
+      ReallocAndUpload(d_reversible_, cpu_store.reversible_);
       ReallocAndUpload(d_user_defined_, cpu_store.user_defined_);
-      ReallocAndUpload(d_surface_,      cpu_store.surface_);
+      ReallocAndUpload(d_surface_, cpu_store.surface_);
 
       // Populate the kernel param struct
-      param_.d_arrhenius_    = d_arrhenius_;
-      param_.d_troe_         = d_troe_;
-      param_.d_ternary_      = d_ternary_;
-      param_.d_branched_     = d_branched_;
-      param_.d_tunneling_    = d_tunneling_;
-      param_.d_taylor_       = d_taylor_;
-      param_.d_reversible_   = d_reversible_;
+      param_.d_arrhenius_ = d_arrhenius_;
+      param_.d_troe_ = d_troe_;
+      param_.d_ternary_ = d_ternary_;
+      param_.d_branched_ = d_branched_;
+      param_.d_tunneling_ = d_tunneling_;
+      param_.d_taylor_ = d_taylor_;
+      param_.d_reversible_ = d_reversible_;
       param_.d_user_defined_ = d_user_defined_;
-      param_.d_surface_      = d_surface_;
+      param_.d_surface_ = d_surface_;
 
-      param_.n_arrhenius_    = cpu_store.arrhenius_.size();
-      param_.n_troe_         = cpu_store.troe_.size();
-      param_.n_ternary_      = cpu_store.ternary_.size();
-      param_.n_branched_     = cpu_store.branched_.size();
-      param_.n_tunneling_    = cpu_store.tunneling_.size();
-      param_.n_taylor_       = cpu_store.taylor_.size();
-      param_.n_reversible_   = cpu_store.reversible_.size();
+      param_.n_arrhenius_ = cpu_store.arrhenius_.size();
+      param_.n_troe_ = cpu_store.troe_.size();
+      param_.n_ternary_ = cpu_store.ternary_.size();
+      param_.n_branched_ = cpu_store.branched_.size();
+      param_.n_tunneling_ = cpu_store.tunneling_.size();
+      param_.n_taylor_ = cpu_store.taylor_.size();
+      param_.n_reversible_ = cpu_store.reversible_.size();
       param_.n_user_defined_ = cpu_store.user_defined_.size();
-      param_.n_surface_      = cpu_store.surface_.size();
+      param_.n_surface_ = cpu_store.surface_.size();
 
-      param_.troe_offset_         = cpu_store.troe_offset();
-      param_.ternary_offset_      = cpu_store.ternary_offset();
-      param_.branched_offset_     = cpu_store.branched_offset();
-      param_.tunneling_offset_    = cpu_store.tunneling_offset();
-      param_.taylor_offset_       = cpu_store.taylor_offset();
-      param_.reversible_offset_   = cpu_store.reversible_offset();
+      param_.troe_offset_ = cpu_store.troe_offset();
+      param_.ternary_offset_ = cpu_store.ternary_offset();
+      param_.branched_offset_ = cpu_store.branched_offset();
+      param_.tunneling_offset_ = cpu_store.tunneling_offset();
+      param_.taylor_offset_ = cpu_store.taylor_offset();
+      param_.reversible_offset_ = cpu_store.reversible_offset();
       param_.user_defined_offset_ = cpu_store.user_defined_offset();
-      param_.surface_offset_      = cpu_store.surface_offset();
+      param_.surface_offset_ = cpu_store.surface_offset();
 
       // Upload parameterized-multiplier rc_indices (static per solver build)
       const auto& mults = cpu_store.parameterized_multipliers_;
       FreeDevice(d_mult_rc_indices_);
-      param_.n_multipliers_     = mults.size();
+      param_.n_multipliers_ = mults.size();
       param_.d_mult_rc_indices_ = nullptr;
       if (!mults.empty())
       {
@@ -193,8 +193,7 @@ namespace micm
         for (std::size_t i = 0; i < mults.size(); ++i)
           rc_indices[i] = mults[i].rc_index;
         auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
-        CHECK_CUDA_ERROR(
-            cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
+        CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
         CHECK_CUDA_ERROR(
             cudaMemcpyAsync(
                 d_mult_rc_indices_, rc_indices.data(), sizeof(std::size_t) * mults.size(), cudaMemcpyHostToDevice, stream),
@@ -208,17 +207,17 @@ namespace micm
     /// @return Device pointer to multiplier values, or nullptr if there are no multipliers.
     const double* UploadMultiplierValues(
         const ReactionRateConstantStore& cpu_store,
-        const std::vector<Conditions>&   conditions,
-        std::size_t                      L)
+        const std::vector<Conditions>& conditions,
+        std::size_t L)
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())
         return nullptr;
 
-      const std::size_t n_mults  = mults.size();
-      const std::size_t n_cells  = conditions.size();
+      const std::size_t n_mults = mults.size();
+      const std::size_t n_cells = conditions.size();
       const std::size_t n_groups = (n_cells + L - 1) / L;
-      const std::size_t n_vals   = n_groups * n_mults * L;
+      const std::size_t n_vals = n_groups * n_mults * L;
 
       std::vector<double> host_vals(n_vals, 0.0);
       for (std::size_t g = 0; g < n_groups; ++g)
@@ -251,17 +250,12 @@ namespace micm
       if (conditions.size() > d_conditions_capacity_)
       {
         FreeDevice(d_conditions_);
-        CHECK_CUDA_ERROR(
-            cudaMallocAsync(&d_conditions_, sizeof(Conditions) * conditions.size(), stream), "cudaMalloc");
+        CHECK_CUDA_ERROR(cudaMallocAsync(&d_conditions_, sizeof(Conditions) * conditions.size(), stream), "cudaMalloc");
         d_conditions_capacity_ = conditions.size();
       }
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              d_conditions_,
-              conditions.data(),
-              sizeof(Conditions) * conditions.size(),
-              cudaMemcpyHostToDevice,
-              stream),
+              d_conditions_, conditions.data(), sizeof(Conditions) * conditions.size(), cudaMemcpyHostToDevice, stream),
           "cudaMemcpy");
       return d_conditions_;
     }

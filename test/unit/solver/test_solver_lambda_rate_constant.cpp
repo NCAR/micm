@@ -19,10 +19,9 @@ namespace
 
   micm::LambdaRateConstantParameters makeLambdaRateConstantParams()
   {
-    return micm::LambdaRateConstantParameters{
-      .label_ = "lambda_rc",
-      .lambda_function_ = [](const micm::Conditions& conditions) { return 1.0e-3 * conditions.temperature_; }
-    };
+    return micm::LambdaRateConstantParameters{ .label_ = "lambda_rc",
+                                               .lambda_function_ = [](const micm::Conditions& conditions)
+                                               { return 1.0e-3 * conditions.temperature_; } };
   }
 }  // namespace
 
@@ -44,8 +43,7 @@ TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
                     .Build();
 
   auto& lambda_ref = solver.GetLambdaRateConstantByName("lambda_rc");
-  lambda_ref.lambda_function_ = [](const micm::Conditions& conditions)
-  { return 2.0e-3 * conditions.temperature_; };
+  lambda_ref.lambda_function_ = [](const micm::Conditions& conditions) { return 2.0e-3 * conditions.temperature_; };
 
   auto state = solver.GetState(1);
   state.SetAbsoluteTolerances({ 1.0e-6, 1.0e-6 });

@@ -20,7 +20,7 @@
 #include <cmath>
 #include <math.h>
 #ifndef M_PI
-#  define M_PI 3.14159265358979323846
+  #define M_PI 3.14159265358979323846
 #endif
 
 constexpr double TOLERANCE = 1e-10;
@@ -30,7 +30,7 @@ using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverPara
 
 const micm::Conditions kConditions{
   .temperature_ = 272.5,   // [K]
-  .pressure_    = 101325.0, // [Pa]
+  .pressure_ = 101325.0,   // [Pa]
   .air_density_ = 2.7e19,  // [mol m-3]
 };
 
@@ -69,11 +69,14 @@ TEST(CudaRateConstants, Troe)
   auto b = micm::Species("B");
   micm::Phase gas_phase{ "gas", { micm::PhaseSpecies(a), micm::PhaseSpecies(b) } };
 
-  micm::TroeRateConstantParameters params{
-    .k0_A_ = 6.0e-34, .k0_B_ = 0.0, .k0_C_ = 0.0,
-    .kinf_A_ = 2.3e-11, .kinf_B_ = 0.0, .kinf_C_ = -200.0,
-    .Fc_ = 0.6, .N_ = 1.0
-  };
+  micm::TroeRateConstantParameters params{ .k0_A_ = 6.0e-34,
+                                           .k0_B_ = 0.0,
+                                           .k0_C_ = 0.0,
+                                           .kinf_A_ = 2.3e-11,
+                                           .kinf_B_ = 0.0,
+                                           .kinf_C_ = -200.0,
+                                           .Fc_ = 0.6,
+                                           .N_ = 1.0 };
 
   auto process = micm::ChemicalReactionBuilder()
                      .SetReactants({ a })
@@ -103,9 +106,7 @@ TEST(CudaRateConstants, TernaryChemicalActivation)
   micm::Phase gas_phase{ "gas", { micm::PhaseSpecies(a), micm::PhaseSpecies(b) } };
 
   micm::TernaryChemicalActivationRateConstantParameters params{
-    .k0_A_ = 9.0e-32, .k0_B_ = -1.5, .k0_C_ = 0.0,
-    .kinf_A_ = 3.0e-11, .kinf_B_ = 0.0, .kinf_C_ = 0.0,
-    .Fc_ = 0.45, .N_ = 1.0
+    .k0_A_ = 9.0e-32, .k0_B_ = -1.5, .k0_C_ = 0.0, .kinf_A_ = 3.0e-11, .kinf_B_ = 0.0, .kinf_C_ = 0.0, .Fc_ = 0.45, .N_ = 1.0
   };
 
   auto process = micm::ChemicalReactionBuilder()
@@ -136,8 +137,7 @@ TEST(CudaRateConstants, BranchedAlkoxy)
   micm::Phase gas_phase{ "gas", { micm::PhaseSpecies(a), micm::PhaseSpecies(b) } };
 
   micm::BranchedRateConstantParameters params{
-    .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-    .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
+    .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy, .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
   };
 
   auto process = micm::ChemicalReactionBuilder()
@@ -170,8 +170,7 @@ TEST(CudaRateConstants, BranchedNitrate)
   micm::Phase gas_phase{ "gas", { micm::PhaseSpecies(a), micm::PhaseSpecies(b) } };
 
   micm::BranchedRateConstantParameters params{
-    .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-    .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
+    .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate, .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
   };
 
   auto process = micm::ChemicalReactionBuilder()
@@ -239,7 +238,7 @@ TEST(CudaRateConstants, TaylorSeries)
   params.E_ = 0.0;
   params.coefficients_[0] = 1.0;
   params.coefficients_[1] = 0.002;
-  params.n_coefficients_   = 2;
+  params.n_coefficients_ = 2;
 
   auto process = micm::ChemicalReactionBuilder()
                      .SetReactants({ a })
@@ -333,9 +332,9 @@ TEST(CudaRateConstants, Surface)
   micm::PhaseSpecies foo_gas(foo, diffusion_coeff);
   micm::Phase gas_phase{ "gas", { foo_gas } };
 
-  micm::SurfaceRateConstantParameters params{
-    .label_ = "surf_rate", .phase_species_ = foo_gas, .reaction_probability_ = 0.74
-  };
+  micm::SurfaceRateConstantParameters params{ .label_ = "surf_rate",
+                                              .phase_species_ = foo_gas,
+                                              .reaction_probability_ = 0.74 };
 
   auto process = micm::ChemicalReactionBuilder()
                      .SetReactants({ foo })
@@ -353,7 +352,7 @@ TEST(CudaRateConstants, Surface)
   state.conditions_ = { kConditions };
 
   // Surface reads radius at custom_param_base_index_ and num_conc at +1
-  const double radius  = 1.0e-7;  // [m]
+  const double radius = 1.0e-7;   // [m]
   const double num_conc = 2.5e6;  // [# m-3]
   state.custom_rate_parameters_[0][0] = radius;
   state.custom_rate_parameters_[0][1] = num_conc;

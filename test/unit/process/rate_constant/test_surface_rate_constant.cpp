@@ -12,7 +12,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #ifndef M_PI
-#  define M_PI 3.14159265358979323846
+  #define M_PI 3.14159265358979323846
 #endif
 
 using namespace micm;
@@ -27,14 +27,15 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
 
   // Build SurfaceRateConstantData as BuildFrom would
   SurfaceRateConstantData data;
-  data.diffusion_coefficient_  = foo_diffusion_coefficient;
+  data.diffusion_coefficient_ = foo_diffusion_coefficient;
   data.mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * 0.025);
-  data.reaction_probability_   = 1.0;  // default
+  data.reaction_probability_ = 1.0;  // default
   data.custom_param_base_index_ = 0;
 
-  double temperature = 273.65;  // K
+  double temperature = 273.65;                  // K
   double custom_params[2] = { 1.0e-7, 2.5e6 };  // effective radius [m], particle number concentration [# m-3]
-  double k = CalculateSurfaceOne(data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
+  double k = CalculateSurfaceOne(
+      data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
 
   double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                     (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025))));
@@ -48,14 +49,15 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
 
   SurfaceRateConstantData data;
-  data.diffusion_coefficient_  = foo_diffusion_coefficient;
+  data.diffusion_coefficient_ = foo_diffusion_coefficient;
   data.mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * 0.025);
-  data.reaction_probability_   = 0.74;
+  data.reaction_probability_ = 0.74;
   data.custom_param_base_index_ = 0;
 
   double temperature = 273.65;
   double custom_params[2] = { 1.0e-7, 2.5e6 };
-  double k = CalculateSurfaceOne(data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
+  double k = CalculateSurfaceOne(
+      data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
 
   double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                     (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));

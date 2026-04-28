@@ -147,15 +147,14 @@ namespace micm
 
           if (!param_funcs.empty())
           {
-            store.parameterized_multipliers_.push_back(
-                { [pf = std::move(param_funcs)](const Conditions& cond)
-                  {
-                    double val = 1.0;
-                    for (const auto& f : pf)
-                      val *= f(cond);
-                    return val;
-                  },
-                  rc_index });
+            store.parameterized_multipliers_.push_back({ [pf = std::move(param_funcs)](const Conditions& cond)
+                                                         {
+                                                           double val = 1.0;
+                                                           for (const auto& f : pf)
+                                                             val *= f(cond);
+                                                           return val;
+                                                         },
+                                                         rc_index });
           }
         }
 
@@ -292,8 +291,7 @@ namespace micm
             {
               const auto& p = store.arrhenius_[i];
               rc.ForEachRow(
-                  [&p](double& out, const Conditions& c)
-                  { out = CalculateArrhenius(p, c.temperature_, c.pressure_); },
+                  [&p](double& out, const Conditions& c) { out = CalculateArrhenius(p, c.temperature_, c.pressure_); },
                   rc.GetColumnView(i),
                   cond);
             }
@@ -301,8 +299,7 @@ namespace micm
             {
               const auto& p = store.troe_[i];
               rc.ForEachRow(
-                  [&p](double& out, const Conditions& c)
-                  { out = CalculateTroe(p, c.temperature_, c.air_density_); },
+                  [&p](double& out, const Conditions& c) { out = CalculateTroe(p, c.temperature_, c.air_density_); },
                   rc.GetColumnView(store.troe_offset() + i),
                   cond);
             }
@@ -319,8 +316,7 @@ namespace micm
             {
               const auto& p = store.branched_[i];
               rc.ForEachRow(
-                  [&p](double& out, const Conditions& c)
-                  { out = CalculateBranched(p, c.temperature_, c.air_density_); },
+                  [&p](double& out, const Conditions& c) { out = CalculateBranched(p, c.temperature_, c.air_density_); },
                   rc.GetColumnView(store.branched_offset() + i),
                   cond);
             }
@@ -328,8 +324,7 @@ namespace micm
             {
               const auto& p = store.tunneling_[i];
               rc.ForEachRow(
-                  [&p](double& out, const Conditions& c)
-                  { out = CalculateTunneling(p, c.temperature_); },
+                  [&p](double& out, const Conditions& c) { out = CalculateTunneling(p, c.temperature_); },
                   rc.GetColumnView(store.tunneling_offset() + i),
                   cond);
             }
@@ -337,8 +332,7 @@ namespace micm
             {
               const auto& p = store.taylor_[i];
               rc.ForEachRow(
-                  [&p](double& out, const Conditions& c)
-                  { out = CalculateTaylorSeries(p, c.temperature_, c.pressure_); },
+                  [&p](double& out, const Conditions& c) { out = CalculateTaylorSeries(p, c.temperature_, c.pressure_); },
                   rc.GetColumnView(store.taylor_offset() + i),
                   cond);
             }
@@ -346,8 +340,7 @@ namespace micm
             {
               const auto& p = store.reversible_[i];
               rc.ForEachRow(
-                  [&p](double& out, const Conditions& c)
-                  { out = CalculateReversible(p, c.temperature_); },
+                  [&p](double& out, const Conditions& c) { out = CalculateReversible(p, c.temperature_); },
                   rc.GetColumnView(store.reversible_offset() + i),
                   cond);
             }
@@ -355,8 +348,7 @@ namespace micm
             {
               const auto& p = store.user_defined_[i];
               rc.ForEachRow(
-                  [&p](double& out, const double& cp_val)
-                  { out = CalculateUserDefined(p, cp_val); },
+                  [&p](double& out, const double& cp_val) { out = CalculateUserDefined(p, cp_val); },
                   rc.GetColumnView(store.user_defined_offset() + i),
                   cp.GetConstColumnView(p.custom_param_index_));
             }
@@ -374,9 +366,7 @@ namespace micm
             for (const auto& mult : store.parameterized_multipliers_)
             {
               rc.ForEachRow(
-                  [&mult](double& v, const Conditions& c) { v *= mult.evaluate(c); },
-                  rc.GetColumnView(mult.rc_index),
-                  cond);
+                  [&mult](double& v, const Conditions& c) { v *= mult.evaluate(c); }, rc.GetColumnView(mult.rc_index), cond);
             }
           },
           state.rate_constants_,

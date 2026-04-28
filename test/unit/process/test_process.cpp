@@ -21,7 +21,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #ifndef M_PI
-#  define M_PI 3.14159265358979323846
+  #define M_PI 3.14159265358979323846
 #endif
 
 using namespace micm;
@@ -78,8 +78,7 @@ static std::vector<std::string> CustomParamLabels(const Process& proc)
     if (const auto* p = std::get_if<UserDefinedRateConstantParameters>(&rxn->rate_constant_))
       return { p->label_ };
     if (const auto* p = std::get_if<SurfaceRateConstantParameters>(&rxn->rate_constant_))
-      return { p->label_ + ".effective radius [m]",
-               p->label_ + ".particle number concentration [# m-3]" };
+      return { p->label_ + ".effective radius [m]", p->label_ + ".particle number concentration [# m-3]" };
   }
   return {};
 }
@@ -97,7 +96,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   Phase gas_phase{ "gas", { gas_foo, gas_bar } };
 
   ArrheniusRateConstantParameters rc1_params{ .A_ = 12.2, .C_ = 300.0 };
-  SurfaceRateConstantParameters   rc2_params{ .label_ = "foo_surf", .phase_species_ = gas_foo };
+  SurfaceRateConstantParameters rc2_params{ .label_ = "foo_surf", .phase_species_ = gas_foo };
   UserDefinedRateConstantParameters rc3_params{ .label_ = "bar_user" };
 
   Process r1 = ChemicalReactionBuilder().SetReactants({ foo, bar }).SetRateConstant(rc1_params).SetPhase(gas_phase).Build();
@@ -131,16 +130,17 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     state.conditions_[i_cell].temperature_ = get_double() * 285.0;
-    state.conditions_[i_cell].pressure_    = get_double() * 101100.0;
+    state.conditions_[i_cell].pressure_ = get_double() * 101100.0;
     state.conditions_[i_cell].air_density_ = get_double() * 10.0;
 
     double user_rate = get_double() * 1.0e-2;
-    double radius    = get_double() * 1.0e-8;
-    double num_conc  = get_double() * 1.0e5;
+    double radius = get_double() * 1.0e-8;
+    double num_conc = get_double() * 1.0e5;
 
-    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]]                               = user_rate;
-    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]]          = radius;
-    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
+    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = user_rate;
+    state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = radius;
+    state.custom_rate_parameters_[i_cell]
+                                 [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]] =
         num_conc;
   }
 
@@ -149,11 +149,12 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    const auto& cond     = state.conditions_[i_cell];
-    double      user_rate = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]];
-    double      radius    = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]];
-    double      num_conc  = state.custom_rate_parameters_[i_cell]
-                                [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]];
+    const auto& cond = state.conditions_[i_cell];
+    double user_rate = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]];
+    double radius = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]];
+    double num_conc =
+        state.custom_rate_parameters_[i_cell]
+                                     [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]];
 
     // r1 (Arrhenius) at rc_index 0; bar is parameterized: air_density * 0.82
     double expected_arr = CalculateArrhenius(rc1_params, cond.temperature_, cond.pressure_);
@@ -168,8 +169,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
 
     // r2 (Surface) at rc_index = surface_offset; foo is not parameterized
     double mean_free_speed = std::sqrt(8.0 * constants::GAS_CONSTANT / (M_PI * 0.025) * cond.temperature_);
-    double expected_surf   = 4.0 * num_conc * M_PI * radius * radius /
-                             (radius / foo_diff_coeff + 4.0 / mean_free_speed);
+    double expected_surf = 4.0 * num_conc * M_PI * radius * radius / (radius / foo_diff_coeff + 4.0 / mean_free_speed);
     EXPECT_NEAR(state.rate_constants_[i_cell][store.surface_offset()], expected_surf, 1.0e-10 * expected_surf)
         << "grid cell " << i_cell << "; Surface reaction";
   }

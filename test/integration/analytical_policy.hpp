@@ -182,7 +182,8 @@ void test_simple_system(
     state.variables_[i][_c] = model_concentrations[0][i][idx_C];
     state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
     state.conditions_[i].pressure_ = pressures[i % pressures.size()];
-    state.conditions_[i].air_density_ = calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
+    state.conditions_[i].air_density_ =
+        calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
@@ -300,7 +301,8 @@ void test_simple_stiff_system(
     state.variables_[i][_c] = model_concentrations[0][i][idx_C];
     state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
     state.conditions_[i].pressure_ = pressures[i % pressures.size()];
-    state.conditions_[i].air_density_ = calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
+    state.conditions_[i].air_density_ =
+        calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
@@ -393,13 +395,13 @@ void test_analytical_troe(
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TroeRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                   .k0_B_ = 1.6,
-                                                                   .k0_C_ = 3,
-                                                                   .kinf_A_ = 136,
-                                                                   .kinf_B_ = 5,
-                                                                   .kinf_C_ = 24,
-                                                                   .Fc_ = 0.9,
-                                                                   .N_ = 0.8 })
+                                                                            .k0_B_ = 1.6,
+                                                                            .k0_C_ = 3,
+                                                                            .kinf_A_ = 136,
+                                                                            .kinf_B_ = 5,
+                                                                            .kinf_C_ = 24,
+                                                                            .Fc_ = 0.9,
+                                                                            .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -473,13 +475,13 @@ void test_analytical_stiff_troe(
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TroeRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                   .k0_B_ = 1.6,
-                                                                   .k0_C_ = 3,
-                                                                   .kinf_A_ = 136,
-                                                                   .kinf_B_ = 5,
-                                                                   .kinf_C_ = 24,
-                                                                   .Fc_ = 0.9,
-                                                                   .N_ = 0.8 })
+                                                                            .k0_B_ = 1.6,
+                                                                            .k0_C_ = 3,
+                                                                            .kinf_A_ = 136,
+                                                                            .kinf_B_ = 5,
+                                                                            .kinf_C_ = 24,
+                                                                            .Fc_ = 0.9,
+                                                                            .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -697,24 +699,25 @@ void test_analytical_ternary_chemical_activation(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 4.0e-5, .kinf_A_ = 1 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r1 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 4.0e-5, .kinf_A_ = 1 })
+          .SetPhase(gas_phase)
+          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                                        .k0_B_ = 1.6,
-                                                                                        .k0_C_ = 3,
-                                                                                        .kinf_A_ = 136,
-                                                                                        .kinf_B_ = 5,
-                                                                                        .kinf_C_ = 24,
-                                                                                        .Fc_ = 0.9,
-                                                                                        .N_ = 0.8 })
+                                                                                                 .k0_B_ = 1.6,
+                                                                                                 .k0_C_ = 3,
+                                                                                                 .kinf_A_ = 136,
+                                                                                                 .kinf_B_ = 5,
+                                                                                                 .kinf_C_ = 24,
+                                                                                                 .Fc_ = 0.9,
+                                                                                                 .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -770,31 +773,33 @@ void test_analytical_stiff_ternary_chemical_activation(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a1 })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 4.0e-5, .kinf_A_ = 1 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r1 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a1 })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 4.0e-5, .kinf_A_ = 1 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a2 })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 4.0e-5, .kinf_A_ = 1 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r2 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a2 })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 4.0e-5, .kinf_A_ = 1 })
+          .SetPhase(gas_phase)
+          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                                        .k0_B_ = 1.6,
-                                                                                        .k0_C_ = 3,
-                                                                                        .kinf_A_ = 136,
-                                                                                        .kinf_B_ = 5,
-                                                                                        .kinf_C_ = 24,
-                                                                                        .Fc_ = 0.9,
-                                                                                        .N_ = 0.8 })
+                                                                                                 .k0_B_ = 1.6,
+                                                                                                 .k0_C_ = 3,
+                                                                                                 .kinf_A_ = 136,
+                                                                                                 .kinf_B_ = 5,
+                                                                                                 .kinf_C_ = 24,
+                                                                                                 .Fc_ = 0.9,
+                                                                                                 .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -1147,29 +1152,29 @@ void test_analytical_branched(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
-  micm::Process r1 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ a })
-          .SetProducts({ micm::StoichSpecies(b, 1) })
-          .SetRateConstant(micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                        .X_ = 1e-4,
-                                                        .Y_ = 204.3,
-                                                        .a0_ = 1.0e-3,
-                                                        .n_ = 2 })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r1 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ a })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
+                         .SetRateConstant(micm::BranchedRateConstantParameters{
+                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
+                             .X_ = 1e-4,
+                             .Y_ = 204.3,
+                             .a0_ = 1.0e-3,
+                             .n_ = 2 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r2 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ b })
-          .SetProducts({ micm::StoichSpecies(c, 1) })
-          .SetRateConstant(micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                                                        .X_ = 1e-4,
-                                                        .Y_ = 204.3,
-                                                        .a0_ = 1.0e-3,
-                                                        .n_ = 2 })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r2 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ b })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
+                         .SetRateConstant(micm::BranchedRateConstantParameters{
+                             .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
+                             .X_ = 1e-4,
+                             .Y_ = 204.3,
+                             .a0_ = 1.0e-3,
+                             .n_ = 2 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
@@ -1237,41 +1242,41 @@ void test_analytical_stiff_branched(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
-  micm::Process r1 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ a1 })
-          .SetProducts({ micm::StoichSpecies(b, 1) })
-          .SetRateConstant(micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                        .X_ = 1e-4,
-                                                        .Y_ = 204.3,
-                                                        .a0_ = 1.0e-3,
-                                                        .n_ = 2 })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r1 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ a1 })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
+                         .SetRateConstant(micm::BranchedRateConstantParameters{
+                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
+                             .X_ = 1e-4,
+                             .Y_ = 204.3,
+                             .a0_ = 1.0e-3,
+                             .n_ = 2 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r2 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ a2 })
-          .SetProducts({ micm::StoichSpecies(b, 1) })
-          .SetRateConstant(micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                        .X_ = 1e-4,
-                                                        .Y_ = 204.3,
-                                                        .a0_ = 1.0e-3,
-                                                        .n_ = 2 })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r2 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ a2 })
+                         .SetProducts({ micm::StoichSpecies(b, 1) })
+                         .SetRateConstant(micm::BranchedRateConstantParameters{
+                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
+                             .X_ = 1e-4,
+                             .Y_ = 204.3,
+                             .a0_ = 1.0e-3,
+                             .n_ = 2 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
-  micm::Process r3 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ b })
-          .SetProducts({ micm::StoichSpecies(c, 1) })
-          .SetRateConstant(micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                                                        .X_ = 1e-4,
-                                                        .Y_ = 204.3,
-                                                        .a0_ = 1.0e-3,
-                                                        .n_ = 2 })
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ b })
+                         .SetProducts({ micm::StoichSpecies(c, 1) })
+                         .SetRateConstant(micm::BranchedRateConstantParameters{
+                             .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
+                             .X_ = 1e-4,
+                             .Y_ = 204.3,
+                             .a0_ = 1.0e-3,
+                             .n_ = 2 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
