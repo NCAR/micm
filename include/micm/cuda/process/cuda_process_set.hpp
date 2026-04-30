@@ -86,6 +86,13 @@ namespace micm
           CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
           VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
     {
+#ifdef MICM_CPU_RATE_CONSTANTS
+      // C++20 path: rate constants are not constexpr; compute on CPU then copy to device.
+      ReactionRateConstantStore::EvaluateCpuRateConstants(cpu_store, state);
+      ReactionRateConstantStore::CpuCalculateRateConstants(cpu_store, state);
+      state.rate_constants_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+#else
       using DM = typename StatePolicy::DenseMatrixPolicyType;
 
       // CPU lambda evaluation
@@ -109,6 +116,7 @@ namespace micm
       auto cp_param = state.custom_rate_parameters_.AsDeviceParam();
       micm::cuda::CalculateRateConstantsKernelDriver(
           cuda_rate_store_.GetParam(), d_conditions, rc_param, cp_param, d_mult_vals);
+#endif
     }
 
     /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;

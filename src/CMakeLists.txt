@@ -7,9 +7,16 @@ configure_file(version.hpp.in ${PROJECT_SOURCE_DIR}/include/micm/version.hpp @ON
 add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
-target_compile_features(micm INTERFACE cxx_std_20)
-set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD 23)
-set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
+if(MICM_ENABLE_CONSTEXPR_RATE_CONSTANTS)
+  target_compile_features(micm INTERFACE cxx_std_23)
+  set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD 23)
+  set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
+else()
+  target_compile_features(micm INTERFACE cxx_std_20)
+  set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD 20)
+  set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
+  target_compile_definitions(micm INTERFACE MICM_CPU_RATE_CONSTANTS)
+endif()
 
 target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
@@ -57,6 +64,9 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
+  if(NOT MICM_ENABLE_CONSTEXPR_RATE_CONSTANTS)
+    target_compile_definitions(micm_cuda PUBLIC MICM_CPU_RATE_CONSTANTS)
+  endif()
 
   add_subdirectory(process)
   add_subdirectory(solver)
