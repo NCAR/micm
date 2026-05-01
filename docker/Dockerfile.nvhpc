@@ -41,7 +41,7 @@ RUN cp -r /opt/nvidia/hpc_sdk/*/25.1/cuda/include/* /usr/include/
 
 # build the library and run the tests
 RUN mkdir /build \
-      && cd /build \ 
+      && cd /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_GPU_TYPE="a100" \
