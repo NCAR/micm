@@ -79,6 +79,14 @@ namespace micm
     ///        These diagnose constraint parameters from state variables at the start of each Solve()
     std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> external_constraint_init_functions_;
 
+    /// @brief Pre-compiled function to set algebraic variable error estimates
+    ///        For algebraic variables, the embedded error formula produces near-zero Yerror (because M_ii = 0).
+    ///        Instead, we use the step change (Ynew[a] - Y[a]) as the error estimate for algebraic variables.
+    ///        This captures the full change imposed by constraint enforcement and allows the solver to
+    ///        reject steps where algebraic variables change too much relative to their tolerances.
+    std::function<void(DenseMatrixPolicy&, const DenseMatrixPolicy&, const DenseMatrixPolicy&)>
+        algebraic_error_function_;
+
    public:
     /// @brief Default constructor
     ConstraintSet() = default;
@@ -257,6 +265,20 @@ namespace micm
         jacobian_fn(state_variables, state_parameters, jacobian);
     }
 
+    /// @brief Set algebraic variable error estimates using step changes
+    ///        For each algebraic variable a: Yerror[a] = Ynew[a] - Y[a]
+    /// @param Yerror Error vector — algebraic entries are overwritten with step changes
+    /// @param Y State at beginning of step
+    /// @param Ynew Proposed state at end of step (after constraint enforcement)
+    void SetAlgebraicErrors(
+        DenseMatrixPolicy& Yerror,
+        const DenseMatrixPolicy& Y,
+        const DenseMatrixPolicy& Ynew) const
+    {
+      if (algebraic_error_function_)
+        algebraic_error_function_(Yerror, Y, Ynew);
+    }
+
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
     /// @return Set of (row, column) index pairs
     std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const
@@ -317,7 +339,6 @@ namespace micm
       constraint_param_functions_.clear();
       constraint_forcing_functions_.clear();
       constraint_jacobian_functions_.clear();
-
       for (const auto& info : constraint_info_)
       {
         constraint_param_functions_.push_back(
@@ -333,7 +354,11 @@ namespace micm
                 state_parameter_indices,
                 jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
                 jacobian));
+
       }
+
+      // Build the algebraic error function once for all algebraic variables
+      BuildAlgebraicErrorFunction(state_variable_indices);
     }
 
     /// @brief Returns pre-compiled constraint parameter update functions
@@ -511,9 +536,43 @@ namespace micm
         external_constraint_init_functions_.push_back(
             model.get_initialize_constraint_parameters_function_(state_parameter_indices, state_variable_indices));
       }
+
+      // Rebuild the algebraic error function now that external algebraic variables are included
+      BuildAlgebraicErrorFunction(state_variable_indices);
     }
 
    private:
+    /// @brief Build a single function that sets Yerror[a] = Ynew[a] - Y[a] for all algebraic variables
+    ///        Uses DenseMatrixPolicy::Function for matrix-ordering-agnostic access.
+    /// @param state_variable_indices Map from species names to state variable indices (for sizing temp matrices)
+    void BuildAlgebraicErrorFunction(const auto& state_variable_indices)
+    {
+      if (algebraic_variable_ids_.empty())
+      {
+        algebraic_error_function_ = {};
+        return;
+      }
+
+      std::vector<std::size_t> alg_ids(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
+      DenseMatrixPolicy temp{ 1, state_variable_indices.size(), 0.0 };
+
+      algebraic_error_function_ = DenseMatrixPolicy::Function(
+          [alg_ids](auto&& yerr, auto&& y, auto&& ynew)
+          {
+            for (const auto& col : alg_ids)
+            {
+              yerr.ForEachRow(
+                  [](const double& ynew_a, const double& y_a, double& err_a) { err_a = ynew_a - y_a; },
+                  ynew.GetConstColumnView(col),
+                  y.GetConstColumnView(col),
+                  yerr.GetColumnView(col));
+            }
+          },
+          temp,
+          temp,
+          temp);
+    }
+
     /// @brief Maps constraint parameter names to their column indices in the state parameter matrix
     ///        Populates constraint_info_[i].state_param_indices_ for each constraint
     ///        Called internally by SetConstraintFunctions after parameter map is finalized
