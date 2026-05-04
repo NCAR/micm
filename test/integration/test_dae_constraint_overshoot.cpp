@@ -186,7 +186,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   // Initial: most sulfur in gas phase, equilibrium satisfied, no product yet
   double A_gas_init = C_total / (1.0 + K_eq);  // ~ 9.09e-8
-  double A_aq_init = K_eq * A_gas_init;         // ~ 9.09e-7
+  double A_aq_init = K_eq * A_gas_init;        // ~ 9.09e-7
   state.variables_[0][A_gas_idx] = A_gas_init;
   state.variables_[0][A_aq_idx] = A_aq_init;
   state.variables_[0][P_idx] = 0.0;
