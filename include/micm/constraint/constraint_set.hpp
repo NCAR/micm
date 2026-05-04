@@ -84,8 +84,7 @@ namespace micm
     ///        Instead, we use the step change (Ynew[a] - Y[a]) as the error estimate for algebraic variables.
     ///        This captures the full change imposed by constraint enforcement and allows the solver to
     ///        reject steps where algebraic variables change too much relative to their tolerances.
-    std::function<void(DenseMatrixPolicy&, const DenseMatrixPolicy&, const DenseMatrixPolicy&)>
-        algebraic_error_function_;
+    std::function<void(DenseMatrixPolicy&, const DenseMatrixPolicy&, const DenseMatrixPolicy&)> algebraic_error_function_;
 
    public:
     /// @brief Default constructor
@@ -270,10 +269,7 @@ namespace micm
     /// @param Yerror Error vector — algebraic entries are overwritten with step changes
     /// @param Y State at beginning of step
     /// @param Ynew Proposed state at end of step (after constraint enforcement)
-    void SetAlgebraicErrors(
-        DenseMatrixPolicy& Yerror,
-        const DenseMatrixPolicy& Y,
-        const DenseMatrixPolicy& Ynew) const
+    void SetAlgebraicErrors(DenseMatrixPolicy& Yerror, const DenseMatrixPolicy& Y, const DenseMatrixPolicy& Ynew) const
     {
       if (algebraic_error_function_)
         algebraic_error_function_(Yerror, Y, Ynew);
@@ -354,7 +350,6 @@ namespace micm
                 state_parameter_indices,
                 jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
                 jacobian));
-
       }
 
       // Build the algebraic error function once for all algebraic variables
