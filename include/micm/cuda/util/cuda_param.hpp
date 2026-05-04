@@ -33,6 +33,13 @@ struct ProcessSetParam
   std::size_t* jacobian_product_ids_ = nullptr;
   double* jacobian_yields_ = nullptr;
   std::size_t* jacobian_flat_ids_ = nullptr;
+  // Per-i_proc prefix-sum offsets used by SubtractJacobianTermsKernelShared so that
+  // any thread can jump directly into the corresponding slice of the const arrays
+  // above without scanning preceding process_infos. Size = jacobian_process_info_size_.
+  // Default-null; populated only when the shared-memory kernel is exercised.
+  std::size_t* jacobian_reactant_ids_offsets_ = nullptr;
+  std::size_t* jacobian_yields_offsets_ = nullptr;
+  std::size_t* jacobian_flat_ids_offsets_ = nullptr;
   std::size_t number_of_reactants_size_;
   std::size_t reactant_ids_size_;
   std::size_t number_of_products_size_;
