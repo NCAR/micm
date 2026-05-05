@@ -66,7 +66,7 @@ namespace
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ B_aq })
                       .SetProducts({ { P, 1 } })
-                      .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
 

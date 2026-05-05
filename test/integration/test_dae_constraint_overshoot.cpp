@@ -47,7 +47,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
@@ -140,7 +140,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A_aq })
                     .SetProducts({ { P, 1 } })
-                    .SetRateConstant(ArrheniusRateConstant({ .A_ = k, .B_ = 0, .C_ = 0 }))
+                    .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
@@ -247,7 +247,7 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ A })
                       .SetProducts({ { B, 1 } })
-                      .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e4, .B_ = 0, .C_ = 0 }))
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 1.0e4, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
 
