@@ -25,8 +25,8 @@ namespace micm
     /// @brief A list of properties of this species
     std::map<std::string, std::string> properties_string_;
     std::map<std::string, double> properties_double_;
-    std::map<std::string, bool> properties_bool_;
     std::map<std::string, int> properties_int_;
+    std::map<std::string, bool> properties_bool_;
 
     /// @brief A function that if provided will be used to parameterize
     ///        the concentration of this species during solving.
