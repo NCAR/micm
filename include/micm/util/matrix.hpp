@@ -104,9 +104,9 @@ namespace micm
     };
 
    private:
-    std::vector<T> data_;
     std::size_t x_dim_;
     std::size_t y_dim_;
+    std::vector<T> data_;
 
     friend class Proxy;
     friend class ConstProxy;

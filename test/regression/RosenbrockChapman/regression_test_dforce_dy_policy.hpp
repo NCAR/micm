@@ -18,7 +18,6 @@ void testJacobian(SolverPolicy& solver)
 
   auto& state_vec = state.variables_.AsVector();
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });
-  auto& rate_const_vec = state.rate_constants_.AsVector();
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });
 
   auto& jacobian = state.jacobian_;

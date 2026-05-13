@@ -32,6 +32,7 @@ option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_BUILD_SHARED_LIBS "Build micm_cuda as shared libraries" OFF)
+option(MICM_COMPILE_WARNING_AS_ERROR "Treat compiler warnings as errors" OFF)
 set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 

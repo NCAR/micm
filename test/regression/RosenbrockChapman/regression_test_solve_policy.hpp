@@ -37,6 +37,7 @@ void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   // run solvers
   solver.UpdateStateParameters(state);
   auto results = solver.Solve(500.0, state);
+  EXPECT_EQ(results.state_, micm::SolverState::Converged);
   micm::ChapmanODESolver::SolverResult fixed_results[3];
   for (int i = 0; i < 3; ++i)
   {

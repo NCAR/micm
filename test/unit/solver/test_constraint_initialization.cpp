@@ -109,13 +109,19 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 
   auto result = solver.Solve(0.001, state);
 
-  EXPECT_EQ(result.state_, SolverState::Converged);
+  double A_after = state.variables_[0][A_idx];
+  double B_after = state.variables_[0][B_idx];
 
-  // ODE variable A should not have been modified by initialization
-  // (it will change from time stepping, but the initialization should not touch it)
-  // We can't check exact equality post-solve because time stepping changes A,
-  // but we verify the initialization converged and the constraint is satisfied
+  EXPECT_EQ(result.state_, SolverState::Converged);
   EXPECT_GT(result.stats_.constraint_init_iterations_, 0u);
+
+  // The reaction A → B (k=0.5) must advance during the solve: A decreases, B increases.
+  // This also confirms constraint initialization did not incorrectly modify A or B
+  // (if it had, the ODE would start from the wrong point and the direction of change
+  // would still hold, but the magnitude would be off — a separate constraint residual
+  // check below catches the constraint side).
+  EXPECT_LT(A_after, A_before);
+  EXPECT_GT(B_after, B_before);
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
   double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];

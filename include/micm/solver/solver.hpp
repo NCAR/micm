@@ -57,37 +57,17 @@ namespace micm
         std::vector<micm::Process> processes,
         System system,
         const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
-            update_state_parameters_functions)
-        : solver_(std::move(solver)),
-          state_parameters_(state_parameters),
-          solver_parameters_(solver_parameters),
-          processes_(std::move(processes)),
-          system_(std::move(system)),
-          update_state_parameters_functions_(update_state_parameters_functions),
-          store_(ReactionRateConstantStore::BuildFrom(processes_))
-    {
-      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
-        solver_.rates_.BuildCudaStore(store_);
-    }
-
-    Solver(
-        SolverPolicy&& solver,
-        StateParameters state_parameters,
-        SolverParametersType solver_parameters,
-        std::vector<micm::Process> processes,
-        System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
             update_state_parameters_functions,
         const std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>&
-            initialize_constraint_parameters_functions)
-        : solver_(std::move(solver)),
-          state_parameters_(state_parameters),
-          solver_parameters_(solver_parameters),
+            initialize_constraint_parameters_functions = {})
+        : state_parameters_(state_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
           store_(ReactionRateConstantStore::BuildFrom(processes_)),
-          initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
+          initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions),
+          solver_(std::move(solver)),
+          solver_parameters_(solver_parameters)
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
         solver_.rates_.BuildCudaStore(store_);

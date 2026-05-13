@@ -194,7 +194,6 @@ namespace micm
     auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
     auto Yn1_iter = Yn1.AsVector().begin();
-    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
     const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();

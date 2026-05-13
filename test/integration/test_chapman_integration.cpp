@@ -92,6 +92,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     state.custom_rate_parameters_[0] = photo_rates;
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(30.0, state);
+    EXPECT_EQ(result.state_, micm::SolverState::Converged);
     // output state
   }
 }

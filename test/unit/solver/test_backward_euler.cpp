@@ -58,7 +58,10 @@ TEST(BackwardEuler, CanCallSolve)
   state.conditions_[0].air_density_ = 1e6;
   be.UpdateStateParameters(state);
 
-  EXPECT_NO_THROW(auto result = be.Solve(time_step, state));
+  EXPECT_NO_THROW(
+    auto result = be.Solve(time_step, state);
+    EXPECT_EQ(result.state_, micm::SolverState::Converged);
+  );
 }
 
 template<class DenseMatrixPolicy>

@@ -43,8 +43,6 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   state.SetCustomRateParameter("r2", 1.0);
 
   size_t a_idx = state.variable_map_.at(a.name_);
-  size_t b_idx = state.variable_map_.at(b.name_);
-  size_t c_idx = state.variable_map_.at(c.name_);
   size_t irr1_idx = state.variable_map_.at(irr_1.name_);
   size_t irr2_idx = state.variable_map_.at(irr_2.name_);
 
@@ -67,6 +65,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     double irr1 = state.variables_[0][irr1_idx];
     double irr2 = state.variables_[0][irr2_idx];
     auto result = solver.Solve(30.0, state);
+    EXPECT_EQ(result.state_, micm::SolverState::Converged);
     EXPECT_GE(state.variables_[0][irr1_idx], irr1);
     EXPECT_GE(state.variables_[0][irr2_idx], irr2);
   }

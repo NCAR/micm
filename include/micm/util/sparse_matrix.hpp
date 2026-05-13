@@ -557,8 +557,6 @@ namespace micm
         // For vectors: size() (should match block count)
         std::size_t num_blocks = 0;
         bool found_first = false;
-        std::size_t idx = 0;
-
         (
             [&](auto& arg)
             {
@@ -611,7 +609,6 @@ namespace micm
                           std::to_string(num_blocks) + " but got " + std::to_string(arg_blocks));
                 }
               }
-              ++idx;
             }(invoked_args),
             ...);
 

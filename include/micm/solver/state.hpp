@@ -208,7 +208,8 @@ namespace micm
     /// @brief Move constructor
     /// @param other The state object to be moved
     State(State&& other) noexcept
-        : variables_(std::move(other.variables_)),
+        : number_of_grid_cells_(other.number_of_grid_cells_),
+          variables_(std::move(other.variables_)),
           custom_rate_parameters_(std::move(other.custom_rate_parameters_)),
           rate_constants_(std::move(other.rate_constants_)),
           conditions_(std::move(other.conditions_)),
@@ -222,7 +223,6 @@ namespace micm
           upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
           constraint_size_(other.constraint_size_),
-          number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
           absolute_tolerance_(std::move(other.absolute_tolerance_))

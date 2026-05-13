@@ -129,8 +129,6 @@ namespace micm
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittleInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    const std::size_t n = ALU.NumRows();
-
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < ALU.NumberOfBlocks(); ++i_block)
     {
@@ -169,7 +167,6 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittleInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    const std::size_t n = ALU.NumRows();
     const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
     constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
