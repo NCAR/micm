@@ -354,7 +354,7 @@ namespace micm
 
     SparseMatrix& operator=(T val)
     {
-      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _) { return val; });
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto&) { return val; });
       return *this;
     }
 
@@ -677,7 +677,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
     {
       return arg.Get();
     }

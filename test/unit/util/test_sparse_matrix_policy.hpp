@@ -1898,7 +1898,7 @@ void testMultipleSparseMatricesDifferentBlocksVector()
 
   // Should succeed at creation (different block counts allowed at creation)
   auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m1, auto&& m2, auto&& v)
+      [](auto&& m1, auto&&, auto&& v)
       { m1.ForEachBlock([&](const double& a, double& b) { b = a; }, v, m1.GetBlockView(0, 1)); },
       matrix1,
       matrix2,
@@ -1921,7 +1921,7 @@ void testVectorSizeMatchesOneSparseMatrixOnly()
 
   // Should succeed at creation (different block counts allowed at creation)
   auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m1, auto&& m2, auto&& v1, auto&& v2)
+      [](auto&& m1, auto&&, auto&& v1, auto&&)
       { m1.ForEachBlock([&](const double& a, double& b) { b = a; }, v1, m1.GetBlockView(0, 1)); },
       matrix1,
       matrix2,

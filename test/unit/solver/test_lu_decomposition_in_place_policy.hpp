@@ -109,7 +109,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
-  auto size = 10;
+  std::size_t size = 10;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < size; ++i)
@@ -155,7 +155,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
-  auto size = 5;
+  std::size_t size = 5;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(initial_value);
   for (std::size_t i = 0; i < size; ++i)

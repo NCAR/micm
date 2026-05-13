@@ -357,10 +357,10 @@ TEST(State, SetConcentrations)
     0.9, 0.2, 0.3, 0.4, 0.99, 0.22, 0.33, 0.44, 0.999, 0.222, 0.333, 0.444,
   };
 
-  short idx = 0;
-  for (short i = 0; i < num_grid_cells; i++)
+  uint32_t idx = 0;
+  for (uint32_t i = 0; i < num_grid_cells; i++)
   {
-    for (short j = 0; j < num_species; j++, idx++)
+    for (uint32_t j = 0; j < num_species; j++, idx++)
     {
       EXPECT_EQ(state.variables_[i][j], concentrations_in_order[idx]);
     }
@@ -512,10 +512,10 @@ TEST(State, SetCustomRateParameters)
 
   state.SetCustomRateParameters(custom_params);
 
-  short idx = 0;
-  for (short i = 0; i < num_grid_cells; i++)
+  uint32_t idx = 0;
+  for (uint32_t i = 0; i < num_grid_cells; i++)
   {
-    for (short j = 0; j < 5; j++, idx++)
+    for (uint32_t j = 0; j < 5; j++, idx++)
     {
       EXPECT_EQ(state.custom_rate_parameters_[i][j], custom_params_in_order[idx]);
     }

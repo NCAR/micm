@@ -108,10 +108,10 @@ class StubAerosolModel
   // We have no parameters for this stub model
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
+      const std::unordered_map<std::string, std::size_t>&) const
   {
     // No parameters to update in this stub model
-    return [](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&)
     {
       // Do nothing
     };
@@ -119,7 +119,7 @@ class StubAerosolModel
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
   {
     // We'll store the information needed to calculate the forcing terms in a vector of tuples
@@ -142,7 +142,7 @@ class StubAerosolModel
 
     // copy-capture the forcing_info vector in the lambda function that will calculate the forcing terms
     return [forcing_info](
-               const DenseMatrixPolicy& state_parameters,
+               const DenseMatrixPolicy&,
                const DenseMatrixPolicy& state_variables,
                DenseMatrixPolicy& forcing_terms)
     {
@@ -163,9 +163,9 @@ class StubAerosolModel
   }
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+      const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-      const SparseMatrixPolicy& jacobian) const
+      const SparseMatrixPolicy&) const
   {
     // For this simple implementation, we'll use the dependent and independent variable indices with the square-bracket
     // syntax of the jacobian matrix. In a real implementation, we should want to get the underlying vector indices of the
@@ -197,8 +197,8 @@ class StubAerosolModel
 
     // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms
     return [jacobian_info](
-               const DenseMatrixPolicy& state_parameters,
-               const DenseMatrixPolicy& state_variables,
+               const DenseMatrixPolicy&,
+               const DenseMatrixPolicy&,
                SparseMatrixPolicy& jacobian)
     {
       for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)

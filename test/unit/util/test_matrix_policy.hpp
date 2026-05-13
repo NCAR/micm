@@ -244,8 +244,8 @@ MatrixPolicy<double> testAxpy()
   double sum = 0.0;
   double result = 0.0;
 
-  for (int i = 0; i < num_rows; ++i)
-    for (int j = 0; j < num_columns; ++j)
+  for (std::size_t i = 0; i < num_rows; ++i)
+    for (std::size_t j = 0; j < num_columns; ++j)
     {
       auto y = i * 10.3 + j * 100.5;
       auto x = i * 1.7 + j * 10.2;
@@ -256,8 +256,8 @@ MatrixPolicy<double> testAxpy()
 
   matrix.Axpy(alpha, other);
 
-  for (int i = 0; i < num_rows; ++i)
-    for (int j = 0; j < num_columns; ++j)
+  for (std::size_t i = 0; i < num_rows; ++i)
+    for (std::size_t j = 0; j < num_columns; ++j)
       result += matrix[i][j];
   EXPECT_NEAR(sum, result, 1.0e-5);
 
@@ -1281,7 +1281,7 @@ void testMultipleMatricesDifferentRowsVector()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<double>::Function(
-      [](auto&& mA, auto&& mB, auto&& v)
+      [](auto&& mA, auto&&, auto&& v)
       { mA.ForEachRow([&](const double& a, double& b) { b = a; }, v, mA.GetColumnView(0)); },
       matrixA,
       matrixB,
@@ -1308,7 +1308,7 @@ void testVectorSizeMatchesOneMatrixOnly()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<double>::Function(
-      [](auto&& mA, auto&& mB, auto&& v)
+      [](auto&& mA, auto&&, auto&& v)
       { mA.ForEachRow([&](const double& a, double& b) { b = a; }, v, mA.GetColumnView(0)); },
       matrixA,
       matrixB,
