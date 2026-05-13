@@ -74,14 +74,14 @@ namespace micm
     }
 
     Solver(Solver&& other)
-        : solver_(std::move(other.solver_)),
+        : state_parameters_(other.state_parameters_),
           processes_(std::move(other.processes_)),
-          state_parameters_(other.state_parameters_),
-          solver_parameters_(other.solver_parameters_),
           system_(std::move(other.system_)),
           update_state_parameters_functions_(std::move(other.update_state_parameters_functions_)),
           store_(std::move(other.store_)),
-          initialize_constraint_parameters_functions_(std::move(other.initialize_constraint_parameters_functions_))
+          initialize_constraint_parameters_functions_(std::move(other.initialize_constraint_parameters_functions_)),
+          solver_(std::move(other.solver_)),
+          solver_parameters_(other.solver_parameters_)
     {
     }
 
