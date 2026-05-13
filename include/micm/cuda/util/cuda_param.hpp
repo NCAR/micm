@@ -57,11 +57,11 @@ struct LuDecomposeMozartInPlaceParam
   std::size_t* aji_ = nullptr;
   std::pair<std::size_t, std::size_t>* aik_njk_ = nullptr;
   std::pair<std::size_t, std::size_t>* ajk_aji_ = nullptr;
-  std::size_t aii_nji_nki_size_;
-  std::size_t aji_size_;
-  std::size_t aik_njk_size_;
-  std::size_t ajk_aji_size_;
-  std::size_t number_of_non_zeros_;
+  std::size_t aii_nji_nki_size_ = 0;
+  std::size_t aji_size_ = 0;
+  std::size_t aik_njk_size_ = 0;
+  std::size_t ajk_aji_size_ = 0;
+  std::size_t number_of_non_zeros_ = 0;
 };
 
 /// Alias for the default LU decomposition parameter struct
@@ -76,11 +76,11 @@ struct LinearSolverInPlaceParam
   std::pair<std::size_t, std::size_t>* Lij_yj_ = nullptr;
   std::pair<std::size_t, std::size_t>* nUij_Uii_ = nullptr;
   std::pair<std::size_t, std::size_t>* Uij_xj_ = nullptr;
-  std::size_t nLij_size_;
-  std::size_t Lij_yj_size_;
-  std::size_t nUij_Uii_size_;
-  std::size_t Uij_xj_size_;
-  std::size_t number_of_non_zeros_;
+  std::size_t nLij_size_ = 0;
+  std::size_t Lij_yj_size_ = 0;
+  std::size_t nUij_Uii_size_ = 0;
+  std::size_t Uij_xj_size_ = 0;
+  std::size_t number_of_non_zeros_ = 0;
 };
 
 /// This struct holds (1) pointer to, and (2) size of
@@ -88,20 +88,20 @@ struct LinearSolverInPlaceParam
 struct CudaMatrixParam
 {
   double* d_data_ = nullptr;
-  std::size_t number_of_elements_;
-  std::size_t number_of_grid_cells_;
-  std::size_t vector_length_;
+  std::size_t number_of_elements_ = 0;
+  std::size_t number_of_grid_cells_ = 0;
+  std::size_t vector_length_ = 0;
 };
 
 struct CudaErrorParam
 {
   double* errors_input_ = nullptr;
   double* errors_output_ = nullptr;
-  std::size_t errors_size_;
+  std::size_t errors_size_ = 0;
 };
 
 struct CudaJacobianDiagonalElementsParam
 {
   std::size_t* data_ = nullptr;
-  std::size_t size_;
+  std::size_t size_ = 0;
 };
