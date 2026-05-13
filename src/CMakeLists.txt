@@ -14,10 +14,13 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
     # /wd4456: silence false-positive variable shadowing in if/else-if chains (std::get_if pattern)
     target_compile_options(micm INTERFACE /W4 /WX /wd5030 /wd4456)
   else()
-    target_compile_options(micm INTERFACE -Wall -Werror)
+    target_compile_options(micm INTERFACE
+      $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+      $<$<COMPILE_LANGUAGE:CXX>:-Werror>
+    )
     # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
-      target_compile_options(micm INTERFACE -Wno-restrict)
+      target_compile_options(micm INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wno-restrict>)
     endif()
   endif()
 endif()
@@ -77,6 +80,12 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   )
   
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
+  if(MICM_COMPILE_WARNING_AS_ERROR)
+    target_compile_options(micm_cuda PRIVATE
+      $<$<COMPILE_LANGUAGE:CUDA>:-Werror>
+      $<$<COMPILE_LANGUAGE:CUDA>:all-warnings>
+    )
+  endif()
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 
   add_subdirectory(process)
