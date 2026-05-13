@@ -18,6 +18,11 @@ message(STATUS "CMake build configuration for micm(${CMAKE_BUILD_TYPE}) ${PROJEC
 
 include(cmake/StaticAnalyzers.cmake)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
+
+# Set up include and lib directories
+set(MICM_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
 
 option(MICM_ENABLE_CLANG_TIDY "Enable clang-tiday to format source code" OFF)
 option(MICM_ENABLE_MPI "Enable MPI parallel support" OFF)
@@ -27,7 +32,10 @@ option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_BUILD_SHARED_LIBS "Build micm_cuda as shared libraries" OFF)
+set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 option(MICM_COMPILE_WARNING_AS_ERROR "Enable compiler warnings as errors" OFF)
+# on Windows with MSVC, add the /bigobj flag to allow for large object files
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # If the compiler is MSVC or Clang on Windows, use /bigobj
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
