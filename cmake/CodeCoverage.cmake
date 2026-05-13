@@ -160,11 +160,16 @@ endif()
 
 set(COVERAGE_COMPILER_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage -fcheck=bounds,do,pointer -ffpe-trap=zero,overflow,invalid"
     CACHE INTERNAL "")
+# C++ and C coverage flags exclude -fcheck=bounds,do,pointer and -ffpe-trap=... which are Fortran-only;
+# GCC 16+ rejects them as errors when -Werror is active.
+set(COVERAGE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage"
+    CACHE INTERNAL "")
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(-fprofile-abs-path HAVE_fprofile_abs_path)
     if(HAVE_fprofile_abs_path)
         set(COVERAGE_COMPILER_FLAGS "${COVERAGE_COMPILER_FLAGS} -fprofile-abs-path")
+        set(COVERAGE_CXX_FLAGS "${COVERAGE_CXX_FLAGS} -fprofile-abs-path")
     endif()
 endif()
 
@@ -173,11 +178,11 @@ set(CMAKE_Fortran_FLAGS_COVERAGE
     CACHE STRING "Flags used by the Fortran compiler during coverage builds."
     FORCE )
 set(CMAKE_CXX_FLAGS_COVERAGE
-    ${COVERAGE_COMPILER_FLAGS}
+    ${COVERAGE_CXX_FLAGS}
     CACHE STRING "Flags used by the C++ compiler during coverage builds."
     FORCE )
 set(CMAKE_C_FLAGS_COVERAGE
-    ${COVERAGE_COMPILER_FLAGS}
+    ${COVERAGE_CXX_FLAGS}
     CACHE STRING "Flags used by the C compiler during coverage builds."
     FORCE )
 set(CMAKE_EXE_LINKER_FLAGS_COVERAGE

@@ -8,10 +8,18 @@ add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
 if(MICM_COMPILE_WARNING_AS_ERROR)
-  target_compile_options(micm INTERFACE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Werror>
-  )
+  if(MSVC)
+    # MSVC is true for both MSVC and clang-cl (MSVC frontend)
+    # /wd5030: silence "attribute not recognized" for [[gnu::always_inline]]
+    # /wd4456: silence false-positive variable shadowing in if/else-if chains (std::get_if pattern)
+    target_compile_options(micm INTERFACE /W4 /WX /wd5030 /wd4456)
+  else()
+    target_compile_options(micm INTERFACE -Wall -Werror)
+    # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
+      target_compile_options(micm INTERFACE -Wno-restrict)
+    endif()
+  endif()
 endif()
 
 target_compile_features(micm INTERFACE cxx_std_20)
@@ -19,6 +27,12 @@ set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD 20)
 set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
+
+# MSVC's <cmath> requires _USE_MATH_DEFINES to expose M_PI etc.
+# Define it as a compile definition rather than in source to avoid the reserved-identifier warning.
+if(MSVC)
+  target_compile_definitions(micm INTERFACE _USE_MATH_DEFINES)
+endif()
 
 target_include_directories(micm
   INTERFACE

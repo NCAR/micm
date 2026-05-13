@@ -125,7 +125,7 @@ TEST(Species, CopyConstructor)
   }
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
-    species.parameterize_ = [](const micm::Conditions& c) { return 15.4; };
+    species.parameterize_ = [](const micm::Conditions&) { return 15.4; };
     species.SetProperty("foo", "bar");
     species.SetProperty("baz", 42);
     species.SetProperty("qux", true);
@@ -165,7 +165,7 @@ TEST(Species, CopyAssignment)
   }
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
-    species.parameterize_ = [](const micm::Conditions& c) { return 15.4; };
+    species.parameterize_ = [](const micm::Conditions&) { return 15.4; };
     species.SetProperty("foo", "bar");
     species.SetProperty("baz", 42);
     species.SetProperty("qux", true);

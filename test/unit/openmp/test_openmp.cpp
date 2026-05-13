@@ -61,9 +61,9 @@ TEST(OpenMP, OneSolverManyStates)
   }
 
   // compare each thread to thread 1
-  for (int i = 1; i < n_threads; ++i)
+  for (std::size_t i = 1; i < n_threads; ++i)
   {
-    for (int j = 0; j < results[0].size(); ++j)
+    for (std::size_t j = 0; j < results[0].size(); ++j)
     {
       EXPECT_EQ(results[0][j], results[i][j]);
     }

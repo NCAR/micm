@@ -12,7 +12,6 @@
 /// All functions are MICM_CONSTEXPR so they are callable from device code
 /// with --expt-relaxed-constexpr.
 
-#define _USE_MATH_DEFINES
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/branched_rate_constant.hpp>
 #include <micm/process/rate_constant/reversible_rate_constant.hpp>
