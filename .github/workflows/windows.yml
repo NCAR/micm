@@ -28,7 +28,7 @@ jobs:
           version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
 
       - name: Run Cmake 
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "MinGW Makefiles"
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "MinGW Makefiles" -DMICM_COMPILE_WARNING_AS_ERROR=ON
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
@@ -49,7 +49,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Run CMake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }}
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }} -D MICM_COMPILE_WARNING_AS_ERROR=ON
     - name: Build
       run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
     - name: Test
@@ -68,7 +68,7 @@ jobs:
       - name: Install Clang
         run: curl -fsSL -o LLVM${{ matrix.version }}.exe https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.version }}/LLVM-${{ matrix.version }}-win64.exe ; 7z x LLVM${{ matrix.version }}.exe -y -o"C:/Program Files/LLVM"
       - name: Run CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -G"MinGW Makefiles"
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" -G"MinGW Makefiles" -DMICM_COMPILE_WARNING_AS_ERROR=ON
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
       - name: Test
@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }} -T ClangCL
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -A ${{ matrix.architecture }} -T ClangCL -DMICM_COMPILE_WARNING_AS_ERROR=ON
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
       - name: Test

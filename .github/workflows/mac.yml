@@ -26,8 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Run Cmake
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_COMPILE_WARNING_AS_ERROR=ON
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -58,8 +58,8 @@ jobs:
         with:
           xcode-version: '16.4'
 
-      - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Run Cmake
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_COMPILE_WARNING_AS_ERROR=ON
 
       - name: Build
         run: cmake --build build --parallel 10

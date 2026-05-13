@@ -45,6 +45,7 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_GPU_TYPE="a100" \
+        -D MICM_COMPILE_WARNING_AS_ERROR:BOOL=TRUE \
         ../micm \
       && make -j 4
 

@@ -27,7 +27,7 @@ jobs:
            apt install -y cmake g++
 
       - name: Run Cmake
-        run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
+        run: cmake -S . -B build -DMICM_GPU_TYPE="a10" -DMICM_COMPILE_WARNING_AS_ERROR=ON
 
       - name: Copy cublas headers
         run: |

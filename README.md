@@ -151,7 +151,6 @@ int main(const int argc, const char *argv[])
   {
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(500.0, state);
-    std::cout << SolverStateToString(result.state_) << std::endl;
     state.PrintState(i * 500);
   }
 
