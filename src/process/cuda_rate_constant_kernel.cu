@@ -8,8 +8,6 @@
 /// layout of rate_constants_.  Lambda entries (written by EvaluateCpuRateConstants on the
 /// CPU) are not touched.
 
-#define _USE_MATH_DEFINES
-
 #include <micm/cuda/process/cuda_rate_constant_kernel.cuh>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/process/rate_constant/rate_constant_functions.hpp>

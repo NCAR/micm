@@ -16,7 +16,6 @@
 
 #include <gtest/gtest.h>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <math.h>
 #ifndef M_PI

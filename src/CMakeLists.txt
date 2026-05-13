@@ -12,7 +12,12 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
     # MSVC is true for both MSVC and clang-cl (MSVC frontend)
     # /wd5030: silence "attribute not recognized" for [[gnu::always_inline]]
     # /wd4456: silence false-positive variable shadowing in if/else-if chains (std::get_if pattern)
-    target_compile_options(micm INTERFACE /W4 /WX /wd5030 /wd4456)
+    # /wd4244,4267: narrowing conversions (double/size_t) widespread in template code
+    # /wd4127: conditional expression is constant (pre-C++17 if constexpr patterns)
+    # /wd4101: unreferenced local variable (template instantiation artifacts)
+    # /wd4459: declaration hides global declaration (common in template code)
+    # /wd4100: unreferenced formal parameter (policy/tag types)
+    target_compile_options(micm INTERFACE /W4 /WX /wd5030 /wd4456 /wd4244 /wd4267 /wd4127 /wd4101 /wd4459 /wd4100)
   else()
     target_compile_options(micm INTERFACE
       $<$<COMPILE_LANGUAGE:CXX>:-Wall>

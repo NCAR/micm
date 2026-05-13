@@ -48,6 +48,8 @@ namespace micm
       return std::make_unique<HenrysLawConstant>(*this);
     }
 
+    using TransferCoefficient::Calculate;
+
     /// @brief Calculate the Henry's Law constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @return The Henry's Law constant accounting for temperature

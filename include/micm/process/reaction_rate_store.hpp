@@ -11,8 +11,6 @@
 ///
 /// Each step: call EvaluateCpuRateConstants (lambda entries), then CpuCalculateRateConstants (analytic types).
 
-#define _USE_MATH_DEFINES
-
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/rate_constant_functions.hpp>
 #include <micm/solver/state.hpp>
