@@ -39,7 +39,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
 
   // Parameterized species
   Species param_species = Species("paramSpecies");
-  param_species.parameterize_ = [](const Conditions& c) { return 64.2; };
+  param_species.parameterize_ = [](const Conditions&) { return 64.2; };
   PhaseSpecies gas_param_species(param_species);
 
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_param_species }));

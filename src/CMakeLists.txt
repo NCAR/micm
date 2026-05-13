@@ -9,8 +9,8 @@ add_library(musica::micm ALIAS micm)
 
 if(MICM_COMPILE_WARNING_AS_ERROR)
   target_compile_options(micm INTERFACE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Werror>
   )
 endif()
 

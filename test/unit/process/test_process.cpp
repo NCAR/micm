@@ -301,7 +301,9 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
           EXPECT_NE(copy_arr, nullptr);
           EXPECT_NE(orig_arr, nullptr);
           if (copy_arr && orig_arr)
+          {
             EXPECT_EQ(copy_arr->A_, orig_arr->A_);
+          }
         }
         else
         {

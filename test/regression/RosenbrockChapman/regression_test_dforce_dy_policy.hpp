@@ -36,10 +36,10 @@ void testJacobian(SolverPolicy& solver)
     // TODO: The sparse matrix data ordering in the hard-coded solver is different (maybe because of pivoting?)
     //       As the remaining linear solver functions are generalized, use the logic in the preprocessor to
     //       decipher the data elements in the hard-coded solver sparse matrix to finish this test.
-    // EXPECT_EQ(jacobian.FlatBlockSize(), fixed_jacobian.size());
+    EXPECT_EQ(jacobian.FlatBlockSize(), fixed_jacobian.size());
     for (std::size_t j{}; j < fixed_jacobian.size(); ++j)
     {
-      // EXPECT_NEAR(jacobian.AsVector()[i * jacobian.FlatBlockSize() + j], fixed_jacobian[j], 1.0e-10);
+      EXPECT_NEAR(jacobian.AsVector()[i * jacobian.FlatBlockSize() + j], fixed_jacobian[j], 1.0e-10);
     }
   }
 }

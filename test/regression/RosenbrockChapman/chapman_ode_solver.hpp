@@ -780,12 +780,6 @@ namespace micm
       const double& number_density_air,
       const std::vector<double>& rate_constants)
   {
-    /*
-    TODO: invesitage this function. The fortran equivalent appears to have a bug.
-
-    From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
-    */
-
     std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>&) { return true; };
     std::vector<double> ode_jacobian;
 
