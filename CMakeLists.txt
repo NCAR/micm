@@ -27,6 +27,7 @@ option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_BUILD_SHARED_LIBS "Build micm_cuda as shared libraries" OFF)
+option(MICM_COMPILE_WARNING_AS_ERROR "Enable compiler warnings as errors" OFF)
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # If the compiler is MSVC or Clang on Windows, use /bigobj
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
