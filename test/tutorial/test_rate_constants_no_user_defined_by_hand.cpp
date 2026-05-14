@@ -48,8 +48,9 @@ int main(const int, const char*[])
 
   // a branched reaction has two output pathways
   // this is represnted internal to micm as two different reactions
-  auto branched_params = BranchedRateConstantParameters{ .X_ = 1.2, .Y_ = 204.3, .a0_ = 1.0e-3, .n_ = 2 };
-  branched_params.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
+  auto branched_params = BranchedRateConstantParameters{
+    .branch_ = BranchedRateConstantParameters::Branch::Alkoxy, .X_ = 1.2, .Y_ = 204.3, .a0_ = 1.0e-3, .n_ = 2
+  };
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b })

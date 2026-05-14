@@ -57,7 +57,7 @@ TEST(Phase, ConstructorWithParameterizedSpecies)
   PhaseSpecies gas_bar(bar);
   PhaseSpecies gas_baz(baz);
 
-  gas_bar.species_.parameterize_ = [](const Conditions& c) { return 42.0; };
+  gas_bar.species_.parameterize_ = [](const Conditions&) { return 42.0; };
   Phase phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_baz }));
 
   EXPECT_EQ(phase.phase_species_.size(), 3);
@@ -73,7 +73,7 @@ TEST(Phase, UniqueNamesWithParameterizedSpecies)
   PhaseSpecies gas_bar(bar);
   PhaseSpecies gas_baz(baz);
 
-  gas_bar.species_.parameterize_ = [](const Conditions& c) { return 42.0; };
+  gas_bar.species_.parameterize_ = [](const Conditions&) { return 42.0; };
   Phase phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_baz }));
 
   auto names = phase.UniqueNames();

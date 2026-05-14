@@ -205,7 +205,6 @@ TEST(CudaDenseMatrix, ConversionFromVector)
 TEST(CudaDenseMatrix, DeviceMemCopy)
 {
   std::vector<double> h_vector{ 1, 2, 3, 4 };
-  double* h_data = h_vector.data();
   std::size_t num_elements = h_vector.size();
   CudaMatrixParam param;
 

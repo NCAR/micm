@@ -493,9 +493,9 @@ namespace micm
     /// @param block_size Number of rows or columns in each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
     /// @return Column ids of each non-zero element in a block
-    std::vector<std::size_t> ColumnIdsVector(
+    static std::vector<std::size_t> ColumnIdsVector(
         const std::size_t,
-        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements) const
+        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
     {
       std::vector<std::size_t> ids;
       ids.reserve(non_zero_elements.size());
@@ -514,9 +514,9 @@ namespace micm
     /// @param block_size Number of rows or columns in each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
     /// @return Start and end indices of each column in a block in column_ids_
-    std::vector<std::size_t> ColumnStartVector(
+    static std::vector<std::size_t> ColumnStartVector(
         const std::size_t block_size,
-        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements) const
+        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
     {
       std::vector<std::size_t> starts(block_size + 1, 0);
       std::size_t total_elem = 0;

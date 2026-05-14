@@ -77,7 +77,7 @@ namespace micm
       std::string State(const ChapmanODESolver::SolverState& state) const;
     };
 
-    struct [[nodiscard]] SolverResult
+    struct SolverResult
     {
       /// @brief The new state computed by the solver
       std::vector<double> result_{};
@@ -112,7 +112,7 @@ namespace micm
     /// @param time_end Time step to end at
     /// @param state The system state to solve for
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_start, double time_end, State<>& state) noexcept;
+    [[nodiscard]] SolverResult Solve(double time_start, double time_end, State<>& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
