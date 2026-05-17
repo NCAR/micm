@@ -24,7 +24,7 @@ static constexpr std::size_t NUM_GRID_CELLS = 163840;
 static constexpr std::size_t NUM_GROUPS = NUM_GRID_CELLS / VECTOR_LENGTH;  // 1280
 
 static constexpr int WARMUP_ITERATIONS = 1;
-static constexpr int MEASURE_ITERATIONS = 10;
+static constexpr int MEASURE_ITERATIONS = 3;
 
 // Helper: allocate device memory and copy from host
 template<typename T>
@@ -107,8 +107,7 @@ struct TestDeviceData
       y_off += jacobian_process_info_num_products[i];
       f_off += jacobian_process_info_num_dep_reactants[i] + 1 + jacobian_process_info_num_products[i];
     }
-    devstruct.jacobian_reactant_ids_offsets_ =
-        AllocAndCopy(reactant_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE, stream);
+    devstruct.jacobian_reactant_ids_offsets_ = AllocAndCopy(reactant_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE, stream);
     devstruct.jacobian_yields_offsets_ = AllocAndCopy(yields_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE, stream);
     devstruct.jacobian_flat_ids_offsets_ = AllocAndCopy(flat_ids_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE, stream);
 
@@ -226,8 +225,7 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
 
   // Snapshot the original kernel's output for correctness comparison below
   std::vector<double> h_jacobian_orig(data.jacobian_total);
-  CHECK_CUDA_ERROR(
-      cudaMemcpy(h_jacobian_orig.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+  CHECK_CUDA_ERROR(cudaMemcpy(h_jacobian_orig.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
 
   // ---- Benchmark unrolled kernel (#pragma unroll on all loops) ----
   CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
@@ -257,74 +255,35 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
       cudaMemcpy(h_jacobian_unrolled.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
   std::size_t mismatches_unrolled = CompareJacobians(h_jacobian_orig, h_jacobian_unrolled, "Unrolled vs Original");
 
-  // ---- Benchmark shared-memory kernel (1 block per cell, smem accumulator + smem atomicAdd) ----
+  // ---- Benchmark 2D kernel (grid cells x process_infos, global atomicAdd) ----
   CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
 
   for (int i = 0; i < WARMUP_ITERATIONS; ++i)
   {
-    micm::cuda::SubtractJacobianTermsKernelSharedDriver(
+    micm::cuda::SubtractJacobianTermsKernel2DDriver(
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
   }
-  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after shared warmup");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after 2D warmup");
 
-  auto start_shared = std::chrono::high_resolution_clock::now();
+  auto start_2d = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
   {
-    micm::cuda::SubtractJacobianTermsKernelSharedDriver(
+    micm::cuda::SubtractJacobianTermsKernel2DDriver(
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
-    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during shared measurement");
+    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during 2D measurement");
   }
-  auto end_shared = std::chrono::high_resolution_clock::now();
-  double total_shared_ms = std::chrono::duration<double, std::milli>(end_shared - start_shared).count();
-  double avg_shared_ms = total_shared_ms / MEASURE_ITERATIONS;
+  auto end_2d = std::chrono::high_resolution_clock::now();
+  double total_2d_ms = std::chrono::duration<double, std::milli>(end_2d - start_2d).count();
+  double avg_2d_ms = total_2d_ms / MEASURE_ITERATIONS;
 
-  // Correctness check: shared kernel output should match the original element-for-element
-  std::vector<double> h_jacobian_shared(data.jacobian_total);
-  CHECK_CUDA_ERROR(
-      cudaMemcpy(h_jacobian_shared.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
-  // Relaxed rel_tol vs the unrolled comparison: the shared kernel accumulates into its
-  // shared-memory slots via atomicAdd, whose ordering across threads is not specified by
-  // CUDA. Atomic-add is commutative in real arithmetic but not bitwise-deterministic in
-  // IEEE-754, so contributions to the same slot can sum to a result a few ULPs off from
-  // the original kernel's fixed loop-order sum. Observed worst rel_error on TS1 inputs
-  // was ~3.4e-10; 1e-9 leaves ~3x headroom while keeping the test very strict.
-  std::size_t mismatches_shared =
-      CompareJacobians(h_jacobian_orig, h_jacobian_shared, "Shared vs Original", 1e-9);
-
-  // ---- Benchmark shared-memory + deterministic-reduce kernel (no atomics) ----
-  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
-  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
-
-  for (int i = 0; i < WARMUP_ITERATIONS; ++i)
-  {
-    micm::cuda::SubtractJacobianTermsKernelSharedReduceDriver(
-        data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
-  }
-  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after sharedreduce warmup");
-
-  auto start_sr = std::chrono::high_resolution_clock::now();
-  for (int i = 0; i < MEASURE_ITERATIONS; ++i)
-  {
-    micm::cuda::SubtractJacobianTermsKernelSharedReduceDriver(
-        data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
-    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during sharedreduce measurement");
-  }
-  auto end_sr = std::chrono::high_resolution_clock::now();
-  double total_sr_ms = std::chrono::duration<double, std::milli>(end_sr - start_sr).count();
-  double avg_sr_ms = total_sr_ms / MEASURE_ITERATIONS;
-
-  // Correctness: SharedReduce sums contributions per-slot across threads in lane-ascending
-  // warp-shuffle order, while the original kernel sums per-i_proc serially. Both are
-  // mathematically correct but the FP order differs, so per-slot rel_error can reach
-  // O(ULP * contributions_per_slot) and amplify under cancellation. Same 1e-9 budget
-  // as the Shared kernel comparison absorbs this jitter (max observed on TS1: ~1.4e-9).
-  // SharedReduce is bitwise-deterministic across runs of itself (no atomicAdd reordering).
-  std::vector<double> h_jacobian_sr(data.jacobian_total);
-  CHECK_CUDA_ERROR(
-      cudaMemcpy(h_jacobian_sr.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
-  std::size_t mismatches_sr =
-      CompareJacobians(h_jacobian_orig, h_jacobian_sr, "SharedReduce vs Original", 1e-9);
+  // Correctness: the 2D kernel uses global atomicAdd to merge contributions from different
+  // i_proc threads, so the summation order per Jacobian entry is unspecified. The resulting
+  // FP rounding can differ by a few ULPs from the original kernel's serial-loop order.
+  // rel_tol = 1e-9 provides ample headroom (same budget used for the former shared kernel).
+  std::vector<double> h_jacobian_2d(data.jacobian_total);
+  CHECK_CUDA_ERROR(cudaMemcpy(h_jacobian_2d.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+  std::size_t mismatches_2d = CompareJacobians(h_jacobian_orig, h_jacobian_2d, "2D vs Original", 1e-9);
 
   // ---- Report ----
   std::cout << "=== SubtractJacobianTerms Performance (TS1) ===" << std::endl;
@@ -341,12 +300,8 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   std::cout << "  Original kernel (bs=128): " << avg_orig_ms << " ms/iter (total " << total_orig_ms << " ms)" << std::endl;
   std::cout << "  Unrolled kernel (bs=128): " << avg_unrolled_ms << " ms/iter (total " << total_unrolled_ms << " ms)"
             << "  speedup: " << avg_orig_ms / avg_unrolled_ms << "x" << std::endl;
-  std::cout << "  Shared kernel (1 block / cell, smem reduce): " << avg_shared_ms << " ms/iter (total " << total_shared_ms
-            << " ms)"
-            << "  speedup: " << avg_orig_ms / avg_shared_ms << "x" << std::endl;
-  std::cout << "  SharedReduce kernel (1 block / cell, no atomics): " << avg_sr_ms << " ms/iter (total " << total_sr_ms
-            << " ms)"
-            << "  speedup: " << avg_orig_ms / avg_sr_ms << "x" << std::endl;
+  std::cout << "  2D kernel (cells x i_proc, global atomicAdd): " << avg_2d_ms << " ms/iter (total " << total_2d_ms << " ms)"
+            << "  speedup: " << avg_orig_ms / avg_2d_ms << "x" << std::endl;
   std::cout << "===============================================" << std::endl;
 
   // Cleanup
@@ -354,6 +309,5 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   data.Cleanup(stream);
 
   EXPECT_EQ(mismatches_unrolled, 0u);
-  EXPECT_EQ(mismatches_shared, 0u);
-  EXPECT_EQ(mismatches_sr, 0u);
+  EXPECT_EQ(mismatches_2d, 0u);
 }
