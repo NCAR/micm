@@ -137,15 +137,13 @@ namespace micm
     // Include custom parameter labels from chemical reactions
     for (const auto& reaction : reactions_)
     {
-      if (auto* process = std::get_if<ChemicalReaction>(&reaction.process_))
+      const auto& process = reaction.process_;
+      if (auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process.rate_constant_))
+        add_param(ud->label_, "reaction");
+      else if (auto* surf = std::get_if<SurfaceRateConstantParameters>(&process.rate_constant_))
       {
-        if (auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process->rate_constant_))
-          add_param(ud->label_, "reaction");
-        else if (auto* surf = std::get_if<SurfaceRateConstantParameters>(&process->rate_constant_))
-        {
-          add_param(surf->label_ + ".effective radius [m]", "reaction");
-          add_param(surf->label_ + ".particle number concentration [# m-3]", "reaction");
-        }
+        add_param(surf->label_ + ".effective radius [m]", "reaction");
+        add_param(surf->label_ + ".particle number concentration [# m-3]", "reaction");
       }
     }
 
@@ -261,9 +259,6 @@ namespace micm
         {
           auto type_order = [](const Process& p) -> int
           {
-            const ChemicalReaction* rxn = std::get_if<ChemicalReaction>(&p.process_);
-            if (!rxn)
-              return 10;  // PhaseTransferProcess → end
             return std::visit(
                 [](const auto& v) -> int
                 {
@@ -289,7 +284,7 @@ namespace micm
                   else
                     return 9;  // LambdaRateConstantParameters
                 },
-                rxn->rate_constant_);
+                p.process_.rate_constant_);
           };
           return type_order(a) < type_order(b);
         });

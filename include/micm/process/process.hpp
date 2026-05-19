@@ -9,8 +9,6 @@
 #include <micm/util/error.hpp>
 
 #include <utility>
-#include <variant>
-#include <vector>
 
 namespace micm
 {
@@ -18,14 +16,10 @@ namespace micm
   class Process
   {
    public:
-    using ProcessVariant = std::variant<ChemicalReaction>;
+    ChemicalReaction process_;
 
-    ProcessVariant process_;
-
-    template<typename T>
-      requires std::same_as<std::decay_t<T>, ChemicalReaction>
-    Process(T&& process)
-        : process_(std::forward<T>(process))
+    Process(ChemicalReaction process)
+        : process_(std::move(process))
     {
     }
   };
