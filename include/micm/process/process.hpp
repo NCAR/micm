@@ -3,7 +3,6 @@
 #pragma once
 
 #include <micm/process/chemical_reaction.hpp>
-#include <micm/process/phase_transfer_process.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
@@ -19,12 +18,12 @@ namespace micm
   class Process
   {
    public:
-    using ProcessVariant = std::variant<ChemicalReaction, PhaseTransferProcess>;
+    using ProcessVariant = std::variant<ChemicalReaction>;
 
     ProcessVariant process_;
 
     template<typename T>
-      requires std::same_as<std::decay_t<T>, ChemicalReaction> || std::same_as<std::decay_t<T>, PhaseTransferProcess>
+      requires std::same_as<std::decay_t<T>, ChemicalReaction>
     Process(T&& process)
         : process_(std::forward<T>(process))
     {

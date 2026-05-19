@@ -1,14 +1,12 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/process/chemical_reaction_builder.hpp>
-#include <micm/process/phase_transfer_process_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/rate_constant_functions.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/process/reaction_rate_store.hpp>
-#include <micm/process/transfer_coefficient/henrys_law_constant.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -196,20 +194,14 @@ TEST(Process, VectorMatrix)
   testProcessUpdateState<Group4VectorMatrix<double>>(5);
 }
 
-TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
+TEST(Process, BuildsChemicalReaction)
 {
   auto O3 = Species("O3");
   auto NO = Species("NO");
   auto NO2 = Species("NO2");
   auto O2 = Species("O2");
-  auto CO2 = Species{ "CO2" };
-  auto H2O = Species{ "H2O" };
-  auto Hplus = Species{ "H+" };
-  auto CO32minus = Species{ "CO32-" };
-  auto H2OCO3 = Species{ "H2CO3" };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
-  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus, H2OCO3 } };
 
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()
@@ -218,14 +210,6 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
                                   .SetRateConstant(ArrheniusRateConstantParameters{})
                                   .SetPhase(gas_phase)
                                   .Build();
-
-  // Build a PhaseTransferProcess
-  Process phase_transfer = PhaseTransferProcessBuilder()
-                               .SetGasSpecies(gas_phase, CO2)
-                               .SetCondensedSpecies(aqueous_phase, H2OCO3)
-                               .SetSolvent(aqueous_phase, H2O)
-                               .SetTransferCoefficient(HenrysLawConstant())
-                               .Build();
 
   // Check that the first process is a ChemicalReaction
   std::visit(
@@ -244,27 +228,6 @@ TEST(Process, BuildsChemicalReactionAndPhaseTransferProcess)
         }
       },
       chemical_reaction.process_);
-
-  // Check that the second process is a PhaseTransferProcess
-  std::visit(
-      [](auto&& value)
-      {
-        using T = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<T, PhaseTransferProcess>)
-        {
-          EXPECT_EQ(value.gas_phase_.name_, "gas");
-          EXPECT_EQ(value.condensed_phase_.name_, "aqueous");
-          EXPECT_EQ(value.solvent_phase_.name_, "aqueous");
-          EXPECT_EQ(value.gas_species_.name_, "CO2");
-          EXPECT_EQ(value.condensed_species_.name_, "H2CO3");
-          EXPECT_EQ(value.solvent_.name_, "H2O");
-        }
-        else
-        {
-          FAIL() << "Expected PhaseTransferProcess, got different type";
-        }
-      },
-      phase_transfer.process_);
 }
 
 TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
@@ -311,54 +274,4 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
       },
       copy_reaction.process_,
       reaction.process_);
-}
-
-TEST(Process, PhaseTransferProcessCopyAssignmentSucceeds)
-{
-  auto O3 = Species("O3");
-  auto NO = Species("NO");
-  auto NO2 = Species("NO2");
-  auto O2 = Species("O2");
-  auto CO2 = Species{ "CO2" };
-  auto H2O = Species{ "H2O" };
-  auto Hplus = Species{ "H+" };
-  auto CO32minus = Species{ "CO32-" };
-  auto H2OCO3 = Species{ "H2CO3" };
-
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
-  Phase aqueous_phase{ "aqueous", std::vector<PhaseSpecies>{ CO2, H2O, Hplus, CO32minus, H2OCO3 } };
-
-  // Build a PhaseTransferProcess
-  Process phase_transfer = PhaseTransferProcessBuilder()
-                               .SetGasSpecies(gas_phase, CO2)
-                               .SetCondensedSpecies(aqueous_phase, H2OCO3)
-                               .SetSolvent(aqueous_phase, H2O)
-                               .SetTransferCoefficient(HenrysLawConstant())
-                               .Build();
-
-  // Assign original to copy
-  Process copy_process = phase_transfer;
-
-  std::visit(
-      [](auto&& copy, auto&& original)
-      {
-        using T = std::decay_t<decltype(copy)>;
-        using U = std::decay_t<decltype(original)>;
-        if constexpr (std::is_same_v<T, PhaseTransferProcess> && std::is_same_v<U, PhaseTransferProcess>)
-        {
-          EXPECT_EQ(copy.gas_phase_.name_, original.gas_phase_.name_);
-          EXPECT_EQ(copy.condensed_phase_.name_, original.condensed_phase_.name_);
-          EXPECT_EQ(copy.solvent_phase_.name_, original.solvent_phase_.name_);
-          EXPECT_EQ(copy.gas_species_.name_, original.gas_species_.name_);
-          EXPECT_EQ(copy.condensed_species_.name_, original.condensed_species_.name_);
-          EXPECT_EQ(copy.solvent_.name_, original.solvent_.name_);
-          EXPECT_NE(copy.coefficient_.get(), original.coefficient_.get());
-        }
-        else
-        {
-          FAIL() << "Expected both variants to hold PhaseTransferProcess";
-        }
-      },
-      copy_process.process_,
-      phase_transfer.process_);
 }
