@@ -308,7 +308,7 @@ namespace micm
 
     Matrix& operator=(T val)
     {
-      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto&) { return val; });
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _) { return val; });
       return *this;
     }
 
@@ -792,7 +792,7 @@ namespace micm
     /// @brief Get an element reference for a row (RowVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t, Arg&& arg)
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       return arg.Get();
     }
@@ -817,7 +817,7 @@ namespace micm
     /// @brief Get a const element reference for a row (RowVariable) - const version
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t, Arg&& arg) const
+    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       return arg.Get();
     }

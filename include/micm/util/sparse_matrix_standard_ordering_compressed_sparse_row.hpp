@@ -164,7 +164,7 @@ namespace micm
       /// @brief Get element from sparse matrix ConstBlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg) const
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         std::size_t elem_position = arg.ElementPosition();
@@ -178,7 +178,7 @@ namespace micm
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg) const
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // Verify L=1 for VectorMatrix types
@@ -194,7 +194,7 @@ namespace micm
       /// @brief Get element from BlockVariable
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg) const
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg.Get();
       }
@@ -202,7 +202,7 @@ namespace micm
       /// @brief Get element from Vector-like
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg) const
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -263,7 +263,7 @@ namespace micm
       /// @brief Get element from sparse matrix BlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         std::size_t elem_position = arg.ElementPosition();
@@ -277,7 +277,7 @@ namespace micm
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         // Verify L=1 for VectorMatrix types
@@ -293,7 +293,7 @@ namespace micm
       /// @brief Get element from BlockVariable
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg.Get();
       }
@@ -301,7 +301,7 @@ namespace micm
       /// @brief Get element from Vector-like
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_];
       }
@@ -387,7 +387,7 @@ namespace micm
     /// @param block_size Number of rows or columns for each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
     static std::vector<std::size_t> RowIdsVector(
-        const std::size_t,
+        const std::size_t block_size,
         const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
     {
       std::vector<std::size_t> ids;

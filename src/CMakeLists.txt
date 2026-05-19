@@ -8,7 +8,6 @@ add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
 if(MICM_COMPILE_WARNING_AS_ERROR)
-  if(MSVC)
     # MSVC is true for both MSVC and clang-cl (MSVC frontend)
     # /wd5030: silence "attribute not recognized" for [[gnu::always_inline]]
     # /wd4456: silence false-positive variable shadowing in if/else-if chains (std::get_if pattern)
@@ -17,16 +16,13 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
     # /wd4101: unreferenced local variable (template instantiation artifacts)
     # /wd4459: declaration hides global declaration (common in template code)
     # /wd4100: unreferenced formal parameter (policy/tag types)
-    target_compile_options(micm INTERFACE /W4 /WX /wd5030 /wd4456 /wd4244 /wd4267 /wd4127 /wd4101 /wd4459 /wd4100)
-  else()
-    target_compile_options(micm INTERFACE
-      $<$<COMPILE_LANGUAGE:CXX>:-Wall>
-      $<$<COMPILE_LANGUAGE:CXX>:-Werror>
-    )
-    # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
-      target_compile_options(micm INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wno-restrict>)
-    endif()
+  target_compile_options(micm INTERFACE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4;/WX;/wd5030;/wd4456;/wd4244;/wd4267;/wd4127;/wd4101;/wd4459;/wd4100>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:$<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wpedantic;-Werror;-Wno-unused-parameter>>
+  )
+  # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
+    target_compile_options(micm INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wno-restrict>)
   endif()
 endif()
 

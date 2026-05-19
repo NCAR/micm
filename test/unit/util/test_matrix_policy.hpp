@@ -1281,7 +1281,7 @@ void testMultipleMatricesDifferentRowsVector()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<double>::Function(
-      [](auto&& mA, auto&&, auto&& v)
+      [](auto&& mA, auto&& mB, auto&& v)
       { mA.ForEachRow([&](const double& a, double& b) { b = a; }, v, mA.GetColumnView(0)); },
       matrixA,
       matrixB,
@@ -1308,7 +1308,7 @@ void testVectorSizeMatchesOneMatrixOnly()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<double>::Function(
-      [](auto&& mA, auto&&, auto&& v)
+      [](auto&& mA, auto&& mB, auto&& v)
       { mA.ForEachRow([&](const double& a, double& b) { b = a; }, v, mA.GetColumnView(0)); },
       matrixA,
       matrixB,

@@ -71,7 +71,7 @@ namespace micm
 
     template<typename DenseMatrixPolicy>
     std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
-        const ConstraintInfo&) const
+        const ConstraintInfo& info) const
     {
       // Linear constraints have no temperature-dependent parameters
       return [](const std::vector<Conditions>&, DenseMatrixPolicy&)
@@ -108,7 +108,7 @@ namespace micm
       std::size_t row_idx = info.row_index_;
 
       return DenseMatrixPolicy::Function(
-          [coeffs, species_indices, constant, row_idx](auto&& state, auto&&, auto&& force)
+          [coeffs, species_indices, constant, row_idx](auto&& state, auto&& params, auto&& force)
           {
             // Create a variable for accumulating the linear sum
             auto linear_sum = force.GetRowVariable();
@@ -149,7 +149,7 @@ namespace micm
     /// @return Function object that takes (state_variables, state_parameters, jacobian) and computes partials
     template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
-        const ConstraintInfo&,
+        const ConstraintInfo& info,
         const auto& state_variable_indices,
         const auto& state_parameter_indices,
         auto jacobian_flat_ids,
@@ -175,7 +175,7 @@ namespace micm
       }
 
       return SparseMatrixPolicy::Function(
-          [coeffs, flat_ids](auto&&, auto&&, auto&& jacobian_values)
+          [coeffs, flat_ids](auto&& state, auto&& params, auto&& jacobian_values)
           {
             // For linear constraints, dG/d[species[i]] = coeff[i]
             // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
