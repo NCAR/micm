@@ -218,5 +218,3 @@ installation and usage instructions.
 # License
 
 - [Apache 2.0](/LICENSE)
-
-Copyright (C) 2018-2026 University Corporation for Atmospheric Research

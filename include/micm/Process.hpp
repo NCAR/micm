@@ -5,8 +5,6 @@
 
 #include <micm/process/chemical_reaction.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
-#include <micm/process/phase_transfer_process.hpp>
-#include <micm/process/phase_transfer_process_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
@@ -19,5 +17,3 @@
 #include <micm/process/rate_constant/troe_rate_constant.hpp>
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
-#include <micm/process/transfer_coefficient/henrys_law_constant.hpp>
-#include <micm/process/transfer_coefficient/transfer_coefficient.hpp>
