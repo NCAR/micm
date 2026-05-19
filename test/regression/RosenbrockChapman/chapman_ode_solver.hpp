@@ -500,7 +500,7 @@ namespace micm
   inline std::vector<double> ChapmanODESolver::force(
       const std::vector<double>& rate_constants,
       const std::vector<double>& number_densities,
-      const double&)
+      const double& number_density_air)
   {
     // Forcings:
     // M, Ar, CO2, H2O, N2, O1D, O, O2, O3,
@@ -780,7 +780,7 @@ namespace micm
       const double& number_density_air,
       const std::vector<double>& rate_constants)
   {
-    std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>&) { return true; };
+    std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
     std::vector<double> ode_jacobian;
 
     double alpha = 1 / (H * gamma);
@@ -802,7 +802,7 @@ namespace micm
   inline std::vector<double> ChapmanODESolver::dforce_dy(
       const std::vector<double>& rate_constants,
       const std::vector<double>& number_densities,
-      const double&)
+      const double& number_density_air)
   {
     std::vector<double> jacobian(number_sparse_factor_elements_, 0);
 

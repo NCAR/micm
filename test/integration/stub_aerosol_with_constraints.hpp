@@ -77,7 +77,7 @@ class StubAerosolWithConstraints
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
@@ -105,7 +105,7 @@ class StubAerosolWithConstraints
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
       const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-      const SparseMatrixPolicy&) const
+      const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
@@ -183,7 +183,7 @@ class StubAerosolWithConstraints
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
       const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-      const SparseMatrixPolicy&) const
+      const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
@@ -263,7 +263,7 @@ class StubAerosolWithSolvent
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
@@ -292,7 +292,7 @@ class StubAerosolWithSolvent
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
       const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-      const SparseMatrixPolicy&) const
+      const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
@@ -368,7 +368,7 @@ class StubAerosolWithSolvent
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
       const std::unordered_map<std::string, std::size_t>&,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-      const SparseMatrixPolicy&) const
+      const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");

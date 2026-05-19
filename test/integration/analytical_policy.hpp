@@ -367,9 +367,9 @@ void test_analytical_troe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-10,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -412,7 +412,7 @@ void test_analytical_troe(
       "troe",
       builder,
       absolute_tolerances,
-      [](double, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k_0 = 4.0e-11;
@@ -420,7 +420,7 @@ void test_analytical_troe(
         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
@@ -437,9 +437,9 @@ void test_analytical_stiff_troe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-5,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -506,7 +506,7 @@ void test_analytical_stiff_troe(
       "troe",
       builder,
       absolute_tolerances,
-      [](double, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k_0 = 4.0e-11;
@@ -514,7 +514,7 @@ void test_analytical_stiff_troe(
         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
@@ -531,9 +531,9 @@ void test_analytical_photolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -573,12 +573,12 @@ void test_analytical_photolysis(
       "photolysis",
       builder,
       absolute_tolerances,
-      [](double, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         return 2e-3;
       },
-      [](double, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         return 3e-3;
@@ -593,9 +593,9 @@ void test_analytical_stiff_photolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-5,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -661,12 +661,12 @@ void test_analytical_stiff_photolysis(
       "photolysis",
       builder,
       absolute_tolerances,
-      [](double, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         return 2e-3;
       },
-      [](double, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         return 3e-3;
@@ -681,9 +681,9 @@ void test_analytical_ternary_chemical_activation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-08,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -728,7 +728,7 @@ void test_analytical_ternary_chemical_activation(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
-      [](double, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k_0 = 4.0e-5;
@@ -736,7 +736,7 @@ void test_analytical_ternary_chemical_activation(
         return k_0 / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
@@ -753,9 +753,9 @@ void test_analytical_stiff_ternary_chemical_activation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -824,7 +824,7 @@ void test_analytical_stiff_ternary_chemical_activation(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
-      [](double, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k_0 = 4.0e-5;
@@ -832,7 +832,7 @@ void test_analytical_stiff_ternary_chemical_activation(
         return k_0 / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
@@ -849,9 +849,9 @@ void test_analytical_tunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -888,13 +888,13 @@ void test_analytical_tunneling(
       "tunneling",
       builder,
       absolute_tolerances,
-      [](double, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k1 = 4.0e-3;
         return k1;
       },
-      [](double temperature, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
@@ -909,9 +909,9 @@ void test_analytical_stiff_tunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -971,13 +971,13 @@ void test_analytical_stiff_tunneling(
       "tunneling",
       builder,
       absolute_tolerances,
-      [](double, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k1 = 4.0e-3;
         return k1;
       },
-      [](double temperature, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
@@ -992,9 +992,9 @@ void test_analytical_arrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-9,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -1030,13 +1030,13 @@ void test_analytical_arrhenius(
       "arrhenius",
       builder,
       absolute_tolerances,
-      [](double temperature, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k1 = 4.0e-3 * std::exp(50 / temperature);
         return k1;
       },
-      [](double temperature, double pressure, double)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 7) * (1.0 + 0.5 * pressure);
@@ -1051,9 +1051,9 @@ void test_analytical_stiff_arrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -1114,13 +1114,13 @@ void test_analytical_stiff_arrhenius(
       "arrhenius",
       builder,
       absolute_tolerances,
-      [](double temperature, double, double)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double k1 = 4.0e-3 * std::exp(50 / temperature);
         return k1;
       },
-      [](double temperature, double pressure, double)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 1.6) * (1.0 + 0.5 * pressure);
@@ -1135,9 +1135,9 @@ void test_analytical_branched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-13,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -1183,7 +1183,7 @@ void test_analytical_branched(
       "branched",
       builder,
       absolute_tolerances,
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
@@ -1198,7 +1198,7 @@ void test_analytical_branched(
         double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
         return k1;
       },
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
@@ -1222,9 +1222,9 @@ void test_analytical_stiff_branched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -1299,7 +1299,7 @@ void test_analytical_stiff_branched(
       "branched",
       builder,
       absolute_tolerances,
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // A->B reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
@@ -1314,7 +1314,7 @@ void test_analytical_stiff_branched(
         double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
         return k1;
       },
-      [](double temperature, double, double air_density)
+      [](double temperature, double pressure, double air_density)
       {
         // B->C reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
@@ -1338,9 +1338,9 @@ void test_analytical_robertson(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1 = 0.04
@@ -1492,9 +1492,9 @@ void test_analytical_oregonator(
     BuilderPolicy builder,
     double relative_tolerance = 1e-4,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * This problem is described in
@@ -1700,9 +1700,9 @@ void test_analytical_hires(
     BuilderPolicy builder,
     double absolute_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * This problem is described in
@@ -1910,9 +1910,9 @@ void test_analytical_e5(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {},
+        [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType&) {})
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> A2 + A3,  k1 = 7.89e-10

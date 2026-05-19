@@ -195,7 +195,7 @@ class AnotherStubAerosolModel
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
       const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-      const SparseMatrixPolicy&) const
+      const SparseMatrixPolicy& jacobian) const
   {
     // For this simple implementation, we'll use the dependent and independent variable indices with the square-bracket
     // syntax of the jacobian matrix. In a real implementation, we should want to get the underlying vector indices of the
@@ -237,7 +237,7 @@ class AnotherStubAerosolModel
     // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms
     return [jacobian_info](
                const DenseMatrixPolicy& state_parameters,
-               const DenseMatrixPolicy&,
+               const DenseMatrixPolicy& state_variables,
                SparseMatrixPolicy& jacobian)
     {
       for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
