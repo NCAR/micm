@@ -4,12 +4,11 @@
 
 #include <micm/external_model.hpp>
 #include <micm/process/process.hpp>
-#include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -191,8 +190,7 @@ namespace micm
     {
       for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
       {
-        const auto& process = processes[i_process];
-        const auto& reaction = process.process_;
+        const auto& reaction = processes[i_process].process_;
         for (const auto& ind_reactant : reaction.reactants_)
           {
             if (ind_reactant.name_ != independent_variable.first)

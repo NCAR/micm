@@ -3,10 +3,6 @@
 #pragma once
 
 #include <micm/process/chemical_reaction.hpp>
-#include <micm/system/phase.hpp>
-#include <micm/system/species.hpp>
-#include <micm/system/stoich_species.hpp>
-#include <micm/util/error.hpp>
 
 #include <utility>
 
@@ -18,8 +14,13 @@ namespace micm
    public:
     ChemicalReaction process_;
 
-    Process(ChemicalReaction process)
-        : process_(std::move(process))
+    Process(const ChemicalReaction& process) 
+        : process_(process)
+    {
+    }
+
+    Process(ChemicalReaction&& process)
+         : process_(std::move(process))
     {
     }
   };

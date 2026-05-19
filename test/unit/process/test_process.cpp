@@ -206,10 +206,10 @@ TEST(Process, BuildsChemicalReaction)
                                   .SetPhase(gas_phase)
                                   .Build();
 
-  const auto& value = chemical_reaction.process_;
-  EXPECT_EQ(value.reactants_.size(), 2);
-  EXPECT_EQ(value.products_[0].species_.name_, "NO2");
-  EXPECT_EQ(value.phase_.name_, "gas");
+  const auto& reaction = chemical_reaction.process_;
+  EXPECT_EQ(reaction.reactants_.size(), 2);
+  EXPECT_EQ(reaction.products_[0].species_.name_, "NO2");
+  EXPECT_EQ(reaction.phase_.name_, "gas");
 }
 
 TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
