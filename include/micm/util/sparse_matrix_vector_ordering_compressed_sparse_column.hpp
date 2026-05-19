@@ -232,7 +232,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg) const
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -251,7 +251,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg) const
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -379,7 +379,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -398,7 +398,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t, Arg&& arg)
+      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_];
       }
@@ -494,7 +494,7 @@ namespace micm
     /// @param non_zero_elements Set of non-zero elements in the matrix
     /// @return Column ids of each non-zero element in a block
     static std::vector<std::size_t> ColumnIdsVector(
-        const std::size_t,
+        const std::size_t block_size,
         const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
     {
       std::vector<std::size_t> ids;

@@ -11,7 +11,7 @@ using namespace micm;
 // with the configuraion file
 constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
 
-int main(const int, const char*[])
+int main(const int argc, const char* argv[])
 {
   auto a = Species("A");
   auto b = Species("B");
