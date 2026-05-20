@@ -14,13 +14,13 @@ namespace micm
    public:
     ChemicalReaction process_;
 
-    Process(const ChemicalReaction& process) 
+    Process(const ChemicalReaction& process)
         : process_(process)
     {
     }
 
     Process(ChemicalReaction&& process)
-         : process_(std::move(process))
+        : process_(std::move(process))
     {
     }
   };
