@@ -3,14 +3,8 @@
 #pragma once
 
 #include <micm/process/chemical_reaction.hpp>
-#include <micm/system/phase.hpp>
-#include <micm/system/species.hpp>
-#include <micm/system/stoich_species.hpp>
-#include <micm/util/error.hpp>
 
 #include <utility>
-#include <variant>
-#include <vector>
 
 namespace micm
 {
@@ -18,14 +12,15 @@ namespace micm
   class Process
   {
    public:
-    using ProcessVariant = std::variant<ChemicalReaction>;
+    ChemicalReaction process_;
 
-    ProcessVariant process_;
+    Process(const ChemicalReaction& process) 
+        : process_(process)
+    {
+    }
 
-    template<typename T>
-      requires std::same_as<std::decay_t<T>, ChemicalReaction>
-    Process(T&& process)
-        : process_(std::forward<T>(process))
+    Process(ChemicalReaction&& process)
+         : process_(std::move(process))
     {
     }
   };
