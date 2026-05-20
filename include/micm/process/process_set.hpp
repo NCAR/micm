@@ -156,8 +156,7 @@ namespace micm
         if (reactant.IsParameterized())
           continue;  // Skip reactants that are parameterizations
         if (variable_map.count(reactant.name_) < 1)
-          throw MicmException(
-              MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
+          throw MicmException(MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
         reactant_ids_.push_back(variable_map.at(reactant.name_));
         ++number_of_reactants;
       }
@@ -192,45 +191,45 @@ namespace micm
       {
         const auto& reaction = processes[i_process].process_;
         for (const auto& ind_reactant : reaction.reactants_)
-          {
-            if (ind_reactant.name_ != independent_variable.first)
-              continue;
-            ProcessInfo info;
-            info.process_id_ = i_process;
-            info.independent_id_ = independent_variable.second;
-            info.number_of_dependent_reactants_ = 0;
-            info.number_of_products_ = 0;
+        {
+          if (ind_reactant.name_ != independent_variable.first)
+            continue;
+          ProcessInfo info;
+          info.process_id_ = i_process;
+          info.independent_id_ = independent_variable.second;
+          info.number_of_dependent_reactants_ = 0;
+          info.number_of_products_ = 0;
 
-            // Collect other (dependent) reactants and products
-            bool found = false;
-            for (const auto& reactant : reaction.reactants_)
+          // Collect other (dependent) reactants and products
+          bool found = false;
+          for (const auto& reactant : reaction.reactants_)
+          {
+            if (reactant.IsParameterized())
+              continue;  // Skip reactants that are parameterizations
+            if (variable_map.count(reactant.name_) < 1)
+              throw MicmException(
+                  MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
+            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
             {
-              if (reactant.IsParameterized())
-                continue;  // Skip reactants that are parameterizations
-              if (variable_map.count(reactant.name_) < 1)
-                throw MicmException(
-                    MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
-              if (variable_map.at(reactant.name_) == independent_variable.second && !found)
-              {
-                found = true;
-                continue;
-              }
-              jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
-              ++info.number_of_dependent_reactants_;
+              found = true;
+              continue;
             }
-            for (const auto& product : reaction.products_)
-            {
-              if (product.species_.IsParameterized())
-                continue;  // Skip products that are parameterizations
-              if (variable_map.count(product.species_.name_) < 1)
-                throw MicmException(
-                    MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
-              jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
-              jacobian_yields_.push_back(product.coefficient_);
-              ++info.number_of_products_;
-            }
-            jacobian_process_info_.push_back(info);
+            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+            ++info.number_of_dependent_reactants_;
           }
+          for (const auto& product : reaction.products_)
+          {
+            if (product.species_.IsParameterized())
+              continue;  // Skip products that are parameterizations
+            if (variable_map.count(product.species_.name_) < 1)
+              throw MicmException(
+                  MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
+            jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
+            jacobian_yields_.push_back(product.coefficient_);
+            ++info.number_of_products_;
+          }
+          jacobian_process_info_.push_back(info);
+        }
       }
     }
   };
