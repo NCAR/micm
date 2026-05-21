@@ -133,13 +133,11 @@ namespace micm
 
       for (auto& process : processes)
       {
-        ChemicalReaction* reaction = std::get_if<ChemicalReaction>(&process.process_);
-        if (!reaction)
-          continue;
+        auto& reaction = process.process_;
 
         {  // parameterized-reactant multiplier
           std::vector<std::function<double(const Conditions&)>> param_funcs;
-          for (const auto& reactant : reaction->reactants_)
+          for (const auto& reactant : reaction.reactants_)
             if (reactant.IsParameterized())
               param_funcs.push_back(reactant.parameterize_);
 
@@ -158,7 +156,7 @@ namespace micm
 
         std::size_t n_custom = 0;
 
-        RateConstantVariant& rc = reaction->rate_constant_;
+        RateConstantVariant& rc = reaction.rate_constant_;
 
         if (auto* p = std::get_if<ArrheniusRateConstantParameters>(&rc))
         {

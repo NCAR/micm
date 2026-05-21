@@ -41,9 +41,6 @@ namespace
   {
     auto type_order = [](const Process& p) -> int
     {
-      const auto* rxn = std::get_if<ChemicalReaction>(&p.process_);
-      if (!rxn)
-        return 10;
       return std::visit(
           [](const auto& v) -> int
           {
@@ -69,7 +66,7 @@ namespace
             else
               return 9;
           },
-          rxn->rate_constant_);
+          p.process_.rate_constant_);
     };
     std::stable_sort(
         procs.begin(), procs.end(), [&](const Process& a, const Process& b) { return type_order(a) < type_order(b); });
@@ -440,10 +437,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
   // Total = lambda_offset() + lambda_entries_.size() = number of chemical reactions
-  std::size_t n_rxn = 0;
-  for (const auto& p : procs)
-    if (std::holds_alternative<ChemicalReaction>(p.process_))
-      ++n_rxn;
+  std::size_t n_rxn = procs.size();
 
   EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), n_rxn);
 }

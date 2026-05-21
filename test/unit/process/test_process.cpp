@@ -33,9 +33,6 @@ static void SortLikeBuilder(std::vector<Process>& procs)
       {
         auto order = [](const Process& p) -> int
         {
-          const ChemicalReaction* rxn = std::get_if<ChemicalReaction>(&p.process_);
-          if (!rxn)
-            return 10;
           return std::visit(
               [](const auto& v) -> int
               {
@@ -61,7 +58,7 @@ static void SortLikeBuilder(std::vector<Process>& procs)
                 else
                   return 9;
               },
-              rxn->rate_constant_);
+              p.process_.rate_constant_);
         };
         return order(a) < order(b);
       });
@@ -70,13 +67,10 @@ static void SortLikeBuilder(std::vector<Process>& procs)
 /// @brief Return the custom parameter labels that BuildFrom assigns for a process.
 static std::vector<std::string> CustomParamLabels(const Process& proc)
 {
-  if (const auto* rxn = std::get_if<ChemicalReaction>(&proc.process_))
-  {
-    if (const auto* p = std::get_if<UserDefinedRateConstantParameters>(&rxn->rate_constant_))
-      return { p->label_ };
-    if (const auto* p = std::get_if<SurfaceRateConstantParameters>(&rxn->rate_constant_))
-      return { p->label_ + ".effective radius [m]", p->label_ + ".particle number concentration [# m-3]" };
-  }
+  if (const auto* p = std::get_if<UserDefinedRateConstantParameters>(&proc.process_.rate_constant_))
+    return { p->label_ };
+  if (const auto* p = std::get_if<SurfaceRateConstantParameters>(&proc.process_.rate_constant_))
+    return { p->label_ + ".effective radius [m]", p->label_ + ".particle number concentration [# m-3]" };
   return {};
 }
 
@@ -211,23 +205,10 @@ TEST(Process, BuildsChemicalReaction)
                                   .SetPhase(gas_phase)
                                   .Build();
 
-  // Check that the first process is a ChemicalReaction
-  std::visit(
-      [](auto&& value)
-      {
-        using T = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<T, ChemicalReaction>)
-        {
-          EXPECT_EQ(value.reactants_.size(), 2);
-          EXPECT_EQ(value.products_[0].species_.name_, "NO2");
-          EXPECT_EQ(value.phase_.name_, "gas");
-        }
-        else
-        {
-          FAIL() << "Expected ChemicalReaction, got different type";
-        }
-      },
-      chemical_reaction.process_);
+  const auto& reaction = chemical_reaction.process_;
+  EXPECT_EQ(reaction.reactants_.size(), 2);
+  EXPECT_EQ(reaction.products_[0].species_.name_, "NO2");
+  EXPECT_EQ(reaction.phase_.name_, "gas");
 }
 
 TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
@@ -247,31 +228,16 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
   // Assign original to copy
   Process copy_reaction = reaction;
 
-  std::visit(
-      [](auto&& copy, auto&& original)
-      {
-        using T = std::decay_t<decltype(copy)>;
-        using U = std::decay_t<decltype(original)>;
-        if constexpr (std::is_same_v<T, ChemicalReaction> && std::is_same_v<U, ChemicalReaction>)
-        {
-          EXPECT_EQ(copy.reactants_[0].name_, original.reactants_[0].name_);
-          EXPECT_EQ(copy.products_.size(), original.products_.size());
-          EXPECT_EQ(copy.phase_.name_, original.phase_.name_);
-          // With value semantics, rate_constant_ is copied by value — verify parameters match
-          const auto* copy_arr = std::get_if<ArrheniusRateConstantParameters>(&copy.rate_constant_);
-          const auto* orig_arr = std::get_if<ArrheniusRateConstantParameters>(&original.rate_constant_);
-          EXPECT_NE(copy_arr, nullptr);
-          EXPECT_NE(orig_arr, nullptr);
-          if (copy_arr && orig_arr)
-          {
-            EXPECT_EQ(copy_arr->A_, orig_arr->A_);
-          }
-        }
-        else
-        {
-          FAIL() << "Expected both variants to hold ChemicalReaction";
-        }
-      },
-      copy_reaction.process_,
-      reaction.process_);
+  const auto& copy = copy_reaction.process_;
+  const auto& original = reaction.process_;
+  EXPECT_EQ(copy.reactants_[0].name_, original.reactants_[0].name_);
+  EXPECT_EQ(copy.products_.size(), original.products_.size());
+  EXPECT_EQ(copy.phase_.name_, original.phase_.name_);
+  // With value semantics, rate_constant_ is copied by value — verify parameters match
+  const auto* copy_arr = std::get_if<ArrheniusRateConstantParameters>(&copy.rate_constant_);
+  const auto* orig_arr = std::get_if<ArrheniusRateConstantParameters>(&original.rate_constant_);
+  EXPECT_NE(copy_arr, nullptr);
+  EXPECT_NE(orig_arr, nullptr);
+  if (copy_arr && orig_arr)
+    EXPECT_EQ(copy_arr->A_, orig_arr->A_);
 }

@@ -207,13 +207,11 @@ namespace micm
     {
       for (const auto& process : processes_)
       {
-        if (const auto* reaction = std::get_if<ChemicalReaction>(&process.process_))
+        const auto& reaction = process.process_;
+        if (const auto* params = std::get_if<LambdaRateConstantParameters>(&reaction.rate_constant_))
         {
-          if (const auto* params = std::get_if<LambdaRateConstantParameters>(&reaction->rate_constant_))
-          {
-            if (params->label_ == name)
-              return *params;
-          }
+          if (params->label_ == name)
+            return *params;
         }
       }
       throw MicmException(
