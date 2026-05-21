@@ -8,7 +8,6 @@ add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
 if(MICM_COMPILE_WARNING_AS_ERROR)
-    # MSVC is true for both MSVC and clang-cl (MSVC frontend)
     # /wd5030: silence "attribute not recognized" for [[gnu::always_inline]]
     # /wd4456: silence false-positive variable shadowing in if/else-if chains (std::get_if pattern)
     # /wd4244,4267: narrowing conversions (double/size_t) widespread in template code
@@ -19,6 +18,9 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
   target_compile_options(micm INTERFACE
     $<$<CXX_COMPILER_ID:MSVC>:/W4;/WX;/wd5030;/wd4456;/wd4244;/wd4267;/wd4127;/wd4101;/wd4459;/wd4100>
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:$<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wpedantic;-Werror;-Wno-unused-parameter>>
+    # clang-cl detects as CXX_COMPILER_ID=Clang and gets -Wpedantic which enables -Wc++98-compat;
+    # suppress it since the project targets C++20.
+    $<$<CXX_COMPILER_ID:Clang>:$<$<COMPILE_LANGUAGE:CXX>:-Wno-c++98-compat;-Wno-c++98-compat-pedantic>>
   )
   # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
