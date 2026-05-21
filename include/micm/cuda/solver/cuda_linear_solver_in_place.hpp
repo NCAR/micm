@@ -19,7 +19,7 @@ namespace micm
     LinearSolverInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLinearSolverInPlace(){};
+    CudaLinearSolverInPlace(){}
 
     CudaLinearSolverInPlace(const CudaLinearSolverInPlace&) = delete;
     CudaLinearSolverInPlace& operator=(const CudaLinearSolverInPlace&) = delete;
@@ -27,14 +27,14 @@ namespace micm
         : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
-    };
+    }
 
     CudaLinearSolverInPlace& operator=(CudaLinearSolverInPlace&& other)
     {
       LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
-    };
+    }
 
     /// This constructor takes two arguments: a sparse matrix and its values
     /// The base class here takes three arguments: the third argument is
@@ -46,7 +46,7 @@ namespace micm
         : CudaLinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
-              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
+              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){}
 
     CudaLinearSolverInPlace(
         const SparseMatrixPolicy& matrix,
@@ -80,7 +80,7 @@ namespace micm
     {
       /// Free the device memory allocated by the members of "devstruct_"
       micm::cuda::FreeConstData(this->devstruct_);
-    };
+    }
 
     template<class MatrixPolicy>
       requires(
@@ -90,6 +90,6 @@ namespace micm
     {
       auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
       micm::cuda::SolveKernelDriver(x_param, ALU.AsDeviceParam(), this->devstruct_);
-    };
+    }
   };
 }  // namespace micm

@@ -18,7 +18,7 @@ namespace micm
     LuDecomposeMozartInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLuDecompositionMozartInPlace(){};
+    CudaLuDecompositionMozartInPlace(){}
 
     CudaLuDecompositionMozartInPlace(const CudaLuDecompositionMozartInPlace&) = delete;
     CudaLuDecompositionMozartInPlace& operator=(const CudaLuDecompositionMozartInPlace&) = delete;
@@ -26,14 +26,14 @@ namespace micm
         : LuDecompositionMozartInPlace(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
-    };
+    }
 
     CudaLuDecompositionMozartInPlace& operator=(CudaLuDecompositionMozartInPlace&& other)
     {
       LuDecompositionMozartInPlace::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
-    };
+    }
 
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and
@@ -65,7 +65,7 @@ namespace micm
 
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
-    };
+    }
 
     /// This is destructor that will free the device memory of
     ///   the constant data from the class "CudaLuDecompositionMozartInPlace"
@@ -73,7 +73,7 @@ namespace micm
     {
       /// Free the device memory allocated by the members of "devstruct_"
       micm::cuda::FreeConstData(this->devstruct_);
-    };
+    }
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
