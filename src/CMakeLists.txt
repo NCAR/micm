@@ -18,9 +18,19 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
   target_compile_options(micm INTERFACE
     $<$<CXX_COMPILER_ID:MSVC>:/W4;/WX;/wd5030;/wd4456;/wd4244;/wd4267;/wd4127;/wd4101;/wd4459;/wd4100>
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:$<$<COMPILE_LANGUAGE:CXX>:-Wall;-Wpedantic;-Werror;-Wno-unused-parameter>>
-    # clang-cl detects as CXX_COMPILER_ID=Clang and gets -Wpedantic which enables -Wc++98-compat;
-    # suppress it since the project targets C++20.
-    $<$<CXX_COMPILER_ID:Clang>:$<$<COMPILE_LANGUAGE:CXX>:-Wno-c++98-compat;-Wno-c++98-compat-pedantic>>
+    # clang-cl detects as CXX_COMPILER_ID=Clang and gets -Wpedantic, enabling many clang-only warnings
+    # that are too aggressive for a C++20 template-heavy codebase targeting GCC/MSVC parity.
+    $<$<CXX_COMPILER_ID:Clang>:$<$<COMPILE_LANGUAGE:CXX>:
+      -Wno-c++98-compat;-Wno-c++98-compat-pedantic;
+      -Wno-sign-conversion;
+      -Wno-old-style-cast;
+      -Wno-documentation;
+      -Wno-global-constructors;
+      -Wno-implicit-int-float-conversion;
+      -Wno-shadow-uncaptured-local;
+      -Wno-unsafe-buffer-usage;
+      -Wno-unused-exception-parameter;
+      -Wno-newline-eof>>
   )
   # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
