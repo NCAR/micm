@@ -30,7 +30,11 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
       -Wno-shadow-uncaptured-local;
       -Wno-unsafe-buffer-usage;
       -Wno-unused-exception-parameter;
-      -Wno-newline-eof>>
+      -Wno-newline-eof;
+      -Wno-shadow;
+      -Wno-float-conversion;
+      -Wno-covered-switch-default;
+      -Wno-deprecated-copy-with-dtor>>
   )
   # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")

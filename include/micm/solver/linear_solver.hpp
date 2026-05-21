@@ -76,7 +76,7 @@ namespace micm
 
    public:
     /// @brief default constructor
-    LinearSolver(){};
+    LinearSolver(){}
 
     LinearSolver(const LinearSolver&) = delete;
     LinearSolver& operator=(const LinearSolver&) = delete;
