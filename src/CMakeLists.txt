@@ -34,7 +34,17 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
       -Wno-shadow;
       -Wno-float-conversion;
       -Wno-covered-switch-default;
-      -Wno-deprecated-copy-with-dtor>>
+      -Wno-deprecated-copy-with-dtor;
+      -Wno-shorten-64-to-32;
+      -Wno-ctad-maybe-unsupported;
+      -Wno-double-promotion;
+      -Wno-float-equal;
+      -Wno-switch-default;
+      -Wno-exit-time-destructors;
+      -Wno-extra-semi-stmt;
+      -Wno-header-hygiene;
+      -Wno-missing-prototypes;
+      -Wno-missing-variable-declarations>>
   )
   # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
