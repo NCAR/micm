@@ -44,7 +44,8 @@ if(MICM_COMPILE_WARNING_AS_ERROR)
       -Wno-extra-semi-stmt;
       -Wno-header-hygiene;
       -Wno-missing-prototypes;
-      -Wno-missing-variable-declarations>>
+      -Wno-missing-variable-declarations;
+      -Wno-c++20-extensions>>
   )
   # GCC 12 has a false-positive -Wrestrict in <bits/char_traits.h> (fixed in GCC 13)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13")
