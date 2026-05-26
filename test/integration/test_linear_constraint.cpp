@@ -67,7 +67,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   std::vector<micm::Constraint> constraints;
   constraints.push_back(
-      micm::LinearConstraint("mass_conservation", { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
+      micm::LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
 
   // ---------------------------------------------------------------------------
   // Solver

@@ -26,9 +26,13 @@ TEST(LinearConstraint, Construction)
   // Test: A + B = 1.0 (total concentration conservation)
   // Constraint: G = [A] + [B] - 1.0 = 0
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   LinearConstraint constraint(
       "A_B_conservation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       1.0);
 
   EXPECT_EQ(constraint.name_, "A_B_conservation");
@@ -42,10 +46,14 @@ TEST(LinearConstraint, Construction)
 TEST(LinearConstraint, AlgebraicSpecies)
 {
   // Test that AlgebraicSpecies returns the last species in terms list
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+
   LinearConstraint constraint(
       "A_B_C_conservation",
-      std::vector<StoichSpecies>{
-          StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
       10.0);
 
   EXPECT_EQ(constraint.AlgebraicSpecies(), "C");
@@ -56,10 +64,14 @@ TEST(LinearConstraint, WeightedTerms)
   // Test: 2*A + 3*B - C = 5.0
   // Constraint: G = 2*[A] + 3*[B] - [C] - 5.0 = 0
 
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+
   LinearConstraint constraint(
       "weighted_sum",
-      std::vector<StoichSpecies>{
-          StoichSpecies(Species("A"), 2.0), StoichSpecies(Species("B"), 3.0), StoichSpecies(Species("C"), -1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
       5.0);
 
   EXPECT_EQ(constraint.name_, "weighted_sum");
@@ -76,8 +88,14 @@ TEST(LinearConstraint, ZeroConstant)
   // Test: A - B = 0 (species balance)
   // Constraint: G = [A] - [B] = 0
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   LinearConstraint constraint(
-      "A_equals_B", std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), -1.0) }, 0.0);
+      "A_equals_B",
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) },
+      0.0);
 
   EXPECT_EQ(constraint.name_, "A_equals_B");
   EXPECT_EQ(constraint.constant_, 0.0);
@@ -89,9 +107,13 @@ TEST(LinearConstraint, FractionalCoefficients)
   // Test: 0.5*A + 1.5*B = 2.0
   // Constraint: G = 0.5*[A] + 1.5*[B] - 2.0 = 0
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   LinearConstraint constraint(
       "fractional_conservation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.5), StoichSpecies(Species("B"), 1.5) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 0.5), StoichSpecies(B, 1.5) },
       2.0);
 
   EXPECT_EQ(constraint.name_, "fractional_conservation");
@@ -109,10 +131,14 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "A_B_conservation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -172,10 +198,14 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "A_B_conservation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -222,11 +252,15 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "weighted_sum",
-      std::vector<StoichSpecies>{
-          StoichSpecies(Species("A"), 2.0), StoichSpecies(Species("B"), 3.0), StoichSpecies(Species("C"), -1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
       5.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
@@ -288,11 +322,15 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "ABC_total",
-      std::vector<StoichSpecies>{
-          StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0), StoichSpecies(Species("C"), 1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
       10.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
@@ -349,9 +387,15 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
-      "A_equals_B", std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), -1.0) }, 0.0));
+      "A_equals_B",
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) },
+      0.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -405,10 +449,14 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "fractional_conservation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 0.5), StoichSpecies(Species("B"), 1.5) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 0.5), StoichSpecies(B, 1.5) },
       2.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -460,9 +508,15 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
-      "A_B_sum", std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 2.0), StoichSpecies(Species("B"), 3.0) }, 1.0));
+      "A_B_sum",
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0) },
+      1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -525,10 +579,14 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   // G = [A] + [B] - 1.0, dG/dA = 1, dG/dB = 1
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "conservation",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -582,11 +640,15 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   // G = 2[A] + 3[B] - [C] - 5, dG/dA = 2, dG/dB = 3, dG/dC = -1
   using DenseMatrix = Matrix<double>;
 
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
       "weighted",
-      std::vector<StoichSpecies>{
-          StoichSpecies(Species("A"), 2.0), StoichSpecies(Species("B"), 3.0), StoichSpecies(Species("C"), -1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
       5.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };

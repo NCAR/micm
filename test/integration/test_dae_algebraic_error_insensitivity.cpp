@@ -82,7 +82,7 @@ namespace
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
         VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));
     // A_gas is LAST so it becomes the algebraic balance variable
-    constraints.push_back(LinearConstraint("mass", { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+    constraints.push_back(LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
