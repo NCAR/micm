@@ -24,6 +24,9 @@ namespace micm
     /// @brief Name of the constraint
     std::string name_;
 
+    /// @brief Algebraic species
+    Species algebraic_species_;
+
     /// @brief Names of species this constraint depends on
     std::vector<std::string> species_dependencies_;
 
@@ -44,10 +47,12 @@ namespace micm
     ///        Validates that terms are non-empty
     ///        Builds species_dependencies_ from terms
     /// @param name Constraint identifier
+    /// @param algebraic_species Algebraic species
     /// @param terms Vector of StoichSpecies (species, coefficient) in the linear sum
     /// @param constant The value that sum(coeff[i] * [species[i]]) should equal
-    LinearConstraint(const std::string& name, const std::vector<StoichSpecies>& terms, double constant)
+    LinearConstraint(const std::string& name, const Species& algebraic_species, const std::vector<StoichSpecies>& terms, double constant)
         : name_(name),
+          algebraic_species_(algebraic_species),
           terms_(terms),
           constant_(constant)
     {
@@ -62,11 +67,10 @@ namespace micm
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
-    ///        For linear constraints, the last species is used in the terms list as the algebraic row target.
-    /// @return Species name of the primary algebraic variable
+    /// @return Species name of the explicitly set algebraic variable
     const std::string& AlgebraicSpecies() const
     {
-      return terms_.back().species_.name_;
+      return algebraic_species_.name_;
     }
 
     template<typename DenseMatrixPolicy>
