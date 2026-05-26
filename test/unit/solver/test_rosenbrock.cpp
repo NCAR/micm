@@ -76,6 +76,7 @@ void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::s
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
       micm::VantHoffParam{ .K_HLC_ref = 10.0, .delta_H = -2400.0 }));

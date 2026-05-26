@@ -41,6 +41,7 @@ struct SimpleConstrainedSystem
     std::vector<Constraint> constraints;
     constraints.push_back(EquilibriumConstraint(
         "B_C_eq",
+        C,
         std::vector<StoichSpecies>{ { B, 1.0 } },
         std::vector<StoichSpecies>{ { C, 1.0 } },
         VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));

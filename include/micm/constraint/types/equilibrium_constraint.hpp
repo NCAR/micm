@@ -36,6 +36,9 @@ namespace micm
     /// @brief Name of the constraint, used when generating state parameter name
     std::string name_;
 
+    /// @brief Algebraic species
+    Species algebraic_species_;
+
     /// @brief Names of species this constraint depends on
     std::vector<std::string> species_dependencies_;
 
@@ -71,18 +74,21 @@ namespace micm
     ///        Stores index mappings for efficient Jacobian computation.
     ///        Stores a temperature-dependent equilibrium constant function.
     /// @param name Constraint identifier
+    /// @param algebraic_species Species whose row is replaced by this algebraic constraint
     /// @param reactants Vector of StoichSpecies (species, stoichiometry) for reactants
     /// @param products Vector of StoichSpecies (species, stoichiometry) for products
     /// @param vant_hoff_param Parameters for Van't Hoff equation
     EquilibriumConstraint(
-        std::string&& name,
-        std::vector<StoichSpecies>&& reactants,
-        std::vector<StoichSpecies>&& products,
-        VantHoffParam&& vant_hoff_param)
+        const std::string& name,
+        const Species& algebraic_species,
+        std::vector<StoichSpecies> reactants,
+        std::vector<StoichSpecies> products,
+        VantHoffParam vant_hoff_param)
         : name_(name),
-          reactants_(reactants),
-          products_(products),
-          vant_hoff_param_(vant_hoff_param)
+          algebraic_species_(algebraic_species),
+          reactants_(std::move(reactants)),
+          products_(std::move(products)),
+          vant_hoff_param_(std::move(vant_hoff_param))
     {
       if (reactants_.empty())
       {
@@ -121,7 +127,6 @@ namespace micm
       if (vant_hoff_param_.K_HLC_ref <= 0)
       {
         throw MicmException(
-
             MICM_ERROR_CATEGORY_CONSTRAINT,
             MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT,
             "Henry’s Law constant (K_HLC_ref) must be positive");
@@ -149,13 +154,10 @@ namespace micm
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
-    /// @return Species name of the primary algebraic variable
-    ///
-    /// For equilibrium constraints, we use the first product species as the algebraic row target.
-    /// This supports common forms such as K_eq * [B] - [C] = 0 where C is algebraic.
+    /// @return Species name of the explicitly set algebraic variable
     const std::string& AlgebraicSpecies() const
     {
-      return products_[0].species_.name_;
+      return algebraic_species_.name_;
     }
 
     /// @brief Create function object to update temperature-dependent K_eq parameter
