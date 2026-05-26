@@ -47,6 +47,7 @@ namespace micm
     ///        Validates that terms are non-empty
     ///        Builds species_dependencies_ from terms
     /// @param name Constraint identifier
+    /// @param algebraic_species Algebraic species
     /// @param terms Vector of StoichSpecies (species, coefficient) in the linear sum
     /// @param constant The value that sum(coeff[i] * [species[i]]) should equal
     LinearConstraint(const std::string& name, const Species& algebraic_species, const std::vector<StoichSpecies>& terms, double constant)
