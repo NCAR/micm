@@ -52,7 +52,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
                     .Build();
 
   // Conservation constraint: A + B + C = C_total
-  // C is the algebraic variable (last in the terms list).
+  // C is the explicitly set algebraic variable.
   // In the continuous system, C >= 0 always because A,B cannot exceed C_total
   // together. But the discrete solver can overshoot.
   double C_total = 1.0e-6;
@@ -156,8 +156,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       std::vector<StoichSpecies>{ { A_aq, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = 0.0 }));
 
-  // Conservation: A_gas + A_aq + P = C_total  (A_gas is algebraic balance — last term)
-  // Note: A_gas appears last so it becomes the algebraic variable for this constraint.
+  // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
   constraints.push_back(LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();

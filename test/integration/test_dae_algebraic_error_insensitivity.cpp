@@ -14,7 +14,7 @@
 //   A_gas <-> A_aq   (equilibrium, K1)    -- A_aq is algebraic
 //   A_aq  <-> B_aq   (equilibrium, K2)    -- B_aq is algebraic
 //   B_aq  -> P       (kinetics, rate k)   -- P is the only differential variable
-//   Conservation: A_aq + B_aq + P + A_gas = C_total   -- A_gas is algebraic (last term)
+//   Conservation: A_aq + B_aq + P + A_gas = C_total   -- A_gas is the algebraic balance variable
 //
 // Analytical solution:
 //   A_gas(t) = (C - P(t)) / (1 + K1 + K1*K2)
@@ -81,7 +81,7 @@ namespace
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
         VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));
-    // A_gas is LAST so it becomes the algebraic balance variable
+    // A_gas is explicitly set as the algebraic balance variable
     constraints.push_back(LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();

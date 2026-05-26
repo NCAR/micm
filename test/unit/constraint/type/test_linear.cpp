@@ -45,7 +45,7 @@ TEST(LinearConstraint, Construction)
 
 TEST(LinearConstraint, AlgebraicSpecies)
 {
-  // Test that AlgebraicSpecies returns the last species in terms list
+  // Test that AlgebraicSpecies returns the explicitly set algebraic species
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
@@ -175,7 +175,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
   set.AddForcingTerms(state, state_parameters, forcing);
 
-  // The forcing term for B (row 1, last term) should be the constraint residual
+  // The forcing term for B (row 1, algebraic species) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
   // Test when constraint is not satisfied: [A] = 0.5, [B] = 0.6
@@ -297,7 +297,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
   set.AddForcingTerms(state, state_parameters, forcing);
 
-  // The forcing term for C (row 2, last term) should be the constraint residual
+  // The forcing term for C (row 2, algebraic species) should be the constraint residual
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
 
   // Test Jacobian - reset jacobian values to zero first
@@ -575,7 +575,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
 TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
 {
-  // A + B = 1.0, algebraic species = B (last term)
+  // A + B = 1.0, algebraic species = B
   // G = [A] + [B] - 1.0, dG/dA = 1, dG/dB = 1
   using DenseMatrix = Matrix<double>;
 
@@ -636,7 +636,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
 
 TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
 {
-  // 2*A + 3*B - C = 5.0, algebraic species = C (last term)
+  // 2*A + 3*B - C = 5.0, algebraic species = C
   // G = 2[A] + 3[B] - [C] - 5, dG/dA = 2, dG/dB = 3, dG/dC = -1
   using DenseMatrix = Matrix<double>;
 

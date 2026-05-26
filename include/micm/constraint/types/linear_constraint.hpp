@@ -66,8 +66,7 @@ namespace micm
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
-    ///        For linear constraints, the last species is used in the terms list as the algebraic row target.
-    /// @return Species name of the primary algebraic variable
+    /// @return Species name of the explicitly set algebraic variable
     const std::string& AlgebraicSpecies() const
     {
       return algebraic_species_.name_;
