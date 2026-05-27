@@ -50,7 +50,11 @@ namespace micm
     /// @param algebraic_species Species whose row is replaced by this algebraic constraint
     /// @param terms Vector of StoichSpecies (species, coefficient) in the linear sum
     /// @param constant The value that sum(coeff[i] * [species[i]]) should equal
-    LinearConstraint(const std::string& name, const Species& algebraic_species, const std::vector<StoichSpecies>& terms, double constant)
+    LinearConstraint(
+        const std::string& name,
+        const Species& algebraic_species,
+        const std::vector<StoichSpecies>& terms,
+        double constant)
         : name_(name),
           algebraic_species_(algebraic_species),
           terms_(terms),
