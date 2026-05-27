@@ -73,11 +73,13 @@ namespace
     std::vector<Constraint> constraints;
     constraints.push_back(EquilibriumConstraint(
         "eq1",
+        A_aq,
         std::vector<StoichSpecies>{ { A_gas, 1.0 } },
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         VantHoffParam{ .K_HLC_ref = K1, .delta_H = 0.0 }));
     constraints.push_back(EquilibriumConstraint(
         "eq2",
+        B_aq,
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
         VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));

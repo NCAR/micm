@@ -22,11 +22,15 @@ using namespace micm;
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void testConstruction()
 {
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      AB,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
@@ -39,11 +43,14 @@ void testConstruction()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void testReplaceStateRowsMapsToAlgebraicSpecies()
 {
+  auto B = Species("B");
+  auto C = Species("C");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
@@ -63,11 +70,15 @@ void testReplaceStateRowsMapsToAlgebraicSpecies()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void testNonZeroJacobianElements()
 {
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      AB,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
@@ -88,16 +99,23 @@ template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetP
 void testMultipleConstraints()
 {
   // Create constraint set with two equilibrium constraints
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
+  auto C = Species("C");
+  auto D = Species("D");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      AB,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
   constraints.push_back(EquilibriumConstraint(
       "C_D_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("D"), 1.0) },
+      D,
+      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(D, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = {
@@ -125,11 +143,15 @@ void testMultipleConstraints()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void testAddForcingTerms()
 {
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      AB,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
@@ -174,11 +196,15 @@ void testAddForcingTerms()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void testSubtractJacobianTerms()
 {
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      AB,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
@@ -259,11 +285,15 @@ template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetP
 void testUnknownSpeciesThrows()
 {
   // Creating a constraint with unknown species should throw
+  auto X = Species("X");
+  auto Y = Species("Y");
+  auto XY = Species("XY");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "invalid",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("X"), 1.0), StoichSpecies(Species("Y"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("XY"), 1.0) },
+      XY,
+      std::vector<StoichSpecies>{ StoichSpecies(X, 1.0), StoichSpecies(Y, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(XY, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -279,11 +309,14 @@ void testThreeDStateOneConstraint()
   const std::size_t num_species = 3;
 
   // Create constraint: X <-> Y with K_eq = 3.3e-2
+  auto X = Species("X");
+  auto Y = Species("Y");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "X_Y_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("X"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("Y"), 1.0) },
+      Y,
+      std::vector<StoichSpecies>{ StoichSpecies(X, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(Y, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
@@ -373,17 +406,23 @@ void testFourDStateTwoConstraints()
   std::vector<Constraint> constraints;
 
   // Constraint 1: A <-> B with K_eq1 = 3.3e-2, algebraic species = B (row 1)
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
+  auto D = Species("D");
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   // Constraint 2: C + D <-> A with K_eq2 = 3.3e-2, algebraic species = A (row 0)
   constraints.push_back(EquilibriumConstraint(
       "CD_A_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0), StoichSpecies(Species("D"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
+      A,
+      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0), StoichSpecies(D, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
@@ -509,16 +548,21 @@ void testCoupledConstraintsSharedSpecies()
   std::vector<Constraint> constraints;
 
   // Both constraints depend on species A
+  auto A = Species("A");
+  auto B = Species("B");
+  auto C = Species("C");
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("B"), 1.0) },
+      B,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   constraints.push_back(EquilibriumConstraint(
       "A_C_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("C"), 1.0) },
+      C,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
@@ -591,11 +635,15 @@ void testVectorizedMatricesRespectGridCellIndexing()
 {
   const std::size_t num_species = 3;
 
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      std::vector<StoichSpecies>{ StoichSpecies(Species("A"), 1.0), StoichSpecies(Species("B"), 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Species("AB"), 1.0) },
+      AB,
+      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };

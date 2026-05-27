@@ -149,9 +149,10 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   std::vector<Constraint> constraints;
 
-  // Equilibrium: K_eq * A_gas = A_aq  (A_aq is algebraic — first product)
+  // Equilibrium: K_eq * A_gas = A_aq  (A_aq is the explicitly set algebraic species)
   constraints.push_back(EquilibriumConstraint(
       "gas_aq_eq",
+      A_aq,
       std::vector<StoichSpecies>{ { A_gas, 1.0 } },
       std::vector<StoichSpecies>{ { A_aq, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = 0.0 }));

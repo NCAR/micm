@@ -435,6 +435,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
       micm::VantHoffParam{ K_eq, 0.0 }));
@@ -837,6 +838,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   std::vector<micm::Constraint> constraints;
   constraints.push_back(micm::EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
       micm::VantHoffParam{ K_EQ, 0.0 }));

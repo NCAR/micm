@@ -45,6 +45,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
@@ -130,11 +131,13 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = delta_H1 }));
   constraints.push_back(EquilibriumConstraint(
       "E_F_eq",
+      F,
       std::vector<StoichSpecies>{ { E, 1.0 } },
       std::vector<StoichSpecies>{ { F, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = delta_H2 }));
@@ -208,6 +211,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
@@ -305,6 +309,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
@@ -380,11 +385,13 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
+      C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = -2400.0 }));
   constraints.push_back(EquilibriumConstraint(
       "B_D_eq",
+      D,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { D, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = -2400.0 }));
@@ -471,6 +478,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A2_B_eq",
+      B,
       std::vector<StoichSpecies>{ { A, 2.0 } },
       std::vector<StoichSpecies>{ { B, 1.0 } },
       VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
