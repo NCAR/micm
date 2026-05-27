@@ -42,10 +42,11 @@ RUN cmake \
 # scan-includes: public headers only, no CUDA context needed
 # Run locally: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cpu AS scan-includes
-RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) ! -path '*jit*' \
+RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
       | xargs clang-tidy \
           -p ./build/ \
           --config-file=./.clang-tidy \
+          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
           --extra-arg="-Iinclude/"
@@ -58,6 +59,7 @@ RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*
       | xargs clang-tidy \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
+          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
           --extra-arg="--cuda-gpu-arch=sm_70" \
@@ -72,6 +74,7 @@ RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name 
       | xargs clang-tidy \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
+          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
           --extra-arg="--cuda-gpu-arch=sm_70" \

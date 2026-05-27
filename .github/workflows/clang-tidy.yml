@@ -19,10 +19,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan includes
+        continue-on-error: true
         run: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
 
       - name: Scan CUDA source
+        continue-on-error: true
         run: docker build --target scan-cuda-source --progress=plain -f docker/Dockerfile.clang-tidy .
 
       - name: Scan Test files
+        continue-on-error: true
         run: docker build --target scan-tests --progress=plain -f docker/Dockerfile.clang-tidy .

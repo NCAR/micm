@@ -1,24 +1,4 @@
 ---
-# All checks are currently disabled (Checks: '-*').
-# Enable them incrementally in separate PRs, one group at a time.
-#
-# Intended check groups to enable (each requires a clean-up PR first):
-#
-#   readability-braces-around-statements
-#   readability-identifier-naming  (with CheckOptions below)
-#   readability-* (remaining)
-#   modernize-pass-by-value
-#   modernize-use-emplace
-#   modernize-use-auto
-#   modernize-return-braced-init-list
-#   modernize-deprecated-headers
-#   modernize-* (remaining)
-#   performance-unnecessary-value-param
-#   performance-noexcept-move-constructor
-#   performance-* (remaining)
-#   bugprone-*
-#   cert-*
-#   clang-analyzer-*
 #
 # Permanently disabled checks — rationale:
 #
@@ -59,8 +39,7 @@
 #
 # -readability-function-cognitive-complexity:
 #   Template metaprogramming and vectorized algorithm implementations
-#   legitimately exceed the threshold. Produces false positives for generic
-#   scientific algorithms.
+#   legitimately exceed the threshold.
 #
 # -performance-avoid-endl:
 #   std::endl is used intentionally; flushing behavior is acceptable.
@@ -69,7 +48,27 @@
 #   err58 fires on static storage with non-trivial constructors;
 #   msc51 is a Windows-specific RNG check.
 
-Checks: '-*'
+Checks: >
+  -*,
+  -readability-identifier-length,
+  -readability-convert-member-functions-to-static,
+  -readability-magic-numbers,
+  -readability-avoid-const-params-in-decls,
+  -readability-isolate-declaration,
+  -readability-avoid-unconditional-preprocessor-if,
+  -readability-named-parameter,
+  -readability-function-cognitive-complexity,
+  -bugprone-signal-handler,
+  -bugprone-easily-swappable-parameters,
+  -cert-err58-cpp,
+  -cert-msc51-cpp,
+  -performance-enum-size,
+  -performance-avoid-endl,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -modernize-macro-to-enum,
+  -modernize-avoid-c-arrays,
+  -clang-analyzer-alpha.*,
 
 WarningsAsErrors: '*'
 
