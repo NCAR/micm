@@ -126,20 +126,16 @@
 ///
 /// @section external_model_usage Usage
 ///
-/// **1. Add the external model to the system:**
+/// **1. Set up the external model:**
 /// ```cpp
 /// auto aerosol_model = MyAerosolModel(...);
-/// auto system = micm::System({
-///   .gas_phase_ = gas_phase,
-///   .external_models_ = { aerosol_model }
-/// });
 /// ```
 ///
-/// **2. Add the external model's processes (and optionally constraints) to the solver:**
+/// **2. Add the external model to the solver:**
 /// ```cpp
 /// auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
 ///   .SetSystem(system)
-///   .AddExternalModel(aerosol_model)  // wraps processes AND constraints automatically
+///   .AddExternalModel(aerosol_model)  // registers state variables, processes, and constraints (optional)
 ///   .Build();
 /// ```
 ///
@@ -177,10 +173,10 @@ namespace micm
   ///
   /// This struct encapsulates an external model's state definition (variables and parameters) and provides
   /// a type-erased interface that MICM can use to query the model's state requirements. Instances are
-  /// constructed automatically when an external model is added to a System via the `external_models_` field.
+  /// constructed automatically when an external model is passed to `SolverBuilder::AddExternalModel()`.
   ///
   /// @note Users typically do not construct this directly; instead, pass external model instances to
-  ///       `micm::System` and they will be wrapped automatically.
+  ///       `SolverBuilder::AddExternalModel()` and they will be wrapped automatically.
   struct ExternalModelSystem
   {
     /// @brief Type-erased function returning the state size (number of variables, number of parameters)
@@ -296,27 +292,6 @@ namespace micm
             state_parameter_indices, state_variable_indices, jacobian);
       };
     }
-  };
-
-  /// @brief Concept to detect whether an external model provides process methods
-  ///
-  /// A model satisfies `HasProcesses` if it provides `SpeciesUsed()` and
-  /// `NonZeroJacobianElements()`.
-  template<typename T>
-  concept HasProcesses = requires(const T& m, const std::unordered_map<std::string, std::size_t>& map) {
-    { m.SpeciesUsed() } -> std::same_as<std::set<std::string>>;
-    { m.NonZeroJacobianElements(map) } -> std::same_as<std::set<std::pair<std::size_t, std::size_t>>>;
-  };
-
-  /// @brief Concept to detect whether an external model provides constraint methods
-  ///
-  /// A model satisfies `HasConstraints` if it provides at least `ConstraintAlgebraicVariableNames()`
-  /// and `ConstraintSpeciesDependencies()`. At runtime, the model may return empty sets to indicate
-  /// that constraints are not active for a given configuration.
-  template<typename T>
-  concept HasConstraints = requires(const T& m) {
-    { m.ConstraintAlgebraicVariableNames() } -> std::same_as<std::set<std::string>>;
-    { m.ConstraintSpeciesDependencies() } -> std::same_as<std::set<std::string>>;
   };
 
   /// @brief Concept to detect whether an external model provides constraint parameter initialization
@@ -453,5 +428,38 @@ namespace micm
         { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
       }
     }
+  };
+
+  /// @brief Concept to detect whether an external model provides state variable/parameter information
+  ///
+  /// A model satisfies `HasState` if it provides `StateSize()`, `StateVariableNames()`, and
+  /// `StateParameterNames()`. Models satisfying this concept contribute additional state variables
+  /// to the solver when passed to `AddExternalModel()`.
+  template<typename T>
+  concept HasState = requires(const T& m) {
+    { m.StateSize() } -> std::same_as<std::tuple<std::size_t, std::size_t>>;
+    { m.StateVariableNames() } -> std::same_as<std::set<std::string>>;
+    { m.StateParameterNames() } -> std::same_as<std::set<std::string>>;
+  };
+
+  /// @brief Concept to detect whether an external model provides process methods
+  ///
+  /// A model satisfies `HasProcesses` if it provides `SpeciesUsed()` and
+  /// `NonZeroJacobianElements()`.
+  template<typename T>
+  concept HasProcesses = requires(const T& m, const std::unordered_map<std::string, std::size_t>& map) {
+    { m.SpeciesUsed() } -> std::same_as<std::set<std::string>>;
+    { m.NonZeroJacobianElements(map) } -> std::same_as<std::set<std::pair<std::size_t, std::size_t>>>;
+  };
+
+  /// @brief Concept to detect whether an external model provides constraint methods
+  ///
+  /// A model satisfies `HasConstraints` if it provides at least `ConstraintAlgebraicVariableNames()`
+  /// and `ConstraintSpeciesDependencies()`. At runtime, the model may return empty sets to indicate
+  /// that constraints are not active for a given configuration.
+  template<typename T>
+  concept HasConstraints = requires(const T& m) {
+    { m.ConstraintAlgebraicVariableNames() } -> std::same_as<std::set<std::string>>;
+    { m.ConstraintSpeciesDependencies() } -> std::same_as<std::set<std::string>>;
   };
 }  // namespace micm
