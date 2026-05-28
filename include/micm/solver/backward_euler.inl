@@ -103,7 +103,9 @@ namespace micm
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
+        {
           continue;
+        }
 
         // check for convergence
         converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);

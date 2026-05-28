@@ -319,8 +319,10 @@ namespace micm
       for (const auto& label : constraint_set.GetParameterNames())
       {
         if (params_map.count(label) > 0)
+        {
           throw MicmException(
               MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+        }
         params_map.emplace(label, params_map.size());
       }
 
@@ -333,9 +335,13 @@ namespace micm
       for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
       {
         if (algebraic_variable_ids.count(it->first) > 0)
+        {
           it = nonzero_elements.erase(it);
+        }
         else
+        {
           ++it;
+        }
       }
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
@@ -354,8 +360,10 @@ namespace micm
       for (const auto& label : constraint_set.ExternalConstraintParameterNames())
       {
         if (params_map.count(label) > 0)
+        {
           throw MicmException(
               MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+        }
         params_map.emplace(label, params_map.size());
       }
 
@@ -363,8 +371,10 @@ namespace micm
       for (const auto& label : constraint_set.ExternalInitializeConstraintParameterNames())
       {
         if (params_map.count(label) > 0)
+        {
           throw MicmException(
               MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+        }
         params_map.emplace(label, params_map.size());
       }
 
@@ -378,9 +388,13 @@ namespace micm
           for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
           {
             if (it->first == id)
+            {
               it = nonzero_elements.erase(it);
+            }
             else
+            {
               ++it;
+            }
           }
           mass_matrix_diagonal[id] = 0.0;
         }

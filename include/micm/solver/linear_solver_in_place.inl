@@ -32,7 +32,9 @@ namespace micm
       for (std::size_t j = 0; j < i; ++j)
       {
         if (lu.IsZero(i, j))
+        {
           continue;
+        }
         Lij_yj_.push_back(std::make_pair(lu.VectorIndex(0, i, j), j));
         ++nLij;
       }
@@ -44,7 +46,9 @@ namespace micm
       for (std::size_t j = i + 1; j < lu.NumColumns(); ++j)
       {
         if (lu.IsZero(i, j))
+        {
           continue;
+        }
         Uij_xj_.push_back(std::make_pair(lu.VectorIndex(0, i, j), j));
         ++nUij;
       }

@@ -14,10 +14,12 @@ namespace micm
   operator double() const
   {
     if (state_.variables_.NumRows() != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot convert multi-gridcell State variable to single double value");
+    }
     return state_.variables_[0][index_];
   }
 
@@ -33,10 +35,12 @@ namespace micm
       operator=(double value)
   {
     if (state_.variables_.NumRows() != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot assign single value to multi-gridcell State variable");
+    }
     state_.variables_[0][index_] = value;
     return *this;
   }
@@ -53,10 +57,12 @@ namespace micm
       operator=(const std::vector<double>& values)
   {
     if (values.size() != state_.number_of_grid_cells_)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Number of values does not match number of grid cells in State");
+    }
     for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       state_.variables_[i][index_] = values[i];
@@ -76,10 +82,12 @@ namespace micm
       operator=(const VariableProxy& other)
   {
     if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Number of grid cells does not match between State variables");
+    }
     for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       state_.variables_[i][index_] = other.state_.variables_[i][other.index_];
@@ -99,10 +107,12 @@ namespace micm
       operator+=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot add single value to multi-gridcell State variable");
+    }
     state_.variables_[0][index_] += value;
     return *this;
   }
@@ -119,10 +129,12 @@ namespace micm
       operator-=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot subtract single value from multi-gridcell State variable");
+    }
     state_.variables_[0][index_] -= value;
     return *this;
   }
@@ -139,10 +151,12 @@ namespace micm
       operator*=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot multiply single value with multi-gridcell State variable");
+    }
     state_.variables_[0][index_] *= value;
     return *this;
   }
@@ -159,10 +173,12 @@ namespace micm
       operator/=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot divide multi-gridcell State variable by single value");
+    }
     state_.variables_[0][index_] /= value;
     return *this;
   }
@@ -202,13 +218,16 @@ namespace micm
       class LMatrixPolicy,
       class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
-      ConstVariableProxy::operator double() const
+      ConstVariableProxy::
+      operator double() const
   {
     if (state_.variables_.NumRows() != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Cannot convert multi-gridcell State variable to single double value");
+    }
     return state_.variables_[0][index_];
   }
 
@@ -236,11 +255,15 @@ namespace micm
       VariableProxy::operator==(const std::vector<double>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
+    {
       return false;
+    }
     for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       if (state_.variables_[i][index_] != other[i])
+      {
         return false;
+      }
     }
     return true;
   }
@@ -255,11 +278,15 @@ namespace micm
       ConstVariableProxy::operator==(const std::vector<double>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
+    {
       return false;
+    }
     for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       if (state_.variables_[i][index_] != other[i])
+      {
         return false;
+      }
     }
     return true;
   }
@@ -409,7 +436,9 @@ namespace micm
   {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
+    }
     return VariableProxy(*this, var->second);
   }
 
@@ -426,7 +455,9 @@ namespace micm
   {
     auto var = variable_map_.find(name);
     if (var == variable_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, name);
+    }
     return ConstVariableProxy(*this, var->second);
   }
 
@@ -486,12 +517,16 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
+    }
     if (variables_.NumRows() != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
+    }
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
@@ -508,15 +543,21 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, species.name_);
+    }
     if (variables_.NumRows() != concentration.size())
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
+    }
     std::size_t i_species = variable_map_[species.name_];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
+    {
       variables_[i][i_species] = concentration[i];
+    }
   }
 
   template<
@@ -532,12 +573,16 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
+    }
     if (variables_.NumRows() != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
+    }
     variables_[0][variable_map_[element]] = concentration;
   }
 
@@ -554,15 +599,21 @@ namespace micm
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_SPECIES, element);
+    }
     if (variables_.NumRows() != concentration.size())
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
+    }
     std::size_t i_species = variable_map_[element];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
+    {
       variables_[i][i_species] = concentration[i];
+    }
   }
 
   template<
@@ -575,16 +626,20 @@ namespace micm
       UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
+    }
 
     if (parameters[0].size() != custom_rate_parameters_.NumColumns())
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT,
           "Custom rate parameter count does not match the number of rate constants");
+    }
 
     for (size_t i = 0; i < number_of_grid_cells_; ++i)
     {
@@ -619,12 +674,16 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
+    }
     if (custom_rate_parameters_.NumRows() != 1)
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
+    }
     custom_rate_parameters_[0][param->second] = value;
   }
 
@@ -641,14 +700,20 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
+    {
       throw MicmException(MICM_ERROR_CATEGORY_STATE, MICM_STATE_ERROR_CODE_UNKNOWN_RATE_CONSTANT_PARAMETER, label);
+    }
     if (custom_rate_parameters_.NumRows() != values.size())
+    {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
+    }
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
+    {
       custom_rate_parameters_[i][param->second] = values[i];
+    }
   }
 
   template<

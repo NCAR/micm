@@ -69,9 +69,13 @@ static void SortLikeBuilder(std::vector<Process>& procs)
 static std::vector<std::string> CustomParamLabels(const Process& proc)
 {
   if (const auto* p = std::get_if<UserDefinedRateConstantParameters>(&proc.process_.rate_constant_))
+  {
     return { p->label_ };
+  }
   if (const auto* p = std::get_if<SurfaceRateConstantParameters>(&proc.process_.rate_constant_))
+  {
     return { p->label_ + ".effective radius [m]", p->label_ + ".particle number concentration [# m-3]" };
+  }
   return {};
 }
 
@@ -240,5 +244,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
   EXPECT_NE(copy_arr, nullptr);
   EXPECT_NE(orig_arr, nullptr);
   if (copy_arr && orig_arr)
+  {
     EXPECT_EQ(copy_arr->A_, orig_arr->A_);
+  }
 }

@@ -33,7 +33,7 @@ namespace micm
               RatesPolicy,
               LinearSolverPolicy,
               ConstraintSetPolicy,
-              CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(std::move(other)){};
+              CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(std::move(other)) { };
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
@@ -42,7 +42,7 @@ namespace micm
     };
 
     /// @brief Default constructor
-    CudaRosenbrockSolver(){};
+    CudaRosenbrockSolver() { };
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
     /// @param linear_solver Linear solver
@@ -56,11 +56,11 @@ namespace micm
               CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              std::move(constraints)){};
+              std::move(constraints)) { };
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"
-    ~CudaRosenbrockSolver(){};
+    ~CudaRosenbrockSolver() { };
 
     /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy

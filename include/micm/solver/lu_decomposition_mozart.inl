@@ -69,7 +69,9 @@ namespace micm
       for (std::size_t j = i + 1; j < n; ++j)
       {
         if (LU.first.IsZero(j, i))
+        {
           continue;
+        }
         lji_.push_back(LU.first.VectorIndex(0, j, i));
         ++(std::get<1>(uii_nj_nk));
       }
@@ -77,14 +79,18 @@ namespace micm
       for (std::size_t k = i + 1; k < n; ++k)
       {
         if (LU.second.IsZero(i, k))
+        {
           continue;
+        }
         std::tuple<std::size_t, std::size_t, std::size_t> nujk_nljk_uik(0, 0, 0);
         std::get<2>(nujk_nljk_uik) = LU.second.VectorIndex(0, i, k);
         // inner j loop to set U[j][k]
         for (std::size_t j = i + 1; j <= k; ++j)
         {
           if (LU.first.IsZero(j, i))
+          {
             continue;
+          }
           std::pair<std::size_t, std::size_t> ujk_lji(0, 0);
           ujk_lji.first = LU.second.VectorIndex(0, j, k);
           ujk_lji.second = LU.first.VectorIndex(0, j, i);
@@ -95,7 +101,9 @@ namespace micm
         for (std::size_t j = k + 1; j < n; ++j)
         {
           if (LU.first.IsZero(j, i))
+          {
             continue;
+          }
           std::pair<std::size_t, std::size_t> ljk_lji(0, 0);
           ljk_lji.first = LU.first.VectorIndex(0, j, k);
           ljk_lji.second = LU.first.VectorIndex(0, j, i);
@@ -138,7 +146,9 @@ namespace micm
       for (std::size_t k = i + 1; k < n; ++k)
       {
         if (!(std::find(U_ids.begin(), U_ids.end(), std::make_pair(i, k)) != U_ids.end()))
+        {
           continue;
+        }
         for (std::size_t j = i + 1; j <= k; ++j)
           if (std::find(L_ids.begin(), L_ids.end(), std::make_pair(j, i)) != L_ids.end())
             U_ids.insert(std::make_pair(j, k));
@@ -284,7 +294,9 @@ namespace micm
         for (std::size_t ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             L_vector[*lji + i_cell] = L_vector[*lji + i_cell] * Uii_inverse[i_cell];
+          }
           ++lji;
         }
         for (std::size_t ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
@@ -293,13 +305,17 @@ namespace micm
           for (std::size_t ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               U_vector[ujk_lji->first + i_cell] -= L_vector[ujk_lji->second + i_cell] * U_vector[uik + i_cell];
+            }
             ++ujk_lji;
           }
           for (std::size_t ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               L_vector[ljk_lji->first + i_cell] -= L_vector[ljk_lji->second + i_cell] * U_vector[uik + i_cell];
+            }
             ++ljk_lji;
           }
           ++nujk_nljk_uik;

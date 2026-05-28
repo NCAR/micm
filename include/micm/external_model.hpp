@@ -450,7 +450,7 @@ namespace micm
         get_initialize_constraint_parameters_function_ = [](const std::unordered_map<std::string, std::size_t>&,
                                                             const std::unordered_map<std::string, std::size_t>&)
             -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-        { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
+        { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) { }; };
       }
     }
   };

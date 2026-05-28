@@ -141,7 +141,9 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -205,7 +207,9 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);  // Diagonals
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -260,7 +264,9 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -330,7 +336,9 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -391,7 +399,9 @@ TEST(LinearConstraint, ZeroConstantResidual)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -450,7 +460,9 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -505,7 +517,9 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -570,7 +584,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
@@ -632,7 +648,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
   for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };

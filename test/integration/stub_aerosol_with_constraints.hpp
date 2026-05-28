@@ -79,7 +79,7 @@ class StubAerosolWithConstraints
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
   }
 
   template<typename DenseMatrixPolicy>
@@ -156,7 +156,7 @@ class StubAerosolWithConstraints
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
   }
 
   /// Constraint residual: G(y) = [A_GAS] + [A_AQ] - total = 0
@@ -265,7 +265,7 @@ class StubAerosolWithSolvent
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
   }
 
   template<typename DenseMatrixPolicy>
@@ -344,7 +344,7 @@ class StubAerosolWithSolvent
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
   }
 
   template<typename DenseMatrixPolicy>

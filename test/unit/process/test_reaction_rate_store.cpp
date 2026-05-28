@@ -93,42 +93,48 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
   Phase gas{ "gas", { PhaseSpecies(a), PhaseSpecies(b), gas_c } };
 
   std::vector<Process> procs;
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(ArrheniusRateConstantParameters{})
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(ArrheniusRateConstantParameters{})
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.0, .kinf_A_ = 1.0 })
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(TunnelingRateConstantParameters{})
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "ud1" })
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ c })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(SurfaceRateConstantParameters{ .label_ = "surf1", .phase_species_ = gas_c })
-                      .SetPhase(gas)
-                      .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(ArrheniusRateConstantParameters{})
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(ArrheniusRateConstantParameters{})
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.0, .kinf_A_ = 1.0 })
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(TunnelingRateConstantParameters{})
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "ud1" })
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ c })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(SurfaceRateConstantParameters{ .label_ = "surf1", .phase_species_ = gas_c })
+          .SetPhase(gas)
+          .Build());
 
   SortByTypeOrder(procs);
   auto store = ReactionRateConstantStore::BuildFrom(procs);
@@ -410,36 +416,41 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
   SurfaceRateConstantParameters surf{ .label_ = "surf", .phase_species_ = gas_c };
 
   std::vector<Process> procs;
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(ArrheniusRateConstantParameters{})
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.0, .kinf_A_ = 1.0 })
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "ud" })
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ c })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(surf)
-                      .SetPhase(gas)
-                      .Build());
-  procs.push_back(ChemicalReactionBuilder()
-                      .SetReactants({ a })
-                      .SetProducts({ StoichSpecies(b, 1) })
-                      .SetRateConstant(lam)
-                      .SetPhase(gas)
-                      .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(ArrheniusRateConstantParameters{})
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.0, .kinf_A_ = 1.0 })
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "ud" })
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ c })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(surf)
+          .SetPhase(gas)
+          .Build());
+  procs.push_back(
+      ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ StoichSpecies(b, 1) })
+          .SetRateConstant(lam)
+          .SetPhase(gas)
+          .Build());
 
   SortByTypeOrder(procs);
   auto store = ReactionRateConstantStore::BuildFrom(procs);
