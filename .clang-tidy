@@ -53,6 +53,7 @@ Checks: >
   -*,
   # explicitly enabled checks
   readability-braces-around-statements,
+  readability-identifier-naming,
   # explicitly disabled checks
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
