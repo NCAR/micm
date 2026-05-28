@@ -76,7 +76,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions(processes)
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)

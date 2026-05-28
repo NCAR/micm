@@ -126,7 +126,7 @@ namespace micm
 
     /// @brief Add an external model (state variables, processes, and/or constraints)
     ///
-    /// The model must satisfy HasState (state variables and parameters are registered with the solver).
+    /// If the model satisfies HasState, its state variables and parameters are registered with the solver.
     /// The model must satisfy at least one of HasProcesses (process wrappers are created) or
     /// HasConstraints (constraint wrappers are created).
     /// @param model The external model (taken by value; caller decides whether to copy or move)
@@ -135,13 +135,11 @@ namespace micm
     SolverBuilder& AddExternalModel(ExternalModel model)
     {
       static_assert(
-          HasState<ExternalModel>,
-          "External model passed to AddExternalModel() must implement StateSize, StateVariableNames, and StateParameterNames");
-      static_assert(
           HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,
           "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
 
-      external_systems_.emplace_back(ExternalModelSystem{ model });
+      if constexpr (HasState<ExternalModel>)
+        external_systems_.emplace_back(ExternalModelSystem{ model });
 
       if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
       {
