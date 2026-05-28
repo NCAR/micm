@@ -340,9 +340,8 @@ namespace micm
         constraint_param_functions_.push_back(
             constraints_[info.index_].template ConstraintParameterFunction<DenseMatrixPolicy>(info));
 
-        constraint_forcing_functions_.push_back(
-            constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
-                info, state_variable_indices, state_parameter_indices));
+        constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
+            info, state_variable_indices, state_parameter_indices));
 
         constraint_jacobian_functions_.push_back(
             constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(

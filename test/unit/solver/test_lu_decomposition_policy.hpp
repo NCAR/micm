@@ -74,18 +74,17 @@ void print_matrix(const auto& matrix, std::size_t width)
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
 void testDenseMatrix()
 {
-  SparseMatrixPolicy A = SparseMatrixPolicy(
-      SparseMatrixPolicy::Create(3)
-          .InitialValue(0)
-          .WithElement(0, 0)
-          .WithElement(0, 1)
-          .WithElement(0, 2)
-          .WithElement(1, 0)
-          .WithElement(1, 1)
-          .WithElement(1, 2)
-          .WithElement(2, 0)
-          .WithElement(2, 1)
-          .WithElement(2, 2));
+  SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
+                                                .InitialValue(0)
+                                                .WithElement(0, 0)
+                                                .WithElement(0, 1)
+                                                .WithElement(0, 2)
+                                                .WithElement(1, 0)
+                                                .WithElement(1, 1)
+                                                .WithElement(1, 2)
+                                                .WithElement(2, 0)
+                                                .WithElement(2, 1)
+                                                .WithElement(2, 2));
 
   A[0][0][0] = 2;
   A[0][0][1] = -1;
