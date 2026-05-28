@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS install
 
 RUN apt -y update \
     && apt -y install \
@@ -14,18 +14,69 @@ RUN apt -y update \
         build-essential \
     && apt clean all
 
-RUN clang-tidy --version && nvcc --version && cmake --version
-
-# copy the MICM code
 COPY . /micm/
+WORKDIR /micm
 
-# build the library and run the tests
-RUN cd /micm \
-    && cmake \
+# -----------------------------------------------------------------------------
+FROM install AS build-cpu
+# Non-CUDA configure: generates ./build/compile_commands.json
+RUN cmake \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -B./build \
+      -S.
+
+# -----------------------------------------------------------------------------
+FROM install AS build-cuda
+# CUDA configure: nvidia-cuda-toolkit puts nvcc at /usr/bin/nvcc but cmake's
+# check_language(CUDA) auto-detection does not find it there; pass it explicitly.
+# Note: this stage will fail on arm64 hosts (e.g. Apple Silicon) due to an
+# incompatibility between Ubuntu's nvcc and ARM SVE system headers.
+RUN cmake \
+      -DCMAKE_CUDA_COMPILER=/usr/bin/nvcc \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
       -S.
 
-WORKDIR /micm
+# -----------------------------------------------------------------------------
+# scan-includes: public headers only, no CUDA context needed
+# Run locally: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
+FROM build-cpu AS scan-includes
+RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
+      | xargs clang-tidy \
+          -p ./build/ \
+          --config-file=./.clang-tidy \
+          --allow-no-checks \
+          --header-filter="$(pwd)/include/.*" \
+          --extra-arg="-std=c++20" \
+          --extra-arg="-Iinclude/"
 
+# -----------------------------------------------------------------------------
+# scan-cuda-source: .cu and supporting source files under src/
+# Run locally: docker build --target scan-cuda-source --progress=plain -f docker/Dockerfile.clang-tidy .
+FROM build-cuda AS scan-cuda-source
+RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) \
+      | xargs clang-tidy \
+          -p ./cuda-build/ \
+          --config-file=./.clang-tidy \
+          --allow-no-checks \
+          --header-filter="$(pwd)/include/.*" \
+          --extra-arg="-std=c++20" \
+          --extra-arg="--cuda-gpu-arch=sm_70" \
+          --extra-arg="-Iinclude/"
+
+# -----------------------------------------------------------------------------
+# scan-tests: unit, integration, and tutorial tests (excluding CUDA-only and JIT files)
+# Run locally: docker build --target scan-tests --progress=plain -f docker/Dockerfile.clang-tidy .
+FROM build-cuda AS scan-tests
+RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cu' \) \
+        ! -path '*/tutorial/*' ! -path '*jit*' \
+      | xargs clang-tidy \
+          -p ./cuda-build/ \
+          --config-file=./.clang-tidy \
+          --allow-no-checks \
+          --header-filter="$(pwd)/include/.*" \
+          --extra-arg="-std=c++20" \
+          --extra-arg="--cuda-gpu-arch=sm_70" \
+          --extra-arg="-Iinclude/" \
+          --extra-arg="-isystem./cuda-build/_deps/googletest-src/googletest/include"
