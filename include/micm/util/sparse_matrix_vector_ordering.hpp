@@ -22,9 +22,10 @@ namespace micm
   {
     if constexpr (requires {
                     { matrix.CopyToDevice() } -> std::same_as<void>;
-                  }) {
+                  })
+    {
       matrix.CopyToDevice();
-}
+    }
   }
 
   template<class MatrixPolicy>
@@ -32,9 +33,10 @@ namespace micm
   {
     if constexpr (requires {
                     { matrix.CopyToHost() } -> std::same_as<void>;
-                  }) {
+                  })
+    {
       matrix.CopyToHost();
-}
+    }
   }
 
 }  // namespace micm

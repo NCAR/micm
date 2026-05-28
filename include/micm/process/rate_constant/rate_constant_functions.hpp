@@ -108,9 +108,10 @@ namespace micm
   {
     double poly = 0.0;
     double t_pow = 1.0;
-    for (std::size_t j = 0; j < p.n_coefficients_; ++j, t_pow *= temperature) {
+    for (std::size_t j = 0; j < p.n_coefficients_; ++j, t_pow *= temperature)
+    {
       poly += p.coefficients_[j] * t_pow;
-}
+    }
     return poly * p.A_ * std::exp(p.C_ / temperature) * std::pow(temperature / p.D_, p.B_) * (1.0 + p.E_ * pressure);
   }
 

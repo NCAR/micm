@@ -102,9 +102,10 @@ namespace micm
         Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max(0.0, yn1 + f); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
-        if (iterations++ == 0) {
+        if (iterations++ == 0)
+        {
           continue;
-}
+        }
 
         // check for convergence
         converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);

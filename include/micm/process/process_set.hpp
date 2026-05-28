@@ -423,9 +423,10 @@ namespace micm
           std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
           auto rate_it = rate.begin();
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell) {
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+          {
             *(rate_it++) *= *(v_state_variables_it++);
-}
+          }
         }
         for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
@@ -434,9 +435,10 @@ namespace micm
           {
             auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
             auto rate_it = rate.begin();
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            {
               *(v_forcing_it++) -= *(rate_it++);
-}
+            }
           }
         }
         const std::size_t number_of_products = number_of_products_[i_rxn];
@@ -448,9 +450,10 @@ namespace micm
             auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
             auto rate_it = rate.begin();
             auto yield_value = yield[i_prod];
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            {
               *(v_forcing_it++) += yield_value * *(rate_it++);
-}
+            }
           }
         }
         react_id += number_of_reactants_[i_rxn];

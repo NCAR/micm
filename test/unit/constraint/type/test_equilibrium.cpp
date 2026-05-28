@@ -243,9 +243,10 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
 
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i) {
+  for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
-}
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -317,9 +318,10 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
 
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i) {
+  for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);  // Diagonals
-}
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -380,9 +382,10 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
 
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i) {
+  for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
-}
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -434,9 +437,10 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i) {
+  for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
-}
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
@@ -500,9 +504,10 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i) {
+  for (std::size_t i = 0; i < num_species; ++i)
+  {
     builder = builder.WithElement(i, i);
-}
+  }
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };

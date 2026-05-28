@@ -74,12 +74,13 @@ void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::s
                                .Build();
 
   std::vector<micm::Constraint> constraints;
-  constraints.push_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      C,
-      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
-      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
-      micm::VantHoffParam{ .K_HLC_ref = 10.0, .delta_H = -2400.0 }));
+  constraints.push_back(
+      micm::EquilibriumConstraint(
+          "B_C_eq",
+          C,
+          std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
+          std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
+          micm::VantHoffParam{ .K_HLC_ref = 10.0, .delta_H = -2400.0 }));
 
   auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ reaction })

@@ -39,15 +39,17 @@ namespace micm
       std::tuple<std::size_t, std::size_t, std::size_t> nik_nki_aii(0, 0, ALU.VectorIndex(0, i, i));
       for (std::size_t k = i; k < n; ++k)
       {
-        if (ALU.IsZero(i, k)) {
+        if (ALU.IsZero(i, k))
+        {
           continue;
-}
+        }
         std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (ALU.IsZero(i, j) || ALU.IsZero(j, k)) {
+          if (ALU.IsZero(i, j) || ALU.IsZero(j, k))
+          {
             continue;
-}
+          }
           aij_ajk_.push_back(std::make_pair(ALU.VectorIndex(0, i, j), ALU.VectorIndex(0, j, k)));
           ++(aik_njk.second);
         }
@@ -56,15 +58,17 @@ namespace micm
       }
       for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (ALU.IsZero(k, i)) {
+        if (ALU.IsZero(k, i))
+        {
           continue;
-}
+        }
         std::pair<std::size_t, std::size_t> aki_nji(ALU.VectorIndex(0, k, i), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (ALU.IsZero(k, j) || ALU.IsZero(j, i)) {
+          if (ALU.IsZero(k, j) || ALU.IsZero(j, i))
+          {
             continue;
-}
+          }
           akj_aji_.push_back(std::make_pair(ALU.VectorIndex(0, k, j), ALU.VectorIndex(0, j, i)));
           ++(aki_nji.second);
         }

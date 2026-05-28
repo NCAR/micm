@@ -40,17 +40,19 @@ namespace micm
         std::size_t nkj = 0;
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (LU.first.IsZero(i, j) || LU.second.IsZero(j, k)) {
+          if (LU.first.IsZero(i, j) || LU.second.IsZero(j, k))
+          {
             continue;
-}
+          }
           ++nkj;
           lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
         }
         if (matrix.IsZero(i, k))
         {
-          if (nkj == 0 && k != i) {
+          if (nkj == 0 && k != i)
+          {
             continue;
-}
+          }
           do_aik_.push_back(false);
         }
         else
@@ -68,17 +70,19 @@ namespace micm
         std::size_t nkj = 0;
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (LU.first.IsZero(k, j) || LU.second.IsZero(j, i)) {
+          if (LU.first.IsZero(k, j) || LU.second.IsZero(j, i))
+          {
             continue;
-}
+          }
           ++nkj;
           lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
         }
         if (matrix.IsZero(k, i))
         {
-          if (nkj == 0) {
+          if (nkj == 0)
+          {
             continue;
-}
+          }
           do_aki_.push_back(false);
         }
         else
