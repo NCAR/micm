@@ -307,11 +307,12 @@ namespace micm
 
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
-      if (number_of_blocks_ != 1)
+      if (number_of_blocks_ != 1) {
         throw MicmException(
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX,
             "Matrix has multiple blocks; use the (block, row, col) overload of VectorIndex instead");
+}
       return VectorIndex(0, row, column);
     }
 
@@ -367,10 +368,11 @@ namespace micm
         {
           for (std::size_t k = 0; k < matrix.block_size_ - 1; ++k)
           {
-            if (matrix.IsZero(j, k))
+            if (matrix.IsZero(j, k)) {
               os << "0,";
-            else
+            } else {
               os << matrix[i][j][k] << ',';
+}
           }
           if (matrix.IsZero(j, matrix.block_size_ - 1))
             os << "0" << std::endl;
@@ -724,8 +726,9 @@ namespace micm
 
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
-      if (x >= block_size_ || y >= block_size_)
+      if (x >= block_size_ || y >= block_size_) {
         throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
+}
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

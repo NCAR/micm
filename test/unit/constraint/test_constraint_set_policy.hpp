@@ -163,8 +163,9 @@ void testAddForcingTerms()
   // Build sparse Jacobian for SetConstraintFunctions
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < num_species; ++i) {
     builder = builder.WithElement(i, i);
+}
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixPolicy jacobian{ builder };
@@ -219,8 +220,9 @@ void testSubtractJacobianTerms()
   // Build a 3x3 sparse Jacobian (constraint replaces AB's row)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < num_species; ++i) {
     builder = builder.WithElement(i, i);  // Diagonals
+}
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -338,8 +340,9 @@ void testThreeDStateOneConstraint()
                      .SetNumberOfBlocks(2)  // Test with 2 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < num_species; ++i) {
     builder = builder.WithElement(i, i);
+}
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -451,8 +454,9 @@ void testFourDStateTwoConstraints()
                      .SetNumberOfBlocks(3)  // Test with 3 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < num_species; ++i) {
     builder = builder.WithElement(i, i);
+}
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -587,8 +591,9 @@ void testCoupledConstraintsSharedSpecies()
   // Build Jacobian (3x3)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < num_species; ++i) {
     builder = builder.WithElement(i, i);
+}
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
@@ -653,8 +658,9 @@ void testVectorizedMatricesRespectGridCellIndexing()
 
   // Constraint replaces AB's row (index 2), Jacobian is 3x3
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(3).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < num_species; ++i) {
     builder = builder.WithElement(i, i);
+}
   for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 

@@ -66,8 +66,9 @@ namespace micm
           update_state_parameters_functions_(update_state_parameters_functions),
           store_(ReactionRateConstantStore::BuildFrom(processes_))
     {
-      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); }) {
         solver_.rates_.BuildCudaStore(store_);
+}
     }
 
     Solver(
@@ -89,8 +90,9 @@ namespace micm
           store_(ReactionRateConstantStore::BuildFrom(processes_)),
           initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
     {
-      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
+      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); }) {
         solver_.rates_.BuildCudaStore(store_);
+}
     }
 
     Solver(Solver&& other)
@@ -209,9 +211,9 @@ namespace micm
 
       // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
       // GpuCalculateRateConstants; otherwise use the CPU path.
-      if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })
+      if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); }) {
         solver_.rates_.GpuCalculateRateConstants(store_, state);
-      else
+      } else
       {
         ReactionRateConstantStore::EvaluateCpuRateConstants(store_, state);
         ReactionRateConstantStore::CpuCalculateRateConstants(store_, state);

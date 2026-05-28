@@ -76,13 +76,15 @@ namespace micm
     /// @return Index of the element in the compressed data vector
     std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
-      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks)
+      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks) {
         throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
+}
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
-      if (elem == end)
+      if (elem == end) {
         throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS, "Zero element access");
+}
       return std::size_t{ (elem - row_ids_.begin()) * L + block % L + (block / L) * L * row_ids_.size() };
     }
 
@@ -114,13 +116,15 @@ namespace micm
     /// @return The index of the nth non-zero element within a block (0-based)
     std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
     {
-      if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1)
+      if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1) {
         throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
+}
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, col);
-      if (elem == end)
+      if (elem == end) {
         throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS, "Zero element access");
+}
       return std::distance(row_ids_.begin(), elem);
     }
 
@@ -541,8 +545,9 @@ namespace micm
     /// @return true if the element is always zero, false otherwise
     bool IsZero(std::size_t row, std::size_t column) const
     {
-      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
+      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1) {
         throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
+}
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       return std::find(begin, end, column) == end;

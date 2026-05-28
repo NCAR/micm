@@ -237,8 +237,9 @@ namespace micm
     template<class StatePolicy>
     static void EvaluateCpuRateConstants(const ReactionRateConstantStore& store, StatePolicy& state)
     {
-      if (store.lambda_entries_.empty())
+      if (store.lambda_entries_.empty()) {
         return;
+}
 
       using DenseMatrixPolicy = typename StatePolicy::DenseMatrixPolicyType;
 

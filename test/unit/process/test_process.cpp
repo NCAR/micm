@@ -68,10 +68,12 @@ static void SortLikeBuilder(std::vector<Process>& procs)
 /// @brief Return the custom parameter labels that BuildFrom assigns for a process.
 static std::vector<std::string> CustomParamLabels(const Process& proc)
 {
-  if (const auto* p = std::get_if<UserDefinedRateConstantParameters>(&proc.process_.rate_constant_))
+  if (const auto* p = std::get_if<UserDefinedRateConstantParameters>(&proc.process_.rate_constant_)) {
     return { p->label_ };
-  if (const auto* p = std::get_if<SurfaceRateConstantParameters>(&proc.process_.rate_constant_))
+}
+  if (const auto* p = std::get_if<SurfaceRateConstantParameters>(&proc.process_.rate_constant_)) {
     return { p->label_ + ".effective radius [m]", p->label_ + ".particle number concentration [# m-3]" };
+}
   return {};
 }
 
@@ -239,6 +241,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
   const auto* orig_arr = std::get_if<ArrheniusRateConstantParameters>(&original.rate_constant_);
   EXPECT_NE(copy_arr, nullptr);
   EXPECT_NE(orig_arr, nullptr);
-  if (copy_arr && orig_arr)
+  if (copy_arr && orig_arr) {
     EXPECT_EQ(copy_arr->A_, orig_arr->A_);
+}
 }

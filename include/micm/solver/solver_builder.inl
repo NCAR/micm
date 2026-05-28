@@ -318,9 +318,10 @@ namespace micm
       constraint_set.SetUniqueParameterNames();
       for (const auto& label : constraint_set.GetParameterNames())
       {
-        if (params_map.count(label) > 0)
+        if (params_map.count(label) > 0) {
           throw MicmException(
               MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+}
         params_map.emplace(label, params_map.size());
       }
 
@@ -332,10 +333,11 @@ namespace micm
       // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
       for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
       {
-        if (algebraic_variable_ids.count(it->first) > 0)
+        if (algebraic_variable_ids.count(it->first) > 0) {
           it = nonzero_elements.erase(it);
-        else
+        } else {
           ++it;
+}
       }
 
       // Merge constraint Jacobian elements with ODE Jacobian elements
@@ -353,18 +355,20 @@ namespace micm
       // Add external constraint parameter names to the params map
       for (const auto& label : constraint_set.ExternalConstraintParameterNames())
       {
-        if (params_map.count(label) > 0)
+        if (params_map.count(label) > 0) {
           throw MicmException(
               MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+}
         params_map.emplace(label, params_map.size());
       }
 
       // Add initialize constraint parameter names to the params map
       for (const auto& label : constraint_set.ExternalInitializeConstraintParameterNames())
       {
-        if (params_map.count(label) > 0)
+        if (params_map.count(label) > 0) {
           throw MicmException(
               MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+}
         params_map.emplace(label, params_map.size());
       }
 
@@ -377,10 +381,11 @@ namespace micm
           // Filter kinetic sparsity entries from this new algebraic row
           for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
           {
-            if (it->first == id)
+            if (it->first == id) {
               it = nonzero_elements.erase(it);
-            else
+            } else {
               ++it;
+}
           }
           mass_matrix_diagonal[id] = 0.0;
         }

@@ -137,8 +137,9 @@ void testProcessSet()
   compare_pair(*(++elem), index_pair(4, 2));
 
   auto builder = SparseMatrixPolicy::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
-  for (auto& elem : non_zero_elements)
+  for (auto& elem : non_zero_elements) {
     builder = builder.WithElement(elem.first, elem.second);
+}
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
@@ -329,8 +330,9 @@ void testAlgebraicMasking()
     // Build Jacobian structure
     auto non_zero_elements = process_set.NonZeroJacobianElements();
     auto builder = SparseMatrixPolicy::Create(4).SetNumberOfBlocks(2).InitialValue(500.0);
-    for (auto& elem : non_zero_elements)
+    for (auto& elem : non_zero_elements) {
       builder = builder.WithElement(elem.first, elem.second);
+}
     SparseMatrixPolicy jacobian{ builder };
     process_set.SetJacobianFlatIds(jacobian);
 
@@ -430,8 +432,9 @@ void testProcessSetFiniteDifferenceJacobian()
   // Build analytical Jacobian
   auto non_zero_elements = process_set.NonZeroJacobianElements();
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (auto& elem : non_zero_elements)
+  for (auto& elem : non_zero_elements) {
     builder = builder.WithElement(elem.first, elem.second);
+}
   SparseMatrixPolicy analytical_jacobian{ builder };
   process_set.SetJacobianFlatIds(analytical_jacobian);
 

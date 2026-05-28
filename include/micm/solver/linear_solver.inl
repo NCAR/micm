@@ -40,10 +40,13 @@ namespace micm
           std::swap(pattern[i][row], pattern[i][max_row]);
         std::swap(perm[row], perm[max_row]);
       }
-      for (std::size_t col = row + 1; col < order; ++col)
-        if (pattern[row][col])
-          for (std::size_t i = row + 1; i < order; ++i)
+      for (std::size_t col = row + 1; col < order; ++col) {
+        if (pattern[row][col]) {
+          for (std::size_t i = row + 1; i < order; ++i) {
             pattern[i][col] = pattern[i][row] || pattern[i][col];
+}
+}
+}
     }
     return perm;
   }
@@ -80,8 +83,9 @@ namespace micm
       std::size_t nLij = 0;
       for (std::size_t j = 0; j < i; ++j)
       {
-        if (lower_matrix.IsZero(i, j))
+        if (lower_matrix.IsZero(i, j)) {
           continue;
+}
         Lij_yj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, i, j), j));
         ++nLij;
       }
@@ -93,8 +97,9 @@ namespace micm
       std::size_t nUij = 0;
       for (std::size_t j = i + 1; j < upper_matrix.NumColumns(); ++j)
       {
-        if (upper_matrix.IsZero(i, j))
+        if (upper_matrix.IsZero(i, j)) {
           continue;
+}
         Uij_xj_.push_back(std::make_pair(upper_matrix.VectorIndex(0, i, j), j));
         ++nUij;
       }

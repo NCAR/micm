@@ -1147,8 +1147,9 @@ MatrixPolicy<double, OrderingPolicy> testBlockViewReuse()
 
   MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
-  for (std::size_t block = 0; block < 3; ++block)
+  for (std::size_t block = 0; block < 3; ++block) {
     matrix[block][0][1] = static_cast<double>(block + 1);
+}
 
   auto func = MatrixPolicy<double, OrderingPolicy>::Function(
       [](auto&& m)
@@ -1242,8 +1243,9 @@ MatrixPolicy<double, OrderingPolicy> testFunctionReusability()
   // Apply to third matrix with different values
   MatrixPolicy<double, OrderingPolicy> matrix3{ builder };
   matrix3 = 0.0;
-  for (std::size_t block = 0; block < 2; ++block)
+  for (std::size_t block = 0; block < 2; ++block) {
     matrix3[block][0][0] = static_cast<double>(block * 10);
+}
 
   func(matrix3);
   EXPECT_EQ(matrix3[0][2][2], 2.0 * (0 + 0 + 0));   // 0

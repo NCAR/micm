@@ -49,7 +49,11 @@
 #   msc51 is a Windows-specific RNG check.
 
 Checks: >
+  # disable all checks
   -*,
+  # explicitly enabled checks
+  readability-braces-around-statements,
+  # explicitly disabled checks
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
   -readability-magic-numbers,
@@ -101,3 +105,5 @@ CheckOptions:
     value:           1
   - key:             readability-implicit-bool-conversion.AllowPointerConditions
     value:           1
+  - key:             readability-braces-around-statements.ShortStatementLines
+    value:           0

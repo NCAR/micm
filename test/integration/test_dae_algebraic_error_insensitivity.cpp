@@ -135,8 +135,9 @@ namespace
     {
       auto result = solver.Solve(dt - advanced, state);
       EXPECT_EQ(result.state_, SolverState::Converged);
-      if (result.state_ != SolverState::Converged)
+      if (result.state_ != SolverState::Converged) {
         break;
+}
       advanced += result.stats_.final_time_;
       total_accepted += result.stats_.accepted_;
       total_rejected += result.stats_.rejected_;

@@ -25,12 +25,13 @@ void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   state.conditions_[2].pressure_ = 101398.0;   // [Pa]
   std::vector<std::vector<double>> variables(3, std::vector<double>(fixed_state.variables_.NumColumns(), 0.0));
   double abs_tol = 0.0;
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < fixed_state.variables_.NumColumns(); ++j)
     {
       variables[i][j] = get_double();
       abs_tol = std::max(abs_tol, variables[i][j]);
     }
+}
   state.variables_ = variables;
   abs_tol *= 1.0e-12;
 
@@ -51,11 +52,12 @@ void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   }
 
   // compare results
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < fixed_results[i].result_.size(); ++j)
     {
       double a = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
       double b = fixed_results[i].result_[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * relative_tolerance + abs_tol);
     }
+}
 }

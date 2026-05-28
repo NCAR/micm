@@ -117,9 +117,11 @@ MatrixPolicy<int> testStrides()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
 
-  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
-    for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i) {
+    for (std::size_t j = 0; j < matrix.NumColumns(); ++j) {
       matrix.AsVector()[i * matrix.RowStride() + j * matrix.ColumnStride()] = i * 100 + j;
+}
+}
 
   EXPECT_EQ(matrix[0][0], 0);
   EXPECT_EQ(matrix[0][1], 1);
@@ -244,7 +246,7 @@ MatrixPolicy<double> testAxpy()
   double sum = 0.0;
   double result = 0.0;
 
-  for (int i = 0; i < num_rows; ++i)
+  for (int i = 0; i < num_rows; ++i) {
     for (int j = 0; j < num_columns; ++j)
     {
       auto y = i * 10.3 + j * 100.5;
@@ -253,12 +255,15 @@ MatrixPolicy<double> testAxpy()
       other[i][j] = x;
       sum += y + alpha * x;
     }
+}
 
   matrix.Axpy(alpha, other);
 
-  for (int i = 0; i < num_rows; ++i)
-    for (int j = 0; j < num_columns; ++j)
+  for (int i = 0; i < num_rows; ++i) {
+    for (int j = 0; j < num_columns; ++j) {
       result += matrix[i][j];
+}
+}
   EXPECT_NEAR(sum, result, 1.0e-5);
 
   return matrix;
@@ -274,7 +279,7 @@ MatrixPolicy<double> testForEach()
   double sum2 = 0.0;
   double result = 0.0;
 
-  for (int i = 0; i < 4; ++i)
+  for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 3; ++j)
     {
       matrix[i][j] = i * 10.3 + j * 100.5;
@@ -283,6 +288,7 @@ MatrixPolicy<double> testForEach()
       other2[i][j] = i * 19.5 + j * 32.2;
       sum2 += i * 10.3 + j * 100.5 + i * 1.7 + j * 10.2 - i * 19.5 - j * 32.2;
     }
+}
 
   matrix.ForEach([&](double& a, const double& b) { result += a + b; }, other);
   EXPECT_NEAR(sum, result, 1.0e-5);
@@ -382,9 +388,11 @@ MatrixPolicy<double> testArrayFunction()
   MatrixPolicy<double> matrix{ 5, 3, -1.0 };
 
   // Set initial values that differ by rows
-  for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i)
-    for (int j = 0; j < static_cast<int>(matrix.NumColumns()); ++j)
+  for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i) {
+    for (int j = 0; j < static_cast<int>(matrix.NumColumns()); ++j) {
       matrix[i][j] = static_cast<double>(i - 2 + 10 * j);
+}
+}
 
   // Initial Matrix values:
   // Row 0: -2, 8, 18
@@ -462,8 +470,9 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunct
     }
   }
   // Set column 2 of matrixB separately
-  for (int i = 0; i < static_cast<int>(matrixB.NumRows()); ++i)
+  for (int i = 0; i < static_cast<int>(matrixB.NumRows()); ++i) {
     matrixB[i][2] = static_cast<double>(i * 4);
+}
 
   // Initial MatrixA values:
   // Row 0: 0, 10
@@ -513,9 +522,11 @@ MatrixPolicy<double> testVectorInMatrixFunction()
   MatrixPolicy<double> matrix{ 5, 3, -1.0 };
 
   // Set initial values that differ by rows
-  for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i)
-    for (int j = 0; j < static_cast<int>(matrix.NumColumns()); ++j)
+  for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i) {
+    for (int j = 0; j < static_cast<int>(matrix.NumColumns()); ++j) {
       matrix[i][j] = static_cast<double>(i - 2 + 10 * j);
+}
+}
 
   // Initial Matrix values:
   // Row 0: -2, 8, 18
@@ -898,8 +909,9 @@ MatrixPolicy<double> testColumnViewReuse()
 {
   MatrixPolicy<double> matrix{ 3, 4, 0.0 };
 
-  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i) {
     matrix[i][0] = static_cast<double>(i + 1);
+}
 
   auto func = MatrixPolicy<double>::Function(
       [](auto&& m)
@@ -963,9 +975,11 @@ MatrixPolicy<double> testFunctionReusability()
       matrix1);
 
   // Apply to first matrix
-  for (std::size_t i = 0; i < matrix1.NumRows(); ++i)
-    for (std::size_t j = 0; j < matrix1.NumColumns(); ++j)
+  for (std::size_t i = 0; i < matrix1.NumRows(); ++i) {
+    for (std::size_t j = 0; j < matrix1.NumColumns(); ++j) {
       matrix1[i][j] = static_cast<double>(i + j);
+}
+}
 
   func(matrix1);
   EXPECT_EQ(matrix1[0][2], 2.0 * (0 + 1 + 2));  // 6
@@ -979,8 +993,9 @@ MatrixPolicy<double> testFunctionReusability()
 
   // Apply to third matrix with different values
   MatrixPolicy<double> matrix3{ 2, 3, 0.0 };
-  for (std::size_t i = 0; i < matrix3.NumRows(); ++i)
+  for (std::size_t i = 0; i < matrix3.NumRows(); ++i) {
     matrix3[i][0] = static_cast<double>(i * 10);
+}
 
   func(matrix3);
   EXPECT_EQ(matrix3[0][2], 2.0 * (0 + 0 + 0));   // 0
@@ -995,9 +1010,11 @@ void testConstMatrixFunction()
   MatrixPolicy<double> matrix{ 3, 4, 0.0 };
 
   // Set initial values
-  for (std::size_t i = 0; i < matrix.NumRows(); ++i)
-    for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
+  for (std::size_t i = 0; i < matrix.NumRows(); ++i) {
+    for (std::size_t j = 0; j < matrix.NumColumns(); ++j) {
       matrix[i][j] = static_cast<double>(i * 10 + j);
+}
+}
 
   // Create a const reference
   const MatrixPolicy<double>& const_matrix = matrix;

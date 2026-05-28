@@ -112,18 +112,25 @@ void testRandomMatrix(std::size_t number_of_blocks)
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < 10; ++i)
-    for (std::size_t j = 0; j < 10; ++j)
-      if (i == j || gen_bool())
+  for (std::size_t i = 0; i < 10; ++i) {
+    for (std::size_t j = 0; j < 10; ++j) {
+      if (i == j || gen_bool()) {
         builder = builder.WithElement(i, j);
+}
+}
+}
 
   SparseMatrixPolicy A(builder);
 
-  for (std::size_t i = 0; i < 10; ++i)
-    for (std::size_t j = 0; j < 10; ++j)
-      if (!A.IsZero(i, j))
-        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+  for (std::size_t i = 0; i < 10; ++i) {
+    for (std::size_t j = 0; j < 10; ++j) {
+      if (!A.IsZero(i, j)) {
+        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block) {
           A[i_block][i][j] = get_double();
+}
+}
+}
+}
 
   LuDecompositionPolicy lud =
       LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
@@ -142,10 +149,13 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
   auto size = 10;
 
   auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(initial_value);
-  for (std::size_t i = 0; i < size; ++i)
-    for (std::size_t j = 0; j < size; ++j)
-      if (i == j || gen_bool())
+  for (std::size_t i = 0; i < size; ++i) {
+    for (std::size_t j = 0; j < size; ++j) {
+      if (i == j || gen_bool()) {
         builder = builder.WithElement(i, j);
+}
+}
+}
 
   SparseMatrixPolicy A(builder);
 
@@ -153,14 +163,17 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
   // for very large numbers of grid cells
   // To keep the accuracy on the check results function small, we only generat 1 blocks worth of
   // random values and then copy that into every other block
-  for (std::size_t i = 0; i < size; ++i)
-    for (std::size_t j = 0; j < size; ++j)
+  for (std::size_t i = 0; i < size; ++i) {
+    for (std::size_t j = 0; j < size; ++j) {
       if (!A.IsZero(i, j))
       {
         A[0][i][j] = get_double();
-        for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block)
+        for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block) {
           A[i_block][i][j] = A[0][i][j];
+}
       }
+}
+}
 
   LuDecompositionPolicy lud =
       LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
@@ -187,14 +200,17 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < 6; ++i)
+  for (std::size_t i = 0; i < 6; ++i) {
     builder = builder.WithElement(i, i);
+}
 
   SparseMatrixPolicy A(builder);
 
-  for (std::size_t i = 0; i < 6; ++i)
-    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+  for (std::size_t i = 0; i < 6; ++i) {
+    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block) {
       A[i_block][i][i] = get_double();
+}
+}
 
   LuDecompositionPolicy lud =
       LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);

@@ -39,20 +39,23 @@ namespace micm
       std::tuple<std::size_t, std::size_t, std::size_t> aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
       for (std::size_t j = i + 1; j < n; ++j)
       {
-        if (ALU.IsZero(j, i))
+        if (ALU.IsZero(j, i)) {
           continue;
+}
         aji_.push_back(ALU.VectorIndex(0, j, i));
         ++(std::get<1>(aii_nji_nki));
       }
       for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (ALU.IsZero(i, k))
+        if (ALU.IsZero(i, k)) {
           continue;
+}
         std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
         for (std::size_t j = i + 1; j < n; ++j)
         {
-          if (ALU.IsZero(j, i))
+          if (ALU.IsZero(j, i)) {
             continue;
+}
           std::pair<std::size_t, std::size_t> ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
           ajk_aji_.push_back(ajk_aji);
           ++(std::get<1>(aik_njk));

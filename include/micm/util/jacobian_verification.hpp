@@ -129,8 +129,9 @@ namespace micm
       {
         for (std::size_t col = 0; col < num_species; ++col)
         {
-          if (analytical_jacobian.IsZero(row, col))
+          if (analytical_jacobian.IsZero(row, col)) {
             continue;
+}
 
           // Analytical stores -(df/dx); negate to get +df/dx
           double analytical_val = -analytical_jacobian[block][row][col];
@@ -186,8 +187,9 @@ namespace micm
       {
         for (std::size_t col = 0; col < num_species; ++col)
         {
-          if (!analytical_jacobian.IsZero(row, col))
+          if (!analytical_jacobian.IsZero(row, col)) {
             continue;
+}
 
           double fd_val = std::abs(fd_jacobian[block][row * num_species + col]);
           if (fd_val > threshold)

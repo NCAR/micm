@@ -90,8 +90,9 @@ namespace micm
       initial_forcing.Fill(0);
       rates_.AddForcingTerms(state, Y, initial_forcing);
 
-      if (has_constraints)
+      if (has_constraints) {
         constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, initial_forcing);
+}
 
       result.stats_.function_calls_ += 1;
 
@@ -99,8 +100,9 @@ namespace micm
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
 
-      if (has_constraints)
+      if (has_constraints) {
         constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+}
 
       result.stats_.jacobian_updates_ += 1;
 
@@ -180,12 +182,14 @@ namespace micm
         }
 
         Ynew.Copy(Y);
-        for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
+        for (uint64_t stage = 0; stage < parameters.stages_; ++stage) {
           Ynew.Axpy(parameters.m_[stage], K[stage]);
+}
 
         Yerror.Fill(0);
-        for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
+        for (uint64_t stage = 0; stage < parameters.stages_; ++stage) {
           Yerror.Axpy(parameters.e_[stage], K[stage]);
+}
 
         // For DAE systems, replace the near-zero algebraic error estimates with step changes.
         // The embedded error formula produces Yerror ≈ 0 for algebraic rows (M_ii = 0 zeroes
@@ -264,8 +268,9 @@ namespace micm
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
             // Subtract constraint Jacobian terms (for DAE systems)
-            if (has_constraints)
+            if (has_constraints) {
               constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+}
             result.stats_.jacobian_updates_ += 1;
           }
         }
@@ -318,8 +323,9 @@ namespace micm
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
       {
         const double diagonal_scale = state.upper_left_identity_diagonal_[i_diag++];
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
           jacobian_vector[i_elem + i_cell] += alpha * diagonal_scale;
+}
       }
     }
   }
@@ -451,12 +457,13 @@ namespace micm
                   [&](const double& val)
                   {
                     double abs_val = std::abs(val);
-                    if (std::isnan(abs_val))
+                    if (std::isnan(abs_val)) {
                       nan_detected = true;
-                    else if (std::isinf(abs_val))
+                    } else if (std::isinf(abs_val)) {
                       inf_detected = true;
-                    else
-                      max_residual = std::max(max_residual, abs_val);
+                    } else {
+                      m
+}ax_residual = std::max(max_residual, abs_val);
                   },
                   delta_view.GetConstColumnView(i_var));
             }
@@ -474,12 +481,13 @@ namespace micm
               y_view.ForEachRow(
                   [&](double& y_val, const double& d_val)
                   {
-                    if (std::isnan(d_val))
+                    if (std::isnan(d_val)) {
                       nan_detected = true;
-                    else if (std::isinf(d_val))
+                    } else if (std::isinf(d_val)) {
                       inf_detected = true;
-                    else
+                    } else {
                       y_val += d_val;
+}
                   },
                   y_view.GetColumnView(i_var),
                   delta_view.GetConstColumnView(i_var));
@@ -501,15 +509,18 @@ namespace micm
       inf_detected = false;
       check_convergence(delta);
 
-      if (nan_detected)
+      if (nan_detected) {
         return SolverState::NaNDetected;
-      if (inf_detected)
+}
+      if (inf_detected) {
         return SolverState::InfDetected;
+}
 
       stats.constraint_init_iterations_ = iter + 1;
 
-      if (max_residual < parameters.constraint_init_tolerance_)
+      if (max_residual < parameters.constraint_init_tolerance_) {
         return SolverState::Converged;
+}
 
       // 3. Compute constraint Jacobian: -dG/dy
       state.jacobian_.Fill(0);
@@ -548,10 +559,12 @@ namespace micm
       inf_detected = false;
       apply_update(Y, delta);
 
-      if (nan_detected)
+      if (nan_detected) {
         return SolverState::NaNDetected;
-      if (inf_detected)
+}
+      if (inf_detected) {
         return SolverState::InfDetected;
+}
     }
 
     // Did not converge within max iterations
