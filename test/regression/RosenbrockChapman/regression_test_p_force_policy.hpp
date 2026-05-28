@@ -6,7 +6,7 @@
 #include <random>
 
 template<class SolverPolicy>
-void testRateConstants(SolverPolicy& solver)
+void TestRateConstants(SolverPolicy& solver)
 {
   micm::ChapmanODESolver fixed_solver{};
 
@@ -41,7 +41,7 @@ void testRateConstants(SolverPolicy& solver)
 }
 
 template<class MatrixPolicy, class SolverPolicy>
-void testForcing(SolverPolicy& solver)
+void TestForcing(SolverPolicy& solver)
 {
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };

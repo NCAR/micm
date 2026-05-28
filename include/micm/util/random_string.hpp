@@ -17,10 +17,10 @@ namespace micm
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dist(0, 9999);
-    int randomNum = dist(gen);
+    int random_num = dist(gen);
 
-    std::string randomNumStr = std::to_string(randomNum);
-    std::string timestampStr = std::to_string(timestamp);
+    std::string random_num_str = std::to_string(randomNum);
+    std::string timestamp_str = std::to_string(timestamp);
 
     std::string result = timestampStr + randomNumStr;
 

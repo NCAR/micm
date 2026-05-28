@@ -30,7 +30,7 @@ namespace micm
   inline void LuDecompositionMozart::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     std::size_t n = matrix.NumRows();
-    auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
+    auto lu = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < n; ++i)
     {
       std::tuple<std::size_t, std::size_t, std::size_t> lii_nuji_nlji(0, 0, 0);
@@ -68,7 +68,7 @@ namespace micm
       // middle j loop to set L[j][i]
       for (std::size_t j = i + 1; j < n; ++j)
       {
-        if (LU.first.IsZero(j, i))
+        if (lu.first.IsZero(j, i))
         {
           continue;
         }
@@ -78,7 +78,7 @@ namespace micm
       // middle k loop to set U[j][k] and L[j][k]
       for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (LU.second.IsZero(i, k))
+        if (lu.second.IsZero(i, k))
         {
           continue;
         }
@@ -87,7 +87,7 @@ namespace micm
         // inner j loop to set U[j][k]
         for (std::size_t j = i + 1; j <= k; ++j)
         {
-          if (LU.first.IsZero(j, i))
+          if (lu.first.IsZero(j, i))
           {
             continue;
           }
@@ -100,7 +100,7 @@ namespace micm
         // inner j loop to set L[j][k]
         for (std::size_t j = k + 1; j < n; ++j)
         {
-          if (LU.first.IsZero(j, i))
+          if (lu.first.IsZero(j, i))
           {
             continue;
           }
@@ -157,12 +157,12 @@ namespace micm
             L_ids.insert(std::make_pair(j, k));
       }
     }
-    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto l_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto u_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
@@ -176,14 +176,14 @@ namespace micm
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
-    const std::size_t n = A.NumRows();
+    const std::size_t N = A.NumRows();
 
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
     {
-      auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
-      auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
-      auto U_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
+      auto a_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
+      auto l_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
+      auto u_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
       auto uji_aji = uji_aji_.begin();
       auto lji_aji = lji_aji_.begin();
       auto uii_nj_nk = uii_nj_nk_.begin();
@@ -212,23 +212,23 @@ namespace micm
         L_vector[fill_lji] = 0;
       for (std::size_t i = 0; i < n; ++i)
       {
-        auto Uii_inverse = 1.0 / U_vector[std::get<0>(*uii_nj_nk)];
+        auto uii_inverse = 1.0 / U_vector[std::get<0>(*uii_nj_nk)];
         for (std::size_t ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
         {
-          L_vector[*lji] = L_vector[*lji] * Uii_inverse;
+          l_vector[*lji] = L_vector[*lji] * Uii_inverse;
           ++lji;
         }
         for (std::size_t ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
         {
-          const std::size_t uik = std::get<2>(*nujk_nljk_uik);
+          const std::size_t UIK = std::get<2>(*nujk_nljk_uik);
           for (std::size_t ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
           {
-            U_vector[ujk_lji->first] -= L_vector[ujk_lji->second] * U_vector[uik];
+            u_vector[ujk_lji->first] -= L_vector[ujk_lji->second] * U_vector[uik];
             ++ujk_lji;
           }
           for (std::size_t ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
           {
-            L_vector[ljk_lji->first] -= L_vector[ljk_lji->second] * U_vector[uik];
+            l_vector[ljk_lji->first] -= L_vector[ljk_lji->second] * U_vector[uik];
             ++ljk_lji;
           }
           ++nujk_nljk_uik;
@@ -242,20 +242,20 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
-    const std::size_t n = A.NumRows();
-    const std::size_t A_BlockSize = A.NumberOfBlocks();
-    constexpr std::size_t A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize();
-    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize();
-    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize();
-    double Uii_inverse[A_GroupVectorSize];
+    const std::size_t N = A.NumRows();
+    const std::size_t A_BLOCK_SIZE = A.NumberOfBlocks();
+    constexpr std::size_t A_GROUP_VECTOR_SIZE = SparseMatrixPolicy::GroupVectorSize();
+    const std::size_t A_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = A.GroupSize();
+    const std::size_t L_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = L.GroupSize();
+    const std::size_t U_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = U.GroupSize();
+    double uii_inverse[A_GroupVectorSize];
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
     {
-      auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
-      auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
-      auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
+      auto a_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
+      auto l_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
+      auto u_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
       auto uji_aji = uji_aji_.begin();
       auto lji_aji = lji_aji_.begin();
       auto uii_nj_nk = uii_nj_nk_.begin();
@@ -263,7 +263,7 @@ namespace micm
       auto nujk_nljk_uik = nujk_nljk_uik_.begin();
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
-      const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
+      const std::size_t N_CELLS = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
       for (auto& lii_nuji_nlji : lii_nuji_nlji_)
       {
         for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
@@ -295,18 +295,18 @@ namespace micm
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           {
-            L_vector[*lji + i_cell] = L_vector[*lji + i_cell] * Uii_inverse[i_cell];
+            l_vector[*lji + i_cell] = L_vector[*lji + i_cell] * uii_inverse[i_cell];
           }
           ++lji;
         }
         for (std::size_t ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
         {
-          const std::size_t uik = std::get<2>(*nujk_nljk_uik);
+          const std::size_t UIK = std::get<2>(*nujk_nljk_uik);
           for (std::size_t ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             {
-              U_vector[ujk_lji->first + i_cell] -= L_vector[ujk_lji->second + i_cell] * U_vector[uik + i_cell];
+              u_vector[ujk_lji->first + i_cell] -= L_vector[ujk_lji->second + i_cell] * U_vector[uik + i_cell];
             }
             ++ujk_lji;
           }
@@ -314,7 +314,7 @@ namespace micm
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             {
-              L_vector[ljk_lji->first + i_cell] -= L_vector[ljk_lji->second + i_cell] * U_vector[uik + i_cell];
+              l_vector[ljk_lji->first + i_cell] -= L_vector[ljk_lji->second + i_cell] * U_vector[uik + i_cell];
             }
             ++ljk_lji;
           }

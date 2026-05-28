@@ -15,7 +15,7 @@
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<class SolverBuilderPolicy>
-void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   builder = getSolver(builder);
   auto solver = builder.Build();
@@ -41,7 +41,7 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
       expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
-  double error_min_ = 1.0e-10;
+  double error_min = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
   double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
@@ -59,11 +59,11 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
 }
 
 template<class SolverBuilderPolicy>
-void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  auto A = micm::Species("A");
-  auto B = micm::Species("B");
-  auto C = micm::Species("C");
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
   micm::Process reaction = micm::ChemicalReactionBuilder()
@@ -107,17 +107,17 @@ void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::s
       y_new[i][j] = 0.8 + 0.5 * i + 0.2 * j;
       errors[i][j] = 0.01 * (1 + i + j);
 
-      const double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
-      const double scale = atol[j] + rtol * ymax;
-      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
+      const double YMAX = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      const double SCALE = atol[j] + rtol * YMAX;
+      expected_error += errors[i][j] * errors[i][j] / (SCALE * SCALE);
     }
   }
 
   expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
   expected_error = std::max(expected_error, 1.0e-10);
 
-  const double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
-  EXPECT_NEAR(computed_error, expected_error, 1e-12);
+  const double COMPUTED_ERROR = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  EXPECT_NEAR(COMPUTED_ERROR, expected_error, 1e-12);
 }
 
 using StandardBuilder = micm::CpuSolverBuilder<

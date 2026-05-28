@@ -10,25 +10,25 @@ namespace micm
   enum class SolverState
   {
     /// @brief This is the initial value at the start of the Solve function
-    NotYetCalled,
+    NOT_YET_CALLED,
     /// @brief This is only used for control flow in the Solve function
-    Running,
+    RUNNING,
     /// @brief A successful integration will have this value
-    Converged,
+    CONVERGED,
     /// @brief If the number of steps exceeds the maximum value on the solver parameter, this value will be returned
-    ConvergenceExceededMaxSteps,
+    CONVERGENCE_EXCEEDED_MAX_STEPS,
     /// @brief Very stiff systems will likely result in a step size that is not useable for the solver
-    StepSizeTooSmall,
+    STEP_SIZE_TOO_SMALL,
     /// @brief Matrices that are singular more than once will set this value. At present, this should never be returned
-    RepeatedlySingularMatrix,
+    REPEATEDLY_SINGULAR_MATRIX,
     /// @brief Mostly this value is returned by systems that tend toward chemical explosions
-    NaNDetected,
+    NA_N_DETECTED,
     /// @brief Can happen when unititialized memory is used in the solver
-    InfDetected,
+    INF_DETECTED,
     /// @brief Used for backward euler. This allows us to "succeed" in the same way that cam-chem does
-    AcceptingUnconvergedIntegration,
+    ACCEPTING_UNCONVERGED_INTEGRATION,
     /// @brief Newton iteration to initialize algebraic constraint variables failed to converge
-    ConstraintInitializationFailed
+    CONSTRAINT_INITIALIZATION_FAILED
   };
 
   struct SolverStats
@@ -57,16 +57,16 @@ namespace micm
   {
     switch (state)
     {
-      case SolverState::NotYetCalled: return "Not Yet Called";
-      case SolverState::Running: return "Running";
-      case SolverState::Converged: return "Converged";
-      case SolverState::ConvergenceExceededMaxSteps: return "Convergence Exceeded Max Steps";
-      case SolverState::StepSizeTooSmall: return "Step Size Too Small";
-      case SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
-      case SolverState::NaNDetected: return "NaNDetected";
-      case SolverState::InfDetected: return "InfDetected";
-      case SolverState::AcceptingUnconvergedIntegration: return "AcceptingUnconvergedIntegration";
-      case SolverState::ConstraintInitializationFailed: return "Constraint Initialization Failed";
+      case SolverState::NOT_YET_CALLED: return "Not Yet Called";
+      case SolverState::RUNNING: return "Running";
+      case SolverState::CONVERGED: return "Converged";
+      case SolverState::CONVERGENCE_EXCEEDED_MAX_STEPS: return "Convergence Exceeded Max Steps";
+      case SolverState::STEP_SIZE_TOO_SMALL: return "Step Size Too Small";
+      case SolverState::REPEATEDLY_SINGULAR_MATRIX: return "Repeatedly Singular Matrix";
+      case SolverState::NA_N_DETECTED: return "NaNDetected";
+      case SolverState::INF_DETECTED: return "InfDetected";
+      case SolverState::ACCEPTING_UNCONVERGED_INTEGRATION: return "AcceptingUnconvergedIntegration";
+      case SolverState::CONSTRAINT_INITIALIZATION_FAILED: return "Constraint Initialization Failed";
       default: return "Unknown";
     }
   }
@@ -74,7 +74,7 @@ namespace micm
   struct [[nodiscard]] SolverResult
   {
     /// @brief The final state the solver was in
-    SolverState state_ = SolverState::NotYetCalled;
+    SolverState state_ = SolverState::NOT_YET_CALLED;
     /// @brief A collection of runtime state for this call of the solver
     SolverStats stats_{};
   };

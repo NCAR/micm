@@ -57,7 +57,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
   EXPECT_EQ(name_set, expected_set);
 
   std::vector<int> reorder{ 1, 0 };
-  auto reordered_names = system.UniqueNames([&](const std::vector<std::string> variables, const std::size_t i)
+  auto reordered_names = system.UniqueNames([&](const std::vector<std::string> VARIABLES, const std::size_t I)
                                             { return variables[reorder[i]]; });
   EXPECT_EQ(reordered_names.size(), 2);
   EXPECT_EQ(reordered_names[0], names[1]);

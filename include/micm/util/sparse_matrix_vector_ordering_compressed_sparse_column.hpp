@@ -93,7 +93,7 @@ namespace micm
     /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
     /// @param data Compressed data vector
     /// @param value Value to add to the diagonal
-    void AddToDiagonal(const std::size_t number_of_blocks, auto& data, const auto value) const
+    void AddToDiagonal(const std::size_t NUMBER_OF_BLOCKS, auto& data, const auto VALUE) const
     {
       for (std::size_t i_group = 0; i_group < number_of_blocks; i_group += L)
       {
@@ -135,7 +135,7 @@ namespace micm
       return vector_index_block_zero / L;
     }
 
-    std::vector<std::size_t> DiagonalIndices(const std::size_t number_of_blocks, const std::size_t block_id) const
+    std::vector<std::size_t> DiagonalIndices(const std::size_t NUMBER_OF_BLOCKS, const std::size_t BLOCK_ID) const
     {
       std::vector<std::size_t> indices;
       indices.reserve(column_start_.size() - 1);
@@ -502,7 +502,7 @@ namespace micm
     /// @param non_zero_elements Set of non-zero elements in the matrix
     /// @return Column ids of each non-zero element in a block
     std::vector<std::size_t> ColumnIdsVector(
-        const std::size_t block_size,
+        const std::size_t BLOCK_SIZE,
         const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements) const
     {
       std::vector<std::size_t> ids;
@@ -523,7 +523,7 @@ namespace micm
     /// @param non_zero_elements Set of non-zero elements in the matrix
     /// @return Start and end indices of each column in a block in column_ids_
     std::vector<std::size_t> ColumnStartVector(
-        const std::size_t block_size,
+        const std::size_t BLOCK_SIZE,
         const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements) const
     {
       std::vector<std::size_t> starts(block_size + 1, 0);
@@ -549,7 +549,7 @@ namespace micm
     /// @param row Index of the row
     /// @param column Index of the column
     /// @return True if the element is zero, false otherwise
-    bool IsZero(const std::size_t row, const std::size_t column) const
+    bool IsZero(const std::size_t ROW, const std::size_t COLUMN) const
     {
       if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1)
       {

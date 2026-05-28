@@ -49,7 +49,7 @@ int main(const int argc, const char* argv[])
   // a branched reaction has two output pathways
   // this is represnted internal to micm as two different reactions
   auto branched_params = BranchedRateConstantParameters{ .X_ = 1.2, .Y_ = 204.3, .a0_ = 1.0e-3, .n_ = 2 };
-  branched_params.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
+  branched_params.branch_ = BranchedRateConstantParameters::Branch::ALKOXY;
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b })
@@ -58,7 +58,7 @@ int main(const int argc, const char* argv[])
                    .SetPhase(gas_phase)
                    .Build();
 
-  branched_params.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
+  branched_params.branch_ = BranchedRateConstantParameters::Branch::NITRATE;
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b })
                    .SetProducts({ StoichSpecies(d, 1) })

@@ -4,7 +4,7 @@
 #include <random>
 
 template<class SolverPolicy>
-void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
+void TestSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   micm::ChapmanODESolver fixed_solver{};

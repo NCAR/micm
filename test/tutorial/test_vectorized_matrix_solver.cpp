@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
+void Solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
 {
   double k1 = 0.04;
   double k2 = 3e7;
@@ -29,19 +29,19 @@ void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
 
   double time_step = 100;  // s
 
-  SolverState solver_state = SolverState::Converged;
-  for (int i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
+  SolverState solver_state = SolverState::CONVERGED;
+  for (int i = 0; i < 10 && solver_state == SolverState::CONVERGED; ++i)
   {
     double elapsed_solve_time = 0;
     solver.UpdateStateParameters(state);
-    while (elapsed_solve_time < time_step && solver_state != SolverState::Converged)
+    while (elapsed_solve_time < time_step && solver_state != SolverState::CONVERGED)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time += result.stats_.final_time_;;
       solver_state = result.state_;
     }
   }
-  if (solver_state != SolverState::Converged)
+  if (solver_state != SolverState::CONVERGED)
   {
     throw "Solver did not converge";
   }
@@ -79,7 +79,7 @@ int main()
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
-  const std::size_t number_of_grid_cells = 3;
+  const std::size_t NUMBER_OF_GRID_CELLS = 3;
 
   auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetSystem(system).SetReactions(reactions).Build();
 

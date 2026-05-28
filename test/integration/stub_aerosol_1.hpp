@@ -31,8 +31,8 @@ class StubAerosolModel
  public:
   struct RateConstants
   {
-    double fo2_gas_to_mode2_corge;   // rate constant for FO2 gas to mode 2 CORGE partitioning
-    double baz_mode1_to_mode2_quux;  // rate constant for baz mode 1 to baz mode 2 conversion
+    double fo2_gas_to_mode2_corge_;   // rate constant for FO2 gas to mode 2 CORGE partitioning
+    double baz_mode1_to_mode2_quux_;  // rate constant for baz mode 1 to baz mode 2 conversion
   };
   StubAerosolModel() = delete;
   StubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases, const RateConstants& rate_constants)
@@ -70,7 +70,7 @@ class StubAerosolModel
   {
     return {};
   }
-  std::string Species(const int mode, const micm::Phase& phase, const micm::Species& species) const
+  std::string Species(const int MODE, const micm::Phase& phase, const micm::Species& species) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
   }

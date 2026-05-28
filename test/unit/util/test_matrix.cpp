@@ -58,7 +58,7 @@ TEST(Matrix, IterateOverMatrix)
     elem = i++;
   }
 
-  const micm::Matrix<int> copy = matrix;
+  const micm::Matrix<int> COPY = matrix;
 
   i = 42;
   for (auto& elem : matrix[1])

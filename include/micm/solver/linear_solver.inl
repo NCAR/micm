@@ -6,12 +6,12 @@ namespace micm
   template<class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy& matrix)
   {
-    const std::size_t order = matrix.NumRows();
+    const std::size_t ORDER = matrix.NumRows();
     std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
       perm[i] = i;
     MatrixPolicy pattern = matrix;
-    for (std::size_t row = 0; row < (order - 1); ++row)
+    for (std::size_t row = 0; row < (ORDER - 1); ++row)
     {
       std::size_t beta = std::pow((order - 1), 2);
       std::size_t max_row = row;
@@ -70,7 +70,7 @@ namespace micm
   inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
-      const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
+      const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> CREATE_LU_DECOMP)
       : nLij_Lii_(),
         Lij_yj_(),
         nUij_Uii_(),
@@ -83,7 +83,7 @@ namespace micm
     auto upper_matrix = std::move(lu.second);
     for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)
     {
-      std::size_t nLij = 0;
+      std::size_t n_lij = 0;
       for (std::size_t j = 0; j < i; ++j)
       {
         if (lower_matrix.IsZero(i, j))
@@ -98,7 +98,7 @@ namespace micm
     }
     for (std::size_t i = upper_matrix.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
     {
-      std::size_t nUij = 0;
+      std::size_t n_uij = 0;
       for (std::size_t j = i + 1; j < upper_matrix.NumColumns(); ++j)
       {
         if (upper_matrix.IsZero(i, j))
@@ -133,14 +133,14 @@ namespace micm
     for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
     {
       auto x_cell = x[i_cell];
-      const std::size_t lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
-      const std::size_t upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
+      const std::size_t LOWER_GRID_OFFSET = i_cell * lower_matrix.FlatBlockSize();
+      const std::size_t UPPER_GRID_OFFSET = i_cell * upper_matrix.FlatBlockSize();
       auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
 
       // Forward Substitution
       {
         auto y_elem = y_cell.begin();
-        auto Lij_yj = Lij_yj_.begin();
+        auto lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
@@ -155,7 +155,7 @@ namespace micm
       // Backward Substitution
       {
         auto x_elem = std::next(x_cell.end(), -1);
-        auto Uij_xj = Uij_xj_.begin();
+        auto uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
@@ -184,17 +184,17 @@ namespace micm
       const LMatrixPolicy& lower_matrix,
       const UMatrixPolicy& upper_matrix) const
   {
-    constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
+    constexpr std::size_t N_CELLS = MatrixPolicy::GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto L_group = std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
-      auto U_group = std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
+      auto l_group = std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
+      auto u_group = std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
       // Forward Substitution
       {
         auto y_elem = x_group;
-        auto Lij_yj = Lij_yj_.begin();
+        auto lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
@@ -215,7 +215,7 @@ namespace micm
       // Backward Substitution
       {
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
-        auto Uij_xj = Uij_xj_.begin();
+        auto uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop

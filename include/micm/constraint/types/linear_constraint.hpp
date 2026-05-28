@@ -126,11 +126,11 @@ namespace micm
 
             for (std::size_t i = 0; i < coeffs.size(); ++i)
             {
-              const double coeff = coeffs[i];
-              const std::size_t species_idx = species_indices[i];
+              const double COEFF = coeffs[i];
+              const std::size_t SPECIES_IDX = species_indices[i];
 
               state.ForEachRow(
-                  [coeff](const double& conc, double& sum) { sum += coeff * conc; },
+                  [COEFF](const double& conc, double& sum) { sum += COEFF * conc; },
                   state.GetConstColumnView(species_idx),
                   linear_sum);
             }
@@ -189,10 +189,10 @@ namespace micm
             // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
             for (std::size_t i = 0; i < coeffs.size(); ++i)
             {
-              const double coeff = coeffs[i];
+              const double COEFF = coeffs[i];
 
               jacobian_values.ForEachBlock(
-                  [coeff](double& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
+                  [COEFF](double& jac) { jac -= COEFF; }, jacobian_values.GetBlockView(flat_ids[i]));
             }
           },
           temp_state_variables,

@@ -12,14 +12,14 @@
 using namespace micm;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
-void compare_pair(const index_pair& a, const index_pair& b)
+void ComparePair(const index_pair& a, const index_pair& b)
 {
   EXPECT_EQ(a.first, b.first);
   EXPECT_EQ(a.second, b.second);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testProcessSet()
+void TestProcessSet()
 {
   auto foo = Species("foo");
   auto bar = Species("bar");
@@ -179,7 +179,7 @@ void testProcessSet()
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -247,12 +247,12 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 
 /// @brief Test that algebraic-row masking works correctly: algebraic species' rows remain unchanged
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testAlgebraicMasking()
+void TestAlgebraicMasking()
 {
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
-  auto D = Species("D");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
+  auto d = Species("D");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D } };
 
@@ -386,17 +386,17 @@ void testAlgebraicMasking()
 
 /// @brief Verify ProcessSet analytical Jacobian against finite-difference approximation
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testProcessSetFiniteDifferenceJacobian()
+void TestProcessSetFiniteDifferenceJacobian()
 {
   // Simple 3-species system where all species participate:
   //   r1: A + B -> 2C  (rate k1)
   //   r2: C -> A       (rate k2)
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
-  const std::size_t num_species = 3;
+  const std::size_t NUM_SPECIES = 3;
 
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 2, .variable_names_{ "A", "B", "C" } }, 2);

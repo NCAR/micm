@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void test_solver_type(auto& solver)
+void TestSolverType(auto& solver)
 {
   auto state = solver.GetState();
 

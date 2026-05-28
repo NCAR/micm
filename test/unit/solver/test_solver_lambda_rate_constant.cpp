@@ -17,7 +17,7 @@ namespace
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b } };
 
-  micm::LambdaRateConstantParameters makeLambdaRateConstantParams()
+  micm::LambdaRateConstantParameters MakeLambdaRateConstantParams()
   {
     return micm::LambdaRateConstantParameters{ .label_ = "lambda_rc",
                                                .lambda_function_ = [](const micm::Conditions& conditions)
@@ -27,7 +27,7 @@ namespace
 
 TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
 {
-  auto lambda_params = makeLambdaRateConstantParams();
+  auto lambda_params = MakeLambdaRateConstantParams();
   micm::Process reaction = micm::ChemicalReactionBuilder()
                                .SetReactants({ a })
                                .SetProducts({ micm::StoichSpecies(b, 1) })

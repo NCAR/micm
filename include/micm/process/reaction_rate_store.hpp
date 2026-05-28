@@ -61,39 +61,39 @@ namespace micm
     // ----------------------------------------------------------------
     // Contiguous-block offsets into state.rate_constants_[cell]
     // ----------------------------------------------------------------
-    std::size_t troe_offset() const
+    std::size_t TroeOffset() const
     {
       return arrhenius_.size();
     }
-    std::size_t ternary_offset() const
+    std::size_t TernaryOffset() const
     {
       return troe_offset() + troe_.size();
     }
-    std::size_t branched_offset() const
+    std::size_t BranchedOffset() const
     {
       return ternary_offset() + ternary_.size();
     }
-    std::size_t tunneling_offset() const
+    std::size_t TunnelingOffset() const
     {
       return branched_offset() + branched_.size();
     }
-    std::size_t taylor_offset() const
+    std::size_t TaylorOffset() const
     {
       return tunneling_offset() + tunneling_.size();
     }
-    std::size_t reversible_offset() const
+    std::size_t ReversibleOffset() const
     {
       return taylor_offset() + taylor_.size();
     }
-    std::size_t user_defined_offset() const
+    std::size_t UserDefinedOffset() const
     {
       return reversible_offset() + reversible_.size();
     }
-    std::size_t surface_offset() const
+    std::size_t SurfaceOffset() const
     {
       return user_defined_offset() + user_defined_.size();
     }
-    std::size_t lambda_offset() const
+    std::size_t LambdaOffset() const
     {
       return surface_offset() + surface_.size();
     }
@@ -104,8 +104,8 @@ namespace micm
 
     struct LambdaEntry
     {
-      LambdaRateConstantParameters* source;  ///< Non-owning; valid for the lifetime of the owning Solver.
-      std::size_t rc_index;                  ///< Column index in state.rate_constants_[cell].
+      LambdaRateConstantParameters* source_;  ///< Non-owning; valid for the lifetime of the owning Solver.
+      std::size_t rc_index_;                  ///< Column index in state.rate_constants_[cell].
     };
     std::vector<LambdaEntry> lambda_entries_;
 
@@ -116,8 +116,8 @@ namespace micm
     /// @brief One entry per reaction with at least one parameterized reactant.
     struct ParameterizedMultiplier
     {
-      std::function<double(const Conditions&)> evaluate;
-      std::size_t rc_index;
+      std::function<double(const Conditions&)> evaluate_;
+      std::size_t rc_index_;
     };
     std::vector<ParameterizedMultiplier> parameterized_multipliers_;
 
@@ -251,8 +251,8 @@ namespace micm
 
         for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
         {
-          const std::size_t rc_base = i_group * state.rate_constants_.GroupSize();
-          const std::size_t n_local = std::min(L, state.rate_constants_.NumRows() - i_group * L);
+          const std::size_t RC_BASE = i_group * state.rate_constants_.GroupSize();
+          const std::size_t N_LOCAL = std::min(L, state.rate_constants_.NumRows() - i_group * L);
 
           for (std::size_t i_cell = 0; i_cell < n_local; ++i_cell)
           {

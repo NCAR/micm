@@ -31,8 +31,8 @@ TEST(ReversibleRateConstant, CalculateWithSystem)
 
   double k = micm::CalculateReversible(parameters, conditions.temperature_);
 
-  double K_eq = 1.14e-2 * std::exp(2300.0 / 301.24);
-  double expected = K_eq * 0.32;
+  double k_eq = 1.14e-2 * std::exp(2300.0 / 301.24);
+  double expected = k_eq * 0.32;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
@@ -47,8 +47,8 @@ TEST(ReversibleRateConstant, CalculateWithPrescribedArguments)
 
   double k = micm::CalculateReversible(parameters, temperature);
 
-  double K_eq = 1.14e-2 * std::exp(2300.0 / temperature);
-  double expected = K_eq * 0.32;
+  double k_eq = 1.14e-2 * std::exp(2300.0 / temperature);
+  double expected = k_eq * 0.32;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
@@ -59,13 +59,13 @@ TEST(ReversibleRateConstant, TemperatureDependence)
   parameters.C_ = 2000.0;
   parameters.k_r_ = 0.5;
 
-  double T1 = 273.15;
-  double T2 = 298.15;
-  double T3 = 323.15;
+  double t1 = 273.15;
+  double t2 = 298.15;
+  double t3 = 323.15;
 
-  double k1 = micm::CalculateReversible(parameters, T1);
-  double k2 = micm::CalculateReversible(parameters, T2);
-  double k3 = micm::CalculateReversible(parameters, T3);
+  double k1 = micm::CalculateReversible(parameters, t1);
+  double k2 = micm::CalculateReversible(parameters, t2);
+  double k3 = micm::CalculateReversible(parameters, t3);
 
   double expected1 = 1.5 * std::exp(2000.0 / T1) * 0.5;
   double expected2 = 1.5 * std::exp(2000.0 / T2) * 0.5;
@@ -99,6 +99,6 @@ TEST(ReversibleRateConstant, EquilibriumConstantOnly)
   double temperature = 298.15;
   double k = micm::CalculateReversible(parameters, temperature);
 
-  double K_eq = 3.5 * std::exp(1800.0 / temperature);
-  EXPECT_NEAR(k, K_eq, TOLERANCE * K_eq);
+  double k_eq = 3.5 * std::exp(1800.0 / temperature);
+  EXPECT_NEAR(k, k_eq, TOLERANCE * k_eq);
 }

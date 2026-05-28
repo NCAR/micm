@@ -77,11 +77,11 @@ class AnotherStubAerosolModel
     names.insert(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
     return names;
   }
-  std::string Species(const int mode, const micm::Phase& phase, const micm::Species& species) const
+  std::string Species(const int MODE, const micm::Phase& phase, const micm::Species& species) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
   }
-  std::string Number(const int mode) const
+  std::string Number(const int MODE) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + ".NUMBER";
   }

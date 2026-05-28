@@ -364,12 +364,12 @@ namespace micm
     {
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
-      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      const std::size_t N = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
       {
         *(y_iter++) += alpha * (*(x_iter++));
       }
-      const std::size_t l = x_dim_ % L;
+      const std::size_t L = x_dim_ % L;
       for (std::size_t i = 0; i < y_dim_; ++i)
       {
         for (std::size_t j = 0; j < l; ++j)
@@ -395,43 +395,43 @@ namespace micm
         y = std::min(y, x);
     }
 
-    void ForEach(const std::function<void(T&, const T&)> f, const VectorMatrix& a)
+    void ForEach(const std::function<void(T&, const T&)> F, const VectorMatrix& a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
-      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      const std::size_t N = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
       {
-        f(*(this_iter++), *(a_iter++));
+        F(*(this_iter++), *(a_iter++));
       }
-      const std::size_t l = x_dim_ % L;
+      const std::size_t L = x_dim_ % L;
       for (std::size_t y = 0; y < y_dim_; ++y)
       {
         for (std::size_t x = 0; x < l; ++x)
         {
-          f(this_iter[(y * L) + x], a_iter[(y * L) + x]);
+          F(this_iter[(y * L) + x], a_iter[(y * L) + x]);
         }
       }
     }
 
-    void ForEach(const std::function<void(T&, const T&, const T&)> f, const VectorMatrix& a, const VectorMatrix& b)
+    void ForEach(const std::function<void(T&, const T&, const T&)> F, const VectorMatrix& a, const VectorMatrix& b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
-      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      const std::size_t N = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
       {
-        f(*(this_iter++), *(a_iter++), *(b_iter++));
+        F(*(this_iter++), *(a_iter++), *(b_iter++));
       }
-      const std::size_t l = x_dim_ % L;
-      if (l > 0)
+      const std::size_t L = x_dim_ % L;
+      if (L > 0)
       {
         for (std::size_t y = 0; y < y_dim_; ++y)
         {
           for (std::size_t x = 0; x < l; ++x)
           {
-            f(this_iter[(y * L) + x], a_iter[(y * L) + x], b_iter[(y * L) + x]);
+            F(this_iter[(y * L) + x], a_iter[(y * L) + x], b_iter[(y * L) + x]);
           }
         }
       }

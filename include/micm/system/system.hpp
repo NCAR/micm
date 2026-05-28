@@ -92,7 +92,7 @@ namespace micm
     /// @param f Function used to apply specific order to unique names
     /// @return vector of unique state variable names
     std::vector<std::string> UniqueNames(
-        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const;
+        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> F) const;
   };
 
   inline size_t System::StateSize() const
@@ -112,7 +112,7 @@ namespace micm
   }
 
   inline std::vector<std::string> System::UniqueNames(
-      const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
+      const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> F) const
   {
     std::vector<std::string> names;
     names.reserve(StateSize());
@@ -129,7 +129,7 @@ namespace micm
       names.insert(names.end(), model_names.begin(), model_names.end());
     }
 
-    if (f)
+    if (F)
     {
       std::vector<std::string> reordered;
       reordered.reserve(names.size());

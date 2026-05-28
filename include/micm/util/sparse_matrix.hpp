@@ -43,7 +43,7 @@ namespace micm
 
   /// Helper variable template
   template<typename T>
-  inline constexpr std::size_t GroupVectorSize_v = GroupVectorSize<T>::value;
+  inline constexpr std::size_t GROUP_VECTOR_SIZE_V = GroupVectorSize<T>::value;
 
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
@@ -280,7 +280,7 @@ namespace micm
       return *this;
     }
 
-    std::vector<std::size_t> DiagonalIndices(const std::size_t block_id) const
+    std::vector<std::size_t> DiagonalIndices(const std::size_t BLOCK_ID) const
     {
       return OrderingPolicy::DiagonalIndices(number_of_blocks_, block_id);
     }
@@ -519,7 +519,7 @@ namespace micm
     {
       // Validate that all matrices have compatible ordering (same L value)
       // Get L from this sparse matrix's ordering policy
-      constexpr std::size_t expected_L = OrderingPolicy::GroupVectorSize();
+      constexpr std::size_t EXPECTED_L = OrderingPolicy::GroupVectorSize();
 
       // Check each argument: matrices must have compatible L, vectors are skipped
       std::size_t index = 0;
@@ -532,9 +532,9 @@ namespace micm
             if constexpr (!VectorLike<ArgType>)
             {
               // Get the L value for this matrix using the type trait
-              constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+              constexpr std::size_t MATRIX_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
 
-              if (matrix_L != expected_L)
+              if (MATRIX_L != expected_L)
               {
                 throw MicmException(
                     MICM_ERROR_CATEGORY_MATRIX,
@@ -591,9 +591,9 @@ namespace micm
               {
                 // Matrix - validate block count
                 std::size_t arg_blocks;
-                constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
+                constexpr bool IS_SPARSE_MATRIX = SparseMatrixConcept<ArgType>;
 
-                if constexpr (is_sparse_matrix)
+                if constexpr (IS_SPARSE_MATRIX)
                 {
                   arg_blocks = arg.NumberOfBlocks();
                 }

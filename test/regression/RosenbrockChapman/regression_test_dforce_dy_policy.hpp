@@ -6,7 +6,7 @@
 #include <random>
 
 template<class SolverPolicy>
-void testJacobian(SolverPolicy& solver)
+void TestJacobian(SolverPolicy& solver)
 {
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };

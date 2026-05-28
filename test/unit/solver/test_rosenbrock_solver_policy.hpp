@@ -13,7 +13,7 @@
 #include <cstddef>
 
 template<class SolverBuilderPolicy>
-SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
+SolverBuilderPolicy GetSolver(SolverBuilderPolicy builder)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -57,7 +57,7 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 }
 
 template<class SolverBuilderPolicy>
-void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   builder = getSolver(builder);
   auto solver = builder.Build();

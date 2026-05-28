@@ -30,7 +30,7 @@ namespace micm
   inline void LuDecompositionDoolittle::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     std::size_t n = matrix.NumRows();
-    auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
+    auto lu = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
@@ -40,7 +40,7 @@ namespace micm
         std::size_t nkj = 0;
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (LU.first.IsZero(i, j) || LU.second.IsZero(j, k))
+          if (lu.first.IsZero(i, j) || lu.second.IsZero(j, k))
           {
             continue;
           }
@@ -70,7 +70,7 @@ namespace micm
         std::size_t nkj = 0;
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (LU.first.IsZero(k, j) || LU.second.IsZero(j, i))
+          if (lu.first.IsZero(k, j) || lu.second.IsZero(j, i))
           {
             continue;
           }
@@ -145,12 +145,12 @@ namespace micm
         }
       }
     }
-    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto l_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto u_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
@@ -167,9 +167,9 @@ namespace micm
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
     {
-      auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
-      auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
-      auto U_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
+      auto a_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
+      auto l_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
+      auto u_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
       auto do_aik = do_aik_.begin();
       auto aik = aik_.begin();
       auto uik_nkj = uik_nkj_.begin();
@@ -228,18 +228,18 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittle::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
-    const std::size_t A_BlockSize = A.NumberOfBlocks();
-    constexpr std::size_t A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize();
-    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize();
-    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize();
+    const std::size_t A_BLOCK_SIZE = A.NumberOfBlocks();
+    constexpr std::size_t A_GROUP_VECTOR_SIZE = SparseMatrixPolicy::GroupVectorSize();
+    const std::size_t A_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = A.GroupSize();
+    const std::size_t L_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = L.GroupSize();
+    const std::size_t U_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = U.GroupSize();
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
     {
-      auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
-      auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
-      auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
+      auto a_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
+      auto l_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
+      auto u_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
       auto do_aik = do_aik_.begin();
       auto aik = aik_.begin();
       auto uik_nkj = uik_nkj_.begin();
@@ -249,7 +249,7 @@ namespace micm
       auto lki_nkj = lki_nkj_.begin();
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
-      const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
+      const std::size_t N_CELLS = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
       for (const auto& inLU : niLU_)
       {
         // Upper trianglur matrix

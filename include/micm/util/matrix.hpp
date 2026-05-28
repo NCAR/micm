@@ -339,14 +339,14 @@ namespace micm
         y = std::min(y, x);
     }
 
-    void ForEach(const std::function<void(T&, const T&)> f, const Matrix& a)
+    void ForEach(const std::function<void(T&, const T&)> F, const Matrix& a)
     {
       auto a_iter = a.AsVector().begin();
       for (auto& elem : data_)
         f(elem, *(a_iter++));
     }
 
-    void ForEach(const std::function<void(T&, const T&, const T&)> f, const Matrix& a, const Matrix& b)
+    void ForEach(const std::function<void(T&, const T&, const T&)> F, const Matrix& a, const Matrix& b)
     {
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();

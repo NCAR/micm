@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy>
-void test_analytical_surface_rxn(
+void TestAnalyticalSurfaceRxn(
     BuilderPolicy& builder,
     double tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -12,37 +12,37 @@ void test_analytical_surface_rxn(
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
-  const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
-  const double mode_GSD = 0.1;               // mode geometric standard deviation [unitless]
-  const double DENSITY_stuff = 1000.0;       // [kg m-3]
-  const double DENSITY_more_stuff = 1000.0;  // [kg m-3]
-  const double MW_foo = 0.04607;             // [kg mol-1]
-  const double Dg_foo = 0.95e-5;             // diffusion coefficient [m2 s-1]
-  const double rxn_gamma = 2.0e-2;           // [unitless]
-  const double bar_yield = 1.0;              // [unitless]
-  const double baz_yield = 0.4;              // [unitless]
+  const double MODE_GMD = 1.0e-6;            // mode geometric mean diameter [m]
+  const double MODE_GSD = 0.1;               // mode geometric standard deviation [unitless]
+  const double DENSITY_STUFF = 1000.0;       // [kg m-3]
+  const double DENSITY_MORE_STUFF = 1000.0;  // [kg m-3]
+  const double MW_FOO = 0.04607;             // [kg mol-1]
+  const double DG_FOO = 0.95e-5;             // diffusion coefficient [m2 s-1]
+  const double RXN_GAMMA = 2.0e-2;           // [unitless]
+  const double BAR_YIELD = 1.0;              // [unitless]
+  const double BAZ_YIELD = 0.4;              // [unitless]
 
   // environment
-  const double temperature = 272.5;  // temperature (K)
-  const double pressure = 101253.3;  // pressure (Pa)
+  const double TEMPERATURE = 272.5;  // temperature (K)
+  const double PRESSURE = 101253.3;  // pressure (Pa)
 
   // initial conditions
-  const double conc_foo = 1.0;
-  const double conc_stuff = 2.0e-3;
-  const double conc_more_stuff = 3.0e-3;
+  const double CONC_FOO = 1.0;
+  const double CONC_STUFF = 2.0e-3;
+  const double CONC_MORE_STUFF = 3.0e-3;
 
   // effective radius
-  double radius = mode_GMD / 2.0 * exp(5.0 * log(mode_GSD) * log(mode_GSD) / 2.0);
+  double radius = MODE_GMD / 2.0 * exp(5.0 * log(MODE_GSD) * log(MODE_GSD) / 2.0);
 
   // particle number concentration [# m-3]
   double number_conc = 6.0 /
                        (M_PI * std::pow(mode_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(mode_GSD) * std::log(mode_GSD))) *
                        (conc_stuff / DENSITY_stuff + conc_more_stuff / DENSITY_more_stuff);
 
-  micm::Species foo("foo", { { "molecular weight [kg mol-1]", MW_foo } });
+  micm::Species foo("foo", { { "molecular weight [kg mol-1]", MW_FOO } });
   micm::Species bar("bar");
   micm::Species baz("baz");
-  micm::PhaseSpecies gas_foo(foo, Dg_foo);
+  micm::PhaseSpecies gas_foo(foo, DG_FOO);
   micm::PhaseSpecies gas_bar(bar);
   micm::PhaseSpecies gas_baz(baz);
 
@@ -55,13 +55,13 @@ void test_analytical_surface_rxn(
   // Rate
   micm::SurfaceRateConstantParameters surface{ .label_ = "foo",
                                                .phase_species_ = gas_foo,
-                                               .reaction_probability_ = rxn_gamma };
+                                               .reaction_probability_ = RXN_GAMMA };
 
   // Process
   micm::Process surface_process =
       micm::ChemicalReactionBuilder()
           .SetReactants({ foo })
-          .SetProducts({ micm::StoichSpecies(bar, bar_yield), micm::StoichSpecies(baz, baz_yield) })
+          .SetProducts({ micm::StoichSpecies(bar, BAR_YIELD), micm::StoichSpecies(baz, BAZ_YIELD) })
           .SetRateConstant(surface)
           .SetPhase(gas_phase)
           .Build();
@@ -73,15 +73,15 @@ void test_analytical_surface_rxn(
 
   // State
   auto state = solver.GetState();
-  state.conditions_[0].temperature_ = temperature;
-  state.conditions_[0].pressure_ = pressure;
+  state.conditions_[0].temperature_ = TEMPERATURE;
+  state.conditions_[0].pressure_ = PRESSURE;
   state.SetCustomRateParameter("foo.effective radius [m]", radius);
   state.SetCustomRateParameter("foo.particle number concentration [# m-3]", number_conc);
-  state.SetConcentration(foo, conc_foo);
+  state.SetConcentration(foo, CONC_FOO);
 
   // Surface reaction rate calculation
   double mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_foo) * temperature);
-  double k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
+  double k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / DG_FOO + 4.0 / (mean_free_speed * RXN_GAMMA));
 
   double time_step = 0.1 / k1;  // s
   int nstep = 10;

@@ -50,7 +50,7 @@ namespace micm
 
   /// @brief Helper to check if a type has a nested 'category' type
   template<typename T, typename = void>
-  struct has_category : std::false_type
+  struct HasCategory : std::false_type
   {
   };
 

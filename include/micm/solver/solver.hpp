@@ -161,7 +161,7 @@ namespace micm
       }
     }
 
-    StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const
+    StatePolicy GetState(const std::size_t NUMBER_OF_GRID_CELLS = 1) const
     {
       StatePolicy state(state_parameters_, number_of_grid_cells);
 

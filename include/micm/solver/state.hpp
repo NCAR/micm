@@ -150,7 +150,7 @@ namespace micm
 
     /// @brief Constructor with parameters
     /// @param parameters State dimension information
-    State(const StateParameters& parameters, const std::size_t number_of_grid_cells);
+    State(const StateParameters& parameters, const std::size_t NUMBER_OF_GRID_CELLS);
 
     /// @brief Copy constructor
     /// @param other The state object to be copied

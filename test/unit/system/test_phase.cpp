@@ -7,32 +7,32 @@ using namespace micm;
 
 TEST(PhaseSpecies, ConstructsWithoutDiffusionCoefficient)
 {
-  Species CO2("CO2");
-  PhaseSpecies gas_CO2(CO2);
+  Species c_o2("CO2");
+  PhaseSpecies gas_c_o2(c_o2);
   EXPECT_EQ(gas_CO2.species_.name_, "CO2");
-  EXPECT_FALSE(gas_CO2.diffusion_coefficient_.has_value());
+  EXPECT_FALSE(gas_c_o2.diffusion_coefficient_.has_value());
 }
 
 TEST(PhaseSpecies, ConstructsWithDiffusionCoefficient)
 {
-  Species CO2("CO2");
+  Species c_o2("CO2");
   double diff_coeff = 1.23e-5;
-  PhaseSpecies gas_CO2(CO2, diff_coeff);
+  PhaseSpecies gas_c_o2(c_o2, diff_coeff);
   EXPECT_EQ(gas_CO2.species_.name_, "CO2");
-  ASSERT_TRUE(gas_CO2.diffusion_coefficient_.has_value());
-  EXPECT_DOUBLE_EQ(gas_CO2.diffusion_coefficient_.value(), diff_coeff);
+  ASSERT_TRUE(gas_c_o2.diffusion_coefficient_.has_value());
+  EXPECT_DOUBLE_EQ(gas_c_o2.diffusion_coefficient_.value(), diff_coeff);
 }
 
 TEST(PhaseSpecies, SetDiffusionCoefficient)
 {
-  Species CO2("CO2");
-  PhaseSpecies gas_CO2(CO2);
-  EXPECT_FALSE(gas_CO2.diffusion_coefficient_.has_value());
+  Species c_o2("CO2");
+  PhaseSpecies gas_c_o2(c_o2);
+  EXPECT_FALSE(gas_c_o2.diffusion_coefficient_.has_value());
 
   double diff_coeff = 2.5e-6;
-  gas_CO2.SetDiffusionCoefficient(diff_coeff);
-  ASSERT_TRUE(gas_CO2.diffusion_coefficient_.has_value());
-  EXPECT_DOUBLE_EQ(gas_CO2.diffusion_coefficient_.value(), diff_coeff);
+  gas_c_o2.SetDiffusionCoefficient(diff_coeff);
+  ASSERT_TRUE(gas_c_o2.diffusion_coefficient_.has_value());
+  EXPECT_DOUBLE_EQ(gas_c_o2.diffusion_coefficient_.value(), diff_coeff);
 }
 
 TEST(Phase, Constructor)

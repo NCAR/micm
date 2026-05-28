@@ -95,10 +95,10 @@ namespace micm
   {
     double a = p.k0_ * air_density;
     double b = 0.43 * std::pow(temperature / 298.0, -8.0);
-    double A_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2.0)));
+    double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2.0)));
     double pre = p.X_ * std::exp(-p.Y_ / temperature);
-    return (p.branch_ == BranchedRateConstantParameters::Branch::Alkoxy) ? pre * (p.z_ / (p.z_ + A_val))
-                                                                         : pre * (A_val / (A_val + p.z_));
+    return (p.branch_ == BranchedRateConstantParameters::Branch::ALKOXY) ? pre * (p.z_ / (p.z_ + a_val))
+                                                                         : pre * (a_val / (a_val + p.z_));
   }
 
   /// @brief Calculate Taylor Series rate constant.

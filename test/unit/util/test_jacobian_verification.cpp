@@ -28,7 +28,7 @@ static void SimpleForcing(const DenseMatrix& vars, DenseMatrix& forcing)
 
 TEST(JacobianVerification, FiniteDifferenceMatchesAnalytical)
 {
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;  // x
   variables[0][1] = 5.0;  // y
@@ -44,7 +44,7 @@ TEST(JacobianVerification, FiniteDifferenceMatchesAnalytical)
 
 TEST(JacobianVerification, MultiBlockFiniteDifference)
 {
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(3, num_species, 0.0);
   variables[0][0] = 1.0;
   variables[0][1] = 2.0;
@@ -76,7 +76,7 @@ TEST(JacobianVerification, MultiBlockFiniteDifference)
 
 TEST(JacobianVerification, ComparePassesForCorrectJacobian)
 {
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;
   variables[0][1] = 5.0;
@@ -107,7 +107,7 @@ TEST(JacobianVerification, ComparePassesForCorrectJacobian)
 
 TEST(JacobianVerification, CompareFailsForWrongJacobian)
 {
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;
   variables[0][1] = 5.0;
@@ -139,7 +139,7 @@ TEST(JacobianVerification, CompareFailsForWrongJacobian)
 
 TEST(JacobianVerification, SparsityCompletenessPassesWhenComplete)
 {
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;
   variables[0][1] = 5.0;
@@ -163,7 +163,7 @@ TEST(JacobianVerification, SparsityCompletenessPassesWhenComplete)
 
 TEST(JacobianVerification, SparsityCompletenessFailsWhenMissingEntry)
 {
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;
   variables[0][1] = 5.0;
@@ -189,7 +189,7 @@ TEST(JacobianVerification, SparsityCompletenessFailsWhenMissingEntry)
 TEST(JacobianVerification, NearZeroVariableHandled)
 {
   // Test that near-zero variables don't cause issues
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 0.0;  // exactly zero
   variables[0][1] = 1.0;

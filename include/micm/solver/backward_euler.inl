@@ -24,25 +24,25 @@ namespace micm
     SolverResult result;
 
     std::size_t max_iter = parameters.max_number_of_steps_;
-    const auto time_step_reductions = parameters.time_step_reductions_;
+    const auto TIME_STEP_REDUCTIONS = parameters.time_step_reductions_;
 
-    double H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
+    double h = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
     double present_time = 0.0;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
 
     auto derived_class_temporary_variables =
         static_cast<BackwardEulerTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    auto& Yn = derived_class_temporary_variables->Yn_;
-    auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
+    auto& yn = derived_class_temporary_variables->Yn_;
+    auto& yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;
 
     // Ensure Yn starts with the same values as the state variables
-    Yn.Copy(Yn1);
+    yn.Copy(yn1);
 
     while (present_time < time_step)
     {
-      result.state_ = SolverState::Running;
+      result.state_ = SolverState::RUNNING;
       bool converged = false;
       std::size_t iterations = 0;
 
@@ -54,16 +54,16 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         forcing.Fill(0.0);
-        rates_.AddForcingTerms(state, Yn1, forcing);
+        rates_.AddForcingTerms(state, yn1, forcing);
         result.stats_.function_calls_++;
 
         // calculate the negative jacobian
         state.jacobian_.Fill(0.0);
-        rates_.SubtractJacobianTerms(state, Yn1, state.jacobian_);
+        rates_.SubtractJacobianTerms(state, yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
         // add the inverse of the time step from the diagonal
-        state.jacobian_.AddToDiagonal(1 / H);
+        state.jacobian_.AddToDiagonal(1 / h);
 
         // We want to solve this equation for a zero
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
@@ -82,7 +82,7 @@ namespace micm
         // forcing_blk in camchem
         // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
-        forcing.ForEach([&](double& f, const double& yn1, const double& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
+        forcing.ForEach([&](double& f, const double& yn1, const double& yn) { f -= (yn1 - yn) / h; }, yn1, yn);
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
@@ -99,7 +99,7 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max(0.0, yn1 + f); }, forcing);
+        yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max(0.0, yn1 + f); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
@@ -108,7 +108,7 @@ namespace micm
         }
 
         // check for convergence
-        converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
+        converged = IsConverged(parameters, forcing, yn1, state.absolute_tolerance_, state.relative_tolerance_);
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -118,30 +118,30 @@ namespace micm
 
         if (n_convergence_failures >= time_step_reductions.size())
         {
-          present_time += H;
-          result.state_ = SolverState::AcceptingUnconvergedIntegration;
+          present_time += h;
+          result.state_ = SolverState::ACCEPTING_UNCONVERGED_INTEGRATION;
           break;
         }
         else
         {
           // if we fail, we need to reset the solution to the last known good solution
-          Yn1.Copy(Yn);
-          H *= time_step_reductions[n_convergence_failures++];
+          yn1.Copy(yn);
+          h *= time_step_reductions[n_convergence_failures++];
         }
       }
       else
       {
         result.stats_.accepted_++;
-        result.state_ = SolverState::Converged;
-        present_time += H;
-        Yn.Copy(Yn1);
+        result.state_ = SolverState::CONVERGED;
+        present_time += h;
+        yn.Copy(yn1);
 
         // when we accept two solutions in a row, we can increase the time step
         n_successful_integrations++;
         if (n_successful_integrations >= 2)
         {
           n_successful_integrations = 0;
-          H *= 2.0;
+          h *= 2.0;
         }
       }
       // Don't let H go past the time step
@@ -166,9 +166,9 @@ namespace micm
     double rel_tol = relative_tolerance;
     auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
-    auto Yn1_iter = Yn1.AsVector().begin();
-    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
-    const std::size_t n_vars = abs_tol.size();
+    auto yn1_iter = Yn1.AsVector().begin();
+    const std::size_t N_ELEM = residual.NumRows() * residual.NumColumns();
+    const std::size_t N_VARS = abs_tol.size();
     for (std::size_t i = 0; i < n_elem; ++i)
     {
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
@@ -176,7 +176,7 @@ namespace micm
       {
         return false;
       }
-      ++residual_iter, ++Yn1_iter;
+      ++residual_iter, ++yn1_iter;
     }
     return true;
   }
@@ -195,11 +195,11 @@ namespace micm
     double rel_tol = relative_tolerance;
     auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
-    auto Yn1_iter = Yn1.AsVector().begin();
-    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
+    auto yn1_iter = Yn1.AsVector().begin();
+    const std::size_t N_ELEM = residual.NumRows() * residual.NumColumns();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
-    const std::size_t n_vars = abs_tol.size();
-    const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
+    const std::size_t N_VARS = abs_tol.size();
+    const std::size_t WHOLE_BLOCKS = std::floor(residual.NumRows() / L) * residual.GroupSize();
     // evaluate the rows that fit exactly into the vectorizable dimension (L)
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
@@ -208,16 +208,16 @@ namespace micm
       {
         return false;
       }
-      ++residual_iter, ++Yn1_iter;
+      ++residual_iter, ++yn1_iter;
     }
 
     // evaluate the remaining rows
-    const std::size_t remaining_rows = residual.NumRows() % L;
-    if (remaining_rows > 0)
+    const std::size_t REMAINING_ROWS = residual.NumRows() % L;
+    if (REMAINING_ROWS > 0)
     {
       for (std::size_t y = 0; y < residual.NumColumns(); ++y)
       {
-        const std::size_t offset = y * L;
+        const std::size_t OFFSET = y * L;
         for (std::size_t i = offset; i < offset + remaining_rows; ++i)
         {
           if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&

@@ -10,12 +10,12 @@
 #include <utility>
 #include <vector>
 
-double calculate_air_density_mol_m3(double pressure, double temperature)
+double CalculateAirDensityMolM3(double pressure, double temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
 
-void writeCSV(
+void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
@@ -102,7 +102,7 @@ std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(c
 }
 
 template<class BuilderPolicy>
-void test_flow_tube(
+void TestFlowTube(
     BuilderPolicy builder,
     std::string expected_results_path,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -122,7 +122,7 @@ void test_flow_tube(
   auto apinene = micm::Species("a-pinene");
   auto o3 = micm::Species("O3");
 
-  double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * 6.02214076e23;
+  double moles_m3_to_molecules_c_m3 = 1.0e-6 * 6.02214076e23;
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ soa1, soa2, apinene, o3 } };
 
@@ -141,7 +141,7 @@ void test_flow_tube(
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ apinene, o3 })
                          .SetProducts({ micm::StoichSpecies(soa1, 0.18), micm::StoichSpecies(soa2, 0.09) })
-                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8.8e-17 * MOLES_M3_TO_MOLECULES_CM3 })
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8.8e-17 * moles_m3_to_molecules_c_m3 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -151,7 +151,7 @@ void test_flow_tube(
                     .SetReactions(processes)
                     .Build();
 
-  size_t N = 3600;
+  size_t n = 3600;
 
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(4));
 
@@ -167,7 +167,7 @@ void test_flow_tube(
 
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325;
-  state.conditions_[0].air_density_ = calculate_air_density_mol_m3(101325, 298.15);
+  state.conditions_[0].air_density_ = CalculateAirDensityMolM3(101325, 298.15);
 
   solver.UpdateStateParameters(state);
 
@@ -178,7 +178,7 @@ void test_flow_tube(
   std::vector<double> times;
   times.push_back(0);
   double time_step = 1;
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  for (size_t i_time = 0; i_time < n; ++i_time)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);

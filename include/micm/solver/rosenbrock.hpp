@@ -106,7 +106,7 @@ namespace micm
     /// @param number_densities The number densities
     /// @param stats The solver stats
     /// @param state The state
-    void LinearFactor(const double alpha, SolverStats& stats, auto& state) const;
+    void LinearFactor(const double ALPHA, SolverStats& stats, auto& state) const;
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector

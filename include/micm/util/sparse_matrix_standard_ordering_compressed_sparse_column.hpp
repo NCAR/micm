@@ -87,7 +87,7 @@ namespace micm
     /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
     /// @param data Compressed data vector
     /// @param value Value to add to the diagonal
-    void AddToDiagonal(const std::size_t number_of_blocks, auto& data, auto value) const
+    void AddToDiagonal(const std::size_t NUMBER_OF_BLOCKS, auto& data, auto value) const
     {
       for (std::size_t block_start = 0; block_start < number_of_blocks * column_ids_.size();
            block_start += column_ids_.size())
@@ -128,7 +128,7 @@ namespace micm
     /// @param number_of_blocks Number of block sub-matrices in the overall matrix
     /// @param block_id Block index
     /// @return Vector of indices of non-zero diagonal elements
-    std::vector<std::size_t> DiagonalIndices(const std::size_t number_of_blocks, const std::size_t block_id) const
+    std::vector<std::size_t> DiagonalIndices(const std::size_t NUMBER_OF_BLOCKS, const std::size_t BLOCK_ID) const
     {
       std::vector<std::size_t> indices;
       indices.reserve(column_start_.size() - 1);
@@ -396,7 +396,7 @@ namespace micm
     /// @param block_size Number of rows or columns for each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
     static std::vector<std::size_t> ColumnIdsVector(
-        const std::size_t block_size,
+        const std::size_t BLOCK_SIZE,
         const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
     {
       std::vector<std::size_t> ids;
@@ -416,7 +416,7 @@ namespace micm
     /// @param block_size Number of rows or columns for each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
     static std::vector<std::size_t> ColumnStartVector(
-        const std::size_t block_size,
+        const std::size_t BLOCK_SIZE,
         const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
     {
       std::vector<std::size_t> starts(block_size + 1, 0);

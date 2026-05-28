@@ -31,12 +31,12 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
                              .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "toy_k1" })
                              .Build();
 
-  constexpr double k2 = 1.0;
+  constexpr double K2 = 1.0;
   micm::Process toy_r2 = micm::ChemicalReactionBuilder()
                              .SetReactants({ cl, cl })
                              .SetProducts({ micm::StoichSpecies(cl2, 1.0) })
                              .SetPhase(gas_phase)
-                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k2 })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K2 })
                              .Build();
 
   auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
@@ -64,8 +64,8 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
     state.variables_ = orig_state_vars;
     for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     {
-      constexpr double k1_lat_center = M_PI * 20.0 / 180.0;
-      constexpr double k1_lon_center = M_PI * 300.0 / 180.0;
+      constexpr double K1_LAT_CENTER = M_PI * 20.0 / 180.0;
+      constexpr double K1_LON_CENTER = M_PI * 300.0 / 180.0;
       double lat = M_PI / 180.0 * (i_cell * (90.0 / number_of_grid_cells));
 
       double k1 = std::max(
@@ -92,7 +92,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
       double cly = cl_i + 2.0 * cl2_i;
       double det = std::sqrt(r * r + 2.0 * r * cly);
       double e = std::exp(-4.0 * k2 * det * dt);
-      double l = (det * k2 * dt) > 1.0e-16 ? (1.0 - e) / det / dt : 4.0 * k2;
+      double l = (det * K2 * dt) > 1.0e-16 ? (1.0 - e) / det / dt : 4.0 * K2;
       double cl_f = -l * (cl_i - det + r) * (cl_i + det + r) / (1.0 + e + dt * l * (cl_i + r));
       double cl2_f = -cl_f / 2.0;
       EXPECT_NEAR(

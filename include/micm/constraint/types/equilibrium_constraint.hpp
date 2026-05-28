@@ -20,10 +20,10 @@ namespace micm
   /// @brief Define parameters for Van't Hoff equation
   struct VantHoffParam
   {
-    double K_HLC_ref;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
-    double delta_H;                      // Enthalpy of dissolution (J/mol)
-    double R = constants::GAS_CONSTANT;  // (J/mol·K)
-    double T_ref = 298.15;
+    double K_HLC_ref_;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
+    double delta_H_;                      // Enthalpy of dissolution (J/mol)
+    double R_ = constants::GAS_CONSTANT;  // (J/mol·K)
+    double T_ref_ = 298.15;
   };
 
   /// @brief Constraint for chemical equilibrium with temperature-dependent K_eq using Van't Hoff equation
@@ -124,7 +124,7 @@ namespace micm
               "Stoichiometric coefficients must be positive");
         }
       }
-      if (vant_hoff_param_.K_HLC_ref <= 0)
+      if (vant_hoff_param_.K_HLC_ref_ <= 0)
       {
         throw MicmException(
             MICM_ERROR_CATEGORY_CONSTRAINT,
@@ -169,7 +169,7 @@ namespace micm
     std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
         const ConstraintInfo& info) const
     {
-      std::size_t K_eq_idx = info.state_param_indices_[0];  // equilibrium constant index
+      std::size_t k_eq_idx = info.state_param_indices_[0];  // equilibrium constant index
 
       return [K_eq_idx, eq_func = equilibrium_constant_function_](
                  const std::vector<Conditions>& conditions, DenseMatrixPolicy& state_param)
@@ -211,7 +211,7 @@ namespace micm
         product_state_idx.push_back(info.state_indices_[product_dependency_indices_[i]]);
       }
       std::size_t row_idx = info.row_index_;
-      std::size_t K_eq_idx = info.state_param_indices_[0];  // contains only one parameter (equilibrium constant)
+      std::size_t k_eq_idx = info.state_param_indices_[0];  // contains only one parameter (equilibrium constant)
 
       DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
       DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
@@ -236,11 +236,11 @@ namespace micm
             // Multiply in each reactant concentration raised to its stoichiometry
             for (std::size_t i = 0; i < reactant_stoich.size(); ++i)
             {
-              const double stoich = reactant_stoich[i];
-              const std::size_t species_idx = reactant_state_idx[i];
+              const double STOICH = reactant_stoich[i];
+              const std::size_t SPECIES_IDX = reactant_state_idx[i];
 
               state.ForEachRow(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
                   state.GetConstColumnView(species_idx),
                   reactant_product);
             }
@@ -248,11 +248,11 @@ namespace micm
             // Multiply in each product concentration raised to its stoichiometry
             for (std::size_t i = 0; i < product_stoich.size(); ++i)
             {
-              const double stoich = product_stoich[i];
-              const std::size_t species_idx = product_state_idx[i];
+              const double STOICH = product_stoich[i];
+              const std::size_t SPECIES_IDX = product_state_idx[i];
 
               state.ForEachRow(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
                   state.GetConstColumnView(species_idx),
                   product_product);
             }
@@ -317,7 +317,7 @@ namespace micm
         product_state_idx.push_back(info.state_indices_[product_dependency_indices_[i]]);
       }
 
-      std::size_t K_eq_idx = info.state_param_indices_[0];  // contains only one parameter (equilibrium constant)
+      std::size_t k_eq_idx = info.state_param_indices_[0];  // contains only one parameter (equilibrium constant)
 
       DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
       DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
@@ -342,22 +342,22 @@ namespace micm
 
             for (std::size_t i = 0; i < reactant_stoich.size(); ++i)
             {
-              const double stoich = reactant_stoich[i];
-              const std::size_t species_idx = reactant_state_idx[i];
+              const double STOICH = reactant_stoich[i];
+              const std::size_t SPECIES_IDX = reactant_state_idx[i];
 
               jacobian_values.ForEachBlock(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
                   state.GetConstColumnView(species_idx),
                   reactant_product);
             }
 
             for (std::size_t i = 0; i < product_stoich.size(); ++i)
             {
-              const double stoich = product_stoich[i];
-              const std::size_t species_idx = product_state_idx[i];
+              const double STOICH = product_stoich[i];
+              const std::size_t SPECIES_IDX = product_state_idx[i];
 
               jacobian_values.ForEachBlock(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
                   state.GetConstColumnView(species_idx),
                   product_product);
             }
@@ -366,8 +366,8 @@ namespace micm
             // [R_i]^(stoich_i-1)
             for (std::size_t i = 0; i < reactant_stoich.size(); ++i)
             {
-              const double stoich_i = reactant_stoich[i];
-              const std::size_t species_idx_i = reactant_state_idx[i];
+              const double STOICH_I = reactant_stoich[i];
+              const std::size_t SPECIES_IDX_I = reactant_state_idx[i];
 
               // Compute product of K_eq * all reactants except R_i
               auto partial_product = jacobian_values.GetBlockVariable();
@@ -380,11 +380,11 @@ namespace micm
               {
                 if (j != i)  // Skip current species
                 {
-                  const double stoich_j = reactant_stoich[j];
-                  const std::size_t species_idx_j = reactant_state_idx[j];
+                  const double STOICH_J = reactant_stoich[j];
+                  const std::size_t SPECIES_IDX_J = reactant_state_idx[j];
 
                   jacobian_values.ForEachBlock(
-                      [stoich_j](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
+                      [STOICH_J](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
                       state.GetConstColumnView(species_idx_j),
                       partial_product);
                 }
@@ -392,9 +392,9 @@ namespace micm
 
               // Multiply by stoich_i * [R_i]^(stoich_i-1)
               jacobian_values.ForEachBlock(
-                  [stoich_i](const double& conc, const double& prod, double& partial)
+                  [STOICH_I](const double& conc, const double& prod, double& partial)
                   {
-                    if (stoich_i == 1.0)
+                    if (STOICH_I == 1.0)
                     {
                       partial = prod;
                     }
@@ -423,8 +423,8 @@ namespace micm
             // [P_i]^(stoich_i-1)
             for (std::size_t i = 0; i < product_stoich.size(); ++i)
             {
-              const double stoich_i = product_stoich[i];
-              const std::size_t species_idx_i = product_state_idx[i];
+              const double STOICH_I = product_stoich[i];
+              const std::size_t SPECIES_IDX_I = product_state_idx[i];
 
               // Compute product of all products except P_i
               auto partial_product = jacobian_values.GetBlockVariable();
@@ -434,11 +434,11 @@ namespace micm
               {
                 if (j != i)  // Skip current species
                 {
-                  const double stoich_j = product_stoich[j];
-                  const std::size_t species_idx_j = product_state_idx[j];
+                  const double STOICH_J = product_stoich[j];
+                  const std::size_t SPECIES_IDX_J = product_state_idx[j];
 
                   jacobian_values.ForEachBlock(
-                      [stoich_j](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
+                      [STOICH_J](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
                       state.GetConstColumnView(species_idx_j),
                       partial_product);
                 }
@@ -446,9 +446,9 @@ namespace micm
 
               // Multiply by stoich_i * [P_i]^(stoich_i-1)
               jacobian_values.ForEachBlock(
-                  [stoich_i](const double& conc, const double& prod, double& partial)
+                  [STOICH_I](const double& conc, const double& prod, double& partial)
                   {
-                    if (stoich_i == 1.0)
+                    if (STOICH_I == 1.0)
                     {
                       partial = prod;
                     }

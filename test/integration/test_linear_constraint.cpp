@@ -11,14 +11,14 @@
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {
-  auto Cl2 = micm::Species("Cl2");
-  auto Cl = micm::Species("Cl");
-  Cl2.SetProperty("absolute tolerance", 1.0e-20);
-  Cl.SetProperty("absolute tolerance", 1.0e-20);
+  auto cl2 = micm::Species("Cl2");
+  auto cl = micm::Species("Cl");
+  cl2.SetProperty("absolute tolerance", 1.0e-20);
+  cl.SetProperty("absolute tolerance", 1.0e-20);
 
-  auto A = micm::Species("A");
-  auto B = micm::Species("B");
-  auto C = micm::Species("C");
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
 
   micm::Phase gas_phase{ "gas", { Cl2, Cl, A, B, C } };
 

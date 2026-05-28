@@ -326,7 +326,7 @@ namespace micm
       class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State(
       const StateParameters& parameters,
-      const std::size_t number_of_grid_cells)
+      const std::size_t NUMBER_OF_GRID_CELLS)
       : conditions_(number_of_grid_cells),
         variables_(number_of_grid_cells, parameters.variable_names_.size(), 0.0),
         custom_rate_parameters_(number_of_grid_cells, parameters.custom_rate_parameter_labels_.size(), 0.0),
@@ -498,7 +498,7 @@ namespace micm
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
-    const std::size_t num_grid_cells = conditions_.size();
+    const std::size_t NUM_GRID_CELLS = conditions_.size();
     for (const auto& pair : species_to_concentration)
       SetConcentration({ pair.first }, pair.second);
   }

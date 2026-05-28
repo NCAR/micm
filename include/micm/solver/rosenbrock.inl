@@ -13,20 +13,20 @@ namespace micm
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
     SolverResult result{};
-    result.state_ = SolverState::Running;
-    auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
+    result.state_ = SolverState::RUNNING;
+    auto& y = state.variables_;  // Y will hold the new solution at the end of the solve
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    auto& Ynew = derived_class_temporary_variables->Ynew_;
+    auto& ynew = derived_class_temporary_variables->Ynew_;
     auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
-    auto& K = derived_class_temporary_variables->K_;
-    auto& Yerror = derived_class_temporary_variables->Yerror_;
-    const double h_min = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
-    const double h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
-    const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
-    double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
+    auto& k = derived_class_temporary_variables->K_;
+    auto& yerror = derived_class_temporary_variables->Yerror_;
+    const double H_MIN = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
+    const double H_MAX = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
+    const double H_START = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
+    double h = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
 
-    const bool has_constraints = constraints_.Size() > 0;
+    const bool HAS_CONSTRAINTS = constraints_.Size() > 0;
 
     // Declared here so they remain in scope for the solver loop below (captured by reference by mass_coupling).
     // std::function gives mass_coupling a concrete, nameable type; the closure type returned by
@@ -37,7 +37,7 @@ namespace micm
 
     // Initialize algebraic constraint variables and pre-build the mass-coupling function.
     // All K matrices have the same shape, so K[0] is used to capture column counts at creation time.
-    if (has_constraints)
+    if (HAS_CONSTRAINTS)
     {
       mass_coupling = DenseMatrixPolicy::Function(
           [&current_c_over_h, &diagonal](auto&& k_stage_view, auto&& k_j_view)
@@ -57,7 +57,7 @@ namespace micm
           K[0]);
 
       auto init_state = InitializeConstraints(state, parameters, result.stats_);
-      if (init_state != SolverState::Converged)
+      if (init_state != SolverState::CONVERGED)
       {
         result.state_ = init_state;
         return result;
@@ -69,17 +69,17 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    while ((present_time - time_step + parameters.round_off_) <= 0 && (result.state_ == SolverState::Running))
+    while ((present_time - time_step + parameters.round_off_) <= 0 && (result.state_ == SolverState::RUNNING))
     {
       if (result.stats_.number_of_steps_ > parameters.max_number_of_steps_)
       {
-        result.state_ = SolverState::ConvergenceExceededMaxSteps;
+        result.state_ = SolverState::CONVERGENCE_EXCEEDED_MAX_STEPS;
         break;
       }
 
-      if (((present_time + 0.1 * H) == present_time) || (H <= parameters.round_off_))
+      if (((present_time + 0.1 * h) == present_time) || (h <= parameters.round_off_))
       {
-        result.state_ = SolverState::StepSizeTooSmall;
+        result.state_ = SolverState::STEP_SIZE_TOO_SMALL;
         break;
       }
 
@@ -88,22 +88,22 @@ namespace micm
 
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
-      rates_.AddForcingTerms(state, Y, initial_forcing);
+      rates_.AddForcingTerms(state, y, initial_forcing);
 
-      if (has_constraints)
+      if (HAS_CONSTRAINTS)
       {
-        constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, initial_forcing);
+        constraints_.AddForcingTerms(y, state.custom_rate_parameters_, initial_forcing);
       }
 
       result.stats_.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
-      rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
+      rates_.SubtractJacobianTerms(state, y, state.jacobian_);
 
-      if (has_constraints)
+      if (HAS_CONSTRAINTS)
       {
-        constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+        constraints_.SubtractJacobianTerms(y, state.custom_rate_parameters_, state.jacobian_);
       }
 
       result.stats_.jacobian_updates_ += 1;
@@ -114,7 +114,7 @@ namespace micm
       while (!accepted)
       {
         // Compute alpha for AlphaMinusJacobian function
-        double alpha = 1.0 / (H * parameters.gamma_[0]);
+        double alpha = 1.0 / (h * parameters.gamma_[0]);
         if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
         {
           // Compute alpha accounting for the last alpha value
@@ -132,67 +132,67 @@ namespace micm
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
           {
-            K[stage].Copy(initial_forcing);
+            k[stage].Copy(initial_forcing);
           }
           else
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              Ynew.Copy(Y);
+              ynew.Copy(y);
               for (uint64_t j = 0; j < stage; ++j)
               {
-                Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
+                ynew.Axpy(parameters.a_[stage_combinations + j], k[j]);
               }
-              K[stage].Fill(0);
-              rates_.AddForcingTerms(state, Ynew, K[stage]);
-              if (has_constraints)
+              k[stage].Fill(0);
+              rates_.AddForcingTerms(state, ynew, k[stage]);
+              if (HAS_CONSTRAINTS)
               {
-                constraints_.AddForcingTerms(Ynew, state.custom_rate_parameters_, K[stage]);
+                constraints_.AddForcingTerms(ynew, state.custom_rate_parameters_, k[stage]);
               }
               result.stats_.function_calls_ += 1;
             }
           }
           if (stage + 1 < parameters.stages_ && !parameters.new_function_evaluation_[stage + 1])
           {
-            K[stage + 1].Copy(K[stage]);
+            k[stage + 1].Copy(k[stage]);
           }
           for (uint64_t j = 0; j < stage; ++j)
           {
-            const double c_over_h = parameters.c_[stage_combinations + j] / H;
-            if (!has_constraints)
+            const double C_OVER_H = parameters.c_[stage_combinations + j] / h;
+            if (!HAS_CONSTRAINTS)
             {
-              K[stage].Axpy(c_over_h, K[j]);
+              k[stage].Axpy(C_OVER_H, k[j]);
             }
             else
             {
               // DAE path: scale by mass matrix diagonal element-wise.
               // For ODE variables (diagonal = 1), accumulate c/H * K[j].
               // For algebraic variables (diagonal = 0), the coupling is zero.
-              current_c_over_h = c_over_h;
-              mass_coupling(K[stage], K[j]);
+              current_c_over_h = C_OVER_H;
+              mass_coupling(k[stage], k[j]);
             }
           }
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
-            linear_solver_.Solve(K[stage], state.jacobian_);
+            linear_solver_.Solve(k[stage], state.jacobian_);
           }
           else
           {
-            linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
+            linear_solver_.Solve(k[stage], state.lower_matrix_, state.upper_matrix_);
           }
           result.stats_.solves_ += 1;
         }
 
-        Ynew.Copy(Y);
+        ynew.Copy(y);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
-          Ynew.Axpy(parameters.m_[stage], K[stage]);
+          ynew.Axpy(parameters.m_[stage], k[stage]);
         }
 
-        Yerror.Fill(0);
+        yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
-          Yerror.Axpy(parameters.e_[stage], K[stage]);
+          yerror.Axpy(parameters.e_[stage], k[stage]);
         }
 
         // For DAE systems, replace the near-zero algebraic error estimates with step changes.
@@ -207,13 +207,13 @@ namespace micm
         // is O(H) while the true error is O(H^(p+1)), so this is conservative — the solver may
         // take more steps than strictly necessary. However, it correctly prevents overshoot by
         // rejecting steps where algebraic variables change more than their tolerance permits.
-        if (has_constraints)
+        if (HAS_CONSTRAINTS)
         {
-          constraints_.SetAlgebraicErrors(Yerror, Y, Ynew);
+          constraints_.SetAlgebraicErrors(yerror, y, ynew);
         }
 
         // Compute the normalized error
-        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
+        auto error = static_cast<const Derived*>(this)->NormalizedError(y, ynew, yerror, state);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(
@@ -221,26 +221,26 @@ namespace micm
             std::max(
                 parameters.factor_min_,
                 parameters.safety_factor_ / std::pow(error, 1 / parameters.estimator_of_local_order_)));
-        double Hnew = H * fac;
+        double hnew = h * fac;
 
         result.stats_.number_of_steps_ += 1;
 
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
-          result.state_ = SolverState::NaNDetected;
+          result.state_ = SolverState::NA_N_DETECTED;
           break;
         }
         else if (std::isinf(error) == 1)
         {
-          result.state_ = SolverState::InfDetected;
+          result.state_ = SolverState::INF_DETECTED;
           break;
         }
-        else if ((error < 1) || (H < h_min))
+        else if ((error < 1) || (h < H_MIN))
         {
           result.stats_.accepted_ += 1;
-          present_time = present_time + H;
-          Y.Swap(Ynew);
+          present_time = present_time + h;
+          y.Swap(ynew);
           Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
@@ -249,7 +249,7 @@ namespace micm
           }
           reject_last_h = false;
           reject_more_h = false;
-          H = Hnew;
+          h = hnew;
           accepted = true;
         }
         else
@@ -257,11 +257,11 @@ namespace micm
           // Reject step
           if (reject_more_h)
           {
-            Hnew = H * parameters.rejection_factor_decrease_;
+            hnew = h * parameters.rejection_factor_decrease_;
           }
           reject_more_h = reject_last_h;
           reject_last_h = true;
-          H = Hnew;
+          h = hnew;
           if (result.stats_.accepted_ >= 1)
           {
             result.stats_.rejected_ += 1;
@@ -270,11 +270,11 @@ namespace micm
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
             state.jacobian_.Fill(0);
-            rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
+            rates_.SubtractJacobianTerms(state, y, state.jacobian_);
             // Subtract constraint Jacobian terms (for DAE systems)
-            if (has_constraints)
+            if (HAS_CONSTRAINTS)
             {
-              constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+              constraints_.SubtractJacobianTerms(y, state.custom_rate_parameters_, state.jacobian_);
             }
             result.stats_.jacobian_updates_ += 1;
           }
@@ -282,9 +282,9 @@ namespace micm
       }
     }
 
-    if (result.state_ == SolverState::Running)
+    if (result.state_ == SolverState::RUNNING)
     {
-      result.state_ = SolverState::Converged;
+      result.state_ = SolverState::CONVERGED;
     }
 
     result.stats_.final_time_ = present_time;
@@ -319,7 +319,7 @@ namespace micm
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy>)
   {
-    constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
+    constexpr std::size_t N_CELLS = SparseMatrixPolicy::GroupVectorSize();
     // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
     for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
     {
@@ -327,10 +327,10 @@ namespace micm
       std::size_t i_diag = 0;
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
       {
-        const double diagonal_scale = state.upper_left_identity_diagonal_[i_diag++];
+        const double DIAGONAL_SCALE = state.upper_left_identity_diagonal_[i_diag++];
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
         {
-          jacobian_vector[i_elem + i_cell] += alpha * diagonal_scale;
+          jacobian_vector[i_elem + i_cell] += alpha * DIAGONAL_SCALE;
         }
       }
     }
@@ -338,14 +338,14 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::LinearFactor(
-      const double alpha,
+      const double ALPHA,
       SolverStats& stats,
       auto& state) const
   {
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
-    static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, alpha);
+    static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, ALPHA);
 
     if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
     {
@@ -372,7 +372,7 @@ namespace micm
 
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const std::size_t n_vars = atol.size();
+    const std::size_t N_VARS = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -408,7 +408,7 @@ namespace micm
 
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const std::size_t n_vars = atol.size();
+    const std::size_t N_VARS = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -440,7 +440,7 @@ namespace micm
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
 
-    auto& Y = state.variables_;
+    auto& y = state.variables_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
     // Reuse initial_forcing_ as the residual/delta workspace
@@ -510,14 +510,14 @@ namespace micm
             }
           }
         },
-        Y,
+        y,
         delta);
 
     for (std::size_t iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
     {
       // 1. Evaluate constraint residuals: G(y)
       delta.Fill(0);
-      constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
+      constraints_.AddForcingTerms(y, state.custom_rate_parameters_, delta);
 
       // 2. Check convergence: ||G||_inf over algebraic rows only
       max_residual = 0;
@@ -527,23 +527,23 @@ namespace micm
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return SolverState::NA_N_DETECTED;
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return SolverState::INF_DETECTED;
       }
 
       stats.constraint_init_iterations_ = iter + 1;
 
       if (max_residual < parameters.constraint_init_tolerance_)
       {
-        return SolverState::Converged;
+        return SolverState::CONVERGED;
       }
 
       // 3. Compute constraint Jacobian: -dG/dy
       state.jacobian_.Fill(0);
-      constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+      constraints_.SubtractJacobianTerms(y, state.custom_rate_parameters_, state.jacobian_);
       stats.jacobian_updates_ += 1;
 
       // 4. Form system matrix with alpha=1.0:
@@ -576,20 +576,20 @@ namespace micm
       // 7. Apply update only to algebraic variables
       nan_detected = false;
       inf_detected = false;
-      apply_update(Y, delta);
+      apply_update(y, delta);
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return SolverState::NA_N_DETECTED;
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return SolverState::INF_DETECTED;
       }
     }
 
     // Did not converge within max iterations
-    return SolverState::ConstraintInitializationFailed;
+    return SolverState::CONSTRAINT_INITIALIZATION_FAILED;
   }
 
 }  // namespace micm

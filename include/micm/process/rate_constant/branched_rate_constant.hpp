@@ -8,8 +8,8 @@ namespace micm
   {
     enum class Branch
     {
-      Alkoxy,
-      Nitrate
+      ALKOXY,
+      NITRATE
     };
     /// @brief reaction branch
     Branch branch_;

@@ -29,24 +29,24 @@ namespace micm
   inline void LuDecompositionDoolittleInPlace::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     std::size_t n = matrix.NumRows();
-    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
+    auto alu = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < n; ++i)
     {
-      if (ALU.IsZero(i, i))
+      if (alu.IsZero(i, i))
       {
         throw std::runtime_error("Diagonal element is zero in LU decomposition");
       }
       std::tuple<std::size_t, std::size_t, std::size_t> nik_nki_aii(0, 0, ALU.VectorIndex(0, i, i));
       for (std::size_t k = i; k < n; ++k)
       {
-        if (ALU.IsZero(i, k))
+        if (alu.IsZero(i, k))
         {
           continue;
         }
         std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (ALU.IsZero(i, j) || ALU.IsZero(j, k))
+          if (alu.IsZero(i, j) || alu.IsZero(j, k))
           {
             continue;
           }
@@ -58,14 +58,14 @@ namespace micm
       }
       for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (ALU.IsZero(k, i))
+        if (alu.IsZero(k, i))
         {
           continue;
         }
         std::pair<std::size_t, std::size_t> aki_nji(ALU.VectorIndex(0, k, i), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (ALU.IsZero(k, j) || ALU.IsZero(j, i))
+          if (alu.IsZero(k, j) || alu.IsZero(j, i))
           {
             continue;
           }
@@ -125,7 +125,7 @@ namespace micm
         }
       }
     }
-    auto ALU_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto alu_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : ALU_ids)
     {
       ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
@@ -137,12 +137,12 @@ namespace micm
     requires(!VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittleInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    const std::size_t n = ALU.NumRows();
+    const std::size_t N = ALU.NumRows();
 
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < ALU.NumberOfBlocks(); ++i_block)
     {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_block * ALU.FlatBlockSize());
+      auto alu_vector = std::next(ALU.AsVector().begin(), i_block * ALU.FlatBlockSize());
       auto aik_njk = aik_njk_.begin();
       auto aij_ajk = aij_ajk_.begin();
       auto aki_nji = aki_nji_.begin();
@@ -177,16 +177,16 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittleInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    const std::size_t n = ALU.NumRows();
-    const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
-    constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
+    const std::size_t N = ALU.NumRows();
+    const std::size_t ALU_BLOCK_SIZE = ALU.NumberOfBlocks();
+    constexpr std::size_t ALU_GROUP_VECTOR_SIZE = SparseMatrixPolicy::GroupVectorSize();
+    const std::size_t ALU_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = ALU.GroupSize();
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
     {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
-      const std::size_t n_cells = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
+      auto alu_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
+      const std::size_t N_CELLS = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
       auto aik_njk = aik_njk_.begin();
       auto aij_ajk = aij_ajk_.begin();
       auto aki_nji = aki_nji_.begin();

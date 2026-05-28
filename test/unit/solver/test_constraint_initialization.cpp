@@ -17,23 +17,23 @@ using namespace micm;
 /// @brief Helper: build a simple A→B system with equilibrium constraint C = K_eq * B
 struct SimpleConstrainedSystem
 {
-  static constexpr double k = 0.5;
-  static constexpr double K_eq = 2.0;
-  static constexpr double delta_H = 0.0;  // No temperature dependence for simplicity
+  static constexpr double K = 0.5;
+  static constexpr double K_EQ = 2.0;
+  static constexpr double DELTA_H = 0.0;  // No temperature dependence for simplicity
 
   template<class SolverBuilderPolicy>
   static auto Build(SolverBuilderPolicy builder)
   {
-    auto A = Species("A");
-    auto B = Species("B");
-    auto C = Species("C");
+    auto a = Species("A");
+    auto b = Species("B");
+    auto c = Species("C");
 
     Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
 
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ A })
                       .SetProducts({ { B, 1 } })
-                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = K, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
 
@@ -64,13 +64,13 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
   auto state = solver.GetState(1);
 
-  auto A_idx = state.variable_map_.at("A");
-  auto B_idx = state.variable_map_.at("B");
-  auto C_idx = state.variable_map_.at("C");
+  auto a_idx = state.variable_map_.at("A");
+  auto b_idx = state.variable_map_.at("B");
+  auto c_idx = state.variable_map_.at("C");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_eq * 0.5;  // C = K_eq * B = consistent
+  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_EQ * 0.5;  // C = K_eq * B = consistent
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -93,9 +93,9 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
   auto state = solver.GetState(1);
 
-  auto A_idx = state.variable_map_.at("A");
-  auto B_idx = state.variable_map_.at("B");
-  auto C_idx = state.variable_map_.at("C");
+  auto a_idx = state.variable_map_.at("A");
+  auto b_idx = state.variable_map_.at("B");
+  auto c_idx = state.variable_map_.at("C");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
@@ -105,8 +105,8 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 
   solver.UpdateStateParameters(state);
 
-  double A_before = state.variables_[0][A_idx];
-  double B_before = state.variables_[0][B_idx];
+  double a_before = state.variables_[0][A_idx];
+  double b_before = state.variables_[0][B_idx];
 
   auto result = solver.Solve(0.001, state);
 
@@ -119,8 +119,8 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   EXPECT_GT(result.stats_.constraint_init_iterations_, 0u);
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  double residual = k_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
@@ -131,9 +131,9 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
   auto state = solver.GetState(1);
 
-  auto A_idx = state.variable_map_.at("A");
-  auto B_idx = state.variable_map_.at("B");
-  auto C_idx = state.variable_map_.at("C");
+  auto a_idx = state.variable_map_.at("A");
+  auto b_idx = state.variable_map_.at("B");
+  auto c_idx = state.variable_map_.at("C");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
@@ -148,16 +148,16 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   EXPECT_EQ(result.state_, SolverState::Converged);
 
   // Constraint should be satisfied after initialization + solve
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  double residual = k_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
 /// @brief Test pure ODE system (no constraints) is unaffected
 TEST(ConstraintInitialization, PureODESystemUnaffected)
 {
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B } };
 
@@ -195,16 +195,16 @@ TEST(ConstraintInitialization, MultiCellSystems)
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
   auto state = solver.GetState(3);  // 3 grid cells
 
-  auto A_idx = state.variable_map_.at("A");
-  auto B_idx = state.variable_map_.at("B");
-  auto C_idx = state.variable_map_.at("C");
+  auto a_idx = state.variable_map_.at("A");
+  auto b_idx = state.variable_map_.at("B");
+  auto c_idx = state.variable_map_.at("C");
 
-  double K_eq = SimpleConstrainedSystem::K_eq;
+  double k_eq = SimpleConstrainedSystem::K_EQ;
 
   // Cell 0: consistent
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = K_eq * 0.5;
+  state.variables_[0][C_idx] = k_eq * 0.5;
 
   // Cell 1: mildly inconsistent
   state.variables_[1][A_idx] = 2.0;
@@ -229,10 +229,10 @@ TEST(ConstraintInitialization, MultiCellSystems)
   EXPECT_EQ(result.state_, SolverState::Converged);
 
   // Verify constraint satisfied in all cells after solve
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
   for (std::size_t i = 0; i < 3; ++i)
   {
-    double residual = K_eq_actual * state.variables_[i][B_idx] - state.variables_[i][C_idx];
+    double residual = k_eq_actual * state.variables_[i][B_idx] - state.variables_[i][C_idx];
     EXPECT_NEAR(residual, 0.0, 1.0e-5) << "Constraint not satisfied in cell " << i;
   }
 }
@@ -244,14 +244,14 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
   auto state = solver.GetState(1);
 
-  auto A_idx = state.variable_map_.at("A");
-  auto B_idx = state.variable_map_.at("B");
-  auto C_idx = state.variable_map_.at("C");
+  auto a_idx = state.variable_map_.at("A");
+  auto b_idx = state.variable_map_.at("B");
+  auto c_idx = state.variable_map_.at("C");
 
   // Start consistent
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_eq * 0.5;
+  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_EQ * 0.5;
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -267,8 +267,8 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   EXPECT_EQ(result2.state_, SolverState::Converged);
 
   // Constraint should be re-satisfied after second solve
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  double residual = k_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <random>
 
-static const double absolute_tolerance = 1e-4;
+static const double ABSOLUTE_TOLERANCE = 1e-4;
 
 void TestDefaultConstructor(micm::ChapmanODESolver& solver)
 {
@@ -226,15 +226,15 @@ void TestSolve(micm::ChapmanODESolver& solver)
 
   auto results = solver.Solve(time_start, time_end, state);
   EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
-  EXPECT_NEAR(results.result_[0], 1, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 0.392, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.0169, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 32.9, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 1.8039e-41, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.00176789, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 8.83912, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 4.5031e-36, absolute_tolerance);
+  EXPECT_NEAR(results.result_[0], 1, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[1], 0.392, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[2], 0.0169, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[3], 0, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[4], 32.9, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[5], 1.8039e-41, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[6], 0.00176789, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[7], 8.83912, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[8], 4.5031e-36, ABSOLUTE_TOLERANCE);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 {
@@ -264,15 +264,15 @@ void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
 
   solver.UpdateState(state);
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_NEAR(results.result_[0], 10, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 3.92, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.169, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 329, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 1.8039e-38, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.0176789, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 88.3912, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 4.5031e-33, absolute_tolerance);
+  EXPECT_NEAR(results.result_[0], 10, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[1], 3.92, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[2], 0.169, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[3], 0, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[4], 329, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[5], 1.8039e-38, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[6], 0.0176789, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[7], 88.3912, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[8], 4.5031e-33, ABSOLUTE_TOLERANCE);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 {
@@ -302,15 +302,15 @@ void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
 
   solver.UpdateState(state);
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_NEAR(results.result_[0], 0.1, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 0.0392, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.00169, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 3.29, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 1.8039e-44, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.000176789, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 0.883912, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 4.5031e-39, absolute_tolerance);
+  EXPECT_NEAR(results.result_[0], 0.1, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[1], 0.0392, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[2], 0.00169, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[3], 0, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[4], 3.29, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[5], 1.8039e-44, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[6], 0.000176789, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[7], 0.883912, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[8], 4.5031e-39, ABSOLUTE_TOLERANCE);
 }
 TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 {

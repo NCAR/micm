@@ -9,29 +9,29 @@
 #include <utility>
 #include <vector>
 
-constexpr size_t nsteps = 1000;
+constexpr size_t NSTEPS = 1000;
 constexpr size_t NUM_CELLS = 3;
 
 ///////////////////////////
 // Common test functions //
 ///////////////////////////
 
-double relative_error(double a, double b)
+double RelativeError(double a, double b)
 {
   return abs(a - b) / abs(b);
 }
 
-double relative_difference(double a, double b)
+double RelativeDifference(double a, double b)
 {
   return abs(a - b) / ((a + b) / 2);
 }
 
-double combined_error(double a, double b, double abs_tol)
+double CombinedError(double a, double b, double abs_tol)
 {
   return abs(a - b) * 2 / (abs(a) + abs(b) + abs_tol);
 }
 
-void writeCSV(
+void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
@@ -73,7 +73,7 @@ void writeCSV(
   }
 }
 
-void writeCSV2D(
+void WriteCsV2D(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<std::vector<double>>>& data,
@@ -118,7 +118,7 @@ void writeCSV2D(
   }
 }
 
-double calculate_air_density_mol_m3(double pressure, double temperature)
+double CalculateAirDensityMolM3(double pressure, double temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
@@ -127,7 +127,7 @@ using SparseMatrixTest = micm::SparseMatrix<double>;
 
 // Test the analytical solution for a simple A -k1-> B -k2-> C system
 template<class BuilderPolicy>
-void test_simple_system(
+void TestSimpleSystem(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
@@ -148,7 +148,7 @@ void test_simple_system(
   {
     double temperature = temperatures[i % temperatures.size()];
     double pressure = pressures[i % pressures.size()];
-    double air_density = calculate_air_density_mol_m3(pressure, temperature);
+    double air_density = CalculateAirDensityMolM3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
   }
@@ -159,11 +159,11 @@ void test_simple_system(
 
   state.SetCustomRateParameters(custom_parameters);
 
-  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+  size_t idx_a = 0, idx_b = 1, idx_c = 2;
 
-  size_t _a = map.at("A");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
+  size_t a = map.at("A");
+  size_t b = map.at("B");
+  size_t c = map.at("C");
 
   std::vector<std::vector<std::vector<double>>> model_concentrations(
       nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
@@ -188,7 +188,7 @@ void test_simple_system(
 
   std::vector<double> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time < nsteps; ++i_time)
+  for (size_t i_time = 1; i_time < NSTEPS; ++i_time)
   {
     solver.UpdateStateParameters(state);
     prepare_for_solve(state);
@@ -211,7 +211,7 @@ void test_simple_system(
 
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      double initial_A = analytical_concentrations[0][i][idx_A];
+      double initial_a = analytical_concentrations[0][i][idx_A];
       analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-(k1[i]) * time);
       analytical_concentrations[i_time][i][idx_B] =
           initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
@@ -244,7 +244,7 @@ void test_simple_system(
 
 // Test the analytical solution for a simple stiff A1<-fast->A2 -k1-> B -k2-> C system
 template<class BuilderPolicy>
-void test_simple_stiff_system(
+void TestSimpleStiffSystem(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
@@ -265,7 +265,7 @@ void test_simple_stiff_system(
   {
     double temperature = temperatures[i % temperatures.size()];
     double pressure = pressures[i % pressures.size()];
-    double air_density = calculate_air_density_mol_m3(pressure, temperature);
+    double air_density = CalculateAirDensityMolM3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
   }
@@ -276,12 +276,12 @@ void test_simple_stiff_system(
 
   state.SetCustomRateParameters(custom_parameters);
 
-  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+  size_t idx_a = 0, idx_b = 1, idx_c = 2;
 
-  size_t _a1 = map.at("A1");
-  size_t _a2 = map.at("A2");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
+  size_t a1 = map.at("A1");
+  size_t a2 = map.at("A2");
+  size_t b = map.at("B");
+  size_t c = map.at("C");
 
   std::vector<std::vector<std::vector<double>>> model_concentrations(
       nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
@@ -307,7 +307,7 @@ void test_simple_stiff_system(
 
   std::vector<double> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time < nsteps; ++i_time)
+  for (size_t i_time = 1; i_time < NSTEPS; ++i_time)
   {
     solver.UpdateStateParameters(state);
     prepare_for_solve(state);
@@ -328,7 +328,7 @@ void test_simple_stiff_system(
 
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      double initial_A = analytical_concentrations[0][i][idx_A];
+      double initial_a = analytical_concentrations[0][i][idx_A];
       analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-k1[i] * time);
       analytical_concentrations[i_time][i][idx_B] =
           initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
@@ -363,7 +363,7 @@ void test_simple_stiff_system(
 ///////////////////////////////
 
 template<class BuilderPolicy>
-void test_analytical_troe(
+void TestAnalyticalTroe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-10,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -433,7 +433,7 @@ void test_analytical_troe(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_troe(
+void TestAnalyticalStiffTroe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-5,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -527,7 +527,7 @@ void test_analytical_stiff_troe(
 }
 
 template<class BuilderPolicy>
-void test_analytical_photolysis(
+void TestAnalyticalPhotolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -589,7 +589,7 @@ void test_analytical_photolysis(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_photolysis(
+void TestAnalyticalStiffPhotolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-5,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -677,7 +677,7 @@ void test_analytical_stiff_photolysis(
 }
 
 template<class BuilderPolicy>
-void test_analytical_ternary_chemical_activation(
+void TestAnalyticalTernaryChemicalActivation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-08,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -749,7 +749,7 @@ void test_analytical_ternary_chemical_activation(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_ternary_chemical_activation(
+void TestAnalyticalStiffTernaryChemicalActivation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -845,7 +845,7 @@ void test_analytical_stiff_ternary_chemical_activation(
 }
 
 template<class BuilderPolicy>
-void test_analytical_tunneling(
+void TestAnalyticalTunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -905,7 +905,7 @@ void test_analytical_tunneling(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_tunneling(
+void TestAnalyticalStiffTunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -988,7 +988,7 @@ void test_analytical_stiff_tunneling(
 }
 
 template<class BuilderPolicy>
-void test_analytical_arrhenius(
+void TestAnalyticalArrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-9,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1047,7 +1047,7 @@ void test_analytical_arrhenius(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_arrhenius(
+void TestAnalyticalStiffArrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1131,7 +1131,7 @@ void test_analytical_stiff_arrhenius(
 }
 
 template<class BuilderPolicy>
-void test_analytical_branched(
+void TestAnalyticalBranched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-13,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1152,29 +1152,31 @@ void test_analytical_branched(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r1 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::ALKOXY,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ b })
-                         .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r2 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ b })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::NITRATE,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
@@ -1187,13 +1189,13 @@ void test_analytical_branched(
       {
         // A->B reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        double a = 2.0e-22 * std::exp(2) * 2.45e19;
+        double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
         double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
         return k1;
@@ -1202,13 +1204,13 @@ void test_analytical_branched(
       {
         // B->C reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        double a = 2.0e-22 * std::exp(2) * 2.45e19;
+        double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
         double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
         return k2;
@@ -1218,7 +1220,7 @@ void test_analytical_branched(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_branched(
+void TestAnalyticalStiffBranched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1242,41 +1244,44 @@ void test_analytical_stiff_branched(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a1 })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r1 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a1 })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::ALKOXY,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a2 })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r2 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a2 })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::ALKOXY,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r3 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ b })
-                         .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r3 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ b })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::NITRATE,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -1303,13 +1308,13 @@ void test_analytical_stiff_branched(
       {
         // A->B reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        double a = 2.0e-22 * std::exp(2) * 2.45e19;
+        double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
         double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
         return k1;
@@ -1318,13 +1323,13 @@ void test_analytical_stiff_branched(
       {
         // B->C reaction rate
         double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        double a = 2.0e-22 * std::exp(2) * 2.45e19;
+        double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
         double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
         return k2;
@@ -1334,7 +1339,7 @@ void test_analytical_stiff_branched(
 }
 
 template<class BuilderPolicy>
-void test_analytical_robertson(
+void TestAnalyticalRobertson(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1459,9 +1464,9 @@ void test_analytical_robertson(
 
   auto map = state.variable_map_;
 
-  size_t _a = map.at("A");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
+  size_t a = map.at("A");
+  size_t b = map.at("B");
+  size_t c = map.at("C");
 
   // average of the starting concentration *1e-3;
   double absolute_tolerance = 0.3e-3;
@@ -1488,7 +1493,7 @@ void test_analytical_robertson(
 }
 
 template<class BuilderPolicy>
-void test_analytical_oregonator(
+void TestAnalyticalOregonator(
     BuilderPolicy builder,
     double relative_tolerance = 1e-4,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1525,11 +1530,11 @@ void test_analytical_oregonator(
    * in the paper give very similar values.
    */
 
-  auto X = micm::Species("X");
-  auto Y = micm::Species("Y");
-  auto Z = micm::Species("Z");
-  auto P = micm::Species("P");
-  auto Q = micm::Species("Q");
+  auto x = micm::Species("X");
+  auto y = micm::Species("Y");
+  auto z = micm::Species("Z");
+  auto p = micm::Species("P");
+  auto q = micm::Species("Q");
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ X, Y, Z, P, Q } };
 
@@ -1576,7 +1581,7 @@ void test_analytical_oregonator(
 
   double tau = 0.1610;
   double time_step = 30 * tau;
-  size_t N = 12;
+  size_t n = 12;
 
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(5));
   std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(5));
@@ -1633,7 +1638,7 @@ void test_analytical_oregonator(
 
   std::vector<double> times;
   times.push_back(0);
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  for (size_t i_time = 0; i_time < n; ++i_time)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
@@ -1664,9 +1669,9 @@ void test_analytical_oregonator(
 
   auto map = state.variable_map_;
 
-  size_t _x = map.at("X");
-  size_t _y = map.at("Y");
-  size_t _z = map.at("Z");
+  size_t x = map.at("X");
+  size_t y = map.at("Y");
+  size_t z = map.at("Z");
 
   // X, Y, Z span very different orders of magnitude (alpha ~5e-11, eta ~3e-7, rho ~2.4e-8),
   // so a single absolute tolerance cannot meaningfully cover all three. Use per-species absolute
@@ -1696,7 +1701,7 @@ void test_analytical_oregonator(
 }
 
 template<class BuilderPolicy>
-void test_analytical_hires(
+void TestAnalyticalHires(
     BuilderPolicy builder,
     double absolute_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1805,7 +1810,7 @@ void test_analytical_hires(
                     .SetReactions(processes)
                     .Build();
 
-  size_t N = 2;
+  size_t n = 2;
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
   std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(8));
 
@@ -1852,7 +1857,7 @@ void test_analytical_hires(
   std::vector<double> times;
   times.push_back(0);
   double time_step = 321.8122;
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  for (size_t i_time = 0; i_time < n; ++i_time)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
@@ -1875,14 +1880,14 @@ void test_analytical_hires(
 
   auto map = state.variable_map_;
 
-  size_t _y0 = map.at("Y0");
-  size_t _y1 = map.at("Y1");
-  size_t _y2 = map.at("Y2");
-  size_t _y3 = map.at("Y3");
-  size_t _y4 = map.at("Y4");
-  size_t _y5 = map.at("Y5");
-  size_t _y6 = map.at("Y6");
-  size_t _y7 = map.at("Y7");
+  size_t y0 = map.at("Y0");
+  size_t y1 = map.at("Y1");
+  size_t y2 = map.at("Y2");
+  size_t y3 = map.at("Y3");
+  size_t y4 = map.at("Y4");
+  size_t y5 = map.at("Y5");
+  size_t y6 = map.at("Y6");
+  size_t y7 = map.at("Y7");
 
   for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
@@ -1906,7 +1911,7 @@ void test_analytical_hires(
 }
 
 template<class BuilderPolicy>
-void test_analytical_e5(
+void TestAnalyticalE5(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1978,7 +1983,7 @@ void test_analytical_e5(
                     .SetReactions(processes)
                     .Build();
 
-  size_t N = 7;
+  size_t n = 7;
 
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(6));
   std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(6));
@@ -2020,7 +2025,7 @@ void test_analytical_e5(
   times.push_back(0);
   double target_time = 10.0;
   double current_time = 0.0;
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  for (size_t i_time = 0; i_time < n; ++i_time)
   {
     double delta_t = target_time - current_time;
     times.push_back(target_time);

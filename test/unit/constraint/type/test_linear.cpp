@@ -26,8 +26,8 @@ TEST(LinearConstraint, Construction)
   // Test: A + B = 1.0 (total concentration conservation)
   // Constraint: G = [A] + [B] - 1.0 = 0
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   LinearConstraint constraint(
       "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0);
@@ -43,9 +43,9 @@ TEST(LinearConstraint, Construction)
 TEST(LinearConstraint, AlgebraicSpecies)
 {
   // Test that AlgebraicSpecies returns the explicitly set algebraic species
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   LinearConstraint constraint(
       "A_B_C_conservation",
@@ -61,9 +61,9 @@ TEST(LinearConstraint, WeightedTerms)
   // Test: 2*A + 3*B - C = 5.0
   // Constraint: G = 2*[A] + 3*[B] - [C] - 5.0 = 0
 
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   LinearConstraint constraint(
       "weighted_sum",
@@ -85,8 +85,8 @@ TEST(LinearConstraint, ZeroConstant)
   // Test: A - B = 0 (species balance)
   // Constraint: G = [A] - [B] = 0
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   LinearConstraint constraint(
       "A_equals_B", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) }, 0.0);
@@ -101,8 +101,8 @@ TEST(LinearConstraint, FractionalCoefficients)
   // Test: 0.5*A + 1.5*B = 2.0
   // Constraint: G = 0.5*[A] + 1.5*[B] - 2.0 = 0
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   LinearConstraint constraint(
       "fractional_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 0.5), StoichSpecies(B, 1.5) }, 2.0);
@@ -122,8 +122,8 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
@@ -133,7 +133,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -148,9 +148,9 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Create state matrix with 1 grid cell and 2 species
   DenseMatrix state(1, 2);
@@ -163,7 +163,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for B (row 1, algebraic species) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
@@ -174,7 +174,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   state[0][1] = 0.6;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.1, 1e-10);
 }
@@ -188,8 +188,8 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
@@ -199,7 +199,7 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   // Create sparse matrix for Jacobian using builder
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -215,9 +215,9 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   StandardSparseMatrix jacobian{ builder };
 
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Create state matrix
   DenseMatrix state(1, 2);
@@ -226,7 +226,7 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   // Compute Jacobian
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.SubtractJacobianTerms(state, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Due to SubtractJacobianTerms convention, the values are negated
   // Row 1 (B, the algebraic species): contains dG/d[A], dG/d[B]
@@ -241,9 +241,9 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
@@ -256,7 +256,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   std::size_t num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -271,9 +271,9 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -286,7 +286,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for C (row 2, algebraic species) should be the constraint residual
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
@@ -297,7 +297,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
     elem = 0.0;
   }
 
-  set.SubtractJacobianTerms(state, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Row 2 (C, the algebraic species): contains dG/d[A], dG/d[B], dG/d[C]
   // Due to SubtractJacobianTerms convention, the values are negated
@@ -313,9 +313,9 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
@@ -328,7 +328,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   std::size_t num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -343,9 +343,9 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -357,7 +357,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
 
@@ -368,7 +368,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   state[0][2] = 6.0;  // C
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][2], 1.0, 1e-10);
 }
@@ -380,8 +380,8 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   std::vector<Constraint> constraints;
   constraints.push_back(
@@ -391,7 +391,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -406,9 +406,9 @@ TEST(LinearConstraint, ZeroConstantResidual)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 2);
   DenseMatrix forcing(1, 2);
@@ -419,7 +419,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
@@ -429,7 +429,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
   state[0][1] = 0.5;  // B
 
   forcing.Fill(0.0);
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.1, 1e-10);
 }
@@ -441,8 +441,8 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
@@ -452,7 +452,7 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -467,9 +467,9 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix state(1, 2);
   DenseMatrix forcing(1, 2);
@@ -481,12 +481,12 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.AddForcingTerms(state, state_parameters, forcing);
+  Set.AddForcingTerms(state, state_parameters, forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
   // Test Jacobian computation
-  set.SubtractJacobianTerms(state, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Due to SubtractJacobianTerms convention, the values are negated
   EXPECT_NEAR(jacobian[0][1][0], -0.5, 1e-10);  // -dG/d[A] = -0.5
@@ -499,8 +499,8 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   std::vector<Constraint> constraints;
   constraints.push_back(
@@ -510,7 +510,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
 
@@ -525,9 +525,9 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   StandardSparseMatrix jacobian{ builder };
 
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // Test at two different concentration points
   DenseMatrix state1(1, 2);
@@ -540,10 +540,10 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   // Compute Jacobian at first state
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
-  set.SubtractJacobianTerms(state1, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(state1, state_parameters, jacobian);
 
-  double jac1_dA = jacobian[0][1][0];
-  double jac1_dB = jacobian[0][1][1];
+  double jac1_d_a = jacobian[0][1][0];
+  double jac1_d_b = jacobian[0][1][1];
 
   // Reset jacobian and compute at second state
   for (auto& elem : jacobian.AsVector())
@@ -551,16 +551,16 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
     elem = 0.0;
   }
 
-  set.SubtractJacobianTerms(state2, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(state2, state_parameters, jacobian);
 
-  double jac2_dA = jacobian[0][1][0];
-  double jac2_dB = jacobian[0][1][1];
+  double jac2_d_a = jacobian[0][1][0];
+  double jac2_d_b = jacobian[0][1][1];
 
   // Jacobian should be the same regardless of concentrations
-  EXPECT_NEAR(jac1_dA, jac2_dA, 1e-10);
-  EXPECT_NEAR(jac1_dB, jac2_dB, 1e-10);
-  EXPECT_NEAR(jac1_dA, -2.0, 1e-10);  // -dG/d[A] = -2.0
-  EXPECT_NEAR(jac1_dB, -3.0, 1e-10);  // -dG/d[B] = -3.0
+  EXPECT_NEAR(jac1_d_a, jac2_d_a, 1e-10);
+  EXPECT_NEAR(jac1_d_b, jac2_d_b, 1e-10);
+  EXPECT_NEAR(jac1_d_a, -2.0, 1e-10);  // -dG/d[A] = -2.0
+  EXPECT_NEAR(jac1_d_b, -3.0, 1e-10);  // -dG/d[B] = -3.0
 }
 
 TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
@@ -569,17 +569,17 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   // G = [A] + [B] - 1.0, dG/dA = 1, dG/dB = 1
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
+  auto a = Species("A");
+  auto b = Species("B");
 
   std::vector<Constraint> constraints;
   constraints.push_back(
       LinearConstraint("conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
-  const std::size_t num_species = 2;
+  const std::size_t NUM_SPECIES = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
@@ -590,9 +590,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix variables(2, num_species, 0.0);
   variables[0][0] = 0.3;
@@ -603,11 +603,11 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   DenseMatrix state_parameters(2, 0);
 
   // Analytical Jacobian
-  set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(variables, state_parameters, jacobian);
 
   // FD Jacobian — wrap the forcing function
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { set.AddForcingTerms(vars, state_parameters, forcing); };
+  { Set.AddForcingTerms(vars, state_parameters, forcing); };
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
@@ -629,9 +629,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   // G = 2[A] + 3[B] - [C] - 5, dG/dA = 2, dG/dB = 3, dG/dC = -1
   using DenseMatrix = Matrix<double>;
 
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint(
@@ -641,9 +641,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
       5.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
-  const std::size_t num_species = 3;
+  const std::size_t NUM_SPECIES = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> Set(std::move(constraints), variable_map);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
@@ -654,9 +654,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
-  set.SetJacobianFlatIds(jacobian);
+  Set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 1.5;
@@ -665,10 +665,10 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
 
   DenseMatrix state_parameters(1, 0);
 
-  set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+  Set.SubtractJacobianTerms(variables, state_parameters, jacobian);
 
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { set.AddForcingTerms(vars, state_parameters, forcing); };
+  { Set.AddForcingTerms(vars, state_parameters, forcing); };
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 

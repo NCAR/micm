@@ -27,7 +27,7 @@ using namespace micm;
 namespace
 {
   // Helper to create a minimal gas phase with species
-  Phase MakeGasPhase(std::vector<Species> species)
+  Phase make_gas_phase(std::vector<Species> species)
   {
     std::vector<PhaseSpecies> ps;
     ps.reserve(species.size());
@@ -45,7 +45,7 @@ namespace
 
   // Helper: build processes list sorted exactly as SolverBuilder would
   // (reactions already sorted by RateConstantTypeOrder before calling BuildFrom)
-  void SortByTypeOrder(std::vector<Process>& procs)
+  void sort_by_type_order(std::vector<Process>& procs)
   {
     auto type_order = [](const Process& p) -> int
     {
@@ -130,7 +130,7 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
                       .SetPhase(gas)
                       .Build());
 
-  SortByTypeOrder(procs);
+  sort_by_type_order(procs);
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
   // Arrhenius: 2, Troe: 1, Ternary: 0, Branched: 0, Tunneling: 1, Taylor: 0, Reversible: 0, UserDefined: 1, Surface: 1
@@ -166,7 +166,7 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
 TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
 {
   Species a("a"), b("b");
-  Phase gas = MakeGasPhase({ a, b });
+  Phase gas = make_gas_phase({ a, b });
 
   ArrheniusRateConstantParameters params{ .A_ = 2.15e-4, .B_ = 1.2, .C_ = 110.0, .D_ = 300.0, .E_ = 0.0 };
   std::vector<Process> procs{ ChemicalReactionBuilder()
@@ -191,10 +191,10 @@ TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
 TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
 {
   Species a("a"), b("b");
-  Phase gas = MakeGasPhase({ a, b });
+  Phase gas = make_gas_phase({ a, b });
 
   BranchedRateConstantParameters params{
-    .branch_ = BranchedRateConstantParameters::Branch::Alkoxy, .X_ = 1.0, .Y_ = 0.0, .a0_ = 0.5, .n_ = 3
+    .branch_ = BranchedRateConstantParameters::Branch::ALKOXY, .X_ = 1.0, .Y_ = 0.0, .a0_ = 0.5, .n_ = 3
   };
   std::vector<Process> procs{ ChemicalReactionBuilder()
                                   .SetReactants({ a })
@@ -214,8 +214,8 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
   double air_ref = 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6;
   double a_val = expected_k0 * air_ref;
   double b_val = 0.43 * std::pow(293.0 / 298.0, -8.0);
-  double A_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
-  double expected_z = A_val * (1.0 - 0.5) / 0.5;
+  double a_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
+  double expected_z = a_val * (1.0 - 0.5) / 0.5;
   EXPECT_NEAR(store.branched_[0].z_, expected_z, 1.0e-10 * std::abs(expected_z));
 }
 
@@ -226,7 +226,7 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
 TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
 {
   Species a("a"), b("b");
-  Phase gas = MakeGasPhase({ a, b });
+  Phase gas = make_gas_phase({ a, b });
 
   UserDefinedRateConstantParameters p1{ .label_ = "rate1", .scaling_factor_ = 2.0 };
   UserDefinedRateConstantParameters p2{ .label_ = "rate2", .scaling_factor_ = 0.5 };
@@ -327,7 +327,7 @@ TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
 TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
 {
   Species a("a"), b("b");
-  Phase gas = MakeGasPhase({ a, b });
+  Phase gas = make_gas_phase({ a, b });
 
   ArrheniusRateConstantParameters arr{};
   LambdaRateConstantParameters lam{ .label_ = "lam",
@@ -368,7 +368,7 @@ TEST(ReactionRateConstantStore, ParameterizedMultipliers)
 {
   Species a("a"), b("b");
   b.parameterize_ = [](const Conditions& c) { return c.air_density_ * 2.0; };
-  Phase gas = MakeGasPhase({ a, b });
+  Phase gas = make_gas_phase({ a, b });
 
   ArrheniusRateConstantParameters arr_a{};  // no parameterized reactants
   ArrheniusRateConstantParameters arr_b{};  // b is parameterized
@@ -441,7 +441,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
                       .SetPhase(gas)
                       .Build());
 
-  SortByTypeOrder(procs);
+  sort_by_type_order(procs);
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
   // Total = lambda_offset() + lambda_entries_.size() = number of chemical reactions

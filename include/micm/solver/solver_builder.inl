@@ -184,7 +184,7 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
+      set_absolute_tolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
           const
   {
     tolerances = std::vector<double>(species_map.size(), 1e-3);
@@ -231,11 +231,11 @@ namespace micm
     }
 
     // Constraints are not supported with CUDA matrix policies
-    constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {
+    constexpr bool IS_CUDA_POLICY = requires(DenseMatrixPolicy m) {
       m.CopyToDevice();
       m.CopyToHost();
     };
-    if constexpr (is_cuda_policy)
+    if constexpr (IS_CUDA_POLICY)
     {
       if (!constraints_.empty() || !external_constraint_models_.empty())
       {

@@ -71,7 +71,7 @@ void CheckIsConverged()
 
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };
-  DenseMatrixPolicy Yn1{ 4, 3, 0.0 };
+  DenseMatrixPolicy yn1{ 4, 3, 0.0 };
 
   parameters.small_ = 1e-6;
   double relative_tolerance = 1e-3;
@@ -84,7 +84,7 @@ void CheckIsConverged()
   ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   residual[3][2] = 1e-3;
   ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
-  Yn1[3][2] = 10.0;
+  yn1[3][2] = 10.0;
   ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   residual[3][2] = 1e-1;
   ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));

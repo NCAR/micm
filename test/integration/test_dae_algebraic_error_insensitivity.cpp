@@ -40,11 +40,11 @@ namespace
 {
   struct SolveResult
   {
-    double A_gas_final;
-    double P_final;
-    double min_A_gas;
-    uint64_t accepted;
-    uint64_t rejected;
+    double A_gas_final_;
+    double P_final_;
+    double min_A_gas_;
+    uint64_t accepted_;
+    uint64_t rejected_;
   };
 
   /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (A_gas)
@@ -54,14 +54,14 @@ namespace
   /// @param K2 Equilibrium constant for A_aq <-> B_aq
   SolveResult RunCascadeSystem(double balance_atol, double k, double K1, double K2)
   {
-    auto A_gas = Species("A_gas");
-    auto A_aq = Species("A_aq");
-    auto B_aq = Species("B_aq");
-    auto P = Species("P");
+    auto a_gas = Species("A_gas");
+    auto a_aq = Species("A_aq");
+    auto b_aq = Species("B_aq");
+    auto p = Species("P");
 
     Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A_gas, A_aq, B_aq, P } };
 
-    double C_total = 1.0e-6;
+    double c_total = 1.0e-6;
 
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ B_aq })
@@ -115,10 +115,10 @@ namespace
 
     // Initial: equilibrium satisfied, P = 0
     double denom = 1.0 + K1 + K1 * K2;
-    double Ag0 = C_total / denom;
-    state.variables_[0][gi] = Ag0;
-    state.variables_[0][ai] = K1 * Ag0;
-    state.variables_[0][bi] = K2 * K1 * Ag0;
+    double ag0 = c_total / denom;
+    state.variables_[0][gi] = ag0;
+    state.variables_[0][ai] = K1 * ag0;
+    state.variables_[0][bi] = K2 * K1 * ag0;
     state.variables_[0][pi] = 0.0;
     state.conditions_[0].temperature_ = 298.0;
     state.conditions_[0].pressure_ = 101325.0;
@@ -135,7 +135,7 @@ namespace
     {
       auto result = solver.Solve(dt - advanced, state);
       EXPECT_EQ(result.state_, SolverState::Converged);
-      if (result.state_ != SolverState::Converged)
+      if (result.state_ != SolverState::CONVERGED)
       {
         break;
       }
@@ -180,9 +180,9 @@ TEST(DAEAlgebraicError, AlgebraicVariableDoesNotOvershootDeeply)
 
   // A_gas should stay non-negative (or very close to zero).
   // The analytical solution has A_gas >= 0 at all times.
-  EXPECT_GE(r.min_A_gas, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas;
+  EXPECT_GE(r.min_A_gas_, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas_;
 
   // After 30s the system should be fully converted: P ≈ C_total, A_gas ≈ 0
-  EXPECT_NEAR(r.P_final, 1.0e-6, 1.0e-8);
-  EXPECT_NEAR(r.A_gas_final, 0.0, 1.0e-10);
+  EXPECT_NEAR(r.P_final_, 1.0e-6, 1.0e-8);
+  EXPECT_NEAR(r.A_gas_final_, 0.0, 1.0e-10);
 }

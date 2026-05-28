@@ -280,7 +280,7 @@ namespace micm
     auto react_id = jacobian_reactant_ids_.begin();
     auto prod_id = jacobian_product_ids_.begin();
     // Algebraic rows may be pruned from sparsity; keep placeholder ids so the update loops stay aligned.
-    constexpr std::size_t skipped_flat_id = 0;
+    constexpr std::size_t SKIPPED_FLAT_ID = 0;
     for (const auto& process_info : jacobian_process_info_)
     {
       for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
@@ -361,7 +361,7 @@ namespace micm
         // Subtract the rate from reactant species
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
-          const std::size_t row_id = react_id[i_react];
+          const std::size_t ROW_ID = react_id[i_react];
           if (!is_algebraic_variable_[row_id])
           {
             cell_forcing[row_id] -= rate;
@@ -370,7 +370,7 @@ namespace micm
         // Add the rate (scaled by yield) to product species
         for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
         {
-          const std::size_t row_id = prod_id[i_prod];
+          const std::size_t ROW_ID = prod_id[i_prod];
           if (!is_algebraic_variable_[row_id])
           {
             cell_forcing[row_id] += yield[i_prod] * rate;
@@ -408,16 +408,16 @@ namespace micm
       auto react_id = reactant_ids_.begin();
       auto prod_id = product_ids_.begin();
       auto yield = yields_.begin();
-      const std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
-      const std::size_t offset_state = i_group * state_variables.GroupSize();
-      const std::size_t offset_forcing = i_group * forcing.GroupSize();
+      const std::size_t OFFSET_RC = i_group * state.rate_constants_.GroupSize();
+      const std::size_t OFFSET_STATE = i_group * state_variables.GroupSize();
+      const std::size_t OFFSET_FORCING = i_group * forcing.GroupSize();
       std::vector<double> rate(L, 0);
-      const std::size_t number_of_reactions = number_of_reactants_.size();
+      const std::size_t NUMBER_OF_REACTIONS = number_of_reactants_.size();
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
-        const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
+        const auto V_RATE_SUBRANGE_BEGIN = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-        const std::size_t number_of_reactants = number_of_reactants_[i_rxn];
+        const std::size_t NUMBER_OF_REACTANTS = number_of_reactants_[i_rxn];
         for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
           std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
@@ -430,7 +430,7 @@ namespace micm
         }
         for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
-          const std::size_t row_id = react_id[i_react];
+          const std::size_t ROW_ID = react_id[i_react];
           if (!is_algebraic_variable_[row_id])
           {
             auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
@@ -441,10 +441,10 @@ namespace micm
             }
           }
         }
-        const std::size_t number_of_products = number_of_products_[i_rxn];
+        const std::size_t NUMBER_OF_PRODUCTS = number_of_products_[i_rxn];
         for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
         {
-          const std::size_t row_id = prod_id[i_prod];
+          const std::size_t ROW_ID = prod_id[i_prod];
           if (!is_algebraic_variable_[row_id])
           {
             auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
@@ -558,9 +558,9 @@ namespace micm
       auto react_id = jacobian_reactant_ids_.begin();
       auto prod_id = jacobian_product_ids_.begin();
       auto yield = jacobian_yields_.begin();
-      const std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
-      const std::size_t offset_state = i_group * state_variables.GroupSize();
-      const std::size_t offset_jacobian = i_group * jacobian.GroupSize();
+      const std::size_t OFFSET_RC = i_group * state.rate_constants_.GroupSize();
+      const std::size_t OFFSET_STATE = i_group * state_variables.GroupSize();
+      const std::size_t OFFSET_JACOBIAN = i_group * jacobian.GroupSize();
       auto flat_id = jacobian_flat_ids_.begin();
 
       for (const auto& process_info : jacobian_process_info_)

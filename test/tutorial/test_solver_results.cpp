@@ -36,7 +36,7 @@ int main()
                    .SetPhase(gas_phase)
                    .Build();
 
-  const std::size_t number_of_grid_cells = 3;
+  const std::size_t NUMBER_OF_GRID_CELLS = 3;
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())

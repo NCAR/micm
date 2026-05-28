@@ -34,9 +34,9 @@ using namespace micm;
 ///        when fast kinetics drain the pool.
 TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 {
-  auto A = Species("A");
-  auto B = Species("B");
-  auto C = Species("C");
+  auto a = Species("A");
+  auto b = Species("B");
+  auto c = Species("C");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
 
@@ -55,7 +55,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   // C is the explicitly set algebraic variable.
   // In the continuous system, C >= 0 always because A,B cannot exceed C_total
   // together. But the discrete solver can overshoot.
-  double C_total = 1.0e-6;
+  double c_total = 1.0e-6;
 
   std::vector<Constraint> constraints;
   constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
@@ -72,9 +72,9 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   state.SetRelativeTolerance(1.0e-6);
   state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
 
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
+  std::size_t a_idx = state.variable_map_.at("A");
+  std::size_t b_idx = state.variable_map_.at("B");
+  std::size_t c_idx = state.variable_map_.at("C");
 
   // Initial conditions: most of the budget in A, a small amount in C, none in B.
   // The fast A->B reaction will rapidly convert A to B. The algebraic variable
@@ -100,7 +100,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 
     // Check conservation
     double sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
-    EXPECT_NEAR(sum, C_total, 1.0e-12) << "Conservation violated at t=" << advanced;
+    EXPECT_NEAR(sum, c_total, 1.0e-12) << "Conservation violated at t=" << advanced;
 
     // The key assertion: C (the algebraic balance variable) must not go negative.
     // Before the fix, the solver would accept steps where B overshoots C_total,
@@ -129,9 +129,9 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   // A_aq from A_gas. The conservation constraint sets A_gas = C_total - A_aq - P.
   // If the solver overshoots P, A_gas goes negative.
 
-  auto A_gas = Species("A_gas");
-  auto A_aq = Species("A_aq");
-  auto P = Species("P");
+  auto a_gas = Species("A_gas");
+  auto a_aq = Species("A_aq");
+  auto p = Species("P");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A_gas, A_aq, P } };
 
@@ -144,8 +144,8 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
                     .SetPhase(gas_phase)
                     .Build();
 
-  double C_total = 1.0e-6;
-  double K_eq = 10.0;
+  double c_total = 1.0e-6;
+  double k_eq = 10.0;
 
   std::vector<Constraint> constraints;
 
@@ -172,9 +172,9 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
 
-  std::size_t A_gas_idx = state.variable_map_.at("A_gas");
-  std::size_t A_aq_idx = state.variable_map_.at("A_aq");
-  std::size_t P_idx = state.variable_map_.at("P");
+  std::size_t a_gas_idx = state.variable_map_.at("A_gas");
+  std::size_t a_aq_idx = state.variable_map_.at("A_aq");
+  std::size_t p_idx = state.variable_map_.at("P");
 
   // Use reasonable absolute tolerances:
   // - Differential variable (P): tight tolerance for accuracy
@@ -186,10 +186,10 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   state.SetAbsoluteTolerances(atols);
 
   // Initial: most sulfur in gas phase, equilibrium satisfied, no product yet
-  double A_gas_init = C_total / (1.0 + K_eq);  // ~ 9.09e-8
-  double A_aq_init = K_eq * A_gas_init;        // ~ 9.09e-7
-  state.variables_[0][A_gas_idx] = A_gas_init;
-  state.variables_[0][A_aq_idx] = A_aq_init;
+  double a_gas_init = c_total / (1.0 + k_eq);  // ~ 9.09e-8
+  double a_aq_init = k_eq * a_gas_init;        // ~ 9.09e-7
+  state.variables_[0][A_gas_idx] = a_gas_init;
+  state.variables_[0][A_aq_idx] = a_aq_init;
   state.variables_[0][P_idx] = 0.0;
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
@@ -206,7 +206,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
     advanced += result.stats_.final_time_;
 
     double sum = state.variables_[0][A_gas_idx] + state.variables_[0][A_aq_idx] + state.variables_[0][P_idx];
-    EXPECT_NEAR(sum, C_total, 1.0e-12) << "Conservation violated at t=" << advanced;
+    EXPECT_NEAR(sum, c_total, 1.0e-12) << "Conservation violated at t=" << advanced;
 
     // A_gas must not go negative
     EXPECT_GE(state.variables_[0][A_gas_idx], -1.0e-18)
@@ -218,7 +218,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   }
 
   // After 30s with k=1e3, nearly all sulfur should be in P
-  EXPECT_NEAR(state.variables_[0][P_idx], C_total, 1.0e-8);
+  EXPECT_NEAR(state.variables_[0][P_idx], c_total, 1.0e-8);
   EXPECT_GE(state.variables_[0][A_gas_idx], -1.0e-18);
 }
 

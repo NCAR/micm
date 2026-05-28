@@ -33,7 +33,7 @@ namespace micm
     RosenbrockTemporaryVariables(
         const auto& state_parameters,
         const auto& solver_parameters,
-        const std::size_t number_of_grid_cells)
+        const std::size_t NUMBER_OF_GRID_CELLS)
         : Ynew_(number_of_grid_cells, state_parameters.number_of_species_),
           initial_forcing_(number_of_grid_cells, state_parameters.number_of_species_),
           Yerror_(number_of_grid_cells, state_parameters.number_of_species_)

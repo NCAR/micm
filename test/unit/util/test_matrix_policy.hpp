@@ -5,7 +5,7 @@
 #include <vector>
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testSmallMatrix()
+MatrixPolicy<double> TestSmallMatrix()
 {
   MatrixPolicy<double> matrix(3, 5);
 
@@ -25,7 +25,7 @@ MatrixPolicy<double> testSmallMatrix()
 }
 
 template<template<class> class MatrixPolicy>
-const MatrixPolicy<double> testSmallConstMatrix()
+const MatrixPolicy<double> TestSmallConstMatrix()
 {
   MatrixPolicy<double> matrix(3, 5);
 
@@ -33,21 +33,21 @@ const MatrixPolicy<double> testSmallConstMatrix()
   matrix[0][0] = 41.2;
   matrix[2][4] = 102.3;
 
-  const MatrixPolicy<double> const_matrix = matrix;
+  const MatrixPolicy<double> CONST_MATRIX = matrix;
 
   EXPECT_EQ(const_matrix[1][3], 64.7);
   EXPECT_EQ(const_matrix[0][0], 41.2);
   EXPECT_EQ(const_matrix[2][4], 102.3);
 
-  const std::vector<double>& data = const_matrix.AsVector();
+  const std::vector<double>& data = CONST_MATRIX.AsVector();
 
   EXPECT_GE(data.size(), 3);
 
-  return const_matrix;
+  return CONST_MATRIX;
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testInializeMatrix()
+MatrixPolicy<double> TestInializeMatrix()
 {
   MatrixPolicy<double> matrix{ 2, 3, 12.4 };
 
@@ -59,19 +59,19 @@ MatrixPolicy<double> testInializeMatrix()
 }
 
 template<template<class> class MatrixPolicy>
-const MatrixPolicy<double> testInializeConstMatrix()
+const MatrixPolicy<double> TestInializeConstMatrix()
 {
-  const MatrixPolicy<double> matrix{ 2, 3, 12.4 };
+  const MatrixPolicy<double> MATRIX{ 2, 3, 12.4 };
 
   EXPECT_EQ(matrix[0][0], 12.4);
   EXPECT_EQ(matrix[1][0], 12.4);
   EXPECT_EQ(matrix[1][2], 12.4);
 
-  return matrix;
+  return MATRIX;
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<int> testLoopOverMatrix()
+MatrixPolicy<int> TestLoopOverMatrix()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.NumRows(); ++i)
@@ -91,7 +91,7 @@ MatrixPolicy<int> testLoopOverMatrix()
 }
 
 template<template<class> class MatrixPolicy>
-const MatrixPolicy<int> testLoopOverConstMatrix()
+const MatrixPolicy<int> TestLoopOverConstMatrix()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.NumRows(); ++i)
@@ -102,18 +102,18 @@ const MatrixPolicy<int> testLoopOverConstMatrix()
     }
   }
 
-  const MatrixPolicy<int> const_matrix = matrix;
+  const MatrixPolicy<int> CONST_MATRIX = matrix;
 
   EXPECT_EQ(const_matrix[0][0], 0);
   EXPECT_EQ(const_matrix[1][2], 102);
   EXPECT_EQ(const_matrix[2][3], 203);
   EXPECT_EQ(const_matrix[0][3], 3);
 
-  return const_matrix;
+  return CONST_MATRIX;
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<int> testStrides()
+MatrixPolicy<int> TestStrides()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
 
@@ -142,7 +142,7 @@ MatrixPolicy<int> testStrides()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testConversionToVector()
+MatrixPolicy<double> TestConversionToVector()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
@@ -160,7 +160,7 @@ MatrixPolicy<double> testConversionToVector()
 }
 
 template<template<class> class MatrixPolicy>
-const MatrixPolicy<double> testConstConversionToVector()
+const MatrixPolicy<double> TestConstConversionToVector()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
@@ -168,18 +168,18 @@ const MatrixPolicy<double> testConstConversionToVector()
   matrix[1][1] = 31.2;
   matrix[1][2] = 314.2;
 
-  const MatrixPolicy<double> const_matrix = matrix;
+  const MatrixPolicy<double> CONST_MATRIX = matrix;
   std::vector<double> slice = const_matrix[1];
 
   EXPECT_EQ(slice[0], 13.2);
   EXPECT_EQ(slice[1], 31.2);
   EXPECT_EQ(slice[2], 314.2);
 
-  return const_matrix;
+  return CONST_MATRIX;
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testConversionFromVector()
+MatrixPolicy<double> TestConversionFromVector()
 {
   MatrixPolicy<double> zero_matrix = std::vector<std::vector<double>>{};
 
@@ -209,7 +209,7 @@ MatrixPolicy<double> testConversionFromVector()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testAssignmentFromVector()
+MatrixPolicy<double> TestAssignmentFromVector()
 {
   MatrixPolicy<double> matrix{ 4, 3, 0.0 };
   std::vector<double> other = { 12.3, 15.1, 24.3 };
@@ -238,7 +238,7 @@ MatrixPolicy<double> testAssignmentFromVector()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testAxpy()
+MatrixPolicy<double> TestAxpy()
 {
   std::size_t num_rows = 4;
   std::size_t num_columns = 3;
@@ -275,7 +275,7 @@ MatrixPolicy<double> testAxpy()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testForEach()
+MatrixPolicy<double> TestForEach()
 {
   MatrixPolicy<double> matrix{ 4, 3, 100.0 };
   MatrixPolicy<double> other{ 4, 3, 200.0 };
@@ -306,7 +306,7 @@ MatrixPolicy<double> testForEach()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testSetScalar()
+MatrixPolicy<double> TestSetScalar()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
@@ -321,7 +321,7 @@ MatrixPolicy<double> testSetScalar()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testMax()
+MatrixPolicy<double> TestMax()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
@@ -347,7 +347,7 @@ MatrixPolicy<double> testMax()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testMin()
+MatrixPolicy<double> TestMin()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
@@ -373,7 +373,7 @@ MatrixPolicy<double> testMin()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testPrint()
+MatrixPolicy<double> TestPrint()
 {
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
@@ -389,7 +389,7 @@ MatrixPolicy<double> testPrint()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testArrayFunction()
+MatrixPolicy<double> TestArrayFunction()
 {
   MatrixPolicy<double> matrix{ 5, 3, -1.0 };
 
@@ -460,27 +460,27 @@ MatrixPolicy<double> testArrayFunction()
 }
 
 template<template<class> class MatrixPolicy>
-std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunction()
+std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultiMatrixArrayFunction()
 {
-  MatrixPolicy<double> matrixA{ 3, 2, 1.0 };
-  MatrixPolicy<double> matrixB{ 3, 3, 2.0 };
+  MatrixPolicy<double> matrix_a{ 3, 2, 1.0 };
+  MatrixPolicy<double> matrix_b{ 3, 3, 2.0 };
 
   // Set initial values that differ by rows
-  for (int i = 0; i < static_cast<int>(matrixA.NumRows()); ++i)
+  for (int i = 0; i < static_cast<int>(matrix_a.NumRows()); ++i)
   {
-    for (int j = 0; j < static_cast<int>(matrixA.NumColumns()); ++j)
+    for (int j = 0; j < static_cast<int>(matrix_a.NumColumns()); ++j)
     {
-      matrixA[i][j] = static_cast<double>(i + 10 * j);
+      matrix_a[i][j] = static_cast<double>(i + 10 * j);
     }
-    for (int j = 0; j < static_cast<int>(matrixB.NumColumns()); ++j)
+    for (int j = 0; j < static_cast<int>(matrix_b.NumColumns()); ++j)
     {
-      matrixB[i][j] = static_cast<double>(i * 2 + 20 * j);
+      matrix_b[i][j] = static_cast<double>(i * 2 + 20 * j);
     }
   }
   // Set column 2 of matrixB separately
-  for (int i = 0; i < static_cast<int>(matrixB.NumRows()); ++i)
+  for (int i = 0; i < static_cast<int>(matrix_b.NumRows()); ++i)
   {
-    matrixB[i][2] = static_cast<double>(i * 4);
+    matrix_b[i][2] = static_cast<double>(i * 4);
   }
 
   // Initial MatrixA values:
@@ -506,10 +506,10 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunct
             tmp);
         mA.ForEachRow([&](const double& t, double& c) { c = t; }, tmp, mA.GetColumnView(1));
       },
-      matrixA,
-      matrixB);
+      matrix_a,
+      matrix_b);
 
-  func(matrixA, matrixB);
+  func(matrix_a, matrix_b);
 
   // Check results
   EXPECT_EQ(matrixA[0][1], 0 + 0);  // 0
@@ -522,11 +522,11 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixArrayFunct
   EXPECT_EQ(matrixB[1][0], 2.0);
   EXPECT_EQ(matrixB[2][0], 4.0);
 
-  return { matrixA, matrixB };
+  return { matrix_a, matrix_b };
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testVectorInMatrixFunction()
+MatrixPolicy<double> TestVectorInMatrixFunction()
 {
   MatrixPolicy<double> matrix{ 5, 3, -1.0 };
 
@@ -595,11 +595,11 @@ MatrixPolicy<double> testVectorInMatrixFunction()
 
 /// @brief Test: Multiple matrices - function created with N rows, used with M rows
 template<template<class> class MatrixPolicy>
-std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixDifferentRowsFromCreation()
+std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultiMatrixDifferentRowsFromCreation()
 {
   // Create function with 3-row matrices
-  MatrixPolicy<double> matrixA_create{ 3, 2, 0.0 };
-  MatrixPolicy<double> matrixB_create{ 3, 3, 0.0 };
+  MatrixPolicy<double> matrix_a_create{ 3, 2, 0.0 };
+  MatrixPolicy<double> matrix_b_create{ 3, 3, 0.0 };
 
   auto func = MatrixPolicy<double>::Function(
       [](auto&& mA, auto&& mB)
@@ -612,21 +612,21 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixDifferentR
             tmp);
         mA.ForEachRow([&](const double& t, double& c) { c = t * 2.0; }, tmp, mA.GetColumnView(1));
       },
-      matrixA_create,
-      matrixB_create);
+      matrix_a_create,
+      matrix_b_create);
 
   // Now use with 5-row matrices (different from creation)
-  MatrixPolicy<double> matrixA{ 5, 2, 0.0 };
-  MatrixPolicy<double> matrixB{ 5, 3, 0.0 };
+  MatrixPolicy<double> matrix_a{ 5, 2, 0.0 };
+  MatrixPolicy<double> matrix_b{ 5, 3, 0.0 };
 
   for (std::size_t i = 0; i < 5; ++i)
   {
-    matrixA[i][0] = static_cast<double>(i + 1);
-    matrixB[i][2] = static_cast<double>(i * 10);
+    matrix_a[i][0] = static_cast<double>(i + 1);
+    matrix_b[i][2] = static_cast<double>(i * 10);
   }
 
   // Should work - column counts match, row counts match each other
-  func(matrixA, matrixB);
+  func(matrix_a, matrix_b);
 
   EXPECT_EQ(matrixA[0][1], (1.0 + 0.0) * 2.0);   // 2
   EXPECT_EQ(matrixA[1][1], (2.0 + 10.0) * 2.0);  // 24
@@ -635,20 +635,20 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultiMatrixDifferentR
   EXPECT_EQ(matrixA[4][1], (5.0 + 40.0) * 2.0);  // 90
 
   // Also test with 2-row matrices (fewer rows than creation)
-  MatrixPolicy<double> matrixA2{ 2, 2, 0.0 };
-  MatrixPolicy<double> matrixB2{ 2, 3, 0.0 };
+  MatrixPolicy<double> matrix_a2{ 2, 2, 0.0 };
+  MatrixPolicy<double> matrix_b2{ 2, 3, 0.0 };
 
-  matrixA2[0][0] = 10.0;
-  matrixA2[1][0] = 20.0;
-  matrixB2[0][2] = 5.0;
-  matrixB2[1][2] = 15.0;
+  matrix_a2[0][0] = 10.0;
+  matrix_a2[1][0] = 20.0;
+  matrix_b2[0][2] = 5.0;
+  matrix_b2[1][2] = 15.0;
 
-  func(matrixA2, matrixB2);
+  func(matrix_a2, matrix_b2);
 
   EXPECT_EQ(matrixA2[0][1], (10.0 + 5.0) * 2.0);   // 30
   EXPECT_EQ(matrixA2[1][1], (20.0 + 15.0) * 2.0);  // 70
 
-  return { matrixA, matrixB };
+  return { matrix_a, matrix_b };
 }
 
 /// @brief Test: Matrix + vector - function created with N rows, used with M rows
@@ -693,7 +693,7 @@ std::tuple<MatrixPolicy<double>, std::vector<double>> testMatrixVectorDifferentR
 
 /// @brief Test: Mismatched row counts at invocation time (should fail)
 template<template<class> class MatrixPolicy>
-void testMismatchedRowsAtInvocation()
+void TestMismatchedRowsAtInvocation()
 {
   MatrixPolicy<double> matrix_create{ 3, 2, 0.0 };
   std::vector<double> vec_create(3);
@@ -718,27 +718,27 @@ void testMismatchedRowsAtInvocation()
 
 /// @brief Test: Mismatched row counts between multiple matrices at invocation (should fail)
 template<template<class> class MatrixPolicy>
-void testMultipleMatricesMismatchedRowsAtInvocation()
+void TestMultipleMatricesMismatchedRowsAtInvocation()
 {
-  MatrixPolicy<double> matrixA_create{ 3, 2, 0.0 };
-  MatrixPolicy<double> matrixB_create{ 3, 3, 0.0 };
+  MatrixPolicy<double> matrix_a_create{ 3, 2, 0.0 };
+  MatrixPolicy<double> matrix_b_create{ 3, 3, 0.0 };
 
   auto func = MatrixPolicy<double>::Function(
       [](auto&& mA, auto&& mB)
       { mA.ForEachRow([&](const double& a, double& b) { b = a * 2.0; }, mB.GetConstColumnView(0), mA.GetColumnView(0)); },
-      matrixA_create,
-      matrixB_create);
+      matrix_a_create,
+      matrix_b_create);
 
   // Try to invoke with matrices having different row counts - should fail
-  MatrixPolicy<double> matrixA{ 5, 2, 0.0 };
-  MatrixPolicy<double> matrixB{ 3, 3, 0.0 };  // Different row count!
+  MatrixPolicy<double> matrix_a{ 5, 2, 0.0 };
+  MatrixPolicy<double> matrix_b{ 3, 3, 0.0 };  // Different row count!
 
-  EXPECT_ANY_THROW(func(matrixA, matrixB));
+  EXPECT_ANY_THROW(func(matrix_a, matrix_b));
 }
 
 /// @brief Test: Wrong column count at invocation time (should fail)
 template<template<class> class MatrixPolicy>
-void testWrongColumnCountAtInvocation()
+void TestWrongColumnCountAtInvocation()
 {
   // Create function with 3-column matrix
   MatrixPolicy<double> matrix_create{ 4, 3, 0.0 };
@@ -769,10 +769,10 @@ void testWrongColumnCountAtInvocation()
 }
 
 template<template<class> class MatrixPolicy>
-void testMismatchedRowDimensions()
+void TestMismatchedRowDimensions()
 {
-  MatrixPolicy<double> matrixA{ 3, 3, 1.0 };
-  MatrixPolicy<double> matrixB{ 4, 3, 2.0 };  // Different number of rows during creation
+  MatrixPolicy<double> matrix_a{ 3, 3, 1.0 };
+  MatrixPolicy<double> matrix_b{ 4, 3, 2.0 };  // Different number of rows during creation
 
   // Should now SUCCEED when creating with different row counts
   // (as long as column counts match, which they do here)
@@ -785,24 +785,24 @@ void testMismatchedRowDimensions()
             mB.GetConstColumnView(0),
             mA.GetColumnView(1));
       },
-      matrixA,
-      matrixB);
+      matrix_a,
+      matrix_b);
 
   // Can use the function with matrices of the same row count
-  MatrixPolicy<double> matrixC{ 5, 3, 0.0 };
-  MatrixPolicy<double> matrixD{ 5, 3, 1.0 };
+  MatrixPolicy<double> matrix_c{ 5, 3, 0.0 };
+  MatrixPolicy<double> matrix_d{ 5, 3, 1.0 };
 
-  EXPECT_NO_THROW(func(matrixC, matrixD));
+  EXPECT_NO_THROW(func(matrix_c, matrix_d));
 
   // But should throw if invoked with mismatched row counts
-  MatrixPolicy<double> matrixE{ 3, 3, 0.0 };
-  MatrixPolicy<double> matrixF{ 4, 3, 1.0 };  // Different row count!
+  MatrixPolicy<double> matrix_e{ 3, 3, 0.0 };
+  MatrixPolicy<double> matrix_f{ 4, 3, 1.0 };  // Different row count!
 
-  EXPECT_ANY_THROW(func(matrixE, matrixF));
+  EXPECT_ANY_THROW(func(matrix_e, matrix_f));
 }
 
 template<template<class> class MatrixPolicy>
-void testMismatchedColumnDimensions()
+void TestMismatchedColumnDimensions()
 {
   MatrixPolicy<double> matrix{ 3, 4, 1.0 };
 
@@ -823,7 +823,7 @@ void testMismatchedColumnDimensions()
 }
 
 template<template<class> class MatrixPolicy>
-void testWrongMatrixDimensions()
+void TestWrongMatrixDimensions()
 {
   MatrixPolicy<double> matrix1{ 3, 4, 1.0 };
   MatrixPolicy<double> matrix2{ 3, 5, 2.0 };  // Different column count
@@ -851,7 +851,7 @@ void testWrongMatrixDimensions()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testMultipleTemporaries()
+MatrixPolicy<double> TestMultipleTemporaries()
 {
   MatrixPolicy<double> matrix{ 4, 5, 0.0 };
 
@@ -916,7 +916,7 @@ MatrixPolicy<double> testMultipleTemporaries()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testColumnViewReuse()
+MatrixPolicy<double> TestColumnViewReuse()
 {
   MatrixPolicy<double> matrix{ 3, 4, 0.0 };
 
@@ -967,7 +967,7 @@ MatrixPolicy<double> testColumnViewReuse()
 }
 
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testFunctionReusability()
+MatrixPolicy<double> TestFunctionReusability()
 {
   // Create a function once
   MatrixPolicy<double> matrix1{ 2, 3, 1.0 };
@@ -1020,7 +1020,7 @@ MatrixPolicy<double> testFunctionReusability()
 }
 
 template<template<class> class MatrixPolicy>
-void testConstMatrixFunction()
+void TestConstMatrixFunction()
 {
   MatrixPolicy<double> matrix{ 3, 4, 0.0 };
 
@@ -1063,7 +1063,7 @@ void testConstMatrixFunction()
 }
 
 template<template<class> class MatrixPolicy>
-void testEmptyMatrixFunction()
+void TestEmptyMatrixFunction()
 {
   // Test with 0 rows
   MatrixPolicy<double> empty_rows{ 0, 3, 1.0 };
@@ -1100,7 +1100,7 @@ void testEmptyMatrixFunction()
 
 /// @brief Test: Vector with TOO FEW elements (creation succeeds, invocation fails)
 template<template<class> class MatrixPolicy>
-void testVectorTooSmall()
+void TestVectorTooSmall()
 {
   MatrixPolicy<double> matrix{ 5, 3, 1.0 };
   std::vector<double> vec_too_small(3);  // Only 3 elements, but matrix has 5 rows
@@ -1121,7 +1121,7 @@ void testVectorTooSmall()
 
 /// @brief Test: Vector with TOO MANY elements (creation succeeds, invocation fails)
 template<template<class> class MatrixPolicy>
-void testVectorTooLarge()
+void TestVectorTooLarge()
 {
   MatrixPolicy<double> matrix{ 5, 3, 1.0 };
   std::vector<double> vec_too_large(10);  // 10 elements, but matrix has 5 rows
@@ -1142,7 +1142,7 @@ void testVectorTooLarge()
 
 /// @brief Test: Empty vector with non-empty matrix (creation succeeds, invocation fails)
 template<template<class> class MatrixPolicy>
-void testEmptyVectorNonEmptyMatrix()
+void TestEmptyVectorNonEmptyMatrix()
 {
   MatrixPolicy<double> matrix{ 5, 3, 1.0 };
   std::vector<double> empty_vec;  // Empty
@@ -1159,7 +1159,7 @@ void testEmptyVectorNonEmptyMatrix()
 
 /// @brief Test: Non-empty vector with empty matrix (creation succeeds, invocation fails)
 template<template<class> class MatrixPolicy>
-void testNonEmptyVectorEmptyMatrix()
+void TestNonEmptyVectorEmptyMatrix()
 {
   MatrixPolicy<double> matrix{ 0, 3, 1.0 };  // 0 rows
   std::vector<double> vec(5);
@@ -1176,7 +1176,7 @@ void testNonEmptyVectorEmptyMatrix()
 
 /// @brief Test: Empty vector with empty matrix (should work - no iterations)
 template<template<class> class MatrixPolicy>
-void testEmptyVectorEmptyMatrix()
+void TestEmptyVectorEmptyMatrix()
 {
   MatrixPolicy<double> matrix{ 0, 3, 1.0 };  // 0 rows
   std::vector<double> empty_vec;             // Empty
@@ -1192,7 +1192,7 @@ void testEmptyVectorEmptyMatrix()
 
 /// @brief Test: Multiple vectors with DIFFERENT sizes (creation succeeds, invocation fails)
 template<template<class> class MatrixPolicy>
-void testMultipleVectorsDifferentSizes()
+void TestMultipleVectorsDifferentSizes()
 {
   MatrixPolicy<double> matrix{ 5, 3, 1.0 };
   std::vector<double> vec1(5);  // Size 5
@@ -1212,7 +1212,7 @@ void testMultipleVectorsDifferentSizes()
 
 /// @brief Test: Multiple vectors with SAME correct size (should work)
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testMultipleVectorsSameSize()
+MatrixPolicy<double> TestMultipleVectorsSameSize()
 {
   MatrixPolicy<double> matrix{ 5, 3, 0.0 };
   std::vector<double> vec1(5);
@@ -1250,17 +1250,17 @@ MatrixPolicy<double> testMultipleVectorsSameSize()
 
 /// @brief Test: Multiple matrices + vector - vector size must match all matrices
 template<template<class> class MatrixPolicy>
-std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVector()
+std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultipleMatricesOneVector()
 {
-  MatrixPolicy<double> matrixA{ 4, 2, 0.0 };
-  MatrixPolicy<double> matrixB{ 4, 3, 0.0 };
+  MatrixPolicy<double> matrix_a{ 4, 2, 0.0 };
+  MatrixPolicy<double> matrix_b{ 4, 3, 0.0 };
   std::vector<double> vec(4);
 
   for (std::size_t i = 0; i < 4; ++i)
   {
     vec[i] = static_cast<double>(i * 2);
-    matrixA[i][0] = static_cast<double>(i + 1);
-    matrixB[i][0] = static_cast<double>(i * 10);
+    matrix_a[i][0] = static_cast<double>(i + 1);
+    matrix_b[i][0] = static_cast<double>(i * 10);
   }
 
   // Should succeed - both matrices have 4 rows, vector has 4 elements
@@ -1281,11 +1281,11 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVe
             v,
             mB.GetColumnView(1));
       },
-      matrixA,
-      matrixB,
+      matrix_a,
+      matrix_b,
       vec);
 
-  func(matrixA, matrixB, vec);
+  func(matrix_a, matrix_b, vec);
 
   // Verify results
   EXPECT_EQ(matrixA[0][1], 1.0 + 0.0);  // 1
@@ -1298,7 +1298,7 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVe
   EXPECT_EQ(matrixB[2][1], 20.0 + 4.0);  // 24
   EXPECT_EQ(matrixB[3][1], 30.0 + 6.0);  // 36
 
-  return { matrixA, matrixB };
+  return { matrix_a, matrix_b };
 }
 
 /// @brief Test: Multiple matrices with DIFFERENT row counts + vector (creation succeeds, invocation fails)
@@ -1307,22 +1307,22 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> testMultipleMatricesOneVe
   #pragma GCC diagnostic ignored "-Wstringop-overread"
 #endif
 template<template<class> class MatrixPolicy>
-void testMultipleMatricesDifferentRowsVector()
+void TestMultipleMatricesDifferentRowsVector()
 {
-  MatrixPolicy<double> matrixA{ 4, 2, 0.0 };
-  MatrixPolicy<double> matrixB{ 5, 3, 0.0 };  // Different row count!
+  MatrixPolicy<double> matrix_a{ 4, 2, 0.0 };
+  MatrixPolicy<double> matrix_b{ 5, 3, 0.0 };  // Different row count!
   std::vector<double> vec(4);
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<double>::Function(
       [](auto&& mA, auto&& mB, auto&& v)
       { mA.ForEachRow([&](const double& a, double& b) { b = a; }, v, mA.GetColumnView(0)); },
-      matrixA,
-      matrixB,
+      matrix_a,
+      matrix_b,
       vec);
 
   // Should throw at invocation because matrices have different row counts
-  EXPECT_ANY_THROW(func(matrixA, matrixB, vec));
+  EXPECT_ANY_THROW(func(matrix_a, matrix_b, vec));
 }
 #if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
@@ -1334,22 +1334,22 @@ void testMultipleMatricesDifferentRowsVector()
   #pragma GCC diagnostic ignored "-Wstringop-overread"
 #endif
 template<template<class> class MatrixPolicy>
-void testVectorSizeMatchesOneMatrixOnly()
+void TestVectorSizeMatchesOneMatrixOnly()
 {
-  MatrixPolicy<double> matrixA{ 5, 2, 0.0 };
-  MatrixPolicy<double> matrixB{ 5, 3, 0.0 };
+  MatrixPolicy<double> matrix_a{ 5, 2, 0.0 };
+  MatrixPolicy<double> matrix_b{ 5, 3, 0.0 };
   std::vector<double> vec(4);  // Wrong size for both matrices (they have 5 rows)
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<double>::Function(
       [](auto&& mA, auto&& mB, auto&& v)
       { mA.ForEachRow([&](const double& a, double& b) { b = a; }, v, mA.GetColumnView(0)); },
-      matrixA,
-      matrixB,
+      matrix_a,
+      matrix_b,
       vec);
 
   // Should throw at invocation because vector size doesn't match matrix row counts
-  EXPECT_ANY_THROW(func(matrixA, matrixB, vec));
+  EXPECT_ANY_THROW(func(matrix_a, matrix_b, vec));
 }
 #if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC diagnostic pop
@@ -1357,7 +1357,7 @@ void testVectorSizeMatchesOneMatrixOnly()
 
 /// @brief Test: Const vector (read-only access)
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testConstVector()
+MatrixPolicy<double> TestConstVector()
 {
   MatrixPolicy<double> matrix{ 3, 2, 0.0 };
   std::vector<double> vec_data = { 10.0, 20.0, 30.0 };
@@ -1416,7 +1416,7 @@ std::tuple<MatrixPolicy<double>, std::vector<double>> testMutableVector()
 
 /// @brief Test: Function reusability with different vectors
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testFunctionReusabilityWithVectors()
+MatrixPolicy<double> TestFunctionReusabilityWithVectors()
 {
   MatrixPolicy<double> matrix{ 3, 2, 0.0 };
   std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
@@ -1445,7 +1445,7 @@ MatrixPolicy<double> testFunctionReusabilityWithVectors()
 
 /// @brief Test: Applying function with vector of wrong size at invocation time
 template<template<class> class MatrixPolicy>
-void testFunctionInvocationWithWrongSizedVector()
+void TestFunctionInvocationWithWrongSizedVector()
 {
   MatrixPolicy<double> matrix{ 3, 2, 0.0 };
   std::vector<double> vec_correct(3);
@@ -1466,7 +1466,7 @@ void testFunctionInvocationWithWrongSizedVector()
 
 /// @brief Test: Array instead of vector (should work with any operator[] type)
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testArraySupport()
+MatrixPolicy<double> TestArraySupport()
 {
   MatrixPolicy<double> matrix{ 4, 2, 0.0 };
   std::array<double, 4> arr = { 100.0, 200.0, 300.0, 400.0 };
@@ -1489,7 +1489,7 @@ MatrixPolicy<double> testArraySupport()
 
 /// @brief Test: Mixed - vector, column view, and row variable together
 template<template<class> class MatrixPolicy>
-MatrixPolicy<double> testMixedVectorColumnViewRowVariable()
+MatrixPolicy<double> TestMixedVectorColumnViewRowVariable()
 {
   MatrixPolicy<double> matrix{ 4, 3, 0.0 };
   std::vector<double> vec(4);
@@ -1536,7 +1536,7 @@ MatrixPolicy<double> testMixedVectorColumnViewRowVariable()
 
 /// @brief Test: Different integer types (std::vector<int>)
 template<template<class> class MatrixPolicy>
-MatrixPolicy<int> testIntegerVector()
+MatrixPolicy<int> TestIntegerVector()
 {
   MatrixPolicy<int> matrix{ 3, 2, 0 };
   std::vector<int> vec = { 10, 20, 30 };
@@ -1556,7 +1556,7 @@ MatrixPolicy<int> testIntegerVector()
 }
 
 template<template<class> class MatrixPolicy>
-void testFunctionWithConstSignature()
+void TestFunctionWithConstSignature()
 {
   MatrixPolicy<double> matrix{ 3, 2, 0.0 };
   std::vector<double> vec(3);

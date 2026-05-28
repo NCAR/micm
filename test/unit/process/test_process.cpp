@@ -25,7 +25,7 @@
 using namespace micm;
 
 /// @brief Sort processes in the same order that SolverBuilder uses, so rc_indices match.
-static void SortLikeBuilder(std::vector<Process>& procs)
+static void sort_like_builder(std::vector<Process>& procs)
 {
   std::stable_sort(
       procs.begin(),
@@ -80,7 +80,7 @@ static std::vector<std::string> CustomParamLabels(const Process& proc)
 }
 
 template<class DenseMatrixPolicy>
-void testProcessUpdateState(const std::size_t number_of_grid_cells)
+void TestProcessUpdateState(const std::size_t NUMBER_OF_GRID_CELLS)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   Species bar("bar");
@@ -101,7 +101,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   std::vector<Process> processes = { r1, r2, r3 };
 
   // Sort as SolverBuilder does: Arrhenius(0), UserDefined(7), Surface(8)
-  SortLikeBuilder(processes);
+  sort_like_builder(processes);
 
   // Build custom param labels in sorted order
   std::vector<std::string> param_labels;
@@ -195,10 +195,10 @@ TEST(Process, VectorMatrix)
 
 TEST(Process, BuildsChemicalReaction)
 {
-  auto O3 = Species("O3");
-  auto NO = Species("NO");
-  auto NO2 = Species("NO2");
-  auto O2 = Species("O2");
+  auto o3 = Species("O3");
+  auto no = Species("NO");
+  auto n_o2 = Species("NO2");
+  auto o2 = Species("O2");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
 
