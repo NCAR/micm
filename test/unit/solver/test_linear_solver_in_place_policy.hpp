@@ -64,18 +64,17 @@ void testDenseMatrix()
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
-  SparseMatrixPolicy A = SparseMatrixPolicy(
-      SparseMatrixPolicy::Create(3)
-          .InitialValue(0)
-          .WithElement(0, 0)
-          .WithElement(0, 1)
-          .WithElement(0, 2)
-          .WithElement(1, 0)
-          .WithElement(1, 1)
-          .WithElement(1, 2)
-          .WithElement(2, 0)
-          .WithElement(2, 1)
-          .WithElement(2, 2));
+  SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
+                                                .InitialValue(0)
+                                                .WithElement(0, 0)
+                                                .WithElement(0, 1)
+                                                .WithElement(0, 2)
+                                                .WithElement(1, 0)
+                                                .WithElement(1, 1)
+                                                .WithElement(1, 2)
+                                                .WithElement(2, 0)
+                                                .WithElement(2, 1)
+                                                .WithElement(2, 2));
   MatrixPolicy b(1, 3, 0.0);
   MatrixPolicy x(1, 3, 0.0);
 

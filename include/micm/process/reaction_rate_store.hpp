@@ -145,15 +145,14 @@ namespace micm
 
           if (!param_funcs.empty())
           {
-            store.parameterized_multipliers_.push_back(
-                { [pf = std::move(param_funcs)](const Conditions& cond)
-                  {
-                    double val = 1.0;
-                    for (const auto& f : pf)
-                      val *= f(cond);
-                    return val;
-                  },
-                  rc_index });
+            store.parameterized_multipliers_.push_back({ [pf = std::move(param_funcs)](const Conditions& cond)
+                                                         {
+                                                           double val = 1.0;
+                                                           for (const auto& f : pf)
+                                                             val *= f(cond);
+                                                           return val;
+                                                         },
+                                                         rc_index });
           }
         }
 

@@ -218,8 +218,7 @@ namespace micm
       class LMatrixPolicy,
       class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
-      ConstVariableProxy::
-      operator double() const
+      ConstVariableProxy::operator double() const
   {
     if (state_.variables_.NumRows() != 1)
     {

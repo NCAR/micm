@@ -954,8 +954,7 @@ void testMismatchedBlocksAtInvocation()
 
   // Create function
   auto func = MatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& mA, auto&& mB)
-      {
+      [](auto&& mA, auto&& mB) {
         mA.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; }, mB.GetConstBlockView(0, 1), mA.GetBlockView(1, 2));
       },
       matrix3,
@@ -1465,7 +1464,7 @@ void testIncompatibleOrdering()
 
     // This should throw during validation (before lambda execution)
     EXPECT_THROW(
-        (SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) { }, sparseMatrix, denseMatrix)),
+        (SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) {}, sparseMatrix, denseMatrix)),
         micm::MicmException);
   }
 }
@@ -1557,7 +1556,7 @@ void testIncompatibleVectorOrdering()
 
     // This should throw during validation (before lambda execution)
     EXPECT_THROW(
-        (SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) { }, sparseMatrix, vectorMatrix)),
+        (SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) {}, sparseMatrix, vectorMatrix)),
         micm::MicmException);
   }
 }
@@ -1585,7 +1584,7 @@ void testIncompatibleSparseOrdering()
     // This should throw during validation (before lambda execution)
     // Use a simple lambda that doesn't access mismatched data to avoid template instantiation issues
     EXPECT_THROW(
-        (SparseMatrixPolicy<double, OrderingPolicy1>::Function([](auto&&, auto&&) { }, sparseMatrix1, sparseMatrix2)),
+        (SparseMatrixPolicy<double, OrderingPolicy1>::Function([](auto&&, auto&&) {}, sparseMatrix1, sparseMatrix2)),
         micm::MicmException);
   }
 }
@@ -2021,7 +2020,7 @@ void testFunctionInvocationWithWrongSizedVectorSparse()
   std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
   std::vector<double> vec2 = { 1.0, 2.0 };  // Wrong size
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) { }, matrix, vec1);
+  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) {}, matrix, vec1);
 
   EXPECT_THROW(
       try { func(matrix, vec2); } catch (micm::MicmException& e) {

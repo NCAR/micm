@@ -128,7 +128,7 @@ class AnotherStubAerosolModel
     if (baz_to_qux_param_it == state_parameter_indices.end())
     {
       // If the parameter is missing, return a no-op updater to avoid undefined behavior.
-      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
     }
     std::size_t baz_to_qux_param_index = baz_to_qux_param_it->second;
     return [baz_to_qux_param_index](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
@@ -209,16 +209,14 @@ class AnotherStubAerosolModel
     if (fo2_mode2_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end() &&
         fo2_to_baz_param_it != state_parameter_indices.end())
     {
-      jacobian_info.push_back(
-          { fo2_mode2_index_it->second,
-            fo2_mode2_index_it->second,
-            fo2_to_baz_param_it->second,
-            -1.0 });  // reactant partial derivative
-      jacobian_info.push_back(
-          { baz_mode2_index_it->second,
-            fo2_mode2_index_it->second,
-            fo2_to_baz_param_it->second,
-            1.0 });  // product partial derivative
+      jacobian_info.push_back({ fo2_mode2_index_it->second,
+                                fo2_mode2_index_it->second,
+                                fo2_to_baz_param_it->second,
+                                -1.0 });  // reactant partial derivative
+      jacobian_info.push_back({ baz_mode2_index_it->second,
+                                fo2_mode2_index_it->second,
+                                fo2_to_baz_param_it->second,
+                                1.0 });  // product partial derivative
     }
     auto baz_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.BAZ");
     auto qux_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.QUX");
@@ -226,16 +224,14 @@ class AnotherStubAerosolModel
     if (baz_mode3_index_it != state_variable_indices.end() && qux_mode3_index_it != state_variable_indices.end() &&
         baz_to_qux_param_it != state_parameter_indices.end())
     {
-      jacobian_info.push_back(
-          { baz_mode3_index_it->second,
-            baz_mode3_index_it->second,
-            baz_to_qux_param_it->second,
-            -1.0 });  // reactant partial derivative
-      jacobian_info.push_back(
-          { qux_mode3_index_it->second,
-            baz_mode3_index_it->second,
-            baz_to_qux_param_it->second,
-            1.0 });  // product partial derivative
+      jacobian_info.push_back({ baz_mode3_index_it->second,
+                                baz_mode3_index_it->second,
+                                baz_to_qux_param_it->second,
+                                -1.0 });  // reactant partial derivative
+      jacobian_info.push_back({ qux_mode3_index_it->second,
+                                baz_mode3_index_it->second,
+                                baz_to_qux_param_it->second,
+                                1.0 });  // product partial derivative
     }
 
     // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms

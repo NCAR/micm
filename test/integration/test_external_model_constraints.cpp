@@ -57,7 +57,7 @@ class EquilibriumConstraintModel
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   /// Residual: G = K_eq * [reactant] - [product]
@@ -164,7 +164,7 @@ class ConservativeEquilibriumConstraintModel
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
@@ -268,7 +268,7 @@ class MassConservationModel
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, std::size_t>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
@@ -433,13 +433,12 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   // Built-in constraint: B <-> C equilibrium
   double K_eq = 5.0;
   std::vector<micm::Constraint> constraints;
-  constraints.push_back(
-      micm::EquilibriumConstraint(
-          "B_C_eq",
-          C,
-          std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-          std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-          micm::VantHoffParam{ K_eq, 0.0 }));
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      C,
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      micm::VantHoffParam{ K_eq, 0.0 }));
 
   // Process: A_GAS -> B
   double k_rxn = 0.05;
@@ -837,13 +836,12 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 
   // Built-in constraint solver
   std::vector<micm::Constraint> constraints;
-  constraints.push_back(
-      micm::EquilibriumConstraint(
-          "B_C_eq",
-          C,
-          std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-          std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-          micm::VantHoffParam{ K_EQ, 0.0 }));
+  constraints.push_back(micm::EquilibriumConstraint(
+      "B_C_eq",
+      C,
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      micm::VantHoffParam{ K_EQ, 0.0 }));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto builtin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
