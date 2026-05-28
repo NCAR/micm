@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 namespace micm
 {
-
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::Solve(
       double time_step,
