@@ -473,9 +473,8 @@ namespace micm
                     }
                     else
                     {
-                      m
+                      max_residual = std::max(max_residual, abs_val);
                     }
-                    ax_residual = std::max(max_residual, abs_val);
                   },
                   delta_view.GetConstColumnView(i_var));
             }
