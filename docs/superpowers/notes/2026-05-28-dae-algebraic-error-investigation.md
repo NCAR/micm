@@ -241,7 +241,47 @@ needed for accuracy: the embedded approach maintains full accuracy on both
 linear and nonlinear constraints. It remains an option if an explicit
 non-degenerate algebraic accuracy signal is later wanted.
 
-## 11. Repro
+## 11. Efficiency study: do constraints make the implicit solver faster? (No)
+
+After fixing the algebraic-error bug, we asked whether the algebraic-constraint
+DAE formulation is *more efficient* than the full ODE for the implicit Rosenbrock
+solver. Three regimes, all measured (`benchmark/equilibrium_efficiency.cpp` and
+`benchmark/robertson_dae.cpp`):
+
+1. **Robertson QSSA** (`robertson_dae`): DAE ~5% fewer accepted steps than the
+   full ODE; no wall-clock win.
+2. **Fast reversible equilibrium A<->B + slow B->C, swept over rate scale S:**
+   - *Equilibrium start:* DAE ≈ ODE in steps; the ODE step count is flat/decreasing
+     as S grows. No win.
+   - *Off-equilibrium start:* DAE ~27% fewer steps (skips the initial fast
+     transient via constraint initialization), flat across S — but wall-clock
+     favors the ODE.
+3. **N independent fast-equilibrium triples, off-equilibrium, wall-clock vs N:**
+   DAE is ~1.2–2.2x SLOWER than the ODE at every N (371 vs 503 steps, but ~2.7x
+   per-step cost), and the ratio does not improve with N.
+
+**Conclusion (negative, well-evidenced).** For an implicit (linearly-implicit
+Rosenbrock) solver, the constraint DAE is not a speed optimization:
+
+- **No dimension reduction:** MICM keeps algebraic variables as full rows/columns
+  in the Jacobian, so the linear system is the same size (3N) either way and the
+  factorization cost — which dominates at scale — is identical.
+- **Implicit solvers handle stiffness essentially for free:** the ODE step count
+  is not stiffness-driven (it is flat/decreasing in S), and Rosenbrock's per-step
+  cost is fixed (a fixed number of linear solves, no Newton iteration). The
+  "DAE beats stiff ODE" intuition is an *explicit*-solver intuition.
+- **Constraints add per-step + per-Solve overhead** (constraint forcing, Jacobian,
+  and initialization) that overwhelms the modest step-count savings from skipping
+  transients.
+
+The genuine value of algebraic constraints here is **correctness/robustness** —
+exact equilibrium enforcement, conservation guarantees, and avoiding extreme
+explicit rate constants as S grows — not raw speed. A real wall-clock win would
+require a **dimension-reducing** formulation that removes algebraic variables from
+the integrated linear system (true QSSA reduction), which is a solver-architecture
+change, not a constraint-modeling or benchmark change.
+
+## 12. Repro
 
 - Branch `dae-rosenbrock-benchmark`. Build: `cmake -S . -B build -DMICM_ENABLE_BENCHMARKS=ON -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER && cmake --build build --target robertson_dae`.
 - Run `./build/robertson_dae` (currently the scratch experiment harness producing the two tables above; uncommitted).

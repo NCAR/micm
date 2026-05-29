@@ -7,6 +7,9 @@ set(CMAKE_CXX_CLANG_TIDY "")
 add_executable(robertson_dae robertson_dae.cpp)
 target_link_libraries(robertson_dae PUBLIC musica::micm)
 
+add_executable(equilibrium_efficiency equilibrium_efficiency.cpp)
+target_link_libraries(equilibrium_efficiency PUBLIC musica::micm)
+
 add_executable(test_robertson_qssa test_robertson_qssa.cpp)
 target_link_libraries(test_robertson_qssa PUBLIC musica::micm GTest::gtest_main)
 add_test(NAME test_robertson_qssa COMMAND test_robertson_qssa)
