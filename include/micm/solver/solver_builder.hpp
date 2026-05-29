@@ -54,9 +54,12 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
-    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraint_models_;
     std::vector<Constraint> constraints_;
+    
+    std::vector<ExternalModelSystem> external_systems_;
+    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
+    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
+    
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -70,13 +73,8 @@ namespace micm
     {
     }
 
-    // Copy constructor
-    SolverBuilder(const SolverBuilder& other) = default;
-
-    // Copy assignment
-    SolverBuilder& operator=(const SolverBuilder& other) = default;
-
-    // Default move operations
+    SolverBuilder(const SolverBuilder&) = default;
+    SolverBuilder& operator=(const SolverBuilder&) = default;
     SolverBuilder(SolverBuilder&&) = default;
     SolverBuilder& operator=(SolverBuilder&&) = default;
 
@@ -96,41 +94,6 @@ namespace micm
     SolverBuilder& SetReactions(const std::vector<Process>& reactions)
     {
       reactions_ = reactions;
-      return *this;
-    }
-
-    /// @brief Add an external model (processes and/or constraints)
-    ///
-    /// If the model satisfies the HasProcesses concept, process wrappers are created.
-    /// If the model satisfies the HasConstraints concept, constraint wrappers are created.
-    /// At least one of the two concepts must be satisfied.
-    /// @param model The external model (taken by value; caller decides whether to copy or move)
-    /// @return Updated SolverBuilder
-    template<class ExternalModel>
-    SolverBuilder& AddExternalModel(ExternalModel model)
-    {
-      static_assert(
-          HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,
-          "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
-
-      if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
-      {
-        // Model has both — copy for one wrapper, move for the other
-        auto model_copy = model;
-        external_models_.emplace_back(
-            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model_copy) });
-        external_constraint_models_.emplace_back(
-            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      else if constexpr (HasProcesses<ExternalModel>)
-      {
-        external_models_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      else
-      {
-        external_constraint_models_.emplace_back(
-            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
       return *this;
     }
 
@@ -161,11 +124,68 @@ namespace micm
       return *this;
     }
 
+    /// @brief Add an external model (state variables, processes, and/or constraints)
+    ///
+    /// If the model satisfies HasState, its state variables and parameters are registered with the solver.
+    /// The model must satisfy at least one of HasProcesses (process wrappers are created) or
+    /// HasConstraints (constraint wrappers are created).
+    /// @param model The external model (taken by value; caller decides whether to copy or move)
+    /// @return Updated SolverBuilder
+    template<class ExternalModel>
+    SolverBuilder& AddExternalModel(ExternalModel model)
+    {
+      static_assert(
+          HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,
+          "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
+
+      if constexpr (HasState<ExternalModel>)
+        external_systems_.emplace_back(ExternalModelSystem{ model });
+
+      if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
+      {
+        external_process_sets_.emplace_back(
+            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ model });
+        external_constraints_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+      }
+      else if constexpr (HasProcesses<ExternalModel>)
+      {
+        external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+      }
+      else
+      {
+        external_constraints_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+      }
+      return *this;
+    }
+
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
     auto Build();
 
    protected:
+    /// @brief Returns the total state size: gas phase + all external model state variables
+    std::size_t MergedStateSize() const
+    {
+      std::size_t n = system_.StateSize();
+      for (const auto& m : external_systems_)
+        n += std::get<0>(m.state_size_func_());
+      return n;
+    }
+
+    /// @brief Returns all unique species names: gas phase first, then external model variables
+    std::vector<std::string> MergedUniqueNames() const
+    {
+      auto names = system_.UniqueNames();
+      for (const auto& m : external_systems_)
+      {
+        auto model_names = m.variable_names_func_();
+        names.insert(names.end(), model_names.begin(), model_names.end());
+      }
+      return names;
+    }
+
     /// @brief Checks for unused species
     /// @param rates The rates policy instance containing information about processes
     /// @throws std::system_error if an unused species is found

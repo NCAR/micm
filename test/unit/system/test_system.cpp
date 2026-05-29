@@ -17,7 +17,7 @@ TEST(System, ConstructorWithAllParameters)
   PhaseSpecies gas_bar(bar);
 
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar }));
-  System system = { SystemParameters{ .gas_phase_ = gas_phase } };
+  System system(gas_phase );
 
   EXPECT_EQ(system.gas_phase_.phase_species_.size(), 2);
 
@@ -43,7 +43,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
   PhaseSpecies gas_param_species(param_species);
 
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_param_species }));
-  System system = { SystemParameters{ .gas_phase_ = gas_phase } };
+  System system(gas_phase );
 
   EXPECT_EQ(system.gas_phase_.phase_species_.size(), 3);
   EXPECT_EQ(system.StateSize(), 3 - 1);  // One parameterized species

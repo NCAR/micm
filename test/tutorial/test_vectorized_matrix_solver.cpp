@@ -77,7 +77,7 @@ int main()
                    .Build();
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
+  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const std::size_t number_of_grid_cells = 3;
 

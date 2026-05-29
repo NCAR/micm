@@ -50,7 +50,7 @@ TEST(CudaRateConstants, Arrhenius)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -86,7 +86,7 @@ TEST(CudaRateConstants, Troe)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -117,7 +117,7 @@ TEST(CudaRateConstants, TernaryChemicalActivation)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -148,7 +148,7 @@ TEST(CudaRateConstants, BranchedAlkoxy)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -181,7 +181,7 @@ TEST(CudaRateConstants, BranchedNitrate)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -211,7 +211,7 @@ TEST(CudaRateConstants, Tunneling)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -248,7 +248,7 @@ TEST(CudaRateConstants, TaylorSeries)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -277,7 +277,7 @@ TEST(CudaRateConstants, Reversible)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -306,7 +306,7 @@ TEST(CudaRateConstants, UserDefined)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 
@@ -344,7 +344,7 @@ TEST(CudaRateConstants, Surface)
                      .Build();
 
   auto solver = GpuBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ process })
                     .Build();
 

@@ -34,15 +34,15 @@ namespace micm
       used_species.insert(constraint.AlgebraicSpecies());
     }
     // Include species referenced by external model constraints
-    for (const auto& model : external_constraint_models_)
+    for (const auto& constraint : external_constraints_)
     {
-      auto deps = model.species_dependencies_func_();
+      auto deps = constraint.species_dependencies_func_();
       used_species.insert(deps.begin(), deps.end());
-      auto alg_names = model.algebraic_variable_names_func_();
+      auto alg_names = constraint.algebraic_variable_names_func_();
       used_species.insert(alg_names.begin(), alg_names.end());
     }
 
-    auto available_species = system_.UniqueNames();
+    auto available_species = this->MergedUniqueNames();
     std::sort(available_species.begin(), available_species.end());
     std::set<std::string> unused_species;
     std::set_difference(
@@ -79,29 +79,28 @@ namespace micm
       StatePolicy>::GetSpeciesMap() const
   {
     std::unordered_map<std::string, std::size_t> species_map;
-    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     std::size_t index = 0;
-    for (auto& name : system_.UniqueNames())
+
+    auto all_names = this->MergedUniqueNames();
+    for (auto& name : all_names)
       species_map[name] = index++;
 
     if (reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
-      auto unsorted_rates = RatesPolicy(reactions_, species_map, external_models_);
+      auto unsorted_rates = RatesPolicy(reactions_, species_map, external_process_sets_);
       auto unsorted_jac_elements = unsorted_rates.NonZeroJacobianElements();
 
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
-      Matrix unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
+      const auto n = this->MergedStateSize();
+      Matrix unsorted_jac_non_zeros(n, n, 0);
       for (auto& elem : unsorted_jac_elements)
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
       auto reorder_map = DiagonalMarkowitzReorder<Matrix>(unsorted_jac_non_zeros);
 
-      state_reordering = [=](const std::vector<std::string>& variables, const std::size_t i)
-      { return variables[reorder_map[i]]; };
-
       index = 0;
-      for (auto& name : system_.UniqueNames(state_reordering))
-        species_map[name] = index++;
+      for (std::size_t i = 0; i < all_names.size(); ++i)
+        species_map[all_names[reorder_map[i]]] = index++;
     }
 
     return species_map;
@@ -148,9 +147,9 @@ namespace micm
     }
 
     // Include custom parameter labels from external models
-    for (const auto& model : system_.external_models_)
+    for (const auto& sys : external_systems_)
     {
-      auto param_names = model.parameter_names_func_();
+      auto param_names = sys.parameter_names_func_();
       for (const auto& label : param_names)
         add_param(label, "external_model");
     }
@@ -221,7 +220,7 @@ namespace micm
           MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
     }
 
-    std::size_t number_of_species = this->system_.StateSize();
+    std::size_t number_of_species = this->MergedStateSize();
     if (number_of_species == 0)
     {
       throw MicmException(
@@ -237,7 +236,7 @@ namespace micm
     };
     if constexpr (is_cuda_policy)
     {
-      if (!constraints_.empty() || !external_constraint_models_.empty())
+      if (!constraints_.empty() || !external_constraints_.empty())
       {
         throw MicmException(
             MICM_ERROR_CATEGORY_SOLVER,
@@ -291,7 +290,7 @@ namespace micm
 
     // Build ProcessSet
     auto species_map = this->GetSpeciesMap();
-    RatesPolicy rates(reactions_, species_map, external_models_);
+    RatesPolicy rates(reactions_, species_map, external_process_sets_);
     this->UnusedSpeciesCheck(rates);
     auto nonzero_elements = rates.NonZeroJacobianElements();
 
@@ -350,10 +349,10 @@ namespace micm
     }
 
     // Resolve external model constraints (runtime activation)
-    if (!external_constraint_models_.empty())
+    if (!external_constraints_.empty())
     {
-      auto ext_constraint_models_copy = external_constraint_models_;
-      constraint_set.SetExternalConstraintModels(std::move(ext_constraint_models_copy));
+      auto external_constraints_copy = external_constraints_;
+      constraint_set.SetExternalConstraintModels(std::move(external_constraints_copy));
       constraint_set.ResolveExternalConstraints(species_map);
 
       // Add external constraint parameter names to the params map
@@ -412,9 +411,9 @@ namespace micm
     // VectorIndex at setup time and need these elements to exist in the sparse matrix.
     if (!algebraic_variable_ids.empty())
     {
-      for (const auto& model : external_models_)
+      for (const auto& process_set : external_process_sets_)
       {
-        auto ext_process_elements = model.non_zero_jacobian_elements_func_(species_map);
+        auto ext_process_elements = process_set.non_zero_jacobian_elements_func_(species_map);
         for (const auto& elem : ext_process_elements)
         {
           if (algebraic_variable_ids.count(elem.first) > 0)
@@ -445,10 +444,10 @@ namespace micm
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
-    // Compile external model update functions now that params_map is finalized
-    for (const auto& model : external_models_)
+    // Compile external process set update functions now that params_map is finalized
+    for (const auto& process_set : external_process_sets_)
     {
-      update_state_param_funcs.push_back(model.update_state_parameters_function_(params_map));
+      update_state_param_funcs.push_back(process_set.update_state_parameters_function_(params_map));
     }
 
     std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> init_constraint_param_funcs;
