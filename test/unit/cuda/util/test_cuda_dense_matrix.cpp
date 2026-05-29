@@ -52,22 +52,22 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrixPolicy)
 
 TEST(CudaDenseMatrix, InitializeVectorMatrixPolicy)
 {
-  testInializeMatrix<Group1MatrixAlias>();
+  TestInializeMatrix<Group1MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, InitializeConstVectorMatrixPolicy)
 {
-  testInializeConstMatrix<Group2MatrixAlias>();
+  TestInializeConstMatrix<Group2MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, LoopOverVectorMatrixPolicy)
 {
-  testLoopOverMatrix<Group2MatrixAlias>();
+  TestLoopOverMatrix<Group2MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, LoopOverConstVectorMatrixPolicy)
 {
-  testLoopOverConstMatrix<Group1MatrixAlias>();
+  TestLoopOverConstMatrix<Group1MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, StridesPolicy)
@@ -82,38 +82,38 @@ TEST(CudaDenseMatrix, StridesPolicy)
 
 TEST(CudaDenseMatrix, ConversionToVectorPolicy)
 {
-  testConversionToVector<Group3MatrixAlias>();
+  TestConversionToVector<Group3MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, ConstConversionToVectorPolicy)
 {
-  testConstConversionToVector<Group1MatrixAlias>();
+  TestConstConversionToVector<Group1MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, ConversionFromVectorPolicy)
 {
-  testConversionFromVector<Group2MatrixAlias>();
+  TestConversionFromVector<Group2MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, AssignmentFromVectorPolicy)
 {
-  testAssignmentFromVector<Group2MatrixAlias>();
+  TestAssignmentFromVector<Group2MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, ForEachPolicy)
 {
-  testForEach<Group1MatrixAlias>();
-  testForEach<Group2MatrixAlias>();
-  testForEach<Group3MatrixAlias>();
-  testForEach<Group4MatrixAlias>();
+  TestForEach<Group1MatrixAlias>();
+  TestForEach<Group2MatrixAlias>();
+  TestForEach<Group3MatrixAlias>();
+  TestForEach<Group4MatrixAlias>();
 }
 
 TEST(CudaDenseMatrix, PrintPolicy)
 {
-  testPrint<Group1MatrixAlias>();
-  testPrint<Group2MatrixAlias>();
-  testPrint<Group3MatrixAlias>();
-  testPrint<Group4MatrixAlias>();
+  TestPrint<Group1MatrixAlias>();
+  TestPrint<Group2MatrixAlias>();
+  TestPrint<Group3MatrixAlias>();
+  TestPrint<Group4MatrixAlias>();
 }
 
 /* These are the customized tests running on the CPUs */
@@ -482,7 +482,7 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrix)
 
 TEST(CudaDenseMatrix, InitializeVectorMatrix)
 {
-  auto matrix = testInializeMatrix<Group1MatrixAlias>();
+  auto matrix = TestInializeMatrix<Group1MatrixAlias>();
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
@@ -493,7 +493,7 @@ TEST(CudaDenseMatrix, InitializeVectorMatrix)
 
 TEST(CudaDenseMatrix, InitializeConstVectorMatrix)
 {
-  auto matrix = testInializeConstMatrix<Group2MatrixAlias>();
+  auto matrix = TestInializeConstMatrix<Group2MatrixAlias>();
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
@@ -556,7 +556,7 @@ TEST(CudaDenseMatrix, LoopOverConstVectorMatrix)
 
 TEST(CudaDenseMatrix, ConversionToVector)
 {
-  auto matrix = testConversionToVector<Group3MatrixAlias>();
+  auto matrix = TestConversionToVector<Group3MatrixAlias>();
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
@@ -569,7 +569,7 @@ TEST(CudaDenseMatrix, ConversionToVector)
 
 TEST(CudaDenseMatrix, ConstConversionToVector)
 {
-  auto matrix = testConstConversionToVector<Group1MatrixAlias>();
+  auto matrix = TestConstConversionToVector<Group1MatrixAlias>();
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
@@ -582,7 +582,7 @@ TEST(CudaDenseMatrix, ConstConversionToVector)
 
 TEST(CudaDenseMatrix, AssignmentFromVector)
 {
-  auto matrix = testAssignmentFromVector<Group2MatrixAlias>();
+  auto matrix = TestAssignmentFromVector<Group2MatrixAlias>();
   matrix.CopyToDevice();
   matrix.CopyToHost();
 

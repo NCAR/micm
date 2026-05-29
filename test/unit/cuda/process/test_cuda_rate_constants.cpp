@@ -137,7 +137,7 @@ TEST(CudaRateConstants, BranchedAlkoxy)
   micm::Phase gas_phase{ "gas", { micm::PhaseSpecies(a), micm::PhaseSpecies(b) } };
 
   micm::BranchedRateConstantParameters params{
-    .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy, .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
+    .branch_ = micm::BranchedRateConstantParameters::Branch::ALKOXY, .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
   };
 
   auto process = micm::ChemicalReactionBuilder()
@@ -170,7 +170,7 @@ TEST(CudaRateConstants, BranchedNitrate)
   micm::Phase gas_phase{ "gas", { micm::PhaseSpecies(a), micm::PhaseSpecies(b) } };
 
   micm::BranchedRateConstantParameters params{
-    .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate, .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
+    .branch_ = micm::BranchedRateConstantParameters::Branch::NITRATE, .X_ = 1.2e-14, .Y_ = 0.0, .a0_ = 0.15, .n_ = 5
   };
 
   auto process = micm::ChemicalReactionBuilder()

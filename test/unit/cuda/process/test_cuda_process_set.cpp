@@ -160,23 +160,23 @@ TEST(CudaProcessSet, CudaMatrix)
 
 TEST(CudaProcessSetAlgebraicVariables, CudaMatrix)
 {
-  testAlgebraicMasking<
+  TestAlgebraicMasking<
       Group1CudaDenseMatrix,
       Group1CudaSparseMatrix,
       micm::CudaProcessSet<Group1CudaDenseMatrix, Group1CudaSparseMatrix>>();
-  testAlgebraicMasking<
+  TestAlgebraicMasking<
       Group3CudaDenseMatrix,
       Group3CudaSparseMatrix,
       micm::CudaProcessSet<Group3CudaDenseMatrix, Group3CudaSparseMatrix>>();
-  testAlgebraicMasking<
+  TestAlgebraicMasking<
       Group32CudaDenseMatrix,
       Group32CudaSparseMatrix,
       micm::CudaProcessSet<Group32CudaDenseMatrix, Group32CudaSparseMatrix>>();
-  testAlgebraicMasking<
+  TestAlgebraicMasking<
       Group43CudaDenseMatrix,
       Group43CudaSparseMatrix,
       micm::CudaProcessSet<Group43CudaDenseMatrix, Group43CudaSparseMatrix>>();
-  testAlgebraicMasking<
+  TestAlgebraicMasking<
       Group512CudaDenseMatrix,
       Group512CudaSparseMatrix,
       micm::CudaProcessSet<Group512CudaDenseMatrix, Group512CudaSparseMatrix>>();
