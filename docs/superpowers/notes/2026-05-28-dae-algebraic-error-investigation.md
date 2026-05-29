@@ -191,7 +191,16 @@ The existing tests pin the *workaround's* behavior, not the underlying requireme
 
 The fix and the tests are coupled: pick the model (feasibility guard vs constructed LTE), encode (1) and (2) as the contract, then implement against them.
 
-## 9. Repro
+## 9. Regression tests added (commit 2bffc4d8)
+
+`test/integration/test_dae_algebraic_error_step_economy.cpp`:
+
+- **`BalanceVariableStaysNonNegativeUnderStiffness`** (active, passes today) — feasibility contract: an algebraic conservation/balance variable must not be driven negative under stiff conditions. NOTE: a systematic search (multiple systems, wide stiffness range, with the override both on and off) found **no scenario where the override is load-bearing for this property** — every existing overshoot/feasibility test passes with the override disabled. So this guards the contract, but the contract is currently upheld by other solver machinery (constraint initialization / the implicit solve), not by the step-change override. This contradicts the original premise that the override is needed to prevent overshoot.
+- **`DISABLED_TightBalanceAtolDoesNotInflateSteps`** (disabled until fixed) — efficiency contract: tightening a slaved algebraic variable's atol must not inflate the step count. Currently fails ~142× (loose atol 1e-2 → 536 accepted steps; tight atol 1e-10 → 75,984) on a decay+equilibrium system with a built-in `EquilibriumConstraint`. Enable once the algebraic error handling is fixed; at that point retire the opposing `ErrorSensitiveToBalanceAtol` assertion.
+
+Net: the two tests bracket the fix. The feasibility guard shows the override's stated purpose is not currently demonstrable; the efficiency guard pins the real cost regression. Together they suggest the override may simply be removable (with the feasibility guard ensuring no regression), or replaced by a constructed LTE / feasibility-only guard if a future scenario shows the override is genuinely needed.
+
+## 10. Repro
 
 - Branch `dae-rosenbrock-benchmark`. Build: `cmake -S . -B build -DMICM_ENABLE_BENCHMARKS=ON -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER && cmake --build build --target robertson_dae`.
 - Run `./build/robertson_dae` (currently the scratch experiment harness producing the two tables above; uncommitted).
