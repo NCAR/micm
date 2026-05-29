@@ -131,7 +131,38 @@ Options, roughly in order of increasing principled-ness:
 
 **Recommended next step:** prototype option (2) or (4) behind the existing DAE code path, verify that (a) `test_dae_constraint_overshoot` still passes (overshoot still rejected) and (b) the Robertson DAE step count drops to ODE levels at tight atol without a manual atol_B workaround. Both are quick to check with the harness in this branch.
 
-## 6. Repro
+## 6. Follow-up: is there a "proper local truncation error" to use? (experiment)
+
+Question raised: rather than the step-change hack, why not use a proper local truncation error (LTE) for the algebraic variable? A Rosenbrock method already computes an embedded error `Yerror = Σ e_i k_i` (`rosenbrock.inl:192-196`) — for differential variables that IS the LTE. Is it usable for algebraic rows, or is it really ≈0 as the code comment claims?
+
+Tested three configurations of the algebraic-row error on Robertson (DAE) and on `test_dae_constraint_overshoot` (scratch solver edits, reverted after measuring):
+
+| Config (algebraic-row error) | Robertson DAE steps (k2=3e5..3e9) | DAE accuracy | overshoot test |
+|------------------------------|-----------------------------------|--------------|----------------|
+| 1. step change `Ynew-Y` (current) | 28719, 9338, 3116, 1141, 495 | 1.78e-3 … 8.8e-5 | PASS |
+| 2. embedded `Σ e_i k_i` (override removed) | 480, 461, 417, 350, 241 | 1.78e-3 … 8.8e-5 | PASS |
+| 3. forced to exactly 0 | 480, 461, 417, 350, 241 | 1.78e-3 … 8.8e-5 | PASS |
+
+**Findings:**
+
+- **Configs 2 and 3 are identical in every measurable way.** Keeping the embedded estimate is indistinguishable from zeroing it ⇒ the embedded algebraic error is genuinely ≈0 for these DA-Rosenbrock coefficients (the code comment's premise is correct). So there is **no existing LTE to "just use"** for algebraic rows — one would have to be *constructed*.
+- **Config 1 (step change) is the sole source of the step inflation.** It is `O(H)`, not an LTE.
+- **The override is NOT load-bearing for the current overshoot test:** the test passes in all three configs, including with the algebraic error zeroed (≈ pre-#969 "excluded from norm" behavior). The override and the overshoot test were introduced together in commit `95107e6a` (#969); the test was presumably red without the override then, but a later change (candidates: #993/#994 explicit algebraic species, #982 merge fix) appears to have made the override unnecessary for it. **This must be reconciled before removing the override** — either the test no longer reproduces the original overshoot, or the protection is now provided elsewhere.
+
+### Revised fix options (since the embedded estimate is ≈0)
+
+A. **Re-examine necessity (cheapest, do first).** The override is not needed to pass the overshoot test today. Determine whether it protects any real scenario the test doesn't cover. If not, removing it recovers ODE-level cost for free. If it does, capture that scenario as a new failing test first.
+
+B. **Construct a real LTE for algebraic components:**
+   - B1. **Step-doubling / Richardson** on the algebraic component(s): compare one step H against two of H/2; the difference is a genuine `O(H^{p+1})` LTE. Rigorous and general; costs extra solves per step (but far cheaper than the current excess steps).
+   - B2. **Stiffly-accurate embedded pair** (RODAS3/4-style coefficients) that yields a nonzero algebraic error estimate. Cheap per step; larger implementation (new method coefficients).
+   - B3. **Constraint-residual-based estimate:** derive the algebraic error from the predicted-vs-corrected constraint residual `G` (for index-1 this is proportional to the algebraic LTE). Cheap; reuses existing `G` evaluations.
+
+C. **Feasibility guard for overshoot** (decouples accuracy from feasibility): keep algebraic vars out of the accuracy norm, add an explicit step rejection on physical-bound / constraint-residual violation. Matches how index-1 DAE integrators (RODAS) separate the concerns.
+
+**Recommended sequence:** (A) reconcile the overshoot test — if the override is removable, that alone fixes the cost problem; otherwise (C) a feasibility guard, with (B3) or (B1) if a true accuracy signal for algebraic variables is wanted. All quick to evaluate with the harness in this branch.
+
+## 7. Repro
 
 - Branch `dae-rosenbrock-benchmark`. Build: `cmake -S . -B build -DMICM_ENABLE_BENCHMARKS=ON -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER && cmake --build build --target robertson_dae`.
 - Run `./build/robertson_dae` (currently the scratch experiment harness producing the two tables above; uncommitted).
