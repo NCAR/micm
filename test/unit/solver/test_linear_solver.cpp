@@ -6,7 +6,7 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-#include <gTest/gTest.h>
+#include <gtest/gtest.h>
 
 #include <functional>
 
