@@ -1054,7 +1054,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
 TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFiltering)
 {
   auto a_gas = micm::Species("A_GAS");
-  auto s = micm::Species("s");
+  auto s = micm::Species("S");
   micm::Phase gas_phase{ "gas", { a_gas, s } };
 
   double total = 1.0;
@@ -1082,7 +1082,7 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   // Initialize state
   state.variables_[0][state.variable_map_.at("A_GAS")] = 0.9;
   state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")] = 0.1;
-  state.variables_[0][state.variable_map_.at("s")] = 1.0;
+  state.variables_[0][state.variable_map_.at("S")] = 1.0;
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 

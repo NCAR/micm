@@ -191,7 +191,7 @@ namespace micm
       {
         std::vector<std::size_t> rc_indices(mults.size());
         for (std::size_t i = 0; i < mults.size(); ++i)
-          rc_indices[i] = mults[i].rc_index;
+          rc_indices[i] = mults[i].rc_index_;
         auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
         CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
         CHECK_CUDA_ERROR(
@@ -226,7 +226,7 @@ namespace micm
           {
             const std::size_t cell = g * L + j;
             if (cell < n_cells)
-              host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate(conditions[cell]);
+              host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate_(conditions[cell]);
           }
 
       auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
