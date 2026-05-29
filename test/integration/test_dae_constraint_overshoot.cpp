@@ -62,7 +62,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -163,7 +163,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -257,7 +257,7 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     constraints.push_back(LinearConstraint("mass_conservation", c, { { a, 1.0 }, { b, 1.0 }, { c, 1.0 } }, c_total));
 
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
-                      .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                      .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)

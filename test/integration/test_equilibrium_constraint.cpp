@@ -53,7 +53,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -145,7 +145,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn1, rxn2 })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -218,7 +218,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -316,7 +316,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(true)
@@ -398,7 +398,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -485,7 +485,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)

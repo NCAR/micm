@@ -108,7 +108,7 @@ int main()
                    .SetPhase(gas_phase)
                    .Build();
 
-  auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
+  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
   auto two_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(

@@ -35,7 +35,7 @@ namespace
                          .SetPhase(gas_phase)
                          .Build();
 
-  auto the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  auto the_system = micm::System(gas_phase);
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 

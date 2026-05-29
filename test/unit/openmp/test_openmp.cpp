@@ -42,7 +42,7 @@ TEST(OpenMP, OneSolverManyStates)
                          .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
-  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  auto chemical_system = micm::System(gas_phase);
 
   std::vector<std::vector<double>> results(n_threads);
 

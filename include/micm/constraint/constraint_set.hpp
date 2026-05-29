@@ -58,7 +58,7 @@ namespace micm
         constraint_jacobian_functions_;
 
     /// @brief External model constraint wrappers
-    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraint_models_;
+    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
 
     /// @brief Runtime count of algebraic variables contributed by external models
     std::size_t external_constraint_count_ = 0;
@@ -369,7 +369,7 @@ namespace micm
     /// @param models Vector of type-erased external model constraint wrappers
     void SetExternalConstraintModels(std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>>&& models)
     {
-      external_constraint_models_ = std::move(models);
+      external_constraints_ = std::move(models);
     }
 
     /// @brief Resolve external model constraints at runtime
@@ -382,7 +382,7 @@ namespace micm
     void ResolveExternalConstraints(const std::unordered_map<std::string, std::size_t>& variable_map)
     {
       external_constraint_count_ = 0;
-      for (const auto& model : external_constraint_models_)
+      for (const auto& model : external_constraints_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         for (const auto& name : alg_names)
@@ -414,7 +414,7 @@ namespace micm
         const std::unordered_map<std::string, std::size_t>& variable_map) const
     {
       std::set<std::pair<std::size_t, std::size_t>> ids;
-      for (const auto& model : external_constraint_models_)
+      for (const auto& model : external_constraints_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
@@ -438,7 +438,7 @@ namespace micm
     {
       std::set<std::string> seen;
       std::vector<std::string> names;
-      for (const auto& model : external_constraint_models_)
+      for (const auto& model : external_constraints_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
@@ -469,7 +469,7 @@ namespace micm
     {
       std::set<std::string> seen;
       std::vector<std::string> names;
-      for (const auto& model : external_constraint_models_)
+      for (const auto& model : external_constraints_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
@@ -518,7 +518,7 @@ namespace micm
       external_constraint_jacobian_functions_.clear();
       external_constraint_param_functions_.clear();
       external_constraint_init_functions_.clear();
-      for (const auto& model : external_constraint_models_)
+      for (const auto& model : external_constraints_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())

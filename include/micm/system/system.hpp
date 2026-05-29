@@ -2,143 +2,61 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/external_model.hpp>
 #include <micm/system/phase.hpp>
-#include <micm/system/species.hpp>
 
 #include <functional>
-#include <memory>
-#include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace micm
 {
 
-  struct SystemParameters
-  {
-    /// @brief  @brief The gas phase
-    Phase gas_phase_{};
-    /// @brief External models (e.g., aerosol models) that provide additional components to the system
-    std::vector<ExternalModelSystem> external_models_{};
-  };
-
-  /// @brief Represents the complete chemical state of a grid cell
-  ///        Includes the gas phase and other associated phases, each with their own set of species.
+  /// @brief Defines the gas-phase species available in the chemical system
   class System
   {
    public:
     /// @brief The gas phase, defining a set of species present in the system
     Phase gas_phase_;
-    /// @brief External models (e.g., aerosol models) that provide additional components to the system
-    std::vector<ExternalModelSystem> external_models_;
 
-    /// @brief Default constructor
     System() = default;
 
-    /// @brief Parameterized constructor
     System(const Phase& gas_phase)
-        : gas_phase_(gas_phase),
-          external_models_()
+        : gas_phase_(gas_phase)
     {
     }
 
-    /// @brief Constructor with external models
-    template<typename... ExternalModels>
-    System(const Phase& gas_phase, ExternalModels&&... external_models)
-        : gas_phase_(gas_phase),
-          external_models_{ ExternalModelSystem{ std::forward<ExternalModels>(external_models) }... }
+    /// @brief Returns the number of gas-phase state variables
+    size_t StateSize() const
     {
-      if (StateSize() != UniqueNames().size())
-      {
-        throw std::invalid_argument(
-            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
-      }
+      return gas_phase_.StateSize();
     }
 
-    /// @brief Copy constructor
-    System(const System&) = default;
-
-    /// @brief Move constructor
-    System(System&&) = default;
-
-    /// @brief Constructor from SystemParameters
-    System(const SystemParameters& parameters)
-        : gas_phase_(parameters.gas_phase_),
-          external_models_(parameters.external_models_)
-    {
-      if (StateSize() != UniqueNames().size())
-      {
-        throw std::invalid_argument(
-            "Mismatch between system state size and number of unique names. Likely duplicate species names.");
-      }
-    }
-
-    /// @brief Copy assignment operator
-    System& operator=(const System&) = default;
-
-    /// @brief Move assignment operator
-    System& operator=(System&&) = default;
-
-    /// @brief Returns the number of doubles required to store the system state
-    size_t StateSize() const;
-
-    /// @brief Returns a set of unique species names
+    /// @brief Returns the unique gas-phase species names
     /// @return vector of unique state variable names
-    std::vector<std::string> UniqueNames() const;
+    std::vector<std::string> UniqueNames() const
+    {
+      return UniqueNames(nullptr);
+    }
 
-    /// @brief Returns a set of unique species names
-    /// @param f Function used to apply specific order to unique names
+    /// @brief Returns the unique gas-phase species names, optionally reordered
+    /// @param f Function used to apply a specific order to unique names
     /// @return vector of unique state variable names
     std::vector<std::string> UniqueNames(
-        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> F) const;
+        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
+    {
+      auto names = gas_phase_.SpeciesNames();
+
+      if (f)
+      {
+        std::vector<std::string> reordered;
+        reordered.reserve(names.size());
+        for (std::size_t i = 0; i < names.size(); ++i)
+          reordered.push_back(f(names, i));
+        return reordered;
+      }
+
+      return names;
+    }
   };
-
-  inline size_t System::StateSize() const
-  {
-    std::size_t state_size = gas_phase_.StateSize();
-    for (const auto& model : external_models_)
-    {
-      state_size += std::get<0>(model.state_size_func_());
-    }
-
-    return state_size;
-  }
-
-  inline std::vector<std::string> System::UniqueNames() const
-  {
-    return UniqueNames(nullptr);
-  }
-
-  inline std::vector<std::string> System::UniqueNames(
-      const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> F) const
-  {
-    std::vector<std::string> names;
-    names.reserve(StateSize());
-
-    // Exclude phase name for gas phase species to maintain consistency with prior behavior
-    // e.g., "O3" instead of "GAS.O3"
-    auto gas_names = gas_phase_.SpeciesNames();
-    names.insert(names.end(), std::make_move_iterator(gas_names.begin()), std::make_move_iterator(gas_names.end()));
-
-    // Include names from external models
-    for (const auto& model : external_models_)
-    {
-      auto model_names = model.variable_names_func_();
-      names.insert(names.end(), model_names.begin(), model_names.end());
-    }
-
-    if (F)
-    {
-      std::vector<std::string> reordered;
-      reordered.reserve(names.size());
-      for (std::size_t i = 0; i < names.size(); ++i)
-        reordered.push_back(F(names, i));
-      return reordered;
-    }
-
-    return names;
-  }
 
 }  // namespace micm

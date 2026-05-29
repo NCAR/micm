@@ -35,7 +35,7 @@ TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
                                .SetPhase(gas_phase)
                                .Build();
 
-  auto system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  auto system = micm::System(gas_phase);
 
   auto solver = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                     .SetSystem(system)

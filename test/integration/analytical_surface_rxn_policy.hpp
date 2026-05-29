@@ -50,7 +50,7 @@ void TestAnalyticalSurfaceRxn(
   micm::Phase gas_phase{ "gas", { gas_foo, gas_bar, gas_baz } };
 
   // System
-  micm::System chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  micm::System chemical_system = micm::System(gas_phase);
 
   // Rate
   micm::SurfaceRateConstantParameters surface{ .label_ = "foo",

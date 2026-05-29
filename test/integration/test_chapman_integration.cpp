@@ -73,7 +73,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase))
                     .SetReactions({ r1, r2, r3, r4, photo_1, photo_2, photo_3 })
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
