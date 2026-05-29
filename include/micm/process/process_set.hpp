@@ -8,6 +8,7 @@
 #include <micm/util/error.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iomanip>
@@ -42,6 +43,13 @@ namespace micm
     std::vector<std::size_t> jacobian_product_ids_;
     std::vector<double> jacobian_yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
+    // Gather CSR: inverse of jacobian_flat_ids_, sorted by unique Jacobian flat ID.
+    // Built in SetJacobianFlatIds for use by gather-style GPU kernels.
+    std::vector<std::size_t> jac_gather_unique_flat_ids_;
+    std::vector<std::size_t> jac_gather_offsets_;
+    std::vector<std::size_t> jac_gather_proc_idx_;
+    std::vector<double>      jac_gather_coeffs_;
+    std::vector<std::size_t> jac_gather_reactant_offset_;
 
    public:
     /// @brief Default constructor
@@ -63,9 +71,15 @@ namespace micm
 
     /// @brief Computes and stores flat (1D) indices for non-zero Jacobian elements
     ///        Stores combination of process ids and reactant ids to support column-wise Jacobian updates.
+    ///        Also calls BuildGatherMap to build the inverse CSR for gather-style GPU kernels.
     /// @param matrix The sparse Jacobian matrix used to compute flat indices.
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
+
+    /// @brief Builds the gather CSR from jacobian_flat_ids_. Called automatically by
+    ///        SetJacobianFlatIds. The CSR maps each unique Jacobian flat ID to the list of
+    ///        process_infos that contribute to it, along with their signed coefficients.
+    void BuildGatherMap();
 
     /// @brief Adds forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
@@ -119,7 +133,12 @@ namespace micm
         jacobian_reactant_ids_(),
         jacobian_product_ids_(),
         jacobian_yields_(),
-        jacobian_flat_ids_()
+        jacobian_flat_ids_(),
+        jac_gather_unique_flat_ids_(),
+        jac_gather_offsets_(),
+        jac_gather_proc_idx_(),
+        jac_gather_coeffs_(),
+        jac_gather_reactant_offset_()
   {
     // For each process, look up each reactant name in variable_map and
     // store the corresponding index
@@ -252,6 +271,69 @@ namespace micm
       for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
         jacobian_flat_ids_.push_back(matrix.VectorIndex(0, *(prod_id++), process_info.independent_id_));
     }
+    BuildGatherMap();
+  }
+
+  inline void ProcessSet::BuildGatherMap()
+  {
+    jac_gather_unique_flat_ids_.clear();
+    jac_gather_offsets_.clear();
+    jac_gather_proc_idx_.clear();
+    jac_gather_coeffs_.clear();
+    jac_gather_reactant_offset_.clear();
+
+    if (jacobian_flat_ids_.empty())
+      return;
+
+    // Build (jac_flat_id, proc_idx, coeff, react_offset) tuples for every position
+    // in jacobian_flat_ids_. react_offset is the offset into jacobian_reactant_ids_
+    // for the owning process (used by the single-pass kernel to recompute d_rate_d_ind).
+    struct GatherEntry
+    {
+      std::size_t jac_flat_id;
+      std::size_t proc_idx;
+      double coeff;
+      std::size_t react_offset;
+    };
+    std::vector<GatherEntry> entries;
+    entries.reserve(jacobian_flat_ids_.size());
+
+    std::size_t flat_pos = 0;
+    std::size_t react_off = 0;
+    std::size_t yield_off = 0;
+    for (std::size_t i = 0; i < jacobian_process_info_.size(); ++i)
+    {
+      const auto& pi = jacobian_process_info_[i];
+      // Positive entries: dependent reactants + self diagonal
+      for (std::size_t k = 0; k < pi.number_of_dependent_reactants_ + 1; ++k)
+        entries.push_back({ jacobian_flat_ids_[flat_pos++], i, 1.0, react_off });
+      // Negative entries: products scaled by yield
+      for (std::size_t k = 0; k < pi.number_of_products_; ++k)
+        entries.push_back({ jacobian_flat_ids_[flat_pos++], i, -jacobian_yields_[yield_off + k], react_off });
+      react_off += pi.number_of_dependent_reactants_;
+      yield_off += pi.number_of_products_;
+    }
+
+    // Sort by Jacobian flat ID to group all contributors to the same entry
+    std::stable_sort(entries.begin(), entries.end(), [](const GatherEntry& a, const GatherEntry& b) {
+      return a.jac_flat_id < b.jac_flat_id;
+    });
+
+    // Build CSR: unique_flat_ids + offsets + per-contributor (proc_idx, coeff, react_offset)
+    jac_gather_offsets_.push_back(0);
+    jac_gather_unique_flat_ids_.push_back(entries[0].jac_flat_id);
+    for (const auto& e : entries)
+    {
+      if (e.jac_flat_id != jac_gather_unique_flat_ids_.back())
+      {
+        jac_gather_unique_flat_ids_.push_back(e.jac_flat_id);
+        jac_gather_offsets_.push_back(jac_gather_proc_idx_.size());
+      }
+      jac_gather_proc_idx_.push_back(e.proc_idx);
+      jac_gather_coeffs_.push_back(e.coeff);
+      jac_gather_reactant_offset_.push_back(e.react_offset);
+    }
+    jac_gather_offsets_.push_back(jac_gather_proc_idx_.size());
   }
 
   template<typename DenseMatrixPolicy>

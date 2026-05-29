@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -111,6 +112,65 @@ struct TestDeviceData
     devstruct.jacobian_yields_offsets_ = AllocAndCopy(yields_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE, stream);
     devstruct.jacobian_flat_ids_offsets_ = AllocAndCopy(flat_ids_offsets.data(), JACOBIAN_PROCESS_INFO_SIZE, stream);
 
+    // Build gather CSR: inverse of jacobian_flat_ids_, keyed by unique Jacobian flat IDs.
+    // Each unique flat ID maps to the list of (process_info, sign*yield) contributors.
+    // This mirrors ProcessSet::BuildGatherMap() so the same device arrays are available
+    // without going through CudaProcessSet.
+    struct GatherEntry
+    {
+      std::size_t jac_flat_id;
+      std::size_t proc_idx;
+      double coeff;
+      std::size_t react_offset;
+    };
+    std::vector<GatherEntry> gather_entries;
+    gather_entries.reserve(JACOBIAN_FLAT_IDS_SIZE);
+    {
+      std::size_t fp = 0, ro = 0, yo = 0;
+      for (std::size_t i = 0; i < JACOBIAN_PROCESS_INFO_SIZE; ++i)
+      {
+        const std::size_t n_dep = jacobian_process_info_num_dep_reactants[i];
+        const std::size_t n_prod = jacobian_process_info_num_products[i];
+        for (std::size_t k = 0; k < n_dep + 1; ++k)
+          gather_entries.push_back({ jacobian_flat_ids[fp++], i, 1.0, ro });
+        for (std::size_t k = 0; k < n_prod; ++k)
+          gather_entries.push_back({ jacobian_flat_ids[fp++], i, -jacobian_yields[yo + k], ro });
+        ro += n_dep;
+        yo += n_prod;
+      }
+    }
+    std::stable_sort(gather_entries.begin(), gather_entries.end(), [](const GatherEntry& a, const GatherEntry& b) {
+      return a.jac_flat_id < b.jac_flat_id;
+    });
+
+    std::vector<std::size_t> h_unique_flat_ids;
+    std::vector<std::size_t> h_gather_offsets;
+    std::vector<std::size_t> h_proc_idx;
+    std::vector<double> h_coeffs;
+    std::vector<std::size_t> h_reactant_offset;
+    h_gather_offsets.push_back(0);
+    h_unique_flat_ids.push_back(gather_entries[0].jac_flat_id);
+    for (const auto& e : gather_entries)
+    {
+      if (e.jac_flat_id != h_unique_flat_ids.back())
+      {
+        h_unique_flat_ids.push_back(e.jac_flat_id);
+        h_gather_offsets.push_back(h_proc_idx.size());
+      }
+      h_proc_idx.push_back(e.proc_idx);
+      h_coeffs.push_back(e.coeff);
+      h_reactant_offset.push_back(e.react_offset);
+    }
+    h_gather_offsets.push_back(h_proc_idx.size());
+
+    devstruct.jac_gather_unique_flat_ids_ =
+        AllocAndCopy(h_unique_flat_ids.data(), h_unique_flat_ids.size(), stream);
+    devstruct.jac_gather_offsets_ = AllocAndCopy(h_gather_offsets.data(), h_gather_offsets.size(), stream);
+    devstruct.jac_gather_proc_idx_ = AllocAndCopy(h_proc_idx.data(), h_proc_idx.size(), stream);
+    devstruct.jac_gather_coeffs_ = AllocAndCopy(h_coeffs.data(), h_coeffs.size(), stream);
+    devstruct.jac_gather_reactant_offset_ = AllocAndCopy(h_reactant_offset.data(), h_reactant_offset.size(), stream);
+    devstruct.jac_gather_entries_size_ = h_unique_flat_ids.size();
+
     // Allocate rate_constants and state_variables with random data
     std::mt19937 gen(42);
     const std::size_t rate_constants_total = NUM_GROUPS * NUM_REACTIONS * VECTOR_LENGTH;
@@ -144,6 +204,11 @@ struct TestDeviceData
     CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_reactant_ids_offsets_, stream), "cudaFree");
     CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_yields_offsets_, stream), "cudaFree");
     CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_ids_offsets_, stream), "cudaFree");
+    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_unique_flat_ids_, stream), "cudaFree");
+    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_offsets_, stream), "cudaFree");
+    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_proc_idx_, stream), "cudaFree");
+    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_coeffs_, stream), "cudaFree");
+    CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_reactant_offset_, stream), "cudaFree");
     CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize cleanup");
   }
 };
@@ -285,23 +350,89 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   CHECK_CUDA_ERROR(cudaMemcpy(h_jacobian_2d.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
   std::size_t mismatches_2d = CompareJacobians(h_jacobian_orig, h_jacobian_2d, "2D vs Original", 1e-9);
 
+  // ---- Benchmark single-pass gather kernel (cells x unique Jac entries, no atomics) ----
+  // The gather summation order differs from the scatter baseline, so allow 1e-9 tolerance
+  // (same as the 2D atomicAdd kernel).
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
+
+  for (int i = 0; i < WARMUP_ITERATIONS; ++i)
+  {
+    micm::cuda::SubtractJacobianTermsGatherKernelDriver(
+        data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
+  }
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after gather warmup");
+
+  auto start_gather = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < MEASURE_ITERATIONS; ++i)
+  {
+    micm::cuda::SubtractJacobianTermsGatherKernelDriver(
+        data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
+    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during gather measurement");
+  }
+  auto end_gather = std::chrono::high_resolution_clock::now();
+  double total_gather_ms = std::chrono::duration<double, std::milli>(end_gather - start_gather).count();
+  double avg_gather_ms = total_gather_ms / MEASURE_ITERATIONS;
+
+  std::vector<double> h_jacobian_gather(data.jacobian_total);
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(h_jacobian_gather.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+  std::size_t mismatches_gather = CompareJacobians(h_jacobian_orig, h_jacobian_gather, "Gather vs Original", 1e-9);
+
+  // ---- Benchmark two-pass gather (Pass1: store d_rate per process; Pass2: gather+accumulate) ----
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
+
+  for (int i = 0; i < WARMUP_ITERATIONS; ++i)
+  {
+    micm::cuda::SubtractJacobianTermsTwoPassGatherDriver(
+        data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
+  }
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after two-pass warmup");
+
+  auto start_twopass = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < MEASURE_ITERATIONS; ++i)
+  {
+    micm::cuda::SubtractJacobianTermsTwoPassGatherDriver(
+        data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
+    CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize during two-pass measurement");
+  }
+  auto end_twopass = std::chrono::high_resolution_clock::now();
+  double total_twopass_ms = std::chrono::duration<double, std::milli>(end_twopass - start_twopass).count();
+  double avg_twopass_ms = total_twopass_ms / MEASURE_ITERATIONS;
+
+  std::vector<double> h_jacobian_twopass(data.jacobian_total);
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(h_jacobian_twopass.data(), d_jacobian, jacobian_bytes, cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+  std::size_t mismatches_twopass = CompareJacobians(h_jacobian_orig, h_jacobian_twopass, "TwoPass vs Original", 1e-9);
+
   // ---- Report ----
+  const std::size_t n_unique = data.devstruct.jac_gather_entries_size_;
+  const std::size_t scratch_mb =
+      (NUM_GROUPS * ts1_arrays::JACOBIAN_PROCESS_INFO_SIZE * VECTOR_LENGTH * sizeof(double)) / (1024 * 1024);
+
   std::cout << "=== SubtractJacobianTerms Performance (TS1) ===" << std::endl;
-  std::cout << "  Grid cells:         " << NUM_GRID_CELLS << std::endl;
-  std::cout << "  Vector length:      " << VECTOR_LENGTH << std::endl;
-  std::cout << "  Num groups:         " << NUM_GROUPS << std::endl;
-  std::cout << "  Num reactions:      " << ts1_arrays::NUM_REACTIONS << std::endl;
-  std::cout << "  Num species:        " << ts1_arrays::NUM_SPECIES << std::endl;
-  std::cout << "  Process info size:  " << ts1_arrays::JACOBIAN_PROCESS_INFO_SIZE << std::endl;
-  std::cout << "  Flat IDs size:      " << ts1_arrays::JACOBIAN_FLAT_IDS_SIZE << std::endl;
-  std::cout << "  Warmup iterations:  " << WARMUP_ITERATIONS << std::endl;
-  std::cout << "  Measure iterations: " << MEASURE_ITERATIONS << std::endl;
+  std::cout << "  Grid cells:              " << NUM_GRID_CELLS << std::endl;
+  std::cout << "  Vector length:           " << VECTOR_LENGTH << std::endl;
+  std::cout << "  Num groups:              " << NUM_GROUPS << std::endl;
+  std::cout << "  Num reactions:           " << ts1_arrays::NUM_REACTIONS << std::endl;
+  std::cout << "  Num species:             " << ts1_arrays::NUM_SPECIES << std::endl;
+  std::cout << "  Process info size:       " << ts1_arrays::JACOBIAN_PROCESS_INFO_SIZE << std::endl;
+  std::cout << "  Flat IDs size:           " << ts1_arrays::JACOBIAN_FLAT_IDS_SIZE << std::endl;
+  std::cout << "  Unique Jac entries:      " << n_unique << std::endl;
+  std::cout << "  Two-pass scratch (MB):   " << scratch_mb << std::endl;
+  std::cout << "  Warmup iterations:       " << WARMUP_ITERATIONS << std::endl;
+  std::cout << "  Measure iterations:      " << MEASURE_ITERATIONS << std::endl;
   std::cout << "  ---" << std::endl;
-  std::cout << "  Original kernel (bs=128): " << avg_orig_ms << " ms/iter (total " << total_orig_ms << " ms)" << std::endl;
-  std::cout << "  Unrolled kernel (bs=128): " << avg_unrolled_ms << " ms/iter (total " << total_unrolled_ms << " ms)"
+  std::cout << "  Original (scatter, 1D):  " << avg_orig_ms << " ms/iter" << std::endl;
+  std::cout << "  Unrolled (scatter, 1D):  " << avg_unrolled_ms << " ms/iter"
             << "  speedup: " << avg_orig_ms / avg_unrolled_ms << "x" << std::endl;
-  std::cout << "  2D kernel (cells x i_proc, global atomicAdd): " << avg_2d_ms << " ms/iter (total " << total_2d_ms << " ms)"
+  std::cout << "  2D (scatter, atomicAdd): " << avg_2d_ms << " ms/iter"
             << "  speedup: " << avg_orig_ms / avg_2d_ms << "x" << std::endl;
+  std::cout << "  Gather (single-pass):    " << avg_gather_ms << " ms/iter"
+            << "  speedup: " << avg_orig_ms / avg_gather_ms << "x" << std::endl;
+  std::cout << "  Gather (two-pass):       " << avg_twopass_ms << " ms/iter"
+            << "  speedup: " << avg_orig_ms / avg_twopass_ms << "x" << std::endl;
   std::cout << "===============================================" << std::endl;
 
   // Cleanup
@@ -310,4 +441,103 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
 
   EXPECT_EQ(mismatches_unrolled, 0u);
   EXPECT_EQ(mismatches_2d, 0u);
+  EXPECT_EQ(mismatches_gather, 0u);
+  EXPECT_EQ(mismatches_twopass, 0u);
+}
+
+// Dedicated correctness test for both gather kernels using a small problem size so that
+// any indexing mistake surfaces without running the full NUM_GRID_CELLS workload.
+TEST(CudaSubtractJacobianTerms, GatherKernelsCorrectness)
+{
+  auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+  using namespace ts1_arrays;
+
+  // Use a single group (128 cells) so discrepancies are easy to trace
+  static constexpr std::size_t SMALL_CELLS = VECTOR_LENGTH;
+  static constexpr std::size_t SMALL_GROUPS = 1;
+
+  TestDeviceData data;
+  data.Setup(stream);
+
+  // Re-create rate_constants / state_variables at the small size (same seed -> same values
+  // for the first SMALL_CELLS cells, so we can compare against the large-problem reference
+  // by only looking at the first group's worth of Jacobian output).
+  // Simpler: run the original kernel on the small problem and use that as reference.
+  std::mt19937 gen(99);
+  const std::size_t rc_total = SMALL_GROUPS * NUM_REACTIONS * VECTOR_LENGTH;
+  const std::size_t sv_total = SMALL_GROUPS * NUM_SPECIES * VECTOR_LENGTH;
+
+  double* d_rc_small = AllocRandomDoubles(rc_total, stream, gen);
+  double* d_sv_small = AllocRandomDoubles(sv_total, stream, gen);
+
+  CudaMatrixParam rc_param{};
+  rc_param.d_data_ = d_rc_small;
+  rc_param.number_of_elements_ = rc_total;
+  rc_param.number_of_grid_cells_ = SMALL_CELLS;
+  rc_param.vector_length_ = VECTOR_LENGTH;
+
+  CudaMatrixParam sv_param{};
+  sv_param.d_data_ = d_sv_small;
+  sv_param.number_of_elements_ = sv_total;
+  sv_param.number_of_grid_cells_ = SMALL_CELLS;
+  sv_param.vector_length_ = VECTOR_LENGTH;
+
+  const std::size_t jac_small_total = SMALL_GROUPS * JACOBIAN_FLAT_BLOCK_SIZE * VECTOR_LENGTH;
+  const std::size_t jac_small_bytes = sizeof(double) * jac_small_total;
+
+  double* d_jac_ref = nullptr;
+  double* d_jac_gather = nullptr;
+  double* d_jac_twopass = nullptr;
+  CHECK_CUDA_ERROR(cudaMallocAsync(&d_jac_ref, jac_small_bytes, stream), "cudaMalloc");
+  CHECK_CUDA_ERROR(cudaMallocAsync(&d_jac_gather, jac_small_bytes, stream), "cudaMalloc");
+  CHECK_CUDA_ERROR(cudaMallocAsync(&d_jac_twopass, jac_small_bytes, stream), "cudaMalloc");
+
+  CudaMatrixParam jac_param{};
+  jac_param.number_of_elements_ = jac_small_total;
+  jac_param.number_of_grid_cells_ = SMALL_CELLS;
+  jac_param.vector_length_ = VECTOR_LENGTH;
+
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
+
+  // Reference: original scatter kernel
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jac_ref, 0, jac_small_bytes, stream), "cudaMemset");
+  jac_param.d_data_ = d_jac_ref;
+  micm::cuda::SubtractJacobianTermsKernelDriver(rc_param, sv_param, jac_param, data.devstruct);
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize ref");
+
+  // Single-pass gather
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jac_gather, 0, jac_small_bytes, stream), "cudaMemset");
+  jac_param.d_data_ = d_jac_gather;
+  micm::cuda::SubtractJacobianTermsGatherKernelDriver(rc_param, sv_param, jac_param, data.devstruct);
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize gather");
+
+  // Two-pass gather
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jac_twopass, 0, jac_small_bytes, stream), "cudaMemset");
+  jac_param.d_data_ = d_jac_twopass;
+  micm::cuda::SubtractJacobianTermsTwoPassGatherDriver(rc_param, sv_param, jac_param, data.devstruct);
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize twopass");
+
+  // Copy to host and compare
+  std::vector<double> h_ref(jac_small_total), h_gather(jac_small_total), h_twopass(jac_small_total);
+  CHECK_CUDA_ERROR(cudaMemcpy(h_ref.data(), d_jac_ref, jac_small_bytes, cudaMemcpyDeviceToHost), "D2H ref");
+  CHECK_CUDA_ERROR(cudaMemcpy(h_gather.data(), d_jac_gather, jac_small_bytes, cudaMemcpyDeviceToHost), "D2H gather");
+  CHECK_CUDA_ERROR(cudaMemcpy(h_twopass.data(), d_jac_twopass, jac_small_bytes, cudaMemcpyDeviceToHost), "D2H twopass");
+
+  std::size_t mm_gather = CompareJacobians(h_ref, h_gather, "Gather (small)", 1e-9);
+  std::size_t mm_twopass = CompareJacobians(h_ref, h_twopass, "TwoPass (small)", 1e-9);
+
+  std::cout << "=== GatherKernelsCorrectness (1 group, " << SMALL_CELLS << " cells) ===" << std::endl;
+  std::cout << "  Unique Jac entries: " << data.devstruct.jac_gather_entries_size_ << std::endl;
+  std::cout << "  Gather mismatches:  " << mm_gather << std::endl;
+  std::cout << "  TwoPass mismatches: " << mm_twopass << std::endl;
+
+  CHECK_CUDA_ERROR(cudaFreeAsync(d_rc_small, stream), "cudaFree");
+  CHECK_CUDA_ERROR(cudaFreeAsync(d_sv_small, stream), "cudaFree");
+  CHECK_CUDA_ERROR(cudaFreeAsync(d_jac_ref, stream), "cudaFree");
+  CHECK_CUDA_ERROR(cudaFreeAsync(d_jac_gather, stream), "cudaFree");
+  CHECK_CUDA_ERROR(cudaFreeAsync(d_jac_twopass, stream), "cudaFree");
+  data.Cleanup(stream);
+
+  EXPECT_EQ(mm_gather, 0u);
+  EXPECT_EQ(mm_twopass, 0u);
 }

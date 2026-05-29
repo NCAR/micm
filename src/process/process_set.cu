@@ -381,6 +381,68 @@ namespace micm
       devstruct.jacobian_product_ids_size_ = hoststruct.jacobian_product_ids_size_;
       devstruct.jacobian_yields_size_ = hoststruct.jacobian_yields_size_;
       devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
+
+      /// Gather CSR arrays
+      std::size_t jac_gather_unique_flat_ids_bytes = sizeof(std::size_t) * hoststruct.jac_gather_entries_size_;
+      std::size_t jac_gather_offsets_bytes = sizeof(std::size_t) * (hoststruct.jac_gather_entries_size_ + 1);
+      std::size_t jac_gather_per_source_bytes = sizeof(std::size_t) * hoststruct.jacobian_flat_ids_size_;
+      std::size_t jac_gather_coeffs_bytes = sizeof(double) * hoststruct.jacobian_flat_ids_size_;
+
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.jac_gather_unique_flat_ids_), jac_gather_unique_flat_ids_bytes, cuda_stream_id),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.jac_gather_offsets_), jac_gather_offsets_bytes, cuda_stream_id), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.jac_gather_proc_idx_), jac_gather_per_source_bytes, cuda_stream_id), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.jac_gather_coeffs_), jac_gather_coeffs_bytes, cuda_stream_id), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&(devstruct.jac_gather_reactant_offset_), jac_gather_per_source_bytes, cuda_stream_id),
+          "cudaMalloc");
+
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.jac_gather_unique_flat_ids_,
+              hoststruct.jac_gather_unique_flat_ids_,
+              jac_gather_unique_flat_ids_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.jac_gather_offsets_,
+              hoststruct.jac_gather_offsets_,
+              jac_gather_offsets_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.jac_gather_proc_idx_,
+              hoststruct.jac_gather_proc_idx_,
+              jac_gather_per_source_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.jac_gather_coeffs_,
+              hoststruct.jac_gather_coeffs_,
+              jac_gather_coeffs_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.jac_gather_reactant_offset_,
+              hoststruct.jac_gather_reactant_offset_,
+              jac_gather_per_source_bytes,
+              cudaMemcpyHostToDevice,
+              cuda_stream_id),
+          "cudaMemcpy");
+
+      devstruct.jac_gather_entries_size_ = hoststruct.jac_gather_entries_size_;
     }
 
     /// This is the function that will delete the constant data
@@ -415,6 +477,16 @@ namespace micm
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_yields_offsets_, cuda_stream_id), "cudaFree");
       if (devstruct.jacobian_flat_ids_offsets_ != nullptr)
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_ids_offsets_, cuda_stream_id), "cudaFree");
+      if (devstruct.jac_gather_unique_flat_ids_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_unique_flat_ids_, cuda_stream_id), "cudaFree");
+      if (devstruct.jac_gather_offsets_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_offsets_, cuda_stream_id), "cudaFree");
+      if (devstruct.jac_gather_proc_idx_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_proc_idx_, cuda_stream_id), "cudaFree");
+      if (devstruct.jac_gather_coeffs_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_coeffs_, cuda_stream_id), "cudaFree");
+      if (devstruct.jac_gather_reactant_offset_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jac_gather_reactant_offset_, cuda_stream_id), "cudaFree");
     }
 
     void SubtractJacobianTermsKernelDriver(
@@ -483,6 +555,189 @@ namespace micm
       SubtractJacobianTermsKernel2D<<<grid, block, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           rate_constants_param, state_variables_param, jacobian_param, devstruct);
     }  // end of SubtractJacobianTermsKernel2DDriver
+
+    /// Single-pass gather kernel: parallelizes on (grid cell, unique Jacobian entry).
+    /// Each thread owns exactly one Jacobian entry and loops over the CSR contributors to
+    /// accumulate the total. Single write per entry — no atomics needed.
+    /// Trade-off: recomputes d_rate_d_ind for each contributing process per entry (duplicate
+    /// compute when multiple entries share the same process).
+    __global__ void SubtractJacobianTermsGatherKernel(
+        const CudaMatrixParam rate_constants_param,
+        const CudaMatrixParam state_variables_param,
+        CudaMatrixParam jacobian_param,
+        const ProcessSetParam devstruct)
+    {
+      const std::size_t cell_id = blockIdx.x * blockDim.x + threadIdx.x;
+      const std::size_t jac_idx = blockIdx.y * blockDim.y + threadIdx.y;
+
+      const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+      if (cell_id >= number_of_grid_cells || jac_idx >= devstruct.jac_gather_entries_size_)
+        return;
+
+      const std::size_t VL = state_variables_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + VL - 1) / VL;
+      const std::size_t group_id = cell_id / VL;
+      const std::size_t local_tid = cell_id % VL;
+
+      const double* __restrict__ d_rate_constants =
+          rate_constants_param.d_data_ + group_id * (rate_constants_param.number_of_elements_ / number_of_groups);
+      const double* __restrict__ d_state_variables =
+          state_variables_param.d_data_ + group_id * (state_variables_param.number_of_elements_ / number_of_groups);
+      double* __restrict__ d_jacobian =
+          jacobian_param.d_data_ + group_id * (jacobian_param.number_of_elements_ / number_of_groups);
+
+      const std::size_t start = devstruct.jac_gather_offsets_[jac_idx];
+      const std::size_t end = devstruct.jac_gather_offsets_[jac_idx + 1];
+
+      double total = 0.0;
+      for (std::size_t s = start; s < end; ++s)
+      {
+        const std::size_t i_proc = devstruct.jac_gather_proc_idx_[s];
+        const std::size_t react_off = devstruct.jac_gather_reactant_offset_[s];
+        const ProcessInfoParam pi = devstruct.jacobian_process_info_[i_proc];
+        double d_rate = d_rate_constants[pi.process_id_ * VL + local_tid];
+        for (std::size_t r = 0; r < pi.number_of_dependent_reactants_; ++r)
+          d_rate *= d_state_variables[devstruct.jacobian_reactant_ids_[react_off + r] * VL + local_tid];
+        total += devstruct.jac_gather_coeffs_[s] * d_rate;
+      }
+      // Single write per (jac_idx, local_tid) — no atomic needed
+      d_jacobian[devstruct.jac_gather_unique_flat_ids_[jac_idx] + local_tid] += total;
+    }  // end of SubtractJacobianTermsGatherKernel
+
+    void SubtractJacobianTermsGatherKernelDriver(
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& jacobian_param,
+        const ProcessSetParam& devstruct)
+    {
+      constexpr std::size_t BLOCK_DIM_X = 32;
+      constexpr std::size_t BLOCK_DIM_Y = 4;
+      static_assert(BLOCK_DIM_X * BLOCK_DIM_Y == BLOCK_SIZE, "2D block must equal BLOCK_SIZE");
+
+      const std::size_t N_cells = rate_constants_param.number_of_grid_cells_;
+      const std::size_t N_unique = devstruct.jac_gather_entries_size_;
+
+      const dim3 block(BLOCK_DIM_X, BLOCK_DIM_Y);
+      const dim3 grid((N_cells + BLOCK_DIM_X - 1) / BLOCK_DIM_X, (N_unique + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y);
+
+      SubtractJacobianTermsGatherKernel<<<
+          grid,
+          block,
+          0,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          rate_constants_param, state_variables_param, jacobian_param, devstruct);
+    }  // end of SubtractJacobianTermsGatherKernelDriver
+
+    /// Two-pass gather, Pass 1: compute d_rate_d_ind for every process_info and store in
+    /// scratch. One value per (group, process, local_tid). No writes to the Jacobian.
+    /// Scratch layout: scratch[group_id * N_proc * VL + i_proc * VL + local_tid].
+    __global__ void SubtractJacobianTermsGatherPass1Kernel(
+        const CudaMatrixParam rate_constants_param,
+        const CudaMatrixParam state_variables_param,
+        double* __restrict__ scratch,
+        const ProcessSetParam devstruct)
+    {
+      const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+
+      const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+      const std::size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
+      const std::size_t VL = state_variables_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + VL - 1) / VL;
+      const std::size_t group_id = tid / VL;
+      const std::size_t local_tid = tid % VL;
+
+      if (tid >= number_of_grid_cells)
+        return;
+
+      const double* __restrict__ d_rate_constants =
+          rate_constants_param.d_data_ + group_id * (rate_constants_param.number_of_elements_ / number_of_groups);
+      const double* __restrict__ d_state_variables =
+          state_variables_param.d_data_ + group_id * (state_variables_param.number_of_elements_ / number_of_groups);
+      double* __restrict__ my_scratch = scratch + group_id * number_of_process_infos * VL;
+
+      std::size_t react_off = 0;
+      for (std::size_t i_proc = 0; i_proc < number_of_process_infos; ++i_proc)
+      {
+        const ProcessInfoParam pi = devstruct.jacobian_process_info_[i_proc];
+        double d_rate = d_rate_constants[pi.process_id_ * VL + local_tid];
+        for (std::size_t r = 0; r < pi.number_of_dependent_reactants_; ++r)
+          d_rate *= d_state_variables[devstruct.jacobian_reactant_ids_[react_off + r] * VL + local_tid];
+        my_scratch[i_proc * VL + local_tid] = d_rate;
+        react_off += pi.number_of_dependent_reactants_;
+      }
+    }  // end of SubtractJacobianTermsGatherPass1Kernel
+
+    /// Two-pass gather, Pass 2: gather from scratch using the CSR and write each Jacobian
+    /// entry exactly once. Scratch layout identical to Pass 1.
+    __global__ void SubtractJacobianTermsGatherPass2Kernel(
+        const double* __restrict__ scratch,
+        const CudaMatrixParam state_variables_param,
+        CudaMatrixParam jacobian_param,
+        const ProcessSetParam devstruct)
+    {
+      const std::size_t cell_id = blockIdx.x * blockDim.x + threadIdx.x;
+      const std::size_t jac_idx = blockIdx.y * blockDim.y + threadIdx.y;
+
+      const std::size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
+      if (cell_id >= number_of_grid_cells || jac_idx >= devstruct.jac_gather_entries_size_)
+        return;
+
+      const std::size_t VL = state_variables_param.vector_length_;
+      const std::size_t number_of_groups = (number_of_grid_cells + VL - 1) / VL;
+      const std::size_t group_id = cell_id / VL;
+      const std::size_t local_tid = cell_id % VL;
+      const std::size_t N_proc = devstruct.jacobian_process_info_size_;
+
+      const double* __restrict__ my_scratch = scratch + group_id * N_proc * VL;
+      double* __restrict__ d_jacobian =
+          jacobian_param.d_data_ + group_id * (jacobian_param.number_of_elements_ / number_of_groups);
+
+      const std::size_t start = devstruct.jac_gather_offsets_[jac_idx];
+      const std::size_t end = devstruct.jac_gather_offsets_[jac_idx + 1];
+
+      double total = 0.0;
+      for (std::size_t s = start; s < end; ++s)
+        total += devstruct.jac_gather_coeffs_[s] * my_scratch[devstruct.jac_gather_proc_idx_[s] * VL + local_tid];
+
+      // Single write per (jac_idx, local_tid) — no atomic needed
+      d_jacobian[devstruct.jac_gather_unique_flat_ids_[jac_idx] + local_tid] += total;
+    }  // end of SubtractJacobianTermsGatherPass2Kernel
+
+    void SubtractJacobianTermsTwoPassGatherDriver(
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& jacobian_param,
+        const ProcessSetParam& devstruct)
+    {
+      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+
+      const std::size_t VL = state_variables_param.vector_length_;
+      const std::size_t N_cells = rate_constants_param.number_of_grid_cells_;
+      const std::size_t N_groups = (N_cells + VL - 1) / VL;
+      const std::size_t N_proc = devstruct.jacobian_process_info_size_;
+
+      // Scratch: one d_rate_d_ind per (group, process, lane)
+      double* scratch = nullptr;
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(&scratch, N_groups * N_proc * VL * sizeof(double), stream), "cudaMalloc scratch");
+
+      // Pass 1: compute and store d_rate_d_ind for every process
+      const std::size_t nblocks1 = (N_cells + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      SubtractJacobianTermsGatherPass1Kernel<<<nblocks1, BLOCK_SIZE, 0, stream>>>(
+          rate_constants_param, state_variables_param, scratch, devstruct);
+
+      // Pass 2: gather weighted contributions to each Jacobian entry
+      constexpr std::size_t BLOCK_DIM_X = 32;
+      constexpr std::size_t BLOCK_DIM_Y = 4;
+      static_assert(BLOCK_DIM_X * BLOCK_DIM_Y == BLOCK_SIZE, "2D block must equal BLOCK_SIZE");
+      const std::size_t N_unique = devstruct.jac_gather_entries_size_;
+      const dim3 block(BLOCK_DIM_X, BLOCK_DIM_Y);
+      const dim3 grid((N_cells + BLOCK_DIM_X - 1) / BLOCK_DIM_X, (N_unique + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y);
+      SubtractJacobianTermsGatherPass2Kernel<<<grid, block, 0, stream>>>(
+          scratch, state_variables_param, jacobian_param, devstruct);
+
+      CHECK_CUDA_ERROR(cudaFreeAsync(scratch, stream), "cudaFree scratch");
+    }  // end of SubtractJacobianTermsTwoPassGatherDriver
 
   }  // namespace cuda
 }  // namespace micm

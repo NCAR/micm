@@ -41,6 +41,15 @@ struct ProcessSetParam
   std::size_t* jacobian_reactant_ids_offsets_ = nullptr;
   std::size_t* jacobian_yields_offsets_ = nullptr;
   std::size_t* jacobian_flat_ids_offsets_ = nullptr;
+  // Gather CSR for gather-style Jacobian kernels. Built from jacobian_flat_ids_ by
+  // inverting the scatter map: keyed by unique Jacobian flat IDs, each entry lists
+  // which process_infos contribute and with what signed coefficient.
+  std::size_t* jac_gather_unique_flat_ids_ = nullptr;  // [jac_gather_entries_size_]
+  std::size_t* jac_gather_offsets_ = nullptr;          // [jac_gather_entries_size_ + 1]
+  std::size_t* jac_gather_proc_idx_ = nullptr;         // [jacobian_flat_ids_size_]
+  double* jac_gather_coeffs_ = nullptr;                // [jacobian_flat_ids_size_]
+  std::size_t* jac_gather_reactant_offset_ = nullptr;  // [jacobian_flat_ids_size_]
+  std::size_t jac_gather_entries_size_ = 0;
   std::size_t number_of_reactants_size_;
   std::size_t reactant_ids_size_;
   std::size_t number_of_products_size_;

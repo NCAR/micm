@@ -134,6 +134,13 @@ namespace micm
     hoststruct.jacobian_flat_ids_ = this->jacobian_flat_ids_.data();
     hoststruct.jacobian_flat_ids_size_ = this->jacobian_flat_ids_.size();
 
+    hoststruct.jac_gather_unique_flat_ids_ = this->jac_gather_unique_flat_ids_.data();
+    hoststruct.jac_gather_offsets_         = this->jac_gather_offsets_.data();
+    hoststruct.jac_gather_proc_idx_        = this->jac_gather_proc_idx_.data();
+    hoststruct.jac_gather_coeffs_          = this->jac_gather_coeffs_.data();
+    hoststruct.jac_gather_reactant_offset_ = this->jac_gather_reactant_offset_.data();
+    hoststruct.jac_gather_entries_size_    = this->jac_gather_unique_flat_ids_.size();
+
     // Copy the data from host struct to device struct
     micm::cuda::CopyJacobianParams(hoststruct, this->devstruct_);
   }

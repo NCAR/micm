@@ -56,5 +56,28 @@ namespace micm
         const CudaMatrixParam& state_variables_param,
         CudaMatrixParam& jacobian_param,
         const ProcessSetParam& devstruct);
+
+    /// Single-pass gather kernel driver. Parallelizes on (grid cell × unique Jacobian entry).
+    /// Each thread owns one Jacobian entry, loops over its CSR contributors, recomputes
+    /// d_rate_d_ind per contributor, accumulates, and writes once — no atomics.
+    /// Requires jac_gather_* arrays in devstruct (populated by SetJacobianFlatIds).
+    void SubtractJacobianTermsGatherKernelDriver(
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& jacobian_param,
+        const ProcessSetParam& devstruct);
+
+    /// Two-pass gather driver.
+    /// Pass 1 (1D grid, same shape as the original scatter kernel): compute d_rate_d_ind for
+    ///   every process_info and store in a scratch buffer sized N_groups×N_proc×VL.
+    /// Pass 2 (2D grid over cells × unique Jacobian entries): read from scratch via the CSR,
+    ///   accumulate weighted contributions, and write each Jacobian entry once — no atomics.
+    /// Allocates and frees the scratch buffer per call (cudaMallocAsync/cudaFreeAsync on
+    /// stream 0). Requires jac_gather_* arrays in devstruct (populated by SetJacobianFlatIds).
+    void SubtractJacobianTermsTwoPassGatherDriver(
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& jacobian_param,
+        const ProcessSetParam& devstruct);
   }  // namespace cuda
 }  // namespace micm
