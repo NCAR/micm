@@ -235,16 +235,15 @@ TEST(DAEAlgebraicStepEconomy, BalanceVariableStaysNonNegativeUnderStiffness)
   EXPECT_NEAR(r.final_P, 1.0e-6, 1.0e-8);
 }
 
-// EFFICIENCY CONTRACT (DISABLED until the algebraic error handling is fixed):
-// tightening the balance variable's absolute tolerance must NOT substantially
-// inflate the accepted step count. The balance variable is slaved by the
-// conservation constraint; its accuracy is determined by the differential
-// variable and the constraint, not by its own atol. Under the current
-// step-change error estimate this FAILS (tight atol -> many more steps), which
-// is exactly the behavior asserted (as desirable) by
-// test_dae_algebraic_error_insensitivity.cpp::ErrorSensitiveToBalanceAtol.
-// A correct fix should make this pass and should retire that opposing assertion.
-TEST(DAEAlgebraicStepEconomy, DISABLED_TightBalanceAtolDoesNotInflateSteps)
+// EFFICIENCY CONTRACT: tightening the balance variable's absolute tolerance
+// must NOT substantially inflate the accepted step count. The balance variable
+// is slaved by the conservation constraint; its accuracy is determined by the
+// differential variable and the constraint, not by its own atol. The solver
+// uses the method's embedded local truncation error for algebraic rows (which
+// is ~0 for slaved variables), so a tighter algebraic atol does not throttle the
+// step size. (Before the algebraic error handling was corrected, the O(H)
+// step-change estimate made this fail ~100x.)
+TEST(DAEAlgebraicStepEconomy, TightBalanceAtolDoesNotInflateSteps)
 {
   auto loose = RunDecayEquilibrium(/*balance_atol=*/1.0e-2);
   auto tight = RunDecayEquilibrium(/*balance_atol=*/1.0e-10);

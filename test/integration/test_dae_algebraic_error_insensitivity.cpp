@@ -1,14 +1,16 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
-// Tests verifying that the Rosenbrock DAE step-change error estimate for
-// algebraic variables makes the solver sensitive to algebraic tolerances
-// and prevents overshoot.
+// Tests verifying that an algebraic conservation/balance variable is not driven
+// into an unphysical (negative) state under stiff DAE conditions.
 //
-// Root cause: The embedded error formula Yerror = sum(e_i * K_i) produces
-// near-zero entries for algebraic variables because the mass matrix diagonal
-// M_ii = 0 zeroes out the inter-stage coupling terms (c/H) * M_ii * K[j].
-// Fix: replace Yerror[a] with Ynew[a] - Y[a] for algebraic variables.
+// The Rosenbrock DAE solver uses the method's embedded local truncation error
+// estimate Yerror = sum(e_i * K_i) for all variables, including algebraic rows
+// (where it correctly evaluates to ~0 because an algebraic variable is slaved to
+// the differential variables through its constraint). Feasibility is preserved
+// by constraint enforcement at each stage plus differential-variable error
+// control, NOT by any algebraic-tolerance throttling. See
+// docs/superpowers/notes/2026-05-28-dae-algebraic-error-investigation.md.
 //
 // System (4 species, 2 equilibria, 1 reaction, 1 conservation):
 //   A_gas <-> A_aq   (equilibrium, K1)    -- A_aq is algebraic
@@ -149,23 +151,6 @@ namespace
   }
 }  // namespace
 
-/// @brief Prove that the step-change error estimate makes the solver sensitive to algebraic atol.
-///
-/// With the step-change error injection, tighter atol for the algebraic balance
-/// variable (A_gas) should produce more internal steps during the transient.
-/// Uses moderate stiffness so the transient is long enough to require many steps.
-TEST(DAEAlgebraicError, ErrorSensitiveToBalanceAtol)
-{
-  // Moderate stiffness: k=100, K1=2, K2=2
-  // Time constant ≈ 1/(k*K1*K2/(1+K1+K1*K2)) = 7/(100*4) ≈ 0.018 s
-  // A_gas0 = C/7 ≈ 1.43e-7
-  auto r_loose = RunCascadeSystem(1e-3, 100.0, 2.0, 2.0);
-  auto r_tight = RunCascadeSystem(1e-8, 100.0, 2.0, 2.0);
-
-  // With the fix, tight balance atol should produce more steps
-  EXPECT_GT(r_tight.accepted, r_loose.accepted) << "Tight atol should require more steps than loose atol. "
-                                                << "loose=" << r_loose.accepted << " tight=" << r_tight.accepted;
-}
 
 /// @brief Verify that the algebraic balance variable does not go deeply negative.
 ///

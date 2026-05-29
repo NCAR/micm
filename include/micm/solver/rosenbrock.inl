@@ -189,27 +189,26 @@ namespace micm
           Ynew.Axpy(parameters.m_[stage], K[stage]);
         }
 
+        // Embedded local truncation error estimate, formed over ALL rows
+        // (differential and algebraic). This is the method's true O(H^(p+1))
+        // error estimate. For index-1 DAE systems the algebraic rows correctly
+        // evaluate to ~0: an algebraic variable is slaved to the differential
+        // variables through its constraint, so it carries negligible independent
+        // local error — its accuracy follows from the differential variables
+        // (which are error-controlled here) plus constraint enforcement at each
+        // stage. We therefore use this estimate as-is for all variables.
+        //
+        // NOTE: a previous implementation overwrote the algebraic rows with the
+        // raw step change Ynew[a]-Y[a]. That is O(H), not a truncation error, so
+        // dividing it by a tight algebraic tolerance throttled the step size to
+        // hold dY_algebraic ~ atol per step — inflating step counts (up to ~100x
+        // on stiff problems) for no accuracy gain, while providing no feasibility
+        // protection that the constraint solve does not already provide. See
+        // docs/superpowers/notes/2026-05-28-dae-algebraic-error-investigation.md.
         Yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
           Yerror.Axpy(parameters.e_[stage], K[stage]);
-        }
-
-        // For DAE systems, replace the near-zero algebraic error estimates with step changes.
-        // The embedded error formula produces Yerror ≈ 0 for algebraic rows (M_ii = 0 zeroes
-        // the inter-stage coupling terms), making the solver insensitive to algebraic tolerances.
-        // Setting Yerror[a] = Ynew[a] - Y[a] allows the solver to reject steps where algebraic
-        // variables change more than their tolerance permits, preventing overshoot.
-        //
-        // IMPORTANT: This uses the step change as-is without order scaling. For very stiff systems
-        // where the embedded error estimate K[3] ≈ 0 for all variables (including differential),
-        // this provides the ONLY non-trivial error signal for algebraic variables. The step change
-        // is O(H) while the true error is O(H^(p+1)), so this is conservative — the solver may
-        // take more steps than strictly necessary. However, it correctly prevents overshoot by
-        // rejecting steps where algebraic variables change more than their tolerance permits.
-        if (has_constraints)
-        {
-          constraints_.SetAlgebraicErrors(Yerror, Y, Ynew);
         }
 
         // Compute the normalized error
