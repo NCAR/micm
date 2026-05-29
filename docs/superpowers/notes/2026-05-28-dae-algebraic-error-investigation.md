@@ -200,7 +200,48 @@ The fix and the tests are coupled: pick the model (feasibility guard vs construc
 
 Net: the two tests bracket the fix. The feasibility guard shows the override's stated purpose is not currently demonstrable; the efficiency guard pins the real cost regression. Together they suggest the override may simply be removable (with the feasibility guard ensuring no regression), or replaced by a constructed LTE / feasibility-only guard if a future scenario shows the override is genuinely needed.
 
-## 10. Repro
+## 10. Resolution (commit 6b02b76e)
+
+Removed the step-change override; the solver now uses the method's embedded LTE
+`Σ e_i K_i` for ALL variables, including algebraic rows. This is the correct
+local truncation error applied uniformly. For index-1 *slaved* algebraic
+variables the embedded estimate correctly evaluates to ~0: such a variable is a
+function of the differential variables through its constraint, so it carries no
+independent local error — its accuracy is fully determined by the differential
+variables (which remain error-controlled) plus per-stage constraint enforcement.
+
+Verification (all pass): analytical Rosenbrock suite incl. Robertson (17),
+Rosenbrock unit (7), equilibrium (6), linear (1), external-model (16),
+overshoot/feasibility (3 + 1), and the new step-economy contracts (2 — the
+efficiency test, previously DISABLED, now passes). On the decay+equilibrium
+efficiency case, tightening the slaved variable's atol from 1e-2 to 1e-10 now
+gives 536 vs 536 accepted steps (was 536 vs 75,984). Accuracy is unchanged
+(verified on the nonlinear Robertson QSSA constraint: max post-transient
+relative error 6.7e-4, identical to before).
+
+Code changes: `rosenbrock.inl` (remove override + document rationale);
+`constraint_set.hpp` (remove now-unused `SetAlgebraicErrors` /
+`BuildAlgebraicErrorFunction` / `algebraic_error_function_`);
+`test_dae_algebraic_error_insensitivity` (drop the `ErrorSensitiveToBalanceAtol`
+assertion, which encoded the inflation as desirable; keep the feasibility test);
+`test_dae_algebraic_error_step_economy` (enable the efficiency regression).
+
+### Considered but not implemented: a non-degenerate algebraic LTE
+
+A genuine (non-~0) algebraic error signal would propagate the differential LTE
+through the constraint: `err_a = -(∂G_a/∂y_a)^{-1} Σ_{j≠a} (∂G_a/∂y_j) err_j`.
+This is the dimensionally-correct algebraic local error and would not inflate
+steps (it is proportional to the well-controlled differential LTE). It was NOT
+implemented because it needs `∂G/∂y` at error-estimation time, which is not
+robustly available across solver variants (the system Jacobian is factored —
+in-place for some linear solvers — before the error step), so it would require
+new infrastructure (a dedicated constraint-Jacobian temp + a small coupling
+solve for mutually-dependent algebraic variables). Verification shows it is not
+needed for accuracy: the embedded approach maintains full accuracy on both
+linear and nonlinear constraints. It remains an option if an explicit
+non-degenerate algebraic accuracy signal is later wanted.
+
+## 11. Repro
 
 - Branch `dae-rosenbrock-benchmark`. Build: `cmake -S . -B build -DMICM_ENABLE_BENCHMARKS=ON -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER && cmake --build build --target robertson_dae`.
 - Run `./build/robertson_dae` (currently the scratch experiment harness producing the two tables above; uncommitted).
