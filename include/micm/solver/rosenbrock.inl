@@ -22,8 +22,8 @@ namespace micm
     auto& yerror = derived_class_temporary_variables->Yerror_;
     const double H_MIN = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
     const double H_MAX = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
-    const double H_START = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
-    double h = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
+    const double H_START = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(H_MAX, parameters.h_start_);
+    double h = std::min(std::max(H_MIN, std::abs(H_START)), std::abs(H_MAX));
 
     const bool HAS_CONSTRAINTS = constraints_.Size() > 0;
 
@@ -52,8 +52,8 @@ namespace micm
               }
             }
           },
-          K[0],
-          K[0]);
+          k[0],
+          k[0]);
 
       auto init_state = InitializeConstraints(state, parameters, result.stats_);
       if (init_state != SolverState::CONVERGED)
@@ -82,8 +82,8 @@ namespace micm
         break;
       }
 
-      //  Limit H if necessary to avoid going beyond the specified chemistry time step
-      H = std::min(H, std::abs(time_step - present_time));
+      //  Limit h if necessary to avoid going beyond the specified chemistry time step
+      h = std::min(h, std::abs(time_step - present_time));
 
       // compute the initial forcing at the beginning of the current time
       initial_forcing.Fill(0);
@@ -240,11 +240,11 @@ namespace micm
           result.stats_.accepted_ += 1;
           present_time = present_time + h;
           y.Swap(ynew);
-          Hnew = std::max(h_min, std::min(Hnew, h_max));
+          hnew = std::max(H_MIN, std::min(hnew, H_MAX));
           if (reject_last_h)
           {
             // No step size increase after a rejected step
-            Hnew = std::min(Hnew, H);
+            hnew = std::min(hnew, h);
           }
           reject_last_h = false;
           reject_more_h = false;
@@ -327,7 +327,7 @@ namespace micm
       for (const auto& i_elem : state.jacobian_diagonal_elements_)
       {
         const double DIAGONAL_SCALE = state.upper_left_identity_diagonal_[i_diag++];
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        for (std::size_t i_cell = 0; i_cell < N_CELLS; ++i_cell)
         {
           jacobian_vector[i_elem + i_cell] += alpha * DIAGONAL_SCALE;
         }
@@ -382,7 +382,7 @@ namespace micm
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
         ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % N_VARS] + rtol * ymax);
         error += errors_over_scale * errors_over_scale;
       }
     }
@@ -418,7 +418,7 @@ namespace micm
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
         ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % N_VARS] + rtol * ymax);
         error += errors_over_scale * errors_over_scale;
       }
     }

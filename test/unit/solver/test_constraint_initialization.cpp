@@ -28,11 +28,11 @@ struct SimpleConstrainedSystem
     auto b = Species("B");
     auto c = Species("C");
 
-    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
     Process rxn = ChemicalReactionBuilder()
-                      .SetReactants({ A })
-                      .SetProducts({ { B, 1 } })
+                      .SetReactants({ a })
+                      .SetProducts({ { b, 1 } })
                       .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = K, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
@@ -41,10 +41,10 @@ struct SimpleConstrainedSystem
     std::vector<Constraint> constraints;
     constraints.push_back(EquilibriumConstraint(
         "B_C_eq",
-        C,
-        std::vector<StoichSpecies>{ { B, 1.0 } },
-        std::vector<StoichSpecies>{ { C, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
+        c,
+        std::vector<StoichSpecies>{ { b, 1.0 } },
+        std::vector<StoichSpecies>{ { c, 1.0 } },
+        VantHoffParam{ .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
 
     return builder.SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
         .SetReactions({ rxn })
@@ -68,9 +68,9 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
   auto b_idx = state.variable_map_.at("B");
   auto c_idx = state.variable_map_.at("C");
 
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_EQ * 0.5;  // C = K_eq * B = consistent
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.5;
+  state.variables_[0][c_idx] = SimpleConstrainedSystem::K_EQ * 0.5;  // C = K_eq * B = consistent
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -78,7 +78,7 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
 
   auto result = solver.Solve(0.001, state);
 
-  EXPECT_EQ(result.state_, SolverState::Converged);
+  EXPECT_EQ(result.state_, SolverState::CONVERGED);
   // A should not change due to initialization (only from time stepping)
   // B should not change due to initialization (only from time stepping)
   // C was already consistent, so initialization should be nearly a no-op
@@ -97,20 +97,20 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   auto b_idx = state.variable_map_.at("B");
   auto c_idx = state.variable_map_.at("C");
 
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = 5.0;  // Wrong: should be K_eq * B = 1.0
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.5;
+  state.variables_[0][c_idx] = 5.0;  // Wrong: should be K_eq * B = 1.0
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
   solver.UpdateStateParameters(state);
 
-  double a_before = state.variables_[0][A_idx];
-  double b_before = state.variables_[0][B_idx];
+  double a_before = state.variables_[0][a_idx];
+  double b_before = state.variables_[0][b_idx];
 
   auto result = solver.Solve(0.001, state);
 
-  EXPECT_EQ(result.state_, SolverState::Converged);
+  EXPECT_EQ(result.state_, SolverState::CONVERGED);
 
   // ODE variable A should not have been modified by initialization
   // (it will change from time stepping, but the initialization should not touch it)
@@ -120,7 +120,7 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
   double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = k_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double residual = k_eq_actual * state.variables_[0][b_idx] - state.variables_[0][c_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
@@ -135,9 +135,9 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   auto b_idx = state.variable_map_.at("B");
   auto c_idx = state.variable_map_.at("C");
 
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = 1000.0;  // Wildly off: should be K_eq * B = 1.0
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.5;
+  state.variables_[0][c_idx] = 1000.0;  // Wildly off: should be K_eq * B = 1.0
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -145,11 +145,11 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
 
   auto result = solver.Solve(0.001, state);
 
-  EXPECT_EQ(result.state_, SolverState::Converged);
+  EXPECT_EQ(result.state_, SolverState::CONVERGED);
 
   // Constraint should be satisfied after initialization + solve
   double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = k_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double residual = k_eq_actual * state.variables_[0][b_idx] - state.variables_[0][c_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
@@ -159,11 +159,11 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
   auto a = Species("A");
   auto b = Species("B");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b } };
 
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A })
-                    .SetProducts({ { B, 1 } })
+                    .SetReactants({ a })
+                    .SetProducts({ { b, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
@@ -183,7 +183,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
 
   auto result = solver.Solve(0.01, state);
 
-  EXPECT_EQ(result.state_, SolverState::Converged);
+  EXPECT_EQ(result.state_, SolverState::CONVERGED);
   // No constraint initialization should have happened
   EXPECT_EQ(result.stats_.constraint_init_iterations_, 0u);
 }
@@ -202,19 +202,19 @@ TEST(ConstraintInitialization, MultiCellSystems)
   double k_eq = SimpleConstrainedSystem::K_EQ;
 
   // Cell 0: consistent
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = k_eq * 0.5;
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.5;
+  state.variables_[0][c_idx] = k_eq * 0.5;
 
   // Cell 1: mildly inconsistent
-  state.variables_[1][A_idx] = 2.0;
-  state.variables_[1][B_idx] = 0.3;
-  state.variables_[1][C_idx] = 5.0;  // Should be K_eq * 0.3 = 0.6
+  state.variables_[1][a_idx] = 2.0;
+  state.variables_[1][b_idx] = 0.3;
+  state.variables_[1][c_idx] = 5.0;  // Should be K_eq * 0.3 = 0.6
 
   // Cell 2: severely inconsistent (but non-negative — equilibrium constraint clamps negative concentrations)
-  state.variables_[2][A_idx] = 0.5;
-  state.variables_[2][B_idx] = 0.1;
-  state.variables_[2][C_idx] = 100.0;  // Should be K_eq * 0.1 = 0.2
+  state.variables_[2][a_idx] = 0.5;
+  state.variables_[2][b_idx] = 0.1;
+  state.variables_[2][c_idx] = 100.0;  // Should be K_eq * 0.1 = 0.2
 
   for (std::size_t i = 0; i < 3; ++i)
   {
@@ -226,13 +226,13 @@ TEST(ConstraintInitialization, MultiCellSystems)
 
   auto result = solver.Solve(0.001, state);
 
-  EXPECT_EQ(result.state_, SolverState::Converged);
+  EXPECT_EQ(result.state_, SolverState::CONVERGED);
 
   // Verify constraint satisfied in all cells after solve
   double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
   for (std::size_t i = 0; i < 3; ++i)
   {
-    double residual = k_eq_actual * state.variables_[i][B_idx] - state.variables_[i][C_idx];
+    double residual = k_eq_actual * state.variables_[i][b_idx] - state.variables_[i][c_idx];
     EXPECT_NEAR(residual, 0.0, 1.0e-5) << "Constraint not satisfied in cell " << i;
   }
 }
@@ -249,31 +249,31 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   auto c_idx = state.variable_map_.at("C");
 
   // Start consistent
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_EQ * 0.5;
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.5;
+  state.variables_[0][c_idx] = SimpleConstrainedSystem::K_EQ * 0.5;
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
   solver.UpdateStateParameters(state);
   auto result1 = solver.Solve(0.001, state);
-  EXPECT_EQ(result1.state_, SolverState::Converged);
+  EXPECT_EQ(result1.state_, SolverState::CONVERGED);
 
   // Perturb C off-manifold between solve calls (simulating external event)
-  state.variables_[0][C_idx] = 999.0;
+  state.variables_[0][c_idx] = 999.0;
 
   solver.UpdateStateParameters(state);
   auto result2 = solver.Solve(0.001, state);
-  EXPECT_EQ(result2.state_, SolverState::Converged);
+  EXPECT_EQ(result2.state_, SolverState::CONVERGED);
 
   // Constraint should be re-satisfied after second solve
   double k_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = k_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  double residual = k_eq_actual * state.variables_[0][b_idx] - state.variables_[0][c_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
 /// @brief Test SolverStateToString for the new enum value
 TEST(ConstraintInitialization, SolverStateToStringNewValue)
 {
-  EXPECT_EQ(SolverStateToString(SolverState::ConstraintInitializationFailed), "Constraint Initialization Failed");
+  EXPECT_EQ(SolverStateToString(SolverState::CONSTRAINT_INITIALIZATION_FAILED), "Constraint Initialization Failed");
 }

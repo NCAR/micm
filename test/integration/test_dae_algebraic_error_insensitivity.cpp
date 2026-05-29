@@ -11,17 +11,17 @@
 // Fix: replace Yerror[a] with Ynew[a] - Y[a] for algebraic variables.
 //
 // System (4 species, 2 equilibria, 1 reaction, 1 conservation):
-//   A_gas <-> A_aq   (equilibrium, K1)    -- A_aq is algebraic
-//   A_aq  <-> B_aq   (equilibrium, K2)    -- B_aq is algebraic
-//   B_aq  -> P       (kinetics, rate k)   -- P is the only differential variable
-//   Conservation: A_aq + B_aq + P + A_gas = C_total   -- A_gas is the algebraic balance variable
+//   a_gas <-> a_aq   (equilibrium, K1)    -- a_aq is algebraic
+//   a_aq  <-> b_aq   (equilibrium, K2)    -- b_aq is algebraic
+//   b_aq  -> p       (kinetics, rate k)   -- p is the only differential variable
+//   Conservation: a_aq + b_aq + p + a_gas = c_total   -- a_gas is the algebraic balance variable
 //
 // Analytical solution:
-//   A_gas(t) = (C - P(t)) / (1 + K1 + K1*K2)
-//   P(t)     = C * (1 - exp(-r*t))   where r = k*K1*K2 / (1 + K1 + K1*K2)
+//   a_gas(t) = (C - p(t)) / (1 + K1 + K1*K2)
+//   p(t)     = C * (1 - exp(-r*t))   where r = k*K1*K2 / (1 + K1 + K1*K2)
 //
-// As P approaches C_total, A_gas approaches zero. If the solver overshoots
-// P > C_total, the conservation constraint forces A_gas negative.
+// As p approaches c_total, a_gas approaches zero. If the solver overshoots
+// p > c_total, the conservation constraint forces a_gas negative.
 
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
@@ -47,11 +47,11 @@ namespace
     uint64_t rejected_;
   };
 
-  /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (A_gas)
-  /// @param balance_atol Absolute tolerance for A_gas (the algebraic balance variable)
-  /// @param k Rate constant for B_aq -> P reaction
-  /// @param K1 Equilibrium constant for A_gas <-> A_aq
-  /// @param K2 Equilibrium constant for A_aq <-> B_aq
+  /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (a_gas)
+  /// @param balance_atol Absolute tolerance for a_gas (the algebraic balance variable)
+  /// @param k Rate constant for b_aq -> p reaction
+  /// @param K1 Equilibrium constant for a_gas <-> a_aq
+  /// @param K2 Equilibrium constant for a_aq <-> b_aq
   SolveResult RunCascadeSystem(double balance_atol, double k, double K1, double K2)
   {
     auto a_gas = Species("A_gas");
@@ -59,13 +59,13 @@ namespace
     auto b_aq = Species("B_aq");
     auto p = Species("P");
 
-    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A_gas, A_aq, B_aq, P } };
+    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a_gas, a_aq, b_aq, p } };
 
     double c_total = 1.0e-6;
 
     Process rxn = ChemicalReactionBuilder()
-                      .SetReactants({ B_aq })
-                      .SetProducts({ { P, 1 } })
+                      .SetReactants({ b_aq })
+                      .SetProducts({ { p, 1 } })
                       .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
@@ -73,19 +73,19 @@ namespace
     std::vector<Constraint> constraints;
     constraints.push_back(EquilibriumConstraint(
         "eq1",
-        A_aq,
-        std::vector<StoichSpecies>{ { A_gas, 1.0 } },
-        std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K1, .delta_H = 0.0 }));
+        a_aq,
+        std::vector<StoichSpecies>{ { a_gas, 1.0 } },
+        std::vector<StoichSpecies>{ { a_aq, 1.0 } },
+        VantHoffParam{ .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
     constraints.push_back(EquilibriumConstraint(
         "eq2",
-        B_aq,
-        std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-        std::vector<StoichSpecies>{ { B_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));
-    // A_gas is explicitly set as the algebraic balance variable
+        b_aq,
+        std::vector<StoichSpecies>{ { a_aq, 1.0 } },
+        std::vector<StoichSpecies>{ { b_aq, 1.0 } },
+        VantHoffParam{ .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
+    // a_gas is explicitly set as the algebraic balance variable
     constraints.push_back(
-        LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+        LinearConstraint("mass", a_gas, { { a_aq, 1.0 }, { b_aq, 1.0 }, { p, 1.0 }, { a_gas, 1.0 } }, c_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -104,16 +104,16 @@ namespace
     std::size_t bi = vm.at("B_aq");
     std::size_t pi = vm.at("P");
 
-    // balance_atol for A_gas (algebraic balance variable under test),
-    // moderate atol for equilibrium algebraic variables (A_aq, B_aq),
-    // tight atol for the only differential variable (P)
+    // balance_atol for a_gas (algebraic balance variable under test),
+    // moderate atol for equilibrium algebraic variables (a_aq, b_aq),
+    // tight atol for the only differential variable (p)
     std::vector<double> atols(4, 1.0e-12);
     atols[gi] = balance_atol;
     atols[ai] = 1.0e-8;
     atols[bi] = 1.0e-8;
     state.SetAbsoluteTolerances(atols);
 
-    // Initial: equilibrium satisfied, P = 0
+    // Initial: equilibrium satisfied, p = 0
     double denom = 1.0 + K1 + K1 * K2;
     double ag0 = c_total / denom;
     state.variables_[0][gi] = ag0;
@@ -134,7 +134,7 @@ namespace
     while (advanced < dt)
     {
       auto result = solver.Solve(dt - advanced, state);
-      EXPECT_EQ(result.state_, SolverState::Converged);
+      EXPECT_EQ(result.state_, SolverState::CONVERGED);
       if (result.state_ != SolverState::CONVERGED)
       {
         break;
@@ -152,7 +152,7 @@ namespace
 /// @brief Prove that the step-change error estimate makes the solver sensitive to algebraic atol.
 ///
 /// With the step-change error injection, tighter atol for the algebraic balance
-/// variable (A_gas) should produce more internal steps during the transient.
+/// variable (a_gas) should produce more internal steps during the transient.
 /// Uses moderate stiffness so the transient is long enough to require many steps.
 TEST(DAEAlgebraicError, ErrorSensitiveToBalanceAtol)
 {
@@ -163,26 +163,26 @@ TEST(DAEAlgebraicError, ErrorSensitiveToBalanceAtol)
   auto r_tight = RunCascadeSystem(1e-8, 100.0, 2.0, 2.0);
 
   // With the fix, tight balance atol should produce more steps
-  EXPECT_GT(r_tight.accepted, r_loose.accepted) << "Tight atol should require more steps than loose atol. "
-                                                << "loose=" << r_loose.accepted << " tight=" << r_tight.accepted;
+  EXPECT_GT(r_tight.accepted_, r_loose.accepted_) << "Tight atol should require more steps than loose atol. "
+                                                << "loose=" << r_loose.accepted_ << " tight=" << r_tight.accepted_;
 }
 
 /// @brief Verify that the algebraic balance variable does not go deeply negative.
 ///
 /// Uses an ultra-stiff system (k=1e4, K1=100, K2=50) where the embedded error
 /// estimate produces near-zero Yerror for all variables. Without the step-change
-/// fix, the solver would accept a huge first step, overshooting P > C_total and
-/// forcing A_gas deeply negative.
+/// fix, the solver would accept a huge first step, overshooting p > c_total and
+/// forcing a_gas deeply negative.
 TEST(DAEAlgebraicError, AlgebraicVariableDoesNotOvershootDeeply)
 {
   // Ultra-stiff: transient is ~5e-3 s, solver converges quickly
   auto r = RunCascadeSystem(1e-8, 1.0e4, 100.0, 50.0);
 
-  // A_gas should stay non-negative (or very close to zero).
-  // The analytical solution has A_gas >= 0 at all times.
+  // a_gas should stay non-negative (or very close to zero).
+  // The analytical solution has a_gas >= 0 at all times.
   EXPECT_GE(r.min_A_gas_, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas_;
 
-  // After 30s the system should be fully converted: P ≈ C_total, A_gas ≈ 0
+  // After 30s the system should be fully converted: p ≈ c_total, a_gas ≈ 0
   EXPECT_NEAR(r.P_final_, 1.0e-6, 1.0e-8);
   EXPECT_NEAR(r.A_gas_final_, 0.0, 1.0e-10);
 }

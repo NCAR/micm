@@ -89,7 +89,7 @@ namespace micm
     /// @param value Value to add to the diagonal
     void AddToDiagonal(const std::size_t NUMBER_OF_BLOCKS, auto& data, auto value) const
     {
-      for (std::size_t block_start = 0; block_start < number_of_blocks * row_ids_.size(); block_start += row_ids_.size())
+      for (std::size_t block_start = 0; block_start < NUMBER_OF_BLOCKS * row_ids_.size(); block_start += row_ids_.size())
         for (const auto& i : diagonal_ids_)
           data[block_start + i] += value;
     }
@@ -133,7 +133,7 @@ namespace micm
       indices.reserve(row_start_.size() - 1);
       for (std::size_t i = 0; i < row_start_.size() - 1; ++i)
         if (!IsZero(i, i))
-          indices.push_back(VectorIndex(number_of_blocks, block_id, i, i));
+          indices.push_back(VectorIndex(NUMBER_OF_BLOCKS, BLOCK_ID, i, i));
       return indices;
     }
 
@@ -415,7 +415,7 @@ namespace micm
         const std::size_t BLOCK_SIZE,
         const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
     {
-      std::vector<std::size_t> starts(block_size + 1, 0);
+      std::vector<std::size_t> starts(BLOCK_SIZE + 1, 0);
       std::size_t total_elem = 0;
       std::size_t curr_row = 0;
       for (auto& elem : non_zero_elements)
@@ -425,7 +425,7 @@ namespace micm
         ++total_elem;
       }
       // Fill all remaining entries from curr_row + 1 to block_size
-      for (std::size_t i = curr_row + 1; i <= block_size; ++i)
+      for (std::size_t i = curr_row + 1; i <= BLOCK_SIZE; ++i)
         starts[i] = total_elem;
       return starts;
     }

@@ -23,7 +23,7 @@ namespace micm
         Lij_yj_(),
         nUij_Uii_(),
         Uij_xj_(),
-        lu_decomp_(create_lu_decomp(matrix))
+        lu_decomp_(CREATE_LU_DECOMP(matrix))
   {
     auto lu = lu_decomp_.template GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
     for (std::size_t i = 0; i < lu.NumRows(); ++i)
@@ -36,9 +36,9 @@ namespace micm
           continue;
         }
         Lij_yj_.push_back(std::make_pair(lu.VectorIndex(0, i, j), j));
-        ++nLij;
+        ++n_lij;
       }
-      nLij_.push_back(nLij);
+      nLij_.push_back(n_lij);
     }
     for (std::size_t i = lu.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
     {
@@ -50,10 +50,10 @@ namespace micm
           continue;
         }
         Uij_xj_.push_back(std::make_pair(lu.VectorIndex(0, i, j), j));
-        ++nUij;
+        ++n_uij;
       }
       // There must always be a non-zero element on the diagonal
-      nUij_Uii_.push_back(std::make_pair(nUij, lu.VectorIndex(0, i, i)));
+      nUij_Uii_.push_back(std::make_pair(n_uij, lu.VectorIndex(0, i, i)));
     }
   };
 
@@ -84,8 +84,8 @@ namespace micm
         {
           for (std::size_t i = 0; i < nLij; ++i)
           {
-            *y_elem -= lu_matrix.AsVector()[grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
-            ++Lij_yj;
+            *y_elem -= lu_matrix.AsVector()[GRID_OFFSET + (*lij_yj).first] * y_cell[(*lij_yj).second];
+            ++lij_yj;
           }
           ++y_elem;
         }
@@ -100,11 +100,11 @@ namespace micm
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
-            *x_elem -= lu_matrix.AsVector()[grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
-            ++Uij_xj;
+            *x_elem -= lu_matrix.AsVector()[GRID_OFFSET + (*uij_xj).first] * x_cell[(*uij_xj).second];
+            ++uij_xj;
           }
 
-          *(x_elem) /= lu_matrix.AsVector()[grid_offset + nUij_Uii.second];
+          *(x_elem) /= lu_matrix.AsVector()[GRID_OFFSET + nUij_Uii.second];
           // don't iterate before the beginning of the vector
           if (x_elem != x_cell.begin())
           {
@@ -136,46 +136,46 @@ namespace micm
         {
           for (std::size_t i = 0; i < nLij; ++i)
           {
-            const std::size_t Lij_yj_first = (*Lij_yj).first;
-            const std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
-            auto LU_group_it = LU_group + Lij_yj_first;
+            const std::size_t Lij_yj_first = (*lij_yj).first;
+            const std::size_t Lij_yj_second_times_n_cells = (*lij_yj).second * N_CELLS;
+            auto LU_group_it = lu_group + Lij_yj_first;
             auto x_group_it = x_group + Lij_yj_second_times_n_cells;
             auto y_elem_it = y_elem;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            for (std::size_t i_cell = 0; i_cell < N_CELLS; ++i_cell)
               *(y_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
-            ++Lij_yj;
+            ++lij_yj;
           }
-          y_elem += n_cells;
+          y_elem += N_CELLS;
         }
       }
 
       // Backward Substitution
       {
-        auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
+        auto x_elem = std::next(x_group, x.GroupSize() - N_CELLS);
         auto uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
-            const std::size_t Uij_xj_first = (*Uij_xj).first;
-            const std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
-            auto LU_group_it = LU_group + Uij_xj_first;
+            const std::size_t Uij_xj_first = (*uij_xj).first;
+            const std::size_t Uij_xj_second_times_n_cells = (*uij_xj).second * N_CELLS;
+            auto LU_group_it = lu_group + Uij_xj_first;
             auto x_group_it = x_group + Uij_xj_second_times_n_cells;
             auto x_elem_it = x_elem;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            for (std::size_t i_cell = 0; i_cell < N_CELLS; ++i_cell)
               *(x_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
-            ++Uij_xj;
+            ++uij_xj;
           }
           const std::size_t nUij_Uii_second = nUij_Uii.second;
-          auto LU_group_it = LU_group + nUij_Uii_second;
+          auto LU_group_it = lu_group + nUij_Uii_second;
           auto x_elem_it = x_elem;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          for (std::size_t i_cell = 0; i_cell < N_CELLS; ++i_cell)
             *(x_elem_it++) /= *(LU_group_it++);
 
           // don't iterate before the beginning of the vector
           const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
-          x_elem -= std::min(n_cells, x_elem_distance);
+          x_elem -= std::min(N_CELLS, x_elem_distance);
         }
       }
     }

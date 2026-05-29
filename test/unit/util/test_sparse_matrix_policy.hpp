@@ -93,7 +93,7 @@ MatrixPolicy<double, OrderingPolicy> TestConstZeroMatrix()
 
   const MatrixPolicy<double, OrderingPolicy> MATRIX{ builder };
 
-  EXPECT_EQ(matrix.FlatBlockSize(), 0);
+  EXPECT_EQ(MATRIX.FlatBlockSize(), 0);
 
   EXPECT_THROW(
       try { std::size_t elem = MATRIX.VectorIndex(0, 0); } catch (micm::MicmException& e) {
@@ -257,19 +257,19 @@ MatrixPolicy<int, OrderingPolicy> TestConstSingleBlockMatrix()
   {
     auto diagonal_ids = MATRIX.DiagonalIndices(0);
     EXPECT_EQ(diagonal_ids.size(), 1);
-    EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(1, 1));
+    EXPECT_EQ(diagonal_ids[0], MATRIX.VectorIndex(1, 1));
   }
 
-  EXPECT_EQ(matrix.FlatBlockSize(), 5);
+  EXPECT_EQ(MATRIX.FlatBlockSize(), 5);
 
-  EXPECT_EQ(matrix.IsZero(0, 1), false);
-  EXPECT_EQ(matrix.IsZero(3, 2), false);
-  EXPECT_EQ(matrix.IsZero(2, 1), false);
-  EXPECT_EQ(matrix.IsZero(2, 2), true);
-  EXPECT_EQ(matrix.IsZero(0, 0), true);
-  EXPECT_EQ(matrix.IsZero(3, 3), true);
+  EXPECT_EQ(MATRIX.IsZero(0, 1), false);
+  EXPECT_EQ(MATRIX.IsZero(3, 2), false);
+  EXPECT_EQ(MATRIX.IsZero(2, 1), false);
+  EXPECT_EQ(MATRIX.IsZero(2, 2), true);
+  EXPECT_EQ(MATRIX.IsZero(0, 0), true);
+  EXPECT_EQ(MATRIX.IsZero(3, 3), true);
 
-  EXPECT_EQ(matrix[0][2][1], 45);
+  EXPECT_EQ(MATRIX[0][2][1], 45);
 
   EXPECT_THROW(
       try { std::size_t elem = MATRIX.VectorIndex(4, 2); } catch (micm::MicmException& e) {
@@ -701,15 +701,15 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPo
   func(matrix_a, matrix_b);
 
   // Check results
-  EXPECT_EQ(matrixA[0][1][2], 10 + 0);   // 10
-  EXPECT_EQ(matrixA[1][1][2], 11 + 5);   // 16
-  EXPECT_EQ(matrixA[2][1][2], 12 + 10);  // 22
-  EXPECT_EQ(matrixA[0][0][1], 10.0);
-  EXPECT_EQ(matrixA[1][0][1], 11.0);
-  EXPECT_EQ(matrixA[2][0][1], 12.0);
-  EXPECT_EQ(matrixB[0][0][0], 0.0);
-  EXPECT_EQ(matrixB[1][0][0], 4.0);
-  EXPECT_EQ(matrixB[2][0][0], 8.0);
+  EXPECT_EQ(matrix_a[0][1][2], 10 + 0);   // 10
+  EXPECT_EQ(matrix_a[1][1][2], 11 + 5);   // 16
+  EXPECT_EQ(matrix_a[2][1][2], 12 + 10);  // 22
+  EXPECT_EQ(matrix_a[0][0][1], 10.0);
+  EXPECT_EQ(matrix_a[1][0][1], 11.0);
+  EXPECT_EQ(matrix_a[2][0][1], 12.0);
+  EXPECT_EQ(matrix_b[0][0][0], 0.0);
+  EXPECT_EQ(matrix_b[1][0][0], 4.0);
+  EXPECT_EQ(matrix_b[2][0][0], 8.0);
 
   return { matrix_a, matrix_b };
 }
@@ -887,17 +887,17 @@ TestMultipleSparseMatricesDifferentBlocksFromCreation()
   EXPECT_NO_THROW(func(matrix_a_4blocks, matrix_b_4blocks));
 
   // Verify results for first 4 blocks
-  EXPECT_EQ(matrixA_4blocks[0][2][3], 1 + 10 + 100);  // 111
-  EXPECT_EQ(matrixA_4blocks[1][2][3], 2 + 11 + 101);  // 114
-  EXPECT_EQ(matrixA_4blocks[2][2][3], 3 + 12 + 102);  // 117
-  EXPECT_EQ(matrixA_4blocks[3][2][3], 4 + 13 + 103);  // 120
+  EXPECT_EQ(matrix_a_4blocks[0][2][3], 1 + 10 + 100);  // 111
+  EXPECT_EQ(matrix_a_4blocks[1][2][3], 2 + 11 + 101);  // 114
+  EXPECT_EQ(matrix_a_4blocks[2][2][3], 3 + 12 + 102);  // 117
+  EXPECT_EQ(matrix_a_4blocks[3][2][3], 4 + 13 + 103);  // 120
 
   return { matrix_a_4blocks, matrix_b_4blocks };
 }
 
 /// @brief Test: Sparse matrix + vector with DIFFERENT block/size from creation (should work)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> testSparseMatrixVectorDifferentBlocksFromCreation()
+std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestSparseMatrixVectorDifferentBlocksFromCreation()
 {
   // Create function with 3-block matrix and 3-element vector
   auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
@@ -1331,22 +1331,22 @@ TestTwoSparseMatricesDifferentStructure()
   func(matrix_a, matrix_b);
 
   // Check results
-  EXPECT_EQ(matrixA[0][2][2], 1 + 2 + 10);   // 13
-  EXPECT_EQ(matrixA[1][2][2], 3 + 5 + 11);   // 19
-  EXPECT_EQ(matrixA[2][2][2], 5 + 8 + 12);   // 25
-  EXPECT_EQ(matrixA[3][2][2], 7 + 11 + 13);  // 31
+  EXPECT_EQ(matrix_a[0][2][2], 1 + 2 + 10);   // 13
+  EXPECT_EQ(matrix_a[1][2][2], 3 + 5 + 11);   // 19
+  EXPECT_EQ(matrix_a[2][2][2], 5 + 8 + 12);   // 25
+  EXPECT_EQ(matrix_a[3][2][2], 7 + 11 + 13);  // 31
 
-  // Verify other elements unchanged in matrixA
-  EXPECT_EQ(matrixA[0][0][1], 1.0);
-  EXPECT_EQ(matrixA[1][0][1], 3.0);
-  EXPECT_EQ(matrixA[2][0][1], 5.0);
-  EXPECT_EQ(matrixA[3][0][1], 7.0);
+  // Verify other elements unchanged in matrix_a
+  EXPECT_EQ(matrix_a[0][0][1], 1.0);
+  EXPECT_EQ(matrix_a[1][0][1], 3.0);
+  EXPECT_EQ(matrix_a[2][0][1], 5.0);
+  EXPECT_EQ(matrix_a[3][0][1], 7.0);
 
-  // Verify matrixB unchanged
-  EXPECT_EQ(matrixB[0][0][0], 10.0);
-  EXPECT_EQ(matrixB[1][1][2], 21.0);
-  EXPECT_EQ(matrixB[2][2][3], 32.0);
-  EXPECT_EQ(matrixB[3][3][4], 43.0);
+  // Verify matrix_b unchanged
+  EXPECT_EQ(matrix_b[0][0][0], 10.0);
+  EXPECT_EQ(matrix_b[1][1][2], 21.0);
+  EXPECT_EQ(matrix_b[2][2][3], 32.0);
+  EXPECT_EQ(matrix_b[3][3][4], 43.0);
 
   return { matrix_a, matrix_b };
 }
@@ -1424,23 +1424,23 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>
 
   // Check results
   // Block/Row 0: sparse(0,1)=1, sparse(1,2)=10, dense[0]=0, dense[1]=10
-  EXPECT_EQ(sparseMatrix[0][3][3], 1 + 10 + 0 + 10);  // 21
+  EXPECT_EQ(sparse_matrix[0][3][3], 1 + 10 + 0 + 10);  // 21
 
   // Block/Row 1: sparse(0,1)=2, sparse(1,2)=11, dense[0]=100, dense[1]=110
-  EXPECT_EQ(sparseMatrix[1][3][3], 2 + 11 + 100 + 110);  // 223
+  EXPECT_EQ(sparse_matrix[1][3][3], 2 + 11 + 100 + 110);  // 223
 
   // Block/Row 2: sparse(0,1)=3, sparse(1,2)=12, dense[0]=200, dense[1]=210
-  EXPECT_EQ(sparseMatrix[2][3][3], 3 + 12 + 200 + 210);  // 425
+  EXPECT_EQ(sparse_matrix[2][3][3], 3 + 12 + 200 + 210);  // 425
 
   // Verify other elements unchanged
-  EXPECT_EQ(sparseMatrix[0][0][1], 1.0);
-  EXPECT_EQ(sparseMatrix[1][1][2], 11.0);
-  EXPECT_EQ(sparseMatrix[2][2][3], 22.0);
+  EXPECT_EQ(sparse_matrix[0][0][1], 1.0);
+  EXPECT_EQ(sparse_matrix[1][1][2], 11.0);
+  EXPECT_EQ(sparse_matrix[2][2][3], 22.0);
 
   // Verify dense matrix unchanged
-  EXPECT_EQ(denseMatrix[0][0], 0.0);
-  EXPECT_EQ(denseMatrix[1][2], 120.0);
-  EXPECT_EQ(denseMatrix[2][3], 230.0);
+  EXPECT_EQ(dense_matrix[0][0], 0.0);
+  EXPECT_EQ(dense_matrix[1][2], 120.0);
+  EXPECT_EQ(dense_matrix[2][3], 230.0);
 
   return { sparse_matrix, dense_matrix };
 }
@@ -1530,9 +1530,9 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double
   func(sparse_matrix, vector_matrix);
 
   // Check results (same as dense matrix test)
-  EXPECT_EQ(sparseMatrix[0][3][3], 1 + 10 + 0 + 10);     // 21
-  EXPECT_EQ(sparseMatrix[1][3][3], 2 + 11 + 100 + 110);  // 223
-  EXPECT_EQ(sparseMatrix[2][3][3], 3 + 12 + 200 + 210);  // 425
+  EXPECT_EQ(sparse_matrix[0][3][3], 1 + 10 + 0 + 10);     // 21
+  EXPECT_EQ(sparse_matrix[1][3][3], 2 + 11 + 100 + 110);  // 223
+  EXPECT_EQ(sparse_matrix[2][3][3], 3 + 12 + 200 + 210);  // 425
 
   return { sparse_matrix, vector_matrix };
 }
@@ -1947,9 +1947,9 @@ SparseMatrixPolicy<double, OrderingPolicy> TestConstVectorSparse()
   auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
       [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a * 3.0; }, v, m.GetBlockView(0, 1)); },
       matrix,
-      vec);
+      VEC);
 
-  func(matrix, vec);
+  func(matrix, VEC);
 
   EXPECT_EQ(matrix[0][0][1], 15.0);
   EXPECT_EQ(matrix[1][0][1], 30.0);
@@ -1959,7 +1959,7 @@ SparseMatrixPolicy<double, OrderingPolicy> TestConstVectorSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> testMutableVectorSparse()
+std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestMutableVectorSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 

@@ -166,24 +166,24 @@ void TestSimpleSystem(
   size_t c = map.at("C");
 
   std::vector<std::vector<std::vector<double>>> model_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
   std::vector<std::vector<std::vector<double>>> analytical_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
   for (int i = 0; i < NUM_CELLS; ++i)
   {
-    model_concentrations[0][i][idx_A] = 1.0 - (double)i / (double)NUM_CELLS;
-    model_concentrations[0][i][idx_B] = 0.0;
-    model_concentrations[0][i][idx_C] = 0.0;
+    model_concentrations[0][i][idx_a] = 1.0 - (double)i / (double)NUM_CELLS;
+    model_concentrations[0][i][idx_b] = 0.0;
+    model_concentrations[0][i][idx_c] = 0.0;
     analytical_concentrations[0][i] = model_concentrations[0][i];
 
-    state.variables_[i][_a] = model_concentrations[0][i][idx_A];
-    state.variables_[i][_b] = model_concentrations[0][i][idx_B];
-    state.variables_[i][_c] = model_concentrations[0][i][idx_C];
+    state.variables_[i][a] = model_concentrations[0][i][idx_a];
+    state.variables_[i][b] = model_concentrations[0][i][idx_b];
+    state.variables_[i][c] = model_concentrations[0][i][idx_c];
     state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
     state.conditions_[i].pressure_ = pressures[i % pressures.size()];
     state.conditions_[i].air_density_ =
-        calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
+        CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
@@ -195,14 +195,14 @@ void TestSimpleSystem(
     // Model results
     auto result = solver.Solve(time_step, state);
     postpare_for_solve(state);
-    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::CONVERGED));
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
       EXPECT_NEAR(k1[i], state.rate_constants_[i][0], absolute_tolerances);
       EXPECT_NEAR(k2[i], state.rate_constants_[i][1], absolute_tolerances);
-      model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
-      model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
-      model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
+      model_concentrations[i_time][i][idx_a] = state.variables_[i][a];
+      model_concentrations[i_time][i][idx_b] = state.variables_[i][b];
+      model_concentrations[i_time][i][idx_c] = state.variables_[i][c];
     }
 
     // Analytical results
@@ -211,32 +211,32 @@ void TestSimpleSystem(
 
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      double initial_a = analytical_concentrations[0][i][idx_A];
-      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-(k1[i]) * time);
-      analytical_concentrations[i_time][i][idx_B] =
-          initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
+      double initial_a = analytical_concentrations[0][i][idx_a];
+      analytical_concentrations[i_time][i][idx_a] = initial_a * std::exp(-(k1[i]) * time);
+      analytical_concentrations[i_time][i][idx_b] =
+          initial_a * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
 
-      analytical_concentrations[i_time][i][idx_C] =
-          initial_A * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
+      analytical_concentrations[i_time][i][idx_c] =
+          initial_a * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
     }
   }
 
   std::vector<std::string> header = { "time", "cell", "A", "B", "C" };
-  writeCSV2D(test_label + "_analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV2D(test_label + "_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsV2D(test_label + "_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsV2D(test_label + "_model_concentrations.csv", header, model_concentrations, times);
 
   for (std::size_t i_time = 1; i_time < model_concentrations.size(); ++i_time)
   {
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_a], analytical_concentrations[i_time][i_cell][idx_a], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_b], analytical_concentrations[i_time][i_cell][idx_b], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_c], analytical_concentrations[i_time][i_cell][idx_c], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
   }
@@ -284,25 +284,25 @@ void TestSimpleStiffSystem(
   size_t c = map.at("C");
 
   std::vector<std::vector<std::vector<double>>> model_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
   std::vector<std::vector<std::vector<double>>> analytical_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
   for (int i = 0; i < NUM_CELLS; ++i)
   {
-    model_concentrations[0][i][idx_A] = 1.0 - (double)i / (double)NUM_CELLS;
-    model_concentrations[0][i][idx_B] = 0.0;
-    model_concentrations[0][i][idx_C] = 0.0;
+    model_concentrations[0][i][idx_a] = 1.0 - (double)i / (double)NUM_CELLS;
+    model_concentrations[0][i][idx_b] = 0.0;
+    model_concentrations[0][i][idx_c] = 0.0;
     analytical_concentrations[0][i] = model_concentrations[0][i];
 
-    state.variables_[i][_a1] = 0.5 * model_concentrations[0][i][idx_A];
-    state.variables_[i][_a2] = 0.5 * model_concentrations[0][i][idx_A];
-    state.variables_[i][_b] = model_concentrations[0][i][idx_B];
-    state.variables_[i][_c] = model_concentrations[0][i][idx_C];
+    state.variables_[i][a1] = 0.5 * model_concentrations[0][i][idx_a];
+    state.variables_[i][a2] = 0.5 * model_concentrations[0][i][idx_a];
+    state.variables_[i][b] = model_concentrations[0][i][idx_b];
+    state.variables_[i][c] = model_concentrations[0][i][idx_c];
     state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
     state.conditions_[i].pressure_ = pressures[i % pressures.size()];
     state.conditions_[i].air_density_ =
-        calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
+        CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
@@ -314,12 +314,12 @@ void TestSimpleStiffSystem(
     // Model results
     auto result = solver.Solve(time_step, state);
     postpare_for_solve(state);
-    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::CONVERGED));
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      model_concentrations[i_time][i][idx_A] = state.variables_[i][_a1] + state.variables_[i][_a2];
-      model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
-      model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
+      model_concentrations[i_time][i][idx_a] = state.variables_[i][a1] + state.variables_[i][a2];
+      model_concentrations[i_time][i][idx_b] = state.variables_[i][b];
+      model_concentrations[i_time][i][idx_c] = state.variables_[i][c];
     }
 
     // Analytical results
@@ -328,31 +328,31 @@ void TestSimpleStiffSystem(
 
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      double initial_a = analytical_concentrations[0][i][idx_A];
-      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-k1[i] * time);
-      analytical_concentrations[i_time][i][idx_B] =
-          initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
-      analytical_concentrations[i_time][i][idx_C] =
-          initial_A * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
+      double initial_a = analytical_concentrations[0][i][idx_a];
+      analytical_concentrations[i_time][i][idx_a] = initial_a * std::exp(-k1[i] * time);
+      analytical_concentrations[i_time][i][idx_b] =
+          initial_a * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
+      analytical_concentrations[i_time][i][idx_c] =
+          initial_a * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
     }
   }
 
   std::vector<std::string> header = { "time", "cell", "A", "B", "C" };
-  writeCSV2D(test_label + "_stiff_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV2D(test_label + "_stiff_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsV2D(test_label + "_stiff_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsV2D(test_label + "_stiff_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   for (std::size_t i_time = 1; i_time < model_concentrations.size(); ++i_time)
   {
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_a], analytical_concentrations[i_time][i_cell][idx_a], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_b], analytical_concentrations[i_time][i_cell][idx_b], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_c], analytical_concentrations[i_time][i_cell][idx_c], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
   }
@@ -408,7 +408,7 @@ void TestAnalyticalTroe(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "troe",
       builder,
       absolute_tolerances,
@@ -502,7 +502,7 @@ void TestAnalyticalStiffTroe(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "troe",
       builder,
       absolute_tolerances,
@@ -569,7 +569,7 @@ void TestAnalyticalPhotolysis(
     { "photoA", std::vector<double>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
@@ -657,7 +657,7 @@ void TestAnalyticalStiffPhotolysis(
     { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
@@ -724,7 +724,7 @@ void TestAnalyticalTernaryChemicalActivation(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
@@ -820,7 +820,7 @@ void TestAnalyticalStiffTernaryChemicalActivation(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
@@ -884,7 +884,7 @@ void TestAnalyticalTunneling(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "tunneling",
       builder,
       absolute_tolerances,
@@ -967,7 +967,7 @@ void TestAnalyticalStiffTunneling(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "tunneling",
       builder,
       absolute_tolerances,
@@ -1026,7 +1026,7 @@ void TestAnalyticalArrhenius(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "arrhenius",
       builder,
       absolute_tolerances,
@@ -1110,7 +1110,7 @@ void TestAnalyticalStiffArrhenius(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "arrhenius",
       builder,
       absolute_tolerances,
@@ -1181,7 +1181,7 @@ void TestAnalyticalBranched(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "branched",
       builder,
       absolute_tolerances,
@@ -1192,12 +1192,12 @@ void TestAnalyticalBranched(
         double a = 2.0e-22 * std::exp(2) * 2.45e19;
         double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
-            a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
-        a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
-        b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+            a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
+        a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
+        b = 0.43 * std::pow((temperature / 298.0), -8.0);
+        double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
 
-        double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
+        double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + a_val));
         return k1;
       },
       [](double temperature, double pressure, double air_density)
@@ -1207,12 +1207,12 @@ void TestAnalyticalBranched(
         double a = 2.0e-22 * std::exp(2) * 2.45e19;
         double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
-            a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
-        a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
-        b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+            a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
+        a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
+        b = 0.43 * std::pow((temperature / 298.0), -8.0);
+        double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
 
-        double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
+        double k2 = 1e-4 * std::exp(-204.3 / temperature) * (a_val / (z + a_val));
         return k2;
       },
       prepare_for_solve,
@@ -1300,7 +1300,7 @@ void TestAnalyticalStiffBranched(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "branched",
       builder,
       absolute_tolerances,
@@ -1311,12 +1311,12 @@ void TestAnalyticalStiffBranched(
         double a = 2.0e-22 * std::exp(2) * 2.45e19;
         double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
-            a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
-        a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
-        b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+            a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
+        a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
+        b = 0.43 * std::pow((temperature / 298.0), -8.0);
+        double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
 
-        double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
+        double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + a_val));
         return k1;
       },
       [](double temperature, double pressure, double air_density)
@@ -1326,12 +1326,12 @@ void TestAnalyticalStiffBranched(
         double a = 2.0e-22 * std::exp(2) * 2.45e19;
         double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
         double z =
-            a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
-        a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
-        b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double a = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+            a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
+        a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
+        b = 0.43 * std::pow((temperature / 298.0), -8.0);
+        double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
 
-        double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
+        double k2 = 1e-4 * std::exp(-204.3 / temperature) * (a_val / (z + a_val));
         return k2;
       },
       prepare_for_solve,
@@ -1459,33 +1459,33 @@ void TestAnalyticalRobertson(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("robertson_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("robertson_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsv("robertson_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("robertson_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
-  size_t a = map.at("A");
-  size_t b = map.at("B");
-  size_t c = map.at("C");
+  size_t a_idx = map.at("A");
+  size_t b_idx = map.at("B");
+  size_t c_idx = map.at("C");
 
   // average of the starting concentration *1e-3;
   double absolute_tolerance = 0.3e-3;
   for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    double rel_error = relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]);
-    double abs_error = std::abs(model_concentrations[i][_a] - analytical_concentrations[i][0]);
+    double rel_error = RelativeError(model_concentrations[i][a_idx], analytical_concentrations[i][0]);
+    double abs_error = std::abs(model_concentrations[i][a_idx] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
-    rel_error = relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]);
-    abs_error = std::abs(model_concentrations[i][_b] - analytical_concentrations[i][1]);
+    rel_error = RelativeError(model_concentrations[i][b_idx], analytical_concentrations[i][1]);
+    abs_error = std::abs(model_concentrations[i][b_idx] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
-    rel_error = relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]);
-    abs_error = std::abs(model_concentrations[i][_c] - analytical_concentrations[i][2]);
+    rel_error = RelativeError(model_concentrations[i][c_idx], analytical_concentrations[i][2]);
+    abs_error = std::abs(model_concentrations[i][c_idx] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
@@ -1511,16 +1511,16 @@ void TestAnalyticalOregonator(
    * Field, R.J., Noyes, R.M., 1974. Oscillations in chemical systems. IV. Limit cycle behavior in a model of a real chemical
    * reaction. The Journal of Chemical Physics 60, 1877–1884. https://doi.org/10.1063/1.1681288
    *
-   * In this paper, they give five equations that use X, Y, Z, A, P, Q, and B. P and Q are only produced and don't react.
+   * In this paper, they give five equations that use x, y, z, A, p, q, and B. p and q are only produced and don't react.
    * They set A = B = [BrO3-] = 0.06. Those equations come to this
    *
-   * Y -> X,      k1 = 1.34 * 0.06
-   * X + Y -> P,  k2 = 1.6e9
-   * X -> Z + 2X, k3 = 8e3*0.06
-   * 2X -> Q,     k4 = 4e7
-   * Z -> Y,      k5 = 1
+   * y -> x,      k1 = 1.34 * 0.06
+   * x + y -> p,  k2 = 1.6e9
+   * x -> z + 2X, k3 = 8e3*0.06
+   * 2X -> q,     k4 = 4e7
+   * z -> y,      k5 = 1
    *
-   * Through some other more complicatd math they simplifed to only 3 variables, X, Y, and Z, but I couldn't figure out how
+   * Through some other more complicatd math they simplifed to only 3 variables, x, y, and z, but I couldn't figure out how
    * to represent those equations
    *
    * solutions are provided here
@@ -1536,39 +1536,39 @@ void TestAnalyticalOregonator(
   auto p = micm::Species("P");
   auto q = micm::Species("Q");
 
-  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ X, Y, Z, P, Q } };
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ x, y, z, p, q } };
 
   micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ Y })
-                         .SetProducts({ micm::StoichSpecies(X, 1) })
+                         .SetReactants({ y })
+                         .SetProducts({ micm::StoichSpecies(x, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r1" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ X, Y })
-                         .SetProducts({ micm::StoichSpecies(P, 1) })
+                         .SetReactants({ x, y })
+                         .SetProducts({ micm::StoichSpecies(p, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ X })
-                         .SetProducts({ micm::StoichSpecies(Z, 1), micm::StoichSpecies(X, 2) })
+                         .SetReactants({ x })
+                         .SetProducts({ micm::StoichSpecies(z, 1), micm::StoichSpecies(x, 2) })
                          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r3" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ X, X })
-                         .SetProducts({ micm::StoichSpecies(Q, 1) })
+                         .SetReactants({ x, x })
+                         .SetProducts({ micm::StoichSpecies(q, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r4" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r5 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ Z })
-                         .SetProducts({ micm::StoichSpecies(Y, 1) })
+                         .SetReactants({ z })
+                         .SetProducts({ micm::StoichSpecies(y, 1) })
                          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r5" })
                          .SetPhase(gas_phase)
                          .Build();
@@ -1583,21 +1583,21 @@ void TestAnalyticalOregonator(
   double time_step = 30 * tau;
   size_t n = 12;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(5));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(5));
+  std::vector<std::vector<double>> model_concentrations(n + 1, std::vector<double>(5));
+  std::vector<std::vector<double>> analytical_concentrations(n + 1, std::vector<double>(5));
 
-  // ignore P and Q, the last two zeros
+  // ignore p and q, the last two zeros
   // the initial concentrations given at https://www.unige.ch/~hairer/testset/testset.html
   // are for the dimensionless variables, so we need to convert them to the actual concentrations
-  // X = alpha
-  // Y = eta
-  // Z = rho
+  // x = alpha
+  // y = eta
+  // z = rho
   double alpha_const = 5.025e-11;
   double eta_const = 3e-7;
   double rho_const = 2.412e-8;
   model_concentrations[0] = { 1 * alpha_const, 2 * eta_const, 3 * rho_const, 0, 0 };
 
-  // ignore P and Q, the last two zeros
+  // ignore p and q, the last two zeros
   analytical_concentrations = {
     { 1, 2, 3, 0, 0 },
     { 0.1000661467180497E+01, 0.1512778937348249E+04, 0.1035854312767229E+05, 0, 0 },
@@ -1658,42 +1658,42 @@ void TestAnalyticalOregonator(
   }
 
   std::vector<std::string> header = { "time", "X", "Y", "Z", "P", "Q" };
-  writeCSV("oregonator_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("oregonator_model_concentrations.csv", header, model_concentrations, times);
   std::vector<double> an_times;
   an_times.push_back(0);
   for (int i = 1; i <= 12; ++i)
   {
     an_times.push_back(time_step * i);
   }
-  writeCSV("oregonator_analytical_concentrations.csv", header, analytical_concentrations, an_times);
+  WriteCsv("oregonator_analytical_concentrations.csv", header, analytical_concentrations, an_times);
 
   auto map = state.variable_map_;
 
-  size_t x = map.at("X");
-  size_t y = map.at("Y");
-  size_t z = map.at("Z");
+  size_t x_idx = map.at("X");
+  size_t y_idx = map.at("Y");
+  size_t z_idx = map.at("Z");
 
-  // X, Y, Z span very different orders of magnitude (alpha ~5e-11, eta ~3e-7, rho ~2.4e-8),
+  // x, y, z span very different orders of magnitude (alpha ~5e-11, eta ~3e-7, rho ~2.4e-8),
   // so a single absolute tolerance cannot meaningfully cover all three. Use per-species absolute
   // floors (the initial scale of each species) with a relative tolerance as the primary check.
   for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
     double rel_error_val, abs_error_val;
 
-    rel_error_val = relative_error(model_concentrations[i][_x], analytical_concentrations[i][0]);
-    abs_error_val = std::abs(model_concentrations[i][_x] - analytical_concentrations[i][0]);
+    rel_error_val = RelativeError(model_concentrations[i][x_idx], analytical_concentrations[i][0]);
+    abs_error_val = std::abs(model_concentrations[i][x_idx] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error_val < alpha_const || rel_error_val < relative_tolerance)
         << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val << " and absolute error "
         << abs_error_val;
 
-    rel_error_val = relative_error(model_concentrations[i][_y], analytical_concentrations[i][1]);
-    abs_error_val = std::abs(model_concentrations[i][_y] - analytical_concentrations[i][1]);
+    rel_error_val = RelativeError(model_concentrations[i][y_idx], analytical_concentrations[i][1]);
+    abs_error_val = std::abs(model_concentrations[i][y_idx] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error_val < eta_const || rel_error_val < relative_tolerance)
         << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val << " and absolute error "
         << abs_error_val;
 
-    rel_error_val = relative_error(model_concentrations[i][_z], analytical_concentrations[i][2]);
-    abs_error_val = std::abs(model_concentrations[i][_z] - analytical_concentrations[i][2]);
+    rel_error_val = RelativeError(model_concentrations[i][z_idx], analytical_concentrations[i][2]);
+    abs_error_val = std::abs(model_concentrations[i][z_idx] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error_val < rho_const || rel_error_val < relative_tolerance)
         << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val << " and absolute error "
         << abs_error_val;
@@ -1811,8 +1811,8 @@ void TestAnalyticalHires(
                     .Build();
 
   size_t n = 2;
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(8));
+  std::vector<std::vector<double>> model_concentrations(n + 1, std::vector<double>(8));
+  std::vector<std::vector<double>> analytical_concentrations(n + 1, std::vector<double>(8));
 
   model_concentrations[0] = { 1, 0, 0, 0, 0, 0, 0, 0.0057 };
 
@@ -1875,37 +1875,37 @@ void TestAnalyticalHires(
   }
 
   std::vector<std::string> header = { "time", "y0", "y1", "y2", "y3", "y4", "y5", "y6", "y7" };
-  writeCSV("hires_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("hires_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsv("hires_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("hires_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
-  size_t y0 = map.at("Y0");
-  size_t y1 = map.at("Y1");
-  size_t y2 = map.at("Y2");
-  size_t y3 = map.at("Y3");
-  size_t y4 = map.at("Y4");
-  size_t y5 = map.at("Y5");
-  size_t y6 = map.at("Y6");
-  size_t y7 = map.at("Y7");
+  size_t y0_idx = map.at("Y0");
+  size_t y1_idx = map.at("Y1");
+  size_t y2_idx = map.at("Y2");
+  size_t y3_idx = map.at("Y3");
+  size_t y4_idx = map.at("Y4");
+  size_t y5_idx = map.at("Y5");
+  size_t y6_idx = map.at("Y6");
+  size_t y7_idx = map.at("Y7");
 
   for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_y0], analytical_concentrations[i][0], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y0_idx], analytical_concentrations[i][0], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y1], analytical_concentrations[i][1], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y1_idx], analytical_concentrations[i][1], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y2], analytical_concentrations[i][2], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y2_idx], analytical_concentrations[i][2], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y3], analytical_concentrations[i][3], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y3_idx], analytical_concentrations[i][3], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 3 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y4], analytical_concentrations[i][4], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y4_idx], analytical_concentrations[i][4], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 4 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y5], analytical_concentrations[i][5], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y5_idx], analytical_concentrations[i][5], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 5 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y6], analytical_concentrations[i][6], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y6_idx], analytical_concentrations[i][6], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 6 << ")";
-    EXPECT_NEAR(model_concentrations[i][_y7], analytical_concentrations[i][7], absolute_tolerance)
+    EXPECT_NEAR(model_concentrations[i][y7_idx], analytical_concentrations[i][7], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 7 << ")";
   }
 }
@@ -1985,8 +1985,8 @@ void TestAnalyticalE5(
 
   size_t n = 7;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(6));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(6));
+  std::vector<std::vector<double>> model_concentrations(n + 1, std::vector<double>(6));
+  std::vector<std::vector<double>> analytical_concentrations(n + 1, std::vector<double>(6));
 
   model_concentrations[0] = { 1.76e-3, 0, 0, 0, 0, 0 };
 
@@ -2043,35 +2043,35 @@ void TestAnalyticalE5(
   }
 
   std::vector<std::string> header = { "time", "a1", "a2", "a3", "a4", "a5", "a6" };
-  writeCSV("e5_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsv("e5_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
     // ignore the concentration of A5 and A6
     double absolute_tolerance = 1e-6;
-    double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
+    double rel_error = RelativeError(model_concentrations[i][0], analytical_concentrations[i][0]);
     double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
-    rel_error = relative_error(model_concentrations[i][1], analytical_concentrations[i][1]);
+    rel_error = RelativeError(model_concentrations[i][1], analytical_concentrations[i][1]);
     abs_error = std::abs(model_concentrations[i][1] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
-    rel_error = relative_error(model_concentrations[i][2], analytical_concentrations[i][2]);
+    rel_error = RelativeError(model_concentrations[i][2], analytical_concentrations[i][2]);
     abs_error = std::abs(model_concentrations[i][2] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
-    rel_error = relative_error(model_concentrations[i][3], analytical_concentrations[i][3]);
+    rel_error = RelativeError(model_concentrations[i][3], analytical_concentrations[i][3]);
     abs_error = std::abs(model_concentrations[i][3] - analytical_concentrations[i][3]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 3 << ") with relative error " << rel_error << " and absolute error "

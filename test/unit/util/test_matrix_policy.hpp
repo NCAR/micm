@@ -35,9 +35,9 @@ const MatrixPolicy<double> TestSmallConstMatrix()
 
   const MatrixPolicy<double> CONST_MATRIX = matrix;
 
-  EXPECT_EQ(const_matrix[1][3], 64.7);
-  EXPECT_EQ(const_matrix[0][0], 41.2);
-  EXPECT_EQ(const_matrix[2][4], 102.3);
+  EXPECT_EQ(CONST_MATRIX[1][3], 64.7);
+  EXPECT_EQ(CONST_MATRIX[0][0], 41.2);
+  EXPECT_EQ(CONST_MATRIX[2][4], 102.3);
 
   const std::vector<double>& data = CONST_MATRIX.AsVector();
 
@@ -63,9 +63,9 @@ const MatrixPolicy<double> TestInializeConstMatrix()
 {
   const MatrixPolicy<double> MATRIX{ 2, 3, 12.4 };
 
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  EXPECT_EQ(MATRIX[0][0], 12.4);
+  EXPECT_EQ(MATRIX[1][0], 12.4);
+  EXPECT_EQ(MATRIX[1][2], 12.4);
 
   return MATRIX;
 }
@@ -104,10 +104,10 @@ const MatrixPolicy<int> TestLoopOverConstMatrix()
 
   const MatrixPolicy<int> CONST_MATRIX = matrix;
 
-  EXPECT_EQ(const_matrix[0][0], 0);
-  EXPECT_EQ(const_matrix[1][2], 102);
-  EXPECT_EQ(const_matrix[2][3], 203);
-  EXPECT_EQ(const_matrix[0][3], 3);
+  EXPECT_EQ(CONST_MATRIX[0][0], 0);
+  EXPECT_EQ(CONST_MATRIX[1][2], 102);
+  EXPECT_EQ(CONST_MATRIX[2][3], 203);
+  EXPECT_EQ(CONST_MATRIX[0][3], 3);
 
   return CONST_MATRIX;
 }
@@ -169,7 +169,7 @@ const MatrixPolicy<double> TestConstConversionToVector()
   matrix[1][2] = 314.2;
 
   const MatrixPolicy<double> CONST_MATRIX = matrix;
-  std::vector<double> slice = const_matrix[1];
+  std::vector<double> slice = CONST_MATRIX[1];
 
   EXPECT_EQ(slice[0], 13.2);
   EXPECT_EQ(slice[1], 31.2);
@@ -512,15 +512,15 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultiMatrixArrayFunct
   func(matrix_a, matrix_b);
 
   // Check results
-  EXPECT_EQ(matrixA[0][1], 0 + 0);  // 0
-  EXPECT_EQ(matrixA[1][1], 1 + 4);  // 5
-  EXPECT_EQ(matrixA[2][1], 2 + 8);  // 10
-  EXPECT_EQ(matrixA[0][0], 0.0);
-  EXPECT_EQ(matrixA[1][0], 1.0);
-  EXPECT_EQ(matrixA[2][0], 2.0);
-  EXPECT_EQ(matrixB[0][0], 0.0);
-  EXPECT_EQ(matrixB[1][0], 2.0);
-  EXPECT_EQ(matrixB[2][0], 4.0);
+  EXPECT_EQ(matrix_a[0][1], 0 + 0);  // 0
+  EXPECT_EQ(matrix_a[1][1], 1 + 4);  // 5
+  EXPECT_EQ(matrix_a[2][1], 2 + 8);  // 10
+  EXPECT_EQ(matrix_a[0][0], 0.0);
+  EXPECT_EQ(matrix_a[1][0], 1.0);
+  EXPECT_EQ(matrix_a[2][0], 2.0);
+  EXPECT_EQ(matrix_b[0][0], 0.0);
+  EXPECT_EQ(matrix_b[1][0], 2.0);
+  EXPECT_EQ(matrix_b[2][0], 4.0);
 
   return { matrix_a, matrix_b };
 }
@@ -628,11 +628,11 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultiMatrixDifferentR
   // Should work - column counts match, row counts match each other
   func(matrix_a, matrix_b);
 
-  EXPECT_EQ(matrixA[0][1], (1.0 + 0.0) * 2.0);   // 2
-  EXPECT_EQ(matrixA[1][1], (2.0 + 10.0) * 2.0);  // 24
-  EXPECT_EQ(matrixA[2][1], (3.0 + 20.0) * 2.0);  // 46
-  EXPECT_EQ(matrixA[3][1], (4.0 + 30.0) * 2.0);  // 68
-  EXPECT_EQ(matrixA[4][1], (5.0 + 40.0) * 2.0);  // 90
+  EXPECT_EQ(matrix_a[0][1], (1.0 + 0.0) * 2.0);   // 2
+  EXPECT_EQ(matrix_a[1][1], (2.0 + 10.0) * 2.0);  // 24
+  EXPECT_EQ(matrix_a[2][1], (3.0 + 20.0) * 2.0);  // 46
+  EXPECT_EQ(matrix_a[3][1], (4.0 + 30.0) * 2.0);  // 68
+  EXPECT_EQ(matrix_a[4][1], (5.0 + 40.0) * 2.0);  // 90
 
   // Also test with 2-row matrices (fewer rows than creation)
   MatrixPolicy<double> matrix_a2{ 2, 2, 0.0 };
@@ -645,15 +645,15 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultiMatrixDifferentR
 
   func(matrix_a2, matrix_b2);
 
-  EXPECT_EQ(matrixA2[0][1], (10.0 + 5.0) * 2.0);   // 30
-  EXPECT_EQ(matrixA2[1][1], (20.0 + 15.0) * 2.0);  // 70
+  EXPECT_EQ(matrix_a2[0][1], (10.0 + 5.0) * 2.0);   // 30
+  EXPECT_EQ(matrix_a2[1][1], (20.0 + 15.0) * 2.0);  // 70
 
   return { matrix_a, matrix_b };
 }
 
 /// @brief Test: Matrix + vector - function created with N rows, used with M rows
 template<template<class> class MatrixPolicy>
-std::tuple<MatrixPolicy<double>, std::vector<double>> testMatrixVectorDifferentRowsFromCreation()
+std::tuple<MatrixPolicy<double>, std::vector<double>> TestMatrixVectorDifferentRowsFromCreation()
 {
   // Create function with 3-row matrix and vector
   MatrixPolicy<double> matrix_create{ 3, 3, 0.0 };
@@ -1288,15 +1288,15 @@ std::tuple<MatrixPolicy<double>, MatrixPolicy<double>> TestMultipleMatricesOneVe
   func(matrix_a, matrix_b, vec);
 
   // Verify results
-  EXPECT_EQ(matrixA[0][1], 1.0 + 0.0);  // 1
-  EXPECT_EQ(matrixA[1][1], 2.0 + 2.0);  // 4
-  EXPECT_EQ(matrixA[2][1], 3.0 + 4.0);  // 7
-  EXPECT_EQ(matrixA[3][1], 4.0 + 6.0);  // 10
+  EXPECT_EQ(matrix_a[0][1], 1.0 + 0.0);  // 1
+  EXPECT_EQ(matrix_a[1][1], 2.0 + 2.0);  // 4
+  EXPECT_EQ(matrix_a[2][1], 3.0 + 4.0);  // 7
+  EXPECT_EQ(matrix_a[3][1], 4.0 + 6.0);  // 10
 
-  EXPECT_EQ(matrixB[0][1], 0.0 + 0.0);   // 0
-  EXPECT_EQ(matrixB[1][1], 10.0 + 2.0);  // 12
-  EXPECT_EQ(matrixB[2][1], 20.0 + 4.0);  // 24
-  EXPECT_EQ(matrixB[3][1], 30.0 + 6.0);  // 36
+  EXPECT_EQ(matrix_b[0][1], 0.0 + 0.0);   // 0
+  EXPECT_EQ(matrix_b[1][1], 10.0 + 2.0);  // 12
+  EXPECT_EQ(matrix_b[2][1], 20.0 + 4.0);  // 24
+  EXPECT_EQ(matrix_b[3][1], 30.0 + 6.0);  // 36
 
   return { matrix_a, matrix_b };
 }
@@ -1386,7 +1386,7 @@ MatrixPolicy<double> TestConstVector()
 
 /// @brief Test: Non-const vector that gets modified
 template<template<class> class MatrixPolicy>
-std::tuple<MatrixPolicy<double>, std::vector<double>> testMutableVector()
+std::tuple<MatrixPolicy<double>, std::vector<double>> TestMutableVector()
 {
   MatrixPolicy<double> matrix{ 3, 2, 0.0 };
   std::vector<double> vec = { 5.0, 10.0, 15.0 };

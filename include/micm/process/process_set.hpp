@@ -287,17 +287,17 @@ namespace micm
       {
         const std::size_t row_id = *(react_id++);
         jacobian_flat_ids_.push_back(
-            is_algebraic_variable_[row_id] ? skipped_flat_id : matrix.VectorIndex(0, row_id, process_info.independent_id_));
+            is_algebraic_variable_[row_id] ? SKIPPED_FLAT_ID : matrix.VectorIndex(0, row_id, process_info.independent_id_));
       }
       jacobian_flat_ids_.push_back(
           is_algebraic_variable_[process_info.independent_id_]
-              ? skipped_flat_id
+              ? SKIPPED_FLAT_ID
               : matrix.VectorIndex(0, process_info.independent_id_, process_info.independent_id_));
       for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
       {
         const std::size_t row_id = *(prod_id++);
         jacobian_flat_ids_.push_back(
-            is_algebraic_variable_[row_id] ? skipped_flat_id : matrix.VectorIndex(0, row_id, process_info.independent_id_));
+            is_algebraic_variable_[row_id] ? SKIPPED_FLAT_ID : matrix.VectorIndex(0, row_id, process_info.independent_id_));
       }
     }
   }
@@ -362,18 +362,18 @@ namespace micm
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
           const std::size_t ROW_ID = react_id[i_react];
-          if (!is_algebraic_variable_[row_id])
+          if (!is_algebraic_variable_[ROW_ID])
           {
-            cell_forcing[row_id] -= rate;
+            cell_forcing[ROW_ID] -= rate;
           }
         }
         // Add the rate (scaled by yield) to product species
         for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
         {
           const std::size_t ROW_ID = prod_id[i_prod];
-          if (!is_algebraic_variable_[row_id])
+          if (!is_algebraic_variable_[ROW_ID])
           {
-            cell_forcing[row_id] += yield[i_prod] * rate;
+            cell_forcing[ROW_ID] += yield[i_prod] * rate;
           }
         }
         // Update iterators based on how many reactants/products each reaction has
@@ -413,14 +413,14 @@ namespace micm
       const std::size_t OFFSET_FORCING = i_group * forcing.GroupSize();
       std::vector<double> rate(L, 0);
       const std::size_t NUMBER_OF_REACTIONS = number_of_reactants_.size();
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
+      for (std::size_t i_rxn = 0; i_rxn < NUMBER_OF_REACTIONS; ++i_rxn)
       {
-        const auto V_RATE_SUBRANGE_BEGIN = v_rate_constants_begin + offset_rc + (i_rxn * L);
-        rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
+        const auto V_RATE_SUBRANGE_BEGIN = v_rate_constants_begin + OFFSET_RC + (i_rxn * L);
+        rate.assign(V_RATE_SUBRANGE_BEGIN, V_RATE_SUBRANGE_BEGIN + L);
         const std::size_t NUMBER_OF_REACTANTS = number_of_reactants_[i_rxn];
-        for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
+        for (std::size_t i_react = 0; i_react < NUMBER_OF_REACTANTS; ++i_react)
         {
-          std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
+          std::size_t idx_state_variables = OFFSET_STATE + react_id[i_react] * L;
           auto rate_it = rate.begin();
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
@@ -428,12 +428,12 @@ namespace micm
             *(rate_it++) *= *(v_state_variables_it++);
           }
         }
-        for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
+        for (std::size_t i_react = 0; i_react < NUMBER_OF_REACTANTS; ++i_react)
         {
           const std::size_t ROW_ID = react_id[i_react];
-          if (!is_algebraic_variable_[row_id])
+          if (!is_algebraic_variable_[ROW_ID])
           {
-            auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
+            auto v_forcing_it = v_forcing.begin() + OFFSET_FORCING + ROW_ID * L;
             auto rate_it = rate.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             {
@@ -442,12 +442,12 @@ namespace micm
           }
         }
         const std::size_t NUMBER_OF_PRODUCTS = number_of_products_[i_rxn];
-        for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
+        for (std::size_t i_prod = 0; i_prod < NUMBER_OF_PRODUCTS; ++i_prod)
         {
           const std::size_t ROW_ID = prod_id[i_prod];
-          if (!is_algebraic_variable_[row_id])
+          if (!is_algebraic_variable_[ROW_ID])
           {
-            auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
+            auto v_forcing_it = v_forcing.begin() + OFFSET_FORCING + ROW_ID * L;
             auto rate_it = rate.begin();
             auto yield_value = yield[i_prod];
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
@@ -565,11 +565,11 @@ namespace micm
 
       for (const auto& process_info : jacobian_process_info_)
       {
-        auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (process_info.process_id_ * L);
+        auto v_rate_subrange_begin = v_rate_constants_begin + OFFSET_RC + (process_info.process_id_ * L);
         d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
-          const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
+          const std::size_t idx_state_variables = OFFSET_STATE + (react_id[i_react] * L);
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
@@ -580,7 +580,7 @@ namespace micm
           const std::size_t row_id = react_id[i_dep];
           if (!is_algebraic_variable_[row_id])
           {
-            auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
+            auto v_jacobian_it = v_jacobian.begin() + OFFSET_JACOBIAN + *flat_id;
             auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
               *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
@@ -590,7 +590,7 @@ namespace micm
 
         if (!is_algebraic_variable_[process_info.independent_id_])
         {
-          auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
+          auto v_jacobian_it = v_jacobian.begin() + OFFSET_JACOBIAN + *flat_id;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
@@ -602,7 +602,7 @@ namespace micm
           const std::size_t row_id = prod_id[i_dep];
           if (!is_algebraic_variable_[row_id])
           {
-            auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
+            auto v_jacobian_it = v_jacobian.begin() + OFFSET_JACOBIAN + *flat_id;
             auto yield_value = yield[i_dep];
             auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)

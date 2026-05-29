@@ -34,8 +34,8 @@ CreateSystemWithStubAerosolModels()
   std::map<std::string, micm::Phase> phases = { { "GAS", gas }, { "QUUX", quux }, { "CORGE", corge } };
 
   // Create instances of each stub aerosol model
-  StubAerosolModel::RateConstants rate_constants = { .fo2_gas_to_mode2_corge = STUB1_RATE_CONSTANT_FO2_CORGE,
-                                                     .baz_mode1_to_mode2_quux = STUB1_RATE_CONSTANT_BAZ_QUUX };
+  StubAerosolModel::RateConstants rate_constants = { .fo2_gas_to_mode2_corge_ = STUB1_RATE_CONSTANT_FO2_CORGE,
+                                                     .baz_mode1_to_mode2_quux_ = STUB1_RATE_CONSTANT_BAZ_QUUX };
   auto aerosol_1 = StubAerosolModel("STUB1", std::vector<micm::Phase>({ quux, corge }), rate_constants);
   auto aerosol_2 = AnotherStubAerosolModel("STUB2", std::vector<micm::Phase>({ quux, corge }));
 
@@ -170,7 +170,7 @@ void TestUpdateMultiCellStateWithStubAerosolModel(BuilderPolicy builder)
   const std::size_t NUM_CELLS = 3;
 
   // Get a state and set some values
-  auto state = solver.GetState(num_cells);
+  auto state = solver.GetState(NUM_CELLS);
 
   // Set some gas-phase species by name
   state["FO2"] = std::vector{ 1.34, 1.35, 1.36 };
@@ -315,7 +315,7 @@ void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
   jacobian_1 = 0.0;                   // initialize Jacobian terms to zero before calculation
   using DenseMatrixPolicyType = decltype(state.variables_);
   using SparseMatrixPolicyType = decltype(state.jacobian_);
-  auto jacobian_function_1 = aerosol_1.JacobianFunction<DenseMatrixPolicyType, sparse_matrix_policy_type>(
+  auto jacobian_function_1 = aerosol_1.JacobianFunction<DenseMatrixPolicyType, SparseMatrixPolicyType>(
       state.custom_rate_parameter_map_, state.variable_map_, jacobian_1);
   jacobian_function_1(state.custom_rate_parameters_, state.variables_, jacobian_1);
 
@@ -390,7 +390,7 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, double base_relative_
   auto results = solver.Solve(time_step, state);
 
   // Make sure the solver reports success
-  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::SolverState::CONVERGED);
 
   // Verify that the state variables have been updated
   EXPECT_NEAR(state["FO2"], fo2_initial - stub1_rxn1_delta, base_relative_tolerance * fo2_initial);
@@ -456,7 +456,7 @@ void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, double base_relati
   auto results = solver.Solve(time_step, state);
 
   // Make sure the solver reports success
-  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::SolverState::CONVERGED);
 
   // Verify that the state variables have been updated
   EXPECT_NEAR(state["FO2"], fo2_initial - stub1_rxn1_delta, base_relative_tolerance * fo2_initial);
@@ -500,7 +500,7 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_
   const std::size_t NUM_CELLS = 3;
 
   // Get a state for multiple grid cells
-  auto state = solver.GetState(num_cells);
+  auto state = solver.GetState(NUM_CELLS);
 
   // Set different initial values for each cell
   std::vector<double> fo2_initial = { 1.0, 1.5, 2.0 };
@@ -518,10 +518,10 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_
 
   // Calculate the analytical solution to verify the results for each cell
   double time_step = 10.0;  // seconds
-  std::vector<double> stub1_rxn1_delta(num_cells);
-  std::vector<double> stub1_rxn2_delta(num_cells);
+  std::vector<double> stub1_rxn1_delta(NUM_CELLS);
+  std::vector<double> stub1_rxn2_delta(NUM_CELLS);
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (std::size_t i = 0; i < NUM_CELLS; ++i)
   {
     stub1_rxn1_delta[i] = fo2_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
     stub1_rxn2_delta[i] = baz_mode1_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
@@ -532,7 +532,7 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_
   auto results = solver.Solve(time_step, state);
 
   // Make sure the solver reports success
-  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::SolverState::CONVERGED);
 
   // Verify that the state variables have been updated in all cells
   auto fo2_result = state["FO2"];
@@ -545,7 +545,7 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_
   auto stub2_num1_result = state["STUB2.MODE1.NUMBER"];
   auto stub2_num2_result = state["STUB2.MODE2.NUMBER"];
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (std::size_t i = 0; i < NUM_CELLS; ++i)
   {
     EXPECT_NEAR(fo2_result[i], fo2_initial[i] - stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
     EXPECT_EQ(bar_result[i], (std::vector{ 2.0, 2.5, 3.0 })[i]);
@@ -573,7 +573,7 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
   const std::size_t NUM_CELLS = 3;
 
   // Get a state for multiple grid cells
-  auto state = solver.GetState(num_cells);
+  auto state = solver.GetState(NUM_CELLS);
 
   // Set different initial values for each cell
   std::vector<double> fo2_initial = { 1.0, 1.5, 2.0 };
@@ -600,7 +600,7 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
 
   auto param_it = state.custom_rate_parameter_map_.find("STUB2.PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
   ASSERT_NE(param_it, state.custom_rate_parameter_map_.end());
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (std::size_t i = 0; i < NUM_CELLS; ++i)
   {
     state.custom_rate_parameters_[i][param_it->second] = fo2_to_baz_rate_constant[i];
     state.conditions_[i].temperature_ = temperature[i];
@@ -608,12 +608,12 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
 
   // Calculate the analytical solution to verify the results for each cell
   double time_step = 10.0;  // seconds
-  std::vector<double> stub1_rxn1_delta(num_cells);
-  std::vector<double> stub1_rxn2_delta(num_cells);
-  std::vector<double> stub2_rxn1_delta(num_cells);
-  std::vector<double> stub2_rxn2_delta(num_cells);
+  std::vector<double> stub1_rxn1_delta(NUM_CELLS);
+  std::vector<double> stub1_rxn2_delta(NUM_CELLS);
+  std::vector<double> stub2_rxn1_delta(NUM_CELLS);
+  std::vector<double> stub2_rxn2_delta(NUM_CELLS);
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (std::size_t i = 0; i < NUM_CELLS; ++i)
   {
     stub1_rxn1_delta[i] = fo2_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
     stub1_rxn2_delta[i] = baz_mode1_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
@@ -626,7 +626,7 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
   auto results = solver.Solve(time_step, state);
 
   // Make sure the solver reports success
-  EXPECT_EQ(results.state_, micm::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::SolverState::CONVERGED);
 
   // Verify that the state variables have been updated in all cells
   auto fo2_result = state["FO2"];
@@ -641,7 +641,7 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
   auto stub2_num1_result = state["STUB2.MODE1.NUMBER"];
   auto stub2_num2_result = state["STUB2.MODE2.NUMBER"];
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (std::size_t i = 0; i < NUM_CELLS; ++i)
   {
     EXPECT_NEAR(fo2_result[i], fo2_initial[i] - stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
     EXPECT_EQ(bar_result[i], (std::vector{ 2.0, 2.5, 3.0 })[i]);

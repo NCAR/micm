@@ -55,7 +55,7 @@ namespace micm
   };
 
   template<typename T>
-  struct has_category<T, std::void_t<typename T::category>> : std::true_type
+  struct HasCategory<T, std::void_t<typename T::category>> : std::true_type
   {
   };
 
@@ -70,7 +70,7 @@ namespace micm
 
   /// @brief If type has a nested 'category' type, use it
   template<typename T>
-  struct ViewCategory<T, std::enable_if_t<has_category<std::remove_cvref_t<T>>::value>>
+  struct ViewCategory<T, std::enable_if_t<HasCategory<std::remove_cvref_t<T>>::value>>
   {
     using type = typename std::remove_cvref_t<T>::category;
   };

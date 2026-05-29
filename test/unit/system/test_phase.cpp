@@ -9,7 +9,7 @@ TEST(PhaseSpecies, ConstructsWithoutDiffusionCoefficient)
 {
   Species c_o2("CO2");
   PhaseSpecies gas_c_o2(c_o2);
-  EXPECT_EQ(gas_CO2.species_.name_, "CO2");
+  EXPECT_EQ(gas_c_o2.species_.name_, "CO2");
   EXPECT_FALSE(gas_c_o2.diffusion_coefficient_.has_value());
 }
 
@@ -18,7 +18,7 @@ TEST(PhaseSpecies, ConstructsWithDiffusionCoefficient)
   Species c_o2("CO2");
   double diff_coeff = 1.23e-5;
   PhaseSpecies gas_c_o2(c_o2, diff_coeff);
-  EXPECT_EQ(gas_CO2.species_.name_, "CO2");
+  EXPECT_EQ(gas_c_o2.species_.name_, "CO2");
   ASSERT_TRUE(gas_c_o2.diffusion_coefficient_.has_value());
   EXPECT_DOUBLE_EQ(gas_c_o2.diffusion_coefficient_.value(), diff_coeff);
 }

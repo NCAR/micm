@@ -122,19 +122,19 @@ void TestProcessSet()
   // quuz 11    -   12    -    -
 
   auto elem = non_zero_elements.begin();
-  compare_pair(*elem, index_pair(0, 0));
-  compare_pair(*(++elem), index_pair(0, 1));
-  compare_pair(*(++elem), index_pair(0, 2));
-  compare_pair(*(++elem), index_pair(1, 0));
-  compare_pair(*(++elem), index_pair(1, 1));
-  compare_pair(*(++elem), index_pair(1, 2));
-  compare_pair(*(++elem), index_pair(2, 0));
-  compare_pair(*(++elem), index_pair(2, 2));
-  compare_pair(*(++elem), index_pair(3, 1));
-  compare_pair(*(++elem), index_pair(3, 2));
-  compare_pair(*(++elem), index_pair(3, 3));
-  compare_pair(*(++elem), index_pair(4, 0));
-  compare_pair(*(++elem), index_pair(4, 2));
+  ComparePair(*elem, index_pair(0, 0));
+  ComparePair(*(++elem), index_pair(0, 1));
+  ComparePair(*(++elem), index_pair(0, 2));
+  ComparePair(*(++elem), index_pair(1, 0));
+  ComparePair(*(++elem), index_pair(1, 1));
+  ComparePair(*(++elem), index_pair(1, 2));
+  ComparePair(*(++elem), index_pair(2, 0));
+  ComparePair(*(++elem), index_pair(2, 2));
+  ComparePair(*(++elem), index_pair(3, 1));
+  ComparePair(*(++elem), index_pair(3, 2));
+  ComparePair(*(++elem), index_pair(3, 3));
+  ComparePair(*(++elem), index_pair(4, 0));
+  ComparePair(*(++elem), index_pair(4, 2));
 
   auto builder = SparseMatrixPolicy::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
@@ -254,7 +254,7 @@ void TestAlgebraicMasking()
   auto c = Species("C");
   auto d = Species("D");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c, d } };
 
   // Set up state with 2 grid cells
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
@@ -264,8 +264,8 @@ void TestAlgebraicMasking()
 
   // Create a single reaction: A + B -> C + D
   Process r1 = ChemicalReactionBuilder()
-                   .SetReactants({ A, B })
-                   .SetProducts({ StoichSpecies(C, 1), StoichSpecies(D, 1) })
+                   .SetReactants({ a, b })
+                   .SetProducts({ StoichSpecies(c, 1), StoichSpecies(d, 1) })
                    .SetRateConstant(arrhenius_rate_constant)
                    .SetPhase(gas_phase)
                    .Build();
@@ -395,7 +395,7 @@ void TestProcessSetFiniteDifferenceJacobian()
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
   const std::size_t NUM_SPECIES = 3;
 
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
@@ -405,15 +405,15 @@ void TestProcessSetFiniteDifferenceJacobian()
   ArrheniusRateConstantParameters rate2{ .A_ = 1.0 };
 
   Process r1 = ChemicalReactionBuilder()
-                   .SetReactants({ A, B })
-                   .SetProducts({ StoichSpecies(C, 2) })
+                   .SetReactants({ a, b })
+                   .SetProducts({ StoichSpecies(c, 2) })
                    .SetRateConstant(rate1)
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
-                   .SetReactants({ C })
-                   .SetProducts({ StoichSpecies(A, 1) })
+                   .SetReactants({ c })
+                   .SetProducts({ StoichSpecies(a, 1) })
                    .SetRateConstant(rate2)
                    .SetPhase(gas_phase)
                    .Build();
@@ -433,7 +433,7 @@ void TestProcessSetFiniteDifferenceJacobian()
 
   // Build analytical Jacobian
   auto non_zero_elements = process_set.NonZeroJacobianElements();
-  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  auto builder = SparseMatrixPolicy::Create(NUM_SPECIES).SetNumberOfBlocks(2).InitialValue(0.0);
   for (auto& elem : non_zero_elements)
   {
     builder = builder.WithElement(elem.first, elem.second);
@@ -453,21 +453,21 @@ void TestProcessSetFiniteDifferenceJacobian()
     CheckCopyToHost<DenseMatrixPolicy>(forcing);
   };
 
-  auto fd_jacobian = micm::FiniteDifferenceJacobian<DenseMatrixPolicy>(forcing_wrapper, state.variables_, num_species);
+  auto fd_jacobian = micm::FiniteDifferenceJacobian<DenseMatrixPolicy>(forcing_wrapper, state.variables_, NUM_SPECIES);
 
   // Compare: analytical stores -df/dx, FD stores +df/dx
   auto comparison = micm::CompareJacobianToFiniteDifference<DenseMatrixPolicy, SparseMatrixPolicy>(
-      analytical_jacobian, fd_jacobian, num_species);
+      analytical_jacobian, fd_jacobian, NUM_SPECIES);
 
-  EXPECT_TRUE(comparison.passed) << "Worst error at block=" << comparison.worst_block << " row=" << comparison.worst_row
-                                 << " col=" << comparison.worst_col << " analytical=" << comparison.worst_analytical
-                                 << " fd=" << comparison.worst_fd;
+  EXPECT_TRUE(comparison.passed_) << "Worst error at block=" << comparison.worst_block_ << " row=" << comparison.worst_row_
+                                  << " col=" << comparison.worst_col_ << " analytical=" << comparison.worst_analytical_
+                                  << " fd=" << comparison.worst_fd_;
 
   // Also verify sparsity completeness
   auto sparsity_check = micm::CheckJacobianSparsityCompleteness<DenseMatrixPolicy, SparseMatrixPolicy>(
-      analytical_jacobian, fd_jacobian, num_species);
+      analytical_jacobian, fd_jacobian, NUM_SPECIES);
 
-  EXPECT_TRUE(sparsity_check.passed) << "Undeclared non-zero at block=" << sparsity_check.worst_block
-                                     << " row=" << sparsity_check.worst_row << " col=" << sparsity_check.worst_col
-                                     << " fd_value=" << sparsity_check.worst_fd;
+  EXPECT_TRUE(sparsity_check.passed_) << "Undeclared non-zero at block=" << sparsity_check.worst_block_
+                                      << " row=" << sparsity_check.worst_row_ << " col=" << sparsity_check.worst_col_
+                                      << " fd_value=" << sparsity_check.worst_fd_;
 }

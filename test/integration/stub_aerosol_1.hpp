@@ -72,7 +72,7 @@ class StubAerosolModel
   }
   std::string Species(const int MODE, const micm::Phase& phase, const micm::Species& species) const
   {
-    return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
+    return name_ + ".MODE" + std::to_string(MODE + 1) + "." + phase.name_ + "." + species.name_;
   }
 
   // We'll pretend all the species in the aerosol model are involved in processes
@@ -130,14 +130,14 @@ class StubAerosolModel
     if (fo2_gas_index_it != state_variable_indices.end() && fo2_mode2_index_it != state_variable_indices.end())
     {
       forcing_info.push_back(
-          { fo2_gas_index_it->second, fo2_mode2_index_it->second, rate_constants_.fo2_gas_to_mode2_corge });
+          { fo2_gas_index_it->second, fo2_mode2_index_it->second, rate_constants_.fo2_gas_to_mode2_corge_ });
     }
     auto baz_mode1_index_it = state_variable_indices.find("STUB1.MODE1.QUUX.BAZ");
     auto baz_mode2_index_it = state_variable_indices.find("STUB1.MODE2.QUUX.BAZ");
     if (baz_mode1_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end())
     {
       forcing_info.push_back(
-          { baz_mode1_index_it->second, baz_mode2_index_it->second, rate_constants_.baz_mode1_to_mode2_quux });
+          { baz_mode1_index_it->second, baz_mode2_index_it->second, rate_constants_.baz_mode1_to_mode2_quux_ });
     }
 
     // copy-capture the forcing_info vector in the lambda function that will calculate the forcing terms
@@ -178,10 +178,10 @@ class StubAerosolModel
     {
       jacobian_info.push_back({ fo2_gas_index_it->second,
                                 fo2_gas_index_it->second,
-                                -rate_constants_.fo2_gas_to_mode2_corge });  // reactant partial derivative
+                                -rate_constants_.fo2_gas_to_mode2_corge_ });  // reactant partial derivative
       jacobian_info.push_back({ fo2_mode2_index_it->second,
                                 fo2_gas_index_it->second,
-                                rate_constants_.fo2_gas_to_mode2_corge });  // product partial derivative
+                                rate_constants_.fo2_gas_to_mode2_corge_ });  // product partial derivative
     }
     auto baz_mode1_index_it = state_variable_indices.find("STUB1.MODE1.QUUX.BAZ");
     auto baz_mode2_index_it = state_variable_indices.find("STUB1.MODE2.QUUX.BAZ");
@@ -189,10 +189,10 @@ class StubAerosolModel
     {
       jacobian_info.push_back({ baz_mode1_index_it->second,
                                 baz_mode1_index_it->second,
-                                -rate_constants_.baz_mode1_to_mode2_quux });  // reactant partial derivative
+                                -rate_constants_.baz_mode1_to_mode2_quux_ });  // reactant partial derivative
       jacobian_info.push_back({ baz_mode2_index_it->second,
                                 baz_mode1_index_it->second,
-                                rate_constants_.baz_mode1_to_mode2_quux });  // product partial derivative
+                                rate_constants_.baz_mode1_to_mode2_quux_ });  // product partial derivative
     }
 
     // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms

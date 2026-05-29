@@ -145,18 +145,18 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
   EXPECT_EQ(store.surface_.size(), 1u);
 
   // Verify cumulative offsets
-  EXPECT_EQ(store.troe_offset(), 2u);
-  EXPECT_EQ(store.ternary_offset(), 3u);
-  EXPECT_EQ(store.branched_offset(), 3u);
-  EXPECT_EQ(store.tunneling_offset(), 3u);
-  EXPECT_EQ(store.taylor_offset(), 4u);
-  EXPECT_EQ(store.reversible_offset(), 4u);
-  EXPECT_EQ(store.user_defined_offset(), 4u);
-  EXPECT_EQ(store.surface_offset(), 5u);
-  EXPECT_EQ(store.lambda_offset(), 6u);
+  EXPECT_EQ(store.TroeOffset(), 2u);
+  EXPECT_EQ(store.TernaryOffset(), 3u);
+  EXPECT_EQ(store.BranchedOffset(), 3u);
+  EXPECT_EQ(store.TunnelingOffset(), 3u);
+  EXPECT_EQ(store.TaylorOffset(), 4u);
+  EXPECT_EQ(store.ReversibleOffset(), 4u);
+  EXPECT_EQ(store.UserDefinedOffset(), 4u);
+  EXPECT_EQ(store.SurfaceOffset(), 5u);
+  EXPECT_EQ(store.LambdaOffset(), 6u);
 
   // Total rate constants (lambda_offset + lambda_entries_.size()) equals process count
-  EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), procs.size());
+  EXPECT_EQ(store.LambdaOffset() + store.lambda_entries_.size(), procs.size());
 }
 
 // ============================================================
@@ -214,8 +214,8 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
   double air_ref = 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6;
   double a_val = expected_k0 * air_ref;
   double b_val = 0.43 * std::pow(293.0 / 298.0, -8.0);
-  double a_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
-  double expected_z = a_val * (1.0 - 0.5) / 0.5;
+  double A_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
+  double expected_z = A_val * (1.0 - 0.5) / 0.5;
   EXPECT_NEAR(store.branched_[0].z_, expected_z, 1.0e-10 * std::abs(expected_z));
 }
 
@@ -353,11 +353,11 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
   ASSERT_EQ(store.lambda_entries_.size(), 1u);
 
   // Lambda is the second process → rc_index = 1
-  EXPECT_EQ(store.lambda_entries_[0].rc_index, 1u);
+  EXPECT_EQ(store.lambda_entries_[0].rc_index_, 1u);
   // Pointer should be non-null and function should work
-  ASSERT_NE(store.lambda_entries_[0].source, nullptr);
+  ASSERT_NE(store.lambda_entries_[0].source_, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
-  EXPECT_NEAR(store.lambda_entries_[0].source->lambda_function_(cond), 0.3, 1.0e-14);
+  EXPECT_NEAR(store.lambda_entries_[0].source_->lambda_function_(cond), 0.3, 1.0e-14);
 }
 
 // ============================================================
@@ -390,10 +390,10 @@ TEST(ReactionRateConstantStore, ParameterizedMultipliers)
 
   // Only the second reaction has a parameterized reactant
   ASSERT_EQ(store.parameterized_multipliers_.size(), 1u);
-  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index, 1u);
+  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index_, 1u);
 
   Conditions cond{ .air_density_ = 5.0 };
-  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate(cond), 10.0, 1.0e-14);
+  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate_(cond), 10.0, 1.0e-14);
 }
 
 // ============================================================
@@ -447,7 +447,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
   // Total = lambda_offset() + lambda_entries_.size() = number of chemical reactions
   std::size_t n_rxn = procs.size();
 
-  EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), n_rxn);
+  EXPECT_EQ(store.LambdaOffset() + store.lambda_entries_.size(), n_rxn);
 }
 
 // ============================================================

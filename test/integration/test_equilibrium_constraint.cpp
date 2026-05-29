@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// Copyright (c) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #include <micm/CPU.hpp>
@@ -30,25 +30,25 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
   double k = 0.1;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A })
-                    .SetProducts({ { B, 1 } })
+                    .SetReactants({ a })
+                    .SetProducts({ { b, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
-  // C is an algebraic variable (not in any kinetic reaction)
+  // c is an algebraic variable (not in any kinetic reaction)
   double k_eq = 0.034;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
+      c,
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      std::vector<StoichSpecies>{ { c, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq, .delta_H_ = -2400.0 }));
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
@@ -62,7 +62,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   auto state = solver.GetState(1);
 
   // Verify constraint metadata
-  ASSERT_EQ(state.state_size_, 3);  // A, B, and C
+  ASSERT_EQ(state.state_size_, 3);  // a, b, and c
   ASSERT_EQ(state.constraint_size_, 1);
   ASSERT_TRUE(state.variable_map_.count("A") > 0);
   ASSERT_TRUE(state.variable_map_.count("B") > 0);
@@ -72,9 +72,9 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // Verify mass-matrix diagonal.
   // Size is species only; constrained species rows are algebraic (0), others are ODE (1).
   ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 3);
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // A is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // B is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // C is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // a is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // b is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // c is algebraic
 
   // Verify state can be initialized
   std::size_t a_idx = state.variable_map_.at("A");
@@ -82,9 +82,9 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   std::size_t c_idx = state.variable_map_.at("C");
   std::size_t b_c_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
 
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.1;
-  state.variables_[0][C_idx] = k_eq * 0.1;  // C = K_eq * B
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.1;
+  state.variables_[0][c_idx] = k_eq * 0.1;  // c = K_eq * b
   state.conditions_[0].temperature_ = 300.0;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -92,7 +92,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   solver.UpdateStateParameters(state);
 
   double expected_k_eq = ComputeEquilibriumConstant(k_eq, -2400.0, 300.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_k_eq, 1e-10);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][b_c_eq_idx], expected_k_eq, 1e-10);
 }
 
 /// @brief Verifies that multiple constraints can be added via SetConstraints and the solver
@@ -105,19 +105,19 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   auto e = Species("E");
   auto f = Species("F");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D, E, F } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c, d, e, f } };
 
   // Simple kinetic reactions
   Process rxn1 = ChemicalReactionBuilder()
-                     .SetReactants({ A })
-                     .SetProducts({ { B, 1 } })
+                     .SetReactants({ a })
+                     .SetProducts({ { b, 1 } })
                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0, .C_ = 0 })
                      .SetPhase(gas_phase)
                      .Build();
 
   Process rxn2 = ChemicalReactionBuilder()
-                     .SetReactants({ D })
-                     .SetProducts({ { E, 1 } })
+                     .SetReactants({ d })
+                     .SetProducts({ { e, 1 } })
                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.2, .B_ = 0, .C_ = 0 })
                      .SetPhase(gas_phase)
                      .Build();
@@ -131,16 +131,16 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = delta_H1 }));
+      c,
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      std::vector<StoichSpecies>{ { c, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq1, .delta_H_ = delta_h1 }));
   constraints.push_back(EquilibriumConstraint(
       "E_F_eq",
-      F,
-      std::vector<StoichSpecies>{ { E, 1.0 } },
-      std::vector<StoichSpecies>{ { F, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = delta_H2 }));
+      f,
+      std::vector<StoichSpecies>{ { e, 1.0 } },
+      std::vector<StoichSpecies>{ { f, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq2, .delta_H_ = delta_h2 }));
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -153,24 +153,24 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 
   auto state = solver.GetState(1);
 
-  ASSERT_EQ(state.state_size_, 6);       // A, B, C, D, E, F
+  ASSERT_EQ(state.state_size_, 6);       // a, b, c, d, e, f
   ASSERT_EQ(state.constraint_size_, 2);  // Two constraints
 
   ASSERT_EQ(state.upper_left_identity_diagonal_.size(), 6);
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // A is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // B is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // C is algebraic
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("D")], 1.0);  // D is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("E")], 1.0);  // E is ODE
-  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("F")], 0.0);  // F is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("A")], 1.0);  // a is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("B")], 1.0);  // b is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // c is algebraic
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("D")], 1.0);  // d is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("E")], 1.0);  // e is ODE
+  EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("F")], 0.0);  // f is algebraic
 
   // Initialize state and verify UpdateStateParameters works
   state.variables_[0][state.variable_map_.at("A")] = 1.0;
   state.variables_[0][state.variable_map_.at("B")] = 0.1;
-  state.variables_[0][state.variable_map_.at("C")] = k_eq1 * 0.1;  // C should satisfy C = K_eq1 * B
+  state.variables_[0][state.variable_map_.at("C")] = k_eq1 * 0.1;  // c should satisfy c = K_eq1 * b
   state.variables_[0][state.variable_map_.at("D")] = 0.5;
   state.variables_[0][state.variable_map_.at("E")] = 0.05;
-  state.variables_[0][state.variable_map_.at("F")] = k_eq2 * 0.05;  // F should satisfy F = K_eq2 * E
+  state.variables_[0][state.variable_map_.at("F")] = k_eq2 * 0.05;  // f should satisfy f = K_eq2 * e
 
   double current_temp = 310.0;
   state.conditions_[0].temperature_ = current_temp;
@@ -193,28 +193,28 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
-  // Simple reaction: A -> B with rate k
+  // Simple reaction: a -> b with rate k
   double k = 1.0;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A })
-                    .SetProducts({ { B, 1 } })
+                    .SetReactants({ a })
+                    .SetProducts({ { b, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
-  // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
-  // This couples B (ODE variable) to C (algebraic variable)
+  // Equilibrium constraint: K_eq * b - c = 0, so c = K_eq * b
+  // This couples b (ODE variable) to c (algebraic variable)
   double k_eq = 2.0;
   double delta_h = -2400.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
+      c,
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      std::vector<StoichSpecies>{ { c, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq, .delta_H_ = delta_h }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -231,17 +231,17 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   std::size_t c_idx = state.variable_map_.at("C");
   std::size_t b_c_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
 
-  // Initial conditions: A=1, B=0, C=0
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.0;
-  state.variables_[0][C_idx] = 0.0;
+  // Initial conditions: a=1, b=0, c=0
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.0;
+  state.variables_[0][c_idx] = 0.0;
   state.conditions_[0].temperature_ = 270.0;
   state.conditions_[0].pressure_ = 101325.0;
 
   // Verify UpdateStateParameters calculates K_eq correctly before time integration
   solver.UpdateStateParameters(state);
   double expected_k_eq = ComputeEquilibriumConstant(k_eq, delta_h, 270.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_k_eq, 1e-10);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][b_c_eq_idx], expected_k_eq, 1e-10);
 
   // Solve with smaller time steps
   double dt = 0.001;
@@ -265,7 +265,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
     // Verify constraint is maintained by the solver
     double constraint_residual =
-        state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+        state.custom_rate_parameters_[0][b_c_eq_idx] * state.variables_[0][b_idx] - state.variables_[0][c_idx];
     EXPECT_NEAR(constraint_residual, 0.0, 1.0e-6)
         << "Constraint not satisfied at step " << steps << ": K_eq*B - C = " << constraint_residual;
 
@@ -273,16 +273,16 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     steps++;
   }
 
-  // Verify constraint is satisfied: C = K_eq * B
-  double expected_c = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx];
+  // Verify constraint is satisfied: c = K_eq * b
+  double expected_c = state.custom_rate_parameters_[0][b_c_eq_idx] * state.variables_[0][b_idx];
   double final_residual =
-      state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+      state.custom_rate_parameters_[0][b_c_eq_idx] * state.variables_[0][b_idx] - state.variables_[0][c_idx];
 
-  EXPECT_NEAR(state.variables_[0][C_idx], expected_c, 1.0e-6);
+  EXPECT_NEAR(state.variables_[0][c_idx], expected_c, 1.0e-6);
   EXPECT_NEAR(final_residual, 0.0, 1.0e-6);
 
-  // Verify mass conservation: A + B should be conserved (approximately)
-  double total = state.variables_[0][A_idx] + state.variables_[0][B_idx];
+  // Verify mass conservation: a + b should be conserved (approximately)
+  double total = state.variables_[0][a_idx] + state.variables_[0][b_idx];
   EXPECT_NEAR(total, 1.0, 0.01);
 }
 
@@ -293,26 +293,26 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
-  // Simple reaction: A -> B with rate k
+  // Simple reaction: a -> b with rate k
   double k = 1.0;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A })
-                    .SetProducts({ { B, 1 } })
+                    .SetReactants({ a })
+                    .SetProducts({ { b, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
-  // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
+  // Equilibrium constraint: K_eq * b - c = 0, so c = K_eq * b
   double k_eq = 2.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
+      c,
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      std::vector<StoichSpecies>{ { c, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -329,9 +329,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   std::size_t c_idx = state.variable_map_.at("C");
   std::size_t b_c_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
 
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.0;
-  state.variables_[0][C_idx] = 0.0;
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.0;
+  state.variables_[0][c_idx] = 0.0;
   state.conditions_[0].temperature_ = 400.0;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -348,21 +348,21 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   {
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(dt, state);
-    ASSERT_EQ(result.state_, SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
+    ASSERT_EQ(result.state_, SolverState::CONVERGED) << "Reordered DAE solve did not converge at time=" << time;
 
     // Constraint should hold at each step
-    double residual = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    double residual = state.custom_rate_parameters_[0][b_c_eq_idx] * state.variables_[0][b_idx] - state.variables_[0][c_idx];
     EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated at time=" << time;
 
     time += dt;
   }
 
-  // Mass conservation for A -> B
-  EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
+  // Mass conservation for a -> b
+  EXPECT_NEAR(state.variables_[0][a_idx] + state.variables_[0][b_idx], 1.0, 0.01);
 }
 
 /// @brief Test DAE solve with two coupled constraints sharing a species
-/// A -> B (kinetic), B <-> C (constraint 1), B <-> D (constraint 2)
+/// a -> b (kinetic), b <-> c (constraint 1), b <-> d (constraint 2)
 TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 {
   auto a = Species("A");
@@ -370,12 +370,12 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   auto c = Species("C");
   auto d = Species("D");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c, d } };
 
   double k = 1.0;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A })
-                    .SetProducts({ { B, 1 } })
+                    .SetReactants({ a })
+                    .SetProducts({ { b, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
@@ -385,16 +385,16 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = -2400.0 }));
+      c,
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      std::vector<StoichSpecies>{ { c, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq1, .delta_H_ = -2400.0 }));
   constraints.push_back(EquilibriumConstraint(
       "B_D_eq",
-      D,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { D, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = -2400.0 }));
+      d,
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      std::vector<StoichSpecies>{ { d, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -413,10 +413,10 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   std::size_t b_c_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
   std::size_t b_d_eq_idx = state.custom_rate_parameter_map_.at("B_D_eq");
 
-  state.variables_[0][A_idx] = 1.0;
-  state.variables_[0][B_idx] = 0.0;
-  state.variables_[0][C_idx] = 0.0;
-  state.variables_[0][D_idx] = 0.0;
+  state.variables_[0][a_idx] = 1.0;
+  state.variables_[0][b_idx] = 0.0;
+  state.variables_[0][c_idx] = 0.0;
+  state.variables_[0][d_idx] = 0.0;
   state.conditions_[0].temperature_ = 300.0;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -424,8 +424,8 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   solver.UpdateStateParameters(state);
   double expected_k_eq1 = ComputeEquilibriumConstant(k_eq1, -2400.0, 300.0);
   double expected_k_eq2 = ComputeEquilibriumConstant(k_eq2, -2400.0, 300.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_k_eq1, 1e-10);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_D_eq_idx], expected_k_eq2, 1e-10);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][b_c_eq_idx], expected_k_eq1, 1e-10);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][b_d_eq_idx], expected_k_eq2, 1e-10);
 
   double dt = 0.001;
   double total_time = 0.1;
@@ -435,12 +435,12 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   {
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(dt, state);
-    ASSERT_EQ(result.state_, SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
+    ASSERT_EQ(result.state_, SolverState::CONVERGED) << "Coupled constraints did not converge at time=" << time;
 
     double residual1 =
-        state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+        state.custom_rate_parameters_[0][b_c_eq_idx] * state.variables_[0][b_idx] - state.variables_[0][c_idx];
     double residual2 =
-        state.custom_rate_parameters_[0][B_D_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][D_idx];
+        state.custom_rate_parameters_[0][b_d_eq_idx] * state.variables_[0][b_idx] - state.variables_[0][d_idx];
     EXPECT_NEAR(residual1, 0.0, 1.0e-6) << "Constraint 1 violated at time=" << time;
     EXPECT_NEAR(residual2, 0.0, 1.0e-6) << "Constraint 2 violated at time=" << time;
 
@@ -448,40 +448,40 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   }
 
   // Both constraints should be satisfied at the end
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx], state.variables_[0][C_idx], 1.0e-6);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_D_eq_idx] * state.variables_[0][B_idx], state.variables_[0][D_idx], 1.0e-6);
-  // Mass conservation: A + B should be conserved
-  EXPECT_NEAR(state.variables_[0][A_idx] + state.variables_[0][B_idx], 1.0, 0.01);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][b_c_eq_idx] * state.variables_[0][b_idx], state.variables_[0][c_idx], 1.0e-6);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][b_d_eq_idx] * state.variables_[0][b_idx], state.variables_[0][d_idx], 1.0e-6);
+  // Mass conservation: a + b should be conserved
+  EXPECT_NEAR(state.variables_[0][a_idx] + state.variables_[0][b_idx], 1.0, 0.01);
 }
 
 /// @brief Test DAE solve with non-unit stoichiometric coefficient
-/// 2A <-> B means K_eq * [A]^2 - [B] = 0
+/// 2A <-> b means K_eq * [a]^2 - [b] = 0
 TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 {
   auto a = Species("A");
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
-  // Reaction: C -> A (to produce A for the equilibrium)
+  // Reaction: c -> a (to produce a for the equilibrium)
   double k = 0.5;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ C })
-                    .SetProducts({ { A, 1 } })
+                    .SetReactants({ c })
+                    .SetProducts({ { a, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
-  // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
+  // Equilibrium constraint: K_eq * [a]^2 - [b] = 0
   double k_eq = 10.0;
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A2_B_eq",
-      B,
-      std::vector<StoichSpecies>{ { A, 2.0 } },
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
+      b,
+      std::vector<StoichSpecies>{ { a, 2.0 } },
+      std::vector<StoichSpecies>{ { b, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -498,17 +498,17 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   std::size_t c_idx = state.variable_map_.at("C");
   std::size_t a2_b_eq_idx = state.custom_rate_parameter_map_.at("A2_B_eq");
 
-  // Start with some A so the constraint has something to work with
-  state.variables_[0][A_idx] = 0.1;
-  state.variables_[0][B_idx] = k_eq * 0.1 * 0.1;  // B = K_eq * A^2
-  state.variables_[0][C_idx] = 1.0;
+  // Start with some a so the constraint has something to work with
+  state.variables_[0][a_idx] = 0.1;
+  state.variables_[0][b_idx] = k_eq * 0.1 * 0.1;  // b = K_eq * a^2
+  state.variables_[0][c_idx] = 1.0;
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
   double expected_k_eq = ComputeEquilibriumConstant(k_eq, -2400.0, 298.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][A2_B_eq_idx], expected_k_eq, 1e-10);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][a2_b_eq_idx], expected_k_eq, 1e-10);
 
   double dt = 0.001;
   double total_time = 0.05;
@@ -518,12 +518,12 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   {
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(dt, state);
-    ASSERT_EQ(result.state_, SolverState::Converged) << "NonUnit stoich did not converge at time=" << time;
+    ASSERT_EQ(result.state_, SolverState::CONVERGED) << "NonUnit stoich did not converge at time=" << time;
 
-    // Constraint: K_eq * [A]^2 - [B] = 0
-    double a_val = state.variables_[0][A_idx];
-    double b_val = state.variables_[0][B_idx];
-    double residual = state.custom_rate_parameters_[0][A2_B_eq_idx] * a_val * a_val - b_val;
+    // Constraint: K_eq * [a]^2 - [b] = 0
+    double a_val = state.variables_[0][a_idx];
+    double b_val = state.variables_[0][b_idx];
+    double residual = state.custom_rate_parameters_[0][a2_b_eq_idx] * a_val * a_val - b_val;
     EXPECT_NEAR(residual, 0.0, 1.0e-5) << "Constraint violated at time=" << time;
 
     time += dt;

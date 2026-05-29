@@ -47,7 +47,7 @@ void TestSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
     fixed_state.conditions_[0].temperature_ = state.conditions_[i].temperature_;
     fixed_state.conditions_[0].pressure_ = state.conditions_[i].pressure_;
     for (int j = 0; j < fixed_state.variables_.NumColumns(); ++j)
-      fixed_state.variables_[0][j] = variables[i][state.variable_map_[fixed_solver.species_names()[j]]];
+      fixed_state.variables_[0][j] = variables[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
     fixed_solver.UpdateState(fixed_state);
     fixed_results[i] = fixed_solver.Solve(0.0, 500.0, fixed_state);
   }
@@ -57,7 +57,7 @@ void TestSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   {
     for (int j = 0; j < fixed_results[i].result_.size(); ++j)
     {
-      double a = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
+      double a = state.variables_[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
       double b = fixed_results[i].result_[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * relative_tolerance + abs_tol);
     }

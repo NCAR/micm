@@ -116,7 +116,7 @@ namespace micm
         result.stats_.rejected_++;
         n_successful_integrations = 0;
 
-        if (n_convergence_failures >= time_step_reductions.size())
+        if (n_convergence_failures >= TIME_STEP_REDUCTIONS.size())
         {
           present_time += h;
           result.state_ = SolverState::ACCEPTING_UNCONVERGED_INTEGRATION;
@@ -126,7 +126,7 @@ namespace micm
         {
           // if we fail, we need to reset the solution to the last known good solution
           yn1.Copy(yn);
-          h *= time_step_reductions[n_convergence_failures++];
+          h *= TIME_STEP_REDUCTIONS[n_convergence_failures++];
         }
       }
       else
@@ -144,8 +144,8 @@ namespace micm
           h *= 2.0;
         }
       }
-      // Don't let H go past the time step
-      H = std::min(H, time_step - present_time);
+      // Don't let h go past the time step
+      h = std::min(h, time_step - present_time);
     }
 
     result.stats_.final_time_ = present_time;
@@ -169,10 +169,10 @@ namespace micm
     auto yn1_iter = Yn1.AsVector().begin();
     const std::size_t N_ELEM = residual.NumRows() * residual.NumColumns();
     const std::size_t N_VARS = abs_tol.size();
-    for (std::size_t i = 0; i < n_elem; ++i)
+    for (std::size_t i = 0; i < N_ELEM; ++i)
     {
-      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
+      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % N_VARS] &&
+          std::abs(*residual_iter) > rel_tol * std::abs(*yn1_iter))
       {
         return false;
       }
@@ -201,10 +201,10 @@ namespace micm
     const std::size_t N_VARS = abs_tol.size();
     const std::size_t WHOLE_BLOCKS = std::floor(residual.NumRows() / L) * residual.GroupSize();
     // evaluate the rows that fit exactly into the vectorizable dimension (L)
-    for (std::size_t i = 0; i < whole_blocks; ++i)
+    for (std::size_t i = 0; i < WHOLE_BLOCKS; ++i)
     {
-      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
+      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % N_VARS] &&
+          std::abs(*residual_iter) > rel_tol * std::abs(*yn1_iter))
       {
         return false;
       }
@@ -218,10 +218,10 @@ namespace micm
       for (std::size_t y = 0; y < residual.NumColumns(); ++y)
       {
         const std::size_t OFFSET = y * L;
-        for (std::size_t i = offset; i < offset + remaining_rows; ++i)
+        for (std::size_t i = OFFSET; i < OFFSET + REMAINING_ROWS; ++i)
         {
           if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
-              std::abs(residual_iter[i]) > rel_tol * std::abs(Yn1_iter[i]))
+              std::abs(residual_iter[i]) > rel_tol * std::abs(yn1_iter[i]))
           {
             return false;
           }

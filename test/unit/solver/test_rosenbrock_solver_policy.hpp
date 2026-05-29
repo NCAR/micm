@@ -59,7 +59,7 @@ SolverBuilderPolicy GetSolver(SolverBuilderPolicy builder)
 template<class SolverBuilderPolicy>
 void TestAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  builder = getSolver(builder);
+  builder = GetSolver(builder);
   auto solver = builder.Build();
   auto state = solver.GetState(number_of_grid_cells);
   auto& jacobian = state.jacobian_;

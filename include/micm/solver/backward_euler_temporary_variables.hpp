@@ -27,8 +27,8 @@ namespace micm
     }
 
     BackwardEulerTemporaryVariables(const auto& state_parameters, const std::size_t NUMBER_OF_GRID_CELLS)
-        : Yn_(number_of_grid_cells, state_parameters.number_of_species_),
-          forcing_(number_of_grid_cells, state_parameters.number_of_species_)
+        : Yn_(NUMBER_OF_GRID_CELLS, state_parameters.number_of_species_),
+          forcing_(NUMBER_OF_GRID_CELLS, state_parameters.number_of_species_)
     {
     }
   };

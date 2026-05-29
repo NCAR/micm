@@ -28,16 +28,16 @@ void TestConstruction()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      ab,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0), StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(ab, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  EXPECT_EQ(set.Size(), 1);
+  EXPECT_EQ(Set.Size(), 1);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -48,20 +48,20 @@ void TestReplaceStateRowsMapsToAlgebraicSpecies()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      c,
+      std::vector<StoichSpecies>{ StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(c, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  EXPECT_EQ(set.Size(), 1);
-  EXPECT_EQ(set.AlgebraicVariableIds().size(), 1);
-  EXPECT_TRUE(set.AlgebraicVariableIds().count(2));  // C row is algebraic
+  EXPECT_EQ(Set.Size(), 1);
+  EXPECT_EQ(Set.AlgebraicVariableIds().size(), 1);
+  EXPECT_TRUE(Set.AlgebraicVariableIds().count(2));  // C row is algebraic
 
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
   EXPECT_EQ(non_zero_elements.size(), 2);
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 1)));  // row C, col B
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 2)));  // row C, col C
@@ -76,16 +76,16 @@ void TestNonZeroJacobianElements()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      ab,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0), StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(ab, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
 
   // Algebraic species = AB (index 2), constraint replaces row 2
   // Dependencies: A (col 0), B (col 1), AB (col 2) + diagonal (2,2)
@@ -107,16 +107,16 @@ void TestMultipleConstraints()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      ab,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0), StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(ab, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
   constraints.push_back(EquilibriumConstraint(
       "C_D_eq",
-      D,
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(D, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      d,
+      std::vector<StoichSpecies>{ StoichSpecies(c, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(d, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = {
     { "A", 0 }, { "B", 1 }, { "AB", 2 }, { "C", 3 }, { "D", 4 }
@@ -124,9 +124,9 @@ void TestMultipleConstraints()
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  EXPECT_EQ(set.Size(), 2);
+  EXPECT_EQ(Set.Size(), 2);
 
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
 
   // First constraint: algebraic = AB (index 2), replaces row 2
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(2, 0)));  // dG1/dA
@@ -149,10 +149,10 @@ void TestAddForcingTerms()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      ab,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0), StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(ab, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -161,7 +161,7 @@ void TestAddForcingTerms()
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
   // Build sparse Jacobian for SetConstraintFunctions
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
   for (std::size_t i = 0; i < num_species; ++i)
   {
@@ -204,10 +204,10 @@ void TestSubtractJacobianTerms()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      ab,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0), StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(ab, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -216,7 +216,7 @@ void TestSubtractJacobianTerms()
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
   // Get non-zero elements and build sparse Jacobian
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
 
   // Build a 3x3 sparse Jacobian (constraint replaces AB's row)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
@@ -295,10 +295,10 @@ void TestUnknownSpeciesThrows()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "invalid",
-      XY,
-      std::vector<StoichSpecies>{ StoichSpecies(X, 1.0), StoichSpecies(Y, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(XY, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      xy,
+      std::vector<StoichSpecies>{ StoichSpecies(x, 1.0), StoichSpecies(y, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(xy, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -318,31 +318,31 @@ void TestThreeDStateOneConstraint()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "X_Y_eq",
-      Y,
-      std::vector<StoichSpecies>{ StoichSpecies(X, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Y, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      y,
+      std::vector<StoichSpecies>{ StoichSpecies(x, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(y, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  EXPECT_EQ(set.Size(), 1);
+  EXPECT_EQ(Set.Size(), 1);
 
   // Check non-zero Jacobian elements
   // Algebraic species = Y (index 1), constraint replaces row 1
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
   EXPECT_EQ(non_zero_elements.size(), 2);                       // (1,0) dG/dX, (1,1) dG/dY + diagonal
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));   // dG/dX at row 1, col 0
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 1)));   // dG/dY at row 1, col 1 + diagonal
   EXPECT_FALSE(non_zero_elements.count(std::make_pair(1, 2)));  // Z not involved
 
   // Build sparse Jacobian (3x3)
-  auto builder = SparseMatrixPolicy::Create(num_species)
+  auto builder = SparseMatrixPolicy::Create(NUM_SPECIES)
                      .SetNumberOfBlocks(2)  // Test with 2 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < NUM_SPECIES; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -356,7 +356,7 @@ void TestThreeDStateOneConstraint()
   Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 2 grid cells
-  DenseMatrixPolicy state(2, num_species);
+  DenseMatrixPolicy state(2, NUM_SPECIES);
   // Grid cell 0: Away from equilibrium
   state[0][0] = 10.0;  // X
   state[0][1] = 0.2;   // Y
@@ -367,7 +367,7 @@ void TestThreeDStateOneConstraint()
   state[1][2] = 0.3;   // Z
 
   // Test forcing terms
-  DenseMatrixPolicy forcing(2, num_species, 0.0);
+  DenseMatrixPolicy forcing(2, NUM_SPECIES, 0.0);
 
   // State parameters: K_eq for each grid cell (2 cells, 1 parameter)
   DenseMatrixPolicy state_parameters(2, 1, 3.3e-2);
@@ -418,27 +418,27 @@ void TestFourDStateTwoConstraints()
   auto d = Species("D");
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      B,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      b,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(b, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   // Constraint 2: C + D <-> A with K_eq2 = 3.3e-2, algebraic species = A (row 0)
   constraints.push_back(EquilibriumConstraint(
       "CD_A_eq",
-      A,
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0), StoichSpecies(D, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      a,
+      std::vector<StoichSpecies>{ StoichSpecies(c, 1.0), StoichSpecies(d, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  EXPECT_EQ(set.Size(), 2);
+  EXPECT_EQ(Set.Size(), 2);
 
   // Check non-zero Jacobian elements
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
 
   // Constraint 1 replaces row 1 (B): depends on A (col 0), B (col 1)
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));  // dG1/dA
@@ -453,11 +453,11 @@ void TestFourDStateTwoConstraints()
   EXPECT_EQ(non_zero_elements.size(), 5);
 
   // Build sparse Jacobian (4x4)
-  auto builder = SparseMatrixPolicy::Create(num_species)
+  auto builder = SparseMatrixPolicy::Create(NUM_SPECIES)
                      .SetNumberOfBlocks(3)  // Test with 3 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < NUM_SPECIES; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -471,7 +471,7 @@ void TestFourDStateTwoConstraints()
   Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 3 grid cells
-  DenseMatrixPolicy state(3, num_species);
+  DenseMatrixPolicy state(3, NUM_SPECIES);
 
   // Grid cell 0: Both constraints satisfied
   state[0][0] = 0.33;     // A
@@ -492,7 +492,7 @@ void TestFourDStateTwoConstraints()
   state[2][3] = 1.0;   // D, C*D = 5.0, K_eq2*C*D = 3.3e-2 * 5 = 0.165 ≠ 0.33
 
   // Test forcing terms
-  DenseMatrixPolicy forcing(3, num_species, 0.0);
+  DenseMatrixPolicy forcing(3, NUM_SPECIES, 0.0);
 
   // State parameters: K_eq for each constraint (3 cells, 2 parameters)
   DenseMatrixPolicy state_parameters(3, 2);
@@ -561,26 +561,26 @@ void TestCoupledConstraintsSharedSpecies()
   auto c = Species("C");
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      B,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      b,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(b, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   constraints.push_back(EquilibriumConstraint(
       "A_C_eq",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      c,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(c, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
 
-  EXPECT_EQ(set.Size(), 2);
+  EXPECT_EQ(Set.Size(), 2);
 
   // Check Jacobian structure - both constraints depend on A
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
 
   // Constraint 1 replaces row 1 (B): dG1/dA, dG1/dB + diagonal
   EXPECT_TRUE(non_zero_elements.count(std::make_pair(1, 0)));  // dG1/dA
@@ -593,9 +593,9 @@ void TestCoupledConstraintsSharedSpecies()
   EXPECT_EQ(non_zero_elements.size(), 4);
 
   // Build Jacobian (3x3)
-  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  auto builder = SparseMatrixPolicy::Create(NUM_SPECIES).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (std::size_t i = 0; i < NUM_SPECIES; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -609,13 +609,13 @@ void TestCoupledConstraintsSharedSpecies()
   Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State at dual equilibrium: [B]/[A] = 3.3e-2, [C]/[A] = 3.3e-2
-  DenseMatrixPolicy state(1, num_species);
+  DenseMatrixPolicy state(1, NUM_SPECIES);
   state[0][0] = 0.1;     // A
   state[0][1] = 0.0033;  // B = K_eq1 * A = 3.3e-2 * 0.1
   state[0][2] = 0.0033;  // C = K_eq2 * A = 3.3e-2 * 0.1
 
   // Test forcing terms
-  DenseMatrixPolicy forcing(1, num_species, 0.0);
+  DenseMatrixPolicy forcing(1, NUM_SPECIES, 0.0);
 
   // State parameters: K_eq for each constraint (1 cell, 2 parameters)
   DenseMatrixPolicy state_parameters(1, 2);
@@ -651,19 +651,19 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   std::vector<Constraint> constraints;
   constraints.push_back(EquilibriumConstraint(
       "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref = 3.3e-2, .delta_H = -24000.0 }));
+      ab,
+      std::vector<StoichSpecies>{ StoichSpecies(a, 1.0), StoichSpecies(b, 1.0) },
+      std::vector<StoichSpecies>{ StoichSpecies(ab, 1.0) },
+      VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy Set(std::move(constraints), variable_map);
-  auto non_zero_elements = set.NonZeroJacobianElements();
+  auto non_zero_elements = Set.NonZeroJacobianElements();
 
   // Constraint replaces AB's row (index 2), Jacobian is 3x3
-  auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(3).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  auto builder = SparseMatrixPolicy::Create(NUM_SPECIES).SetNumberOfBlocks(3).InitialValue(0.0);
+  for (std::size_t i = 0; i < NUM_SPECIES; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -676,12 +676,12 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
   Set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
-  DenseMatrixPolicy state(3, num_species, 0.0);
+  DenseMatrixPolicy state(3, NUM_SPECIES, 0.0);
   state[0] = { 0.01, 0.02, 0.05 };
   state[1] = { 0.03, 0.01, 0.2 };
   state[2] = { 0.001, 0.002, 0.004 };
 
-  DenseMatrixPolicy forcing(3, num_species, 0.0);
+  DenseMatrixPolicy forcing(3, NUM_SPECIES, 0.0);
 
   // State parameters: K_eq for each grid cell (3 cells, 1 parameter)
   DenseMatrixPolicy state_parameters(3, 1, 3.3e-2);

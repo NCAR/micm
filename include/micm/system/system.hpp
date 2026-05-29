@@ -134,7 +134,7 @@ namespace micm
       std::vector<std::string> reordered;
       reordered.reserve(names.size());
       for (std::size_t i = 0; i < names.size(); ++i)
-        reordered.push_back(f(names, i));
+        reordered.push_back(F(names, i));
       return reordered;
     }
 

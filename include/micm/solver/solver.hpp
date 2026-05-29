@@ -163,17 +163,17 @@ namespace micm
 
     StatePolicy GetState(const std::size_t NUMBER_OF_GRID_CELLS = 1) const
     {
-      StatePolicy state(state_parameters_, number_of_grid_cells);
+      StatePolicy state(state_parameters_, NUMBER_OF_GRID_CELLS);
 
       if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
         state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(
-            state_parameters_, solver_parameters_, number_of_grid_cells);
+            state_parameters_, solver_parameters_, NUMBER_OF_GRID_CELLS);
       }
       else if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>)
       {
         state.temporary_variables_ =
-            std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_, number_of_grid_cells);
+            std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_, NUMBER_OF_GRID_CELLS);
       }
       else
       {

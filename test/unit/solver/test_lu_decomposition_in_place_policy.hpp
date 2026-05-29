@@ -68,7 +68,7 @@ void PrintMatrix(const auto& matrix, std::size_t width)
 
 // tests example from https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestDenseMatrix()
+void testDenseMatrix()
 {
   SparseMatrixPolicy a = SparseMatrixPolicy(
       SparseMatrixPolicy::Create(3)
@@ -107,12 +107,12 @@ void TestDenseMatrix()
     }
   }
   lud.template Decompose<SparseMatrixPolicy>(alu);
-  check_results<double, SparseMatrixPolicy>(
+  CheckResults<double, SparseMatrixPolicy>(
       a, alu, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-10); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestRandomMatrix(std::size_t number_of_blocks)
+void testRandomMatrix(std::size_t number_of_blocks)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
@@ -167,18 +167,18 @@ void TestRandomMatrix(std::size_t number_of_blocks)
     }
   }
 
-  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
+  CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
+  lud.template Decompose<SparseMatrixPolicy>(alu);
 
-  CheckCopyToHost<SparseMatrixPolicy>(ALU);
+  CheckCopyToHost<SparseMatrixPolicy>(alu);
 
-  check_results<double, SparseMatrixPolicy>(
-      a, ALU, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-12); });
+  CheckResults<double, SparseMatrixPolicy>(
+      a, alu, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-12); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestExtremeValueInitialization(std::size_t number_of_blocks, double initial_value)
+void testExtremeValueInitialization(std::size_t number_of_blocks, double initial_value)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
@@ -232,7 +232,7 @@ void TestExtremeValueInitialization(std::size_t number_of_blocks, double initial
       }
       else
       {
-        if (!ALU.IsZero(i, j))
+        if (!alu.IsZero(i, j))
         {
           for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
           {
@@ -243,18 +243,18 @@ void TestExtremeValueInitialization(std::size_t number_of_blocks, double initial
     }
   }
 
-  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
+  CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
+  lud.template Decompose<SparseMatrixPolicy>(alu);
 
-  CheckCopyToHost<SparseMatrixPolicy>(ALU);
+  CheckCopyToHost<SparseMatrixPolicy>(alu);
 
-  check_results<double, SparseMatrixPolicy>(
-      a, ALU, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-12); });
+  CheckResults<double, SparseMatrixPolicy>(
+      a, alu, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-12); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestDiagonalMatrix(std::size_t number_of_blocks)
+void testDiagonalMatrix(std::size_t number_of_blocks)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
@@ -284,7 +284,7 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
       alu[i_block][i][i] = a[i_block][i][i];
     }
   }
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
-  check_results<double, SparseMatrixPolicy>(
-      a, ALU, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-10); });
+  lud.template Decompose<SparseMatrixPolicy>(alu);
+  CheckResults<double, SparseMatrixPolicy>(
+      a, alu, [&](const double A, const double B) -> void { EXPECT_NEAR(A, B, 1.0e-10); });
 }

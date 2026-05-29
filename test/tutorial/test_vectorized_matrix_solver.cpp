@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void Solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
+void Solve(auto& solver, auto& state, std::size_t NUMBER_OF_GRID_CELLS)
 {
   double k1 = 0.04;
   double k2 = 3e7;
@@ -20,7 +20,7 @@ void Solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
   double pressure = 101253.3;  // [Pa]
   double air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (size_t cell = 0; cell < NUMBER_OF_GRID_CELLS; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
@@ -83,7 +83,7 @@ int main()
 
   auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetSystem(system).SetReactions(reactions).Build();
 
-  auto state = solver.GetState(number_of_grid_cells);
+  auto state = solver.GetState(NUMBER_OF_GRID_CELLS);
 
   state.SetConcentration(a, { 1.1, 2.1, 3.1 });
   state.SetConcentration(b, { 1.2, 2.2, 3.2 });
@@ -104,7 +104,7 @@ int main()
                                .SetReactions(reactions)
                                .Build();
 
-  auto vectorized_state = vectorized_solver.GetState(number_of_grid_cells);
+  auto vectorized_state = vectorized_solver.GetState(NUMBER_OF_GRID_CELLS);
 
   vectorized_state.SetConcentration(a, { 1.1, 2.1, 3.1 });
   vectorized_state.SetConcentration(b, { 1.2, 2.2, 3.2 });
@@ -117,10 +117,10 @@ int main()
 
   std::cout << std::endl;
 
-  solve(solver, state, number_of_grid_cells);
-  solve(vectorized_solver, vectorized_state, number_of_grid_cells);
+  Solve(solver, state, NUMBER_OF_GRID_CELLS);
+  Solve(vectorized_solver, vectorized_state, NUMBER_OF_GRID_CELLS);
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (size_t cell = 0; cell < NUMBER_OF_GRID_CELLS; ++cell)
   {
     std::cout << "Cell " << cell << std::endl;
     std::cout << std::setw(10) << "Species" << std::setw(20) << "Regular" << std::setw(20) << "Vectorized" << std::endl;

@@ -184,7 +184,7 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      set_absolute_tolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
+      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
           const
   {
     tolerances = std::vector<double>(species_map.size(), 1e-3);

@@ -22,7 +22,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, DefaultConstructor)
 void TestLinSolve(micm::ChapmanODESolver& solver)
 {
   std::vector<double> jacobian(23, 1), b(9, 0.5);
-  auto solved = solver.lin_solve(b, jacobian);
+  auto solved = solver.LinSolve(b, jacobian);
 
   EXPECT_EQ(solved[0], 0.5);
   EXPECT_EQ(solved[1], 0.5);
@@ -44,7 +44,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, lin_solve)
 
 void TestReactionNames(micm::ChapmanODESolver& solver)
 {
-  auto names = solver.reaction_names();
+  auto names = solver.ReactionNames();
   ASSERT_EQ(names.size(), 7);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, ReactionNames)
@@ -56,7 +56,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, ReactionNames)
 
 void TestPhotolysisNames(micm::ChapmanODESolver& solver)
 {
-  auto names = solver.photolysis_names();
+  auto names = solver.PhotolysisNames();
   ASSERT_EQ(names.size(), 3);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, PhotolysisNames)
@@ -68,7 +68,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, PhotolysisNames)
 
 void TestSpeciesNames(micm::ChapmanODESolver& solver)
 {
-  auto names = solver.species_names();
+  auto names = solver.SpeciesNames();
   ASSERT_EQ(names.size(), 9);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, SpeciesNames)
@@ -84,7 +84,7 @@ void TestSimpleForce(micm::ChapmanODESolver& solver)
   std::vector<double> number_densities(9, 1);
   double number_density_air{};
 
-  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.Force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -110,7 +110,7 @@ void TestSmallerForce(micm::ChapmanODESolver& solver)
   std::vector<double> number_densities(9, 5e-6);
   double number_density_air{ 6e-14 };
 
-  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.Force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -135,7 +135,7 @@ void TestFactoredAlphaMinusJac(micm::ChapmanODESolver& solver)
   std::vector<double> dforce_dy(23, 1);
   double alpha{ 2 };
 
-  auto jacobian = solver.factored_alpha_minus_jac(dforce_dy, alpha);
+  auto jacobian = solver.FactoredAlphaMinusJac(dforce_dy, alpha);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_NEAR(jacobian[0], 1.000, 0.01);
@@ -174,7 +174,7 @@ void TestDforceDyTimesVector(micm::ChapmanODESolver& solver)
   std::vector<double> dforce_dy(23, 1);
   std::vector<double> vector(23, 0.5);
 
-  auto product = solver.dforce_dy_times_vector(dforce_dy, vector);
+  auto product = solver.DforceDyTimesVector(dforce_dy, vector);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_NEAR(product[0], 0, 0.01);
@@ -225,7 +225,7 @@ void TestSolve(micm::ChapmanODESolver& solver)
   solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::CONVERGED);
   EXPECT_NEAR(results.result_[0], 1, ABSOLUTE_TOLERANCE);
   EXPECT_NEAR(results.result_[1], 0.392, ABSOLUTE_TOLERANCE);
   EXPECT_NEAR(results.result_[2], 0.0169, ABSOLUTE_TOLERANCE);
@@ -339,7 +339,7 @@ void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
   solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::CONVERGED);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, solve_with_random_number_densities)
 {

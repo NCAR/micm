@@ -119,11 +119,11 @@ void TestProcessUpdateState(const std::size_t NUMBER_OF_GRID_CELLS)
                                       .variable_names_ = { "foo", "bar" },
                                       .custom_rate_parameter_labels_ = param_labels,
                                   },
-                                  number_of_grid_cells };
+                                  NUMBER_OF_GRID_CELLS };
 
   auto get_double = std::bind(std::lognormal_distribution(0.0, 0.01), std::default_random_engine());
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  for (std::size_t i_cell = 0; i_cell < NUMBER_OF_GRID_CELLS; ++i_cell)
   {
     state.conditions_[i_cell].temperature_ = get_double() * 285.0;
     state.conditions_[i_cell].pressure_ = get_double() * 101100.0;
@@ -143,7 +143,7 @@ void TestProcessUpdateState(const std::size_t NUMBER_OF_GRID_CELLS)
   ReactionRateConstantStore::EvaluateCpuRateConstants(store, state);
   ReactionRateConstantStore::CpuCalculateRateConstants(store, state);
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  for (std::size_t i_cell = 0; i_cell < NUMBER_OF_GRID_CELLS; ++i_cell)
   {
     const auto& cond = state.conditions_[i_cell];
     double user_rate = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]];
@@ -160,13 +160,13 @@ void TestProcessUpdateState(const std::size_t NUMBER_OF_GRID_CELLS)
 
     // r3 (UserDefined) at rc_index = user_defined_offset; bar is parameterized
     double expected_ud = user_rate * (cond.air_density_ * 0.82);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.user_defined_offset()], expected_ud, 1.0e-12 * expected_ud)
+    EXPECT_NEAR(state.rate_constants_[i_cell][store.UserDefinedOffset()], expected_ud, 1.0e-12 * expected_ud)
         << "grid cell " << i_cell << "; UserDefined reaction";
 
     // r2 (Surface) at rc_index = surface_offset; foo is not parameterized
     double mean_free_speed = std::sqrt(8.0 * constants::GAS_CONSTANT / (M_PI * 0.025) * cond.temperature_);
     double expected_surf = 4.0 * num_conc * M_PI * radius * radius / (radius / foo_diff_coeff + 4.0 / mean_free_speed);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.surface_offset()], expected_surf, 1.0e-10 * expected_surf)
+    EXPECT_NEAR(state.rate_constants_[i_cell][store.SurfaceOffset()], expected_surf, 1.0e-10 * expected_surf)
         << "grid cell " << i_cell << "; Surface reaction";
   }
 }
@@ -182,15 +182,15 @@ using Group4VectorMatrix = VectorMatrix<T, 4>;
 
 TEST(Process, Matrix)
 {
-  testProcessUpdateState<Matrix<double>>(5);
+  TestProcessUpdateState<Matrix<double>>(5);
 }
 
 TEST(Process, VectorMatrix)
 {
-  testProcessUpdateState<Group1VectorMatrix<double>>(5);
-  testProcessUpdateState<Group2VectorMatrix<double>>(5);
-  testProcessUpdateState<Group3VectorMatrix<double>>(5);
-  testProcessUpdateState<Group4VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group1VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group2VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group3VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group4VectorMatrix<double>>(5);
 }
 
 TEST(Process, BuildsChemicalReaction)
@@ -200,7 +200,7 @@ TEST(Process, BuildsChemicalReaction)
   auto n_o2 = Species("NO2");
   auto o2 = Species("O2");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ O3, NO, NO2, O2 } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ o3, no, n_o2, o2 } };
 
   // Build a ChemicalReaction
   Process chemical_reaction = ChemicalReactionBuilder()

@@ -19,10 +19,10 @@ namespace micm
     std::uniform_int_distribution<int> dist(0, 9999);
     int random_num = dist(gen);
 
-    std::string random_num_str = std::to_string(randomNum);
+    std::string random_num_str = std::to_string(random_num);
     std::string timestamp_str = std::to_string(timestamp);
 
-    std::string result = timestampStr + randomNumStr;
+    std::string result = timestamp_str + random_num_str;
 
     return result;
   }

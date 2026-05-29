@@ -40,8 +40,8 @@ TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArguments)
   double z = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
   a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
   b = 0.43 * std::pow((temperature / 298.0), -8.0);
-  double a = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
-  double expected = 1.2 * std::exp(-204.3 / temperature) * (z / (z + A));
+  double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
+  double expected = 1.2 * std::exp(-204.3 / temperature) * (z / (z + a_val));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 
@@ -66,7 +66,7 @@ TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArguments)
   double z = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
   a = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
   b = 0.43 * std::pow((temperature / 298.0), -8.0);
-  double a = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
-  double expected = 1.2 * std::exp(-204.3 / temperature) * (A / (z + A));
+  double a_val = a / (1.0 + a / b) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a / b), 2)));
+  double expected = 1.2 * std::exp(-204.3 / temperature) * (a_val / (z + a_val));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }

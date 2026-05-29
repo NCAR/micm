@@ -66,13 +66,13 @@ void TestForcing(SolverPolicy& solver)
     std::vector<double> rate_constants = state.rate_constants_[i];
     std::vector<double> variables(state.variables_.NumColumns());
     for (std::size_t j{}; j < state.variables_.NumColumns(); ++j)
-      variables[j] = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
-    std::vector<double> fixed_forcing = fixed_solver.force(rate_constants, variables, number_density_air);
+      variables[j] = state.variables_[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
+    std::vector<double> fixed_forcing = fixed_solver.Force(rate_constants, variables, number_density_air);
 
     EXPECT_EQ(forcing.NumColumns(), fixed_forcing.size());
     for (std::size_t j{}; j < fixed_forcing.size(); ++j)
     {
-      double a = forcing[i][state.variable_map_[fixed_solver.species_names()[j]]];
+      double a = forcing[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
       double b = fixed_forcing[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + 1.0e-12);
     }

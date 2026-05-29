@@ -131,7 +131,7 @@ namespace micm
 
               state.ForEachRow(
                   [COEFF](const double& conc, double& sum) { sum += COEFF * conc; },
-                  state.GetConstColumnView(species_idx),
+                  state.GetConstColumnView(SPECIES_IDX),
                   linear_sum);
             }
 

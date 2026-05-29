@@ -36,21 +36,21 @@ namespace micm
       {
         throw std::runtime_error("Diagonal element is zero in LU decomposition");
       }
-      std::tuple<std::size_t, std::size_t, std::size_t> nik_nki_aii(0, 0, ALU.VectorIndex(0, i, i));
+      std::tuple<std::size_t, std::size_t, std::size_t> nik_nki_aii(0, 0, alu.VectorIndex(0, i, i));
       for (std::size_t k = i; k < n; ++k)
       {
         if (alu.IsZero(i, k))
         {
           continue;
         }
-        std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
+        std::pair<std::size_t, std::size_t> aik_njk(alu.VectorIndex(0, i, k), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
           if (alu.IsZero(i, j) || alu.IsZero(j, k))
           {
             continue;
           }
-          aij_ajk_.push_back(std::make_pair(ALU.VectorIndex(0, i, j), ALU.VectorIndex(0, j, k)));
+          aij_ajk_.push_back(std::make_pair(alu.VectorIndex(0, i, j), alu.VectorIndex(0, j, k)));
           ++(aik_njk.second);
         }
         aik_njk_.push_back(aik_njk);
@@ -62,14 +62,14 @@ namespace micm
         {
           continue;
         }
-        std::pair<std::size_t, std::size_t> aki_nji(ALU.VectorIndex(0, k, i), 0);
+        std::pair<std::size_t, std::size_t> aki_nji(alu.VectorIndex(0, k, i), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
           if (alu.IsZero(k, j) || alu.IsZero(j, i))
           {
             continue;
           }
-          akj_aji_.push_back(std::make_pair(ALU.VectorIndex(0, k, j), ALU.VectorIndex(0, j, i)));
+          akj_aji_.push_back(std::make_pair(alu.VectorIndex(0, k, j), alu.VectorIndex(0, j, i)));
           ++(aki_nji.second);
         }
         aki_nji_.push_back(aki_nji);
@@ -128,9 +128,9 @@ namespace micm
     auto alu_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : ALU_ids)
     {
-      ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
+      alu_builder = alu_builder.WithElement(pair.first, pair.second);
     }
-    return SparseMatrixPolicy(ALU_builder, indexing_only);
+    return SparseMatrixPolicy(alu_builder, indexing_only);
   }
 
   template<class SparseMatrixPolicy>
@@ -154,7 +154,7 @@ namespace micm
         {
           for (std::size_t jk = 0; jk < aik_njk->second; ++jk)
           {
-            ALU_vector[aik_njk->first] -= ALU_vector[aij_ajk->first] * ALU_vector[aij_ajk->second];
+            alu_vector[aik_njk->first] -= alu_vector[aij_ajk->first] * alu_vector[aij_ajk->second];
             ++aij_ajk;
           }
           ++aik_njk;
@@ -163,10 +163,10 @@ namespace micm
         {
           for (std::size_t ji = 0; ji < aki_nji->second; ++ji)
           {
-            ALU_vector[aki_nji->first] -= ALU_vector[akj_aji->first] * ALU_vector[akj_aji->second];
+            alu_vector[aki_nji->first] -= alu_vector[akj_aji->first] * alu_vector[akj_aji->second];
             ++akj_aji;
           }
-          ALU_vector[aki_nji->first] /= ALU_vector[std::get<2>(nik_nki_aii)];
+          alu_vector[aki_nji->first] /= alu_vector[std::get<2>(nik_nki_aii)];
           ++aki_nji;
         }
       }
@@ -183,10 +183,10 @@ namespace micm
     const std::size_t ALU_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = ALU.GroupSize();
 
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
+    for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BLOCK_SIZE); ++i_group)
     {
-      auto alu_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
-      const std::size_t N_CELLS = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
+      auto alu_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GROUP_SIZE_OF_FLAT_BLOCK_SIZE);
+      const std::size_t N_CELLS = std::min(ALU_GROUP_VECTOR_SIZE, ALU_BLOCK_SIZE - i_group * ALU_GROUP_VECTOR_SIZE);
       auto aik_njk = aik_njk_.begin();
       auto aij_ajk = aij_ajk_.begin();
       auto aki_nji = aki_nji_.begin();
@@ -199,10 +199,10 @@ namespace micm
           const std::size_t jk_limit = aik_njk->second;
           for (std::size_t jk = 0; jk < jk_limit; ++jk)
           {
-            auto ALU_vector_aik_njk_it = ALU_vector + aik_njk->first;
-            auto ALU_vector_aij_ajk_first_it = ALU_vector + aij_ajk->first;
-            auto ALU_vector_aij_ajk_second_it = ALU_vector + aij_ajk->second;
-            for (std::size_t i = 0; i < n_cells; ++i)
+            auto ALU_vector_aik_njk_it = alu_vector + aik_njk->first;
+            auto ALU_vector_aij_ajk_first_it = alu_vector + aij_ajk->first;
+            auto ALU_vector_aij_ajk_second_it = alu_vector + aij_ajk->second;
+            for (std::size_t i = 0; i < N_CELLS; ++i)
               *(ALU_vector_aik_njk_it++) -= *(ALU_vector_aij_ajk_first_it++) * *(ALU_vector_aij_ajk_second_it++);
             ++aij_ajk;
           }
@@ -214,16 +214,16 @@ namespace micm
           const std::size_t ji_limit = aki_nji->second;
           for (std::size_t ji = 0; ji < ji_limit; ++ji)
           {
-            auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
-            auto ALU_vector_akj_aji_first_it = ALU_vector + akj_aji->first;
-            auto ALU_vector_akj_aji_second_it = ALU_vector + akj_aji->second;
-            for (std::size_t i = 0; i < n_cells; ++i)
+            auto ALU_vector_aki_nji_it = alu_vector + aki_nji->first;
+            auto ALU_vector_akj_aji_first_it = alu_vector + akj_aji->first;
+            auto ALU_vector_akj_aji_second_it = alu_vector + akj_aji->second;
+            for (std::size_t i = 0; i < N_CELLS; ++i)
               *(ALU_vector_aki_nji_it++) -= *(ALU_vector_akj_aji_first_it++) * *(ALU_vector_akj_aji_second_it++);
             ++akj_aji;
           }
-          auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
-          auto ALU_vector_nik_nki_aii_it = ALU_vector + std::get<2>(nik_nki_aii);
-          for (std::size_t i = 0; i < n_cells; ++i)
+          auto ALU_vector_aki_nji_it = alu_vector + aki_nji->first;
+          auto ALU_vector_nik_nki_aii_it = alu_vector + std::get<2>(nik_nki_aii);
+          for (std::size_t i = 0; i < N_CELLS; ++i)
             *(ALU_vector_aki_nji_it++) /= *(ALU_vector_nik_nki_aii_it++);
           ++aki_nji;
         }

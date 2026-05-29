@@ -95,13 +95,13 @@ namespace micm
     /// @param value Value to add to the diagonal
     void AddToDiagonal(const std::size_t NUMBER_OF_BLOCKS, auto& data, const auto VALUE) const
     {
-      for (std::size_t i_group = 0; i_group < number_of_blocks; i_group += L)
+      for (std::size_t i_group = 0; i_group < NUMBER_OF_BLOCKS; i_group += L)
       {
         for (const auto& i : diagonal_ids_)
         {
           auto elem = std::next(data.begin(), i_group * column_ids_.size() + i);
           for (std::size_t i_block = 0; i_block < L; ++i_block)
-            elem[i_block] += value;
+            elem[i_block] += VALUE;
         }
       }
     }
@@ -141,7 +141,7 @@ namespace micm
       indices.reserve(column_start_.size() - 1);
       for (std::size_t i = 0; i < column_start_.size() - 1; ++i)
         if (!IsZero(i, i))
-          indices.push_back(VectorIndex(number_of_blocks, block_id, i, i));
+          indices.push_back(VectorIndex(NUMBER_OF_BLOCKS, BLOCK_ID, i, i));
       return indices;
     }
 
@@ -526,7 +526,7 @@ namespace micm
         const std::size_t BLOCK_SIZE,
         const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements) const
     {
-      std::vector<std::size_t> starts(block_size + 1, 0);
+      std::vector<std::size_t> starts(BLOCK_SIZE + 1, 0);
       std::size_t total_elem = 0;
       std::size_t curr_row = 0;
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
@@ -539,7 +539,7 @@ namespace micm
         ++total_elem;
       }
       // Fill all remaining entries from curr_row + 1 to block_size
-      for (std::size_t i = curr_row + 1; i <= block_size; ++i)
+      for (std::size_t i = curr_row + 1; i <= BLOCK_SIZE; ++i)
         starts[i] = total_elem;
       return starts;
     }
@@ -551,15 +551,15 @@ namespace micm
     /// @return True if the element is zero, false otherwise
     bool IsZero(const std::size_t ROW, const std::size_t COLUMN) const
     {
-      if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1)
+      if (COLUMN >= column_start_.size() - 1 || ROW >= column_start_.size() - 1)
       {
         throw MicmException(
 
             MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
       }
-      auto begin = std::next(column_ids_.begin(), column_start_[column]);
-      auto end = std::next(column_ids_.begin(), column_start_[column + 1]);
-      auto elem = std::find(begin, end, row);
+      auto begin = std::next(column_ids_.begin(), column_start_[COLUMN]);
+      auto end = std::next(column_ids_.begin(), column_start_[COLUMN + 1]);
+      auto elem = std::find(begin, end, ROW);
       return (elem == end);
     }
   };

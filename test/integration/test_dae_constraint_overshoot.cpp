@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// Copyright (c) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
 // Regression test for algebraic-variable overshoot in the Rosenbrock DAE solver.
@@ -10,12 +10,12 @@
 // state that the continuous system can never reach.
 //
 // System:
-//   Species: A (reactant), B (product), C (algebraic balance)
-//   Kinetics: A -> B   (fast, rate k = 1e4)
-//   Constraint: A + B + C = C_total   (C is algebraic)
+//   Species: a (reactant), b (product), c (algebraic balance)
+//   Kinetics: a -> b   (fast, rate k = 1e4)
+//   Constraint: a + b + c = c_total   (c is algebraic)
 //
-// With enough initial A and a fast rate, the solver used to overshoot: B would
-// exceed C_total, making C = C_total - A - B negative.  Including algebraic
+// With enough initial a and a fast rate, the solver used to overshoot: b would
+// exceed c_total, making c = c_total - a - b negative.  Including algebraic
 // variables in the error norm causes the solver to reject those steps.
 
 #include <micm/CPU.hpp>
@@ -38,27 +38,27 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   auto b = Species("B");
   auto c = Species("C");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
-  // Fast reaction: A -> B with a large rate constant
+  // Fast reaction: a -> b with a large rate constant
   // This is analogous to SO2 oxidation producing SO4: fast enough that the
   // solver wants to take large steps.
   double k = 1.0e4;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A })
-                    .SetProducts({ { B, 1 } })
+                    .SetReactants({ a })
+                    .SetProducts({ { b, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
 
-  // Conservation constraint: A + B + C = C_total
-  // C is the explicitly set algebraic variable.
-  // In the continuous system, C >= 0 always because A,B cannot exceed C_total
+  // Conservation constraint: a + b + c = c_total
+  // c is the explicitly set algebraic variable.
+  // In the continuous system, c >= 0 always because a,b cannot exceed c_total
   // together. But the discrete solver can overshoot.
   double c_total = 1.0e-6;
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+  constraints.push_back(LinearConstraint("mass_conservation", c, { { a, 1.0 }, { b, 1.0 }, { c, 1.0 } }, c_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -76,12 +76,12 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   std::size_t b_idx = state.variable_map_.at("B");
   std::size_t c_idx = state.variable_map_.at("C");
 
-  // Initial conditions: most of the budget in A, a small amount in C, none in B.
-  // The fast A->B reaction will rapidly convert A to B. The algebraic variable
-  // C = C_total - A - B must remain >= 0 throughout.
-  state.variables_[0][A_idx] = 0.9e-6;
-  state.variables_[0][B_idx] = 0.0;
-  state.variables_[0][C_idx] = 0.1e-6;  // C_total - A
+  // Initial conditions: most of the budget in a, a small amount in c, none in b.
+  // The fast a->b reaction will rapidly convert a to b. The algebraic variable
+  // c = c_total - a - b must remain >= 0 throughout.
+  state.variables_[0][a_idx] = 0.9e-6;
+  state.variables_[0][b_idx] = 0.0;
+  state.variables_[0][c_idx] = 0.1e-6;  // c_total - a
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -95,51 +95,51 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   while (advanced < dt)
   {
     auto result = solver.Solve(dt - advanced, state);
-    ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge at t=" << advanced;
+    ASSERT_EQ(result.state_, SolverState::CONVERGED) << "Solver did not converge at t=" << advanced;
     advanced += result.stats_.final_time_;
 
     // Check conservation
-    double sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
+    double sum = state.variables_[0][a_idx] + state.variables_[0][b_idx] + state.variables_[0][c_idx];
     EXPECT_NEAR(sum, c_total, 1.0e-12) << "Conservation violated at t=" << advanced;
 
-    // The key assertion: C (the algebraic balance variable) must not go negative.
-    // Before the fix, the solver would accept steps where B overshoots C_total,
-    // causing C = C_total - A - B < 0.
-    EXPECT_GE(state.variables_[0][C_idx], -1.0e-18)
-        << "Algebraic variable C went negative (" << state.variables_[0][C_idx] << ") at t=" << advanced
-        << "; A=" << state.variables_[0][A_idx] << ", B=" << state.variables_[0][B_idx];
+    // The key assertion: c (the algebraic balance variable) must not go negative.
+    // Before the fix, the solver would accept steps where b overshoots c_total,
+    // causing c = c_total - a - b < 0.
+    EXPECT_GE(state.variables_[0][c_idx], -1.0e-18)
+        << "Algebraic variable C went negative (" << state.variables_[0][c_idx] << ") at t=" << advanced
+        << "; A=" << state.variables_[0][a_idx] << ", B=" << state.variables_[0][b_idx];
   }
 
-  // After 30s with k=1e4, A should be essentially 0 and B ~ A_init.
-  // C retains its initial value since the reaction only converts A -> B.
-  EXPECT_LT(state.variables_[0][A_idx], 1.0e-12);
-  EXPECT_NEAR(state.variables_[0][B_idx], 0.9e-6, 1.0e-10);
-  EXPECT_NEAR(state.variables_[0][C_idx], 0.1e-6, 1.0e-10);
+  // After 30s with k=1e4, a should be essentially 0 and b ~ A_init.
+  // c retains its initial value since the reaction only converts a -> b.
+  EXPECT_LT(state.variables_[0][a_idx], 1.0e-12);
+  EXPECT_NEAR(state.variables_[0][b_idx], 0.9e-6, 1.0e-10);
+  EXPECT_NEAR(state.variables_[0][c_idx], 0.1e-6, 1.0e-10);
 }
 
 /// @brief Same test with equilibrium + linear constraints (more species, closer to real cloud chemistry)
 TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 {
   // System:
-  //   A_gas  -- equilibrium -->  A_aq  (algebraic, K_eq * A_gas = A_aq)
-  //   A_aq   -- fast kinetics -> P     (differential, rate = k * A_aq)
-  //   Conservation: A_gas + A_aq + P = C_total   (A_gas is algebraic balance)
+  //   a_gas  -- equilibrium -->  a_aq  (algebraic, K_eq * a_gas = a_aq)
+  //   a_aq   -- fast kinetics -> p     (differential, rate = k * a_aq)
+  //   Conservation: a_gas + a_aq + p = c_total   (a_gas is algebraic balance)
   //
-  // The fast A_aq -> P reaction drains the pool. The equilibrium replenishes
-  // A_aq from A_gas. The conservation constraint sets A_gas = C_total - A_aq - P.
-  // If the solver overshoots P, A_gas goes negative.
+  // The fast a_aq -> p reaction drains the pool. The equilibrium replenishes
+  // a_aq from a_gas. The conservation constraint sets a_gas = c_total - a_aq - p.
+  // If the solver overshoots p, a_gas goes negative.
 
   auto a_gas = Species("A_gas");
   auto a_aq = Species("A_aq");
   auto p = Species("P");
 
-  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A_gas, A_aq, P } };
+  Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a_gas, a_aq, p } };
 
-  // Fast reaction: A_aq -> P
+  // Fast reaction: a_aq -> p
   double k = 1.0e3;
   Process rxn = ChemicalReactionBuilder()
-                    .SetReactants({ A_aq })
-                    .SetProducts({ { P, 1 } })
+                    .SetReactants({ a_aq })
+                    .SetProducts({ { p, 1 } })
                     .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
                     .SetPhase(gas_phase)
                     .Build();
@@ -149,17 +149,17 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   std::vector<Constraint> constraints;
 
-  // Equilibrium: K_eq * A_gas = A_aq  (A_aq is the explicitly set algebraic species)
+  // Equilibrium: K_eq * a_gas = a_aq  (a_aq is the explicitly set algebraic species)
   constraints.push_back(EquilibriumConstraint(
       "gas_aq_eq",
-      A_aq,
-      std::vector<StoichSpecies>{ { A_gas, 1.0 } },
-      std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = 0.0 }));
+      a_aq,
+      std::vector<StoichSpecies>{ { a_gas, 1.0 } },
+      std::vector<StoichSpecies>{ { a_aq, 1.0 } },
+      VantHoffParam{ .K_HLC_ref_ = k_eq, .delta_H_ = 0.0 }));
 
-  // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
+  // Conservation: a_gas + a_aq + p = c_total  (a_gas is the algebraic balance variable)
   constraints.push_back(
-      LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+      LinearConstraint("mass_conservation", a_gas, { { a_aq, 1.0 }, { p, 1.0 }, { a_gas, 1.0 } }, c_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -177,20 +177,20 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   std::size_t p_idx = state.variable_map_.at("P");
 
   // Use reasonable absolute tolerances:
-  // - Differential variable (P): tight tolerance for accuracy
-  // - Algebraic variables (A_gas, A_aq): moderate tolerance to allow legitimate step changes
+  // - Differential variable (p): tight tolerance for accuracy
+  // - Algebraic variables (a_gas, a_aq): moderate tolerance to allow legitimate step changes
   //   while still detecting overshoot via the step-change error estimate
   std::vector<double> atols(3, 1.0e-12);
-  atols[A_gas_idx] = 1.0e-8;
-  atols[A_aq_idx] = 1.0e-8;
+  atols[a_gas_idx] = 1.0e-8;
+  atols[a_aq_idx] = 1.0e-8;
   state.SetAbsoluteTolerances(atols);
 
   // Initial: most sulfur in gas phase, equilibrium satisfied, no product yet
   double a_gas_init = c_total / (1.0 + k_eq);  // ~ 9.09e-8
   double a_aq_init = k_eq * a_gas_init;        // ~ 9.09e-7
-  state.variables_[0][A_gas_idx] = a_gas_init;
-  state.variables_[0][A_aq_idx] = a_aq_init;
-  state.variables_[0][P_idx] = 0.0;
+  state.variables_[0][a_gas_idx] = a_gas_init;
+  state.variables_[0][a_aq_idx] = a_aq_init;
+  state.variables_[0][p_idx] = 0.0;
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -202,24 +202,24 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   while (advanced < dt)
   {
     auto result = solver.Solve(dt - advanced, state);
-    ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge at t=" << advanced;
+    ASSERT_EQ(result.state_, SolverState::CONVERGED) << "Solver did not converge at t=" << advanced;
     advanced += result.stats_.final_time_;
 
-    double sum = state.variables_[0][A_gas_idx] + state.variables_[0][A_aq_idx] + state.variables_[0][P_idx];
+    double sum = state.variables_[0][a_gas_idx] + state.variables_[0][a_aq_idx] + state.variables_[0][p_idx];
     EXPECT_NEAR(sum, c_total, 1.0e-12) << "Conservation violated at t=" << advanced;
 
-    // A_gas must not go negative
-    EXPECT_GE(state.variables_[0][A_gas_idx], -1.0e-18)
-        << "A_gas went negative (" << state.variables_[0][A_gas_idx] << ") at t=" << advanced;
+    // a_gas must not go negative
+    EXPECT_GE(state.variables_[0][a_gas_idx], -1.0e-18)
+        << "A_gas went negative (" << state.variables_[0][a_gas_idx] << ") at t=" << advanced;
 
-    // A_aq must not go negative
-    EXPECT_GE(state.variables_[0][A_aq_idx], -1.0e-18)
-        << "A_aq went negative (" << state.variables_[0][A_aq_idx] << ") at t=" << advanced;
+    // a_aq must not go negative
+    EXPECT_GE(state.variables_[0][a_aq_idx], -1.0e-18)
+        << "A_aq went negative (" << state.variables_[0][a_aq_idx] << ") at t=" << advanced;
   }
 
-  // After 30s with k=1e3, nearly all sulfur should be in P
-  EXPECT_NEAR(state.variables_[0][P_idx], c_total, 1.0e-8);
-  EXPECT_GE(state.variables_[0][A_gas_idx], -1.0e-18);
+  // After 30s with k=1e3, nearly all sulfur should be in p
+  EXPECT_NEAR(state.variables_[0][p_idx], c_total, 1.0e-8);
+  EXPECT_GE(state.variables_[0][a_gas_idx], -1.0e-18);
 }
 
 /// @brief Exercise conservation-constrained overshoot behavior for all Rosenbrock parameter sets.
@@ -239,22 +239,22 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
   {
     SCOPED_TRACE(name);
 
-    auto A = Species("A");
-    auto B = Species("B");
-    auto C = Species("C");
+    auto a = Species("A");
+    auto b = Species("B");
+    auto c = Species("C");
 
-    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ a, b, c } };
 
     Process rxn = ChemicalReactionBuilder()
-                      .SetReactants({ A })
-                      .SetProducts({ { B, 1 } })
+                      .SetReactants({ a })
+                      .SetProducts({ { b, 1 } })
                       .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 1.0e4, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
 
-    constexpr double C_total = 1.0e-6;
+    constexpr double c_total = 1.0e-6;
     std::vector<Constraint> constraints;
-    constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+    constraints.push_back(LinearConstraint("mass_conservation", c, { { a, 1.0 }, { b, 1.0 }, { c, 1.0 } }, c_total));
 
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
@@ -267,13 +267,13 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     state.SetRelativeTolerance(1.0e-6);
     state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
 
-    const std::size_t A_idx = state.variable_map_.at("A");
-    const std::size_t B_idx = state.variable_map_.at("B");
-    const std::size_t C_idx = state.variable_map_.at("C");
+    const std::size_t a_idx = state.variable_map_.at("A");
+    const std::size_t b_idx = state.variable_map_.at("B");
+    const std::size_t c_idx = state.variable_map_.at("C");
 
-    state.variables_[0][A_idx] = 0.9e-6;
-    state.variables_[0][B_idx] = 0.0;
-    state.variables_[0][C_idx] = 0.1e-6;
+    state.variables_[0][a_idx] = 0.9e-6;
+    state.variables_[0][b_idx] = 0.0;
+    state.variables_[0][c_idx] = 0.1e-6;
     state.conditions_[0].temperature_ = 298.0;
     state.conditions_[0].pressure_ = 101325.0;
 
@@ -284,17 +284,17 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     while (advanced < dt)
     {
       auto result = solver.Solve(dt - advanced, state);
-      ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge for " << name << " at t=" << advanced;
+      ASSERT_EQ(result.state_, SolverState::CONVERGED) << "Solver did not converge for " << name << " at t=" << advanced;
       advanced += result.stats_.final_time_;
 
-      const double sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
-      EXPECT_NEAR(sum, C_total, 1.0e-12);
-      EXPECT_GE(state.variables_[0][C_idx], -1.0e-18)
-          << "Algebraic variable C went negative for " << name << ": " << state.variables_[0][C_idx];
+      const double sum = state.variables_[0][a_idx] + state.variables_[0][b_idx] + state.variables_[0][c_idx];
+      EXPECT_NEAR(sum, c_total, 1.0e-12);
+      EXPECT_GE(state.variables_[0][c_idx], -1.0e-18)
+          << "Algebraic variable C went negative for " << name << ": " << state.variables_[0][c_idx];
     }
 
-    EXPECT_LT(state.variables_[0][A_idx], 1.0e-12);
-    EXPECT_NEAR(state.variables_[0][B_idx], 0.9e-6, 1.0e-10);
-    EXPECT_NEAR(state.variables_[0][C_idx], 0.1e-6, 1.0e-10);
+    EXPECT_LT(state.variables_[0][a_idx], 1.0e-12);
+    EXPECT_NEAR(state.variables_[0][b_idx], 0.9e-6, 1.0e-10);
+    EXPECT_NEAR(state.variables_[0][c_idx], 0.1e-6, 1.0e-10);
   }
 }

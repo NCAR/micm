@@ -153,7 +153,7 @@ void TestFlowTube(
 
   size_t n = 3600;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(4));
+  std::vector<std::vector<double>> model_concentrations(n + 1, std::vector<double>(4));
 
   auto state = solver.GetState();
 

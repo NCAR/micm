@@ -34,13 +34,13 @@ namespace micm
         const auto& state_parameters,
         const auto& solver_parameters,
         const std::size_t NUMBER_OF_GRID_CELLS)
-        : Ynew_(number_of_grid_cells, state_parameters.number_of_species_),
-          initial_forcing_(number_of_grid_cells, state_parameters.number_of_species_),
-          Yerror_(number_of_grid_cells, state_parameters.number_of_species_)
+        : Ynew_(NUMBER_OF_GRID_CELLS, state_parameters.number_of_species_),
+          initial_forcing_(NUMBER_OF_GRID_CELLS, state_parameters.number_of_species_),
+          Yerror_(NUMBER_OF_GRID_CELLS, state_parameters.number_of_species_)
     {
       K_.reserve(solver_parameters.stages_);
       for (std::size_t i = 0; i < solver_parameters.stages_; ++i)
-        K_.emplace_back(number_of_grid_cells, state_parameters.number_of_species_);
+        K_.emplace_back(NUMBER_OF_GRID_CELLS, state_parameters.number_of_species_);
     }
   };
 }  // namespace micm

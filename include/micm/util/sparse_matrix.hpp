@@ -282,7 +282,7 @@ namespace micm
 
     std::vector<std::size_t> DiagonalIndices(const std::size_t BLOCK_ID) const
     {
-      return OrderingPolicy::DiagonalIndices(number_of_blocks_, block_id);
+      return OrderingPolicy::DiagonalIndices(number_of_blocks_, BLOCK_ID);
     }
 
     void AddToDiagonal(T value)
@@ -532,15 +532,15 @@ namespace micm
             if constexpr (!VectorLike<ArgType>)
             {
               // Get the L value for this matrix using the type trait
-              constexpr std::size_t MATRIX_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+              constexpr std::size_t MATRIX_L = GROUP_VECTOR_SIZE_V<std::decay_t<decltype(arg)>>;
 
-              if (MATRIX_L != expected_L)
+              if (MATRIX_L != EXPECTED_L)
               {
                 throw MicmException(
                     MICM_ERROR_CATEGORY_MATRIX,
                     MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                     "Incompatible matrix orderings: Matrix " + std::to_string(index) +
-                        " has GroupVectorSize=" + std::to_string(matrix_L) + " but expected " + std::to_string(expected_L) +
+                        " has GroupVectorSize=" + std::to_string(MATRIX_L) + " but expected " + std::to_string(EXPECTED_L) +
                         ". Cannot mix standard-ordered (L=1) and vector-ordered (L>1) matrices, " +
                         "or vector-ordered matrices with different L values.");
               }

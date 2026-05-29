@@ -173,14 +173,14 @@ namespace micm
       param_.n_user_defined_ = cpu_store.user_defined_.size();
       param_.n_surface_ = cpu_store.surface_.size();
 
-      param_.troe_offset_ = cpu_store.troe_offset();
-      param_.ternary_offset_ = cpu_store.ternary_offset();
-      param_.branched_offset_ = cpu_store.branched_offset();
-      param_.tunneling_offset_ = cpu_store.tunneling_offset();
-      param_.taylor_offset_ = cpu_store.taylor_offset();
-      param_.reversible_offset_ = cpu_store.reversible_offset();
-      param_.user_defined_offset_ = cpu_store.user_defined_offset();
-      param_.surface_offset_ = cpu_store.surface_offset();
+      param_.troe_offset_ = cpu_store.TroeOffset();
+      param_.ternary_offset_ = cpu_store.TernaryOffset();
+      param_.branched_offset_ = cpu_store.BranchedOffset();
+      param_.tunneling_offset_ = cpu_store.TunnelingOffset();
+      param_.taylor_offset_ = cpu_store.TaylorOffset();
+      param_.reversible_offset_ = cpu_store.ReversibleOffset();
+      param_.user_defined_offset_ = cpu_store.UserDefinedOffset();
+      param_.surface_offset_ = cpu_store.SurfaceOffset();
 
       // Upload parameterized-multiplier rc_indices (static per solver build)
       const auto& mults = cpu_store.parameterized_multipliers_;

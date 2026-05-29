@@ -77,19 +77,19 @@ void CheckIsConverged()
   double relative_tolerance = 1e-3;
   std::vector<double> absolute_tolerance = { 1e-6, 1e-6, 1e-6 };
 
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
   residual[0][1] = 1e-5;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
   parameters.small_ = 1e-4;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
   residual[3][2] = 1e-3;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
   yn1[3][2] = 10.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
   residual[3][2] = 1e-1;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
   absolute_tolerance[2] = 1.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, yn1, absolute_tolerance, relative_tolerance));
 }
 
 TEST(BackwardEuler, IsConverged)

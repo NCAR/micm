@@ -343,7 +343,7 @@ namespace micm
     {
       auto a_iter = a.AsVector().begin();
       for (auto& elem : data_)
-        f(elem, *(a_iter++));
+        F(elem, *(a_iter++));
     }
 
     void ForEach(const std::function<void(T&, const T&, const T&)> F, const Matrix& a, const Matrix& b)
@@ -351,7 +351,7 @@ namespace micm
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
       for (auto& elem : data_)
-        f(elem, *(a_iter++), *(b_iter++));
+        F(elem, *(a_iter++), *(b_iter++));
     }
 
     // Copy the values from the other matrix into this one

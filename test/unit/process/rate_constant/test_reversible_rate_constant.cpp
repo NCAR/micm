@@ -67,9 +67,9 @@ TEST(ReversibleRateConstant, TemperatureDependence)
   double k2 = micm::CalculateReversible(parameters, t2);
   double k3 = micm::CalculateReversible(parameters, t3);
 
-  double expected1 = 1.5 * std::exp(2000.0 / T1) * 0.5;
-  double expected2 = 1.5 * std::exp(2000.0 / T2) * 0.5;
-  double expected3 = 1.5 * std::exp(2000.0 / T3) * 0.5;
+  double expected1 = 1.5 * std::exp(2000.0 / t1) * 0.5;
+  double expected2 = 1.5 * std::exp(2000.0 / t2) * 0.5;
+  double expected3 = 1.5 * std::exp(2000.0 / t3) * 0.5;
 
   EXPECT_NEAR(k1, expected1, TOLERANCE * expected1);
   EXPECT_NEAR(k2, expected2, TOLERANCE * expected2);

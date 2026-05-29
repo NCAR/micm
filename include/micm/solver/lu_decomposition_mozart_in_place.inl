@@ -36,14 +36,14 @@ namespace micm
       {
         throw std::runtime_error("Diagonal element is zero in LU decomposition");
       }
-      std::tuple<std::size_t, std::size_t, std::size_t> aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
+      std::tuple<std::size_t, std::size_t, std::size_t> aii_nji_nki(alu.VectorIndex(0, i, i), 0, 0);
       for (std::size_t j = i + 1; j < n; ++j)
       {
         if (alu.IsZero(j, i))
         {
           continue;
         }
-        aji_.push_back(ALU.VectorIndex(0, j, i));
+        aji_.push_back(alu.VectorIndex(0, j, i));
         ++(std::get<1>(aii_nji_nki));
       }
       for (std::size_t k = i + 1; k < n; ++k)
@@ -52,14 +52,14 @@ namespace micm
         {
           continue;
         }
-        std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
+        std::pair<std::size_t, std::size_t> aik_njk(alu.VectorIndex(0, i, k), 0);
         for (std::size_t j = i + 1; j < n; ++j)
         {
           if (alu.IsZero(j, i))
           {
             continue;
           }
-          std::pair<std::size_t, std::size_t> ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
+          std::pair<std::size_t, std::size_t> ajk_aji(alu.VectorIndex(0, j, k), alu.VectorIndex(0, j, i));
           ajk_aji_.push_back(ajk_aji);
           ++(std::get<1>(aik_njk));
         }
@@ -99,9 +99,9 @@ namespace micm
     auto alu_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : ALU_ids)
     {
-      ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
+      alu_builder = alu_builder.WithElement(pair.first, pair.second);
     }
-    return SparseMatrixPolicy(ALU_builder, indexing_only);
+    return SparseMatrixPolicy(alu_builder, indexing_only);
   }
 
   template<class SparseMatrixPolicy>
@@ -120,18 +120,18 @@ namespace micm
 
       for (const auto& aii_nji_nki : aii_nji_nki_)
       {
-        const typename SparseMatrixPolicy::value_type Aii_inverse = 1.0 / ALU_vector[std::get<0>(aii_nji_nki)];
+        const typename SparseMatrixPolicy::value_type Aii_inverse = 1.0 / alu_vector[std::get<0>(aii_nji_nki)];
         for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
         {
-          ALU_vector[*aji] *= Aii_inverse;
+          alu_vector[*aji] *= Aii_inverse;
           ++aji;
         }
         for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
         {
-          const typename SparseMatrixPolicy::value_type Aik = ALU_vector[std::get<0>(*aik_njk)];
+          const typename SparseMatrixPolicy::value_type Aik = alu_vector[std::get<0>(*aik_njk)];
           for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
           {
-            ALU_vector[ajk_aji->first] -= ALU_vector[ajk_aji->second] * Aik;
+            alu_vector[ajk_aji->first] -= alu_vector[ajk_aji->second] * Aik;
             ++ajk_aji;
           }
           ++aik_njk;
@@ -148,27 +148,27 @@ namespace micm
     const std::size_t ALU_BLOCK_SIZE = ALU.NumberOfBlocks();
     constexpr std::size_t ALU_GROUP_VECTOR_SIZE = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t ALU_GROUP_SIZE_OF_FLAT_BLOCK_SIZE = ALU.GroupSize();
-    std::vector<double> Aii_inverse(ALU_GroupVectorSize);
+    std::vector<double> Aii_inverse(ALU_GROUP_VECTOR_SIZE);
 
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
+    for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BLOCK_SIZE); ++i_group)
     {
-      auto alu_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
-      const std::size_t N_CELLS = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
+      auto alu_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GROUP_SIZE_OF_FLAT_BLOCK_SIZE);
+      const std::size_t N_CELLS = std::min(ALU_GROUP_VECTOR_SIZE, ALU_BLOCK_SIZE - i_group * ALU_GROUP_VECTOR_SIZE);
       auto aji = aji_.begin();
       auto aik_njk = aik_njk_.begin();
       auto ajk_aji = ajk_aji_.begin();
       for (const auto& aii_nji_nki : aii_nji_nki_)
       {
         auto Aii_inverse_it = Aii_inverse.begin();
-        auto ALU_vector_it = ALU_vector + std::get<0>(aii_nji_nki);
-        for (std::size_t i = 0; i < n_cells; ++i)
+        auto ALU_vector_it = alu_vector + std::get<0>(aii_nji_nki);
+        for (std::size_t i = 0; i < N_CELLS; ++i)
           *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
         for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
         {
-          auto ALU_vector_it = ALU_vector + *aji;
+          auto ALU_vector_it = alu_vector + *aji;
           auto Aii_inverse_it = Aii_inverse.begin();
-          for (std::size_t i = 0; i < n_cells; ++i)
+          for (std::size_t i = 0; i < N_CELLS; ++i)
             *(ALU_vector_it++) *= *(Aii_inverse_it++);
           ++aji;
         }
@@ -177,10 +177,10 @@ namespace micm
           const std::size_t aik = std::get<0>(*aik_njk);
           for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
           {
-            auto ALU_vector_first_it = ALU_vector + ajk_aji->first;
-            auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
-            auto ALU_vector_aik_it = ALU_vector + aik;
-            for (std::size_t i = 0; i < n_cells; ++i)
+            auto ALU_vector_first_it = alu_vector + ajk_aji->first;
+            auto ALU_vector_second_it = alu_vector + ajk_aji->second;
+            auto ALU_vector_aik_it = alu_vector + aik;
+            for (std::size_t i = 0; i < N_CELLS; ++i)
               *(ALU_vector_first_it++) -= *(ALU_vector_second_it++) * *(ALU_vector_aik_it++);
             ++ajk_aji;
           }

@@ -43,7 +43,7 @@ int main()
                     .SetReactions({ r1, r2, r3 })
                     .Build();
 
-  auto state = solver.GetState(number_of_grid_cells);
+  auto state = solver.GetState(NUMBER_OF_GRID_CELLS);
 
   // mol m-3
   state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });
@@ -61,7 +61,7 @@ int main()
   double pressure = 101253.3;  // [Pa]
   double air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (size_t cell = 0; cell < NUMBER_OF_GRID_CELLS; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;

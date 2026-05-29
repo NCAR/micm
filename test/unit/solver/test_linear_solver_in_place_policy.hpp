@@ -15,8 +15,8 @@ void CheckResults(
     const std::function<void(const T, const T)> F)
 {
   T result;
-  EXPECT_EQ(A.NumberOfBlocks(), b.NumRows());
-  EXPECT_EQ(A.NumberOfBlocks(), x.NumRows());
+  EXPECT_EQ(A.NumberOfBlocks(), B.NumRows());
+  EXPECT_EQ(A.NumberOfBlocks(), X.NumRows());
   for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
     for (std::size_t i = 0; i < A.NumRows(); ++i)
@@ -60,7 +60,7 @@ void PrintMatrix(const SparseMatrixPolicy& matrix, std::size_t width)
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestDenseMatrix()
+void testDenseMatrix()
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
@@ -122,12 +122,12 @@ void TestDenseMatrix()
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
 
-  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+  CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       a, b, x, [&](const FloatingPointType A, const FloatingPointType B) -> void { EXPECT_NEAR(A, B, 1.0e-5); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestRandomMatrix(std::size_t number_of_blocks)
+void testRandomMatrix(std::size_t number_of_blocks)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
@@ -203,22 +203,22 @@ void TestRandomMatrix(std::size_t number_of_blocks)
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
 
-  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+  CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       a, b, x, [&](const FloatingPointType A, const FloatingPointType B) -> void { EXPECT_NEAR(A, B, 1.0e-6); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
+void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
   const unsigned int SEED = 12345;
-  std::mt19937 generator(seed);
+  std::mt19937 generator(SEED);
   const double POINT_FIVE = 0.5;
   const double TWO = 2.0;
 
-  auto gen_bool = std::bind(std::bernoulli_distribution(point_five), generator);
-  auto get_double = std::bind(std::lognormal_distribution<double>(-two, two), generator);
+  auto gen_bool = std::bind(std::bernoulli_distribution(POINT_FIVE), generator);
+  auto get_double = std::bind(std::lognormal_distribution<double>(-TWO, TWO), generator);
   const size_t SIZE = 30;
 
   auto builder = SparseMatrixPolicy::Create(SIZE).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
@@ -297,12 +297,12 @@ void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
 
-  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+  CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       a, b, x, [&](const FloatingPointType A, const FloatingPointType B) -> void { EXPECT_NEAR(A, B, 2.0e-06); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestDiagonalMatrix(std::size_t number_of_blocks)
+void testDiagonalMatrix(std::size_t number_of_blocks)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
@@ -365,20 +365,20 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
 
-  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+  CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
       a, b, x, [&](const FloatingPointType A, const FloatingPointType B) -> void { EXPECT_NEAR(A, B, 1.0e-5); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy>
-void TestMarkowitzReordering()
+void testMarkowitzReordering()
 {
   const std::size_t ORDER = 50;
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
-  MatrixPolicy orig(ORDER, order, 0);
+  MatrixPolicy orig(ORDER, ORDER, 0);
 
-  for (std::size_t i = 0; i < order; ++i)
+  for (std::size_t i = 0; i < ORDER; ++i)
   {
-    for (std::size_t j = 0; j < order; ++j)
+    for (std::size_t j = 0; j < ORDER; ++j)
     {
       orig[i][j] = (i == j || gen_bool()) ? 1 : 0;
     }
@@ -387,9 +387,9 @@ void TestMarkowitzReordering()
   auto reorder_map = micm::DiagonalMarkowitzReorder<MatrixPolicy>(orig);
 
   auto builder = SparseMatrixPolicy::Create(50);
-  for (std::size_t i = 0; i < order; ++i)
+  for (std::size_t i = 0; i < ORDER; ++i)
   {
-    for (std::size_t j = 0; j < order; ++j)
+    for (std::size_t j = 0; j < ORDER; ++j)
     {
       if (orig[i][j] != 0)
       {
@@ -400,9 +400,9 @@ void TestMarkowitzReordering()
   SparseMatrixPolicy orig_jac{ builder };
 
   builder = SparseMatrixPolicy::Create(50);
-  for (std::size_t i = 0; i < order; ++i)
+  for (std::size_t i = 0; i < ORDER; ++i)
   {
-    for (std::size_t j = 0; j < order; ++j)
+    for (std::size_t j = 0; j < ORDER; ++j)
     {
       if (orig[reorder_map[i]][reorder_map[j]] != 0)
       {

@@ -149,7 +149,7 @@ namespace micm
       equilibrium_constant_function_ = [p = vant_hoff_param_](const Conditions& condition)
       {
         double T = condition.temperature_;
-        return p.K_HLC_ref * std::exp((p.delta_H / p.R) * (1.0 / T - 1.0 / p.T_ref));
+        return p.K_HLC_ref_ * std::exp((p.delta_H_ / p.R_) * (1.0 / T - 1.0 / p.T_ref_));
       };
     }
 
@@ -171,14 +171,14 @@ namespace micm
     {
       std::size_t k_eq_idx = info.state_param_indices_[0];  // equilibrium constant index
 
-      return [K_eq_idx, eq_func = equilibrium_constant_function_](
+      return [k_eq_idx, eq_func = equilibrium_constant_function_](
                  const std::vector<Conditions>& conditions, DenseMatrixPolicy& state_param)
       {
         // For each grid cell, compute K_eq at current temperature
         state_param.ForEachRow(
             [eq_func](const Conditions& cond, double& K_eq) { K_eq = eq_func(cond); },
             conditions,
-            state_param.GetColumnView(K_eq_idx));
+            state_param.GetColumnView(k_eq_idx));
       };
     }
 
@@ -229,7 +229,7 @@ namespace micm
                   rp = K_eq;
                   pp = 1.0;
                 },
-                state_param.GetConstColumnView(K_eq_idx),
+                state_param.GetConstColumnView(k_eq_idx),
                 reactant_product,
                 product_product);
 
@@ -240,8 +240,8 @@ namespace micm
               const std::size_t SPECIES_IDX = reactant_state_idx[i];
 
               state.ForEachRow(
-                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), STOICH); },
+                  state.GetConstColumnView(SPECIES_IDX),
                   reactant_product);
             }
 
@@ -252,8 +252,8 @@ namespace micm
               const std::size_t SPECIES_IDX = product_state_idx[i];
 
               state.ForEachRow(
-                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), STOICH); },
+                  state.GetConstColumnView(SPECIES_IDX),
                   product_product);
             }
 
@@ -336,7 +336,7 @@ namespace micm
                   rp = K_eq;
                   pp = 1.0;
                 },
-                state_param.GetConstColumnView(K_eq_idx),
+                state_param.GetConstColumnView(k_eq_idx),
                 reactant_product,
                 product_product);
 
@@ -346,8 +346,8 @@ namespace micm
               const std::size_t SPECIES_IDX = reactant_state_idx[i];
 
               jacobian_values.ForEachBlock(
-                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), STOICH); },
+                  state.GetConstColumnView(SPECIES_IDX),
                   reactant_product);
             }
 
@@ -357,8 +357,8 @@ namespace micm
               const std::size_t SPECIES_IDX = product_state_idx[i];
 
               jacobian_values.ForEachBlock(
-                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+                  [STOICH](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), STOICH); },
+                  state.GetConstColumnView(SPECIES_IDX),
                   product_product);
             }
 
@@ -373,7 +373,7 @@ namespace micm
               auto partial_product = jacobian_values.GetBlockVariable();
               jacobian_values.ForEachBlock(
                   [](const double& K_eq, double& prod) { prod = K_eq; },
-                  state_param.GetConstColumnView(K_eq_idx),
+                  state_param.GetConstColumnView(k_eq_idx),
                   partial_product);
 
               for (std::size_t j = 0; j < reactant_stoich.size(); ++j)
@@ -384,8 +384,8 @@ namespace micm
                   const std::size_t SPECIES_IDX_J = reactant_state_idx[j];
 
                   jacobian_values.ForEachBlock(
-                      [STOICH_J](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
-                      state.GetConstColumnView(species_idx_j),
+                      [STOICH_J](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), STOICH_J); },
+                      state.GetConstColumnView(SPECIES_IDX_J),
                       partial_product);
                 }
               }
@@ -400,14 +400,14 @@ namespace micm
                     }
                     else if (conc > 0.0)
                     {
-                      partial = stoich_i * prod * std::pow(conc, stoich_i - 1.0);
+                      partial = STOICH_I * prod * std::pow(conc, STOICH_I - 1.0);
                     }
                     else
                     {
                       partial = 0.0;
                     }
                   },
-                  state.GetConstColumnView(species_idx_i),
+                  state.GetConstColumnView(SPECIES_IDX_I),
                   partial_product,
                   partial_derivative);
 
@@ -438,8 +438,8 @@ namespace micm
                   const std::size_t SPECIES_IDX_J = product_state_idx[j];
 
                   jacobian_values.ForEachBlock(
-                      [STOICH_J](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
-                      state.GetConstColumnView(species_idx_j),
+                      [STOICH_J](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), STOICH_J); },
+                      state.GetConstColumnView(SPECIES_IDX_J),
                       partial_product);
                 }
               }
@@ -454,14 +454,14 @@ namespace micm
                     }
                     else if (conc > 0.0)
                     {
-                      partial = stoich_i * prod * std::pow(conc, stoich_i - 1.0);
+                      partial = STOICH_I * prod * std::pow(conc, STOICH_I - 1.0);
                     }
                     else
                     {
                       partial = 0.0;
                     }
                   },
-                  state.GetConstColumnView(species_idx_i),
+                  state.GetConstColumnView(SPECIES_IDX_I),
                   partial_product,
                   partial_derivative);
 

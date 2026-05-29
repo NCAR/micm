@@ -60,7 +60,7 @@ namespace micm
       vars_plus.Copy(base_variables);
       vars_minus.Copy(base_variables);
 
-      for (std::size_t block = 0; block < num_blocks; ++block)
+      for (std::size_t block = 0; block < NUM_BLOCKS; ++block)
       {
         double x_j = base_variables[block][col];
         double h = perturbation * std::max(1.0, std::abs(x_j));
@@ -74,7 +74,7 @@ namespace micm
       forcing_func(vars_plus, forcing_plus);
       forcing_func(vars_minus, forcing_minus);
 
-      for (std::size_t block = 0; block < num_blocks; ++block)
+      for (std::size_t block = 0; block < NUM_BLOCKS; ++block)
       {
         double x_j = base_variables[block][col];
         double h = perturbation * std::max(1.0, std::abs(x_j));
@@ -123,7 +123,7 @@ namespace micm
     JacobianComparisonResult result;
     const std::size_t NUM_BLOCKS = analytical_jacobian.NumberOfBlocks();
 
-    for (std::size_t block = 0; block < num_blocks; ++block)
+    for (std::size_t block = 0; block < NUM_BLOCKS; ++block)
     {
       for (std::size_t row = 0; row < num_species; ++row)
       {
@@ -145,9 +145,9 @@ namespace micm
           if (abs_error > result.max_abs_error_)
           {
             result.max_abs_error_ = abs_error;
-            result.worst_block = block;
-            result.worst_row = row;
-            result.worst_col = col;
+            result.worst_block_ = block;
+            result.worst_row_ = row;
+            result.worst_col_ = col;
             result.worst_analytical_ = analytical_val;
             result.worst_fd_ = fd_val;
           }
@@ -182,7 +182,7 @@ namespace micm
     JacobianComparisonResult result;
     const std::size_t NUM_BLOCKS = analytical_jacobian.NumberOfBlocks();
 
-    for (std::size_t block = 0; block < num_blocks; ++block)
+    for (std::size_t block = 0; block < NUM_BLOCKS; ++block)
     {
       for (std::size_t row = 0; row < num_species; ++row)
       {
@@ -200,9 +200,9 @@ namespace micm
             if (fd_val > result.max_abs_error_)
             {
               result.max_abs_error_ = fd_val;
-              result.worst_block = block;
-              result.worst_row = row;
-              result.worst_col = col;
+              result.worst_block_ = block;
+              result.worst_row_ = row;
+              result.worst_col_ = col;
               result.worst_analytical_ = 0.0;
               result.worst_fd_ = fd_val;
             }

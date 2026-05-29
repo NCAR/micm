@@ -36,8 +36,8 @@ void TestAnalyticalSurfaceRxn(
 
   // particle number concentration [# m-3]
   double number_conc = 6.0 /
-                       (M_PI * std::pow(mode_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(mode_GSD) * std::log(mode_GSD))) *
-                       (conc_stuff / DENSITY_stuff + conc_more_stuff / DENSITY_more_stuff);
+                       (M_PI * std::pow(MODE_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(MODE_GSD) * std::log(MODE_GSD))) *
+                       (CONC_STUFF / DENSITY_STUFF + CONC_MORE_STUFF / DENSITY_MORE_STUFF);
 
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", MW_FOO } });
   micm::Species bar("bar");
@@ -80,7 +80,7 @@ void TestAnalyticalSurfaceRxn(
   state.SetConcentration(foo, CONC_FOO);
 
   // Surface reaction rate calculation
-  double mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_foo) * temperature);
+  double mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_FOO) * TEMPERATURE);
   double k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / DG_FOO + 4.0 / (mean_free_speed * RXN_GAMMA));
 
   double time_step = 0.1 / k1;  // s
@@ -89,8 +89,8 @@ void TestAnalyticalSurfaceRxn(
   std::vector<std::vector<double>> model_conc(nstep + 1, std::vector<double>(3));
   std::vector<std::vector<double>> analytic_conc(nstep + 1, std::vector<double>(3));
 
-  model_conc[0] = { conc_foo, 0, 0 };
-  analytic_conc[0] = { conc_foo, 0, 0 };
+  model_conc[0] = { CONC_FOO, 0, 0 };
+  analytic_conc[0] = { CONC_FOO, 0, 0 };
 
   size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
@@ -106,7 +106,7 @@ void TestAnalyticalSurfaceRxn(
     elapsed_solve_time = result.stats_.final_time_;
     ;
 
-    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::CONVERGED));
 
     // Check surface reaction rate calculation
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
@@ -114,13 +114,13 @@ void TestAnalyticalSurfaceRxn(
     model_conc[i] = state.variables_.AsVector();
 
     double time = i * time_step;
-    analytic_conc[i][idx_foo] = conc_foo * std::exp(-k1 * time);
-    analytic_conc[i][idx_bar] = bar_yield * (1.0 - analytic_conc[i][idx_foo]);
-    analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
+    analytic_conc[i][idx_foo] = CONC_FOO * std::exp(-k1 * time);
+    analytic_conc[i][idx_bar] = BAR_YIELD * (1.0 - analytic_conc[i][idx_foo]);
+    analytic_conc[i][idx_baz] = BAZ_YIELD * (1.0 - analytic_conc[i][idx_foo]);
 
     // Check concentrations
-    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
-    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
-    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
+    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
+    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
+    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
   }
 }

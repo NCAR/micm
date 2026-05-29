@@ -70,7 +70,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
 
       double k1 = std::max(
           0.0,
-          std::sin(lat) * std::sin(k1_lat_center) + std::cos(lat) * std::cos(k1_lat_center) * std::cos(lon - k1_lon_center));
+          std::sin(lat) * std::sin(K1_LAT_CENTER) + std::cos(lat) * std::cos(K1_LAT_CENTER) * std::cos(lon - K1_LON_CENTER));
       custom_rate_constants["toy_k1"][i_cell] = k1;
       state.conditions_[i_cell].temperature_ = 298.0;  // K
       state.conditions_[i_cell].pressure_ = 101300.0;  // Pa
@@ -82,16 +82,16 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
     double dt = 30.0;
     auto result = solver.Solve(dt, state);
 
-    EXPECT_EQ(result.state_, micm::SolverState::Converged);
+    EXPECT_EQ(result.state_, micm::SolverState::CONVERGED);
 
     for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     {
-      double r = custom_rate_constants["toy_k1"][i_cell] / (4.0 * k2);
+      double r = custom_rate_constants["toy_k1"][i_cell] / (4.0 * K2);
       double cl_i = concentrations["Cl"][i_cell];
       double cl2_i = concentrations["Cl2"][i_cell];
       double cly = cl_i + 2.0 * cl2_i;
       double det = std::sqrt(r * r + 2.0 * r * cly);
-      double e = std::exp(-4.0 * k2 * det * dt);
+      double e = std::exp(-4.0 * K2 * det * dt);
       double l = (det * K2 * dt) > 1.0e-16 ? (1.0 - e) / det / dt : 4.0 * K2;
       double cl_f = -l * (cl_i - det + r) * (cl_i + det + r) / (1.0 + e + dt * l * (cl_i + r));
       double cl2_f = -cl_f / 2.0;

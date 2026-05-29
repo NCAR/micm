@@ -79,11 +79,11 @@ class AnotherStubAerosolModel
   }
   std::string Species(const int MODE, const micm::Phase& phase, const micm::Species& species) const
   {
-    return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
+    return name_ + ".MODE" + std::to_string(MODE + 1) + "." + phase.name_ + "." + species.name_;
   }
   std::string Number(const int MODE) const
   {
-    return name_ + ".MODE" + std::to_string(mode + 1) + ".NUMBER";
+    return name_ + ".MODE" + std::to_string(MODE + 1) + ".NUMBER";
   }
 
   // We'll assume all the species in the aerosol model are involved in processes
