@@ -22,7 +22,7 @@ using Group4MatrixAlias = micm::CudaDenseMatrix<T, 4>;
 
 TEST(CudaDenseMatrix, SmallVectorMatrixPolicy)
 {
-  auto matrix = testSmallMatrix<Group2MatrixAlias>();
+  auto matrix = TestSmallMatrix<Group2MatrixAlias>();
 
   std::vector<double>& data = matrix.AsVector();
 
@@ -37,7 +37,7 @@ TEST(CudaDenseMatrix, SmallVectorMatrixPolicy)
 
 TEST(CudaDenseMatrix, SmallConstVectorMatrixPolicy)
 {
-  auto matrix = testSmallConstMatrix<Group4MatrixAlias>();
+  auto matrix = TestSmallConstMatrix<Group4MatrixAlias>();
 
   const std::vector<double>& data = matrix.AsVector();
 
@@ -72,10 +72,10 @@ TEST(CudaDenseMatrix, LoopOverConstVectorMatrixPolicy)
 
 TEST(CudaDenseMatrix, StridesPolicy)
 {
-  auto matrix3vec = testStrides<Group3MatrixAlias>();
+  auto matrix3vec = TestStrides<Group3MatrixAlias>();
   EXPECT_EQ(matrix3vec.RowStride(), 1);
   EXPECT_EQ(matrix3vec.ColumnStride(), 3);
-  auto matrix4vec = testStrides<Group4MatrixAlias>();
+  auto matrix4vec = TestStrides<Group4MatrixAlias>();
   EXPECT_EQ(matrix4vec.RowStride(), 1);
   EXPECT_EQ(matrix4vec.ColumnStride(), 4);
 }
@@ -460,7 +460,7 @@ TEST(CudaDenseMatrix, MoveAssignment)
 
 TEST(CudaDenseMatrix, SmallConstVectorMatrix)
 {
-  auto matrix = testSmallConstMatrix<Group4MatrixAlias>();
+  auto matrix = TestSmallConstMatrix<Group4MatrixAlias>();
 
   matrix.CopyToDevice();
   matrix.CopyToHost();

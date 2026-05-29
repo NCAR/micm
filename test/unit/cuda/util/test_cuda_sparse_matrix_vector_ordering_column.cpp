@@ -230,7 +230,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
 template<std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
-  auto matrix = testSingleBlockMatrix<
+  auto matrix = TestSingleBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
@@ -270,7 +270,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 template<std::size_t cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
-  auto matrix = testMultiBlockMatrix<
+  auto matrix = TestMultiBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
