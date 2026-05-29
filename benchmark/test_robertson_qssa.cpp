@@ -72,6 +72,8 @@ namespace
           result.state_ == micm::SolverState::ConvergenceExceededMaxSteps)
           << "unexpected solver state " << static_cast<int>(result.state_);
       EXPECT_GT(result.stats_.final_time_, 0.0) << "no progress made; would loop forever";
+      if (result.stats_.final_time_ <= 0.0)
+        break;  // no progress — fail cleanly via the EXPECT above rather than hang
       done += result.stats_.final_time_;
     }
     return { state.variables_[0][map.at("A")],
