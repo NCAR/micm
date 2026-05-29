@@ -162,7 +162,36 @@ C. **Feasibility guard for overshoot** (decouples accuracy from feasibility): ke
 
 **Recommended sequence:** (A) reconcile the overshoot test — if the override is removable, that alone fixes the cost problem; otherwise (C) a feasibility guard, with (B3) or (B1) if a true accuracy signal for algebraic variables is wanted. All quick to evaluate with the harness in this branch.
 
-## 7. Repro
+## 7. Which tests actually depend on the override (suite sweep)
+
+Ran the full DAE/constraint/Rosenbrock suite with the override disabled (scratch `&& false`, reverted after). Exactly ONE assertion fails:
+
+| Test | Without override |
+|------|------------------|
+| `DAEAlgebraicError.ErrorSensitiveToBalanceAtol` | **FAIL** — asserts tight atol → more steps; gets loose=81, tight=81 (equal) |
+| `DAEAlgebraicError.AlgebraicVariableDoesNotOvershootDeeply` | PASS |
+| `DAEConstraintOvershoot.*` (3) | PASS |
+| `EquilibriumIntegration.*` (6) | PASS |
+| `LinearConstraint` (1) | PASS |
+| `ExternalModelConstraints.*` (16) | PASS |
+| `AnalyticalExamples.*` incl. Robertson (17) | PASS |
+
+**Interpretation.** The override is load-bearing for exactly one thing: making step count *sensitive to algebraic atol* (`ErrorSensitiveToBalanceAtol`, added with the override in #969). That sensitivity IS the inflation mechanism. Every test that guards *physical correctness* — overshoot non-negativity, conservation, equilibrium, analytical accuracy — passes without the override. Note the cascade system in that test (EquilibriumConstraint + LinearConstraint conservation, a different system from Robertson) shows the same signature: with the override, tight atol forces many more steps; without it, loose==tight. So the inflation is general to algebraic variables, not Robertson-specific.
+
+Caveat: the overshoot tests passing without the override does NOT prove the override is useless — it may protect scenarios the current tests don't stress (their stiff transients are short and differential-variable control happens to suffice). This is a **coverage gap**, not a clean bill of health.
+
+## 8. Test-coverage plan (the tests we need)
+
+The existing tests pin the *workaround's* behavior, not the underlying requirements, and they conflate feasibility with accuracy. Before changing the solver we should add tests that capture the real requirements separately:
+
+1. **Feasibility regression (must FAIL without overshoot protection).** A genuinely stiff conservation system where, *without* any algebraic step control, a balance variable overshoots into an unphysical region (e.g. negative). The current overshoot tests pass even with algebraic error zeroed, so they do not actually exercise this — construct one that does. This defines the real constraint the fix must preserve.
+2. **Efficiency regression (must FAIL with the current override).** A slaved algebraic variable that legitimately varies over orders of magnitude (Robertson B, or A_gas→0 cascade) must not inflate step count beyond the equivalent full-ODE/embedded-error solve at matched accuracy. This is the bug guard; it would currently fail and should pass after a proper fix.
+3. **Accuracy (already covered).** Analytical-agreement tests for DAE solutions — keep.
+4. **Reconsider `ErrorSensitiveToBalanceAtol`.** Its premise (tighter algebraic atol *should* mean more steps) is the thing in question. If the agreed model is "feasibility guard + proper LTE (or no accuracy throttle) for algebraic vars," this test should be replaced by (1)+(2) rather than retained.
+
+The fix and the tests are coupled: pick the model (feasibility guard vs constructed LTE), encode (1) and (2) as the contract, then implement against them.
+
+## 9. Repro
 
 - Branch `dae-rosenbrock-benchmark`. Build: `cmake -S . -B build -DMICM_ENABLE_BENCHMARKS=ON -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER && cmake --build build --target robertson_dae`.
 - Run `./build/robertson_dae` (currently the scratch experiment harness producing the two tables above; uncommitted).
