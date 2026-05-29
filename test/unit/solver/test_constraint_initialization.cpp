@@ -46,7 +46,7 @@ struct SimpleConstrainedSystem
         std::vector<StoichSpecies>{ { C, 1.0 } },
         VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
 
-    return builder.SetSystem(System(gas_phase ))
+    return builder.SetSystem(System(gas_phase))
         .SetReactions({ rxn })
         .SetConstraints(std::move(constraints))
         .SetReorderState(false)
@@ -170,7 +170,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(gas_phase ))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetReorderState(false)
                     .Build();

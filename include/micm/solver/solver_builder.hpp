@@ -55,11 +55,11 @@ namespace micm
     System system_;
     std::vector<Process> reactions_;
     std::vector<Constraint> constraints_;
-    
+
     std::vector<ExternalModelSystem> external_systems_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
     std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
-    
+
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -143,14 +143,14 @@ namespace micm
 
       if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
       {
-        external_process_sets_.emplace_back(
-            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ model });
+        external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ model });
         external_constraints_.emplace_back(
             ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
       }
       else if constexpr (HasProcesses<ExternalModel>)
       {
-        external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+        external_process_sets_.emplace_back(
+            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
       }
       else
       {

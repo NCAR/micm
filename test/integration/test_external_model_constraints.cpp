@@ -326,7 +326,7 @@ TEST(ExternalModelConstraints, AddExternalModelWithConstraints)
   double total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -358,7 +358,7 @@ TEST(ExternalModelConstraints, AddExternalModelProcessOnly)
   // No total_mass → constraints disabled
   StubAerosolWithConstraints aerosol(0.01);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -388,7 +388,7 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   double k = 0.1;
   StubAerosolWithConstraints aerosol(k, total);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -449,7 +449,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
                           .SetPhase(gas_phase)
                           .Build();
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -480,7 +480,7 @@ TEST(ExternalModelConstraints, AddExternalModelOnlyStandardRosenbrock)
 
   StubAerosolWithConstraints aerosol(0.01);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Add only processes (constraints are not enabled with standard Rosenbrock parameters)
@@ -504,7 +504,7 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
   double total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -543,7 +543,7 @@ TEST(ExternalModelConstraints, MultiGridCell)
   double total = 1.0;
   StubAerosolWithConstraints aerosol(0.1, total);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -635,7 +635,7 @@ namespace
 
     auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                      .SetSystem(micm::System(gas_phase ))
+                      .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab, rxn_bc, rxn_cb })
                       .SetReorderState(false)
                       .Build();
@@ -686,7 +686,7 @@ namespace
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                      .SetSystem(micm::System(gas_phase ))
+                      .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
                       .AddExternalModel(eq_model)
                       .SetReorderState(false)
@@ -734,7 +734,7 @@ namespace
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                      .SetSystem(micm::System(gas_phase ))
+                      .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
                       .AddExternalModel(eq_model)
                       .SetReorderState(false)
@@ -845,7 +845,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto builtin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(micm::System(gas_phase ))
+                            .SetSystem(micm::System(gas_phase))
                             .SetReactions({ rxn_ab })
                             .SetConstraints(std::move(constraints))
                             .SetReorderState(false)
@@ -854,7 +854,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   // External model constraint solver
   EquilibriumConstraintModel eq_model("B", "C", K_EQ);
   auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                        .SetSystem(micm::System(gas_phase ))
+                        .SetSystem(micm::System(gas_phase))
                         .SetReactions({ rxn_ab })
                         .AddExternalModel(eq_model)
                         .SetReorderState(false)
@@ -927,7 +927,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   auto D = micm::Species("D");
   micm::Phase gas_phase{ "gas", { A, B, C, D } };
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   // ── Kinetic system ──
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
@@ -1061,7 +1061,7 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   double k = 0.1;
   StubAerosolWithSolvent aerosol(k, total);
 
-  auto system = micm::System(gas_phase );
+  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
@@ -1379,7 +1379,7 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(gas_phase ))
+                    .SetSystem(micm::System(gas_phase))
                     .SetReactions({ rxn_ab })
                     .AddExternalModel(eq_model)
                     .SetReorderState(false)

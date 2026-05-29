@@ -406,7 +406,7 @@ void test_analytical_troe(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_system<BuilderPolicy>(
       "troe",
@@ -500,7 +500,7 @@ void test_analytical_stiff_troe(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_stiff_system<BuilderPolicy>(
       "troe",
@@ -563,7 +563,7 @@ void test_analytical_photolysis(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<double>> custom_parameters = {
     { "photoA", std::vector<double>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
@@ -649,7 +649,7 @@ void test_analytical_stiff_photolysis(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<double>> custom_parameters = {
     { "photoA1B", std::vector<double>(NUM_CELLS, 2e-3) },
@@ -722,7 +722,7 @@ void test_analytical_ternary_chemical_activation(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_system<BuilderPolicy>(
       "ternary_chemical_activation",
@@ -818,7 +818,7 @@ void test_analytical_stiff_ternary_chemical_activation(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_stiff_system<BuilderPolicy>(
       "ternary_chemical_activation",
@@ -882,7 +882,7 @@ void test_analytical_tunneling(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_system<BuilderPolicy>(
       "tunneling",
@@ -965,7 +965,7 @@ void test_analytical_stiff_tunneling(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_stiff_system<BuilderPolicy>(
       "tunneling",
@@ -1024,7 +1024,7 @@ void test_analytical_arrhenius(
           .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_system<BuilderPolicy>(
       "arrhenius",
@@ -1108,7 +1108,7 @@ void test_analytical_stiff_arrhenius(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_stiff_system<BuilderPolicy>(
       "arrhenius",
@@ -1177,7 +1177,7 @@ void test_analytical_branched(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_system<BuilderPolicy>(
       "branched",
@@ -1293,7 +1293,7 @@ void test_analytical_stiff_branched(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase )).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   test_simple_stiff_system<BuilderPolicy>(
       "branched",
@@ -1383,10 +1383,7 @@ void test_analytical_robertson(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(gas_phase ))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1569,10 +1566,7 @@ void test_analytical_oregonator(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(gas_phase ))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   double tau = 0.1610;
   double time_step = 30 * tau;
@@ -1800,10 +1794,7 @@ void test_analytical_hires(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(gas_phase ))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   size_t N = 2;
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
@@ -1973,10 +1964,7 @@ void test_analytical_e5(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(gas_phase ))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   size_t N = 7;
 

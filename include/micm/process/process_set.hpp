@@ -66,7 +66,8 @@ namespace micm
     /// @brief Constructs a ProcessSet as above, but also includes contributions from external models
     /// @param processes A list of processes, each with reactants and products
     /// @param variable_map A map from species names to their corresponding index in the solver's state
-    /// @param external_process_sets A list of external process sets that provide additional processes and Jacobian contributions
+    /// @param external_process_sets A list of external process sets that provide additional processes and Jacobian
+    /// contributions
     /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
     ProcessSet(
         const std::vector<Process>& processes,

@@ -52,11 +52,8 @@ void test_state_includes_stub_aerosol_model(BuilderPolicy builder)
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
-  auto solver = builder.SetSystem(system)
-                    .AddExternalModel(aerosol_1)
-                    .AddExternalModel(aerosol_2)
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
+  auto solver =
+      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and ensure that the size and labels match expectations
   auto state = solver.GetState();
@@ -99,11 +96,8 @@ void test_update_state_with_stub_aerosol_model(BuilderPolicy builder)
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
-  auto solver = builder.SetSystem(system)
-                    .AddExternalModel(aerosol_1)
-                    .AddExternalModel(aerosol_2)
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
+  auto solver =
+      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -173,11 +167,8 @@ void test_update_multi_cell_state_with_stub_aerosol_model(BuilderPolicy builder)
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
-  auto solver = builder.SetSystem(system)
-                    .AddExternalModel(aerosol_1)
-                    .AddExternalModel(aerosol_2)
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
+  auto solver =
+      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   const std::size_t num_cells = 3;
 
@@ -372,11 +363,8 @@ void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder, double base_rel
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with both aerosol models
-  auto solver = builder.SetSystem(system)
-                    .AddExternalModel(aerosol_1)
-                    .AddExternalModel(aerosol_2)
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
+  auto solver =
+      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some initial values
   auto state = solver.GetState();
@@ -505,11 +493,8 @@ void test_solve_with_stub_aerosol_model_1_multi_cell(BuilderPolicy builder, doub
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with both aerosol models
-  auto solver = builder.SetSystem(system)
-                    .AddExternalModel(aerosol_1)
-                    .AddExternalModel(aerosol_2)
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
+  auto solver =
+      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   const std::size_t num_cells = 3;
 

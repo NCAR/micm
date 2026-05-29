@@ -89,7 +89,7 @@ namespace
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                      .SetSystem(System(gas_phase ))
+                      .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)
