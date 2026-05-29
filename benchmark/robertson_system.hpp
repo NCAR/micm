@@ -70,7 +70,10 @@ namespace robertson
   /// the constraint manifold (B(0)=0 is otherwise inconsistent with G=0).
   inline double ConsistentB(double k1, double k2, double k3, double a, double c)
   {
+    // Positive root of k2*B^2 + k3*c*B - k1*a = 0, written in the conjugate form
+    // 2*k1*a / (k3*c + sqrt(disc)) to avoid catastrophic cancellation when k3*c
+    // dominates (algebraically identical to (-k3*c + sqrt(disc)) / (2*k2)).
     double disc = k3 * c * k3 * c + 4.0 * k2 * k1 * a;
-    return (-k3 * c + std::sqrt(disc)) / (2.0 * k2);
+    return (2.0 * k1 * a) / (k3 * c + std::sqrt(disc));
   }
 }  // namespace robertson
