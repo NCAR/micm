@@ -30,19 +30,19 @@ using Group1130CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMat
 
 TEST(CudaLuDecompositionMozartInPlace, RandomMatrixVectorOrdering)
 {
-  TestRandomMatrix<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group3CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group27CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group32CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group43CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group77CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group113CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group193CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group281CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group472CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group512CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group739CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
-  TestRandomMatrix<Group1130CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group3CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group27CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group32CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group43CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group77CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group113CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group193CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group281CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group472CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group512CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group739CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
+  testRandomMatrix<Group1130CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400);
 }
 
 TEST(CudaLuDecompositionMozartInPlace, AgnosticToInitialValue)
@@ -50,18 +50,18 @@ TEST(CudaLuDecompositionMozartInPlace, AgnosticToInitialValue)
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    TestExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group3CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group27CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group32CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group43CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group77CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group113CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group193CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group281CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group472CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group512CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group739CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
-    TestExtremeValueInitialization<Group1130CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group3CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group27CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group32CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group43CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group77CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group113CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group193CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group281CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group472CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group512CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group739CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
+    testExtremeValueInitialization<Group1130CudaSparseMatrix, micm::CudaLuDecompositionMozartInPlace>(400, value);
   }
 }
