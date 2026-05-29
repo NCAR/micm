@@ -104,55 +104,55 @@ TEST(RandomCudaProcessSet, CudaMatrix)
 
 TEST(CudaProcessSet, CudaMatrix)
 {
-  testProcessSet<
+  TestProcessSet<
       Group1CudaDenseMatrix,
       Group1CudaSparseMatrix,
       micm::CudaProcessSet<Group1CudaDenseMatrix, Group1CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group3CudaDenseMatrix,
       Group3CudaSparseMatrix,
       micm::CudaProcessSet<Group3CudaDenseMatrix, Group3CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group27CudaDenseMatrix,
       Group27CudaSparseMatrix,
       micm::CudaProcessSet<Group27CudaDenseMatrix, Group27CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group32CudaDenseMatrix,
       Group32CudaSparseMatrix,
       micm::CudaProcessSet<Group32CudaDenseMatrix, Group32CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group43CudaDenseMatrix,
       Group43CudaSparseMatrix,
       micm::CudaProcessSet<Group43CudaDenseMatrix, Group43CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group77CudaDenseMatrix,
       Group77CudaSparseMatrix,
       micm::CudaProcessSet<Group77CudaDenseMatrix, Group77CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group113CudaDenseMatrix,
       Group113CudaSparseMatrix,
       micm::CudaProcessSet<Group113CudaDenseMatrix, Group113CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group193CudaDenseMatrix,
       Group193CudaSparseMatrix,
       micm::CudaProcessSet<Group193CudaDenseMatrix, Group193CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group281CudaDenseMatrix,
       Group281CudaSparseMatrix,
       micm::CudaProcessSet<Group281CudaDenseMatrix, Group281CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group472CudaDenseMatrix,
       Group472CudaSparseMatrix,
       micm::CudaProcessSet<Group472CudaDenseMatrix, Group472CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group512CudaDenseMatrix,
       Group512CudaSparseMatrix,
       micm::CudaProcessSet<Group512CudaDenseMatrix, Group512CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group739CudaDenseMatrix,
       Group739CudaSparseMatrix,
       micm::CudaProcessSet<Group739CudaDenseMatrix, Group739CudaSparseMatrix>>();
-  testProcessSet<
+  TestProcessSet<
       Group1130CudaDenseMatrix,
       Group1130CudaSparseMatrix,
       micm::CudaProcessSet<Group1130CudaDenseMatrix, Group1130CudaSparseMatrix>>();
