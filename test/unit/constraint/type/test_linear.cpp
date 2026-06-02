@@ -614,13 +614,13 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Linear constraint Jacobian mismatch: block=" << comparison.worst_block_
-                                 << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
-                                 << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
+                                  << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                  << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 
   auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
-                               << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
+                                << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
 }
 
 TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
@@ -675,6 +675,6 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Weighted linear constraint Jacobian mismatch: block=" << comparison.worst_block_
-                                 << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
-                                 << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
+                                  << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                  << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 }
