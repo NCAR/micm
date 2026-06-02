@@ -8,47 +8,47 @@
 
 #include <cmath>
 
-/* Below are the policy tests on the CPU */
+/* Below are the policy Tests on the CPU */
 
 TEST(SparseVectorCompressedRowMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, SetScalar)
 {
-  testSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, AddToDiagonal)
 {
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, Print)
 {
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, PrintNonZero)
 {
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
-/* These are the customized tests for GPU only */
+/* These are the customized Tests for GPU only */
 
 TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
 {
@@ -230,7 +230,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
 template<std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
-  auto matrix = testSingleBlockMatrix<
+  auto matrix = TestSingleBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 
@@ -270,7 +270,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 template<std::size_t cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
-  auto matrix = testMultiBlockMatrix<
+  auto matrix = TestMultiBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 

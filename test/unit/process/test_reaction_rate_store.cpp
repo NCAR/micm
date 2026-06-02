@@ -36,13 +36,6 @@ namespace
     return Phase{ "gas", ps };
   }
 
-  // Helper to create a gas phase with one species carrying a diffusion coefficient
-  Phase MakeGasPhaseWithDiffusion(const Species& sp, double diffusion_coefficient)
-  {
-    PhaseSpecies ps(sp, diffusion_coefficient);
-    return Phase{ "gas", { ps } };
-  }
-
   // Helper: build processes list sorted exactly as SolverBuilder would
   // (reactions already sorted by RateConstantTypeOrder before calling BuildFrom)
   void SortByTypeOrder(std::vector<Process>& procs)
