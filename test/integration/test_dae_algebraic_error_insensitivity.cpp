@@ -164,7 +164,7 @@ TEST(DAEAlgebraicError, ErrorSensitiveToBalanceAtol)
 
   // With the fix, tight balance atol should produce more steps
   EXPECT_GT(r_tight.accepted_, r_loose.accepted_) << "Tight atol should require more steps than loose atol. "
-                                                << "loose=" << r_loose.accepted_ << " tight=" << r_tight.accepted_;
+                                                  << "loose=" << r_loose.accepted_ << " tight=" << r_tight.accepted_;
 }
 
 /// @brief Verify that the algebraic balance variable does not go deeply negative.

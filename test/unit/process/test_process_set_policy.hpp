@@ -460,14 +460,14 @@ void TestProcessSetFiniteDifferenceJacobian()
       analytical_jacobian, fd_jacobian, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Worst error at block=" << comparison.worst_block_ << " row=" << comparison.worst_row_
-                                 << " col=" << comparison.worst_col_ << " analytical=" << comparison.worst_analytical_
-                                 << " fd=" << comparison.worst_fd_;
+                                  << " col=" << comparison.worst_col_ << " analytical=" << comparison.worst_analytical_
+                                  << " fd=" << comparison.worst_fd_;
 
   // Also verify sparsity completeness
   auto sparsity_check = micm::CheckJacobianSparsityCompleteness<DenseMatrixPolicy, SparseMatrixPolicy>(
       analytical_jacobian, fd_jacobian, num_species);
 
   EXPECT_TRUE(sparsity_check.passed_) << "Undeclared non-zero at block=" << sparsity_check.worst_block_
-                                     << " row=" << sparsity_check.worst_row_ << " col=" << sparsity_check.worst_col_
-                                     << " fd_value=" << sparsity_check.worst_fd_;
+                                      << " row=" << sparsity_check.worst_row_ << " col=" << sparsity_check.worst_col_
+                                      << " fd_value=" << sparsity_check.worst_fd_;
 }

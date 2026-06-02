@@ -35,14 +35,14 @@ void TestJacobian(SolverPolicy& solver)
   // using species indices M=0, Ar=1, CO2=2, H2O=3, N2=4, O1D=5, O=6, O2=7, O3=8.
   static const std::vector<std::pair<std::size_t, std::size_t>> hardcoded_positions = {
     { 0, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 },  // col M
-    { 1, 1 },                                  // col Ar
-    { 2, 2 },                                  // col CO2
-    { 3, 3 },                                  // col H2O
-    { 4, 4 }, { 5, 4 }, { 6, 4 },              // col N2
-    { 5, 5 }, { 6, 5 },                        // col O1D
-    { 6, 6 }, { 7, 6 }, { 8, 6 },              // col O
-    { 5, 7 }, { 6, 7 }, { 7, 7 }, { 8, 7 },   // col O2
-    { 5, 8 }, { 6, 8 }, { 7, 8 }, { 8, 8 }    // col O3
+    { 1, 1 },                                // col Ar
+    { 2, 2 },                                // col CO2
+    { 3, 3 },                                // col H2O
+    { 4, 4 }, { 5, 4 }, { 6, 4 },            // col N2
+    { 5, 5 }, { 6, 5 },                      // col O1D
+    { 6, 6 }, { 7, 6 }, { 8, 6 },            // col O
+    { 5, 7 }, { 6, 7 }, { 7, 7 }, { 8, 7 },  // col O2
+    { 5, 8 }, { 6, 8 }, { 7, 8 }, { 8, 8 }   // col O3
   };
 
   for (std::size_t i{}; i < 3; ++i)
