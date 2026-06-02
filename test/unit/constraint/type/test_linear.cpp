@@ -133,7 +133,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -199,7 +199,7 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for Jacobian using builder
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -256,7 +256,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   std::size_t num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -328,7 +328,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   std::size_t num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -391,7 +391,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -452,7 +452,7 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -510,7 +510,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
 
@@ -579,7 +579,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
   const std::size_t num_species = 2;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
@@ -613,14 +613,14 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
 
   auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
-  EXPECT_TRUE(comparison.passed) << "Linear constraint Jacobian mismatch: block=" << comparison.worst_block
-                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
-                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+  EXPECT_TRUE(comparison.passed_) << "Linear constraint Jacobian mismatch: block=" << comparison.worst_block_
+                                 << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                 << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 
   auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
-  EXPECT_TRUE(sparsity.passed) << "Missing sparsity at block=" << sparsity.worst_block << " row=" << sparsity.worst_row
-                               << " col=" << sparsity.worst_col << " fd_value=" << sparsity.worst_fd;
+  EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
+                               << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
 }
 
 TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
@@ -643,7 +643,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
   const std::size_t num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set(std::move(constraints), variable_map);
+  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
@@ -674,7 +674,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
 
   auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
 
-  EXPECT_TRUE(comparison.passed) << "Weighted linear constraint Jacobian mismatch: block=" << comparison.worst_block
-                                 << " row=" << comparison.worst_row << " col=" << comparison.worst_col
-                                 << " analytical=" << comparison.worst_analytical << " fd=" << comparison.worst_fd;
+  EXPECT_TRUE(comparison.passed_) << "Weighted linear constraint Jacobian mismatch: block=" << comparison.worst_block_
+                                 << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                 << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 }

@@ -12,12 +12,12 @@
 
 #include <gtest/gtest.h>
 
-// In this test, the elements in the same array are different;
+// In this Test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<class SolverBuilderPolicy>
-void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  builder = getSolver(builder);
+  builder = GetSolver(builder);
   auto solver = builder.Build();
   auto state = solver.GetState(number_of_grid_cells);
   const std::vector<double>& atol = state.absolute_tolerance_;
@@ -59,7 +59,7 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
 }
 
 template<class SolverBuilderPolicy>
-void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -79,7 +79,7 @@ void testNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::s
       C,
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
-      micm::VantHoffParam{ .K_HLC_ref = 10.0, .delta_H = -2400.0 }));
+      micm::VantHoffParam{ .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
 
   auto solver = builder.SetSystem(micm::System(gas_phase))
                     .SetReactions({ reaction })
@@ -132,18 +132,18 @@ using VectorBuilder = micm::CpuSolverBuilder<
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
 TEST(RosenbrockSolver, VectorAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testAlphaMinusJacobian(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
-  testAlphaMinusJacobian(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testAlphaMinusJacobian(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestAlphaMinusJacobian(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestAlphaMinusJacobian(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+  TestAlphaMinusJacobian(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestAlphaMinusJacobian(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
 }
 
 TEST(RosenbrockSolver, CanSetTolerances)
@@ -180,57 +180,57 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
 TEST(RosenbrockSolver, StandardNormalizedError)
 {
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedError)
 {
   // Exact fits
-  testNormalizedErrorDiff(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+  TestNormalizedErrorDiff(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 
   // Inexact fits
-  testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
-  testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+  TestNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
 }
 
 TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
 {
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 2);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 2);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 2);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 2);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
 {
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 3);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 3);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 3);
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 3);
 
-  testNormalizedErrorIncludesAllVariables(
+  TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }

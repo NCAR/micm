@@ -1,4 +1,4 @@
-#include "../../process/test_process_set_policy.hpp"
+#include "../../process/TestProcessSetPolicy.hpp"
 
 #include <micm/cuda/process/cuda_process_set.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>

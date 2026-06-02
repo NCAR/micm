@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void test_solver_type(auto& solver)
+void TestSolverType(auto& solver)
 {
   auto state = solver.GetState();
 
@@ -142,17 +142,17 @@ int main()
                           .Build();
 
   std::cout << "Two stages: " << std::endl;
-  test_solver_type(two_stage);
+  TestSolverType(two_stage);
 
   std::cout << std::endl << "Three stages: " << std::endl;
-  test_solver_type(three_stage);
+  TestSolverType(three_stage);
 
   std::cout << std::endl << "Four stages: " << std::endl;
-  test_solver_type(four_stage);
+  TestSolverType(four_stage);
 
   std::cout << std::endl << "Four stages differential algebraic: " << std::endl;
-  test_solver_type(four_stage_da);
+  TestSolverType(four_stage_da);
 
   std::cout << std::endl << "Six stages differential algebraic: " << std::endl;
-  test_solver_type(six_stage_da);
+  TestSolverType(six_stage_da);
 }

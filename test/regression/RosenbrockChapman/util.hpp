@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-micm::Phase createGasPhase()
+micm::Phase CreateGasPhase()
 {
   auto o = micm::Species("O");
   auto o1d = micm::Species("O1D");
@@ -22,7 +22,7 @@ micm::Phase createGasPhase()
   return micm::Phase{ "gas", std::vector<micm::PhaseSpecies>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
 }
 
-std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
+std::vector<micm::Process> CreateProcesses(const micm::Phase& gas_phase)
 {
   micm::Process r1 =
       micm::ChemicalReactionBuilder()
@@ -82,10 +82,10 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 }
 
 template<class SolverBuilderPolicy>
-auto getChapmanSolver(SolverBuilderPolicy& builder)
+auto GetChapmanSolver(SolverBuilderPolicy& builder)
 {
-  micm::Phase gas_phase = createGasPhase();
-  std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = CreateGasPhase();
+  std::vector<micm::Process> processes = CreateProcesses(gas_phase);
 
   return builder.SetSystem(micm::System(gas_phase)).SetReactions(std::move(processes)).Build();
 }

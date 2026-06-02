@@ -14,30 +14,30 @@ TEST(RegressionRosenbrock, Jacobian)
 {
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  auto solver = getChapmanSolver(builder);
-  testJacobian(solver);
+  auto solver = GetChapmanSolver(builder);
+  TestJacobian(solver);
 }
 
 TEST(RegressionRosenbrock, VectorJacobian)
 {
   {
     auto builder = VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-    auto solver = getChapmanSolver(builder);
-    testJacobian(solver);
+    auto solver = GetChapmanSolver(builder);
+    TestJacobian(solver);
   }
   {
     auto builder = VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-    auto solver = getChapmanSolver(builder);
-    testJacobian(solver);
+    auto solver = GetChapmanSolver(builder);
+    TestJacobian(solver);
   }
   {
     auto builder = VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-    auto solver = getChapmanSolver(builder);
-    testJacobian(solver);
+    auto solver = GetChapmanSolver(builder);
+    TestJacobian(solver);
   }
   {
     auto builder = VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-    auto solver = getChapmanSolver(builder);
-    testJacobian(solver);
+    auto solver = GetChapmanSolver(builder);
+    TestJacobian(solver);
   }
 }

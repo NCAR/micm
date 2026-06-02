@@ -15,18 +15,18 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVe
 
 TEST(LuDecompositionMozartInPlace, DenseMatrixStandardOrdering)
 {
-  testDenseMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>();
+  TestDenseMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>();
 }
 
 TEST(LuDecompositionMozartInPlace, RandomMatrixStandardOrdering)
 {
-  testRandomMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(1);
-  testRandomMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(5);
+  TestRandomMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(1);
+  TestRandomMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(5);
 }
 
 TEST(LuDecompositionMozartInPlace, DiagonalMatrixStandardOrdering)
 {
-  testDiagonalMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(5);
+  TestDiagonalMatrix<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(5);
 }
 
 TEST(LuDecompositionMozartInPlace, AgnosticToInitialValueStandardOrdering)
@@ -34,32 +34,32 @@ TEST(LuDecompositionMozartInPlace, AgnosticToInitialValueStandardOrdering)
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    testExtremeValueInitialization<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(5, value);
+    TestExtremeValueInitialization<SparseMatrixTest, micm::LuDecompositionMozartInPlace>(5, value);
   }
 }
 
 TEST(LuDecompositionMozartInPlace, DenseMatrixVectorOrdering)
 {
-  testDenseMatrix<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
-  testDenseMatrix<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
-  testDenseMatrix<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
-  testDenseMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
+  TestDenseMatrix<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
+  TestDenseMatrix<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
+  TestDenseMatrix<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
+  TestDenseMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>();
 }
 
 TEST(LuDecompositionMozartInPlace, RandomMatrixVectorOrdering)
 {
-  testRandomMatrix<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
-  testRandomMatrix<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
-  testRandomMatrix<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
-  testRandomMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestRandomMatrix<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestRandomMatrix<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestRandomMatrix<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestRandomMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
 }
 
 TEST(LuDecompositionMozartInPlace, DiagonalMatrixVectorOrdering)
 {
-  testDiagonalMatrix<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
-  testDiagonalMatrix<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
-  testDiagonalMatrix<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
-  testDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestDiagonalMatrix<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestDiagonalMatrix<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestDiagonalMatrix<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
+  TestDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5);
 }
 
 TEST(LuDecompositionMozartInPlace, AgnosticToInitialValueVectorOrdering)
@@ -67,9 +67,9 @@ TEST(LuDecompositionMozartInPlace, AgnosticToInitialValueVectorOrdering)
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    testExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
-    testExtremeValueInitialization<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
-    testExtremeValueInitialization<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
-    testExtremeValueInitialization<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
+    TestExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
+    TestExtremeValueInitialization<Group2SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
+    TestExtremeValueInitialization<Group3SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
+    TestExtremeValueInitialization<Group4SparseVectorMatrix, micm::LuDecompositionMozartInPlace>(5, value);
   }
 }

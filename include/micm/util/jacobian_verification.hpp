@@ -15,14 +15,14 @@ namespace micm
   /// Result of comparing an analytical Jacobian against a finite-difference approximation
   struct JacobianComparisonResult
   {
-    bool passed{ true };
-    double max_abs_error{ 0.0 };
-    double max_rel_error{ 0.0 };
-    std::size_t worst_block{ 0 };
-    std::size_t worst_row{ 0 };
-    std::size_t worst_col{ 0 };
-    double worst_analytical{ 0.0 };
-    double worst_fd{ 0.0 };
+    bool passed_{ true };
+    double max_abs_error_{ 0.0 };
+    double max_rel_error_{ 0.0 };
+    std::size_t worst_block_{ 0 };
+    std::size_t worst_row_{ 0 };
+    std::size_t worst_col_{ 0 };
+    double worst_analytical_{ 0.0 };
+    double worst_fd_{ 0.0 };
   };
 
   /// Compute a dense finite-difference Jacobian approximation using central differences.
@@ -142,24 +142,24 @@ namespace micm
           double scale = std::max(std::abs(analytical_val), std::abs(fd_val));
           double rel_error = (scale > 0.0) ? abs_error / scale : 0.0;
 
-          if (abs_error > result.max_abs_error)
+          if (abs_error > result.max_abs_error_)
           {
-            result.max_abs_error = abs_error;
-            result.worst_block = block;
-            result.worst_row = row;
-            result.worst_col = col;
-            result.worst_analytical = analytical_val;
-            result.worst_fd = fd_val;
+            result.max_abs_error_ = abs_error;
+            result.worst_block_ = block;
+            result.worst_row_ = row;
+            result.worst_col_ = col;
+            result.worst_analytical_ = analytical_val;
+            result.worst_fd_ = fd_val;
           }
-          if (rel_error > result.max_rel_error)
+          if (rel_error > result.max_rel_error_)
           {
-            result.max_rel_error = rel_error;
+            result.max_rel_error_ = rel_error;
           }
 
           double tolerance = atol + rtol * scale;
           if (abs_error > tolerance)
           {
-            result.passed = false;
+            result.passed_ = false;
           }
         }
       }
@@ -196,15 +196,15 @@ namespace micm
           double fd_val = std::abs(fd_jacobian[block][row * num_species + col]);
           if (fd_val > threshold)
           {
-            result.passed = false;
-            if (fd_val > result.max_abs_error)
+            result.passed_ = false;
+            if (fd_val > result.max_abs_error_)
             {
-              result.max_abs_error = fd_val;
-              result.worst_block = block;
-              result.worst_row = row;
-              result.worst_col = col;
-              result.worst_analytical = 0.0;
-              result.worst_fd = fd_val;
+              result.max_abs_error_ = fd_val;
+              result.worst_block_ = block;
+              result.worst_row_ = row;
+              result.worst_col_ = col;
+              result.worst_analytical_ = 0.0;
+              result.worst_fd_ = fd_val;
             }
           }
         }

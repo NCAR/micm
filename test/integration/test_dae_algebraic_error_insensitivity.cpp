@@ -40,11 +40,11 @@ namespace
 {
   struct SolveResult
   {
-    double A_gas_final;
-    double P_final;
-    double min_A_gas;
-    uint64_t accepted;
-    uint64_t rejected;
+    double A_gas_final_;
+    double P_final_;
+    double min_A_gas_;
+    uint64_t accepted_;
+    uint64_t rejected_;
   };
 
   /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (A_gas)
@@ -76,13 +76,13 @@ namespace
         A_aq,
         std::vector<StoichSpecies>{ { A_gas, 1.0 } },
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K1, .delta_H = 0.0 }));
+        VantHoffParam{ .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
     constraints.push_back(EquilibriumConstraint(
         "eq2",
         B_aq,
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));
+        VantHoffParam{ .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
     // A_gas is explicitly set as the algebraic balance variable
     constraints.push_back(
         LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
@@ -163,8 +163,8 @@ TEST(DAEAlgebraicError, ErrorSensitiveToBalanceAtol)
   auto r_tight = RunCascadeSystem(1e-8, 100.0, 2.0, 2.0);
 
   // With the fix, tight balance atol should produce more steps
-  EXPECT_GT(r_tight.accepted, r_loose.accepted) << "Tight atol should require more steps than loose atol. "
-                                                << "loose=" << r_loose.accepted << " tight=" << r_tight.accepted;
+  EXPECT_GT(r_tight.accepted_, r_loose.accepted_) << "Tight atol should require more steps than loose atol. "
+                                                << "loose=" << r_loose.accepted_ << " tight=" << r_tight.accepted_;
 }
 
 /// @brief Verify that the algebraic balance variable does not go deeply negative.
@@ -180,9 +180,9 @@ TEST(DAEAlgebraicError, AlgebraicVariableDoesNotOvershootDeeply)
 
   // A_gas should stay non-negative (or very close to zero).
   // The analytical solution has A_gas >= 0 at all times.
-  EXPECT_GE(r.min_A_gas, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas;
+  EXPECT_GE(r.min_A_gas_, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas_;
 
   // After 30s the system should be fully converted: P ≈ C_total, A_gas ≈ 0
-  EXPECT_NEAR(r.P_final, 1.0e-6, 1.0e-8);
-  EXPECT_NEAR(r.A_gas_final, 0.0, 1.0e-10);
+  EXPECT_NEAR(r.P_final_, 1.0e-6, 1.0e-8);
+  EXPECT_NEAR(r.A_gas_final_, 0.0, 1.0e-10);
 }

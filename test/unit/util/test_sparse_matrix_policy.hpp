@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
+MatrixPolicy<double, OrderingPolicy> TestZeroMatrix()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
 
@@ -85,7 +85,7 @@ MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
+MatrixPolicy<double, OrderingPolicy> TestConstZeroMatrix()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
 
@@ -141,7 +141,7 @@ MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testSingleBlockMatrix()
+MatrixPolicy<double, OrderingPolicy> TestSingleBlockMatrix()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -236,7 +236,7 @@ MatrixPolicy<double, OrderingPolicy> testSingleBlockMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
+MatrixPolicy<int, OrderingPolicy> TestConstSingleBlockMatrix()
 {
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -305,7 +305,7 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testMultiBlockMatrix()
+MatrixPolicy<double, OrderingPolicy> TestMultiBlockMatrix()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -413,7 +413,7 @@ MatrixPolicy<double, OrderingPolicy> testMultiBlockMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testSetScalar()
+MatrixPolicy<double, OrderingPolicy> TestSetScalar()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
 
@@ -430,7 +430,7 @@ MatrixPolicy<double, OrderingPolicy> testSetScalar()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
+MatrixPolicy<int, OrderingPolicy> TestAddToDiagonal()
 {
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -473,7 +473,7 @@ MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testPrintNonZero()
+void TestPrintNonZero()
 {
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -522,7 +522,7 @@ void testPrintNonZero()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<int, OrderingPolicy> testPrint()
+MatrixPolicy<int, OrderingPolicy> TestPrint()
 {
   auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -560,7 +560,7 @@ MatrixPolicy<int, OrderingPolicy> testPrint()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testArrayFunction()
+MatrixPolicy<double, OrderingPolicy> TestArrayFunction()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 0)
@@ -641,7 +641,7 @@ MatrixPolicy<double, OrderingPolicy> testArrayFunction()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>> testMultiMatrixArrayFunction()
+std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>> TestMultiMatrixArrayFunction()
 {
   // MatrixA: 3x3 with 2 non-zero elements per block
   auto builderA = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
@@ -715,7 +715,7 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPo
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testMismatchedBlockDimensions()
+void TestMismatchedBlockDimensions()
 {
   auto builderA = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(3);
 
@@ -748,7 +748,7 @@ void testMismatchedBlockDimensions()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testMismatchedElementDimensions()
+void TestMismatchedElementDimensions()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -779,7 +779,7 @@ void testMismatchedElementDimensions()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testWrongMatrixDimensions()
+void TestWrongMatrixDimensions()
 {
   auto builder1 = MatrixPolicy<double, OrderingPolicy>::Create(4)
                       .WithElement(0, 1)
@@ -828,7 +828,7 @@ void testWrongMatrixDimensions()
 /// @brief Test: Multiple sparse matrices with DIFFERENT block counts from creation (should work)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>>
-testMultipleSparseMatricesDifferentBlocksFromCreation()
+TestMultipleSparseMatricesDifferentBlocksFromCreation()
 {
   // Create function with matrices having 3 blocks
   auto builder3blocks = MatrixPolicy<double, OrderingPolicy>::Create(4)
@@ -897,7 +897,7 @@ testMultipleSparseMatricesDifferentBlocksFromCreation()
 
 /// @brief Test: Sparse matrix + vector with DIFFERENT block/size from creation (should work)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> testSparseMatrixVectorDifferentBlocksFromCreation()
+std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestSparseMatrixVectorDifferentBlocksFromCreation()
 {
   // Create function with 3-block matrix and 3-element vector
   auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
@@ -943,7 +943,7 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> testSparse
 
 /// @brief Test: MISMATCHED block counts at invocation (should throw)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testMismatchedBlocksAtInvocation()
+void TestMismatchedBlocksAtInvocation()
 {
   auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
 
@@ -970,7 +970,7 @@ void testMismatchedBlocksAtInvocation()
 
 /// @brief Test: Multiple sparse matrices with MISMATCHED blocks at invocation (should throw)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testMultipleSparseMatricesMismatchedBlocksAtInvocation()
+void TestMultipleSparseMatricesMismatchedBlocksAtInvocation()
 {
   auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
                       .WithElement(0, 1)
@@ -1012,7 +1012,7 @@ void testMultipleSparseMatricesMismatchedBlocksAtInvocation()
 
 /// @brief Test: Wrong element structure fails, different blocks succeeds
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void testWrongStructureAtInvocation()
+void TestWrongStructureAtInvocation()
 {
   // Same structure, different blocks
   auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
@@ -1051,7 +1051,7 @@ void testWrongStructureAtInvocation()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testMultipleTemporaries()
+MatrixPolicy<double, OrderingPolicy> TestMultipleTemporaries()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(5)
                      .WithElement(0, 1)
@@ -1132,7 +1132,7 @@ MatrixPolicy<double, OrderingPolicy> testMultipleTemporaries()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testBlockViewReuse()
+MatrixPolicy<double, OrderingPolicy> TestBlockViewReuse()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -1194,7 +1194,7 @@ MatrixPolicy<double, OrderingPolicy> testBlockViewReuse()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> testFunctionReusability()
+MatrixPolicy<double, OrderingPolicy> TestFunctionReusability()
 {
   // Create a function once
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3)
@@ -1258,7 +1258,7 @@ MatrixPolicy<double, OrderingPolicy> testFunctionReusability()
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>>
-testTwoSparseMatricesDifferentStructure()
+TestTwoSparseMatricesDifferentStructure()
 {
   // MatrixA: 3x3 with specific sparsity pattern, 4 blocks
   auto builderA = MatrixPolicy<double, OrderingPolicy>::Create(3)
@@ -1352,7 +1352,7 @@ testTwoSparseMatricesDifferentStructure()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, template<class> class DenseMatrixPolicy>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>> testSparseAndDenseMatrixFunction()
+std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>> TestSparseAndDenseMatrixFunction()
 {
   // Sparse matrix: 4x4 with some sparsity pattern, 3 blocks
   auto sparseBuilder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
@@ -1448,7 +1448,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>
 ///  @brief Test that mixing incompatible orderings throws an error
 /// This should fail: vector-ordered sparse (L>1) mixed with standard-ordered dense (L=1)
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, template<class> class DenseMatrixPolicy>
-void testIncompatibleOrdering()
+void TestIncompatibleOrdering()
 {
   // Only run this test if L > 1 (vector ordering)
   static constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
@@ -1471,7 +1471,7 @@ void testIncompatibleOrdering()
 
 /// @brief Test valid combinations of sparse and vector matrices with matching L
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, std::size_t L>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double, L>> testSparseAndVectorMatrixFunction()
+std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double, L>> TestSparseAndVectorMatrixFunction()
 {
   // Verify L matches
   static_assert(OrderingPolicy::GroupVectorSize() == L, "L parameter must match OrderingPolicy GroupVectorSize");
@@ -1539,7 +1539,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double
 
 /// @brief Test that mixing vector matrices with different L values throws an error
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, std::size_t DifferentL>
-void testIncompatibleVectorOrdering()
+void TestIncompatibleVectorOrdering()
 {
   static constexpr std::size_t SparseL = OrderingPolicy::GroupVectorSize();
 
@@ -1563,7 +1563,7 @@ void testIncompatibleVectorOrdering()
 
 /// @brief Test that mixing two sparse matrices with different L values throws an error
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy1, class OrderingPolicy2>
-void testIncompatibleSparseOrdering()
+void TestIncompatibleSparseOrdering()
 {
   static constexpr std::size_t L1 = OrderingPolicy1::GroupVectorSize();
   static constexpr std::size_t L2 = OrderingPolicy2::GroupVectorSize();
@@ -1591,7 +1591,7 @@ void testIncompatibleSparseOrdering()
 
 /// @brief Test const-correctness with sparse matrices
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testConstSparseMatrixFunction()
+void TestConstSparseMatrixFunction()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -1640,7 +1640,7 @@ void testConstSparseMatrixFunction()
 
 /// @brief Test edge case with empty sparse matrices
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testEmptySparseMatrixFunction()
+void TestEmptySparseMatrixFunction()
 {
   // Test with 0 non-zero elements
   auto empty_builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4).SetNumberOfBlocks(3);
@@ -1680,7 +1680,7 @@ void testEmptySparseMatrixFunction()
 // ============================================================================
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-SparseMatrixPolicy<double, OrderingPolicy> testVectorInSparseMatrixFunction()
+SparseMatrixPolicy<double, OrderingPolicy> TestVectorInSparseMatrixFunction()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -1719,7 +1719,7 @@ SparseMatrixPolicy<double, OrderingPolicy> testVectorInSparseMatrixFunction()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testVectorTooSmall()
+void TestVectorTooSmall()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1737,7 +1737,7 @@ void testVectorTooSmall()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testVectorTooLarge()
+void TestVectorTooLarge()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1755,7 +1755,7 @@ void testVectorTooLarge()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testEmptyVectorNonEmptySparseMatrix()
+void TestEmptyVectorNonEmptySparseMatrix()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1773,7 +1773,7 @@ void testEmptyVectorNonEmptySparseMatrix()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testNonEmptyVectorEmptySparseMatrix()
+void TestNonEmptyVectorEmptySparseMatrix()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(0);
 
@@ -1791,7 +1791,7 @@ void testNonEmptyVectorEmptySparseMatrix()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testEmptyVectorEmptySparseMatrix()
+void TestEmptyVectorEmptySparseMatrix()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(0);
 
@@ -1812,7 +1812,7 @@ void testEmptyVectorEmptySparseMatrix()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testMultipleVectorsDifferentSizes()
+void TestMultipleVectorsDifferentSizes()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1833,7 +1833,7 @@ void testMultipleVectorsDifferentSizes()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testMultipleVectorsSameSize()
+void TestMultipleVectorsSameSize()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1856,7 +1856,7 @@ void testMultipleVectorsSameSize()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testMultipleSparseMatricesOneVector()
+void TestMultipleSparseMatricesOneVector()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1891,7 +1891,7 @@ void testMultipleSparseMatricesOneVector()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testMultipleSparseMatricesDifferentBlocksVector()
+void TestMultipleSparseMatricesDifferentBlocksVector()
 {
   auto builder1 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
   auto builder2 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(4);
@@ -1913,7 +1913,7 @@ void testMultipleSparseMatricesDifferentBlocksVector()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testVectorSizeMatchesOneSparseMatrixOnly()
+void TestVectorSizeMatchesOneSparseMatrixOnly()
 {
   auto builder1 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
   auto builder2 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
@@ -1937,7 +1937,7 @@ void testVectorSizeMatchesOneSparseMatrixOnly()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-SparseMatrixPolicy<double, OrderingPolicy> testConstVectorSparse()
+SparseMatrixPolicy<double, OrderingPolicy> TestConstVectorSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1959,7 +1959,7 @@ SparseMatrixPolicy<double, OrderingPolicy> testConstVectorSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> testMutableVectorSparse()
+std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestMutableVectorSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -1986,7 +1986,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> test
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testFunctionReusabilityWithVectorsSparse()
+void TestFunctionReusabilityWithVectorsSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -2012,7 +2012,7 @@ void testFunctionReusabilityWithVectorsSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testFunctionInvocationWithWrongSizedVectorSparse()
+void TestFunctionInvocationWithWrongSizedVectorSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -2031,7 +2031,7 @@ void testFunctionInvocationWithWrongSizedVectorSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testArraySupportSparse()
+void TestArraySupportSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -2052,7 +2052,7 @@ void testArraySupportSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testMixedVectorBlockViewBlockVariable()
+void TestMixedVectorBlockViewBlockVariable()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
@@ -2093,7 +2093,7 @@ void testMixedVectorBlockViewBlockVariable()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testIntegerVectorSparse()
+void TestIntegerVectorSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
@@ -2114,7 +2114,7 @@ void testIntegerVectorSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-void testFunctionWithConstSignatureSparse()
+void TestFunctionWithConstSignatureSparse()
 {
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(2).WithElement(0, 0).SetNumberOfBlocks(3);
 
@@ -2134,7 +2134,7 @@ void testFunctionWithConstSignatureSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-SparseMatrixPolicy<double, OrderingPolicy> testGetBlockViewByVectorIndex()
+SparseMatrixPolicy<double, OrderingPolicy> TestGetBlockViewByVectorIndex()
 {
   // Create a sparse matrix with a simple 3x3 sparsity pattern
   auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).SetNumberOfBlocks(3).InitialValue(0.0);

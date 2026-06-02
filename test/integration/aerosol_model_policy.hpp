@@ -34,8 +34,8 @@ CreateSystemWithStubAerosolModels()
   std::map<std::string, micm::Phase> phases = { { "GAS", gas }, { "QUUX", quux }, { "CORGE", corge } };
 
   // Create instances of each stub aerosol model
-  StubAerosolModel::RateConstants rate_constants = { .fo2_gas_to_mode2_corge = STUB1_RATE_CONSTANT_FO2_CORGE,
-                                                     .baz_mode1_to_mode2_quux = STUB1_RATE_CONSTANT_BAZ_QUUX };
+  StubAerosolModel::RateConstants rate_constants = { .fo2_gas_to_mode2_corge_ = STUB1_RATE_CONSTANT_FO2_CORGE,
+                                                     .baz_mode1_to_mode2_quux_ = STUB1_RATE_CONSTANT_BAZ_QUUX };
   auto aerosol_1 = StubAerosolModel("STUB1", std::vector<micm::Phase>({ quux, corge }), rate_constants);
   auto aerosol_2 = AnotherStubAerosolModel("STUB2", std::vector<micm::Phase>({ quux, corge }));
 
@@ -47,7 +47,7 @@ CreateSystemWithStubAerosolModels()
 
 /// @brief Test that state includes stub aerosol model variables
 template<class BuilderPolicy>
-void test_state_includes_stub_aerosol_model(BuilderPolicy builder)
+void TestStateIncludesStubAerosolModel(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -91,7 +91,7 @@ void test_state_includes_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test updating state with stub aerosol model (single grid cell)
 template<class BuilderPolicy>
-void test_update_state_with_stub_aerosol_model(BuilderPolicy builder)
+void TestUpdateStateWithStubAerosolModel(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -162,7 +162,7 @@ void test_update_state_with_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test updating multi-cell state with stub aerosol model
 template<class BuilderPolicy>
-void test_update_multi_cell_state_with_stub_aerosol_model(BuilderPolicy builder)
+void TestUpdateMultiCellStateWithStubAerosolModel(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -238,7 +238,7 @@ void test_update_multi_cell_state_with_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test single grid cell forcing calculation with stub aerosol model
 template<class BuilderPolicy>
-void test_single_cell_forcing_with_stub_aerosol_model(BuilderPolicy builder)
+void TestSingleCellForcingWithStubAerosolModel(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -294,7 +294,7 @@ void test_single_cell_forcing_with_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test single grid cell Jacobian calculation with stub aerosol model
 template<class BuilderPolicy>
-void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
+void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -358,7 +358,7 @@ void test_single_cell_jacobian_with_stub_aerosol_model(BuilderPolicy builder)
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithStubAerosolModel1(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -408,7 +408,7 @@ void test_solve_with_stub_aerosol_model_1(BuilderPolicy builder, double base_rel
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -488,7 +488,7 @@ void test_solve_with_two_stub_aerosol_models(BuilderPolicy builder, double base_
 
 /// @brief Test solving with stub aerosol model using 3 grid cells
 template<class BuilderPolicy>
-void test_solve_with_stub_aerosol_model_1_multi_cell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -561,7 +561,7 @@ void test_solve_with_stub_aerosol_model_1_multi_cell(BuilderPolicy builder, doub
 
 /// @brief Test solving with two stub aerosol models using 3 grid cells
 template<class BuilderPolicy>
-void test_solve_with_two_stub_aerosol_models_multi_cell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 

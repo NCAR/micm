@@ -53,6 +53,7 @@ Checks: >
   -*,
   # explicitly enabled checks
   readability-braces-around-statements,
+  readability-identifier-naming,
   # explicitly disabled checks
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
@@ -85,18 +86,14 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.FunctionIgnoredRegexp
     value:           '^(begin|end|operator.*)$'
-  - key:             readability-identifier-naming.VariableCase
-    value:           lower_case
   - key:             readability-identifier-naming.ParameterCase
     value:           aNy_CasE
   - key:             readability-identifier-naming.MemberCase
     value:           aNy_CasE
   - key:             readability-identifier-naming.MemberSuffix
     value:           _
-  - key:             readability-identifier-naming.ConstantCase
-    value:           UPPER_CASE
-  - key:             readability-identifier-naming.ClassConstantCase
-    value:           UPPER_CASE
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           CamelCase
   - key:             readability-identifier-naming.GlobalConstantCase
     value:           UPPER_CASE
   - key:             readability-identifier-naming.TemplateParameterCase
