@@ -43,7 +43,7 @@ namespace micm
 
   /// Helper variable template
   template<typename T>
-  inline constexpr std::size_t GroupVectorSize_v = GroupVectorSize<T>::value;
+  inline constexpr std::size_t GROUP_VECTOR_SIZE_V = GroupVectorSize<T>::value;
 
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
@@ -532,7 +532,7 @@ namespace micm
             if constexpr (!VectorLike<ArgType>)
             {
               // Get the L value for this matrix using the type trait
-              constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+              constexpr std::size_t matrix_L = GROUP_VECTOR_SIZE_V<std::decay_t<decltype(arg)>>;
 
               if (matrix_L != expected_L)
               {

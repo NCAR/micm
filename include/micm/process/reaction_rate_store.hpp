@@ -61,41 +61,41 @@ namespace micm
     // ----------------------------------------------------------------
     // Contiguous-block offsets into state.rate_constants_[cell]
     // ----------------------------------------------------------------
-    std::size_t troe_offset() const
+    std::size_t TroeOffset() const
     {
       return arrhenius_.size();
     }
-    std::size_t ternary_offset() const
+    std::size_t TernaryOffset() const
     {
-      return troe_offset() + troe_.size();
+      return TroeOffset() + troe_.size();
     }
-    std::size_t branched_offset() const
+    std::size_t BranchedOffset() const
     {
-      return ternary_offset() + ternary_.size();
+      return TernaryOffset() + ternary_.size();
     }
-    std::size_t tunneling_offset() const
+    std::size_t TunnelingOffset() const
     {
-      return branched_offset() + branched_.size();
+      return BranchedOffset() + branched_.size();
     }
-    std::size_t taylor_offset() const
+    std::size_t TaylorOffset() const
     {
-      return tunneling_offset() + tunneling_.size();
+      return TunnelingOffset() + tunneling_.size();
     }
-    std::size_t reversible_offset() const
+    std::size_t ReversibleOffset() const
     {
-      return taylor_offset() + taylor_.size();
+      return TaylorOffset() + taylor_.size();
     }
-    std::size_t user_defined_offset() const
+    std::size_t UserDefinedOffset() const
     {
-      return reversible_offset() + reversible_.size();
+      return ReversibleOffset() + reversible_.size();
     }
-    std::size_t surface_offset() const
+    std::size_t SurfaceOffset() const
     {
-      return user_defined_offset() + user_defined_.size();
+      return UserDefinedOffset() + user_defined_.size();
     }
-    std::size_t lambda_offset() const
+    std::size_t LambdaOffset() const
     {
-      return surface_offset() + surface_.size();
+      return SurfaceOffset() + surface_.size();
     }
 
     // ----------------------------------------------------------------
@@ -104,8 +104,8 @@ namespace micm
 
     struct LambdaEntry
     {
-      LambdaRateConstantParameters* source;  ///< Non-owning; valid for the lifetime of the owning Solver.
-      std::size_t rc_index;                  ///< Column index in state.rate_constants_[cell].
+      LambdaRateConstantParameters* source_;  ///< Non-owning; valid for the lifetime of the owning Solver.
+      std::size_t rc_index_;                  ///< Column index in state.rate_constants_[cell].
     };
     std::vector<LambdaEntry> lambda_entries_;
 
@@ -116,8 +116,8 @@ namespace micm
     /// @brief One entry per reaction with at least one parameterized reactant.
     struct ParameterizedMultiplier
     {
-      std::function<double(const Conditions&)> evaluate;
-      std::size_t rc_index;
+      std::function<double(const Conditions&)> evaluate_;
+      std::size_t rc_index_;
     };
     std::vector<ParameterizedMultiplier> parameterized_multipliers_;
 
@@ -258,7 +258,7 @@ namespace micm
           {
             const auto& cond = state.conditions_[i_group * L + i_cell];
             for (const auto& entry : store.lambda_entries_)
-              v_rc[rc_base + entry.rc_index * L + i_cell] = entry.source->lambda_function_(cond);
+              v_rc[rc_base + entry.rc_index_ * L + i_cell] = entry.source_->lambda_function_(cond);
           }
         }
       }
@@ -268,7 +268,7 @@ namespace micm
         {
           const auto& cond = state.conditions_[i_cell];
           for (const auto& entry : store.lambda_entries_)
-            state.rate_constants_[i_cell][entry.rc_index] = entry.source->lambda_function_(cond);
+            state.rate_constants_[i_cell][entry.rc_index_] = entry.source_->lambda_function_(cond);
         }
       }
     }
@@ -299,7 +299,7 @@ namespace micm
               const auto& p = store.troe_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c) { out = CalculateTroe(p, c.temperature_, c.air_density_); },
-                  rc.GetColumnView(store.troe_offset() + i),
+                  rc.GetColumnView(store.TroeOffset() + i),
                   cond);
             }
             for (std::size_t i = 0; i < store.ternary_.size(); ++i)
@@ -308,7 +308,7 @@ namespace micm
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c)
                   { out = CalculateTernaryChemicalActivation(p, c.temperature_, c.air_density_); },
-                  rc.GetColumnView(store.ternary_offset() + i),
+                  rc.GetColumnView(store.TernaryOffset() + i),
                   cond);
             }
             for (std::size_t i = 0; i < store.branched_.size(); ++i)
@@ -316,7 +316,7 @@ namespace micm
               const auto& p = store.branched_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c) { out = CalculateBranched(p, c.temperature_, c.air_density_); },
-                  rc.GetColumnView(store.branched_offset() + i),
+                  rc.GetColumnView(store.BranchedOffset() + i),
                   cond);
             }
             for (std::size_t i = 0; i < store.tunneling_.size(); ++i)
@@ -324,7 +324,7 @@ namespace micm
               const auto& p = store.tunneling_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c) { out = CalculateTunneling(p, c.temperature_); },
-                  rc.GetColumnView(store.tunneling_offset() + i),
+                  rc.GetColumnView(store.TunnelingOffset() + i),
                   cond);
             }
             for (std::size_t i = 0; i < store.taylor_.size(); ++i)
@@ -332,7 +332,7 @@ namespace micm
               const auto& p = store.taylor_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c) { out = CalculateTaylorSeries(p, c.temperature_, c.pressure_); },
-                  rc.GetColumnView(store.taylor_offset() + i),
+                  rc.GetColumnView(store.TaylorOffset() + i),
                   cond);
             }
             for (std::size_t i = 0; i < store.reversible_.size(); ++i)
@@ -340,7 +340,7 @@ namespace micm
               const auto& p = store.reversible_[i];
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c) { out = CalculateReversible(p, c.temperature_); },
-                  rc.GetColumnView(store.reversible_offset() + i),
+                  rc.GetColumnView(store.ReversibleOffset() + i),
                   cond);
             }
             for (std::size_t i = 0; i < store.user_defined_.size(); ++i)
@@ -348,7 +348,7 @@ namespace micm
               const auto& p = store.user_defined_[i];
               rc.ForEachRow(
                   [&p](double& out, const double& cp_val) { out = CalculateUserDefined(p, cp_val); },
-                  rc.GetColumnView(store.user_defined_offset() + i),
+                  rc.GetColumnView(store.UserDefinedOffset() + i),
                   cp.GetConstColumnView(p.custom_param_index_));
             }
             for (std::size_t i = 0; i < store.surface_.size(); ++i)
@@ -357,7 +357,7 @@ namespace micm
               rc.ForEachRow(
                   [&p](double& out, const Conditions& c, const double& radius, const double& num_conc)
                   { out = CalculateSurfaceOne(p, c.temperature_, radius, num_conc); },
-                  rc.GetColumnView(store.surface_offset() + i),
+                  rc.GetColumnView(store.SurfaceOffset() + i),
                   cond,
                   cp.GetConstColumnView(p.custom_param_base_index_),
                   cp.GetConstColumnView(p.custom_param_base_index_ + 1));
@@ -365,7 +365,7 @@ namespace micm
             for (const auto& mult : store.parameterized_multipliers_)
             {
               rc.ForEachRow(
-                  [&mult](double& v, const Conditions& c) { v *= mult.evaluate(c); }, rc.GetColumnView(mult.rc_index), cond);
+                  [&mult](double& v, const Conditions& c) { v *= mult.evaluate_(c); }, rc.GetColumnView(mult.rc_index_), cond);
             }
           },
           state.rate_constants_,

@@ -155,7 +155,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       A_aq,
       std::vector<StoichSpecies>{ { A_gas, 1.0 } },
       std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = 0.0 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
   // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
   constraints.push_back(

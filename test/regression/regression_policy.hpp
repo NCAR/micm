@@ -10,12 +10,12 @@
 #include <utility>
 #include <vector>
 
-double calculate_air_density_mol_m3(double pressure, double temperature)
+double CalculateAirDensityMolM3(double pressure, double temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
 
-void writeCSV(
+void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
@@ -102,7 +102,7 @@ std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(c
 }
 
 template<class BuilderPolicy>
-void test_flow_tube(
+void TestFlowTube(
     BuilderPolicy builder,
     std::string expected_results_path,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -164,7 +164,7 @@ void test_flow_tube(
 
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325;
-  state.conditions_[0].air_density_ = calculate_air_density_mol_m3(101325, 298.15);
+  state.conditions_[0].air_density_ = CalculateAirDensityMolM3(101325, 298.15);
 
   solver.UpdateStateParameters(state);
 

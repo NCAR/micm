@@ -8,47 +8,47 @@
 
 #include <cmath>
 
-/* Below are the policy tests on the CPU */
+/* Below are the policy Tests on the CPU */
 
 TEST(SparseVectorCompressedColumnMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, SetScalar)
 {
-  testSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, AddToDiagonal)
 {
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, Print)
 {
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, PrintNonZero)
 {
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
-/* These are the customized tests for GPU only */
+/* These are the customized Tests for GPU only */
 
 TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
 {
@@ -230,7 +230,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
 template<std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
-  auto matrix = testSingleBlockMatrix<
+  auto matrix = TestSingleBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
@@ -270,7 +270,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 template<std::size_t cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
-  auto matrix = testMultiBlockMatrix<
+  auto matrix = TestMultiBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 

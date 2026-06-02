@@ -9,10 +9,10 @@ auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters
 
 TEST(RosenbrockRegression, FlowTube)
 {
-  test_flow_tube(rosenbrock_2stage, "expected_results/rosenbrock_wall_loss.csv");
+  TestFlowTube(rosenbrock_2stage, "expected_results/rosenbrock_wall_loss.csv");
 }
 
 TEST(BackwardEulerRegression, FlowTube)
 {
-  test_flow_tube(backward_euler, "expected_results/backward_euler_wall_loss.csv");
+  TestFlowTube(backward_euler, "expected_results/backward_euler_wall_loss.csv");
 }

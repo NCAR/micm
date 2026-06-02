@@ -17,9 +17,9 @@ using namespace micm;
 /// @brief Helper: build a simple A→B system with equilibrium constraint C = K_eq * B
 struct SimpleConstrainedSystem
 {
-  static constexpr double k = 0.5;
-  static constexpr double K_eq = 2.0;
-  static constexpr double delta_H = 0.0;  // No temperature dependence for simplicity
+  static constexpr double K = 0.5;
+  static constexpr double K_EQ = 2.0;
+  static constexpr double DELTA_H = 0.0;  // No temperature dependence for simplicity
 
   template<class SolverBuilderPolicy>
   static auto Build(SolverBuilderPolicy builder)
@@ -33,7 +33,7 @@ struct SimpleConstrainedSystem
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ A })
                       .SetProducts({ { B, 1 } })
-                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = K, .B_ = 0, .C_ = 0 })
                       .SetPhase(gas_phase)
                       .Build();
 
@@ -44,7 +44,7 @@ struct SimpleConstrainedSystem
         C,
         std::vector<StoichSpecies>{ { B, 1.0 } },
         std::vector<StoichSpecies>{ { C, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
+        VantHoffParam{ .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
 
     return builder.SetSystem(System(gas_phase))
         .SetReactions({ rxn })
@@ -70,7 +70,7 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_eq * 0.5;  // C = K_eq * B = consistent
+  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_EQ * 0.5;  // C = K_eq * B = consistent
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 
@@ -199,7 +199,7 @@ TEST(ConstraintInitialization, MultiCellSystems)
   auto B_idx = state.variable_map_.at("B");
   auto C_idx = state.variable_map_.at("C");
 
-  double K_eq = SimpleConstrainedSystem::K_eq;
+  double K_eq = SimpleConstrainedSystem::K_EQ;
 
   // Cell 0: consistent
   state.variables_[0][A_idx] = 1.0;
@@ -251,7 +251,7 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   // Start consistent
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_eq * 0.5;
+  state.variables_[0][C_idx] = SimpleConstrainedSystem::K_EQ * 0.5;
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
 

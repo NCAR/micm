@@ -45,6 +45,7 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_GPU_TYPE="a100" \
+        -D CMAKE_CXX_FLAGS="--diag_suppress not_used_in_template_function_params,nodiscard_return_type" \
         ../micm \
       && make -j 4
 

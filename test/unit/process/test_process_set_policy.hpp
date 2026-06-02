@@ -12,14 +12,14 @@
 using namespace micm;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
-void compare_pair(const index_pair& a, const index_pair& b)
+void ComparePair(const index_pair& a, const index_pair& b)
 {
   EXPECT_EQ(a.first, b.first);
   EXPECT_EQ(a.second, b.second);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testProcessSet()
+void TestProcessSet()
 {
   auto foo = Species("foo");
   auto bar = Species("bar");
@@ -122,19 +122,19 @@ void testProcessSet()
   // quuz 11    -   12    -    -
 
   auto elem = non_zero_elements.begin();
-  compare_pair(*elem, index_pair(0, 0));
-  compare_pair(*(++elem), index_pair(0, 1));
-  compare_pair(*(++elem), index_pair(0, 2));
-  compare_pair(*(++elem), index_pair(1, 0));
-  compare_pair(*(++elem), index_pair(1, 1));
-  compare_pair(*(++elem), index_pair(1, 2));
-  compare_pair(*(++elem), index_pair(2, 0));
-  compare_pair(*(++elem), index_pair(2, 2));
-  compare_pair(*(++elem), index_pair(3, 1));
-  compare_pair(*(++elem), index_pair(3, 2));
-  compare_pair(*(++elem), index_pair(3, 3));
-  compare_pair(*(++elem), index_pair(4, 0));
-  compare_pair(*(++elem), index_pair(4, 2));
+  ComparePair(*elem, index_pair(0, 0));
+  ComparePair(*(++elem), index_pair(0, 1));
+  ComparePair(*(++elem), index_pair(0, 2));
+  ComparePair(*(++elem), index_pair(1, 0));
+  ComparePair(*(++elem), index_pair(1, 1));
+  ComparePair(*(++elem), index_pair(1, 2));
+  ComparePair(*(++elem), index_pair(2, 0));
+  ComparePair(*(++elem), index_pair(2, 2));
+  ComparePair(*(++elem), index_pair(3, 1));
+  ComparePair(*(++elem), index_pair(3, 2));
+  ComparePair(*(++elem), index_pair(3, 3));
+  ComparePair(*(++elem), index_pair(4, 0));
+  ComparePair(*(++elem), index_pair(4, 2));
 
   auto builder = SparseMatrixPolicy::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
@@ -179,7 +179,7 @@ void testProcessSet()
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -247,7 +247,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 
 /// @brief Test that algebraic-row masking works correctly: algebraic species' rows remain unchanged
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testAlgebraicMasking()
+void TestAlgebraicMasking()
 {
   auto A = Species("A");
   auto B = Species("B");
@@ -386,7 +386,7 @@ void testAlgebraicMasking()
 
 /// @brief Verify ProcessSet analytical Jacobian against finite-difference approximation
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void testProcessSetFiniteDifferenceJacobian()
+void TestProcessSetFiniteDifferenceJacobian()
 {
   // Simple 3-species system where all species participate:
   //   r1: A + B -> 2C  (rate k1)
@@ -459,15 +459,15 @@ void testProcessSetFiniteDifferenceJacobian()
   auto comparison = micm::CompareJacobianToFiniteDifference<DenseMatrixPolicy, SparseMatrixPolicy>(
       analytical_jacobian, fd_jacobian, num_species);
 
-  EXPECT_TRUE(comparison.passed) << "Worst error at block=" << comparison.worst_block << " row=" << comparison.worst_row
-                                 << " col=" << comparison.worst_col << " analytical=" << comparison.worst_analytical
-                                 << " fd=" << comparison.worst_fd;
+  EXPECT_TRUE(comparison.passed_) << "Worst error at block=" << comparison.worst_block_ << " row=" << comparison.worst_row_
+                                 << " col=" << comparison.worst_col_ << " analytical=" << comparison.worst_analytical_
+                                 << " fd=" << comparison.worst_fd_;
 
   // Also verify sparsity completeness
   auto sparsity_check = micm::CheckJacobianSparsityCompleteness<DenseMatrixPolicy, SparseMatrixPolicy>(
       analytical_jacobian, fd_jacobian, num_species);
 
-  EXPECT_TRUE(sparsity_check.passed) << "Undeclared non-zero at block=" << sparsity_check.worst_block
-                                     << " row=" << sparsity_check.worst_row << " col=" << sparsity_check.worst_col
-                                     << " fd_value=" << sparsity_check.worst_fd;
+  EXPECT_TRUE(sparsity_check.passed_) << "Undeclared non-zero at block=" << sparsity_check.worst_block_
+                                     << " row=" << sparsity_check.worst_row_ << " col=" << sparsity_check.worst_col_
+                                     << " fd_value=" << sparsity_check.worst_fd_;
 }
