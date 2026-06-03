@@ -663,7 +663,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockView)
     template<SparseMatrixBlockView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
@@ -686,7 +686,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg.Get();
     }
@@ -694,7 +694,7 @@ namespace micm
     /// @brief Get an element reference for a block (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg[block];
     }

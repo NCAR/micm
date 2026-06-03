@@ -187,7 +187,7 @@ namespace micm
       /// @brief Get element from sparse matrix ConstBlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -334,7 +334,7 @@ namespace micm
       /// @brief Get element from sparse matrix BlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
