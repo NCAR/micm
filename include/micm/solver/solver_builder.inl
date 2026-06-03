@@ -54,7 +54,7 @@ namespace micm
     if (unused_species.size() > 0)
     {
       std::string err_msg = "Unused species in chemical system:";
-      for (auto& species : unused_species)
+      for (const auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ".";
       throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
@@ -137,9 +137,9 @@ namespace micm
     for (const auto& reaction : reactions_)
     {
       const auto& process = reaction.process_;
-      if (auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process.rate_constant_))
+      if (const auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process.rate_constant_))
         add_param(ud->label_, "reaction");
-      else if (auto* surf = std::get_if<SurfaceRateConstantParameters>(&process.rate_constant_))
+      else if (const auto* surf = std::get_if<SurfaceRateConstantParameters>(&process.rate_constant_))
       {
         add_param(surf->label_ + ".effective radius [m]", "reaction");
         add_param(surf->label_ + ".particle number concentration [# m-3]", "reaction");
@@ -187,9 +187,9 @@ namespace micm
           const
   {
     tolerances = std::vector<double>(species_map.size(), 1e-3);
-    for (auto& phase_species : system_.gas_phase_.phase_species_)
+    for (const auto& phase_species : system_.gas_phase_.phase_species_)
     {
-      auto& species = phase_species.species_;
+      const auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
       {
         tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");

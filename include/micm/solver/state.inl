@@ -349,7 +349,7 @@ namespace micm
     for (auto& name : variable_names_)
       variable_map_[name] = index++;
     index = 0;
-    for (auto& label : parameters.custom_rate_parameter_labels_)
+    for (const auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
     if (!parameters.mass_matrix_diagonal_.empty())
@@ -656,7 +656,7 @@ namespace micm
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
-    for (auto& pair : parameters)
+    for (const auto& pair : parameters)
       SetCustomRateParameter(pair.first, pair.second);
   }
 

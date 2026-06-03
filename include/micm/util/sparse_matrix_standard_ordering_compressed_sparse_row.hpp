@@ -418,7 +418,7 @@ namespace micm
       std::vector<std::size_t> starts(block_size + 1, 0);
       std::size_t total_elem = 0;
       std::size_t curr_row = 0;
-      for (auto& elem : non_zero_elements)
+      for (const auto& elem : non_zero_elements)
       {
         while (curr_row < elem.first)
           starts[(curr_row++) + 1] = total_elem;

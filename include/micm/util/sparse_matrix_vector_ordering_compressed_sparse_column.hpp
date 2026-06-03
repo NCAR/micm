@@ -197,7 +197,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -216,7 +216,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -230,7 +230,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Vector ordering: BlockVariable has array storage
         return arg.Get()[block_in_group];
@@ -240,7 +240,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -250,7 +250,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_ * L + block_in_group];
       }
@@ -259,7 +259,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -344,7 +344,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -363,7 +363,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -377,7 +377,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Vector ordering: BlockVariable has array storage
         return arg.Get()[block_in_group];
@@ -387,7 +387,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -397,7 +397,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_ * L + block_in_group];
       }
@@ -406,7 +406,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_];
       }
@@ -532,7 +532,7 @@ namespace micm
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
       for (const auto& elem : non_zero_elements)
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
-      for (auto& elem : column_ordered_pairs)
+      for (const auto& elem : column_ordered_pairs)
       {
         while (curr_row < elem.first)
           starts[(curr_row++) + 1] = total_elem;

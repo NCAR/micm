@@ -60,6 +60,7 @@ Checks: >
   readability-braces-around-statements,
   readability-identifier-naming,
   readability-redundant-inline-specifier,
+  readability-qualified-auto,
   # explicitly disabled checks
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
