@@ -566,7 +566,7 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -575,7 +575,7 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg)
       {
         return arg.Get();
       }
@@ -583,7 +583,7 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg)
       {
         return arg[row_];
       }
@@ -783,7 +783,7 @@ namespace micm
     /// @brief Get an element reference for a row (ColumnView)
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -792,7 +792,7 @@ namespace micm
     /// @brief Get an element reference for a row (RowVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       return arg.Get();
     }
@@ -800,7 +800,7 @@ namespace micm
     /// @brief Get an element reference for a row (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       return arg[row];
     }
@@ -808,7 +808,7 @@ namespace micm
     /// @brief Get a const element reference for a row (ColumnView) - const version
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       auto* source_matrix = arg.GetMatrix();
       return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -817,7 +817,7 @@ namespace micm
     /// @brief Get a const element reference for a row (RowVariable) - const version
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       return arg.Get();
     }
@@ -825,7 +825,7 @@ namespace micm
     /// @brief Get a const element reference for a row (Vector-like) - const version
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       return arg[row];
     }
