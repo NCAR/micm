@@ -47,6 +47,11 @@
 # -cert-err58-cpp / -cert-msc51-cpp:
 #   err58 fires on static storage with non-trivial constructors;
 #   msc51 is a Windows-specific RNG check.
+#
+# -bugprone-narrowing-conversions:
+#   Fires on size_t->double in math expressions and unsigned->ptrdiff_t in
+#   std::next calls. All are safe within realistic problem sizes for a chemistry
+#   solver. Too noisy for the benefit.
 
 Checks: >
   # disable all checks
@@ -65,6 +70,7 @@ Checks: >
   -readability-function-cognitive-complexity,
   -bugprone-signal-handler,
   -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
   -cert-err58-cpp,
   -cert-msc51-cpp,
   -performance-enum-size,

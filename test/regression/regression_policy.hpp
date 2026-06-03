@@ -57,7 +57,7 @@ void WriteCsv(
   }
 }
 
-std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(const std::string& filename)
+std::pair<std::vector<std::string>, std::vector<std::vector<double>>> ReadCsv(const std::string& filename)
 {
   std::ifstream file(filename);
   if (file.is_open())
@@ -195,7 +195,7 @@ void TestFlowTube(
   // writeCSV(expected_results_path, header, model_concentrations, times);
 
   // Check that the results we got match exactly to those we expect
-  auto [header_out, data_out] = read_csv(expected_results_path);
+  auto [header_out, data_out] = ReadCsv(expected_results_path);
 
   EXPECT_EQ(header, header_out);
   EXPECT_EQ(model_concentrations.size(), data_out.size());
