@@ -35,7 +35,7 @@ FROM install AS build-cuda
 # via --cuda-path.
 RUN cmake \
       -DCMAKE_CUDA_COMPILER=clang++ \
-      -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr --no-cuda-version-check" \
+      -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
