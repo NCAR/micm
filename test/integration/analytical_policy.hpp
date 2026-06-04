@@ -1,3 +1,5 @@
+#pragma once
+
 #include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>

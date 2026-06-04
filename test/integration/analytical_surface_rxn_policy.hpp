@@ -1,3 +1,7 @@
+#pragma once
+
+#include "analytical_policy.hpp"  // RelativeError
+
 #include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>

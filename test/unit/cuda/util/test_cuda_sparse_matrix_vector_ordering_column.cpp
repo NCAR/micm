@@ -64,7 +64,7 @@ TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -74,33 +74,33 @@ TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
   EXPECT_EQ(2, matrix.AsVector().size());
   EXPECT_EQ(2, oneMatrix.AsVector().size());
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   matrix.CopyToHost();
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -123,22 +123,22 @@ TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrixAddOne)
 
   EXPECT_EQ(matrix.AsVector().size(), 2);
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -161,7 +161,7 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
   }
 
   EXPECT_EQ(2, oneMatrix.AsVector().size());
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -170,14 +170,14 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
   auto param = oneMatrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -193,7 +193,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>> matrix{ builder };
 
   EXPECT_EQ(2, matrix.AsVector().size());
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -202,7 +202,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -214,14 +214,14 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
         "The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
   }
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }

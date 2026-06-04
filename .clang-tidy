@@ -104,8 +104,14 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.GlobalConstantCase
     value:           UPPER_CASE
+    # Allow Google-style 'k'-prefixed constants (e.g. kConditions) used in tests.
+  - key:             readability-identifier-naming.GlobalConstantIgnoredRegexp
+    value:           '^k[A-Z][A-Za-z0-9_]*$'
   - key:             readability-identifier-naming.TemplateParameterCase
     value:           CamelCase
+    # CUDA tests use 'cuda_matrix_vector_length' as a template parameter name.
+  - key:             readability-identifier-naming.TemplateParameterIgnoredRegexp
+    value:           '^cuda_matrix_vector_length$'
   - key:             readability-implicit-bool-conversion.AllowIntegerConditions
     value:           1
   - key:             readability-implicit-bool-conversion.AllowPointerConditions

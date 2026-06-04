@@ -72,11 +72,12 @@ RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*
           --extra-arg="-Iinclude/"
 
 # -----------------------------------------------------------------------------
-# scan-tests: unit, integration, and tutorial tests (excluding CUDA-only and JIT files)
+# scan-tests: unit and integration tests (excluding tutorial, JIT, and OpenMP
+# tests -- the latter need -fopenmp/libomp to parse and are scanned separately)
 # Run locally: docker build --target scan-tests --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cuda AS scan-tests
 RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cu' \) \
-        ! -path '*/tutorial/*' ! -path '*jit*' \
+        ! -path '*/tutorial/*' ! -path '*jit*' ! -path '*/openmp/*' \
       | xargs clang-tidy-22 \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
