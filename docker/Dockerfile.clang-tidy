@@ -1,5 +1,6 @@
 FROM ubuntu:24.04 AS install
 
+# Ubuntu 24.04's default clang-tidy is v18, update to clang 22
 RUN apt -y update \
     && apt -y install \
         cmake \
@@ -7,11 +8,16 @@ RUN apt -y update \
         git \
         make \
         nvidia-cuda-toolkit \
-        clang \
-        clang-tidy \
         llvm-dev \
         libomp-dev \
         build-essential \
+        wget \
+        gnupg \
+        ca-certificates \
+    && wget -qO /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key \
+    && echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" > /etc/apt/sources.list.d/llvm.list \
+    && apt -y update \
+    && apt -y install clang-22 clang-tidy-22 \
     && apt clean all
 
 COPY . /micm/
@@ -34,7 +40,7 @@ FROM install AS build-cuda
 # so no device toolchain (libdevice/ptxas) is needed, only the CUDA headers found
 # via --cuda-path.
 RUN cmake \
-      -DCMAKE_CUDA_COMPILER=clang++ \
+      -DCMAKE_CUDA_COMPILER=clang++-22 \
       -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DMICM_GPU_TYPE=v100 \
@@ -46,7 +52,7 @@ RUN cmake \
 # Run locally: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cpu AS scan-includes
 RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
-      | xargs clang-tidy \
+      | xargs clang-tidy-22 \
           -p ./build/ \
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
@@ -58,7 +64,7 @@ RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
 # Run locally: docker build --target scan-cuda-source --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cuda AS scan-cuda-source
 RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) \
-      | xargs clang-tidy \
+      | xargs clang-tidy-22 \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
@@ -71,7 +77,7 @@ RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*
 FROM build-cuda AS scan-tests
 RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cu' \) \
         ! -path '*/tutorial/*' ! -path '*jit*' \
-      | xargs clang-tidy \
+      | xargs clang-tidy-22 \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
