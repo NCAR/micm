@@ -27,12 +27,15 @@ RUN cmake \
 
 # -----------------------------------------------------------------------------
 FROM install AS build-cuda
-# CUDA configure: nvidia-cuda-toolkit puts nvcc at /usr/bin/nvcc but cmake's
-# check_language(CUDA) auto-detection does not find it there; pass it explicitly.
-# Note: this stage will fail on arm64 hosts (e.g. Apple Silicon) due to an
-# incompatibility between Ubuntu's nvcc and ARM SVE system headers.
+# CUDA configure for clang-tidy: clang-tidy parses .cu with its own clang
+# frontend (it never invokes nvcc), so use clang as the CUDA compiler. That makes
+# the generated compile_commands.json natively clang-parseable -- no nvcc-only
+# flags to strip afterwards. --cuda-host-only keeps compilation to the host pass
+# so no device toolchain (libdevice/ptxas) is needed, only the CUDA headers found
+# via --cuda-path.
 RUN cmake \
-      -DCMAKE_CUDA_COMPILER=/usr/bin/nvcc \
+      -DCMAKE_CUDA_COMPILER=clang++ \
+      -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr --no-cuda-version-check" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
@@ -60,7 +63,6 @@ RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="--cuda-gpu-arch=sm_70" \
           --extra-arg="-Iinclude/"
 
 # -----------------------------------------------------------------------------
@@ -74,6 +76,5 @@ RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name 
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="--cuda-gpu-arch=sm_70" \
           --extra-arg="-Iinclude/" \
           --extra-arg="-isystem./cuda-build/_deps/googletest-src/googletest/include"

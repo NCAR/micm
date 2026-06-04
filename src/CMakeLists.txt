@@ -55,7 +55,10 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
     PUBLIC CUDA::cudart CUDA::cublas
   )
   
-  target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
+  # --expt-relaxed-constexpr is nvcc-only; guard it so non-nvcc CUDA compilers
+  # (e.g. clang, used by the clang-tidy CI to generate parseable compile commands)
+  # don't choke on it.
+  target_compile_options(micm_cuda PRIVATE $<$<CUDA_COMPILER_ID:NVIDIA>:--expt-relaxed-constexpr>)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 
   add_subdirectory(process)
