@@ -74,7 +74,6 @@ RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name 
       | xargs clang-tidy \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
-          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
           --extra-arg="--cuda-gpu-arch=sm_70" \
