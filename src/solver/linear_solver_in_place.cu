@@ -49,8 +49,8 @@ namespace micm
             {
               const std::size_t d_Lij_yj_first = (*d_Lij_yj).first;
               const std::size_t d_Lij_yj_second_times_vector_length = (*d_Lij_yj).second * cuda_matrix_vector_length;
-              auto d_ALU_ptr = d_ALU + d_Lij_yj_first;
-              auto d_x_ptr = d_x + d_Lij_yj_second_times_vector_length;
+              auto *d_ALU_ptr = d_ALU + d_Lij_yj_first;
+              auto *d_x_ptr = d_x + d_Lij_yj_second_times_vector_length;
               d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
               ++d_Lij_yj;
             }
@@ -66,12 +66,12 @@ namespace micm
             const std::size_t j_lim = d_nUij_Uii[i].first;
             for (int j = 0; j < j_lim; ++j)
             {
-              auto d_ALU_ptr = d_ALU + (*d_Uij_xj).first;
-              auto d_x_ptr = d_x + (*d_Uij_xj).second * cuda_matrix_vector_length;
+              auto *d_ALU_ptr = d_ALU + (*d_Uij_xj).first;
+              auto *d_x_ptr = d_x + (*d_Uij_xj).second * cuda_matrix_vector_length;
               d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
               ++d_Uij_xj;
             }
-            auto d_ALU_ptr = d_ALU + d_nUij_Uii[i].second;
+            auto *d_ALU_ptr = d_ALU + d_nUij_Uii[i].second;
             d_y[local_tid] /= d_ALU_ptr[local_tid];
             d_y -= cuda_matrix_vector_length;
           }

@@ -247,7 +247,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -322,7 +322,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   {
     builder = builder.WithElement(i, i);  // Diagonals
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -386,7 +386,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -441,7 +441,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -508,7 +508,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);

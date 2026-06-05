@@ -402,7 +402,7 @@ namespace micm
       std::vector<std::size_t> ids;
       ids.reserve(non_zero_elements.size());
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
-      for (auto& elem : non_zero_elements)
+      for (const auto& elem : non_zero_elements)
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
       std::transform(
           column_ordered_pairs.begin(),
@@ -423,9 +423,9 @@ namespace micm
       std::size_t total_elem = 0;
       std::size_t curr_col = 0;
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
-      for (auto& elem : non_zero_elements)
+      for (const auto& elem : non_zero_elements)
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
-      for (auto& elem : column_ordered_pairs)
+      for (const auto& elem : column_ordered_pairs)
       {
         while (curr_col < elem.first)
           starts[(curr_col++) + 1] = total_elem;

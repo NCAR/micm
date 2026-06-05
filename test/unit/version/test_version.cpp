@@ -4,7 +4,7 @@
 
 TEST(Version, FullVersion)
 {
-  auto version = micm::GetMicmVersion();
+  const auto *version = micm::GetMicmVersion();
 }
 
 TEST(Version, VersionMajor)

@@ -499,7 +499,7 @@ namespace micm
       /// @brief Get a const element reference for the current row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg) const
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -508,7 +508,7 @@ namespace micm
       /// @brief Get a const element reference for the current row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg) const
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         return arg.Get();
       }
@@ -516,7 +516,7 @@ namespace micm
       /// @brief Get a const element reference for the current row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg) const
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         return arg[row_];
       }

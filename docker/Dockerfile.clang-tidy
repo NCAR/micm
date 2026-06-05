@@ -1,5 +1,6 @@
 FROM ubuntu:24.04 AS install
 
+# Ubuntu 24.04's default clang-tidy is v18, update to clang 22
 RUN apt -y update \
     && apt -y install \
         cmake \
@@ -7,11 +8,16 @@ RUN apt -y update \
         git \
         make \
         nvidia-cuda-toolkit \
-        clang \
-        clang-tidy \
         llvm-dev \
         libomp-dev \
         build-essential \
+        wget \
+        gnupg \
+        ca-certificates \
+    && wget -qO /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key \
+    && echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" > /etc/apt/sources.list.d/llvm.list \
+    && apt -y update \
+    && apt -y install clang-22 clang-tidy-22 \
     && apt clean all
 
 COPY . /micm/
@@ -27,12 +33,15 @@ RUN cmake \
 
 # -----------------------------------------------------------------------------
 FROM install AS build-cuda
-# CUDA configure: nvidia-cuda-toolkit puts nvcc at /usr/bin/nvcc but cmake's
-# check_language(CUDA) auto-detection does not find it there; pass it explicitly.
-# Note: this stage will fail on arm64 hosts (e.g. Apple Silicon) due to an
-# incompatibility between Ubuntu's nvcc and ARM SVE system headers.
+# CUDA configure for clang-tidy: clang-tidy parses .cu with its own clang
+# frontend (it never invokes nvcc), so use clang as the CUDA compiler. That makes
+# the generated compile_commands.json natively clang-parseable -- no nvcc-only
+# flags to strip afterwards. --cuda-host-only keeps compilation to the host pass
+# so no device toolchain (libdevice/ptxas) is needed, only the CUDA headers found
+# via --cuda-path.
 RUN cmake \
-      -DCMAKE_CUDA_COMPILER=/usr/bin/nvcc \
+      -DCMAKE_CUDA_COMPILER=clang++-22 \
+      -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
@@ -43,10 +52,9 @@ RUN cmake \
 # Run locally: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cpu AS scan-includes
 RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
-      | xargs clang-tidy \
+      | xargs clang-tidy-22 \
           -p ./build/ \
           --config-file=./.clang-tidy \
-          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
           --extra-arg="-Iinclude/"
@@ -56,27 +64,24 @@ RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
 # Run locally: docker build --target scan-cuda-source --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cuda AS scan-cuda-source
 RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) \
-      | xargs clang-tidy \
+      | xargs clang-tidy-22 \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
-          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="--cuda-gpu-arch=sm_70" \
           --extra-arg="-Iinclude/"
 
 # -----------------------------------------------------------------------------
-# scan-tests: unit, integration, and tutorial tests (excluding CUDA-only and JIT files)
+# scan-tests: unit and integration tests (excluding tutorial, JIT, and OpenMP
+# tests -- the latter need -fopenmp/libomp to parse and are scanned separately)
 # Run locally: docker build --target scan-tests --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cuda AS scan-tests
 RUN find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cu' \) \
-        ! -path '*/tutorial/*' ! -path '*jit*' \
-      | xargs clang-tidy \
+        ! -path '*/tutorial/*' ! -path '*jit*' ! -path '*/openmp/*' \
+      | xargs clang-tidy-22 \
           -p ./cuda-build/ \
           --config-file=./.clang-tidy \
-          --allow-no-checks \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="--cuda-gpu-arch=sm_70" \
           --extra-arg="-Iinclude/" \
           --extra-arg="-isystem./cuda-build/_deps/googletest-src/googletest/include"

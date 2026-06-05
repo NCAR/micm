@@ -144,7 +144,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -210,7 +210,7 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
   {
     builder = builder.WithElement(i, i);  // Diagonals
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -267,7 +267,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -339,7 +339,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -402,7 +402,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -463,7 +463,7 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -520,7 +520,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
 
   StandardSparseMatrix jacobian{ builder };
@@ -587,7 +587,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -651,7 +651,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   {
     builder = builder.WithElement(i, i);
   }
-  for (auto& elem : non_zero_elements)
+  for (const auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);

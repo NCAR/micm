@@ -17,7 +17,7 @@ namespace micm
       bool indexing_only)
   {
     auto builder = SparseMatrixPolicy::Create(state_size).SetNumberOfBlocks(number_of_grid_cells);
-    for (auto& elem : nonzero_jacobian_elements)
+    for (const auto& elem : nonzero_jacobian_elements)
       builder = builder.WithElement(elem.first, elem.second);
     // Always include diagonal elements
     for (std::size_t i = 0; i < state_size; ++i)

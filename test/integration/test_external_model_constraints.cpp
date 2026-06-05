@@ -254,7 +254,7 @@ class MassConservationModel
   {
     auto i_ctrl = state_indices.at(controlled_species_);
     std::set<std::pair<std::size_t, std::size_t>> elements;
-    for (auto& sp : all_species_)
+    for (const auto& sp : all_species_)
       elements.insert({ i_ctrl, state_indices.at(sp) });
     return elements;
   }
@@ -278,7 +278,7 @@ class MassConservationModel
   {
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
-    for (auto& sp : all_species_)
+    for (const auto& sp : all_species_)
       indices.push_back(var.at(sp));
     double tot = total_;
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
@@ -301,7 +301,7 @@ class MassConservationModel
   {
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
-    for (auto& sp : all_species_)
+    for (const auto& sp : all_species_)
       indices.push_back(var.at(sp));
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
@@ -1120,7 +1120,7 @@ TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
   auto nz_elements = aerosol.NonZeroJacobianElements(var_map);
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (auto& elem : nz_elements)
+  for (const auto& elem : nz_elements)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixFD analytical_jac{ builder };
 
@@ -1168,7 +1168,7 @@ TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
   auto nz_elements = aerosol.NonZeroConstraintJacobianElements(var_map);
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (auto& elem : nz_elements)
+  for (const auto& elem : nz_elements)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixFD analytical_jac{ builder };
 
@@ -1209,7 +1209,7 @@ TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
   auto nz_elements = model.NonZeroConstraintJacobianElements(var_map);
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
-  for (auto& elem : nz_elements)
+  for (const auto& elem : nz_elements)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixFD analytical_jac{ builder };
 

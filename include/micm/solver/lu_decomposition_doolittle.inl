@@ -146,12 +146,12 @@ namespace micm
       }
     }
     auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (auto& pair : L_ids)
+    for (const auto& pair : L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
     auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (auto& pair : U_ids)
+    for (const auto& pair : U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }

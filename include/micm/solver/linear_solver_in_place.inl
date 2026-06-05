@@ -80,7 +80,7 @@ namespace micm
       {
         auto y_elem = y_cell.begin();
         auto Lij_yj = Lij_yj_.begin();
-        for (auto& nLij : nLij_)
+        for (const auto& nLij : nLij_)
         {
           for (std::size_t i = 0; i < nLij; ++i)
           {
@@ -95,7 +95,7 @@ namespace micm
       {
         auto x_elem = std::next(x_cell.end(), -1);
         auto Uij_xj = Uij_xj_.begin();
-        for (auto& nUij_Uii : nUij_Uii_)
+        for (const auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
@@ -132,7 +132,7 @@ namespace micm
       {
         auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
-        for (auto& nLij : nLij_)
+        for (const auto& nLij : nLij_)
         {
           for (std::size_t i = 0; i < nLij; ++i)
           {
@@ -153,7 +153,7 @@ namespace micm
       {
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
         auto Uij_xj = Uij_xj_.begin();
-        for (auto& nUij_Uii : nUij_Uii_)
+        for (const auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)

@@ -158,12 +158,12 @@ namespace micm
       }
     }
     auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (auto& pair : L_ids)
+    for (const auto& pair : L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
     auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (auto& pair : U_ids)
+    for (const auto& pair : U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
@@ -192,7 +192,7 @@ namespace micm
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
 
-      for (auto& lii_nuji_nlji : lii_nuji_nlji_)
+      for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
       {
         for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
         {
@@ -206,9 +206,9 @@ namespace micm
           ++lji_aji;
         }
       }
-      for (auto& fill_uji : fill_uji_)
+      for (const auto& fill_uji : fill_uji_)
         U_vector[fill_uji] = 0;
-      for (auto& fill_lji : fill_lji_)
+      for (const auto& fill_lji : fill_lji_)
         L_vector[fill_lji] = 0;
       for (std::size_t i = 0; i < n; ++i)
       {
@@ -264,7 +264,7 @@ namespace micm
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      for (auto& lii_nuji_nlji : lii_nuji_nlji_)
+      for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
       {
         for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
         {
@@ -281,10 +281,10 @@ namespace micm
           ++lji_aji;
         }
       }
-      for (auto& fill_uji : fill_uji_)
+      for (const auto& fill_uji : fill_uji_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           U_vector[fill_uji + i_cell] = 0;
-      for (auto& fill_lji : fill_lji_)
+      for (const auto& fill_lji : fill_lji_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           L_vector[fill_lji + i_cell] = 0;
       for (std::size_t i = 0; i < n; ++i)

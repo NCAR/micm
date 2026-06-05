@@ -217,7 +217,7 @@ namespace micm
     {
       std::unordered_set<std::string> param_names;
 
-      for (auto& each : constraints_)
+      for (const auto& each : constraints_)
       {
         std::visit(
             [&](auto& c)
