@@ -167,7 +167,7 @@ namespace micm
       /// Create a struct whose members contain the addresses in the device memory.
       ProcessSetParam devstruct;
 
-      auto *cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
       /// Allocate memory space on the device
       CHECK_CUDA_ERROR(
@@ -238,7 +238,7 @@ namespace micm
       std::size_t jacobian_yields_bytes = sizeof(double) * hoststruct.jacobian_yields_size_;
       std::size_t jacobian_flat_ids_bytes = sizeof(std::size_t) * hoststruct.jacobian_flat_ids_size_;
 
-      auto *cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
       /// Allocate memory space on the device
       CHECK_CUDA_ERROR(
@@ -304,7 +304,7 @@ namespace micm
     {
       std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
 
-      auto *cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
@@ -322,7 +322,7 @@ namespace micm
     ///   members of class "CudaProcessSet" on the device
     void FreeConstData(ProcessSetParam& devstruct)
     {
-      auto *cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
       if (devstruct.number_of_reactants_ != nullptr)
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.number_of_reactants_, cuda_stream_id), "cudaFree");
