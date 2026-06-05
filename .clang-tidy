@@ -62,6 +62,7 @@ Checks: >
   readability-redundant-inline-specifier,
   readability-qualified-auto,
   # explicitly disabled checks
+  -readability-redundant-member-init
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
   -readability-magic-numbers,
