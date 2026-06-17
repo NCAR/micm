@@ -95,7 +95,7 @@ namespace micm
     LinearSolver(
         const SparseMatrixPolicy& matrix,
         typename SparseMatrixPolicy::value_type initial_value,
-        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp);
+        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp);
 
     virtual ~LinearSolver() = default;
 

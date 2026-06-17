@@ -72,7 +72,9 @@ class EquilibriumConstraintModel
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
+      {
         forcing[i][i_p] = K * state[i][i_r] - state[i][i_p];
+      }
     };
   }
 
@@ -255,7 +257,9 @@ class MassConservationModel
     auto i_ctrl = state_indices.at(controlled_species_);
     std::set<std::pair<std::size_t, std::size_t>> elements;
     for (const auto& sp : all_species_)
+    {
       elements.insert({ i_ctrl, state_indices.at(sp) });
+    }
     return elements;
   }
 
@@ -279,7 +283,9 @@ class MassConservationModel
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
     for (const auto& sp : all_species_)
+    {
       indices.push_back(var.at(sp));
+    }
     double tot = total_;
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
@@ -287,7 +293,9 @@ class MassConservationModel
       {
         double sum = 0.0;
         for (auto idx : indices)
+        {
           sum += state[i][idx];
+        }
         forcing[i][i_ctrl] = sum - tot;
       }
     };
@@ -302,12 +310,18 @@ class MassConservationModel
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
     for (const auto& sp : all_species_)
+    {
       indices.push_back(var.at(sp));
+    }
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
       for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
+      {
         for (auto idx : indices)
+        {
           jac[i][i_ctrl][idx] -= 1.0;  // dG/d[species] = 1
+        }
+      }
     };
   }
 
@@ -1121,7 +1135,9 @@ TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
   for (const auto& elem : nz_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   SparseMatrixFD analytical_jac{ builder };
 
   auto jacobian_fn = aerosol.JacobianFunction<DenseMatrix, SparseMatrixFD>(param_map, var_map, analytical_jac);
@@ -1169,7 +1185,9 @@ TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
   for (const auto& elem : nz_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   SparseMatrixFD analytical_jac{ builder };
 
   auto jacobian_fn = aerosol.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(param_map, var_map, analytical_jac);
@@ -1210,7 +1228,9 @@ TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
 
   auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
   for (const auto& elem : nz_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   SparseMatrixFD analytical_jac{ builder };
 
   auto jacobian_fn = model.ConstraintJacobianFunction<DenseMatrix, SparseMatrixFD>(param_map, var_map, analytical_jac);
@@ -1318,7 +1338,9 @@ class TemperatureDependentEquilibriumModel
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy& params, DenseMatrixPolicy& forcing)
     {
       for (std::size_t i = 0; i < state.NumRows(); ++i)
+      {
         forcing[i][i_p] = params[i][i_K] * state[i][i_r] - state[i][i_p];
+      }
     };
   }
 

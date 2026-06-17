@@ -59,7 +59,9 @@ namespace micm
     {
       FreeDevice(d_ptr);
       if (host_vec.empty())
+      {
         return;
+      }
       auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       CHECK_CUDA_ERROR(cudaMallocAsync(&d_ptr, sizeof(T) * host_vec.size(), stream), "cudaMalloc");
       CHECK_CUDA_ERROR(
@@ -191,7 +193,9 @@ namespace micm
       {
         std::vector<std::size_t> rc_indices(mults.size());
         for (std::size_t i = 0; i < mults.size(); ++i)
+        {
           rc_indices[i] = mults[i].rc_index_;
+        }
         auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
         CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
         CHECK_CUDA_ERROR(
@@ -212,7 +216,9 @@ namespace micm
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())
+      {
         return nullptr;
+      }
 
       const std::size_t n_mults = mults.size();
       const std::size_t n_cells = conditions.size();
@@ -221,13 +227,19 @@ namespace micm
 
       std::vector<double> host_vals(n_vals, 0.0);
       for (std::size_t g = 0; g < n_groups; ++g)
+      {
         for (std::size_t i = 0; i < n_mults; ++i)
+        {
           for (std::size_t j = 0; j < L; ++j)
           {
             const std::size_t cell = g * L + j;
             if (cell < n_cells)
+            {
               host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate_(conditions[cell]);
+            }
           }
+        }
+      }
 
       auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       if (n_vals > d_mult_vals_capacity_)

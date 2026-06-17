@@ -379,9 +379,13 @@ namespace micm
             }
           }
           if (matrix.IsZero(j, matrix.block_size_ - 1))
+          {
             os << "0" << std::endl;
+          }
           else
+          {
             os << matrix[i][j][matrix.block_size_ - 1] << std::endl;
+          }
         }
       }
       return os;
@@ -396,9 +400,15 @@ namespace micm
       {
         os << "Block " << i << std::endl;
         for (std::size_t j = 0; j < block_size_; ++j)
+        {
           for (std::size_t k = 0; k < block_size_; ++k)
+          {
             if (!this->IsZero(j, k))
+            {
               os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
+            }
+          }
+        }
       }
     }
 

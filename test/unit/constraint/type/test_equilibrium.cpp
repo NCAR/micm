@@ -248,7 +248,9 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -323,7 +325,9 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
     builder = builder.WithElement(i, i);  // Diagonals
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
 
@@ -387,7 +391,9 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -442,7 +448,9 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "eq", 0 } };
@@ -509,7 +517,9 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "dissociation", 0 } };

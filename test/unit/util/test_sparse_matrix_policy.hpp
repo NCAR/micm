@@ -1967,7 +1967,9 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> Test
   std::vector<double> vec = { 5.0, 10.0, 15.0 };
 
   for (int block = 0; block < 3; ++block)
+  {
     matrix[block][0][1] = static_cast<double>(block + 1);
+  }
 
   auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
       [](auto&& m, auto&& v)

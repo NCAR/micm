@@ -168,7 +168,9 @@ void TestAddForcingTerms()
     builder = builder.WithElement(i, i);
   }
   for (auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
@@ -226,7 +228,9 @@ void TestSubtractJacobianTerms()
     builder = builder.WithElement(i, i);  // Diagonals
   }
   for (auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   SparseMatrixPolicy jacobian{ builder };
 
@@ -347,7 +351,9 @@ void TestThreeDStateOneConstraint()
     builder = builder.WithElement(i, i);
   }
   for (auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -462,7 +468,9 @@ void TestFourDStateTwoConstraints()
     builder = builder.WithElement(i, i);
   }
   for (auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -600,7 +608,9 @@ void TestCoupledConstraintsSharedSpecies()
     builder = builder.WithElement(i, i);
   }
   for (auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -668,7 +678,9 @@ void TestVectorizedMatricesRespectGridCellIndexing()
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);

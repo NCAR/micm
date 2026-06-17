@@ -43,20 +43,34 @@ namespace micm
       auto out = [&](std::size_t offset, std::size_t i) -> double* { return &rc_base[(offset + i) * L + local_tid]; };
 
       for (std::size_t i = 0; i < store.n_arrhenius_; ++i)
+      {
         *out(0, i) = micm::CalculateArrhenius(store.d_arrhenius_[i], temperature, pressure);
+      }
       for (std::size_t i = 0; i < store.n_troe_; ++i)
+      {
         *out(store.troe_offset_, i) = micm::CalculateTroe(store.d_troe_[i], temperature, air_density);
+      }
       for (std::size_t i = 0; i < store.n_ternary_; ++i)
+      {
         *out(store.ternary_offset_, i) =
             micm::CalculateTernaryChemicalActivation(store.d_ternary_[i], temperature, air_density);
+      }
       for (std::size_t i = 0; i < store.n_branched_; ++i)
+      {
         *out(store.branched_offset_, i) = micm::CalculateBranched(store.d_branched_[i], temperature, air_density);
+      }
       for (std::size_t i = 0; i < store.n_tunneling_; ++i)
+      {
         *out(store.tunneling_offset_, i) = micm::CalculateTunneling(store.d_tunneling_[i], temperature);
+      }
       for (std::size_t i = 0; i < store.n_taylor_; ++i)
+      {
         *out(store.taylor_offset_, i) = micm::CalculateTaylorSeries(store.d_taylor_[i], temperature, pressure);
+      }
       for (std::size_t i = 0; i < store.n_reversible_; ++i)
+      {
         *out(store.reversible_offset_, i) = micm::CalculateReversible(store.d_reversible_[i], temperature);
+      }
       for (std::size_t i = 0; i < store.n_user_defined_; ++i)
       {
         const micm::UserDefinedRateConstantData& p = store.d_user_defined_[i];
@@ -72,7 +86,9 @@ namespace micm
             cp_base[(p.custom_param_base_index_ + 1) * L + local_tid]);
       }
       for (std::size_t i = 0; i < store.n_multipliers_; ++i)
+      {
         rc_base[store.d_mult_rc_indices_[i] * L + local_tid] *= mv_base[i * L + local_tid];
+      }
     }
 
     /// @brief Calculate all analytic rate constants for every grid cell (one thread per cell).
@@ -96,7 +112,9 @@ namespace micm
       const std::size_t local_tid = tid % L;
 
       if (tid >= n_cells)
+      {
         return;
+      }
 
       const double temperature = d_conditions[tid].temperature_;
       const double pressure = d_conditions[tid].pressure_;
@@ -123,7 +141,9 @@ namespace micm
     {
       const std::size_t n_cells = rc_param.number_of_grid_cells_;
       if (n_cells == 0)
+      {
         return;
+      }
 
       const std::size_t L = rc_param.vector_length_;
       const std::size_t n_groups = (n_cells + L - 1) / L;

@@ -39,25 +39,45 @@ static void SortLikeBuilder(std::vector<Process>& procs)
               {
                 using T = std::decay_t<decltype(v)>;
                 if constexpr (std::is_same_v<T, ArrheniusRateConstantParameters>)
+                {
                   return 0;
+                }
                 else if constexpr (std::is_same_v<T, TroeRateConstantParameters>)
+                {
                   return 1;
+                }
                 else if constexpr (std::is_same_v<T, TernaryChemicalActivationRateConstantParameters>)
+                {
                   return 2;
+                }
                 else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
+                {
                   return 3;
+                }
                 else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
+                {
                   return 4;
+                }
                 else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
+                {
                   return 5;
+                }
                 else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
+                {
                   return 6;
+                }
                 else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
+                {
                   return 7;
+                }
                 else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
+                {
                   return 8;
+                }
                 else
+                {
                   return 9;
+                }
               },
               p.process_.rate_constant_);
         };

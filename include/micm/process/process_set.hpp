@@ -156,9 +156,13 @@ namespace micm
       for (const auto& reactant : reaction.reactants_)
       {
         if (reactant.IsParameterized())
+        {
           continue;  // Skip reactants that are parameterizations
+        }
         if (variable_map.count(reactant.name_) < 1)
+        {
           throw MicmException(MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
+        }
         reactant_ids_.push_back(variable_map.at(reactant.name_));
         ++number_of_reactants;
       }
@@ -166,10 +170,14 @@ namespace micm
       for (const auto& product : reaction.products_)
       {
         if (product.species_.IsParameterized())
+        {
           continue;  // Skip products that are parameterizations
+        }
         if (variable_map.count(product.species_.name_) < 1)
+        {
           throw MicmException(
               MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
+        }
         product_ids_.push_back(variable_map.at(product.species_.name_));
         yields_.push_back(product.coefficient_);
         ++number_of_products;
@@ -195,7 +203,9 @@ namespace micm
         for (const auto& ind_reactant : reaction.reactants_)
         {
           if (ind_reactant.name_ != independent_variable.first)
+          {
             continue;
+          }
           ProcessInfo info;
           info.process_id_ = i_process;
           info.independent_id_ = independent_variable.second;
@@ -207,10 +217,14 @@ namespace micm
           for (const auto& reactant : reaction.reactants_)
           {
             if (reactant.IsParameterized())
+            {
               continue;  // Skip reactants that are parameterizations
+            }
             if (variable_map.count(reactant.name_) < 1)
+            {
               throw MicmException(
                   MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
+            }
             if (variable_map.at(reactant.name_) == independent_variable.second && !found)
             {
               found = true;
@@ -222,10 +236,14 @@ namespace micm
           for (const auto& product : reaction.products_)
           {
             if (product.species_.IsParameterized())
+            {
               continue;  // Skip products that are parameterizations
+            }
             if (variable_map.count(product.species_.name_) < 1)
+            {
               throw MicmException(
                   MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
+            }
             jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
             jacobian_yields_.push_back(product.coefficient_);
             ++info.number_of_products_;
@@ -497,7 +515,9 @@ namespace micm
       {
         double d_rate_d_ind = cell_rate_constants[process_info.process_id_];
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
+        {
           d_rate_d_ind *= cell_state[react_id[i_react]];
+        }
 
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
         {
@@ -575,7 +595,9 @@ namespace micm
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+          {
             *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
+          }
         }
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
         {
@@ -585,7 +607,9 @@ namespace micm
             auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
             auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            {
               *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
+            }
           }
           ++flat_id;
         }
@@ -595,7 +619,9 @@ namespace micm
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+          {
             *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
+          }
         }
         ++flat_id;
 
@@ -608,7 +634,9 @@ namespace micm
             auto yield_value = yield[i_dep];
             auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            {
               *(v_jacobian_it++) -= yield_value * *(v_d_rate_d_ind_it++);
+            }
           }
           ++flat_id;
         }

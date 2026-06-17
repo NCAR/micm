@@ -138,18 +138,26 @@ namespace micm
     void FreeConstData(LuDecomposeMozartInPlaceParam& devstruct)
     {
       if (devstruct.aii_nji_nki_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.aii_nji_nki_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
             "cudaFree");
+      }
       if (devstruct.aji_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.aji_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
       if (devstruct.aik_njk_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.aik_njk_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
       if (devstruct.ajk_aji_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.ajk_aji_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
     }
 
     void DecomposeKernelDriver(CudaMatrixParam& ALU_param, const LuDecomposeParam& devstruct)

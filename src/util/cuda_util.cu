@@ -7,7 +7,7 @@ namespace micm
 {
   namespace cuda
   {
-    void CheckCudaError(cudaError_t err, const char* file, int line, std::string str)
+    void CheckCudaError(cudaError_t err, const char* file, int line, const std::string& str)
     {
       if (err != cudaSuccess)
       {
@@ -16,7 +16,7 @@ namespace micm
       }
     }
 
-    void CheckCublasError(cublasStatus_t err, const char* file, int line, std::string str)
+    void CheckCublasError(cublasStatus_t err, const char* file, int line, const std::string& str)
     {
       if (err != CUBLAS_STATUS_SUCCESS)
       {

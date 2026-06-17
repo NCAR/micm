@@ -229,11 +229,15 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   RatesPolicy set = RatesPolicy(processes, state.variable_map_);
 
   for (auto& elem : state.variables_.AsVector())
+  {
     elem = get_double();
+  }
 
   DenseMatrixPolicy rate_constants{ n_cells, n_reactions };
   for (auto& elem : rate_constants.AsVector())
+  {
     elem = get_double();
+  }
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
   state.rate_constants_ = rate_constants;
 

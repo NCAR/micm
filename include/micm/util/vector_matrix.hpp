@@ -251,7 +251,9 @@ namespace micm
               {
                 std::size_t x_dim = other.size();
                 if (x_dim == 0)
+                {
                   return std::vector<T>(0);
+                }
                 std::size_t y_dim = other[0].size();
                 std::vector<T> data(std::ceil(x_dim / (double)L) * L * y_dim);
                 std::size_t i_row = 0;
@@ -384,7 +386,9 @@ namespace micm
     void Max(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::max(y, x);
+      }
     }
 
     /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
@@ -392,10 +396,12 @@ namespace micm
     void Min(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::min(y, x);
+      }
     }
 
-    void ForEach(const std::function<void(T&, const T&)> f, const VectorMatrix& a)
+    void ForEach(const std::function<void(T&, const T&)>& f, const VectorMatrix& a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -414,7 +420,7 @@ namespace micm
       }
     }
 
-    void ForEach(const std::function<void(T&, const T&, const T&)> f, const VectorMatrix& a, const VectorMatrix& b)
+    void ForEach(const std::function<void(T&, const T&, const T&)>& f, const VectorMatrix& a, const VectorMatrix& b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -441,14 +447,18 @@ namespace micm
     void Copy(const VectorMatrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both vector matrices must have the same size.");
+      }
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
     void Swap(VectorMatrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both vector matrices must have the same size.");
+      }
       data_.swap(other.AsVector());
     }
 

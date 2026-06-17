@@ -223,7 +223,9 @@ namespace micm
             [&](auto& c)
             {
               for (auto& label : c.parameters_)
+              {
                 param_names.insert(label);
+              }
             },
             each.constraint_);
       }
@@ -242,9 +244,13 @@ namespace micm
         DenseMatrixPolicy& forcing) const
     {
       for (const auto& forcing_fn : constraint_forcing_functions_)
+      {
         forcing_fn(state_variables, state_parameters, forcing);
+      }
       for (const auto& forcing_fn : external_constraint_forcing_functions_)
+      {
         forcing_fn(state_variables, state_parameters, forcing);
+      }
     }
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
@@ -259,9 +265,13 @@ namespace micm
         SparseMatrixPolicy& jacobian) const
     {
       for (const auto& jacobian_fn : constraint_jacobian_functions_)
+      {
         jacobian_fn(state_variables, state_parameters, jacobian);
+      }
       for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
+      {
         jacobian_fn(state_variables, state_parameters, jacobian);
+      }
     }
 
     /// @brief Set algebraic variable error estimates using step changes
@@ -272,7 +282,9 @@ namespace micm
     void SetAlgebraicErrors(DenseMatrixPolicy& Yerror, const DenseMatrixPolicy& Y, const DenseMatrixPolicy& Ynew) const
     {
       if (algebraic_error_function_)
+      {
         algebraic_error_function_(Yerror, Y, Ynew);
+      }
     }
 
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
@@ -418,7 +430,9 @@ namespace micm
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
+        {
           continue;
+        }
         auto model_ids = model.non_zero_jacobian_elements_func_(variable_map);
         ids.insert(model_ids.begin(), model_ids.end());
         // Ensure diagonal elements exist for algebraic rows
@@ -426,7 +440,9 @@ namespace micm
         {
           auto it = variable_map.find(name);
           if (it != variable_map.end())
+          {
             ids.insert(std::make_pair(it->second, it->second));
+          }
         }
       }
       return ids;
@@ -442,15 +458,19 @@ namespace micm
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
+        {
           continue;
+        }
         auto param_names = model.state_parameter_names_func_();
         for (const auto& name : param_names)
         {
           if (!seen.insert(name).second)
+          {
             throw MicmException(
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
                 "Duplicate external constraint parameter name across models: " + name);
+          }
           names.push_back(name);
         }
       }
@@ -473,15 +493,19 @@ namespace micm
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
+        {
           continue;
+        }
         auto init_names = model.initialize_constraint_parameter_names_func_();
         for (const auto& name : init_names)
         {
           if (!seen.insert(name).second)
+          {
             throw MicmException(
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
                 "Duplicate external initialize constraint parameter name across models: " + name);
+          }
           names.push_back(name);
         }
       }
@@ -501,7 +525,9 @@ namespace micm
     void InitializeConstraintParameters(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& state_parameters) const
     {
       for (const auto& init_func : external_constraint_init_functions_)
+      {
         init_func(state_variables, state_parameters);
+      }
     }
 
     /// @brief Pre-compiles external constraint residual, Jacobian, and parameter update functions
@@ -522,7 +548,9 @@ namespace micm
       {
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
+        {
           continue;
+        }
         external_constraint_param_functions_.push_back(model.update_state_parameters_function_(state_parameter_indices));
         external_constraint_forcing_functions_.push_back(
             model.get_residual_function_(state_parameter_indices, state_variable_indices));
