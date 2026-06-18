@@ -631,23 +631,36 @@ namespace micm
     /// Two-pass gather, Pass 1: compute d_rate_d_ind for every process_info and store in
     /// scratch. One value per (group, process, local_tid). No writes to the Jacobian.
     /// Scratch layout: scratch[group_id * N_proc * VL + i_proc * VL + local_tid].
+    /// 2D parallelism: each thread owns exactly one (cell, i_proc) pair, so the serial
+    /// loop over process_infos (and its serial react_off accumulation) is gone. The
+    /// per-i_proc reactant offset is read in O(1) from jacobian_reactant_ids_offsets_.
+    /// Grid: (ceil(num_cells/BLOCK_DIM_X), ceil(num_proc_infos/BLOCK_DIM_Y)).
+    /// With BLOCK_DIM_X mapping to cells and VL a multiple of BLOCK_DIM_X, a warp stays
+    /// within one group, so scratch writes are coalesced and there is no intra-warp
+    /// divergence from the variable dependent-reactant counts (those vary across threadIdx.y).
     __global__ void SubtractJacobianTermsGatherPass1Kernel(
         const CudaMatrixParam rate_constants_param,
         const CudaMatrixParam state_variables_param,
         double* __restrict__ scratch,
         const ProcessSetParam devstruct)
     {
-      const std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      const std::size_t cell_id = blockIdx.x * blockDim.x + threadIdx.x;
+      const std::size_t i_proc = blockIdx.y * blockDim.y + threadIdx.y;
 
       const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const std::size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
+
+      if (cell_id >= number_of_grid_cells || i_proc >= number_of_process_infos)
+        return;
+
       const std::size_t VL = state_variables_param.vector_length_;
       const std::size_t number_of_groups = (number_of_grid_cells + VL - 1) / VL;
-      const std::size_t group_id = tid / VL;
-      const std::size_t local_tid = tid % VL;
+      const std::size_t group_id = cell_id / VL;
+      const std::size_t local_tid = cell_id % VL;
 
-      if (tid >= number_of_grid_cells)
-        return;
+      const ProcessInfoParam* const __restrict__ d_process_info = devstruct.jacobian_process_info_;
+      const std::size_t* __restrict__ d_reactant_ids = devstruct.jacobian_reactant_ids_;
+      const std::size_t* __restrict__ d_reactant_offsets = devstruct.jacobian_reactant_ids_offsets_;
 
       const double* __restrict__ d_rate_constants =
           rate_constants_param.d_data_ + group_id * (rate_constants_param.number_of_elements_ / number_of_groups);
@@ -655,52 +668,60 @@ namespace micm
           state_variables_param.d_data_ + group_id * (state_variables_param.number_of_elements_ / number_of_groups);
       double* __restrict__ my_scratch = scratch + group_id * number_of_process_infos * VL;
 
-      std::size_t react_off = 0;
-      for (std::size_t i_proc = 0; i_proc < number_of_process_infos; ++i_proc)
-      {
-        const ProcessInfoParam pi = devstruct.jacobian_process_info_[i_proc];
-        double d_rate = d_rate_constants[pi.process_id_ * VL + local_tid];
-        for (std::size_t r = 0; r < pi.number_of_dependent_reactants_; ++r)
-          d_rate *= d_state_variables[devstruct.jacobian_reactant_ids_[react_off + r] * VL + local_tid];
-        my_scratch[i_proc * VL + local_tid] = d_rate;
-        react_off += pi.number_of_dependent_reactants_;
-      }
+      const ProcessInfoParam pi = d_process_info[i_proc];
+      const std::size_t react_off = d_reactant_offsets[i_proc];  // O(1) prefix-sum; replaces serial accumulation
+      double d_rate = d_rate_constants[pi.process_id_ * VL + local_tid];
+      for (std::size_t r = 0; r < pi.number_of_dependent_reactants_; ++r)
+        d_rate *= d_state_variables[d_reactant_ids[react_off + r] * VL + local_tid];
+      my_scratch[i_proc * VL + local_tid] = d_rate;
     }  // end of SubtractJacobianTermsGatherPass1Kernel
 
     /// Two-pass gather, Pass 2: gather from scratch using the CSR and write each Jacobian
     /// entry exactly once. Scratch layout identical to Pass 1.
+    /// 3D grid maps (lane, group, jac_entry) directly so the per-thread cell/VL and cell%VL
+    /// disappear: local_tid and group_id come straight from the block indices. The
+    /// local_tid >= VL guard makes cell_id = group_id*VL + local_tid exact when VL is not a
+    /// multiple of BLOCK_DIM_X. number_of_groups equals gridDim.y by construction.
     __global__ void SubtractJacobianTermsGatherPass2Kernel(
         const double* __restrict__ scratch,
         const CudaMatrixParam state_variables_param,
         CudaMatrixParam jacobian_param,
         const ProcessSetParam devstruct)
     {
-      const std::size_t cell_id = blockIdx.x * blockDim.x + threadIdx.x;
-      const std::size_t jac_idx = blockIdx.y * blockDim.y + threadIdx.y;
+      const std::size_t local_tid = blockIdx.x * blockDim.x + threadIdx.x;
+      const std::size_t group_id = blockIdx.y;
+      const std::size_t jac_idx = blockIdx.z * blockDim.y + threadIdx.y;
 
       const std::size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
-      if (cell_id >= number_of_grid_cells || jac_idx >= devstruct.jac_gather_entries_size_)
+      const std::size_t VL = state_variables_param.vector_length_;
+      const std::size_t cell_id = group_id * VL + local_tid;
+      if (local_tid >= VL || cell_id >= number_of_grid_cells || jac_idx >= devstruct.jac_gather_entries_size_)
         return;
 
-      const std::size_t VL = state_variables_param.vector_length_;
-      const std::size_t number_of_groups = (number_of_grid_cells + VL - 1) / VL;
-      const std::size_t group_id = cell_id / VL;
-      const std::size_t local_tid = cell_id % VL;
+      const std::size_t number_of_groups = gridDim.y;  // == (number_of_grid_cells + VL - 1) / VL by construction
       const std::size_t N_proc = devstruct.jacobian_process_info_size_;
+
+      const std::size_t* __restrict__ d_offsets = devstruct.jac_gather_offsets_;
+      const std::size_t* __restrict__ d_proc_idx = devstruct.jac_gather_proc_idx_;
+      const double* __restrict__ d_coeffs = devstruct.jac_gather_coeffs_;
+      const std::size_t* __restrict__ d_unique = devstruct.jac_gather_unique_flat_ids_;
 
       const double* __restrict__ my_scratch = scratch + group_id * N_proc * VL;
       double* __restrict__ d_jacobian =
           jacobian_param.d_data_ + group_id * (jacobian_param.number_of_elements_ / number_of_groups);
 
-      const std::size_t start = devstruct.jac_gather_offsets_[jac_idx];
-      const std::size_t end = devstruct.jac_gather_offsets_[jac_idx + 1];
+      const std::size_t start = d_offsets[jac_idx];
+      const std::size_t end = d_offsets[jac_idx + 1];
 
       double total = 0.0;
       for (std::size_t s = start; s < end; ++s)
-        total += devstruct.jac_gather_coeffs_[s] * my_scratch[devstruct.jac_gather_proc_idx_[s] * VL + local_tid];
+        total += d_coeffs[s] * my_scratch[d_proc_idx[s] * VL + local_tid];
 
-      // Single write per (jac_idx, local_tid) — no atomic needed
-      d_jacobian[devstruct.jac_gather_unique_flat_ids_[jac_idx] + local_tid] += total;
+      // Single writer per (group, jac_idx, lane); the caller has zeroed the full per-group
+      // block, so the structural slots not in the unique set stay 0. Plain '=' avoids the
+      // global read-modify-write of '+='. Do NOT drop the caller's zeroing on the strength
+      // of this single-writer property: the uncovered slots still rely on it.
+      d_jacobian[d_unique[jac_idx] + local_tid] = total;
     }  // end of SubtractJacobianTermsGatherPass2Kernel
 
     void SubtractJacobianTermsTwoPassGatherDriver(
@@ -721,19 +742,24 @@ namespace micm
       CHECK_CUDA_ERROR(
           cudaMallocAsync(&scratch, N_groups * N_proc * VL * sizeof(double), stream), "cudaMalloc scratch");
 
-      // Pass 1: compute and store d_rate_d_ind for every process
-      const std::size_t nblocks1 = (N_cells + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      SubtractJacobianTermsGatherPass1Kernel<<<nblocks1, BLOCK_SIZE, 0, stream>>>(
+      // Pass 1: 2D (cell, proc) — compute and store d_rate_d_ind for every process
+      constexpr std::size_t P1_BX = 32;
+      constexpr std::size_t P1_BY = 4;
+      static_assert(P1_BX * P1_BY == BLOCK_SIZE, "pass1 2D block must equal BLOCK_SIZE");
+      const dim3 p1_block(P1_BX, P1_BY);
+      const dim3 p1_grid((N_cells + P1_BX - 1) / P1_BX, (N_proc + P1_BY - 1) / P1_BY);
+      SubtractJacobianTermsGatherPass1Kernel<<<p1_grid, p1_block, 0, stream>>>(
           rate_constants_param, state_variables_param, scratch, devstruct);
 
-      // Pass 2: gather weighted contributions to each Jacobian entry
-      constexpr std::size_t BLOCK_DIM_X = 32;
-      constexpr std::size_t BLOCK_DIM_Y = 4;
-      static_assert(BLOCK_DIM_X * BLOCK_DIM_Y == BLOCK_SIZE, "2D block must equal BLOCK_SIZE");
+      // Pass 2: 3D (lane, group, jac-entry tile) — gather weighted contributions to each entry.
+      // grid.y = N_groups and grid.z = ceil(N_unique/P2_BY) must each stay <= 65535.
+      constexpr std::size_t P2_BX = 32;
+      constexpr std::size_t P2_BY = 4;
+      static_assert(P2_BX * P2_BY == BLOCK_SIZE, "pass2 3D block must equal BLOCK_SIZE");
       const std::size_t N_unique = devstruct.jac_gather_entries_size_;
-      const dim3 block(BLOCK_DIM_X, BLOCK_DIM_Y);
-      const dim3 grid((N_cells + BLOCK_DIM_X - 1) / BLOCK_DIM_X, (N_unique + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y);
-      SubtractJacobianTermsGatherPass2Kernel<<<grid, block, 0, stream>>>(
+      const dim3 p2_block(P2_BX, P2_BY);
+      const dim3 p2_grid((VL + P2_BX - 1) / P2_BX, N_groups, (N_unique + P2_BY - 1) / P2_BY);
+      SubtractJacobianTermsGatherPass2Kernel<<<p2_grid, p2_block, 0, stream>>>(
           scratch, state_variables_param, jacobian_param, devstruct);
 
       CHECK_CUDA_ERROR(cudaFreeAsync(scratch, stream), "cudaFree scratch");

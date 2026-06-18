@@ -25,7 +25,7 @@ static constexpr std::size_t NUM_GRID_CELLS = 163840;
 static constexpr std::size_t NUM_GROUPS = NUM_GRID_CELLS / VECTOR_LENGTH;  // 1280
 
 static constexpr int WARMUP_ITERATIONS = 1;
-static constexpr int MEASURE_ITERATIONS = 3;
+static constexpr int MEASURE_ITERATIONS = 1;
 
 // Helper: allocate device memory and copy from host
 template<typename T>
@@ -139,9 +139,10 @@ struct TestDeviceData
         yo += n_prod;
       }
     }
-    std::stable_sort(gather_entries.begin(), gather_entries.end(), [](const GatherEntry& a, const GatherEntry& b) {
-      return a.jac_flat_id < b.jac_flat_id;
-    });
+    std::stable_sort(
+        gather_entries.begin(),
+        gather_entries.end(),
+        [](const GatherEntry& a, const GatherEntry& b) { return a.jac_flat_id < b.jac_flat_id; });
 
     std::vector<std::size_t> h_unique_flat_ids;
     std::vector<std::size_t> h_gather_offsets;
@@ -163,8 +164,7 @@ struct TestDeviceData
     }
     h_gather_offsets.push_back(h_proc_idx.size());
 
-    devstruct.jac_gather_unique_flat_ids_ =
-        AllocAndCopy(h_unique_flat_ids.data(), h_unique_flat_ids.size(), stream);
+    devstruct.jac_gather_unique_flat_ids_ = AllocAndCopy(h_unique_flat_ids.data(), h_unique_flat_ids.size(), stream);
     devstruct.jac_gather_offsets_ = AllocAndCopy(h_gather_offsets.data(), h_gather_offsets.size(), stream);
     devstruct.jac_gather_proc_idx_ = AllocAndCopy(h_proc_idx.data(), h_proc_idx.size(), stream);
     devstruct.jac_gather_coeffs_ = AllocAndCopy(h_coeffs.data(), h_coeffs.size(), stream);
@@ -277,6 +277,14 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   }
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after warmup");
 
+  // Re-zero after warmup so the measured (and snapshotted) result is a SINGLE solve. The scatter,
+  // unrolled, 2D-atomic, and single-pass-gather kernels accumulate with += and would otherwise
+  // double-count warmup + measure into the same buffer; the two-pass kernel writes with = (one
+  // solve). Zeroing here puts every variant on an identical single-solve basis. It sits outside
+  // the timed region, so it does not affect the perf numbers. Assumes MEASURE_ITERATIONS == 1.
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset before measure");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize before measure");
+
   auto start_orig = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
   {
@@ -302,6 +310,10 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
   }
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after unrolled warmup");
+
+  // Re-zero after warmup so the measured/snapshotted result is a single solve (see note above).
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset before measure");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize before measure");
 
   auto start_unrolled = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
@@ -330,6 +342,10 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
   }
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after 2D warmup");
+
+  // Re-zero after warmup so the measured/snapshotted result is a single solve (see note above).
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset before measure");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize before measure");
 
   auto start_2d = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
@@ -363,6 +379,10 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
   }
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after gather warmup");
 
+  // Re-zero after warmup so the measured/snapshotted result is a single solve (see note above).
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset before measure");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize before measure");
+
   auto start_gather = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
   {
@@ -389,6 +409,10 @@ TEST(CudaSubtractJacobianTerms, PerformanceComparison)
         data.rate_constants_param, data.state_variables_param, jacobian_param, data.devstruct);
   }
   CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize after two-pass warmup");
+
+  // Re-zero after warmup so the measured/snapshotted result is a single solve (see note above).
+  CHECK_CUDA_ERROR(cudaMemsetAsync(d_jacobian, 0, jacobian_bytes, stream), "cudaMemset before measure");
+  CHECK_CUDA_ERROR(cudaDeviceSynchronize(), "cudaDeviceSynchronize before measure");
 
   auto start_twopass = std::chrono::high_resolution_clock::now();
   for (int i = 0; i < MEASURE_ITERATIONS; ++i)
