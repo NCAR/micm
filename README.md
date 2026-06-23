@@ -10,7 +10,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![Mac](https://github.com/NCAR/micm/actions/workflows/mac.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/mac.yml)
 [![Ubuntu](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
-[![DOI](https://zenodo.org/badge/294492778.svg)](https://doi.org/10.5281/zenodo.8377911)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8377911.svg)](https://doi.org/10.5281/zenodo.8377911)
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
 
 <p align="center">
