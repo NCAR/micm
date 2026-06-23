@@ -325,27 +325,49 @@ namespace micm
       auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
       if (devstruct.number_of_reactants_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.number_of_reactants_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.reactant_ids_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.reactant_ids_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.number_of_products_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.number_of_products_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.product_ids_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.product_ids_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.yields_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.yields_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.is_algebraic_variable_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.is_algebraic_variable_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.jacobian_process_info_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_process_info_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.jacobian_reactant_ids_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_reactant_ids_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.jacobian_product_ids_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_product_ids_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.jacobian_yields_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_yields_, cuda_stream_id), "cudaFree");
+      }
       if (devstruct.jacobian_flat_ids_ != nullptr)
+      {
         CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_ids_, cuda_stream_id), "cudaFree");
+      }
     }
 
     void SubtractJacobianTermsKernelDriver(

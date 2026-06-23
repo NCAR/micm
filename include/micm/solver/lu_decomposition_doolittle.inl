@@ -269,15 +269,17 @@ namespace micm
           {
             const std::size_t lij_ujk_first = lij_ujk->first;
             const std::size_t lij_ujk_second = lij_ujk->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
               U_vector[uik_nkj_first + i_cell] -= L_vector[lij_ujk_first + i_cell] * U_vector[lij_ujk_second + i_cell];
+}
             ++lij_ujk;
           }
           ++uik_nkj;
         }
         // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
           L_vector[lki_nkj->first + i_cell] = 1.0;
+}
         ++lki_nkj;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
@@ -295,8 +297,9 @@ namespace micm
           {
             const std::size_t lkj_uji_first = lkj_uji->first;
             const std::size_t lkj_uji_second = lkj_uji->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
               L_vector[lki_nkj_first + i_cell] -= L_vector[lkj_uji_first + i_cell] * U_vector[lkj_uji_second + i_cell];
+}
             ++lkj_uji;
           }
           const std::size_t uii_deref = *uii;

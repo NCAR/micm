@@ -192,8 +192,9 @@ namespace micm
   inline double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
       VariableProxy::operator[](std::size_t grid_cell_index)
   {
-    if (grid_cell_index >= state_.number_of_grid_cells_)
+    if (grid_cell_index >= state_.number_of_grid_cells_) {
       throw std::out_of_range("Grid cell index out of range");
+}
     return state_.variables_[grid_cell_index][index_];
   }
 
@@ -206,8 +207,9 @@ namespace micm
   inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
       VariableProxy::operator[](std::size_t grid_cell_index) const
   {
-    if (grid_cell_index >= state_.number_of_grid_cells_)
+    if (grid_cell_index >= state_.number_of_grid_cells_) {
       throw std::out_of_range("Grid cell index out of range");
+}
     return state_.variables_[grid_cell_index][index_];
   }
 
@@ -239,8 +241,9 @@ namespace micm
   inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
       ConstVariableProxy::operator[](std::size_t grid_cell_index) const
   {
-    if (grid_cell_index >= state_.number_of_grid_cells_)
+    if (grid_cell_index >= state_.number_of_grid_cells_) {
       throw std::out_of_range("Grid cell index out of range");
+}
     return state_.variables_[grid_cell_index][index_];
   }
 
@@ -346,11 +349,13 @@ namespace micm
         absolute_tolerance_(parameters.absolute_tolerance_)
   {
     std::size_t index = 0;
-    for (auto& name : variable_names_)
+    for (auto& name : variable_names_) {
       variable_map_[name] = index++;
+}
     index = 0;
-    for (const auto& label : parameters.custom_rate_parameter_labels_)
+    for (const auto& label : parameters.custom_rate_parameter_labels_) {
       custom_rate_parameter_map_[label] = index++;
+}
 
     if (!parameters.mass_matrix_diagonal_.empty())
     {
@@ -401,8 +406,9 @@ namespace micm
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
           std::size_t index)
   {
-    if (index >= state_size_)
+    if (index >= state_size_) {
       throw std::out_of_range("Variable index out of range");
+}
     return VariableProxy(*this, index);
   }
 
@@ -417,8 +423,9 @@ namespace micm
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
           std::size_t index) const
   {
-    if (index >= state_size_)
+    if (index >= state_size_) {
       throw std::out_of_range("Variable index out of range");
+}
     return ConstVariableProxy(*this, index);
   }
 
@@ -499,8 +506,9 @@ namespace micm
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
     const std::size_t num_grid_cells = conditions_.size();
-    for (const auto& pair : species_to_concentration)
+    for (const auto& pair : species_to_concentration) {
       SetConcentration({ pair.first }, pair.second);
+}
   }
 
   template<
@@ -656,8 +664,9 @@ namespace micm
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
-    for (const auto& pair : parameters)
+    for (const auto& pair : parameters) {
       SetCustomRateParameter(pair.first, pair.second);
+}
   }
 
   template<

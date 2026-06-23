@@ -1392,7 +1392,9 @@ std::tuple<MatrixPolicy<double>, std::vector<double>> TestMutableVector()
   std::vector<double> vec = { 5.0, 10.0, 15.0 };
 
   for (std::size_t i = 0; i < 3; ++i)
+  {
     matrix[i][0] = static_cast<double>(i + 1);
+  }
 
   auto func = MatrixPolicy<double>::Function(
       [](auto&& m, auto&& v)

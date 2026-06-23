@@ -53,7 +53,7 @@
 #   std::next calls. All are safe within realistic problem sizes for a chemistry
 #   solver. Too noisy for the benefit.
 
-Checks: >
+Checks: |
   # disable all checks
   -*,
   # explicitly enabled checks
@@ -61,8 +61,9 @@ Checks: >
   readability-identifier-naming,
   readability-redundant-inline-specifier,
   readability-qualified-auto,
+  performance-unnecessary-value-param,
   # explicitly disabled checks
-  -readability-redundant-member-init
+  -readability-redundant-member-init,
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
   -readability-magic-numbers,

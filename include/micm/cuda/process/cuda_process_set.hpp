@@ -173,7 +173,9 @@ namespace micm
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map, external_models)
   {
     if (!external_models.empty())
+    {
       throw std::runtime_error("CudaProcessSet does not currently support external models.");
+    }
     InitDevStruct();
   }
 

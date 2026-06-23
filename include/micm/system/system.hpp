@@ -42,7 +42,7 @@ namespace micm
     /// @param f Function used to apply a specific order to unique names
     /// @return vector of unique state variable names
     std::vector<std::string> UniqueNames(
-        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
+        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)>& f) const
     {
       auto names = gas_phase_.SpeciesNames();
 
@@ -51,7 +51,9 @@ namespace micm
         std::vector<std::string> reordered;
         reordered.reserve(names.size());
         for (std::size_t i = 0; i < names.size(); ++i)
+        {
           reordered.push_back(f(names, i));
+        }
         return reordered;
       }
 

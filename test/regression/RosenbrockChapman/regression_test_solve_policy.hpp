@@ -43,11 +43,15 @@ void TestSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   for (int i = 0; i < 3; ++i)
   {
     for (int j = 0; j < 3; ++j)
+    {
       fixed_state.custom_rate_parameters_[0][j] = photo_rates[i][j];
+    }
     fixed_state.conditions_[0].temperature_ = state.conditions_[i].temperature_;
     fixed_state.conditions_[0].pressure_ = state.conditions_[i].pressure_;
     for (int j = 0; j < fixed_state.variables_.NumColumns(); ++j)
+    {
       fixed_state.variables_[0][j] = variables[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
+    }
     fixed_solver.UpdateState(fixed_state);
     fixed_results[i] = fixed_solver.Solve(0.0, 500.0, fixed_state);
   }

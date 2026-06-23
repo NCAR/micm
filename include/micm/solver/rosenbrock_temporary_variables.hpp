@@ -40,7 +40,9 @@ namespace micm
     {
       K_.reserve(solver_parameters.stages_);
       for (std::size_t i = 0; i < solver_parameters.stages_; ++i)
+      {
         K_.emplace_back(number_of_grid_cells, state_parameters.number_of_species_);
+      }
     }
   };
 }  // namespace micm

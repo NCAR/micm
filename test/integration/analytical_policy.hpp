@@ -133,8 +133,8 @@ void TestSimpleSystem(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
@@ -250,8 +250,8 @@ void TestSimpleStiffSystem(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})

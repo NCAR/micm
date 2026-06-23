@@ -74,8 +74,12 @@ namespace micm
     {
       std::vector<std::string> names{};
       for (const auto& phase_species : phase_species_)
+      {
         if (!phase_species.species_.IsParameterized())
+        {
           names.push_back(name_ + '.' + phase_species.species_.name_);
+        }
+      }
       return names;
     }
 
@@ -84,8 +88,12 @@ namespace micm
     {
       std::vector<std::string> names{};
       for (const auto& phase_species : phase_species_)
+      {
         if (!phase_species.species_.IsParameterized())
+        {
           names.push_back(phase_species.species_.name_);
+        }
+      }
       return names;
     }
   };

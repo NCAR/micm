@@ -145,7 +145,9 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -211,7 +213,9 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
     builder = builder.WithElement(i, i);  // Diagonals
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
 
@@ -268,7 +272,9 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -340,7 +346,9 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -403,7 +411,9 @@ TEST(LinearConstraint, ZeroConstantResidual)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -464,7 +474,9 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
@@ -521,7 +533,9 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
 
   StandardSparseMatrix jacobian{ builder };
 
@@ -588,7 +602,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;
@@ -652,7 +668,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
     builder = builder.WithElement(i, i);
   }
   for (const auto& elem : non_zero_elements)
+  {
     builder = builder.WithElement(elem.first, elem.second);
+  }
   StandardSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, std::size_t> state_parameter_indices;

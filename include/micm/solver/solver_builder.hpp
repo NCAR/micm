@@ -139,7 +139,9 @@ namespace micm
           "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
 
       if constexpr (HasState<ExternalModel>)
+      {
         external_systems_.emplace_back(ExternalModelSystem{ model });
+      }
 
       if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
       {
@@ -170,7 +172,9 @@ namespace micm
     {
       std::size_t n = system_.StateSize();
       for (const auto& m : external_systems_)
+      {
         n += std::get<0>(m.state_size_func_());
+      }
       return n;
     }
 

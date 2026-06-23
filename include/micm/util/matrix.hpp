@@ -238,7 +238,9 @@ namespace micm
               {
                 std::size_t x_dim = other.size();
                 if (x_dim == 0)
+                {
                   return std::vector<T>(0);
+                }
                 std::size_t y_dim = other[0].size();
                 std::vector<T> data(x_dim * y_dim);
                 auto elem = data.begin();
@@ -320,7 +322,9 @@ namespace micm
     {
       auto x_iter = x.AsVector().begin();
       for (auto& y : data_)
+      {
         y += alpha * (*(x_iter++));
+      }
     }
 
     /// @brief For each element of the matrix, perform y = max(y, x), where x is a scalar constant
@@ -328,7 +332,9 @@ namespace micm
     void Max(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::max(y, x);
+      }
     }
 
     /// @brief For each element of the matrix, perform y = min(y, x), where x is a scalar constant
@@ -336,36 +342,46 @@ namespace micm
     void Min(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::min(y, x);
+      }
     }
 
-    void ForEach(const std::function<void(T&, const T&)> f, const Matrix& a)
+    void ForEach(const std::function<void(T&, const T&)>& f, const Matrix& a)
     {
       auto a_iter = a.AsVector().begin();
       for (auto& elem : data_)
+      {
         f(elem, *(a_iter++));
+      }
     }
 
-    void ForEach(const std::function<void(T&, const T&, const T&)> f, const Matrix& a, const Matrix& b)
+    void ForEach(const std::function<void(T&, const T&, const T&)>& f, const Matrix& a, const Matrix& b)
     {
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
       for (auto& elem : data_)
+      {
         f(elem, *(a_iter++), *(b_iter++));
+      }
     }
 
     // Copy the values from the other matrix into this one
     void Copy(const Matrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both matrices must have the same size.");
+      }
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
     void Swap(Matrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both matrices must have the same size.");
+      }
       data_.swap(other.AsVector());
     }
 

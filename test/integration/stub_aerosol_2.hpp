@@ -57,15 +57,23 @@ class AnotherStubAerosolModel
     auto phase2_names = phases_[1].UniqueNames();
     names.insert(name_ + ".MODE1.NUMBER");  // number concentration for mode 1
     for (const auto& name : phase1_names)
+    {
       names.insert(name_ + ".MODE1." + name);
+    }
     names.insert(name_ + ".MODE2.NUMBER");  // number concentration for mode 2
     for (const auto& name : phase2_names)
+    {
       names.insert(name_ + ".MODE2." + name);
+    }
     names.insert(name_ + ".MODE3.NUMBER");  // number concentration for mode 3
     for (const auto& name : phase1_names)
+    {
       names.insert(name_ + ".MODE3." + name);
+    }
     for (const auto& name : phase2_names)
+    {
       names.insert(name_ + ".MODE3." + name);
+    }
     return names;
   }
   std::set<std::string> StateParameterNames() const

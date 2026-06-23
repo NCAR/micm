@@ -40,7 +40,9 @@ namespace micm
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
       this->param_.vector_length_ = this->VECTOR_LENGTH;
       if (!indexing_only)
+      {
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      }
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
@@ -49,7 +51,9 @@ namespace micm
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
       this->param_.vector_length_ = this->VECTOR_LENGTH;
       if (this->data_.size() != 0)
+      {
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      }
       return *this;
     }
 

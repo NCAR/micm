@@ -102,32 +102,46 @@ namespace micm
     std::cout << "h_start: " << h_start_ << std::endl;
     std::cout << "new_function_evaluation: ";
     for (bool val : new_function_evaluation_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "estimator_of_local_order: " << estimator_of_local_order_ << std::endl;
     std::cout << "a: ";
     for (double val : a_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "c: ";
     for (double val : c_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "m: ";
     for (double val : m_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "e: ";
     for (double val : e_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "alpha: ";
     for (double val : alpha_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "gamma: ";
     for (double val : gamma_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "absolute_tolerance: ";
   }

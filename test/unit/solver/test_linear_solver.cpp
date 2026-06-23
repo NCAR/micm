@@ -39,7 +39,9 @@ TEST(LinearSolver, StandardOrderingAgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
+  {
     TestExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5, initial_value);
+  }
 }
 
 using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;

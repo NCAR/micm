@@ -140,8 +140,12 @@ namespace micm
         {  // parameterized-reactant multiplier
           std::vector<std::function<double(const Conditions&)>> param_funcs;
           for (const auto& reactant : reaction.reactants_)
+          {
             if (reactant.IsParameterized())
+            {
               param_funcs.push_back(reactant.parameterize_);
+            }
+          }
 
           if (!param_funcs.empty())
           {
@@ -149,7 +153,9 @@ namespace micm
                                                          {
                                                            double val = 1.0;
                                                            for (const auto& f : pf)
+                                                           {
                                                              val *= f(cond);
+                                                           }
                                                            return val;
                                                          },
                                                          rc_index });
@@ -208,10 +214,12 @@ namespace micm
         {
           SurfaceRateConstantData data;
           if (!p->phase_species_.diffusion_coefficient_.has_value())
+          {
             throw MicmException(
                 MICM_ERROR_CATEGORY_SPECIES,
                 MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
                 "Diffusion coefficient for species '" + p->phase_species_.species_.name_ + "' is not defined");
+          }
           data.diffusion_coefficient_ = p->phase_species_.diffusion_coefficient_.value();
           double mw = p->phase_species_.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT);
           data.mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * mw);
@@ -258,7 +266,9 @@ namespace micm
           {
             const auto& cond = state.conditions_[i_group * L + i_cell];
             for (const auto& entry : store.lambda_entries_)
+            {
               v_rc[rc_base + entry.rc_index_ * L + i_cell] = entry.source_->lambda_function_(cond);
+            }
           }
         }
       }
@@ -268,7 +278,9 @@ namespace micm
         {
           const auto& cond = state.conditions_[i_cell];
           for (const auto& entry : store.lambda_entries_)
+          {
             state.rate_constants_[i_cell][entry.rc_index_] = entry.source_->lambda_function_(cond);
+          }
         }
       }
     }

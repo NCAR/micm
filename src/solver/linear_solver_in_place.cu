@@ -155,17 +155,25 @@ namespace micm
     void FreeConstData(LinearSolverInPlaceParam& devstruct)
     {
       if (devstruct.nLij_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.nLij_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
       if (devstruct.Lij_yj_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.Lij_yj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
       if (devstruct.nUij_Uii_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.nUij_Uii_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
       if (devstruct.Uij_xj_ != nullptr)
+      {
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.Uij_xj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+      }
     }
 
     void

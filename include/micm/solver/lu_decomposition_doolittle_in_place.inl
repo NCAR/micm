@@ -202,8 +202,9 @@ namespace micm
             auto ALU_vector_aik_njk_it = ALU_vector + aik_njk->first;
             auto ALU_vector_aij_ajk_first_it = ALU_vector + aij_ajk->first;
             auto ALU_vector_aij_ajk_second_it = ALU_vector + aij_ajk->second;
-            for (std::size_t i = 0; i < n_cells; ++i)
+            for (std::size_t i = 0; i < n_cells; ++i) {
               *(ALU_vector_aik_njk_it++) -= *(ALU_vector_aij_ajk_first_it++) * *(ALU_vector_aij_ajk_second_it++);
+}
             ++aij_ajk;
           }
           ++aik_njk;
@@ -217,14 +218,16 @@ namespace micm
             auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
             auto ALU_vector_akj_aji_first_it = ALU_vector + akj_aji->first;
             auto ALU_vector_akj_aji_second_it = ALU_vector + akj_aji->second;
-            for (std::size_t i = 0; i < n_cells; ++i)
+            for (std::size_t i = 0; i < n_cells; ++i) {
               *(ALU_vector_aki_nji_it++) -= *(ALU_vector_akj_aji_first_it++) * *(ALU_vector_akj_aji_second_it++);
+}
             ++akj_aji;
           }
           auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
           auto ALU_vector_nik_nki_aii_it = ALU_vector + std::get<2>(nik_nki_aii);
-          for (std::size_t i = 0; i < n_cells; ++i)
+          for (std::size_t i = 0; i < n_cells; ++i) {
             *(ALU_vector_aki_nji_it++) /= *(ALU_vector_nik_nki_aii_it++);
+}
           ++aki_nji;
         }
       }
