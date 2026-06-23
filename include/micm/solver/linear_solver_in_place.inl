@@ -141,9 +141,10 @@ namespace micm
             auto LU_group_it = LU_group + Lij_yj_first;
             auto x_group_it = x_group + Lij_yj_second_times_n_cells;
             auto y_elem_it = y_elem;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               *(y_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
-}
+            }
             ++Lij_yj;
           }
           y_elem += n_cells;
@@ -164,17 +165,19 @@ namespace micm
             auto LU_group_it = LU_group + Uij_xj_first;
             auto x_group_it = x_group + Uij_xj_second_times_n_cells;
             auto x_elem_it = x_elem;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               *(x_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
-}
+            }
             ++Uij_xj;
           }
           const std::size_t nUij_Uii_second = nUij_Uii.second;
           auto LU_group_it = LU_group + nUij_Uii_second;
           auto x_elem_it = x_elem;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             *(x_elem_it++) /= *(LU_group_it++);
-}
+          }
 
           // don't iterate before the beginning of the vector
           const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
