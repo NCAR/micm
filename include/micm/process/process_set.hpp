@@ -187,70 +187,83 @@ namespace micm
       number_of_products_.push_back(number_of_products);
     }
 
-    // Set up process information for Jacobian calculations
-
-    // The variable_map is sorted by index
-    std::vector<std::pair<std::string, std::size_t>> sorted_names(variable_map.begin(), variable_map.end());
-    std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
-
-    // For every independent variable (species), if the species is used as a reactant in a process,
-    // create a ProcessInfo record to track Jacobian contributions
-    for (const auto& independent_variable : sorted_names)
+    // Set up process information for Jacobian calculations.
+    //
+    // For every independent variable (species) used as a reactant in a process, create a
+    // ProcessInfo record. Rather than scanning every process for every species
+    // (O(species x reactions), which is prohibitive for large mechanisms), collect
+    // (independent_id, process_id) jobs in a SINGLE pass over the processes and then
+    // stable-sort them by independent_id. The emitted records are then ordered by
+    // independent variable and then by process -- identical to the species-by-species
+    // scan -- but the cost is O(reactions x reactants + J log J) instead of
+    // O(species x reactions).
+    std::vector<std::pair<std::size_t, std::size_t>> jacobian_jobs;  // (independent_id, i_process)
+    for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
     {
-      for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
+      const auto& reaction = processes[i_process].process_;
+      for (const auto& ind_reactant : reaction.reactants_)
       {
-        const auto& reaction = processes[i_process].process_;
-        for (const auto& ind_reactant : reaction.reactants_)
+        auto it = variable_map.find(ind_reactant.name_);
+        if (it == variable_map.end())
         {
-          if (ind_reactant.name_ != independent_variable.first)
-          {
-            continue;
-          }
-          ProcessInfo info;
-          info.process_id_ = i_process;
-          info.independent_id_ = independent_variable.second;
-          info.number_of_dependent_reactants_ = 0;
-          info.number_of_products_ = 0;
-
-          // Collect other (dependent) reactants and products
-          bool found = false;
-          for (const auto& reactant : reaction.reactants_)
-          {
-            if (reactant.IsParameterized())
-            {
-              continue;  // Skip reactants that are parameterizations
-            }
-            if (variable_map.count(reactant.name_) < 1)
-            {
-              throw MicmException(
-                  MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
-            }
-            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
-            {
-              found = true;
-              continue;
-            }
-            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
-            ++info.number_of_dependent_reactants_;
-          }
-          for (const auto& product : reaction.products_)
-          {
-            if (product.species_.IsParameterized())
-            {
-              continue;  // Skip products that are parameterizations
-            }
-            if (variable_map.count(product.species_.name_) < 1)
-            {
-              throw MicmException(
-                  MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
-            }
-            jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
-            jacobian_yields_.push_back(product.coefficient_);
-            ++info.number_of_products_;
-          }
-          jacobian_process_info_.push_back(info);
+          continue;
         }
+        jacobian_jobs.emplace_back(it->second, i_process);
       }
+    }
+    std::stable_sort(
+        jacobian_jobs.begin(),
+        jacobian_jobs.end(),
+        [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    for (const auto& job : jacobian_jobs)
+    {
+      const std::size_t independent_id = job.first;
+      const std::size_t i_process = job.second;
+      const auto& reaction = processes[i_process].process_;
+      ProcessInfo info;
+      info.process_id_ = i_process;
+      info.independent_id_ = independent_id;
+      info.number_of_dependent_reactants_ = 0;
+      info.number_of_products_ = 0;
+
+      // Collect other (dependent) reactants and products
+      bool found = false;
+      for (const auto& reactant : reaction.reactants_)
+      {
+        if (reactant.IsParameterized())
+        {
+          continue;  // Skip reactants that are parameterizations
+        }
+        if (variable_map.count(reactant.name_) < 1)
+        {
+          throw MicmException(
+              MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
+        }
+        if (variable_map.at(reactant.name_) == independent_id && !found)
+        {
+          found = true;
+          continue;
+        }
+        jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+        ++info.number_of_dependent_reactants_;
+      }
+      for (const auto& product : reaction.products_)
+      {
+        if (product.species_.IsParameterized())
+        {
+          continue;  // Skip products that are parameterizations
+        }
+        if (variable_map.count(product.species_.name_) < 1)
+        {
+          throw MicmException(
+              MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
+        }
+        jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
+        jacobian_yields_.push_back(product.coefficient_);
+        ++info.number_of_products_;
+      }
+      jacobian_process_info_.push_back(info);
     }
   };
 
