@@ -31,6 +31,22 @@ namespace micm
   {
     std::size_t n = matrix.NumRows();
     auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
+    // O(1) membership bitmaps so the O(n^3) index-building loops below avoid a
+    // per-probe IsZero() linear row scan. Built once from the (sparse) patterns of
+    // A, L and U; the one-time O(n^2) scan is negligible next to the loops it feeds.
+    std::vector<char> in_A(n * n, 0), in_L(n * n, 0), in_U(n * n, 0);
+    for (std::size_t r = 0; r < n; ++r)
+    {
+      for (std::size_t c = 0; c < n; ++c)
+      {
+        if (!matrix.IsZero(r, c))
+          in_A[r * n + c] = 1;
+        if (!LU.first.IsZero(r, c))
+          in_L[r * n + c] = 1;
+        if (!LU.second.IsZero(r, c))
+          in_U[r * n + c] = 1;
+      }
+    }
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
@@ -40,14 +56,14 @@ namespace micm
         std::size_t nkj = 0;
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (LU.first.IsZero(i, j) || LU.second.IsZero(j, k))
+          if (!in_L[i * n + j] || !in_U[j * n + k])
           {
             continue;
           }
           ++nkj;
           lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
         }
-        if (matrix.IsZero(i, k))
+        if (!in_A[i * n + k])
         {
           if (nkj == 0 && k != i)
           {
@@ -70,14 +86,14 @@ namespace micm
         std::size_t nkj = 0;
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (LU.first.IsZero(k, j) || LU.second.IsZero(j, i))
+          if (!in_L[k * n + j] || !in_U[j * n + i])
           {
             continue;
           }
           ++nkj;
           lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
         }
-        if (matrix.IsZero(k, i))
+        if (!in_A[k * n + i])
         {
           if (nkj == 0)
           {
@@ -108,6 +124,21 @@ namespace micm
   {
     std::size_t n = A.NumRows();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
+    // Dense membership bitmaps give O(1) lookups in the inner fill loops below;
+    // std::set::find is O(log) and is called up to O(n^3) times. The sets are kept
+    // for their sorted iteration when the L and U matrices are built. Memory is
+    // O(n^2) bytes, which is negligible compared to the factorization itself.
+    std::vector<char> in_L(n * n, 0), in_U(n * n, 0);
+    auto add_L = [&](std::size_t r, std::size_t c)
+    {
+      L_ids.insert(std::make_pair(r, c));
+      in_L[r * n + c] = 1;
+    };
+    auto add_U = [&](std::size_t r, std::size_t c)
+    {
+      U_ids.insert(std::make_pair(r, c));
+      in_U[r * n + c] = 1;
+    };
     for (std::size_t i = 0; i < n; ++i)
     {
       // Upper triangular matrix
@@ -115,14 +146,14 @@ namespace micm
       {
         if (!A.IsZero(i, k) || k == i)
         {
-          U_ids.insert(std::make_pair(i, k));
+          add_U(i, k);
           continue;
         }
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (L_ids.find(std::make_pair(i, j)) != L_ids.end() && U_ids.find(std::make_pair(j, k)) != U_ids.end())
+          if (in_L[i * n + j] && in_U[j * n + k])
           {
-            U_ids.insert(std::make_pair(i, k));
+            add_U(i, k);
             break;
           }
         }
@@ -132,14 +163,14 @@ namespace micm
       {
         if (!A.IsZero(k, i) || k == i)
         {
-          L_ids.insert(std::make_pair(k, i));
+          add_L(k, i);
           continue;
         }
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (L_ids.find(std::make_pair(k, j)) != L_ids.end() && U_ids.find(std::make_pair(j, i)) != U_ids.end())
+          if (in_L[k * n + j] && in_U[j * n + i])
           {
-            L_ids.insert(std::make_pair(k, i));
+            add_L(k, i);
             break;
           }
         }
