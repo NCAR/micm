@@ -25,86 +25,175 @@ namespace micm
     return lu_decomp;
   }
 
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionDoolittle::FillPattern LuDecompositionDoolittle::ComputeFillPattern(const SparseMatrixPolicy& A)
+  {
+    std::size_t n = A.NumRows();
+    FillPattern fp;
+    fp.Arow.assign(n, {});
+    fp.Acol.assign(n, {});
+    fp.Lrow.assign(n, {});
+    fp.Urow.assign(n, {});
+    fp.Lcol.assign(n, {});
+
+    // Non-zero structure of the (sparse) input matrix A. Its rows are short, so the
+    // O(n^2) IsZero scan here costs O(n * nnz(A)) -- negligible next to the dense
+    // O(n^3) loop this whole routine replaces.
+    for (std::size_t r = 0; r < n; ++r)
+    {
+      for (std::size_t c = 0; c < n; ++c)
+      {
+        if (!A.IsZero(r, c))
+        {
+          fp.Arow[r].push_back(c);
+          fp.Acol[c].push_back(r);
+        }
+      }
+    }
+
+    // Symbolic factorization processed one row at a time in increasing-i order. By
+    // the time row i is reached, L[i][.] (j<i), U[j][.] and L[.][j] (j<i) are known,
+    // so the fill of U row i and L column i is found by walking only the relevant
+    // non-zeros: U[i][k] fills iff A[i][k] != 0, k == i, or some j<i has L[i][j] and
+    // U[j][k]; L[k][i] fills iff A[k][i] != 0 or some j<i has L[k][j] and U[j][i].
+    std::vector<std::vector<std::size_t>> Ucol(n);  // Ucol[i] = rows j<i where U[j][i] != 0, ascending
+    std::vector<char> seen(n, 0);
+    std::vector<std::size_t> touched;
+    auto mark = [&](std::size_t k)
+    {
+      if (!seen[k])
+      {
+        seen[k] = 1;
+        touched.push_back(k);
+      }
+    };
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      // Upper triangular matrix: columns k >= i that are non-zero in U row i.
+      touched.clear();
+      mark(i);  // unit/diagonal entry U[i][i]
+      for (std::size_t k : fp.Arow[i])
+        if (k >= i)
+          mark(k);
+      for (std::size_t j : fp.Lrow[i])    // j < i, L[i][j] != 0
+        for (std::size_t k : fp.Urow[j])  // k >= j, U[j][k] != 0
+          if (k >= i)
+            mark(k);
+      std::sort(touched.begin(), touched.end());
+      for (std::size_t k : touched)
+      {
+        fp.U_ids.insert(std::make_pair(i, k));
+        fp.Urow[i].push_back(k);
+        Ucol[k].push_back(i);
+        seen[k] = 0;
+      }
+
+      // Lower triangular matrix: rows k > i non-zero in L column i, plus the unit
+      // diagonal L[i][i].
+      fp.L_ids.insert(std::make_pair(i, i));
+      touched.clear();
+      for (std::size_t k : fp.Acol[i])
+        if (k > i)
+          mark(k);
+      for (std::size_t j : Ucol[i])       // j < i, U[j][i] != 0
+        for (std::size_t k : fp.Lcol[j])  // k > j, L[k][j] != 0
+          if (k > i)
+            mark(k);
+      std::sort(touched.begin(), touched.end());
+      for (std::size_t k : touched)
+      {
+        fp.L_ids.insert(std::make_pair(k, i));
+        fp.Lcol[i].push_back(k);
+        fp.Lrow[k].push_back(i);
+        seen[k] = 0;
+      }
+    }
+    return fp;
+  }
+
   template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittle::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     std::size_t n = matrix.NumRows();
-    auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
-    // O(1) membership bitmaps so the O(n^3) index-building loops below avoid a
-    // per-probe IsZero() linear row scan. Built once from the (sparse) patterns of
-    // A, L and U; the one-time O(n^2) scan is negligible next to the loops it feeds.
-    std::vector<char> in_A(n * n, 0), in_L(n * n, 0), in_U(n * n, 0);
-    for (std::size_t r = 0; r < n; ++r)
+    FillPattern fp = ComputeFillPattern(matrix);
+    // Build the (indexing-only) L and U matrices from the fill pattern so we can map
+    // (row, column) positions to data-vector indices below.
+    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
+    for (const auto& pair : fp.L_ids)
     {
-      for (std::size_t c = 0; c < n; ++c)
-      {
-        if (!matrix.IsZero(r, c))
-          in_A[r * n + c] = 1;
-        if (!LU.first.IsZero(r, c))
-          in_L[r * n + c] = 1;
-        if (!LU.second.IsZero(r, c))
-          in_U[r * n + c] = 1;
-      }
+      L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
+    for (const auto& pair : fp.U_ids)
+    {
+      U_builder = U_builder.WithElement(pair.first, pair.second);
+    }
+    std::pair<LMatrixPolicy, UMatrixPolicy> LU(LMatrixPolicy(L_builder, true), UMatrixPolicy(U_builder, true));
+
+    // O(1)-amortized membership on the sorted adjacency rows; bounded by the
+    // factorization's own operation count (times a log factor) rather than O(n^3).
+    auto contains = [](const std::vector<std::size_t>& v, std::size_t x)
+    { return std::binary_search(v.begin(), v.end(), x); };
+
+    for (std::size_t i = 0; i < n; ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
-      // Upper triangular matrix
-      for (std::size_t k = i; k < n; ++k)
+      // Upper triangular matrix: iterate only the non-zero columns of U row i.
+      for (std::size_t k : fp.Urow[i])
       {
         std::size_t nkj = 0;
-        for (std::size_t j = 0; j < i; ++j)
+        // j < i with L[i][j] != 0 and U[j][k] != 0, in ascending j order.
+        for (std::size_t j : fp.Lrow[i])
         {
-          if (!in_L[i * n + j] || !in_U[j * n + k])
+          if (!contains(fp.Urow[j], k))
           {
             continue;
           }
           ++nkj;
           lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
         }
-        if (!in_A[i * n + k])
-        {
-          if (nkj == 0 && k != i)
-          {
-            continue;
-          }
-          do_aik_.push_back(false);
-        }
-        else
+        if (contains(fp.Arow[i], k))
         {
           do_aik_.push_back(true);
           aik_.push_back(matrix.VectorIndex(0, i, k));
         }
+        else
+        {
+          do_aik_.push_back(false);
+        }
         uik_nkj_.push_back(std::make_pair(LU.second.VectorIndex(0, i, k), nkj));
         ++(iLU.second);
       }
-      // Lower triangular matrix
+      // Lower triangular matrix: iterate only the non-zero rows of L column i.
       lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, i, i), 0));
-      for (std::size_t k = i + 1; k < n; ++k)
+      for (std::size_t k : fp.Lcol[i])
       {
         std::size_t nkj = 0;
-        for (std::size_t j = 0; j < i; ++j)
+        // j < i with L[k][j] != 0 and U[j][i] != 0, in ascending j order. Lrow[k] is
+        // sorted, so stop once j reaches i.
+        for (std::size_t j : fp.Lrow[k])
         {
-          if (!in_L[k * n + j] || !in_U[j * n + i])
+          if (j >= i)
+          {
+            break;
+          }
+          if (!contains(fp.Urow[j], i))
           {
             continue;
           }
           ++nkj;
           lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
         }
-        if (!in_A[k * n + i])
-        {
-          if (nkj == 0)
-          {
-            continue;
-          }
-          do_aki_.push_back(false);
-        }
-        else
+        if (contains(fp.Acol[i], k))
         {
           do_aki_.push_back(true);
           aki_.push_back(matrix.VectorIndex(0, k, i));
+        }
+        else
+        {
+          do_aki_.push_back(false);
         }
         uii_.push_back(LU.second.VectorIndex(0, i, i));
         lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, k, i), nkj));
@@ -123,66 +212,14 @@ namespace micm
       bool indexing_only)
   {
     std::size_t n = A.NumRows();
-    std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
-    // Dense membership bitmaps give O(1) lookups in the inner fill loops below;
-    // std::set::find is O(log) and is called up to O(n^3) times. The sets are kept
-    // for their sorted iteration when the L and U matrices are built. Memory is
-    // O(n^2) bytes, which is negligible compared to the factorization itself.
-    std::vector<char> in_L(n * n, 0), in_U(n * n, 0);
-    auto add_L = [&](std::size_t r, std::size_t c)
-    {
-      L_ids.insert(std::make_pair(r, c));
-      in_L[r * n + c] = 1;
-    };
-    auto add_U = [&](std::size_t r, std::size_t c)
-    {
-      U_ids.insert(std::make_pair(r, c));
-      in_U[r * n + c] = 1;
-    };
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      // Upper triangular matrix
-      for (std::size_t k = i; k < n; ++k)
-      {
-        if (!A.IsZero(i, k) || k == i)
-        {
-          add_U(i, k);
-          continue;
-        }
-        for (std::size_t j = 0; j < i; ++j)
-        {
-          if (in_L[i * n + j] && in_U[j * n + k])
-          {
-            add_U(i, k);
-            break;
-          }
-        }
-      }
-      // Lower triangular matrix
-      for (std::size_t k = i; k < n; ++k)
-      {
-        if (!A.IsZero(k, i) || k == i)
-        {
-          add_L(k, i);
-          continue;
-        }
-        for (std::size_t j = 0; j < i; ++j)
-        {
-          if (in_L[k * n + j] && in_U[j * n + i])
-          {
-            add_L(k, i);
-            break;
-          }
-        }
-      }
-    }
+    FillPattern fp = ComputeFillPattern(A);
     auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (const auto& pair : L_ids)
+    for (const auto& pair : fp.L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
     auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (const auto& pair : U_ids)
+    for (const auto& pair : fp.U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
