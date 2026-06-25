@@ -55,7 +55,13 @@ namespace micm
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetPhase(const Phase& phase)
     {
-      phase_ = phase;
+      // Store only the phase NAME, not a copy of all of the phase's species. A
+      // reaction needs to know which phase it belongs to (by name); the species
+      // membership lives on the System, which is what the solver actually reads.
+      // Copying the full phase into every reaction is O(reactions x species) in
+      // memory and is catastrophic for large mechanisms (e.g. a ~7,500-species
+      // GECKO-A mechanism with ~42,000 reactions copies ~114 GB of species here).
+      phase_ = Phase(phase.name_, {});
       return *this;
     }
 
