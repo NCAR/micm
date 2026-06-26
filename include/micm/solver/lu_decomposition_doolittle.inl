@@ -31,11 +31,11 @@ namespace micm
   {
     std::size_t n = A.NumRows();
     FillPattern fp;
-    fp.Arow.assign(n, {});
-    fp.Acol.assign(n, {});
-    fp.Lrow.assign(n, {});
-    fp.Urow.assign(n, {});
-    fp.Lcol.assign(n, {});
+    fp.Arow_.assign(n, {});
+    fp.Acol_.assign(n, {});
+    fp.Lrow_.assign(n, {});
+    fp.Urow_.assign(n, {});
+    fp.Lcol_.assign(n, {});
 
     // Non-zero structure of the (sparse) input matrix A. Its rows are short, so the
     // O(n^2) IsZero scan here costs O(n * nnz(A)) -- negligible next to the dense
@@ -46,8 +46,8 @@ namespace micm
       {
         if (!A.IsZero(r, c))
         {
-          fp.Arow[r].push_back(c);
-          fp.Acol[c].push_back(r);
+          fp.Arow_[r].push_back(c);
+          fp.Acol_[c].push_back(r);
         }
       }
     }
@@ -73,39 +73,59 @@ namespace micm
       // Upper triangular matrix: columns k >= i that are non-zero in U row i.
       touched.clear();
       mark(i);  // unit/diagonal entry U[i][i]
-      for (std::size_t k : fp.Arow[i])
+      for (std::size_t k : fp.Arow_[i])
+      {
         if (k >= i)
+        {
           mark(k);
-      for (std::size_t j : fp.Lrow[i])    // j < i, L[i][j] != 0
-        for (std::size_t k : fp.Urow[j])  // k >= j, U[j][k] != 0
+        }
+      }
+      for (std::size_t j : fp.Lrow_[i])  // j < i, L[i][j] != 0
+      {
+        for (std::size_t k : fp.Urow_[j])  // k >= j, U[j][k] != 0
+        {
           if (k >= i)
+          {
             mark(k);
+          }
+        }
+      }
       std::sort(touched.begin(), touched.end());
       for (std::size_t k : touched)
       {
-        fp.U_ids.insert(std::make_pair(i, k));
-        fp.Urow[i].push_back(k);
+        fp.U_ids_.insert(std::make_pair(i, k));
+        fp.Urow_[i].push_back(k);
         Ucol[k].push_back(i);
         seen[k] = 0;
       }
 
       // Lower triangular matrix: rows k > i non-zero in L column i, plus the unit
       // diagonal L[i][i].
-      fp.L_ids.insert(std::make_pair(i, i));
+      fp.L_ids_.insert(std::make_pair(i, i));
       touched.clear();
-      for (std::size_t k : fp.Acol[i])
+      for (std::size_t k : fp.Acol_[i])
+      {
         if (k > i)
+        {
           mark(k);
-      for (std::size_t j : Ucol[i])       // j < i, U[j][i] != 0
-        for (std::size_t k : fp.Lcol[j])  // k > j, L[k][j] != 0
+        }
+      }
+      for (std::size_t j : Ucol[i])  // j < i, U[j][i] != 0
+      {
+        for (std::size_t k : fp.Lcol_[j])  // k > j, L[k][j] != 0
+        {
           if (k > i)
+          {
             mark(k);
+          }
+        }
+      }
       std::sort(touched.begin(), touched.end());
       for (std::size_t k : touched)
       {
-        fp.L_ids.insert(std::make_pair(k, i));
-        fp.Lcol[i].push_back(k);
-        fp.Lrow[k].push_back(i);
+        fp.L_ids_.insert(std::make_pair(k, i));
+        fp.Lcol_[i].push_back(k);
+        fp.Lrow_[k].push_back(i);
         seen[k] = 0;
       }
     }
@@ -121,12 +141,12 @@ namespace micm
     // Build the (indexing-only) L and U matrices from the fill pattern so we can map
     // (row, column) positions to data-vector indices below.
     auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
-    for (const auto& pair : fp.L_ids)
+    for (const auto& pair : fp.L_ids_)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
     auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
-    for (const auto& pair : fp.U_ids)
+    for (const auto& pair : fp.U_ids_)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
@@ -141,20 +161,20 @@ namespace micm
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
       // Upper triangular matrix: iterate only the non-zero columns of U row i.
-      for (std::size_t k : fp.Urow[i])
+      for (std::size_t k : fp.Urow_[i])
       {
         std::size_t nkj = 0;
         // j < i with L[i][j] != 0 and U[j][k] != 0, in ascending j order.
-        for (std::size_t j : fp.Lrow[i])
+        for (std::size_t j : fp.Lrow_[i])
         {
-          if (!contains(fp.Urow[j], k))
+          if (!contains(fp.Urow_[j], k))
           {
             continue;
           }
           ++nkj;
           lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
         }
-        if (contains(fp.Arow[i], k))
+        if (contains(fp.Arow_[i], k))
         {
           do_aik_.push_back(true);
           aik_.push_back(matrix.VectorIndex(0, i, k));
@@ -168,25 +188,25 @@ namespace micm
       }
       // Lower triangular matrix: iterate only the non-zero rows of L column i.
       lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, i, i), 0));
-      for (std::size_t k : fp.Lcol[i])
+      for (std::size_t k : fp.Lcol_[i])
       {
         std::size_t nkj = 0;
-        // j < i with L[k][j] != 0 and U[j][i] != 0, in ascending j order. Lrow[k] is
+        // j < i with L[k][j] != 0 and U[j][i] != 0, in ascending j order. Lrow_[k] is
         // sorted, so stop once j reaches i.
-        for (std::size_t j : fp.Lrow[k])
+        for (std::size_t j : fp.Lrow_[k])
         {
           if (j >= i)
           {
             break;
           }
-          if (!contains(fp.Urow[j], i))
+          if (!contains(fp.Urow_[j], i))
           {
             continue;
           }
           ++nkj;
           lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
         }
-        if (contains(fp.Acol[i], k))
+        if (contains(fp.Acol_[i], k))
         {
           do_aki_.push_back(true);
           aki_.push_back(matrix.VectorIndex(0, k, i));
@@ -214,12 +234,12 @@ namespace micm
     std::size_t n = A.NumRows();
     FillPattern fp = ComputeFillPattern(A);
     auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (const auto& pair : fp.L_ids)
+    for (const auto& pair : fp.L_ids_)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
     auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (const auto& pair : fp.U_ids)
+    for (const auto& pair : fp.U_ids_)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
@@ -337,17 +357,19 @@ namespace micm
           {
             const std::size_t lij_ujk_first = lij_ujk->first;
             const std::size_t lij_ujk_second = lij_ujk->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               U_vector[uik_nkj_first + i_cell] -= L_vector[lij_ujk_first + i_cell] * U_vector[lij_ujk_second + i_cell];
-}
+            }
             ++lij_ujk;
           }
           ++uik_nkj;
         }
         // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        {
           L_vector[lki_nkj->first + i_cell] = 1.0;
-}
+        }
         ++lki_nkj;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
@@ -365,9 +387,10 @@ namespace micm
           {
             const std::size_t lkj_uji_first = lkj_uji->first;
             const std::size_t lkj_uji_second = lkj_uji->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               L_vector[lki_nkj_first + i_cell] -= L_vector[lkj_uji_first + i_cell] * U_vector[lkj_uji_second + i_cell];
-}
+            }
             ++lkj_uji;
           }
           const std::size_t uii_deref = *uii;

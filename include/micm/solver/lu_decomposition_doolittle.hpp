@@ -129,16 +129,16 @@ namespace micm
     struct FillPattern
     {
       /// Sorted non-zero positions of the L and U factors (used to build the matrices)
-      std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
-      /// Non-zero structure of the input matrix A: Arow[r] = sorted columns,
-      /// Acol[c] = sorted rows
-      std::vector<std::vector<std::size_t>> Arow, Acol;
-      /// Lrow[i] = sorted columns j < i where L[i][j] != 0
-      std::vector<std::vector<std::size_t>> Lrow;
-      /// Urow[i] = sorted columns k >= i where U[i][k] != 0
-      std::vector<std::vector<std::size_t>> Urow;
-      /// Lcol[i] = sorted rows k > i where L[k][i] != 0
-      std::vector<std::vector<std::size_t>> Lcol;
+      std::set<std::pair<std::size_t, std::size_t>> L_ids_, U_ids_;
+      /// Non-zero structure of the input matrix A: Arow_[r] = sorted columns,
+      /// Acol_[c] = sorted rows
+      std::vector<std::vector<std::size_t>> Arow_, Acol_;
+      /// Lrow_[i] = sorted columns j < i where L[i][j] != 0
+      std::vector<std::vector<std::size_t>> Lrow_;
+      /// Urow_[i] = sorted columns k >= i where U[i][k] != 0
+      std::vector<std::vector<std::size_t>> Urow_;
+      /// Lcol_[i] = sorted rows k > i where L[k][i] != 0
+      std::vector<std::vector<std::size_t>> Lcol_;
     };
 
     /// @brief Compute the sparse LU fill pattern of A in time proportional to the
