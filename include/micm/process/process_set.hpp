@@ -194,10 +194,10 @@ namespace micm
     // (O(species x reactions), which is prohibitive for large mechanisms), collect
     // (independent_id, process_id) jobs in a SINGLE pass over the processes and then
     // stable-sort them by independent_id. The emitted records are then ordered by
-    // independent variable and then by process -- identical to the species-by-species
-    // scan -- but the cost is O(reactions x reactants + J log J) instead of
+    // independent variable and then by process which is identical to the species-by-species
+    // scan, but the cost is O(reactions x reactants + J log J) instead of
     // O(species x reactions).
-    std::vector<std::pair<std::size_t, std::size_t>> jacobian_jobs;  // (independent_id, i_process)
+    std::vector<std::pair<std::size_t, std::size_t>> jacobian_columns;  // (independent_id, i_process)
     for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
     {
       const auto& reaction = processes[i_process].process_;
@@ -208,18 +208,18 @@ namespace micm
         {
           continue;
         }
-        jacobian_jobs.emplace_back(it->second, i_process);
+        jacobian_columns.emplace_back(it->second, i_process);
       }
     }
     std::stable_sort(
-        jacobian_jobs.begin(),
-        jacobian_jobs.end(),
+        jacobian_columns.begin(),
+        jacobian_columns.end(),
         [](const auto& a, const auto& b) { return a.first < b.first; });
 
-    for (const auto& job : jacobian_jobs)
+    for (const auto& column : jacobian_columns)
     {
-      const std::size_t independent_id = job.first;
-      const std::size_t i_process = job.second;
+      const std::size_t independent_id = column.first;
+      const std::size_t i_process = column.second;
       const auto& reaction = processes[i_process].process_;
       ProcessInfo info;
       info.process_id_ = i_process;
@@ -228,6 +228,7 @@ namespace micm
       info.number_of_products_ = 0;
 
       // Collect other (dependent) reactants and products
+      // because our reactants can be duplicated, (2B could be 2B or B + B), we need to detect when we've already seen a reactant
       bool found = false;
       for (const auto& reactant : reaction.reactants_)
       {
@@ -235,17 +236,13 @@ namespace micm
         {
           continue;  // Skip reactants that are parameterizations
         }
-        if (variable_map.count(reactant.name_) < 1)
-        {
-          throw MicmException(
-              MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
-        }
-        if (variable_map.at(reactant.name_) == independent_id && !found)
+        const std::size_t id = variable_map.at(reactant.name_);
+        if (id == independent_id && !found)
         {
           found = true;
           continue;
         }
-        jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+        jacobian_reactant_ids_.push_back(id);
         ++info.number_of_dependent_reactants_;
       }
       for (const auto& product : reaction.products_)
@@ -253,11 +250,6 @@ namespace micm
         if (product.species_.IsParameterized())
         {
           continue;  // Skip products that are parameterizations
-        }
-        if (variable_map.count(product.species_.name_) < 1)
-        {
-          throw MicmException(
-              MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
         }
         jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
         jacobian_yields_.push_back(product.coefficient_);
