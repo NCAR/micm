@@ -8,9 +8,10 @@ namespace micm
   {
     const std::size_t order = matrix.NumRows();
     std::vector<std::size_t> perm(order);
-    for (std::size_t i = 0; i < order; ++i) {
+    for (std::size_t i = 0; i < order; ++i)
+    {
       perm[i] = i;
-}
+    }
     MatrixPolicy pattern = matrix;
     for (std::size_t row = 0; row < (order - 1); ++row)
     {
@@ -35,12 +36,14 @@ namespace micm
       // Swap row and max_row
       if (max_row != row)
       {
-        for (std::size_t i = row; i < order; ++i) {
+        for (std::size_t i = row; i < order; ++i)
+        {
           std::swap(pattern[row][i], pattern[max_row][i]);
-}
-        for (std::size_t i = row; i < order; ++i) {
+        }
+        for (std::size_t i = row; i < order; ++i)
+        {
           std::swap(pattern[i][row], pattern[i][max_row]);
-}
+        }
         std::swap(perm[row], perm[max_row]);
       }
       for (std::size_t col = row + 1; col < order; ++col)
@@ -204,15 +207,17 @@ namespace micm
           {
             const std::size_t Lij_yj_first = (*Lij_yj).first;
             const std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
-}
+            }
             ++Lij_yj;
           }
           const std::size_t nLij_Lii_second = nLij_Lii.second;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             y_elem[i_cell] /= L_group[nLij_Lii_second + i_cell];
-}
+          }
           y_elem += n_cells;
         }
       }
@@ -228,15 +233,17 @@ namespace micm
           {
             const std::size_t Uij_xj_first = (*Uij_xj).first;
             const std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               x_elem[i_cell] -= U_group[Uij_xj_first + i_cell] * x_group[Uij_xj_second_times_n_cells + i_cell];
-}
+            }
             ++Uij_xj;
           }
           const std::size_t nUij_Uii_second = nUij_Uii.second;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell) {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             x_elem[i_cell] /= U_group[nUij_Uii_second + i_cell];
-}
+          }
 
           // don't iterate before the beginning of the vector
           const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
