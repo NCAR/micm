@@ -81,28 +81,36 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> ALU_ids;
     for (std::size_t i = 0; i < n; ++i)
     {
-      for (std::size_t j = 0; j < n; ++j) {
-        if (!A.IsZero(i, j)) {
+      for (std::size_t j = 0; j < n; ++j)
+      {
+        if (!A.IsZero(i, j))
+        {
           ALU_ids.insert(std::make_pair(i, j));
-}
-}
+        }
+      }
     }
     for (std::size_t i = 0; i < n; ++i)
     {
-      for (std::size_t j = i + 1; j < n; ++j) {
-        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end()) {
+      for (std::size_t j = i + 1; j < n; ++j)
+      {
+        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end())
+        {
           ALU_ids.insert(std::make_pair(j, i));
-}
-}
-      for (std::size_t k = i + 1; k < n; ++k) {
-        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(i, k)) != ALU_ids.end()) {
-          for (std::size_t j = i + 1; j < n; ++j) {
-            if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end()) {
+        }
+      }
+      for (std::size_t k = i + 1; k < n; ++k)
+      {
+        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(i, k)) != ALU_ids.end())
+        {
+          for (std::size_t j = i + 1; j < n; ++j)
+          {
+            if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end())
+            {
               ALU_ids.insert(std::make_pair(j, k));
-}
-}
-}
-}
+            }
+          }
+        }
+      }
     }
     auto ALU_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (const auto& pair : ALU_ids)
@@ -170,16 +178,18 @@ namespace micm
       {
         auto Aii_inverse_it = Aii_inverse.begin();
         auto ALU_vector_it = ALU_vector + std::get<0>(aii_nji_nki);
-        for (std::size_t i = 0; i < n_cells; ++i) {
+        for (std::size_t i = 0; i < n_cells; ++i)
+        {
           *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
-}
+        }
         for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
         {
           auto ALU_vector_it = ALU_vector + *aji;
           auto Aii_inverse_it = Aii_inverse.begin();
-          for (std::size_t i = 0; i < n_cells; ++i) {
+          for (std::size_t i = 0; i < n_cells; ++i)
+          {
             *(ALU_vector_it++) *= *(Aii_inverse_it++);
-}
+          }
           ++aji;
         }
         for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
@@ -190,9 +200,10 @@ namespace micm
             auto ALU_vector_first_it = ALU_vector + ajk_aji->first;
             auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
             auto ALU_vector_aik_it = ALU_vector + aik;
-            for (std::size_t i = 0; i < n_cells; ++i) {
+            for (std::size_t i = 0; i < n_cells; ++i)
+            {
               *(ALU_vector_first_it++) -= *(ALU_vector_second_it++) * *(ALU_vector_aik_it++);
-}
+            }
             ++ajk_aji;
           }
           ++aik_njk;
