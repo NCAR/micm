@@ -8,27 +8,45 @@
 namespace micm
 {
   // Diagonal Markowitz (minimum-degree) reordering on a SPARSE adjacency representation.
-  // This produces the same minimum-degree-quality ordering as the dense Markowitz scan but
-  // runs in ~O(order^2 + fill) instead of O(order^3), which is essential for large
-  // mechanisms (thousands of species). Returns perm where perm[new_index] = old_index.
+  //
+  // This is the same algorithm as the classic dense Markowitz scan -- it selects, at each
+  // elimination step, the remaining pivot with the lowest Markowitz cost (row_deg-1)*(col_deg-1)
+  // and accounts for the fill that eliminating it introduces -- and it produces an ordering of
+  // identical minimum-degree quality. Only the representation differs, which is why it looks
+  // nothing like the dense version:
+  //   * The dense version mutates an order x order pattern matrix, recomputes every candidate's
+  //     row/column degree by re-scanning the trailing submatrix each step, and physically swaps
+  //     rows/columns to move the chosen pivot into place -- O(order^3) time, O(order^2) memory.
+  //   * This version stores the sparsity pattern as a directed graph (edge v->c iff
+  //     matrix[v][c] != 0), keeps the degrees up to date incrementally, and marks eliminated
+  //     nodes with an `alive` flag instead of moving anything -- ~O(order^2 + fill) time, with
+  //     memory proportional to nonzeros + fill. This is essential for large mechanisms (thousands
+  //     of species), where the dense form is intractable.
+  //
+  // Returns perm where perm[new_index] = old_index.
   template<class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy& matrix)
   {
     const std::size_t order = matrix.NumRows();
-    // out_nb[v] = { c : edge v->c }, in_nb[c] = { v : edge v->c }, over the remaining nodes.
-    std::vector<std::set<std::size_t>> out_nb(order), in_nb(order);
+    assert(order == matrix.NumColumns() && "Markowitz reorder requires a square matrix");
+    // output_neighbors[v] = { c : edge v->c }, incoming_neighbors[c] = { v : edge v->c }, over the remaining nodes.
+    std::vector<std::set<std::size_t>> output_neighbors(order), incoming_neighbors(order);
     for (std::size_t i = 0; i < order; ++i)
+    {
       for (std::size_t j = 0; j < order; ++j)
+      {
         if (matrix[i][j] != 0)
         {
-          out_nb[i].insert(j);
-          in_nb[j].insert(i);
+          output_neighbors[i].insert(j);
+          incoming_neighbors[j].insert(i);
         }
+      }
+    }
     std::vector<std::size_t> row_deg(order), col_deg(order);
     for (std::size_t v = 0; v < order; ++v)
     {
-      row_deg[v] = out_nb[v].size();
-      col_deg[v] = in_nb[v].size();
+      row_deg[v] = output_neighbors[v].size();
+      col_deg[v] = incoming_neighbors[v].size();
     }
     std::vector<char> alive(order, 1);
     std::vector<std::size_t> perm;
@@ -42,7 +60,9 @@ namespace micm
       for (std::size_t v = 0; v < order; ++v)
       {
         if (!alive[v])
+        {
           continue;
+        }
         const std::size_t cost = (row_deg[v] - 1) * (col_deg[v] - 1);
         if (pivot == order || cost < best_cost)
         {
@@ -53,30 +73,48 @@ namespace micm
       perm.push_back(pivot);
       alive[pivot] = 0;
       std::vector<std::size_t> cols, ins;
-      for (std::size_t c : out_nb[pivot])
+      for (std::size_t c : output_neighbors[pivot])
+      {
         if (c != pivot && alive[c])
+        {
           cols.push_back(c);
-      for (std::size_t i : in_nb[pivot])
+        }
+      }
+      for (std::size_t i : incoming_neighbors[pivot])
+      {
         if (i != pivot && alive[i])
+        {
           ins.push_back(i);
-      // Fill: each in-neighbor of the pivot now connects to each out-neighbor of the pivot.
+        }
+      }
+      // Fill: eliminating the pivot couples everything that pointed into it with everything it
+      // pointed out to. Concretely, for every live in-neighbor i (edge i->pivot) and every live
+      // out-neighbor c (edge pivot->c), a new edge i->c must exist in the factored matrix. This
+      // is the sparse equivalent of the dense version's "OR the pivot row down each column"
+      // fill step. insert(c).second is true only when the edge is genuinely new, so degrees are
+      // bumped exactly once per introduced fill element -- keeping row_deg/col_deg exact without
+      // any rescan.
       for (std::size_t i : ins)
+      {
         for (std::size_t c : cols)
-          if (out_nb[i].insert(c).second)
+        {
+          if (output_neighbors[i].insert(c).second)
           {
             ++row_deg[i];
-            in_nb[c].insert(i);
+            incoming_neighbors[c].insert(i);
             ++col_deg[c];
           }
+        }
+      }
       // Drop the eliminated pivot from its live neighbors' degree counts.
       for (std::size_t c : cols)
       {
-        in_nb[c].erase(pivot);
+        incoming_neighbors[c].erase(pivot);
         --col_deg[c];
       }
       for (std::size_t i : ins)
       {
-        out_nb[i].erase(pivot);
+        output_neighbors[i].erase(pivot);
         --row_deg[i];
       }
     }
