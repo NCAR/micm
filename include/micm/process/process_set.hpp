@@ -212,9 +212,7 @@ namespace micm
       }
     }
     std::stable_sort(
-        jacobian_columns.begin(),
-        jacobian_columns.end(),
-        [](const auto& a, const auto& b) { return a.first < b.first; });
+        jacobian_columns.begin(), jacobian_columns.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
 
     for (const auto& column : jacobian_columns)
     {
@@ -228,7 +226,8 @@ namespace micm
       info.number_of_products_ = 0;
 
       // Collect other (dependent) reactants and products
-      // because our reactants can be duplicated, (2B could be 2B or B + B), we need to detect when we've already seen a reactant
+      // because our reactants can be duplicated, (2B could be 2B or B + B), we need to detect when we've already seen a
+      // reactant
       bool found = false;
       for (const auto& reactant : reaction.reactants_)
       {
