@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant/rate_constant.hpp>
-
+#include <cstddef>
 #include <string>
 
 namespace micm
@@ -16,80 +15,14 @@ namespace micm
     double scaling_factor_{ 1.0 };
   };
 
-  /// @brief A photolysis rate constant
-  class UserDefinedRateConstant : public RateConstant
+  /// @brief GPU-safe calculation data for a user-defined rate constant.
+  ///        Populated by ReactionRateConstantStore::BuildFrom from UserDefinedRateConstantParameters;
+  ///        do not construct directly.
+  struct UserDefinedRateConstantData
   {
-   public:
-    UserDefinedRateConstantParameters parameters_;
-
-    /// @brief Default constructor.
-    UserDefinedRateConstant();
-
-    /// @brief
-    /// @param parameters The data needed to build this class
-    UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters);
-
-    /// @brief Deep copy
-    std::unique_ptr<RateConstant> Clone() const override;
-
-    /// @brief Returns a label for the user-defined rate constant parameter
-    /// @return Rate constant label
-    std::vector<std::string> CustomParameters() const override;
-
-    /// @brief Returns the number of custom parameters
-    /// @return Number of custom parameters
-    std::size_t SizeCustomParameters() const override;
-
-    /// @brief Calculate the rate constant
-    /// @param conditions The current environmental conditions of the chemical system
-    /// @param custom_parameters User-defined rate constant parameters
-    /// @return A rate constant based off of the conditions in the system
-    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
-
-    /// @brief Calculate the rate constant
-    /// @param conditions The current environmental conditions of the chemical system
-    /// @return A rate constant based off of the conditions in the system
-    double Calculate(const Conditions& conditions) const override;
+    /// @brief Scaling factor applied to the user-provided rate constant value
+    double scaling_factor_{ 1.0 };
+    /// @brief Index into custom_rate_parameters_[cell] holding the rate constant value
+    std::size_t custom_param_index_{ 0 };
   };
-
-  inline UserDefinedRateConstant::UserDefinedRateConstant()
-      : parameters_()
-  {
-  }
-
-  inline UserDefinedRateConstant::UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters)
-      : parameters_(parameters)
-  {
-  }
-
-  inline std::unique_ptr<RateConstant> UserDefinedRateConstant::Clone() const
-  {
-    return std::make_unique<UserDefinedRateConstant>(*this);
-  }
-
-  inline double UserDefinedRateConstant::Calculate(const Conditions& conditions) const
-  {
-    throw MicmException(
-        MicmSeverity::Error,
-        MICM_ERROR_CATEGORY_RATE_CONSTANT,
-        MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_USER_DEFINED_RATE_CONSTANT,
-        "Missing required arguments for user-defined rate constant");
-  }
-
-  inline double UserDefinedRateConstant::Calculate(
-      const Conditions& conditions,
-      std::vector<double>::const_iterator custom_parameters) const
-  {
-    return (double)*custom_parameters * parameters_.scaling_factor_;
-  }
-
-  inline std::vector<std::string> UserDefinedRateConstant::CustomParameters() const
-  {
-    return std::vector<std::string>{ parameters_.label_ };
-  }
-
-  inline std::size_t UserDefinedRateConstant::SizeCustomParameters() const
-  {
-    return 1;
-  }
 }  // namespace micm

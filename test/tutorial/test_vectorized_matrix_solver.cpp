@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
+void Solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
 {
   double k1 = 0.04;
   double k2 = 3e7;
@@ -33,7 +33,7 @@ void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
   for (int i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
   {
     double elapsed_solve_time = 0;
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
     while (elapsed_solve_time < time_step && solver_state != SolverState::Converged)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
@@ -58,26 +58,26 @@ int main()
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
                    .SetProducts({ StoichSpecies(b, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r1" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
                    .SetProducts({ StoichSpecies(b, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r2" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
                    .SetProducts({ StoichSpecies(a, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r3" })
                    .SetPhase(gas_phase)
                    .Build();
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
+  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const std::size_t number_of_grid_cells = 3;
 
@@ -117,8 +117,8 @@ int main()
 
   std::cout << std::endl;
 
-  solve(solver, state, number_of_grid_cells);
-  solve(vectorized_solver, vectorized_state, number_of_grid_cells);
+  Solve(solver, state, number_of_grid_cells);
+  Solve(vectorized_solver, vectorized_state, number_of_grid_cells);
 
   for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {

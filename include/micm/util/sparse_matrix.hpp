@@ -43,7 +43,7 @@ namespace micm
 
   /// Helper variable template
   template<typename T>
-  inline constexpr std::size_t GroupVectorSize_v = GroupVectorSize<T>::value;
+  inline constexpr std::size_t GROUP_VECTOR_SIZE_V = GroupVectorSize<T>::value;
 
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
@@ -308,11 +308,12 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
+      {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX,
             "Matrix has multiple blocks; use the (block, row, col) overload of VectorIndex instead");
+      }
       return VectorIndex(0, row, column);
     }
 
@@ -369,14 +370,22 @@ namespace micm
           for (std::size_t k = 0; k < matrix.block_size_ - 1; ++k)
           {
             if (matrix.IsZero(j, k))
+            {
               os << "0,";
+            }
             else
+            {
               os << matrix[i][j][k] << ',';
+            }
           }
           if (matrix.IsZero(j, matrix.block_size_ - 1))
+          {
             os << "0" << std::endl;
+          }
           else
+          {
             os << matrix[i][j][matrix.block_size_ - 1] << std::endl;
+          }
         }
       }
       return os;
@@ -391,9 +400,15 @@ namespace micm
       {
         os << "Block " << i << std::endl;
         for (std::size_t j = 0; j < block_size_; ++j)
+        {
           for (std::size_t k = 0; k < block_size_; ++k)
+          {
             if (!this->IsZero(j, k))
+            {
               os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
+            }
+          }
+        }
       }
     }
 
@@ -415,7 +430,6 @@ namespace micm
       if (row >= block_size_ || col >= block_size_)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Block element (" + std::to_string(row) + "," + std::to_string(col) +
@@ -424,7 +438,6 @@ namespace micm
       if (this->IsZero(row, col))
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
             "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
@@ -451,7 +464,6 @@ namespace micm
       if (row >= block_size_ || col >= block_size_)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Block element (" + std::to_string(row) + "," + std::to_string(col) +
@@ -460,7 +472,6 @@ namespace micm
       if (this->IsZero(row, col))
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
             "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
@@ -531,12 +542,11 @@ namespace micm
             if constexpr (!VectorLike<ArgType>)
             {
               // Get the L value for this matrix using the type trait
-              constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+              constexpr std::size_t matrix_L = GROUP_VECTOR_SIZE_V<std::decay_t<decltype(arg)>>;
 
               if (matrix_L != expected_L)
               {
                 throw MicmException(
-                    MicmSeverity::Error,
                     MICM_ERROR_CATEGORY_MATRIX,
                     MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                     "Incompatible matrix orderings: Matrix " + std::to_string(index) +
@@ -581,7 +591,6 @@ namespace micm
                 else if (arg.size() != num_blocks)
                 {
                   throw MicmException(
-                      MicmSeverity::Error,
                       MICM_ERROR_CATEGORY_MATRIX,
                       MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                       "Vector size " + std::to_string(arg.size()) + " does not match expected block count " +
@@ -612,7 +621,6 @@ namespace micm
                 else if (arg_blocks != num_blocks)
                 {
                   throw MicmException(
-                      MicmSeverity::Error,
                       MICM_ERROR_CATEGORY_MATRIX,
                       MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                       "All matrices must have the same number of blocks/rows when invoking function. Expected " +
@@ -665,7 +673,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockView)
     template<SparseMatrixBlockView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
@@ -688,7 +696,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg.Get();
     }
@@ -696,7 +704,7 @@ namespace micm
     /// @brief Get an element reference for a block (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg[block];
     }
@@ -733,11 +741,9 @@ namespace micm
     SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw MicmException(
-            MicmSeverity::Error,
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Element out of range");
+      {
+        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
+      }
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

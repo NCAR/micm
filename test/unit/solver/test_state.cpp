@@ -267,7 +267,9 @@ TEST(State, SetSingleConcentration)
     std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
     state.SetConcentration(micm::Species{ "bar" }, concentrations);
     for (std::size_t i = 0; i < concentrations.size(); ++i)
+    {
       EXPECT_EQ(state.variables_[i][state.variable_map_["bar"]], concentrations[i]);
+    }
   }
   {
     micm::State state{ micm::StateParameters{
@@ -283,8 +285,6 @@ TEST(State, SetSingleConcentration)
 
 TEST(State, SetConcentrationByElementSingleValue)
 {
-  micm::SystemParameters params;
-
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
                          .variable_names_{ "foo", "bar", "baz", "quz" },
@@ -301,7 +301,6 @@ TEST(State, SetConcentrationByElementSingleValue)
 
 TEST(State, SetConcentrationByElementVector)
 {
-  micm::SystemParameters params;
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
                          .variable_names_{ "foo", "bar", "baz", "quz" },
@@ -314,7 +313,9 @@ TEST(State, SetConcentrationByElementVector)
   state.SetConcentration("foo", concentrations);
 
   for (std::size_t i = 0; i < concentrations.size(); ++i)
+  {
     EXPECT_EQ(state.variables_[i][state.variable_map_["foo"]], concentrations[i]);
+  }
 }
 
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)

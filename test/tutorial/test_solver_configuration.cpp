@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void test_solver_type(auto& solver)
+void TestSolverType(auto& solver)
 {
   auto state = solver.GetState();
 
@@ -50,7 +50,7 @@ void test_solver_type(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto start = std::chrono::high_resolution_clock::now();
-      solver.CalculateRateConstants(state);
+      solver.UpdateStateParameters(state);
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
 
@@ -90,25 +90,25 @@ int main()
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
                    .SetProducts({ StoichSpecies(b, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r1" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
                    .SetProducts({ StoichSpecies(b, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r2" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
                    .SetProducts({ StoichSpecies(a, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r3" })
                    .SetPhase(gas_phase)
                    .Build();
 
-  auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
+  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
   auto two_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
@@ -142,17 +142,17 @@ int main()
                           .Build();
 
   std::cout << "Two stages: " << std::endl;
-  test_solver_type(two_stage);
+  TestSolverType(two_stage);
 
   std::cout << std::endl << "Three stages: " << std::endl;
-  test_solver_type(three_stage);
+  TestSolverType(three_stage);
 
   std::cout << std::endl << "Four stages: " << std::endl;
-  test_solver_type(four_stage);
+  TestSolverType(four_stage);
 
   std::cout << std::endl << "Four stages differential algebraic: " << std::endl;
-  test_solver_type(four_stage_da);
+  TestSolverType(four_stage_da);
 
   std::cout << std::endl << "Six stages differential algebraic: " << std::endl;
-  test_solver_type(six_stage_da);
+  TestSolverType(six_stage_da);
 }

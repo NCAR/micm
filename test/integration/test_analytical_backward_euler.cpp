@@ -108,175 +108,179 @@ auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<
 
 TEST(AnalyticalExamples, Troe)
 {
-  test_analytical_troe(backward_euler, 1e-6);
-  test_analytical_troe(backard_euler_vector_1, 1e-6);
-  test_analytical_troe(backard_euler_vector_2, 1e-6);
-  test_analytical_troe(backard_euler_vector_3, 1e-6);
-  test_analytical_troe(backard_euler_vector_4, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_1, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_2, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_3, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_4, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_csc_1, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_csc_2, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_csc_3, 1e-6);
-  test_analytical_troe(backward_euler_vector_doolittle_csc_4, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_1, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_2, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_3, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_4, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_csc_1, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_csc_2, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_csc_3, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_csc_4, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_in_place_1, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_in_place_2, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_in_place_3, 1e-6);
-  test_analytical_troe(backward_euler_vector_mozart_in_place_4, 1e-6);
+  TestAnalyticalTroe(backward_euler, 1e-6);
+  TestAnalyticalTroe(backard_euler_vector_1, 1e-6);
+  TestAnalyticalTroe(backard_euler_vector_2, 1e-6);
+  TestAnalyticalTroe(backard_euler_vector_3, 1e-6);
+  TestAnalyticalTroe(backard_euler_vector_4, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_1, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_2, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_3, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_4, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_1, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_2, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_3, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_4, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_1, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_2, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_3, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_4, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_csc_1, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_csc_2, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_csc_3, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_csc_4, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_1, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_2, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_3, 1e-6);
+  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_4, 1e-6);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe(backward_euler);
-  test_analytical_stiff_troe(backard_euler_vector_1);
-  test_analytical_stiff_troe(backard_euler_vector_2);
-  test_analytical_stiff_troe(backard_euler_vector_3);
-  test_analytical_stiff_troe(backard_euler_vector_4);
+  TestAnalyticalStiffTroe(backward_euler);
+  TestAnalyticalStiffTroe(backard_euler_vector_1);
+  TestAnalyticalStiffTroe(backard_euler_vector_2);
+  TestAnalyticalStiffTroe(backard_euler_vector_3);
+  TestAnalyticalStiffTroe(backard_euler_vector_4);
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  test_analytical_photolysis(backward_euler, 1e-3);
-  test_analytical_photolysis(backard_euler_vector_1, 1e-3);
-  test_analytical_photolysis(backard_euler_vector_2, 1e-3);
-  test_analytical_photolysis(backard_euler_vector_3, 1e-3);
-  test_analytical_photolysis(backard_euler_vector_4, 1e-3);
+  TestAnalyticalPhotolysis(backward_euler, 1e-3);
+  TestAnalyticalPhotolysis(backard_euler_vector_1, 1e-3);
+  TestAnalyticalPhotolysis(backard_euler_vector_2, 1e-3);
+  TestAnalyticalPhotolysis(backard_euler_vector_3, 1e-3);
+  TestAnalyticalPhotolysis(backard_euler_vector_4, 1e-3);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis(backward_euler, 1e-3);
-  test_analytical_stiff_photolysis(backard_euler_vector_1, 1e-3);
-  test_analytical_stiff_photolysis(backard_euler_vector_2, 1e-3);
-  test_analytical_stiff_photolysis(backard_euler_vector_3, 1e-3);
-  test_analytical_stiff_photolysis(backard_euler_vector_4, 1e-3);
+  TestAnalyticalStiffPhotolysis(backward_euler, 1e-3);
+  TestAnalyticalStiffPhotolysis(backard_euler_vector_1, 1e-3);
+  TestAnalyticalStiffPhotolysis(backard_euler_vector_2, 1e-3);
+  TestAnalyticalStiffPhotolysis(backard_euler_vector_3, 1e-3);
+  TestAnalyticalStiffPhotolysis(backard_euler_vector_4, 1e-3);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation(backward_euler, 1e-5);
-  test_analytical_ternary_chemical_activation(backard_euler_vector_1, 1e-5);
-  test_analytical_ternary_chemical_activation(backard_euler_vector_2, 1e-5);
-  test_analytical_ternary_chemical_activation(backard_euler_vector_3, 1e-5);
-  test_analytical_ternary_chemical_activation(backard_euler_vector_4, 1e-5);
+  TestAnalyticalTernaryChemicalActivation(backward_euler, 1e-5);
+  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_1, 1e-5);
+  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_2, 1e-5);
+  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_3, 1e-5);
+  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_4, 1e-5);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation(backward_euler, 1e-2);
-  test_analytical_stiff_ternary_chemical_activation(backard_euler_vector_1, 1e-2);
-  test_analytical_stiff_ternary_chemical_activation(backard_euler_vector_2, 1e-2);
-  test_analytical_stiff_ternary_chemical_activation(backard_euler_vector_3, 1e-2);
-  test_analytical_stiff_ternary_chemical_activation(backard_euler_vector_4, 1e-2);
+  TestAnalyticalStiffTernaryChemicalActivation(backward_euler, 1e-2);
+  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_1, 1e-2);
+  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_2, 1e-2);
+  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_3, 1e-2);
+  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_4, 1e-2);
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  test_analytical_tunneling(backward_euler, 1e-3);
-  test_analytical_tunneling(backard_euler_vector_1, 1e-3);
-  test_analytical_tunneling(backard_euler_vector_2, 1e-3);
-  test_analytical_tunneling(backard_euler_vector_3, 1e-3);
-  test_analytical_tunneling(backard_euler_vector_4, 1e-3);
+  TestAnalyticalTunneling(backward_euler, 1e-3);
+  TestAnalyticalTunneling(backard_euler_vector_1, 1e-3);
+  TestAnalyticalTunneling(backard_euler_vector_2, 1e-3);
+  TestAnalyticalTunneling(backard_euler_vector_3, 1e-3);
+  TestAnalyticalTunneling(backard_euler_vector_4, 1e-3);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling(backward_euler, 1e-3);
-  test_analytical_stiff_tunneling(backard_euler_vector_1, 1e-3);
-  test_analytical_stiff_tunneling(backard_euler_vector_2, 1e-3);
-  test_analytical_stiff_tunneling(backard_euler_vector_3, 1e-3);
-  test_analytical_stiff_tunneling(backard_euler_vector_4, 1e-3);
+  TestAnalyticalStiffTunneling(backward_euler, 1e-3);
+  TestAnalyticalStiffTunneling(backard_euler_vector_1, 1e-3);
+  TestAnalyticalStiffTunneling(backard_euler_vector_2, 1e-3);
+  TestAnalyticalStiffTunneling(backard_euler_vector_3, 1e-3);
+  TestAnalyticalStiffTunneling(backard_euler_vector_4, 1e-3);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  test_analytical_arrhenius(backward_euler, 1e-3);
-  test_analytical_arrhenius(backard_euler_vector_1, 1e-3);
-  test_analytical_arrhenius(backard_euler_vector_2, 1e-3);
-  test_analytical_arrhenius(backard_euler_vector_3, 1e-3);
-  test_analytical_arrhenius(backard_euler_vector_4, 1e-3);
+  TestAnalyticalArrhenius(backward_euler, 1e-3);
+  TestAnalyticalArrhenius(backard_euler_vector_1, 1e-3);
+  TestAnalyticalArrhenius(backard_euler_vector_2, 1e-3);
+  TestAnalyticalArrhenius(backard_euler_vector_3, 1e-3);
+  TestAnalyticalArrhenius(backard_euler_vector_4, 1e-3);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius(backward_euler, 1e-3);
-  test_analytical_stiff_arrhenius(backard_euler_vector_1, 1e-3);
-  test_analytical_stiff_arrhenius(backard_euler_vector_2, 1e-3);
-  test_analytical_stiff_arrhenius(backard_euler_vector_3, 1e-3);
-  test_analytical_stiff_arrhenius(backard_euler_vector_4, 1e-3);
+  TestAnalyticalStiffArrhenius(backward_euler, 1e-3);
+  TestAnalyticalStiffArrhenius(backard_euler_vector_1, 1e-3);
+  TestAnalyticalStiffArrhenius(backard_euler_vector_2, 1e-3);
+  TestAnalyticalStiffArrhenius(backard_euler_vector_3, 1e-3);
+  TestAnalyticalStiffArrhenius(backard_euler_vector_4, 1e-3);
 }
 
 TEST(AnalyticalExamples, Branched)
 {
-  test_analytical_branched(backward_euler, 1e-5);
-  test_analytical_branched(backard_euler_vector_1, 1e-5);
-  test_analytical_branched(backard_euler_vector_2, 1e-5);
-  test_analytical_branched(backard_euler_vector_3, 1e-5);
-  test_analytical_branched(backard_euler_vector_4, 1e-5);
+  TestAnalyticalBranched(backward_euler, 1e-5);
+  TestAnalyticalBranched(backard_euler_vector_1, 1e-5);
+  TestAnalyticalBranched(backard_euler_vector_2, 1e-5);
+  TestAnalyticalBranched(backard_euler_vector_3, 1e-5);
+  TestAnalyticalBranched(backard_euler_vector_4, 1e-5);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched(backward_euler, 1e-2);
-  test_analytical_stiff_branched(backard_euler_vector_1, 1e-2);
-  test_analytical_stiff_branched(backard_euler_vector_2, 1e-2);
-  test_analytical_stiff_branched(backard_euler_vector_3, 1e-2);
-  test_analytical_stiff_branched(backard_euler_vector_4, 1e-2);
+  TestAnalyticalStiffBranched(backward_euler, 1e-2);
+  TestAnalyticalStiffBranched(backard_euler_vector_1, 1e-2);
+  TestAnalyticalStiffBranched(backard_euler_vector_2, 1e-2);
+  TestAnalyticalStiffBranched(backard_euler_vector_3, 1e-2);
+  TestAnalyticalStiffBranched(backard_euler_vector_4, 1e-2);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
-  test_analytical_surface_rxn(backward_euler, 0.05);
+  TestAnalyticalSurfaceRxn(backward_euler, 0.05);
 }
 
 TEST(AnalyticalExamples, HIRES)
 {
-  test_analytical_hires(backward_euler, 1e-1);
-  test_analytical_hires(backard_euler_vector_1, 1e-1);
-  test_analytical_hires(backard_euler_vector_2, 1e-1);
-  test_analytical_hires(backard_euler_vector_3, 1e-1);
-  test_analytical_hires(backard_euler_vector_4, 1e-1);
-  test_analytical_hires(backward_euler_vector_doolittle_1, 1e-1);
-  test_analytical_hires(backward_euler_vector_doolittle_2, 1e-1);
-  test_analytical_hires(backward_euler_vector_doolittle_3, 1e-1);
-  test_analytical_hires(backward_euler_vector_doolittle_4, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_1, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_2, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_3, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_4, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_in_place_1, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_in_place_2, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_in_place_3, 1e-1);
-  test_analytical_hires(backward_euler_vector_mozart_in_place_4, 1e-1);
+  TestAnalyticalHires(backward_euler, 1e-1);
+  TestAnalyticalHires(backard_euler_vector_1, 1e-1);
+  TestAnalyticalHires(backard_euler_vector_2, 1e-1);
+  TestAnalyticalHires(backard_euler_vector_3, 1e-1);
+  TestAnalyticalHires(backard_euler_vector_4, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_doolittle_1, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_doolittle_2, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_doolittle_3, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_doolittle_4, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_1, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_2, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_3, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_4, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_in_place_1, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_in_place_2, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_in_place_3, 1e-1);
+  TestAnalyticalHires(backward_euler_vector_mozart_in_place_4, 1e-1);
 }
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  test_analytical_oregonator(backward_euler, 1e-3);
-  test_analytical_oregonator(backard_euler_vector_1, 1e-3);
-  test_analytical_oregonator(backard_euler_vector_2, 1e-3);
-  test_analytical_oregonator(backard_euler_vector_3, 1e-3);
-  test_analytical_oregonator(backard_euler_vector_4, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_doolittle_1, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_doolittle_2, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_doolittle_3, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_doolittle_4, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_1, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_2, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_3, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_4, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_1, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_2, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_3, 1e-3);
-  test_analytical_oregonator(backward_euler_vector_mozart_in_place_4, 1e-3);
+  // The oregonator (k2=1.6e9) is an extremely stiff oscillator with a period of ~48s.
+  // One large step (H=30*tau) causes Newton to converge to the wrong attractor, giving
+  // ~61000x relative error. Sub-stepping at tau/1000 (~0.00016s) lets backward Euler track
+  // the slow manifold with O(H) first-order accuracy (~1.2% relative error).
+  TestAnalyticalOregonator(backward_euler, 0.02);
+  TestAnalyticalOregonator(backard_euler_vector_1, 0.02);
+  TestAnalyticalOregonator(backard_euler_vector_2, 0.02);
+  TestAnalyticalOregonator(backard_euler_vector_3, 0.02);
+  TestAnalyticalOregonator(backard_euler_vector_4, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_1, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_2, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_3, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_4, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_1, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_2, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_3, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_4, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_1, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_2, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_3, 0.02);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, 0.02);
 }

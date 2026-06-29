@@ -7,23 +7,21 @@ namespace micm
 {
   namespace cuda
   {
-    void CheckCudaError(cudaError_t err, const char* file, int line, std::string str)
+    void CheckCudaError(cudaError_t err, const char* file, int line, const std::string& str)
     {
       if (err != cudaSuccess)
       {
         std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
-        throw micm::MicmException(
-            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
+        throw micm::MicmException(MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUDA, msg);
       }
     }
 
-    void CheckCublasError(cublasStatus_t err, const char* file, int line, std::string str)
+    void CheckCublasError(cublasStatus_t err, const char* file, int line, const std::string& str)
     {
       if (err != CUBLAS_STATUS_SUCCESS)
       {
         std::string msg = std::to_string(err) + " : " + str;
-        throw micm::MicmException(
-            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
+        throw micm::MicmException(MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_CUBLAS, msg);
       }
     }
 

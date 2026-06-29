@@ -2,13 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/rate_constant/rate_constant.hpp>
-
-#include <cmath>
-
 namespace micm
 {
-
   struct TroeRateConstantParameters
   {
     /// @brief low-pressure pre-exponential factor
@@ -28,78 +23,4 @@ namespace micm
     /// @brief Troe N parameter
     double N_ = 1.0;
   };
-
-  /// @brief A Troe rate constant
-  class TroeRateConstant : public RateConstant
-  {
-   public:
-    const TroeRateConstantParameters parameters_;
-
-    /// @brief Default constructor
-    TroeRateConstant();
-
-    /// @brief An explicit constructor
-    /// @param parameters A set of troe rate constants
-    TroeRateConstant(const TroeRateConstantParameters& parameters);
-
-    /// @brief Deep copy
-    std::unique_ptr<RateConstant> Clone() const override;
-
-    /// @brief Calculate the rate constant
-    /// @param conditions The current environmental conditions of the chemical system
-    /// @param custom_parameters User-defined rate constant parameters
-    /// @return A rate constant based off of the conditions in the system
-    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
-
-    /// @brief Calculate the rate constant
-    /// @param conditions The current environmental conditions of the chemical system
-    /// @return A rate constant based off of the conditions in the system
-    double Calculate(const Conditions& conditions) const override;
-
-    /// @brief Calculate the rate constant
-    /// @param temperature Temperature in [K]
-    /// @param air_number_density Number density in [mol m-3]
-    /// @return
-    double Calculate(const double& temperature, const double& air_number_density) const;
-  };
-
-  inline TroeRateConstant::TroeRateConstant()
-      : parameters_()
-  {
-  }
-
-  inline TroeRateConstant::TroeRateConstant(const TroeRateConstantParameters& parameters)
-      : parameters_(parameters)
-  {
-  }
-
-  inline std::unique_ptr<RateConstant> TroeRateConstant::Clone() const
-  {
-    return std::make_unique<TroeRateConstant>(*this);
-  }
-
-  inline double TroeRateConstant::Calculate(const Conditions& conditions) const
-  {
-    return Calculate(conditions.temperature_, conditions.air_density_);
-  }
-
-  inline double TroeRateConstant::Calculate(
-      const Conditions& conditions,
-      std::vector<double>::const_iterator custom_parameters) const
-  {
-    return Calculate(conditions.temperature_, conditions.air_density_);
-  }
-
-  inline double TroeRateConstant::Calculate(const double& temperature, const double& air_number_density) const
-  {
-    double k0 =
-        parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * std::pow(temperature / 300.0, parameters_.k0_B_);
-    double kinf = parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) *
-                  std::pow(temperature / 300.0, parameters_.kinf_B_);
-
-    return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
-           std::pow(
-               parameters_.Fc_, parameters_.N_ / (parameters_.N_ + std::pow(std::log10(k0 * air_number_density / kinf), 2)));
-  }
-
 }  // namespace micm

@@ -28,6 +28,42 @@ namespace micm
 
     const bool has_constraints = constraints_.Size() > 0;
 
+    // Declared here so they remain in scope for the solver loop below (captured by reference by mass_coupling).
+    // std::function gives mass_coupling a concrete, nameable type; the closure type returned by
+    // DenseMatrixPolicy::Function() is anonymous and cannot be named directly.
+    double current_c_over_h = 0.0;
+    const auto& diagonal = state.upper_left_identity_diagonal_;
+    std::function<void(DenseMatrixPolicy&, DenseMatrixPolicy&)> mass_coupling;
+
+    // Initialize algebraic constraint variables and pre-build the mass-coupling function.
+    // All K matrices have the same shape, so K[0] is used to capture column counts at creation time.
+    if (has_constraints)
+    {
+      mass_coupling = DenseMatrixPolicy::Function(
+          [&current_c_over_h, &diagonal](auto&& k_stage_view, auto&& k_j_view)
+          {
+            for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+            {
+              if (diagonal[i_var] != 0.0)
+              {
+                k_stage_view.ForEachRow(
+                    [&current_c_over_h](double& ks, const double& kj) { ks += current_c_over_h * kj; },
+                    k_stage_view.GetColumnView(i_var),
+                    k_j_view.GetConstColumnView(i_var));
+              }
+            }
+          },
+          K[0],
+          K[0]);
+
+      auto init_state = InitializeConstraints(state, parameters, result.stats_);
+      if (init_state != SolverState::Converged)
+      {
+        result.state_ = init_state;
+        return result;
+      }
+    }
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -55,7 +91,9 @@ namespace micm
       rates_.AddForcingTerms(state, Y, initial_forcing);
 
       if (has_constraints)
-        constraints_.AddForcingTerms(Y, initial_forcing);
+      {
+        constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, initial_forcing);
+      }
 
       result.stats_.function_calls_ += 1;
 
@@ -64,7 +102,9 @@ namespace micm
       rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
 
       if (has_constraints)
-        constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+      {
+        constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+      }
 
       result.stats_.jacobian_updates_ += 1;
 
@@ -107,7 +147,7 @@ namespace micm
               rates_.AddForcingTerms(state, Ynew, K[stage]);
               if (has_constraints)
               {
-                constraints_.AddForcingTerms(Ynew, K[stage]);
+                constraints_.AddForcingTerms(Ynew, state.custom_rate_parameters_, K[stage]);
               }
               result.stats_.function_calls_ += 1;
             }
@@ -125,14 +165,11 @@ namespace micm
             }
             else
             {
-              // DAE path: scale by mass matrix diagonal element-wise
-              for (std::size_t i_cell = 0; i_cell < K[stage].NumRows(); ++i_cell)
-              {
-                for (std::size_t i_var = 0; i_var < K[stage].NumColumns(); ++i_var)
-                {
-                  K[stage][i_cell][i_var] += c_over_h * state.upper_left_identity_diagonal_[i_var] * K[j][i_cell][i_var];
-                }
-              }
+              // DAE path: scale by mass matrix diagonal element-wise.
+              // For ODE variables (diagonal = 1), accumulate c/H * K[j].
+              // For algebraic variables (diagonal = 0), the coupling is zero.
+              current_c_over_h = c_over_h;
+              mass_coupling(K[stage], K[j]);
             }
           }
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
@@ -148,11 +185,32 @@ namespace micm
 
         Ynew.Copy(Y);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
+        {
           Ynew.Axpy(parameters.m_[stage], K[stage]);
+        }
 
         Yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
+        {
           Yerror.Axpy(parameters.e_[stage], K[stage]);
+        }
+
+        // For DAE systems, replace the near-zero algebraic error estimates with step changes.
+        // The embedded error formula produces Yerror ≈ 0 for algebraic rows (M_ii = 0 zeroes
+        // the inter-stage coupling terms), making the solver insensitive to algebraic tolerances.
+        // Setting Yerror[a] = Ynew[a] - Y[a] allows the solver to reject steps where algebraic
+        // variables change more than their tolerance permits, preventing overshoot.
+        //
+        // IMPORTANT: This uses the step change as-is without order scaling. For very stiff systems
+        // where the embedded error estimate K[3] ≈ 0 for all variables (including differential),
+        // this provides the ONLY non-trivial error signal for algebraic variables. The step change
+        // is O(H) while the true error is O(H^(p+1)), so this is conservative — the solver may
+        // take more steps than strictly necessary. However, it correctly prevents overshoot by
+        // rejecting steps where algebraic variables change more than their tolerance permits.
+        if (has_constraints)
+        {
+          constraints_.SetAlgebraicErrors(Yerror, Y, Ynew);
+        }
 
         // Compute the normalized error
         auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
@@ -215,7 +273,9 @@ namespace micm
             rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
             // Subtract constraint Jacobian terms (for DAE systems)
             if (has_constraints)
-              constraints_.SubtractJacobianTerms(Y, state.jacobian_);
+            {
+              constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+            }
             result.stats_.jacobian_updates_ += 1;
           }
         }
@@ -269,7 +329,9 @@ namespace micm
       {
         const double diagonal_scale = state.upper_left_identity_diagonal_[i_diag++];
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        {
           jacobian_vector[i_elem + i_cell] += alpha * diagonal_scale;
+        }
       }
     }
   }
@@ -315,26 +377,19 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
-    std::size_t num_ode_variables = 0;
 
-    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        // Skip algebraic variables (mass matrix diagonal = 0)
-        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-        {
-          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-          error += errors_over_scale * errors_over_scale;
-          ++num_ode_variables;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+    const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
 
     return std::max(std::sqrt(error / N), error_min);
   }
@@ -351,7 +406,6 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
-    // Use row/column indexing to check mass matrix diagonal for algebraic variables
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
     const std::size_t n_vars = atol.size();
@@ -359,28 +413,183 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
-    std::size_t num_ode_variables = 0;
 
-    // Only compute error for ODE variables (not algebraic constraint variables)
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
       {
-        // Skip algebraic variables (mass matrix diagonal = 0)
-        if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-        {
-          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-          error += errors_over_scale * errors_over_scale;
-          ++num_ode_variables;
-        }
+        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+        error += errors_over_scale * errors_over_scale;
       }
     }
 
     double error_min = 1.0e-10;
-    const std::size_t N = num_ode_variables > 0 ? num_ode_variables : 1;
+    const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
 
     return std::max(std::sqrt(error / N), error_min);
+  }
+
+  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  inline SolverState
+  AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::InitializeConstraints(
+      auto& state,
+      const RosenbrockSolverParameters& parameters,
+      SolverStats& stats) const noexcept
+  {
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
+
+    auto& Y = state.variables_;
+    auto derived_class_temporary_variables =
+        static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
+    // Reuse initial_forcing_ as the residual/delta workspace
+    auto& delta = derived_class_temporary_variables->initial_forcing_;
+
+    const auto& diagonal = state.upper_left_identity_diagonal_;
+    double max_residual = 0;
+    bool nan_detected = false;
+    bool inf_detected = false;
+
+    // Pre-build reusable Function objects outside the iteration loop
+    auto check_convergence = DenseMatrixPolicy::Function(
+        [&max_residual, &nan_detected, &inf_detected, &diagonal](auto&& delta_view)
+        {
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              delta_view.ForEachRow(
+                  [&](const double& val)
+                  {
+                    double abs_val = std::abs(val);
+                    if (std::isnan(abs_val))
+                    {
+                      nan_detected = true;
+                    }
+                    else if (std::isinf(abs_val))
+                    {
+                      inf_detected = true;
+                    }
+                    else
+                    {
+                      max_residual = std::max(max_residual, abs_val);
+                    }
+                  },
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        delta);
+
+    auto apply_update = DenseMatrixPolicy::Function(
+        [&nan_detected, &inf_detected, &diagonal](auto&& y_view, auto&& delta_view)
+        {
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              y_view.ForEachRow(
+                  [&](double& y_val, const double& d_val)
+                  {
+                    if (std::isnan(d_val))
+                    {
+                      nan_detected = true;
+                    }
+                    else if (std::isinf(d_val))
+                    {
+                      inf_detected = true;
+                    }
+                    else
+                    {
+                      y_val += d_val;
+                    }
+                  },
+                  y_view.GetColumnView(i_var),
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        Y,
+        delta);
+
+    for (std::size_t iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
+    {
+      // 1. Evaluate constraint residuals: G(y)
+      delta.Fill(0);
+      constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
+
+      // 2. Check convergence: ||G||_inf over algebraic rows only
+      max_residual = 0;
+      nan_detected = false;
+      inf_detected = false;
+      check_convergence(delta);
+
+      if (nan_detected)
+      {
+        return SolverState::NaNDetected;
+      }
+      if (inf_detected)
+      {
+        return SolverState::InfDetected;
+      }
+
+      stats.constraint_init_iterations_ = iter + 1;
+
+      if (max_residual < parameters.constraint_init_tolerance_)
+      {
+        return SolverState::Converged;
+      }
+
+      // 3. Compute constraint Jacobian: -dG/dy
+      state.jacobian_.Fill(0);
+      constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
+      stats.jacobian_updates_ += 1;
+
+      // 4. Form system matrix with alpha=1.0:
+      //    ODE rows (M=1): identity on diagonal (constraint Jacobian has no ODE-row entries)
+      //    Algebraic rows (M=0): -dG/dy from SubtractJacobianTerms (no alpha contribution)
+      static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, 1.0);
+
+      // 5. Factor the system matrix
+      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        linear_solver_.Factor(state.jacobian_);
+      }
+      else
+      {
+        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+      }
+      stats.decompositions_ += 1;
+
+      // 6. Solve: -J * delta = G  =>  delta = -J^{-1} * G
+      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        linear_solver_.Solve(delta, state.jacobian_);
+      }
+      else
+      {
+        linear_solver_.Solve(delta, state.lower_matrix_, state.upper_matrix_);
+      }
+      stats.solves_ += 1;
+
+      // 7. Apply update only to algebraic variables
+      nan_detected = false;
+      inf_detected = false;
+      apply_update(Y, delta);
+
+      if (nan_detected)
+      {
+        return SolverState::NaNDetected;
+      }
+      if (inf_detected)
+      {
+        return SolverState::InfDetected;
+      }
+    }
+
+    // Did not converge within max iterations
+    return SolverState::ConstraintInitializationFailed;
   }
 
 }  // namespace micm

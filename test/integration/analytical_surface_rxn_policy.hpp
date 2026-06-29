@@ -1,9 +1,13 @@
+#pragma once
+
+#include "analytical_policy.hpp"  // RelativeError
+
 #include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy>
-void test_analytical_surface_rxn(
+void TestAnalyticalSurfaceRxn(
     BuilderPolicy& builder,
     double tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -50,10 +54,12 @@ void test_analytical_surface_rxn(
   micm::Phase gas_phase{ "gas", { gas_foo, gas_bar, gas_baz } };
 
   // System
-  micm::System chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  micm::System chemical_system = micm::System(gas_phase);
 
   // Rate
-  micm::SurfaceRateConstant surface{ { .label_ = "foo", .phase_species_ = gas_foo, .reaction_probability_ = rxn_gamma } };
+  micm::SurfaceRateConstantParameters surface{ .label_ = "foo",
+                                               .phase_species_ = gas_foo,
+                                               .reaction_probability_ = rxn_gamma };
 
   // Process
   micm::Process surface_process =
@@ -95,7 +101,7 @@ void test_analytical_surface_rxn(
   for (int i = 1; i <= nstep; ++i)
   {
     double elapsed_solve_time = 0;
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
 
     prepare_for_solve(state);
     // first iteration
@@ -117,8 +123,8 @@ void test_analytical_surface_rxn(
     analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
 
     // Check concentrations
-    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
-    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
-    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
+    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
+    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
+    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
   }
 }

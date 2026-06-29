@@ -28,7 +28,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
                              .SetReactants({ cl2 })
                              .SetProducts({ micm::StoichSpecies(cl, 2.0) })
                              .SetPhase(gas_phase)
-                             .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "toy_k1" }))
+                             .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "toy_k1" })
                              .Build();
 
   constexpr double k2 = 1.0;
@@ -36,12 +36,11 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
                              .SetReactants({ cl, cl })
                              .SetProducts({ micm::StoichSpecies(cl2, 1.0) })
                              .SetPhase(gas_phase)
-                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k2 }))
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k2 })
                              .Build();
 
-  auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 })
-                    .Build();
+  auto solver =
+      builder.SetSystem(micm::System(gas_phase)).SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 }).Build();
   auto state = solver.GetState(number_of_grid_cells);
   state.SetRelativeTolerance(1.0e-8);
 
@@ -77,7 +76,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
       state.conditions_[i_cell].air_density_ = 42.0;   // mol m-3
     }
     state.SetCustomRateParameters(custom_rate_constants);
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
 
     double dt = 30.0;
     auto result = solver.Solve(dt, state);

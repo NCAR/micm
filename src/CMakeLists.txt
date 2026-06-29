@@ -8,6 +8,8 @@ add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
 target_compile_features(micm INTERFACE cxx_std_20)
+set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD 20)
+set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
@@ -53,7 +55,10 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
     PUBLIC CUDA::cudart CUDA::cublas
   )
   
-  target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
+  # --expt-relaxed-constexpr is nvcc-only; guard it so non-nvcc CUDA compilers
+  # (e.g. clang, used by the clang-tidy CI to generate parseable compile commands)
+  # don't choke on it.
+  target_compile_options(micm_cuda PRIVATE $<$<CUDA_COMPILER_ID:NVIDIA>:--expt-relaxed-constexpr>)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 
   add_subdirectory(process)
@@ -61,7 +66,8 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(util)
 endif()
 
-if (MICM_ENABLE_PROFILE)
-  target_compile_definitions(micm INTERFACE MICM_PROFILE)
+
+if (MICM_ENABLE_TESTS)
+  target_compile_definitions(micm INTERFACE MICM_ENABLE_TESTS)
 endif()
 

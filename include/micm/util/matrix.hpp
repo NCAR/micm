@@ -134,8 +134,7 @@ namespace micm
         {
           std::string msg = "In matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
                             " elements, but expected " + std::to_string(y_dim_);
-          throw MicmException(
-              MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
+          throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ROW_SIZE_MISMATCH, msg);
         }
         auto other_elem = other.begin();
         for (auto& elem : *this)
@@ -239,7 +238,9 @@ namespace micm
               {
                 std::size_t x_dim = other.size();
                 if (x_dim == 0)
+                {
                   return std::vector<T>(0);
+                }
                 std::size_t y_dim = other[0].size();
                 std::vector<T> data(x_dim * y_dim);
                 auto elem = data.begin();
@@ -250,8 +251,7 @@ namespace micm
                   {
                     std::string msg = "In matrix constructor from std::vector<std::vector>. Got " +
                                       std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
-                    throw MicmException(
-                        MicmSeverity::Error, MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
+                    throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {
@@ -322,7 +322,9 @@ namespace micm
     {
       auto x_iter = x.AsVector().begin();
       for (auto& y : data_)
+      {
         y += alpha * (*(x_iter++));
+      }
     }
 
     /// @brief For each element of the matrix, perform y = max(y, x), where x is a scalar constant
@@ -330,7 +332,9 @@ namespace micm
     void Max(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::max(y, x);
+      }
     }
 
     /// @brief For each element of the matrix, perform y = min(y, x), where x is a scalar constant
@@ -338,36 +342,46 @@ namespace micm
     void Min(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::min(y, x);
+      }
     }
 
-    void ForEach(const std::function<void(T&, const T&)> f, const Matrix& a)
+    void ForEach(const std::function<void(T&, const T&)>& f, const Matrix& a)
     {
       auto a_iter = a.AsVector().begin();
       for (auto& elem : data_)
+      {
         f(elem, *(a_iter++));
+      }
     }
 
-    void ForEach(const std::function<void(T&, const T&, const T&)> f, const Matrix& a, const Matrix& b)
+    void ForEach(const std::function<void(T&, const T&, const T&)>& f, const Matrix& a, const Matrix& b)
     {
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
       for (auto& elem : data_)
+      {
         f(elem, *(a_iter++), *(b_iter++));
+      }
     }
 
     // Copy the values from the other matrix into this one
     void Copy(const Matrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both matrices must have the same size.");
+      }
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
     void Swap(Matrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both matrices must have the same size.");
+      }
       data_.swap(other.AsVector());
     }
 
@@ -424,7 +438,7 @@ namespace micm
       if (column_index >= y_dim_)
       {
         throw MicmException(
-            MicmSeverity::Error,
+
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
@@ -441,7 +455,6 @@ namespace micm
       if (column_index >= y_dim_)
       {
         throw MicmException(
-            MicmSeverity::Error,
             MICM_ERROR_CATEGORY_MATRIX,
             MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
             "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
@@ -502,7 +515,7 @@ namespace micm
       /// @brief Get a const element reference for the current row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg) const
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -511,7 +524,7 @@ namespace micm
       /// @brief Get a const element reference for the current row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg) const
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         return arg.Get();
       }
@@ -519,7 +532,7 @@ namespace micm
       /// @brief Get a const element reference for the current row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg) const
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         return arg[row_];
       }
@@ -569,7 +582,7 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -578,7 +591,7 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg)
       {
         return arg.Get();
       }
@@ -586,7 +599,7 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg)
       {
         return arg[row_];
       }
@@ -706,7 +719,6 @@ namespace micm
                 else if (arg.size() != num_rows)
                 {
                   throw MicmException(
-                      MicmSeverity::Error,
                       MICM_ERROR_CATEGORY_MATRIX,
                       MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                       "Vector size must match matrix row count. Expected " + std::to_string(num_rows) +
@@ -729,7 +741,6 @@ namespace micm
                   if (arg.NumRows() != num_rows)
                   {
                     throw MicmException(
-                        MicmSeverity::Error,
                         MICM_ERROR_CATEGORY_MATRIX,
                         MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                         "All matrices must have the same number of rows when invoking function. Expected " +
@@ -741,7 +752,6 @@ namespace micm
                 if (arg.NumColumns() != num_cols[idx])
                 {
                   throw MicmException(
-                      MicmSeverity::Error,
                       MICM_ERROR_CATEGORY_MATRIX,
                       MICM_MATRIX_ERROR_CODE_INVALID_VECTOR,
                       "Matrix column count does not match. Expected " + std::to_string(num_cols[idx]) + " columns but got " +
@@ -789,7 +799,7 @@ namespace micm
     /// @brief Get an element reference for a row (ColumnView)
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -798,7 +808,7 @@ namespace micm
     /// @brief Get an element reference for a row (RowVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       return arg.Get();
     }
@@ -806,7 +816,7 @@ namespace micm
     /// @brief Get an element reference for a row (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
     {
       return arg[row];
     }
@@ -814,7 +824,7 @@ namespace micm
     /// @brief Get a const element reference for a row (ColumnView) - const version
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       auto* source_matrix = arg.GetMatrix();
       return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -823,7 +833,7 @@ namespace micm
     /// @brief Get a const element reference for a row (RowVariable) - const version
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       return arg.Get();
     }
@@ -831,7 +841,7 @@ namespace micm
     /// @brief Get a const element reference for a row (Vector-like) - const version
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
     {
       return arg[row];
     }

@@ -64,30 +64,30 @@ Then setup the reaction which will use this rate constant:
       Process r7 = ChemicalReactionBuilder()
                       .SetReactants({ f })
                       .SetProducts({ StoichSpecies(g, 1) })
-                      .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
+                      .SetRateConstant(TunnelingRateConstantParameters{ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 })
                       .SetPhase(gas_phase)
                       .Build();
 
       + Process r8 = ChemicalReactionBuilder()
       +                 .SetReactants({ c })
       +                 .SetProducts({ StoichSpecies(g, 1) })
-      +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
+      +                 .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "my rate" })
       +                 .SetPhase(gas_phase)
       +                 .Build();
 
       + Process r9 = ChemicalReactionBuilder()
       +                 .SetProducts({ StoichSpecies(a, 1) })
-      +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
+      +                 .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "my emission rate" })
       +                 .SetPhase(gas_phase)
       +                 .Build();
 
       + Process r10 = ChemicalReactionBuilder()
       +                 .SetReactants({ b })
-      +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
+      +                 .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "my loss rate" })
       +                 .SetPhase(gas_phase)
       +                 .Build();
 
-      auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+      auto chemical_system = System(gas_phase);
       - auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
       + auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
 
@@ -144,7 +144,7 @@ Finally, set and upate the rate constants as needed:
           // solving until we finish
           double elapsed_solve_time = 0;
       +   state.SetCustomRateParameter("my photolysis rate", photo_rate);
-          solver.CalculateRateConstants(state);
+          solver.UpdateStateParameters(state);
 
           while (elapsed_solve_time < time_step)
           {
@@ -180,7 +180,7 @@ Finally, set and upate the rate constants as needed:
           // solving until we finish
           double elapsed_solve_time = 0;
       +   state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
-          solver.CalculateRateConstants(state);
+          solver.UpdateStateParameters(state);
 
           while (elapsed_solve_time < time_step)
           {

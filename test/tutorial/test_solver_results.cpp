@@ -18,21 +18,21 @@ int main()
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ a })
                    .SetProducts({ StoichSpecies(b, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r1" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ b, b })
                    .SetProducts({ StoichSpecies(b, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r2" })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r3 = ChemicalReactionBuilder()
                    .SetReactants({ b, c })
                    .SetProducts({ StoichSpecies(a, 1), StoichSpecies(c, 1) })
-                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetRateConstant(UserDefinedRateConstantParameters{ .label_ = "r3" })
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -40,7 +40,7 @@ int main()
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase ))
                     .SetReactions({ r1, r2, r3 })
                     .Build();
 
@@ -68,7 +68,7 @@ int main()
     state.conditions_[cell].pressure_ = pressure;
     state.conditions_[cell].air_density_ = air_density;
   }
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
 
   // choose a timestep and print the initial state
   double time_step = 200;  // s

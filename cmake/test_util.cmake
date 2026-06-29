@@ -32,6 +32,10 @@ function(create_standard_test)
     target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm GTest::gtest_main)
   endif()
 
+  if(MICM_ENABLE_TESTS)
+    target_compile_definitions(test_${TEST_NAME} PRIVATE MICM_ENABLE_TESTS)
+  endif()
+
   # link additional libraries
   foreach(library ${TEST_LIBRARIES})
     target_link_libraries(test_${TEST_NAME} PUBLIC ${library})

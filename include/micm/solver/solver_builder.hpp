@@ -21,6 +21,7 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <memory>
+#include <sstream>
 #include <unordered_map>
 
 namespace micm
@@ -54,7 +55,11 @@ namespace micm
     System system_;
     std::vector<Process> reactions_;
     std::vector<Constraint> constraints_;
-    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
+
+    std::vector<ExternalModelSystem> external_systems_;
+    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
+    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
+
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -68,52 +73,123 @@ namespace micm
     {
     }
 
-    // Copy constructor
-    SolverBuilder(const SolverBuilder& other) = default;
-
-    // Copy assignment
-    SolverBuilder& operator=(const SolverBuilder& other) = default;
-
-    // Default move operations
+    SolverBuilder(const SolverBuilder&) = default;
+    SolverBuilder& operator=(const SolverBuilder&) = default;
     SolverBuilder(SolverBuilder&&) = default;
     SolverBuilder& operator=(SolverBuilder&&) = default;
 
     /// @brief Set the chemical system
     /// @param system The chemical system
     /// @return Updated SolverBuilder
-    SolverBuilder& SetSystem(const System& system);
+    SolverBuilder& SetSystem(const System& system)
+    {
+      system_ = system;
+      valid_system_ = true;
+      return *this;
+    }
 
     /// @brief Set the reactions
     /// @param reactions The reactions
     /// @return Updated SolverBuilder
-    SolverBuilder& SetReactions(const std::vector<Process>& reactions);
-
-    /// @brief Add processes from an external model
-    /// @param model The external model
-    /// @return Updated SolverBuilder
-    template<class ExternalModel>
-    SolverBuilder& AddExternalModelProcesses(ExternalModel&& model);
-
-    /// @brief Set whether to ignore unused species
-    /// @param ignore_unused_species True if unused species should be ignored
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetIgnoreUnusedSpecies(bool ignore_unused_species);
-
-    /// @brief Set whether to reorder the state to optimize the LU decomposition
-    /// @param reorder_state True if the state should be reordered
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetReorderState(bool reorder_state);
+    SolverBuilder& SetReactions(const std::vector<Process>& reactions)
+    {
+      reactions_ = reactions;
+      return *this;
+    }
 
     /// @brief Set algebraic constraints for DAE solving
     /// @param constraints Vector of constraints
     /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints);
+    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints)
+    {
+      constraints_ = std::move(constraints);
+      return *this;
+    }
+
+    /// @brief Set whether to ignore unused species
+    /// @param ignore_unused_species True if unused species should be ignored
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetIgnoreUnusedSpecies(bool ignore_unused_species)
+    {
+      ignore_unused_species_ = ignore_unused_species;
+      return *this;
+    }
+
+    /// @brief Set whether to reorder the state to optimize the LU decomposition
+    /// @param reorder_state True if the state should be reordered
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetReorderState(bool reorder_state)
+    {
+      reorder_state_ = reorder_state;
+      return *this;
+    }
+
+    /// @brief Add an external model (state variables, processes, and/or constraints)
+    ///
+    /// If the model satisfies HasState, its state variables and parameters are registered with the solver.
+    /// The model must satisfy at least one of HasProcesses (process wrappers are created) or
+    /// HasConstraints (constraint wrappers are created).
+    /// @param model The external model (taken by value; caller decides whether to copy or move)
+    /// @return Updated SolverBuilder
+    template<class ExternalModel>
+    SolverBuilder& AddExternalModel(ExternalModel model)
+    {
+      static_assert(
+          HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,
+          "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
+
+      if constexpr (HasState<ExternalModel>)
+      {
+        external_systems_.emplace_back(ExternalModelSystem{ model });
+      }
+
+      if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
+      {
+        external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ model });
+        external_constraints_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+      }
+      else if constexpr (HasProcesses<ExternalModel>)
+      {
+        external_process_sets_.emplace_back(
+            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+      }
+      else
+      {
+        external_constraints_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
+      }
+      return *this;
+    }
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
-    auto Build() const;
+    auto Build();
 
    protected:
+    /// @brief Returns the total state size: gas phase + all external model state variables
+    std::size_t MergedStateSize() const
+    {
+      std::size_t n = system_.StateSize();
+      for (const auto& m : external_systems_)
+      {
+        n += std::get<0>(m.state_size_func_());
+      }
+      return n;
+    }
+
+    /// @brief Returns all unique species names: gas phase first, then external model variables
+    std::vector<std::string> MergedUniqueNames() const
+    {
+      auto names = system_.UniqueNames();
+      for (const auto& m : external_systems_)
+      {
+        auto model_names = m.variable_names_func_();
+        names.insert(names.end(), model_names.begin(), model_names.end());
+      }
+      return names;
+    }
+
     /// @brief Checks for unused species
     /// @param rates The rates policy instance containing information about processes
     /// @throws std::system_error if an unused species is found
@@ -125,6 +201,11 @@ namespace micm
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
+
+    /// @brief Builds a map of unique custom parameter labels to indices by
+    ///        collecting parameters from reactions, external models, and constraints.
+    /// @throws MicmException if duplicate parameter labels are found.
+    /// @return An unordered_map mapping each unique parameter label to its index.
     std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
 
     /// @brief Sets the absolute tolerances per species

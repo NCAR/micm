@@ -103,7 +103,9 @@ namespace micm
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
+        {
           continue;
+        }
 
         // check for convergence
         converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
@@ -162,7 +164,7 @@ namespace micm
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
-    auto& abs_tol = absolute_tolerance;
+    const auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
     auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
@@ -191,7 +193,7 @@ namespace micm
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
-    auto& abs_tol = absolute_tolerance;
+    const auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
     auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();

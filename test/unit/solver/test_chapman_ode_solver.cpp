@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <random>
 
-static const double absolute_tolerance = 1e-4;
+static const double ABSOLUTE_TOLERANCE = 1e-4;
 
 void TestDefaultConstructor(micm::ChapmanODESolver& solver)
 {
@@ -14,15 +14,13 @@ void TestDefaultConstructor(micm::ChapmanODESolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, DefaultConstructor)
 {
   micm::ChapmanODESolver hard_coded{};
-  // micm::ChapmanODESolver general{};
   TestDefaultConstructor(hard_coded);
-  // TestDefaultConstructor(general);
 }
 
 void TestLinSolve(micm::ChapmanODESolver& solver)
 {
   std::vector<double> jacobian(23, 1), b(9, 0.5);
-  auto solved = solver.lin_solve(b, jacobian);
+  auto solved = solver.LinSolve(b, jacobian);
 
   EXPECT_EQ(solved[0], 0.5);
   EXPECT_EQ(solved[1], 0.5);
@@ -37,44 +35,39 @@ void TestLinSolve(micm::ChapmanODESolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, lin_solve)
 {
   micm::ChapmanODESolver solver{};
-  // micm::ChapmanODESolver general{};
   TestLinSolve(solver);
-  // TestLinSolve(general);
 }
 
 void TestReactionNames(micm::ChapmanODESolver& solver)
 {
-  auto names = solver.reaction_names();
+  auto names = solver.ReactionNames();
   ASSERT_EQ(names.size(), 7);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, ReactionNames)
 {
   micm::ChapmanODESolver solver{};
-  // micm::ChapmanODESolver general{};
   TestReactionNames(solver);
 }
 
 void TestPhotolysisNames(micm::ChapmanODESolver& solver)
 {
-  auto names = solver.photolysis_names();
+  auto names = solver.PhotolysisNames();
   ASSERT_EQ(names.size(), 3);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, PhotolysisNames)
 {
   micm::ChapmanODESolver solver{};
-  // micm::ChapmanODESolver general{};
   TestPhotolysisNames(solver);
 }
 
 void TestSpeciesNames(micm::ChapmanODESolver& solver)
 {
-  auto names = solver.species_names();
+  auto names = solver.SpeciesNames();
   ASSERT_EQ(names.size(), 9);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, SpeciesNames)
 {
   micm::ChapmanODESolver solver{};
-  // micm::ChapmanODESolver general{};
   TestSpeciesNames(solver);
 }
 
@@ -84,7 +77,7 @@ void TestSimpleForce(micm::ChapmanODESolver& solver)
   std::vector<double> number_densities(9, 1);
   double number_density_air{};
 
-  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.Force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -100,7 +93,6 @@ void TestSimpleForce(micm::ChapmanODESolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, simple_force)
 {
   micm::ChapmanODESolver solver{};
-  // micm::ChapmanODESolver general{};
   TestSimpleForce(solver);
 }
 
@@ -110,7 +102,7 @@ void TestSmallerForce(micm::ChapmanODESolver& solver)
   std::vector<double> number_densities(9, 5e-6);
   double number_density_air{ 6e-14 };
 
-  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.Force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -135,7 +127,7 @@ void TestFactoredAlphaMinusJac(micm::ChapmanODESolver& solver)
   std::vector<double> dforce_dy(23, 1);
   double alpha{ 2 };
 
-  auto jacobian = solver.factored_alpha_minus_jac(dforce_dy, alpha);
+  auto jacobian = solver.FactoredAlphaMinusJac(dforce_dy, alpha);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_NEAR(jacobian[0], 1.000, 0.01);
@@ -174,7 +166,7 @@ void TestDforceDyTimesVector(micm::ChapmanODESolver& solver)
   std::vector<double> dforce_dy(23, 1);
   std::vector<double> vector(23, 0.5);
 
-  auto product = solver.dforce_dy_times_vector(dforce_dy, vector);
+  auto product = solver.DforceDyTimesVector(dforce_dy, vector);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_NEAR(product[0], 0, 0.01);
@@ -226,20 +218,19 @@ void TestSolve(micm::ChapmanODESolver& solver)
 
   auto results = solver.Solve(time_start, time_end, state);
   EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
-  EXPECT_NEAR(results.result_[0], 1, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 0.392, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.0169, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 32.9, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 1.8039e-41, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.00176789, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 8.83912, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 4.5031e-36, absolute_tolerance);
+  EXPECT_NEAR(results.result_[0], 1, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[1], 0.392, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[2], 0.0169, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[3], 0, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[4], 32.9, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[5], 1.8039e-41, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[6], 0.00176789, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[7], 8.83912, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[8], 4.5031e-36, ABSOLUTE_TOLERANCE);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 {
   micm::ChapmanODESolver solver{};
-  // micm::ChapmanODESolver general{};
   TestSolve(solver);
 }
 
@@ -264,15 +255,15 @@ void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
 
   solver.UpdateState(state);
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_NEAR(results.result_[0], 10, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 3.92, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.169, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 329, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 1.8039e-38, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.0176789, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 88.3912, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 4.5031e-33, absolute_tolerance);
+  EXPECT_NEAR(results.result_[0], 10, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[1], 3.92, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[2], 0.169, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[3], 0, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[4], 329, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[5], 1.8039e-38, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[6], 0.0176789, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[7], 88.3912, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[8], 4.5031e-33, ABSOLUTE_TOLERANCE);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 {
@@ -302,15 +293,15 @@ void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
 
   solver.UpdateState(state);
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_NEAR(results.result_[0], 0.1, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 0.0392, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.00169, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 3.29, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 1.8039e-44, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.000176789, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 0.883912, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 4.5031e-39, absolute_tolerance);
+  EXPECT_NEAR(results.result_[0], 0.1, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[1], 0.0392, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[2], 0.00169, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[3], 0, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[4], 3.29, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[5], 1.8039e-44, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[6], 0.000176789, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[7], 0.883912, ABSOLUTE_TOLERANCE);
+  EXPECT_NEAR(results.result_[8], 4.5031e-39, ABSOLUTE_TOLERANCE);
 }
 TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 {

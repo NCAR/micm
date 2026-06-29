@@ -25,18 +25,17 @@ namespace
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant(
-                             micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 })
                          .SetPhase(gas_phase)
                          .Build();
-  micm::System the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  micm::System the_system = micm::System(gas_phase);
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
@@ -45,6 +44,29 @@ TEST(SolverBuilder, ThrowsMissingSystem)
   EXPECT_THROW(
       micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{}).Build(),
       micm::MicmException);
+}
+
+TEST(SolverBuilder, ThrowsUnusedSpecies)
+{
+  auto d = micm::Species("D");
+  micm::Phase phase_with_unused{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
+  micm::System system_with_unused = micm::System(phase_with_unused);
+
+  try
+  {
+    micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+        micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+        .SetSystem(system_with_unused)
+        .SetReactions(reactions)
+        .SetIgnoreUnusedSpecies(false)
+        .Build();
+    FAIL() << "Expected micm::MicmException to be thrown";
+  }
+  catch (const micm::MicmException& e)
+  {
+    EXPECT_STREQ(e.Category(), MICM_ERROR_CATEGORY_SOLVER);
+    EXPECT_EQ(e.Code(), MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES);
+  }
 }
 
 TEST(SolverBuilder, CanBuildBackwardEuler)

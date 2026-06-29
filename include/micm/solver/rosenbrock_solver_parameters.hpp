@@ -37,6 +37,9 @@ namespace micm
     };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
     double h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
 
+    std::size_t constraint_init_max_iterations_{ 10 };  // max Newton iterations for constraint initialization
+    double constraint_init_tolerance_{ 1e-10 };         // convergence tolerance for constraint initialization
+
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
     std::array<bool, 6>
@@ -99,32 +102,46 @@ namespace micm
     std::cout << "h_start: " << h_start_ << std::endl;
     std::cout << "new_function_evaluation: ";
     for (bool val : new_function_evaluation_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "estimator_of_local_order: " << estimator_of_local_order_ << std::endl;
     std::cout << "a: ";
     for (double val : a_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "c: ";
     for (double val : c_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "m: ";
     for (double val : m_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "e: ";
     for (double val : e_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "alpha: ";
     for (double val : alpha_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "gamma: ";
     for (double val : gamma_)
+    {
       std::cout << val << " ";
+    }
     std::cout << std::endl;
     std::cout << "absolute_tolerance: ";
   }

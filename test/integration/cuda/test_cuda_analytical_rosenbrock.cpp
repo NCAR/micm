@@ -34,153 +34,153 @@ auto copy_to_host = [](auto& state) -> void { state.SyncOutputsToHost(); };
 
 TEST(AnalyticalExamplesCudaRosenbrock, Troe)
 {
-  test_analytical_troe(two, 1e-10, copy_to_device, copy_to_host);
-  test_analytical_troe(three, 1e-10, copy_to_device, copy_to_host);
-  test_analytical_troe(four, 1e-10, copy_to_device, copy_to_host);
-  test_analytical_troe(four_da, 1e-10, copy_to_device, copy_to_host);
-  test_analytical_troe(six_da, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalTroe(two, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalTroe(three, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalTroe(four, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalTroe(four_da, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalTroe(six_da, 1e-10, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe(two, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe(three, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe(four, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe(four_da, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe(six_da, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTroe(two, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTroe(three, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTroe(four, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTroe(four_da, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTroe(six_da, 1e-5, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
 {
-  test_analytical_photolysis(two, 2e-6, copy_to_device, copy_to_host);
-  test_analytical_photolysis(three, 2e-6, copy_to_device, copy_to_host);
-  test_analytical_photolysis(four, 2e-8, copy_to_device, copy_to_host);
-  test_analytical_photolysis(four_da, 2e-6, copy_to_device, copy_to_host);
-  test_analytical_photolysis(six_da, 2e-6, copy_to_device, copy_to_host);
+  TestAnalyticalPhotolysis(two, 2e-6, copy_to_device, copy_to_host);
+  TestAnalyticalPhotolysis(three, 2e-6, copy_to_device, copy_to_host);
+  TestAnalyticalPhotolysis(four, 2e-8, copy_to_device, copy_to_host);
+  TestAnalyticalPhotolysis(four_da, 2e-6, copy_to_device, copy_to_host);
+  TestAnalyticalPhotolysis(six_da, 2e-6, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis(two, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis(three, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis(four, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis(four_da, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis(six_da, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffPhotolysis(two, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffPhotolysis(three, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffPhotolysis(four, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffPhotolysis(four_da, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffPhotolysis(six_da, 2e-5, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation(two, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation(three, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation(four, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation(four_da, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation(six_da, 1e-8, copy_to_device, copy_to_host);
+  TestAnalyticalTernaryChemicalActivation(two, 1e-8, copy_to_device, copy_to_host);
+  TestAnalyticalTernaryChemicalActivation(three, 1e-8, copy_to_device, copy_to_host);
+  TestAnalyticalTernaryChemicalActivation(four, 1e-8, copy_to_device, copy_to_host);
+  TestAnalyticalTernaryChemicalActivation(four_da, 1e-8, copy_to_device, copy_to_host);
+  TestAnalyticalTernaryChemicalActivation(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation(two, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_ternary_chemical_activation(three, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_ternary_chemical_activation(four, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_ternary_chemical_activation(four_da, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_ternary_chemical_activation(six_da, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTernaryChemicalActivation(two, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTernaryChemicalActivation(three, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTernaryChemicalActivation(four, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTernaryChemicalActivation(four_da, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTernaryChemicalActivation(six_da, 2e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 {
-  test_analytical_tunneling(two, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_tunneling(three, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_tunneling(four, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_tunneling(four_da, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_tunneling(six_da, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalTunneling(two, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalTunneling(three, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalTunneling(four, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalTunneling(four_da, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalTunneling(six_da, 1e-6, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling(two, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling(three, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling(four, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling(four_da, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling(six_da, 1e-4, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTunneling(two, 1e-4, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTunneling(three, 1e-4, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTunneling(four, 1e-4, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTunneling(four_da, 1e-4, copy_to_device, copy_to_host);
+  TestAnalyticalStiffTunneling(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
 {
-  test_analytical_arrhenius(two, 4e-6, copy_to_device, copy_to_host);
-  test_analytical_arrhenius(three, 1e-9, copy_to_device, copy_to_host);
-  test_analytical_arrhenius(four, 1e-9, copy_to_device, copy_to_host);
-  test_analytical_arrhenius(four_da, 1e-9, copy_to_device, copy_to_host);
-  test_analytical_arrhenius(six_da, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalArrhenius(two, 4e-6, copy_to_device, copy_to_host);
+  TestAnalyticalArrhenius(three, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalArrhenius(four, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalArrhenius(four_da, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalArrhenius(six_da, 1e-9, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius(two, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius(three, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius(four, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius(four_da, 2e-5, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius(six_da, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffArrhenius(two, 1e-4, copy_to_device, copy_to_host);
+  TestAnalyticalStiffArrhenius(three, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffArrhenius(four, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffArrhenius(four_da, 2e-5, copy_to_device, copy_to_host);
+  TestAnalyticalStiffArrhenius(six_da, 1e-5, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Branched)
 {
-  test_analytical_branched(two, 1e-10, copy_to_device, copy_to_host);
-  test_analytical_branched(three, 1e-13, copy_to_device, copy_to_host);
-  test_analytical_branched(four, 1e-13, copy_to_device, copy_to_host);
-  test_analytical_branched(four_da, 1e-13, copy_to_device, copy_to_host);
-  test_analytical_branched(six_da, 1e-13, copy_to_device, copy_to_host);
+  TestAnalyticalBranched(two, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalBranched(three, 1e-13, copy_to_device, copy_to_host);
+  TestAnalyticalBranched(four, 1e-13, copy_to_device, copy_to_host);
+  TestAnalyticalBranched(four_da, 1e-13, copy_to_device, copy_to_host);
+  TestAnalyticalBranched(six_da, 1e-13, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched(two, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_branched(three, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_branched(four, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_branched(four_da, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_branched(six_da, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffBranched(two, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffBranched(three, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffBranched(four, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffBranched(four_da, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalStiffBranched(six_da, 2e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
 {
-  test_analytical_surface_rxn(two_1_cell, 1e-2, copy_to_device, copy_to_host);
-  test_analytical_surface_rxn(three_1_cell, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_surface_rxn(four_1_cell, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_surface_rxn(four_da_1_cell, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_surface_rxn(six_da_1_cell, 1e-7, copy_to_device, copy_to_host);
+  TestAnalyticalSurfaceRxn(two_1_cell, 1e-2, copy_to_device, copy_to_host);
+  TestAnalyticalSurfaceRxn(three_1_cell, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalSurfaceRxn(four_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalSurfaceRxn(four_da_1_cell, 1e-5, copy_to_device, copy_to_host);
+  TestAnalyticalSurfaceRxn(six_da_1_cell, 1e-7, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
 {
-  test_analytical_robertson(two_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(three_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(four_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(four_da_1_cell, 2e-1, copy_to_device, copy_to_host);
-  test_analytical_robertson(six_da_1_cell, 2e-1, copy_to_device, copy_to_host);
+  TestAnalyticalRobertson(two_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalRobertson(three_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalRobertson(four_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalRobertson(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalRobertson(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, E5)
 {
-  test_analytical_e5(two_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(three_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(four_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(four_da_1_cell, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_e5(six_da_1_cell, 1e-3, copy_to_device, copy_to_host);
+  TestAnalyticalE5(two_1_cell, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalE5(three_1_cell, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalE5(four_1_cell, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalE5(four_da_1_cell, 1e-10, copy_to_device, copy_to_host);
+  TestAnalyticalE5(six_da_1_cell, 1e-10, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 {
-  test_analytical_oregonator(two_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(three_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(four_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(four_da_1_cell, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_oregonator(six_da_1_cell, 2e-3, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(two_1_cell, 1e-2, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(three_1_cell, 1e-2, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(four_1_cell, 1e-2, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(four_da_1_cell, 1e-2, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(six_da_1_cell, 1e-2, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
 {
-  test_analytical_hires(two_1_cell, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_hires(three_1_cell, 1e-7, copy_to_device, copy_to_host);
-  test_analytical_hires(four_1_cell, 1e-7, copy_to_device, copy_to_host);
-  test_analytical_hires(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_hires(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalHires(two_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalHires(three_1_cell, 1e-7, copy_to_device, copy_to_host);
+  TestAnalyticalHires(four_1_cell, 1e-7, copy_to_device, copy_to_host);
+  TestAnalyticalHires(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+  TestAnalyticalHires(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
 }

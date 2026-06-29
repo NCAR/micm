@@ -24,6 +24,9 @@ namespace micm
     /// @brief Name of the constraint
     std::string name_;
 
+    /// @brief Algebraic species
+    Species algebraic_species_;
+
     /// @brief Names of species this constraint depends on
     std::vector<std::string> species_dependencies_;
 
@@ -33,6 +36,9 @@ namespace micm
     /// @brief The constant value the linear sum should equal
     double constant_;
 
+    /// @brief Parameter set (unused for this class, always empty).
+    std::vector<std::string> parameters_;
+
    public:
     /// @brief Default constructor
     LinearConstraint() = default;
@@ -41,17 +47,22 @@ namespace micm
     ///        Validates that terms are non-empty
     ///        Builds species_dependencies_ from terms
     /// @param name Constraint identifier
+    /// @param algebraic_species Species whose row is replaced by this algebraic constraint
     /// @param terms Vector of StoichSpecies (species, coefficient) in the linear sum
     /// @param constant The value that sum(coeff[i] * [species[i]]) should equal
-    LinearConstraint(const std::string& name, const std::vector<StoichSpecies>& terms, double constant)
+    LinearConstraint(
+        const std::string& name,
+        const Species& algebraic_species,
+        const std::vector<StoichSpecies>& terms,
+        double constant)
         : name_(name),
+          algebraic_species_(algebraic_species),
           terms_(terms),
           constant_(constant)
     {
       if (terms_.empty())
       {
-        throw MicmException(
-            MicmSeverity::Error, MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
+        throw MicmException(MICM_ERROR_CATEGORY_CONSTRAINT, MICM_CONSTRAINT_ERROR_CODE_EMPTY_REACTANTS, "");
       }
       for (const auto& term : terms_)
       {
@@ -60,11 +71,21 @@ namespace micm
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
-    ///        For linear constraints, the last species is used in the terms list as the algebraic row target.
-    /// @return Species name of the primary algebraic variable
+    /// @return Species name of the explicitly set algebraic variable
     const std::string& AlgebraicSpecies() const
     {
-      return terms_.back().species_.name_;
+      return algebraic_species_.name_;
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
+        const ConstraintInfo& info) const
+    {
+      // Linear constraints have no temperature-dependent parameters
+      return [](const std::vector<Conditions>&, DenseMatrixPolicy&)
+      {
+        // No-op: linear constraints don't have runtime parameters to update
+      };
     }
 
     /// @brief Create a function to compute the linear constraint residual
@@ -72,13 +93,16 @@ namespace micm
     ///        G = sum(coeff[i] * [species[i]]) - constant
     /// @param info Constraint information including species indices and row index
     /// @param state_variable_indices Mapping of state variable names to indices
-    /// @return Function object that takes (state_variables, forcing) and computes residual
+    /// @param state_parameter_indices Mapping of parameter names to indices (unused for LinearConstraint)
+    /// @return Function object that takes (state_variables, state_parameters, forcing) and computes residual
     template<typename DenseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)> ResidualFunction(
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ResidualFunction(
         const ConstraintInfo& info,
-        const auto& state_variable_indices) const
+        const auto& state_variable_indices,
+        const auto& state_parameter_indices) const
     {
       DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
+      DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
 
       // Copy data to avoid issues when ConstraintSet is moved
       std::vector<double> coeffs;
@@ -92,7 +116,7 @@ namespace micm
       std::size_t row_idx = info.row_index_;
 
       return DenseMatrixPolicy::Function(
-          [coeffs, species_indices, constant, row_idx](auto&& state, auto&& force)
+          [coeffs, species_indices, constant, row_idx](auto&& state, auto&& params, auto&& force)
           {
             // Create a variable for accumulating the linear sum
             auto linear_sum = force.GetRowVariable();
@@ -118,6 +142,7 @@ namespace micm
                 force.GetColumnView(row_idx));
           },
           temp_state_variables,
+          temp_state_parameters,
           temp_state_variables);
     }
 
@@ -126,17 +151,20 @@ namespace micm
     ///        dG/d[species[i]] = coeff[i]
     /// @param info Constraint information including species indices
     /// @param state_variable_indices Mapping of state variable names to indices
+    /// @param state_parameter_indices Mapping of parameter names to indices (unused for LinearConstraint)
     /// @param jacobian_flat_ids Iterator to this constraint's flat Jacobian indices in shared storage
     /// @param jacobian Sparse matrix to store Jacobian values
-    /// @return Function object that takes (state_variables, jacobian) and computes partials
+    /// @return Function object that takes (state_variables, state_parameters, jacobian) and computes partials
     template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
         const ConstraintInfo& info,
         const auto& state_variable_indices,
+        const auto& state_parameter_indices,
         auto jacobian_flat_ids,
         SparseMatrixPolicy& jacobian) const
     {
       DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
+      DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
 
       // Pre-compute flat IDs and store them in a vector
       // This avoids iterator issues when the lambda is called multiple times
@@ -155,7 +183,7 @@ namespace micm
       }
 
       return SparseMatrixPolicy::Function(
-          [coeffs, flat_ids](auto&& state, auto&& jacobian_values)
+          [coeffs, flat_ids](auto&& state, auto&& params, auto&& jacobian_values)
           {
             // For linear constraints, dG/d[species[i]] = coeff[i]
             // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
@@ -168,6 +196,7 @@ namespace micm
             }
           },
           temp_state_variables,
+          temp_state_parameters,
           jacobian);
     }
   };

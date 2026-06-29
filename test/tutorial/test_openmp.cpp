@@ -49,7 +49,7 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   for (int i = 0; i < 10; ++i)
   {
     double elapsed_solve_time = 0;
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
 
     while (elapsed_solve_time < time_step)
     {
@@ -74,26 +74,26 @@ int main()
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r1" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
                          .SetProducts({ micm::StoichSpecies(b, 1), micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
                          .SetProducts({ micm::StoichSpecies(a, 1), micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r3" })
                          .SetPhase(gas_phase)
                          .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
-  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  auto chemical_system = micm::System(gas_phase );
 
   std::vector<std::vector<double>> results(n_threads);
 

@@ -122,6 +122,34 @@ namespace micm
     void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
 
    protected:
+    /// @brief Sparse LU fill pattern of A together with the row/column adjacency
+    /// needed to build the decomposition index arrays without scanning the dense
+    /// (i, k, j) grid. Shared by GetLUMatrices (which only needs the id sets) and
+    /// Initialize (which also walks the adjacency).
+    struct FillPattern
+    {
+      /// Sorted non-zero positions of the L and U factors (used to build the matrices)
+      std::set<std::pair<std::size_t, std::size_t>> L_ids_, U_ids_;
+      /// Non-zero structure of the input matrix A: Arow_[r] = sorted columns,
+      /// Acol_[c] = sorted rows
+      std::vector<std::vector<std::size_t>> Arow_, Acol_;
+      /// Lrow_[i] = sorted columns j < i where L[i][j] != 0
+      std::vector<std::vector<std::size_t>> Lrow_;
+      /// Urow_[i] = sorted columns k >= i where U[i][k] != 0
+      std::vector<std::vector<std::size_t>> Urow_;
+      /// Lcol_[i] = sorted rows k > i where L[k][i] != 0
+      std::vector<std::vector<std::size_t>> Lcol_;
+    };
+
+    /// @brief Compute the sparse LU fill pattern of A in time proportional to the
+    /// number of non-zeros in the factors (plus an O(n^2) scan of the sparse input A),
+    /// rather than the O(n^3) dense triple loop.
+    /// @param A Sparse matrix that will be decomposed
+    /// @return Fill pattern and adjacency of A, L and U
+    template<class SparseMatrixPolicy>
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    static FillPattern ComputeFillPattern(const SparseMatrixPolicy& A);
+
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
     template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>

@@ -6,17 +6,17 @@ Rate Constants (except user defined ones)
 MICM supports a subset of the rate constants defined as part of the 
 `OpenAtmos Mechanism Configuration <https://open-atmos.github.io/MechanismConfiguration/reactions/index.html>`_
 We will be adding more in the future. 
-The links to the ``micm`` classes below detail the class and methods. Please check the OpenAtmos standard for
+The parameter structs below hold all configuration for each rate constant type. Please check the OpenAtmos standard for
 specifics on the algorithm implemented for each rate constant type.
 At present, supported rate constants are:
 
-- :cpp:class:`micm::ArrheniusRateConstant`, `OpenAtmos Arrhenius description <https://open-atmos.github.io/MechanismConfiguration/reactions/arrhenius.html>`_
-- :cpp:class:`micm::BranchedRateConstant`, `OpenAtmos Branched description <https://open-atmos.github.io/MechanismConfiguration/reactions/branched.html>`_
-- :cpp:class:`micm::SurfaceRateConstant`, `OpenAtmos Surface description <https://open-atmos.github.io/MechanismConfiguration/reactions/surface.html>`_
-- :cpp:class:`micm::TernaryChemicalActivationRateConstant`, `OpenAtmos Ternay chemical activiation description <https://open-atmos.github.io/MechanismConfiguration/reactions/ternary_chemical_activation.html>`_
-- :cpp:class:`micm::TroeRateConstant`, `OpenAtmos Troe description <https://open-atmos.github.io/MechanismConfiguration/reactions/troe.html>`_
-- :cpp:class:`micm::TunnelingRateConstant`, `OpenAtmos Tunneling description <https://open-atmos.github.io/MechanismConfiguration/reactions/tunneling.html>`_
-- :cpp:class:`micm::UserDefinedRateConstant`, this is a custom type, but this is how photolysis, first order loss, and emission rates are setup `OpenAtmos Photolysis description <https://open-atmos.github.io/MechanismConfiguration/reactions/photolysis.html>`_
+- :cpp:struct:`micm::ArrheniusRateConstantParameters`, `OpenAtmos Arrhenius description <https://open-atmos.github.io/MechanismConfiguration/reactions/arrhenius.html>`_
+- :cpp:struct:`micm::BranchedRateConstantParameters`, `OpenAtmos Branched description <https://open-atmos.github.io/MechanismConfiguration/reactions/branched.html>`_
+- :cpp:struct:`micm::SurfaceRateConstantParameters`, `OpenAtmos Surface description <https://open-atmos.github.io/MechanismConfiguration/reactions/surface.html>`_
+- :cpp:struct:`micm::TernaryChemicalActivationRateConstantParameters`, `OpenAtmos Ternay chemical activiation description <https://open-atmos.github.io/MechanismConfiguration/reactions/ternary_chemical_activation.html>`_
+- :cpp:struct:`micm::TroeRateConstantParameters`, `OpenAtmos Troe description <https://open-atmos.github.io/MechanismConfiguration/reactions/troe.html>`_
+- :cpp:struct:`micm::TunnelingRateConstantParameters`, `OpenAtmos Tunneling description <https://open-atmos.github.io/MechanismConfiguration/reactions/tunneling.html>`_
+- :cpp:struct:`micm::UserDefinedRateConstantParameters`, this is a custom type, but this is how photolysis, first order loss, and emission rates are setup `OpenAtmos Photolysis description <https://open-atmos.github.io/MechanismConfiguration/reactions/photolysis.html>`_
 
 This tutorial covers all but the last one. See the :ref:`User defined rate constants` tutorial for examples and use
 cases on that.

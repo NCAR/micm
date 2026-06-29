@@ -26,34 +26,34 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
                                     .SetReactants({ Cl2 })
                                     .SetProducts({ micm::StoichSpecies(Cl, 2.0) })
                                     .SetPhase(gas_phase)
-                                    .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "terminator_k1" }))
+                                    .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "terminator_k1" })
                                     .Build();
 
   micm::Process terminator_r2 = micm::ChemicalReactionBuilder()
                                     .SetReactants({ Cl, Cl })
                                     .SetProducts({ micm::StoichSpecies(Cl2, 1.0) })
                                     .SetPhase(gas_phase)
-                                    .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0 }))
+                                    .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 1.0 })
                                     .Build();
 
   micm::Process robertson_r1 = micm::ChemicalReactionBuilder()
                                    .SetReactants({ A })
                                    .SetProducts({ micm::StoichSpecies(B, 1) })
-                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r1" }))
+                                   .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "robertson_r1" })
                                    .SetPhase(gas_phase)
                                    .Build();
 
   micm::Process robertson_r2 = micm::ChemicalReactionBuilder()
                                    .SetReactants({ B, B })
                                    .SetProducts({ micm::StoichSpecies(B, 1), micm::StoichSpecies(C, 1) })
-                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r2" }))
+                                   .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "robertson_r2" })
                                    .SetPhase(gas_phase)
                                    .Build();
 
   micm::Process robertson_r3 = micm::ChemicalReactionBuilder()
                                    .SetReactants({ B, C })
                                    .SetProducts({ micm::StoichSpecies(A, 1), micm::StoichSpecies(C, 1) })
-                                   .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "robertson_r3" }))
+                                   .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "robertson_r3" })
                                    .SetPhase(gas_phase)
                                    .Build();
 
@@ -67,7 +67,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   std::vector<micm::Constraint> constraints;
   constraints.push_back(
-      micm::LinearConstraint("mass_conservation", { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
+      micm::LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
 
   // ---------------------------------------------------------------------------
   // Solver
@@ -76,7 +76,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase))
                     .SetReactions(processes)
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -101,7 +101,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   state.conditions_[0].pressure_ = 101300.0;
   state.conditions_[0].air_density_ = 42.0;
 
-  solver.CalculateRateConstants(state);
+  solver.UpdateStateParameters(state);
 
   constexpr size_t N = 12;
   double time_step = 1.0;

@@ -4,6 +4,8 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_info.hpp>
+#include <micm/external_model.hpp>
+#include <micm/system/conditions.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -14,6 +16,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -43,11 +46,45 @@ namespace micm
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<std::size_t> algebraic_variable_ids_;
 
+    /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
+    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
+
     /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> constraint_forcing_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+        constraint_forcing_functions_;
 
     /// @brief Pre-compiled constraint Jacobian functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, SparseMatrixPolicy&)>> constraint_jacobian_functions_;
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
+        constraint_jacobian_functions_;
+
+    /// @brief External model constraint wrappers
+    std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
+
+    /// @brief Runtime count of algebraic variables contributed by external models
+    std::size_t external_constraint_count_ = 0;
+
+    /// @brief Pre-compiled external constraint residual functions
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
+        external_constraint_forcing_functions_;
+
+    /// @brief Pre-compiled external constraint Jacobian functions
+    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
+        external_constraint_jacobian_functions_;
+
+    /// @brief Pre-compiled external constraint parameter update functions
+    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>>
+        external_constraint_param_functions_;
+
+    /// @brief Pre-compiled external constraint parameter initialization functions
+    ///        These diagnose constraint parameters from state variables at the start of each Solve()
+    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> external_constraint_init_functions_;
+
+    /// @brief Pre-compiled function to set algebraic variable error estimates
+    ///        For algebraic variables, the embedded error formula produces near-zero Yerror (because M_ii = 0).
+    ///        Instead, we use the step change (Ynew[a] - Y[a]) as the error estimate for algebraic variables.
+    ///        This captures the full change imposed by constraint enforcement and allows the solver to
+    ///        reject steps where algebraic variables change too much relative to their tolerances.
+    std::function<void(DenseMatrixPolicy&, const DenseMatrixPolicy&, const DenseMatrixPolicy&)> algebraic_error_function_;
 
    public:
     /// @brief Default constructor
@@ -74,7 +111,6 @@ namespace micm
         if (row_it == variable_map.end())
         {
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_CONSTRAINT,
               MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
               "Constraint '" + constraint.GetName() + "' targets unknown algebraic species '" + algebraic_species + "'");
@@ -84,7 +120,6 @@ namespace micm
         if (!algebraic_variable_ids_.insert(info.row_index_).second)
         {
           throw MicmException(
-              MicmSeverity::Error,
               MICM_ERROR_CATEGORY_CONSTRAINT,
               MICM_CONSTRAINT_ERROR_CODE_INVALID_STOICHIOMETRY,
               "Multiple constraints map to the same algebraic species row '" + algebraic_species + "'");
@@ -101,7 +136,6 @@ namespace micm
           if (it == variable_map.end())
           {
             throw MicmException(
-                MicmSeverity::Error,
                 MICM_ERROR_CATEGORY_CONSTRAINT,
                 MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
                 "Constraint '" + constraint.GetName() + "' depends on unknown species '" + species_name + "'");
@@ -127,10 +161,10 @@ namespace micm
     /// @brief Copy assignment
     ConstraintSet& operator=(const ConstraintSet&) = default;
 
-    /// @brief Get the number of constraints
+    /// @brief Get the number of constraints (built-in + external model)
     std::size_t Size() const
     {
-      return constraints_.size();
+      return constraints_.size() + external_constraint_count_;
     }
 
     /// @brief Returns species ids whose rows are algebraic when constraints replace state rows
@@ -140,25 +174,117 @@ namespace micm
       return algebraic_variable_ids_;
     }
 
+    /// @brief Deduplicates parameter names across all constraints in the set
+    ///        Ensures all constraint parameters have globally unique names by appending
+    ///        numeric suffixes (_1, _2, etc.) to duplicates.
+    ///        This should be called immediately after construction so that parameter
+    ///        names are finalized before the solver builder creates the parameter map.
+    ///        This logic is not part of the constructor because it mutates the constraint
+    ///        parameters, which is considered beyond the scope of construction.
+    void SetUniqueParameterNames()
+    {
+      std::unordered_set<std::string> used_names;
+      std::unordered_map<std::string, int> name_counts;
+
+      for (auto& each : constraints_)
+      {
+        std::visit(
+            [&](auto& c)
+            {
+              for (auto& label : c.parameters_)
+              {
+                const std::string original = label;
+
+                if (used_names.count(label) > 0)
+                {
+                  auto& count = name_counts[original];
+                  do
+                  {
+                    count++;
+                    label = original + "_" + std::to_string(count);
+                  } while (used_names.count(label) > 0);
+                }
+                used_names.insert(label);
+              }
+            },
+            each.constraint_);
+      }
+    }
+
+    /// @brief Returns all unique parameter names from all constraints in the set
+    /// @return Set of parameter names
+    std::unordered_set<std::string> GetParameterNames() const
+    {
+      std::unordered_set<std::string> param_names;
+
+      for (const auto& each : constraints_)
+      {
+        std::visit(
+            [&](auto& c)
+            {
+              for (auto& label : c.parameters_)
+              {
+                param_names.insert(label);
+              }
+            },
+            each.constraint_);
+      }
+
+      return param_names;
+    }
+
     /// @brief Add constraint residuals to forcing vector (constraint rows)
     ///        For each constraint G_i, writes or adds G_i(x) to forcing[constraint_row]
     /// @param state_variables Current species concentrations (grid cell, species)
+    /// @param state_parameters Current state parameters (grid cell, parameter) - e.g., temperature-dependent K_eq values
     /// @param forcing Forcing terms (grid cell, state variable) - constraint rows will be modified
-    void AddForcingTerms(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
+    void AddForcingTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        DenseMatrixPolicy& forcing) const
     {
       for (const auto& forcing_fn : constraint_forcing_functions_)
-        forcing_fn(state_variables, forcing);
+      {
+        forcing_fn(state_variables, state_parameters, forcing);
+      }
+      for (const auto& forcing_fn : external_constraint_forcing_functions_)
+      {
+        forcing_fn(state_variables, state_parameters, forcing);
+      }
     }
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
     ///        For each constraint G_i, subtracts dG_i/dx_j from jacobian[constraint_row, j]
     ///        (Subtraction matches the convention used by ProcessSet)
     /// @param state_variables Current species concentrations (grid cell, species)
+    /// @param state_parameters Current state parameters (grid cell, parameter) - e.g., temperature-dependent K_eq values
     /// @param jacobian Sparse Jacobian matrix (grid cell, row, column)
-    void SubtractJacobianTerms(const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian) const
+    void SubtractJacobianTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        SparseMatrixPolicy& jacobian) const
     {
       for (const auto& jacobian_fn : constraint_jacobian_functions_)
-        jacobian_fn(state_variables, jacobian);
+      {
+        jacobian_fn(state_variables, state_parameters, jacobian);
+      }
+      for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
+      {
+        jacobian_fn(state_variables, state_parameters, jacobian);
+      }
+    }
+
+    /// @brief Set algebraic variable error estimates using step changes
+    ///        For each algebraic variable a: Yerror[a] = Ynew[a] - Y[a]
+    /// @param Yerror Error vector — algebraic entries are overwritten with step changes
+    /// @param Y State at beginning of step
+    /// @param Ynew Proposed state at end of step (after constraint enforcement)
+    void SetAlgebraicErrors(DenseMatrixPolicy& Yerror, const DenseMatrixPolicy& Y, const DenseMatrixPolicy& Ynew) const
+    {
+      if (algebraic_error_function_)
+      {
+        algebraic_error_function_(Yerror, Y, Ynew);
+      }
     }
 
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
@@ -212,19 +338,284 @@ namespace micm
     /// @param state_variable_indices Map from species names to state variable indices
     /// @param jacobian The sparse Jacobian matrix (used for function template instantiation)
     void SetConstraintFunctions(
-        const auto& state_variable_indices,  // acts like std::unordered_map<std::string, std::size_t>
+        const auto& state_variable_indices,   // std::unordered_map<std::string, std::size_t>
+        const auto& state_parameter_indices,  // std::unordered_map<std::string, std::size_t>
         SparseMatrixPolicy& jacobian)
     {
+      SetConstraintParamIndices(state_parameter_indices);
+
+      constraint_param_functions_.clear();
       constraint_forcing_functions_.clear();
       constraint_jacobian_functions_.clear();
       for (const auto& info : constraint_info_)
       {
-        constraint_forcing_functions_.push_back(
-            constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices));
+        constraint_param_functions_.push_back(
+            constraints_[info.index_].template ConstraintParameterFunction<DenseMatrixPolicy>(info));
+
+        constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
+            info, state_variable_indices, state_parameter_indices));
 
         constraint_jacobian_functions_.push_back(
             constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info, state_variable_indices, jacobian_flat_ids_.begin() + info.jacobian_flat_offset_, jacobian));
+                info,
+                state_variable_indices,
+                state_parameter_indices,
+                jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
+                jacobian));
+      }
+
+      // Build the algebraic error function once for all algebraic variables
+      BuildAlgebraicErrorFunction(state_variable_indices);
+    }
+
+    /// @brief Returns pre-compiled constraint parameter update functions
+    ///        These functions compute temperature-dependent parameters (e.g., K_eq) for each constraint
+    ///        Called by solver builder to retrieve functions for UpdateStateParameters pipeline
+    /// @return Vector of function objects that take (conditions, state_param) and update constraint parameters
+    auto GetUpdateStateParamFunctions()
+    {
+      return constraint_param_functions_;
+    }
+
+    /// @brief Set external model constraint wrappers
+    /// @param models Vector of type-erased external model constraint wrappers
+    void SetExternalConstraintModels(std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>>&& models)
+    {
+      external_constraints_ = std::move(models);
+    }
+
+    /// @brief Resolve external model constraints at runtime
+    ///
+    /// Calls each external model's `algebraic_variable_names_func_()` to determine which
+    /// (if any) algebraic variables it contributes. Models returning empty sets are skipped.
+    /// Populates `external_constraint_count_` and adds to `algebraic_variable_ids_`.
+    ///
+    /// @param variable_map Map from species names to state variable indices
+    void ResolveExternalConstraints(const std::unordered_map<std::string, std::size_t>& variable_map)
+    {
+      external_constraint_count_ = 0;
+      for (const auto& model : external_constraints_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        for (const auto& name : alg_names)
+        {
+          auto it = variable_map.find(name);
+          if (it == variable_map.end())
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                "External model constraint targets unknown algebraic species '" + name + "'");
+          }
+          if (!algebraic_variable_ids_.insert(it->second).second)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_ALGEBRAIC_SPECIES,
+                "Multiple constraints map to the same algebraic species row '" + name + "'");
+          }
+          ++external_constraint_count_;
+        }
+      }
+    }
+
+    /// @brief Returns non-zero Jacobian elements contributed by external model constraints
+    /// @param variable_map Map from species names to state variable indices
+    /// @return Set of (row, column) index pairs
+    std::set<std::pair<std::size_t, std::size_t>> ExternalNonZeroJacobianElements(
+        const std::unordered_map<std::string, std::size_t>& variable_map) const
+    {
+      std::set<std::pair<std::size_t, std::size_t>> ids;
+      for (const auto& model : external_constraints_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+        {
+          continue;
+        }
+        auto model_ids = model.non_zero_jacobian_elements_func_(variable_map);
+        ids.insert(model_ids.begin(), model_ids.end());
+        // Ensure diagonal elements exist for algebraic rows
+        for (const auto& name : alg_names)
+        {
+          auto it = variable_map.find(name);
+          if (it != variable_map.end())
+          {
+            ids.insert(std::make_pair(it->second, it->second));
+          }
+        }
+      }
+      return ids;
+    }
+
+    /// @brief Returns all unique state parameter names from external constraint models
+    /// @return Vector of parameter names (duplicates across models are detected and rejected)
+    std::vector<std::string> ExternalConstraintParameterNames() const
+    {
+      std::set<std::string> seen;
+      std::vector<std::string> names;
+      for (const auto& model : external_constraints_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+        {
+          continue;
+        }
+        auto param_names = model.state_parameter_names_func_();
+        for (const auto& name : param_names)
+        {
+          if (!seen.insert(name).second)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate external constraint parameter name across models: " + name);
+          }
+          names.push_back(name);
+        }
+      }
+      return names;
+    }
+
+    /// @brief Returns pre-compiled external constraint parameter update functions
+    auto GetExternalUpdateStateParamFunctions() const
+    {
+      return external_constraint_param_functions_;
+    }
+
+    /// @brief Returns all unique state parameter names that need initialization from state variables
+    /// @return Vector of parameter names for state-diagnosed constraint parameters
+    std::vector<std::string> ExternalInitializeConstraintParameterNames() const
+    {
+      std::set<std::string> seen;
+      std::vector<std::string> names;
+      for (const auto& model : external_constraints_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+        {
+          continue;
+        }
+        auto init_names = model.initialize_constraint_parameter_names_func_();
+        for (const auto& name : init_names)
+        {
+          if (!seen.insert(name).second)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate external initialize constraint parameter name across models: " + name);
+          }
+          names.push_back(name);
+        }
+      }
+      return names;
+    }
+
+    /// @brief Returns pre-compiled external constraint parameter initialization functions
+    auto GetExternalInitializeConstraintParamFunctions() const
+    {
+      return external_constraint_init_functions_;
+    }
+
+    /// @brief Initializes constraint parameters from current state variables
+    ///        Called at the beginning of each Solve() to diagnose state-dependent constraint constants
+    /// @param state_variables Current species concentrations
+    /// @param state_parameters State parameters to be updated with diagnosed values
+    void InitializeConstraintParameters(const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& state_parameters) const
+    {
+      for (const auto& init_func : external_constraint_init_functions_)
+      {
+        init_func(state_variables, state_parameters);
+      }
+    }
+
+    /// @brief Pre-compiles external constraint residual, Jacobian, and parameter update functions
+    ///        Must be called after ResolveExternalConstraints and after Jacobian is built.
+    /// @param state_parameter_indices Map from parameter names to state parameter indices
+    /// @param state_variable_indices Map from species names to state variable indices
+    /// @param jacobian The sparse Jacobian matrix
+    void SetExternalModelConstraintFunctions(
+        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
+        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const SparseMatrixPolicy& jacobian)
+    {
+      external_constraint_forcing_functions_.clear();
+      external_constraint_jacobian_functions_.clear();
+      external_constraint_param_functions_.clear();
+      external_constraint_init_functions_.clear();
+      for (const auto& model : external_constraints_)
+      {
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
+        {
+          continue;
+        }
+        external_constraint_param_functions_.push_back(model.update_state_parameters_function_(state_parameter_indices));
+        external_constraint_forcing_functions_.push_back(
+            model.get_residual_function_(state_parameter_indices, state_variable_indices));
+        external_constraint_jacobian_functions_.push_back(
+            model.get_jacobian_function_(state_parameter_indices, state_variable_indices, jacobian));
+        external_constraint_init_functions_.push_back(
+            model.get_initialize_constraint_parameters_function_(state_parameter_indices, state_variable_indices));
+      }
+
+      // Rebuild the algebraic error function now that external algebraic variables are included
+      BuildAlgebraicErrorFunction(state_variable_indices);
+    }
+
+   private:
+    /// @brief Build a single function that sets Yerror[a] = Ynew[a] - Y[a] for all algebraic variables
+    ///        Uses DenseMatrixPolicy::Function for matrix-ordering-agnostic access.
+    /// @param state_variable_indices Map from species names to state variable indices (for sizing temp matrices)
+    void BuildAlgebraicErrorFunction(const auto& state_variable_indices)
+    {
+      if (algebraic_variable_ids_.empty())
+      {
+        algebraic_error_function_ = {};
+        return;
+      }
+
+      std::vector<std::size_t> alg_ids(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
+      DenseMatrixPolicy temp{ 1, state_variable_indices.size(), 0.0 };
+
+      algebraic_error_function_ = DenseMatrixPolicy::Function(
+          [alg_ids](auto&& yerr, auto&& y, auto&& ynew)
+          {
+            for (const auto& col : alg_ids)
+            {
+              yerr.ForEachRow(
+                  [](const double& ynew_a, const double& y_a, double& err_a) { err_a = ynew_a - y_a; },
+                  ynew.GetConstColumnView(col),
+                  y.GetConstColumnView(col),
+                  yerr.GetColumnView(col));
+            }
+          },
+          temp,
+          temp,
+          temp);
+    }
+
+    /// @brief Maps constraint parameter names to their column indices in the state parameter matrix
+    ///        Populates constraint_info_[i].state_param_indices_ for each constraint
+    ///        Called internally by SetConstraintFunctions after parameter map is finalized
+    /// @param state_parameter_indices Map from parameter names to column indices in state_param matrix
+    void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
+    {
+      for (std::size_t i = 0; i < constraints_.size(); ++i)
+      {
+        for (const auto& name : constraints_[i].GetParameterNames())
+        {
+          auto it = state_parameter_indices.find(name);
+          if (it == state_parameter_indices.end())
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                "Constraint '" + constraints_[i].GetName() + "' depends on unknown parameter '" + name + "'");
+          }
+          constraint_info_[i].state_param_indices_.push_back(it->second);  // store in ConstraintInfo
+        }
       }
     }
   };

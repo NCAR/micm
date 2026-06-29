@@ -160,7 +160,9 @@ namespace micm
 
       // Let the thread 0 of this threadblock write its result to output array, inexed by this threadblock
       if (l_tid == 0)
+      {
         d_errors_output[blockIdx.x] = sdata[0];
+      }
     }
 
     // CUDA kernel to compute the scaled vectors
@@ -255,8 +257,7 @@ namespace micm
       {
         std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
                           " but got: " + std::to_string(y_error_param.number_of_elements_);
-        throw micm::MicmException(
-            micm::MicmSeverity::Critical, MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_GENERAL, msg);
+        throw micm::MicmException(MICM_ERROR_CATEGORY_INTERNAL, MICM_INTERNAL_ERROR_CODE_GENERAL, msg);
       }
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(

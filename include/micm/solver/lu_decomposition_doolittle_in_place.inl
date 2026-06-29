@@ -40,12 +40,16 @@ namespace micm
       for (std::size_t k = i; k < n; ++k)
       {
         if (ALU.IsZero(i, k))
+        {
           continue;
+        }
         std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
           if (ALU.IsZero(i, j) || ALU.IsZero(j, k))
+          {
             continue;
+          }
           aij_ajk_.push_back(std::make_pair(ALU.VectorIndex(0, i, j), ALU.VectorIndex(0, j, k)));
           ++(aik_njk.second);
         }
@@ -55,12 +59,16 @@ namespace micm
       for (std::size_t k = i + 1; k < n; ++k)
       {
         if (ALU.IsZero(k, i))
+        {
           continue;
+        }
         std::pair<std::size_t, std::size_t> aki_nji(ALU.VectorIndex(0, k, i), 0);
         for (std::size_t j = 0; j < i; ++j)
         {
           if (ALU.IsZero(k, j) || ALU.IsZero(j, i))
+          {
             continue;
+          }
           akj_aji_.push_back(std::make_pair(ALU.VectorIndex(0, k, j), ALU.VectorIndex(0, j, i)));
           ++(aki_nji.second);
         }
@@ -118,7 +126,7 @@ namespace micm
       }
     }
     auto ALU_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
-    for (auto& pair : ALU_ids)
+    for (const auto& pair : ALU_ids)
     {
       ALU_builder = ALU_builder.WithElement(pair.first, pair.second);
     }
@@ -195,7 +203,9 @@ namespace micm
             auto ALU_vector_aij_ajk_first_it = ALU_vector + aij_ajk->first;
             auto ALU_vector_aij_ajk_second_it = ALU_vector + aij_ajk->second;
             for (std::size_t i = 0; i < n_cells; ++i)
+            {
               *(ALU_vector_aik_njk_it++) -= *(ALU_vector_aij_ajk_first_it++) * *(ALU_vector_aij_ajk_second_it++);
+            }
             ++aij_ajk;
           }
           ++aik_njk;
@@ -210,13 +220,17 @@ namespace micm
             auto ALU_vector_akj_aji_first_it = ALU_vector + akj_aji->first;
             auto ALU_vector_akj_aji_second_it = ALU_vector + akj_aji->second;
             for (std::size_t i = 0; i < n_cells; ++i)
+            {
               *(ALU_vector_aki_nji_it++) -= *(ALU_vector_akj_aji_first_it++) * *(ALU_vector_akj_aji_second_it++);
+            }
             ++akj_aji;
           }
           auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
           auto ALU_vector_nik_nki_aii_it = ALU_vector + std::get<2>(nik_nki_aii);
           for (std::size_t i = 0; i < n_cells; ++i)
+          {
             *(ALU_vector_aki_nji_it++) /= *(ALU_vector_nik_nki_aii_it++);
+          }
           ++aki_nji;
         }
       }

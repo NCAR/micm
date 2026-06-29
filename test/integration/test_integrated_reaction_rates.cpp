@@ -20,22 +20,21 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::StoichSpecies(b, 1), micm::StoichSpecies(irr_1, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 })
                          .SetPhase(gas_phase)
                          .Build();
 
-  micm::Process r2 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ b })
-          .SetProducts({ micm::StoichSpecies(c, 1), micm::StoichSpecies(irr_2, 1) })
-          .SetRateConstant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r2 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ b })
+                         .SetProducts({ micm::StoichSpecies(c, 1), micm::StoichSpecies(irr_2, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" })
+                         .SetPhase(gas_phase)
+                         .Build();
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase))
                     .SetReactions({ r1, r2 })
                     .Build();
 
@@ -63,7 +62,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     {
       state.SetCustomRateParameter("r2", 0.0);
     }
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
     std::cout << state.variables_[0][irr1_idx] << " " << state.variables_[0][irr2_idx] << std::endl;
     double irr1 = state.variables_[0][irr1_idx];
     double irr2 = state.variables_[0][irr2_idx];

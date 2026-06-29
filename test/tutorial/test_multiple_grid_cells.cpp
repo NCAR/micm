@@ -17,21 +17,21 @@ int main()
   micm::Process r1 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a })
                          .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r1" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, b })
                          .SetProducts({ micm::StoichSpecies(b, 1), micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" })
                          .SetPhase(gas_phase)
                          .Build();
 
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b, c })
                          .SetProducts({ micm::StoichSpecies(a, 1), micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r3" })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -39,7 +39,7 @@ int main()
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(micm::System(gas_phase ))
                     .SetReactions({ r1, r2, r3 })
                     .Build();
 
@@ -85,7 +85,7 @@ int main()
 
     while (elapsed_solve_time < time_step)
     {
-      solver.CalculateRateConstants(state);
+      solver.UpdateStateParameters(state);
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time += result.stats_.final_time_;;
     }

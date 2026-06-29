@@ -13,19 +13,19 @@ int main(const int argc, const char *argv[])
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz } };
 
-  System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
+  System chemical_system(gas_phase);
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
                    .SetProducts({ StoichSpecies(bar, 0.8), StoichSpecies(baz, 0.2) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 1.0e-3 })
                    .SetPhase(gas_phase)
                    .Build();
 
   Process r2 = ChemicalReactionBuilder()
                    .SetReactants({ foo, bar })
                    .SetProducts({ StoichSpecies(baz, 1) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 1.0e-5, .C_ = 110.0 })
                    .SetPhase(gas_phase)
                    .Build();
 
@@ -47,7 +47,7 @@ int main(const int argc, const char *argv[])
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
-    solver.CalculateRateConstants(state);
+    solver.UpdateStateParameters(state);
     auto result = solver.Solve(500.0, state);
     state.PrintState(i * 500);
   }

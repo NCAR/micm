@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-micm::Phase createGasPhase()
+micm::Phase CreateGasPhase()
 {
   auto o = micm::Species("O");
   auto o1d = micm::Species("O1D");
@@ -22,13 +22,13 @@ micm::Phase createGasPhase()
   return micm::Phase{ "gas", std::vector<micm::PhaseSpecies>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
 }
 
-std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
+std::vector<micm::Process> CreateProcesses(const micm::Phase& gas_phase)
 {
   micm::Process r1 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ micm::Species("O1D"), micm::Species("N2") })
           .SetProducts({ micm::StoichSpecies(micm::Species("O"), 1), micm::StoichSpecies(micm::Species("N2"), 1) })
-          .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 }))
+          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 })
           .SetPhase(gas_phase)
           .Build();
 
@@ -36,30 +36,29 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
       micm::ChemicalReactionBuilder()
           .SetReactants({ micm::Species("O1D"), micm::Species("O2") })
           .SetProducts({ micm::StoichSpecies(micm::Species("O"), 1), micm::StoichSpecies(micm::Species("O2"), 1) })
-          .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 }))
+          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 })
           .SetPhase(gas_phase)
           .Build();
 
-  micm::Process r3 =
-      micm::ChemicalReactionBuilder()
-          .SetReactants({ micm::Species("O"), micm::Species("O3") })
-          .SetProducts({ micm::StoichSpecies(micm::Species("O2"), 2) })
-          .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 }))
-          .SetPhase(gas_phase)
-          .Build();
+  micm::Process r3 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ micm::Species("O"), micm::Species("O3") })
+                         .SetProducts({ micm::StoichSpecies(micm::Species("O2"), 2) })
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 })
+                         .SetPhase(gas_phase)
+                         .Build();
 
   micm::Process r4 =
       micm::ChemicalReactionBuilder()
           .SetReactants({ micm::Species("O"), micm::Species("O2"), micm::Species("M") })
           .SetProducts({ micm::StoichSpecies(micm::Species("O3"), 1), micm::StoichSpecies(micm::Species("M"), 1) })
-          .SetRateConstant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 }))
+          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 })
           .SetPhase(gas_phase)
           .Build();
 
   micm::Process photo_1 = micm::ChemicalReactionBuilder()
                               .SetReactants({ micm::Species("O2") })
                               .SetProducts({ micm::StoichSpecies(micm::Species("O"), 2) })
-                              .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
+                              .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "jO2" })
                               .SetPhase(gas_phase)
                               .Build();
 
@@ -67,7 +66,7 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
       micm::ChemicalReactionBuilder()
           .SetReactants({ micm::Species("O3") })
           .SetProducts({ micm::StoichSpecies(micm::Species("O1D"), 1), micm::StoichSpecies(micm::Species("O2"), 1) })
-          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
+          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "jO3a" })
           .SetPhase(gas_phase)
           .Build();
 
@@ -75,7 +74,7 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
       micm::ChemicalReactionBuilder()
           .SetReactants({ micm::Species("O3") })
           .SetProducts({ micm::StoichSpecies(micm::Species("O"), 1), micm::StoichSpecies(micm::Species("O2"), 1) })
-          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
+          .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "jO3b" })
           .SetPhase(gas_phase)
           .Build();
 
@@ -83,12 +82,10 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 }
 
 template<class SolverBuilderPolicy>
-auto getChapmanSolver(SolverBuilderPolicy& builder)
+auto GetChapmanSolver(SolverBuilderPolicy& builder)
 {
-  micm::Phase gas_phase = createGasPhase();
-  std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = CreateGasPhase();
+  std::vector<micm::Process> processes = CreateProcesses(gas_phase);
 
-  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-      .SetReactions(std::move(processes))
-      .Build();
+  return builder.SetSystem(micm::System(gas_phase)).SetReactions(std::move(processes)).Build();
 }
