@@ -56,7 +56,7 @@ jobs:
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '26.0'
 
       - name: Run Cmake 
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
