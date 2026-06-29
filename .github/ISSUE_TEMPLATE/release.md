@@ -23,8 +23,6 @@ assignees: ''
   cmake -B build -S .
   ```
   This forces CMake to write the correct version file into the include directory.
-- [ ] Open `docs/sources/_static/switcher.json`
-  - The first object points to the stable version — update its `name` to the new version number
 - [ ] Update the version number in `CITATION.cff`
 - [ ] On GitHub, merge `main` into `release` — **do NOT squash and merge**
   - Alternatively, merge locally and push: `git checkout release && git merge main && git push`
