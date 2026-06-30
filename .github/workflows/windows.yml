@@ -1,6 +1,6 @@
 name: Windows
 
-on: 
+on:
   push:
     branches:
       - main
@@ -27,7 +27,7 @@ jobs:
           platform: ${{ matrix.architecture }}
           version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
 
-      - name: Run Cmake 
+      - name: Run Cmake
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "MinGW Makefiles"
 
       - name: Build
@@ -40,7 +40,7 @@ jobs:
 
   msvc2022:
     runs-on: windows-latest
-    continue-on-error: true 
+    continue-on-error: true
     strategy:
       matrix:
         build_type: [Release]
@@ -57,7 +57,7 @@ jobs:
 
   clang:
     runs-on: windows-latest
-    continue-on-error: true 
+    continue-on-error: true
     strategy:
       matrix:
         build_type: [Release]
@@ -76,7 +76,7 @@ jobs:
 
   clang-cl-11:
     runs-on: windows-latest
-    continue-on-error: true 
+    continue-on-error: true
     strategy:
       matrix:
         build_type: [Release]
@@ -90,3 +90,20 @@ jobs:
         run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
       - name: Test
         run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --exclude-regex "test-unicode" --output-on-failure
+
+  kokkos_serial:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        build_type: [Release]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run CMake
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_ENABLE_KOKKOS=ON -D Kokkos_ENABLE_SERIAL=ON
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
+
+      - name: Run tests
+        run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure

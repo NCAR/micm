@@ -40,3 +40,32 @@ jobs:
         run: |
           cd build
           ctest --rerun-failed --output-on-failure . --verbose -j 10
+
+  kokkos_cuda_tests:
+    runs-on:
+      group: CIRRUS-4x16-gpu
+    container:
+      image: nvcr.io/nvidia/nvhpc:25.9-devel-cuda13.0-ubuntu24.04
+      options: --gpus all
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+           apt update
+           apt install -y cmake g++
+
+      - name: Run Cmake
+        run: >
+          cmake -S . -B build
+          -DMICM_ENABLE_KOKKOS=ON
+          -DKokkos_ENABLE_CUDA=ON
+          -DKokkos_ARCH_AMPERE86=ON
+
+      - name: Build
+        run: cmake --build build --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10
