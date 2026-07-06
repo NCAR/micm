@@ -44,11 +44,12 @@ namespace micm
     std::vector<std::size_t> jacobian_flat_ids_;
     std::vector<uint8_t> is_algebraic_variable_;  // uint8_t instead of bool for CUDA compatibility
     std::unordered_map<std::string, std::size_t> variable_map_;
-    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_models_;
+
+    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
     std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
-        external_model_forcing_functions_;
+        external_forcing_functions_;
     std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
-        external_model_jacobian_functions_;
+        external_jacobian_functions_;
 
    public:
     /// @brief Default constructor
@@ -65,15 +66,16 @@ namespace micm
     /// @brief Constructs a ProcessSet as above, but also includes contributions from external models
     /// @param processes A list of processes, each with reactants and products
     /// @param variable_map A map from species names to their corresponding index in the solver's state
-    /// @param external_models A list of external models that provide additional processes and Jacobian contributions
+    /// @param external_process_sets A list of external process sets that provide additional processes and Jacobian
+    /// contributions
     /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
     ProcessSet(
         const std::vector<Process>& processes,
         const std::unordered_map<std::string, std::size_t>& variable_map,
-        const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models)
+        const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_process_sets)
         : ProcessSet(processes, variable_map)
     {
-      external_models_ = external_models;
+      external_process_sets_ = external_process_sets;
     }
 
     virtual ~ProcessSet() = default;
@@ -154,9 +156,13 @@ namespace micm
       for (const auto& reactant : reaction.reactants_)
       {
         if (reactant.IsParameterized())
+        {
           continue;  // Skip reactants that are parameterizations
+        }
         if (variable_map.count(reactant.name_) < 1)
+        {
           throw MicmException(MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
+        }
         reactant_ids_.push_back(variable_map.at(reactant.name_));
         ++number_of_reactants;
       }
@@ -164,10 +170,14 @@ namespace micm
       for (const auto& product : reaction.products_)
       {
         if (product.species_.IsParameterized())
+        {
           continue;  // Skip products that are parameterizations
+        }
         if (variable_map.count(product.species_.name_) < 1)
+        {
           throw MicmException(
               MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
+        }
         product_ids_.push_back(variable_map.at(product.species_.name_));
         yields_.push_back(product.coefficient_);
         ++number_of_products;
@@ -177,60 +187,74 @@ namespace micm
       number_of_products_.push_back(number_of_products);
     }
 
-    // Set up process information for Jacobian calculations
-
-    // The variable_map is sorted by index
-    std::vector<std::pair<std::string, std::size_t>> sorted_names(variable_map.begin(), variable_map.end());
-    std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
-
-    // For every independent variable (species), if the species is used as a reactant in a process,
-    // create a ProcessInfo record to track Jacobian contributions
-    for (const auto& independent_variable : sorted_names)
+    // Set up process information for Jacobian calculations.
+    //
+    // For every independent variable (species) used as a reactant in a process, create a
+    // ProcessInfo record. Rather than scanning every process for every species
+    // (O(species x reactions), which is prohibitive for large mechanisms), collect
+    // (independent_id, process_id) jobs in a SINGLE pass over the processes and then
+    // stable-sort them by independent_id. The emitted records are then ordered by
+    // independent variable and then by process which is identical to the species-by-species
+    // scan, but the cost is O(reactions x reactants + J log J) instead of
+    // O(species x reactions).
+    std::vector<std::pair<std::size_t, std::size_t>> jacobian_columns;  // (independent_id, i_process)
+    for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
     {
-      for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
+      const auto& reaction = processes[i_process].process_;
+      for (const auto& ind_reactant : reaction.reactants_)
       {
-        const auto& reaction = processes[i_process].process_;
-        for (const auto& ind_reactant : reaction.reactants_)
+        auto it = variable_map.find(ind_reactant.name_);
+        if (it == variable_map.end())
         {
-          if (ind_reactant.name_ != independent_variable.first)
-            continue;
-          ProcessInfo info;
-          info.process_id_ = i_process;
-          info.independent_id_ = independent_variable.second;
-          info.number_of_dependent_reactants_ = 0;
-          info.number_of_products_ = 0;
-
-          // Collect other (dependent) reactants and products
-          bool found = false;
-          for (const auto& reactant : reaction.reactants_)
-          {
-            if (reactant.IsParameterized())
-              continue;  // Skip reactants that are parameterizations
-            if (variable_map.count(reactant.name_) < 1)
-              throw MicmException(
-                  MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
-            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
-            {
-              found = true;
-              continue;
-            }
-            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
-            ++info.number_of_dependent_reactants_;
-          }
-          for (const auto& product : reaction.products_)
-          {
-            if (product.species_.IsParameterized())
-              continue;  // Skip products that are parameterizations
-            if (variable_map.count(product.species_.name_) < 1)
-              throw MicmException(
-                  MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
-            jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
-            jacobian_yields_.push_back(product.coefficient_);
-            ++info.number_of_products_;
-          }
-          jacobian_process_info_.push_back(info);
+          continue;
         }
+        jacobian_columns.emplace_back(it->second, i_process);
       }
+    }
+    std::stable_sort(
+        jacobian_columns.begin(), jacobian_columns.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    for (const auto& column : jacobian_columns)
+    {
+      const std::size_t independent_id = column.first;
+      const std::size_t i_process = column.second;
+      const auto& reaction = processes[i_process].process_;
+      ProcessInfo info;
+      info.process_id_ = i_process;
+      info.independent_id_ = independent_id;
+      info.number_of_dependent_reactants_ = 0;
+      info.number_of_products_ = 0;
+
+      // Collect other (dependent) reactants and products
+      // because our reactants can be duplicated, (2B could be 2B or B + B), we need to detect when we've already seen a
+      // reactant
+      bool found = false;
+      for (const auto& reactant : reaction.reactants_)
+      {
+        if (reactant.IsParameterized())
+        {
+          continue;  // Skip reactants that are parameterizations
+        }
+        const std::size_t id = variable_map.at(reactant.name_);
+        if (id == independent_id && !found)
+        {
+          found = true;
+          continue;
+        }
+        jacobian_reactant_ids_.push_back(id);
+        ++info.number_of_dependent_reactants_;
+      }
+      for (const auto& product : reaction.products_)
+      {
+        if (product.species_.IsParameterized())
+        {
+          continue;  // Skip products that are parameterizations
+        }
+        jacobian_product_ids_.push_back(variable_map.at(product.species_.name_));
+        jacobian_yields_.push_back(product.coefficient_);
+        ++info.number_of_products_;
+      }
+      jacobian_process_info_.push_back(info);
     }
   };
 
@@ -261,11 +285,11 @@ namespace micm
       prod_id += number_of_products_[i_rxn];
     }
 
-    // Add Jacobian elements from external models
-    for (const auto& model : external_models_)
+    // Add Jacobian elements from external process sets
+    for (const auto& process_set : external_process_sets_)
     {
-      auto model_jac_elements = model.non_zero_jacobian_elements_func_(variable_map_);
-      ids.insert(model_jac_elements.begin(), model_jac_elements.end());
+      auto external_jac_elements = process_set.non_zero_jacobian_elements_func_(variable_map_);
+      ids.insert(external_jac_elements.begin(), external_jac_elements.end());
     }
     return ids;
   }
@@ -319,14 +343,14 @@ namespace micm
       const std::unordered_map<std::string, std::size_t>& state_variable_indices,
       const SparseMatrixPolicy& jacobian)
   {
-    external_model_forcing_functions_.clear();
-    external_model_jacobian_functions_.clear();
-    for (const auto& model : external_models_)
+    external_forcing_functions_.clear();
+    external_jacobian_functions_.clear();
+    for (const auto& process_set : external_process_sets_)
     {
-      external_model_forcing_functions_.push_back(
-          model.get_forcing_function_(state_parameter_indices, state_variable_indices));
-      external_model_jacobian_functions_.push_back(
-          model.get_jacobian_function_(state_parameter_indices, state_variable_indices, jacobian));
+      external_forcing_functions_.push_back(
+          process_set.get_forcing_function_(state_parameter_indices, state_variable_indices));
+      external_jacobian_functions_.push_back(
+          process_set.get_jacobian_function_(state_parameter_indices, state_variable_indices, jacobian));
     }
   }
 
@@ -384,7 +408,7 @@ namespace micm
     }
 
     // Add forcing contributions from external models
-    for (const auto& add_forcing_function : external_model_forcing_functions_)
+    for (const auto& add_forcing_function : external_forcing_functions_)
     {
       add_forcing_function(state.custom_rate_parameters_, state_variables, forcing);
     }
@@ -463,7 +487,7 @@ namespace micm
     }
 
     // Add forcing contributions from external models
-    for (const auto& add_forcing_function : external_model_forcing_functions_)
+    for (const auto& add_forcing_function : external_forcing_functions_)
     {
       add_forcing_function(state.custom_rate_parameters_, state_variables, forcing);
     }
@@ -495,7 +519,9 @@ namespace micm
       {
         double d_rate_d_ind = cell_rate_constants[process_info.process_id_];
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
+        {
           d_rate_d_ind *= cell_state[react_id[i_react]];
+        }
 
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
         {
@@ -532,7 +558,7 @@ namespace micm
     }
 
     // Add Jacobian contributions from external models
-    for (const auto& add_jacobian_function : external_model_jacobian_functions_)
+    for (const auto& add_jacobian_function : external_jacobian_functions_)
     {
       add_jacobian_function(state.custom_rate_parameters_, state_variables, jacobian);
     }
@@ -573,7 +599,9 @@ namespace micm
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+          {
             *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
+          }
         }
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
         {
@@ -583,7 +611,9 @@ namespace micm
             auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
             auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            {
               *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
+            }
           }
           ++flat_id;
         }
@@ -593,7 +623,9 @@ namespace micm
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+          {
             *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
+          }
         }
         ++flat_id;
 
@@ -606,7 +638,9 @@ namespace micm
             auto yield_value = yield[i_dep];
             auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            {
               *(v_jacobian_it++) -= yield_value * *(v_d_rate_d_ind_it++);
+            }
           }
           ++flat_id;
         }
@@ -617,7 +651,7 @@ namespace micm
     }
 
     // Add Jacobian contributions from external models
-    for (const auto& add_jacobian_function : external_model_jacobian_functions_)
+    for (const auto& add_jacobian_function : external_jacobian_functions_)
     {
       add_jacobian_function(state.custom_rate_parameters_, state_variables, jacobian);
     }
@@ -641,11 +675,11 @@ namespace micm
       }
     }
 
-    // Include species used in external models
-    for (const auto& model : external_models_)
+    // Include species used in external process sets
+    for (const auto& process_set : external_process_sets_)
     {
-      auto model_species_used = model.species_used_func_();
-      used_species.insert(model_species_used.begin(), model_species_used.end());
+      auto external_species_used = process_set.species_used_func_();
+      used_species.insert(external_species_used.begin(), external_species_used.end());
     }
 
     return used_species;

@@ -7,7 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
+void Solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
 {
   double k1 = 0.04;
   double k2 = 3e7;
@@ -77,7 +77,7 @@ int main()
                    .Build();
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
+  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const std::size_t number_of_grid_cells = 3;
 
@@ -117,8 +117,8 @@ int main()
 
   std::cout << std::endl;
 
-  solve(solver, state, number_of_grid_cells);
-  solve(vectorized_solver, vectorized_state, number_of_grid_cells);
+  Solve(solver, state, number_of_grid_cells);
+  Solve(vectorized_solver, vectorized_state, number_of_grid_cells);
 
   for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {

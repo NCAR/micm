@@ -43,7 +43,7 @@ namespace micm
     SparseMatrixVectorOrderingCompressedSparseColumn(
         std::size_t number_of_blocks,
         std::size_t block_size,
-        std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
+        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
         : column_ids_(ColumnIdsVector(block_size, non_zero_elements)),
           column_start_(ColumnStartVector(block_size, non_zero_elements)),
           diagonal_ids_(DiagonalIndices(number_of_blocks, 0))
@@ -51,7 +51,7 @@ namespace micm
     }
 
     SparseMatrixVectorOrderingCompressedSparseColumn& operator=(
-        const std::tuple<std::size_t, std::size_t, std::set<std::pair<std::size_t, std::size_t>>> number_size_elements)
+        const std::tuple<std::size_t, std::size_t, std::set<std::pair<std::size_t, std::size_t>>>& number_size_elements)
     {
       column_ids_ = ColumnIdsVector(std::get<1>(number_size_elements), std::get<2>(number_size_elements));
       column_start_ = ColumnStartVector(std::get<1>(number_size_elements), std::get<2>(number_size_elements));
@@ -101,7 +101,9 @@ namespace micm
         {
           auto elem = std::next(data.begin(), i_group * column_ids_.size() + i);
           for (std::size_t i_block = 0; i_block < L; ++i_block)
+          {
             elem[i_block] += value;
+          }
         }
       }
     }
@@ -140,8 +142,12 @@ namespace micm
       std::vector<std::size_t> indices;
       indices.reserve(column_start_.size() - 1);
       for (std::size_t i = 0; i < column_start_.size() - 1; ++i)
+      {
         if (!IsZero(i, i))
+        {
           indices.push_back(VectorIndex(number_of_blocks, block_id, i, i));
+        }
+      }
       return indices;
     }
 
@@ -181,7 +187,7 @@ namespace micm
       /// @brief Get element from sparse matrix ConstBlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -197,7 +203,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -216,7 +222,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -230,7 +236,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // Vector ordering: BlockVariable has array storage
         return arg.Get()[block_in_group];
@@ -240,7 +246,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -250,7 +256,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_ * L + block_in_group];
       }
@@ -259,7 +265,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -328,7 +334,7 @@ namespace micm
       /// @brief Get element from sparse matrix BlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -344,7 +350,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -363,7 +369,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Calculate the actual block index from group and block_in_group
         std::size_t block = group_ * L + block_in_group;
@@ -377,7 +383,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // Vector ordering: BlockVariable has array storage
         return arg.Get()[block_in_group];
@@ -387,7 +393,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -397,7 +403,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_ * L + block_in_group];
       }
@@ -406,7 +412,7 @@ namespace micm
       template<VectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_];
       }
@@ -509,7 +515,9 @@ namespace micm
       ids.reserve(non_zero_elements.size());
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
       for (const auto& elem : non_zero_elements)
+      {
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
+      }
       std::transform(
           column_ordered_pairs.begin(),
           column_ordered_pairs.end(),
@@ -531,16 +539,22 @@ namespace micm
       std::size_t curr_row = 0;
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
       for (const auto& elem : non_zero_elements)
+      {
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
-      for (auto& elem : column_ordered_pairs)
+      }
+      for (const auto& elem : column_ordered_pairs)
       {
         while (curr_row < elem.first)
+        {
           starts[(curr_row++) + 1] = total_elem;
+        }
         ++total_elem;
       }
       // Fill all remaining entries from curr_row + 1 to block_size
       for (std::size_t i = curr_row + 1; i <= block_size; ++i)
+      {
         starts[i] = total_elem;
+      }
       return starts;
     }
 

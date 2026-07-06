@@ -1,3 +1,5 @@
+#pragma once
+
 #include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
@@ -9,29 +11,29 @@
 #include <utility>
 #include <vector>
 
-constexpr size_t nsteps = 1000;
+constexpr size_t NSTEPS = 1000;
 constexpr size_t NUM_CELLS = 3;
 
 ///////////////////////////
 // Common test functions //
 ///////////////////////////
 
-double relative_error(double a, double b)
+double RelativeError(double a, double b)
 {
   return abs(a - b) / abs(b);
 }
 
-double relative_difference(double a, double b)
+double RelativeDifference(double a, double b)
 {
   return abs(a - b) / ((a + b) / 2);
 }
 
-double combined_error(double a, double b, double abs_tol)
+double CombinedError(double a, double b, double abs_tol)
 {
   return abs(a - b) * 2 / (abs(a) + abs(b) + abs_tol);
 }
 
-void writeCSV(
+void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
@@ -73,7 +75,7 @@ void writeCSV(
   }
 }
 
-void writeCSV2D(
+void WriteCsV2D(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<std::vector<double>>>& data,
@@ -118,7 +120,7 @@ void writeCSV2D(
   }
 }
 
-double calculate_air_density_mol_m3(double pressure, double temperature)
+double CalculateAirDensityMolM3(double pressure, double temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
@@ -127,12 +129,12 @@ using SparseMatrixTest = micm::SparseMatrix<double>;
 
 // Test the analytical solution for a simple A -k1-> B -k2-> C system
 template<class BuilderPolicy>
-void test_simple_system(
+void TestSimpleSystem(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
@@ -148,7 +150,7 @@ void test_simple_system(
   {
     double temperature = temperatures[i % temperatures.size()];
     double pressure = pressures[i % pressures.size()];
-    double air_density = calculate_air_density_mol_m3(pressure, temperature);
+    double air_density = CalculateAirDensityMolM3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
   }
@@ -166,9 +168,9 @@ void test_simple_system(
   size_t _c = map.at("C");
 
   std::vector<std::vector<std::vector<double>>> model_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
   std::vector<std::vector<std::vector<double>>> analytical_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
   for (int i = 0; i < NUM_CELLS; ++i)
   {
@@ -183,12 +185,12 @@ void test_simple_system(
     state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
     state.conditions_[i].pressure_ = pressures[i % pressures.size()];
     state.conditions_[i].air_density_ =
-        calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
+        CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time < nsteps; ++i_time)
+  for (size_t i_time = 1; i_time < NSTEPS; ++i_time)
   {
     solver.UpdateStateParameters(state);
     prepare_for_solve(state);
@@ -222,8 +224,8 @@ void test_simple_system(
   }
 
   std::vector<std::string> header = { "time", "cell", "A", "B", "C" };
-  writeCSV2D(test_label + "_analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV2D(test_label + "_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsV2D(test_label + "_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsV2D(test_label + "_model_concentrations.csv", header, model_concentrations, times);
 
   for (std::size_t i_time = 1; i_time < model_concentrations.size(); ++i_time)
   {
@@ -244,12 +246,12 @@ void test_simple_system(
 
 // Test the analytical solution for a simple stiff A1<-fast->A2 -k1-> B -k2-> C system
 template<class BuilderPolicy>
-void test_simple_stiff_system(
+void TestSimpleStiffSystem(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
-    std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
+    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
@@ -265,7 +267,7 @@ void test_simple_stiff_system(
   {
     double temperature = temperatures[i % temperatures.size()];
     double pressure = pressures[i % pressures.size()];
-    double air_density = calculate_air_density_mol_m3(pressure, temperature);
+    double air_density = CalculateAirDensityMolM3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
   }
@@ -284,9 +286,9 @@ void test_simple_stiff_system(
   size_t _c = map.at("C");
 
   std::vector<std::vector<std::vector<double>>> model_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
   std::vector<std::vector<std::vector<double>>> analytical_concentrations(
-      nsteps, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
   for (int i = 0; i < NUM_CELLS; ++i)
   {
@@ -302,12 +304,12 @@ void test_simple_stiff_system(
     state.conditions_[i].temperature_ = temperatures[i % temperatures.size()];
     state.conditions_[i].pressure_ = pressures[i % pressures.size()];
     state.conditions_[i].air_density_ =
-        calculate_air_density_mol_m3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
+        CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
   std::vector<double> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time < nsteps; ++i_time)
+  for (size_t i_time = 1; i_time < NSTEPS; ++i_time)
   {
     solver.UpdateStateParameters(state);
     prepare_for_solve(state);
@@ -338,8 +340,8 @@ void test_simple_stiff_system(
   }
 
   std::vector<std::string> header = { "time", "cell", "A", "B", "C" };
-  writeCSV2D(test_label + "_stiff_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV2D(test_label + "_stiff_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsV2D(test_label + "_stiff_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsV2D(test_label + "_stiff_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   for (std::size_t i_time = 1; i_time < model_concentrations.size(); ++i_time)
   {
@@ -363,7 +365,7 @@ void test_simple_stiff_system(
 ///////////////////////////////
 
 template<class BuilderPolicy>
-void test_analytical_troe(
+void TestAnalyticalTroe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-10,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -406,9 +408,9 @@ void test_analytical_troe(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "troe",
       builder,
       absolute_tolerances,
@@ -433,7 +435,7 @@ void test_analytical_troe(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_troe(
+void TestAnalyticalStiffTroe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-5,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -500,9 +502,9 @@ void test_analytical_stiff_troe(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "troe",
       builder,
       absolute_tolerances,
@@ -527,7 +529,7 @@ void test_analytical_stiff_troe(
 }
 
 template<class BuilderPolicy>
-void test_analytical_photolysis(
+void TestAnalyticalPhotolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -563,13 +565,13 @@ void test_analytical_photolysis(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<double>> custom_parameters = {
     { "photoA", std::vector<double>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
@@ -589,7 +591,7 @@ void test_analytical_photolysis(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_photolysis(
+void TestAnalyticalStiffPhotolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-5,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -649,7 +651,7 @@ void test_analytical_stiff_photolysis(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<double>> custom_parameters = {
     { "photoA1B", std::vector<double>(NUM_CELLS, 2e-3) },
@@ -657,7 +659,7 @@ void test_analytical_stiff_photolysis(
     { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
@@ -677,7 +679,7 @@ void test_analytical_stiff_photolysis(
 }
 
 template<class BuilderPolicy>
-void test_analytical_ternary_chemical_activation(
+void TestAnalyticalTernaryChemicalActivation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-08,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -722,9 +724,9 @@ void test_analytical_ternary_chemical_activation(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
@@ -749,7 +751,7 @@ void test_analytical_ternary_chemical_activation(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_ternary_chemical_activation(
+void TestAnalyticalStiffTernaryChemicalActivation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -818,9 +820,9 @@ void test_analytical_stiff_ternary_chemical_activation(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
@@ -845,7 +847,7 @@ void test_analytical_stiff_ternary_chemical_activation(
 }
 
 template<class BuilderPolicy>
-void test_analytical_tunneling(
+void TestAnalyticalTunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -882,9 +884,9 @@ void test_analytical_tunneling(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "tunneling",
       builder,
       absolute_tolerances,
@@ -905,7 +907,7 @@ void test_analytical_tunneling(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_tunneling(
+void TestAnalyticalStiffTunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -965,9 +967,9 @@ void test_analytical_stiff_tunneling(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "tunneling",
       builder,
       absolute_tolerances,
@@ -988,7 +990,7 @@ void test_analytical_stiff_tunneling(
 }
 
 template<class BuilderPolicy>
-void test_analytical_arrhenius(
+void TestAnalyticalArrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-9,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1024,9 +1026,9 @@ void test_analytical_arrhenius(
           .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "arrhenius",
       builder,
       absolute_tolerances,
@@ -1047,7 +1049,7 @@ void test_analytical_arrhenius(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_arrhenius(
+void TestAnalyticalStiffArrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1108,9 +1110,9 @@ void test_analytical_stiff_arrhenius(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "arrhenius",
       builder,
       absolute_tolerances,
@@ -1131,7 +1133,7 @@ void test_analytical_stiff_arrhenius(
 }
 
 template<class BuilderPolicy>
-void test_analytical_branched(
+void TestAnalyticalBranched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-13,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1177,9 +1179,9 @@ void test_analytical_branched(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy>(
+  TestSimpleSystem<BuilderPolicy>(
       "branched",
       builder,
       absolute_tolerances,
@@ -1218,7 +1220,7 @@ void test_analytical_branched(
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_branched(
+void TestAnalyticalStiffBranched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1293,9 +1295,9 @@ void test_analytical_stiff_branched(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
+  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy>(
+  TestSimpleStiffSystem<BuilderPolicy>(
       "branched",
       builder,
       absolute_tolerances,
@@ -1334,7 +1336,7 @@ void test_analytical_stiff_branched(
 }
 
 template<class BuilderPolicy>
-void test_analytical_robertson(
+void TestAnalyticalRobertson(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1383,10 +1385,7 @@ void test_analytical_robertson(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1454,8 +1453,8 @@ void test_analytical_robertson(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("robertson_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("robertson_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsv("robertson_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("robertson_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1467,19 +1466,19 @@ void test_analytical_robertson(
   double absolute_tolerance = 0.3e-3;
   for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    double rel_error = relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]);
+    double rel_error = RelativeError(model_concentrations[i][_a], analytical_concentrations[i][0]);
     double abs_error = std::abs(model_concentrations[i][_a] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
-    rel_error = relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]);
+    rel_error = RelativeError(model_concentrations[i][_b], analytical_concentrations[i][1]);
     abs_error = std::abs(model_concentrations[i][_b] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
-    rel_error = relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]);
+    rel_error = RelativeError(model_concentrations[i][_c], analytical_concentrations[i][2]);
     abs_error = std::abs(model_concentrations[i][_c] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error "
@@ -1488,7 +1487,7 @@ void test_analytical_robertson(
 }
 
 template<class BuilderPolicy>
-void test_analytical_oregonator(
+void TestAnalyticalOregonator(
     BuilderPolicy builder,
     double relative_tolerance = 1e-4,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1569,10 +1568,7 @@ void test_analytical_oregonator(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   double tau = 0.1610;
   double time_step = 30 * tau;
@@ -1653,14 +1649,14 @@ void test_analytical_oregonator(
   }
 
   std::vector<std::string> header = { "time", "X", "Y", "Z", "P", "Q" };
-  writeCSV("oregonator_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("oregonator_model_concentrations.csv", header, model_concentrations, times);
   std::vector<double> an_times;
   an_times.push_back(0);
   for (int i = 1; i <= 12; ++i)
   {
     an_times.push_back(time_step * i);
   }
-  writeCSV("oregonator_analytical_concentrations.csv", header, analytical_concentrations, an_times);
+  WriteCsv("oregonator_analytical_concentrations.csv", header, analytical_concentrations, an_times);
 
   auto map = state.variable_map_;
 
@@ -1675,19 +1671,19 @@ void test_analytical_oregonator(
   {
     double rel_error_val, abs_error_val;
 
-    rel_error_val = relative_error(model_concentrations[i][_x], analytical_concentrations[i][0]);
+    rel_error_val = RelativeError(model_concentrations[i][_x], analytical_concentrations[i][0]);
     abs_error_val = std::abs(model_concentrations[i][_x] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error_val < alpha_const || rel_error_val < relative_tolerance)
         << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val << " and absolute error "
         << abs_error_val;
 
-    rel_error_val = relative_error(model_concentrations[i][_y], analytical_concentrations[i][1]);
+    rel_error_val = RelativeError(model_concentrations[i][_y], analytical_concentrations[i][1]);
     abs_error_val = std::abs(model_concentrations[i][_y] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error_val < eta_const || rel_error_val < relative_tolerance)
         << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val << " and absolute error "
         << abs_error_val;
 
-    rel_error_val = relative_error(model_concentrations[i][_z], analytical_concentrations[i][2]);
+    rel_error_val = RelativeError(model_concentrations[i][_z], analytical_concentrations[i][2]);
     abs_error_val = std::abs(model_concentrations[i][_z] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error_val < rho_const || rel_error_val < relative_tolerance)
         << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val << " and absolute error "
@@ -1696,7 +1692,7 @@ void test_analytical_oregonator(
 }
 
 template<class BuilderPolicy>
-void test_analytical_hires(
+void TestAnalyticalHires(
     BuilderPolicy builder,
     double absolute_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1800,10 +1796,7 @@ void test_analytical_hires(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   size_t N = 2;
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
@@ -1870,8 +1863,8 @@ void test_analytical_hires(
   }
 
   std::vector<std::string> header = { "time", "y0", "y1", "y2", "y3", "y4", "y5", "y6", "y7" };
-  writeCSV("hires_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("hires_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsv("hires_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("hires_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1906,7 +1899,7 @@ void test_analytical_hires(
 }
 
 template<class BuilderPolicy>
-void test_analytical_e5(
+void TestAnalyticalE5(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
@@ -1973,10 +1966,7 @@ void test_analytical_e5(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   size_t N = 7;
 
@@ -2038,35 +2028,35 @@ void test_analytical_e5(
   }
 
   std::vector<std::string> header = { "time", "a1", "a2", "a3", "a4", "a5", "a6" };
-  writeCSV("e5_model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
+  WriteCsv("e5_model_concentrations.csv", header, model_concentrations, times);
+  WriteCsv("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
     // ignore the concentration of A5 and A6
     double absolute_tolerance = 1e-6;
-    double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
+    double rel_error = RelativeError(model_concentrations[i][0], analytical_concentrations[i][0]);
     double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
-    rel_error = relative_error(model_concentrations[i][1], analytical_concentrations[i][1]);
+    rel_error = RelativeError(model_concentrations[i][1], analytical_concentrations[i][1]);
     abs_error = std::abs(model_concentrations[i][1] - analytical_concentrations[i][1]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
-    rel_error = relative_error(model_concentrations[i][2], analytical_concentrations[i][2]);
+    rel_error = RelativeError(model_concentrations[i][2], analytical_concentrations[i][2]);
     abs_error = std::abs(model_concentrations[i][2] - analytical_concentrations[i][2]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
-    rel_error = relative_error(model_concentrations[i][3], analytical_concentrations[i][3]);
+    rel_error = RelativeError(model_concentrations[i][3], analytical_concentrations[i][3]);
     abs_error = std::abs(model_concentrations[i][3] - analytical_concentrations[i][3]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 3 << ") with relative error " << rel_error << " and absolute error "

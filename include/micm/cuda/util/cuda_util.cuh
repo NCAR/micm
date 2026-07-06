@@ -22,14 +22,14 @@ namespace micm
     /// @param file File where error occurred
     /// @param line Line number where error occurred
     /// @param str Additional string to print with error message
-    void CheckCudaError(cudaError_t err, const char* file, int line, std::string str);
+    void CheckCudaError(cudaError_t err, const char* file, int line, const std::string& str);
 
     /// @brief Checks for cuBLAS errors and prints error message if any
     /// @param err Error code to check
     /// @param file File where error occurred
     /// @param line Line number where error occurred
     /// @param str Additional string to print with error message
-    void CheckCublasError(cublasStatus_t err, const char* file, int line, std::string str);
+    void CheckCublasError(cublasStatus_t err, const char* file, int line, const std::string& str);
 
     /// @brief Get the cuBLAS handle for the current device
     cublasHandle_t& GetCublasHandle();

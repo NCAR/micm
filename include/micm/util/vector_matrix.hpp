@@ -251,7 +251,9 @@ namespace micm
               {
                 std::size_t x_dim = other.size();
                 if (x_dim == 0)
+                {
                   return std::vector<T>(0);
+                }
                 std::size_t y_dim = other[0].size();
                 std::vector<T> data(std::ceil(x_dim / (double)L) * L * y_dim);
                 std::size_t i_row = 0;
@@ -384,7 +386,9 @@ namespace micm
     void Max(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::max(y, x);
+      }
     }
 
     /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
@@ -392,10 +396,12 @@ namespace micm
     void Min(const T& x)
     {
       for (auto& y : data_)
+      {
         y = std::min(y, x);
+      }
     }
 
-    void ForEach(const std::function<void(T&, const T&)> f, const VectorMatrix& a)
+    void ForEach(const std::function<void(T&, const T&)>& f, const VectorMatrix& a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -414,7 +420,7 @@ namespace micm
       }
     }
 
-    void ForEach(const std::function<void(T&, const T&, const T&)> f, const VectorMatrix& a, const VectorMatrix& b)
+    void ForEach(const std::function<void(T&, const T&, const T&)>& f, const VectorMatrix& a, const VectorMatrix& b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -441,14 +447,18 @@ namespace micm
     void Copy(const VectorMatrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both vector matrices must have the same size.");
+      }
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
     void Swap(VectorMatrix& other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
         throw std::runtime_error("Both vector matrices must have the same size.");
+      }
       data_.swap(other.AsVector());
     }
 
@@ -599,7 +609,7 @@ namespace micm
       /// @brief Get a const element reference for a specific row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
@@ -609,7 +619,7 @@ namespace micm
       /// @brief Get a const element reference for a specific row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
       {
         return arg.Get()[row_in_group];
       }
@@ -617,7 +627,7 @@ namespace micm
       /// @brief Get a const element reference for a specific row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
       {
         return arg[group_ * L + row_in_group];
       }
@@ -684,7 +694,7 @@ namespace micm
       /// @brief Get an element reference for a specific row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
@@ -694,7 +704,7 @@ namespace micm
       /// @brief Get an element reference for a specific row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
         return arg.Get()[row_in_group];
       }
@@ -702,7 +712,7 @@ namespace micm
       /// @brief Get an element reference for a specific row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
         return arg[group_ * L + row_in_group];
       }
@@ -951,7 +961,7 @@ namespace micm
     /// @brief Get an element reference for a row (ColumnView)
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
@@ -961,7 +971,7 @@ namespace micm
     /// @brief Get an element reference for a row (RowVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
     {
       return arg.Get()[row_in_group];
     }
@@ -969,7 +979,7 @@ namespace micm
     /// @brief Get an element reference for a row (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
     {
       return arg[row];
     }
@@ -977,7 +987,7 @@ namespace micm
     /// @brief Get a const element reference for a row (ColumnView) - const version
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
     {
       auto* source_matrix = arg.GetMatrix();
       // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
@@ -987,7 +997,7 @@ namespace micm
     /// @brief Get a const element reference for a row (RowVariable) - const version
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
     {
       return arg.Get()[row_in_group];
     }
@@ -995,7 +1005,7 @@ namespace micm
     /// @brief Get a const element reference for a row (Vector-like) - const version
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
     {
       return arg[row];
     }

@@ -1,54 +1,121 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <limits>
+#include <set>
+#include <vector>
+
 namespace micm
 {
+  // Diagonal Markowitz (minimum-degree) reordering on a SPARSE adjacency representation.
+  //
+  // This is the same algorithm as the classic dense Markowitz scan -- it selects, at each
+  // elimination step, the remaining pivot with the lowest Markowitz cost (row_deg-1)*(col_deg-1)
+  // and accounts for the fill that eliminating it introduces -- and it produces an ordering of
+  // identical minimum-degree quality. Only the representation differs, which is why it looks
+  // nothing like the dense version:
+  //   * The dense version mutates an order x order pattern matrix, recomputes every candidate's
+  //     row/column degree by re-scanning the trailing submatrix each step, and physically swaps
+  //     rows/columns to move the chosen pivot into place -- O(order^3) time, O(order^2) memory.
+  //   * This version stores the sparsity pattern as a directed graph (edge v->c iff
+  //     matrix[v][c] != 0), keeps the degrees up to date incrementally, and marks eliminated
+  //     nodes with an `alive` flag instead of moving anything -- ~O(order^2 + fill) time, with
+  //     memory proportional to nonzeros + fill. This is essential for large mechanisms (thousands
+  //     of species), where the dense form is intractable.
+  //
+  // Returns perm where perm[new_index] = old_index.
   template<class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy& matrix)
   {
     const std::size_t order = matrix.NumRows();
-    std::vector<std::size_t> perm(order);
+    assert(order == matrix.NumColumns() && "Markowitz reorder requires a square matrix");
+    // output_neighbors[v] = { c : edge v->c }, incoming_neighbors[c] = { v : edge v->c }, over the remaining nodes.
+    std::vector<std::set<std::size_t>> output_neighbors(order), incoming_neighbors(order);
     for (std::size_t i = 0; i < order; ++i)
-      perm[i] = i;
-    MatrixPolicy pattern = matrix;
-    for (std::size_t row = 0; row < (order - 1); ++row)
     {
-      std::size_t beta = std::pow((order - 1), 2);
-      std::size_t max_row = row;
-      for (std::size_t col = row; col < order; ++col)
+      for (std::size_t j = 0; j < order; ++j)
       {
-        std::size_t count_a = 0;
-        std::size_t count_b = 0;
-        for (std::size_t i = row; i < order; ++i)
+        if (matrix[i][j] != 0)
         {
-          count_a += (pattern[col][i] == 0 ? 0 : 1);
-          count_b += (pattern[i][col] == 0 ? 0 : 1);
-        }
-        std::size_t count = (count_a - 1) * (count_b - 1);
-        if (count < beta)
-        {
-          beta = count;
-          max_row = col;
+          output_neighbors[i].insert(j);
+          incoming_neighbors[j].insert(i);
         }
       }
-      // Swap row and max_row
-      if (max_row != row)
+    }
+    std::vector<std::size_t> row_deg(order), col_deg(order);
+    for (std::size_t v = 0; v < order; ++v)
+    {
+      row_deg[v] = output_neighbors[v].size();
+      col_deg[v] = incoming_neighbors[v].size();
+    }
+    std::vector<char> alive(order, 1);
+    std::vector<std::size_t> perm;
+    perm.reserve(order);
+    for (std::size_t step = 0; step < order; ++step)
+    {
+      // Select the remaining node with minimum Markowitz cost (row_deg-1)*(col_deg-1).
+      // The diagonal keeps every live node's degrees >= 1, so the subtraction never underflows.
+      std::size_t pivot = order;
+      std::size_t best_cost = std::numeric_limits<std::size_t>::max();
+      for (std::size_t v = 0; v < order; ++v)
       {
-        for (std::size_t i = row; i < order; ++i)
-          std::swap(pattern[row][i], pattern[max_row][i]);
-        for (std::size_t i = row; i < order; ++i)
-          std::swap(pattern[i][row], pattern[i][max_row]);
-        std::swap(perm[row], perm[max_row]);
-      }
-      for (std::size_t col = row + 1; col < order; ++col)
-      {
-        if (pattern[row][col])
+        if (!alive[v])
         {
-          for (std::size_t i = row + 1; i < order; ++i)
+          continue;
+        }
+        const std::size_t cost = (row_deg[v] - 1) * (col_deg[v] - 1);
+        if (pivot == order || cost < best_cost)
+        {
+          best_cost = cost;
+          pivot = v;
+        }
+      }
+      perm.push_back(pivot);
+      alive[pivot] = 0;
+      std::vector<std::size_t> cols, ins;
+      for (std::size_t c : output_neighbors[pivot])
+      {
+        if (c != pivot && alive[c])
+        {
+          cols.push_back(c);
+        }
+      }
+      for (std::size_t i : incoming_neighbors[pivot])
+      {
+        if (i != pivot && alive[i])
+        {
+          ins.push_back(i);
+        }
+      }
+      // Fill: eliminating the pivot couples everything that pointed into it with everything it
+      // pointed out to. Concretely, for every live in-neighbor i (edge i->pivot) and every live
+      // out-neighbor c (edge pivot->c), a new edge i->c must exist in the factored matrix. This
+      // is the sparse equivalent of the dense version's "OR the pivot row down each column"
+      // fill step. insert(c).second is true only when the edge is genuinely new, so degrees are
+      // bumped exactly once per introduced fill element -- keeping row_deg/col_deg exact without
+      // any rescan.
+      for (std::size_t i : ins)
+      {
+        for (std::size_t c : cols)
+        {
+          if (output_neighbors[i].insert(c).second)
           {
-            pattern[i][col] = pattern[i][row] || pattern[i][col];
+            ++row_deg[i];
+            incoming_neighbors[c].insert(i);
+            ++col_deg[c];
           }
         }
+      }
+      // Drop the eliminated pivot from its live neighbors' degree counts.
+      for (std::size_t c : cols)
+      {
+        incoming_neighbors[c].erase(pivot);
+        --col_deg[c];
+      }
+      for (std::size_t i : ins)
+      {
+        output_neighbors[i].erase(pivot);
+        --row_deg[i];
       }
     }
     return perm;
@@ -70,7 +137,7 @@ namespace micm
   inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
-      const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
+      const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp)
       : nLij_Lii_(),
         Lij_yj_(),
         nUij_Uii_(),
@@ -141,7 +208,7 @@ namespace micm
       {
         auto y_elem = y_cell.begin();
         auto Lij_yj = Lij_yj_.begin();
-        for (auto& nLij_Lii : nLij_Lii_)
+        for (const auto& nLij_Lii : nLij_Lii_)
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
@@ -156,7 +223,7 @@ namespace micm
       {
         auto x_elem = std::next(x_cell.end(), -1);
         auto Uij_xj = Uij_xj_.begin();
-        for (auto& nUij_Uii : nUij_Uii_)
+        for (const auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
@@ -195,19 +262,23 @@ namespace micm
       {
         auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
-        for (auto& nLij_Lii : nLij_Lii_)
+        for (const auto& nLij_Lii : nLij_Lii_)
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             const std::size_t Lij_yj_first = (*Lij_yj).first;
             const std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
+            }
             ++Lij_yj;
           }
           const std::size_t nLij_Lii_second = nLij_Lii.second;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             y_elem[i_cell] /= L_group[nLij_Lii_second + i_cell];
+          }
           y_elem += n_cells;
         }
       }
@@ -216,7 +287,7 @@ namespace micm
       {
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
         auto Uij_xj = Uij_xj_.begin();
-        for (auto& nUij_Uii : nUij_Uii_)
+        for (const auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
@@ -224,12 +295,16 @@ namespace micm
             const std::size_t Uij_xj_first = (*Uij_xj).first;
             const std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               x_elem[i_cell] -= U_group[Uij_xj_first + i_cell] * x_group[Uij_xj_second_times_n_cells + i_cell];
+            }
             ++Uij_xj;
           }
           const std::size_t nUij_Uii_second = nUij_Uii.second;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             x_elem[i_cell] /= U_group[nUij_Uii_second + i_cell];
+          }
 
           // don't iterate before the beginning of the vector
           const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);

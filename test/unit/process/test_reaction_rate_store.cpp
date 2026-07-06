@@ -27,20 +27,15 @@ using namespace micm;
 namespace
 {
   // Helper to create a minimal gas phase with species
-  Phase MakeGasPhase(std::vector<Species> species)
+  Phase MakeGasPhase(const std::vector<Species>& species)
   {
     std::vector<PhaseSpecies> ps;
     ps.reserve(species.size());
-    for (auto& s : species)
+    for (const auto& s : species)
+    {
       ps.emplace_back(s);
+    }
     return Phase{ "gas", ps };
-  }
-
-  // Helper to create a gas phase with one species carrying a diffusion coefficient
-  Phase MakeGasPhaseWithDiffusion(const Species& sp, double diffusion_coefficient)
-  {
-    PhaseSpecies ps(sp, diffusion_coefficient);
-    return Phase{ "gas", { ps } };
   }
 
   // Helper: build processes list sorted exactly as SolverBuilder would
@@ -54,25 +49,45 @@ namespace
           {
             using T = std::decay_t<decltype(v)>;
             if constexpr (std::is_same_v<T, ArrheniusRateConstantParameters>)
+            {
               return 0;
+            }
             else if constexpr (std::is_same_v<T, TroeRateConstantParameters>)
+            {
               return 1;
+            }
             else if constexpr (std::is_same_v<T, TernaryChemicalActivationRateConstantParameters>)
+            {
               return 2;
+            }
             else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
+            {
               return 3;
+            }
             else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
+            {
               return 4;
+            }
             else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
+            {
               return 5;
+            }
             else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
+            {
               return 6;
+            }
             else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
+            {
               return 7;
+            }
             else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
+            {
               return 8;
+            }
             else
+            {
               return 9;
+            }
           },
           p.process_.rate_constant_);
     };
@@ -145,18 +160,18 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
   EXPECT_EQ(store.surface_.size(), 1u);
 
   // Verify cumulative offsets
-  EXPECT_EQ(store.troe_offset(), 2u);
-  EXPECT_EQ(store.ternary_offset(), 3u);
-  EXPECT_EQ(store.branched_offset(), 3u);
-  EXPECT_EQ(store.tunneling_offset(), 3u);
-  EXPECT_EQ(store.taylor_offset(), 4u);
-  EXPECT_EQ(store.reversible_offset(), 4u);
-  EXPECT_EQ(store.user_defined_offset(), 4u);
-  EXPECT_EQ(store.surface_offset(), 5u);
-  EXPECT_EQ(store.lambda_offset(), 6u);
+  EXPECT_EQ(store.TroeOffset(), 2u);
+  EXPECT_EQ(store.TernaryOffset(), 3u);
+  EXPECT_EQ(store.BranchedOffset(), 3u);
+  EXPECT_EQ(store.TunnelingOffset(), 3u);
+  EXPECT_EQ(store.TaylorOffset(), 4u);
+  EXPECT_EQ(store.ReversibleOffset(), 4u);
+  EXPECT_EQ(store.UserDefinedOffset(), 4u);
+  EXPECT_EQ(store.SurfaceOffset(), 5u);
+  EXPECT_EQ(store.LambdaOffset(), 6u);
 
-  // Total rate constants (lambda_offset + lambda_entries_.size()) equals process count
-  EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), procs.size());
+  // Total rate constants (lambdaOffset + lambda_entries_.size()) equals process count
+  EXPECT_EQ(store.LambdaOffset() + store.lambda_entries_.size(), procs.size());
 }
 
 // ============================================================
@@ -353,11 +368,11 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
   ASSERT_EQ(store.lambda_entries_.size(), 1u);
 
   // Lambda is the second process → rc_index = 1
-  EXPECT_EQ(store.lambda_entries_[0].rc_index, 1u);
+  EXPECT_EQ(store.lambda_entries_[0].rc_index_, 1u);
   // Pointer should be non-null and function should work
-  ASSERT_NE(store.lambda_entries_[0].source, nullptr);
+  ASSERT_NE(store.lambda_entries_[0].source_, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
-  EXPECT_NEAR(store.lambda_entries_[0].source->lambda_function_(cond), 0.3, 1.0e-14);
+  EXPECT_NEAR(store.lambda_entries_[0].source_->lambda_function_(cond), 0.3, 1.0e-14);
 }
 
 // ============================================================
@@ -390,10 +405,10 @@ TEST(ReactionRateConstantStore, ParameterizedMultipliers)
 
   // Only the second reaction has a parameterized reactant
   ASSERT_EQ(store.parameterized_multipliers_.size(), 1u);
-  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index, 1u);
+  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index_, 1u);
 
   Conditions cond{ .air_density_ = 5.0 };
-  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate(cond), 10.0, 1.0e-14);
+  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate_(cond), 10.0, 1.0e-14);
 }
 
 // ============================================================
@@ -444,10 +459,10 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
   SortByTypeOrder(procs);
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
-  // Total = lambda_offset() + lambda_entries_.size() = number of chemical reactions
+  // Total = lambdaOffset() + lambda_entries_.size() = number of chemical reactions
   std::size_t n_rxn = procs.size();
 
-  EXPECT_EQ(store.lambda_offset() + store.lambda_entries_.size(), n_rxn);
+  EXPECT_EQ(store.LambdaOffset() + store.lambda_entries_.size(), n_rxn);
 }
 
 // ============================================================

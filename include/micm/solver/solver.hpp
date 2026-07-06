@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <type_traits>
+#include <utility>
 
 namespace micm
 {
@@ -59,7 +60,7 @@ namespace micm
         const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
             update_state_parameters_functions)
         : solver_(std::move(solver)),
-          state_parameters_(state_parameters),
+          state_parameters_(std::move(state_parameters)),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
@@ -83,7 +84,7 @@ namespace micm
         const std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>&
             initialize_constraint_parameters_functions)
         : solver_(std::move(solver)),
-          state_parameters_(state_parameters),
+          state_parameters_(std::move(state_parameters)),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
@@ -127,7 +128,9 @@ namespace micm
     SolverResult Solve(double time_step, StatePolicy& state)
     {
       for (const auto& init_func : initialize_constraint_parameters_functions_)
+      {
         init_func(state.variables_, state.custom_rate_parameters_);
+      }
       auto result = solver_.Solve(time_step, state, solver_parameters_);
       PostSolveClamp(state);
       return result;
@@ -138,7 +141,9 @@ namespace micm
     {
       solver_parameters_ = params;
       for (const auto& init_func : initialize_constraint_parameters_functions_)
+      {
         init_func(state.variables_, state.custom_rate_parameters_);
+      }
       auto result = solver_.Solve(time_step, state, params);
       PostSolveClamp(state);
       return result;
@@ -209,7 +214,9 @@ namespace micm
       // External update functions must run first: they populate custom_rate_parameters_
       // which user-defined and surface rate constants read during calculation.
       for (const auto& update_func : update_state_parameters_functions_)
+      {
         update_func(state.conditions_, state.custom_rate_parameters_);
+      }
 
       // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
       // GpuCalculateRateConstants; otherwise use the CPU path.
@@ -237,7 +244,9 @@ namespace micm
         if (const auto* params = std::get_if<LambdaRateConstantParameters>(&reaction.rate_constant_))
         {
           if (params->label_ == name)
+          {
             return *params;
+          }
         }
       }
       throw MicmException(
@@ -254,9 +263,15 @@ namespace micm
       if (state.constraint_size_ > 0)
       {
         for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
+        {
           for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
+          {
             if (state.upper_left_identity_diagonal_[i_var] > 0.0)
+            {
               state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
+            }
+          }
+        }
       }
       else
       {

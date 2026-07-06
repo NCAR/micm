@@ -18,7 +18,7 @@ namespace micm
   inline LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolverInPlace(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
-      const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
+      const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp)
       : nLij_(),
         Lij_yj_(),
         nUij_Uii_(),
@@ -80,7 +80,7 @@ namespace micm
       {
         auto y_elem = y_cell.begin();
         auto Lij_yj = Lij_yj_.begin();
-        for (auto& nLij : nLij_)
+        for (const auto& nLij : nLij_)
         {
           for (std::size_t i = 0; i < nLij; ++i)
           {
@@ -95,7 +95,7 @@ namespace micm
       {
         auto x_elem = std::next(x_cell.end(), -1);
         auto Uij_xj = Uij_xj_.begin();
-        for (auto& nUij_Uii : nUij_Uii_)
+        for (const auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
@@ -132,7 +132,7 @@ namespace micm
       {
         auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
-        for (auto& nLij : nLij_)
+        for (const auto& nLij : nLij_)
         {
           for (std::size_t i = 0; i < nLij; ++i)
           {
@@ -142,7 +142,9 @@ namespace micm
             auto x_group_it = x_group + Lij_yj_second_times_n_cells;
             auto y_elem_it = y_elem;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               *(y_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
+            }
             ++Lij_yj;
           }
           y_elem += n_cells;
@@ -153,7 +155,7 @@ namespace micm
       {
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
         auto Uij_xj = Uij_xj_.begin();
-        for (auto& nUij_Uii : nUij_Uii_)
+        for (const auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
@@ -164,14 +166,18 @@ namespace micm
             auto x_group_it = x_group + Uij_xj_second_times_n_cells;
             auto x_elem_it = x_elem;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            {
               *(x_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
+            }
             ++Uij_xj;
           }
           const std::size_t nUij_Uii_second = nUij_Uii.second;
           auto LU_group_it = LU_group + nUij_Uii_second;
           auto x_elem_it = x_elem;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
             *(x_elem_it++) /= *(LU_group_it++);
+          }
 
           // don't iterate before the beginning of the vector
           const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);

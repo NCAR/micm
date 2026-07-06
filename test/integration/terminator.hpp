@@ -39,9 +39,8 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
                              .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k2 })
                              .Build();
 
-  auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 })
-                    .Build();
+  auto solver =
+      builder.SetSystem(micm::System(gas_phase)).SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 }).Build();
   auto state = solver.GetState(number_of_grid_cells);
   state.SetRelativeTolerance(1.0e-8);
 

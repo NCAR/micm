@@ -37,7 +37,7 @@ namespace micm
     SparseMatrixStandardOrderingCompressedSparseColumn(
         std::size_t number_of_blocks,
         std::size_t block_size,
-        std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
+        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
         : column_ids_(ColumnIdsVector(block_size, non_zero_elements)),
           column_start_(ColumnStartVector(block_size, non_zero_elements)),
           diagonal_ids_(DiagonalIndices(number_of_blocks, 0))
@@ -45,7 +45,7 @@ namespace micm
     }
 
     SparseMatrixStandardOrderingCompressedSparseColumn& operator=(
-        const std::tuple<std::size_t, std::size_t, std::set<std::pair<std::size_t, std::size_t>>> number_size_elements)
+        const std::tuple<std::size_t, std::size_t, std::set<std::pair<std::size_t, std::size_t>>>& number_size_elements)
     {
       column_ids_ = ColumnIdsVector(std::get<1>(number_size_elements), std::get<2>(number_size_elements));
       column_start_ = ColumnStartVector(std::get<1>(number_size_elements), std::get<2>(number_size_elements));
@@ -91,8 +91,12 @@ namespace micm
     {
       for (std::size_t block_start = 0; block_start < number_of_blocks * column_ids_.size();
            block_start += column_ids_.size())
+      {
         for (const auto& i : diagonal_ids_)
+        {
           data[block_start + i] += value;
+        }
+      }
     }
 
     /// @brief Convert row and column indices to vector index within a block
@@ -133,8 +137,12 @@ namespace micm
       std::vector<std::size_t> indices;
       indices.reserve(column_start_.size() - 1);
       for (std::size_t i = 0; i < column_start_.size() - 1; ++i)
+      {
         if (!IsZero(i, i))
+        {
           indices.push_back(VectorIndex(number_of_blocks, block_id, i, i));
+        }
+      }
       return indices;
     }
 
@@ -173,7 +181,7 @@ namespace micm
       /// @brief Get element from sparse matrix ConstBlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         std::size_t elem_position = arg.ElementPosition();
@@ -187,7 +195,7 @@ namespace micm
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // Verify L=1 for VectorMatrix types
@@ -203,7 +211,7 @@ namespace micm
       /// @brief Get element from BlockVariable
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg.Get();
       }
@@ -211,7 +219,7 @@ namespace micm
       /// @brief Get element from Vector-like
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -272,7 +280,7 @@ namespace micm
       /// @brief Get element from sparse matrix BlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         std::size_t elem_position = arg.ElementPosition();
@@ -286,7 +294,7 @@ namespace micm
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         // Verify L=1 for VectorMatrix types
@@ -302,7 +310,7 @@ namespace micm
       /// @brief Get element from BlockVariable
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg.Get();
       }
@@ -310,7 +318,7 @@ namespace micm
       /// @brief Get element from Vector-like
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      inline decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         return arg[group_];
       }
@@ -397,13 +405,15 @@ namespace micm
     /// @param non_zero_elements Set of non-zero elements in the matrix
     static std::vector<std::size_t> ColumnIdsVector(
         const std::size_t block_size,
-        const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
+        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
     {
       std::vector<std::size_t> ids;
       ids.reserve(non_zero_elements.size());
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
-      for (auto& elem : non_zero_elements)
+      for (const auto& elem : non_zero_elements)
+      {
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
+      }
       std::transform(
           column_ordered_pairs.begin(),
           column_ordered_pairs.end(),
@@ -417,23 +427,29 @@ namespace micm
     /// @param non_zero_elements Set of non-zero elements in the matrix
     static std::vector<std::size_t> ColumnStartVector(
         const std::size_t block_size,
-        const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
+        const std::set<std::pair<std::size_t, std::size_t>>& non_zero_elements)
     {
       std::vector<std::size_t> starts(block_size + 1, 0);
       std::size_t total_elem = 0;
       std::size_t curr_col = 0;
       std::set<std::pair<std::size_t, std::size_t>> column_ordered_pairs;
-      for (auto& elem : non_zero_elements)
+      for (const auto& elem : non_zero_elements)
+      {
         column_ordered_pairs.insert(std::make_pair(elem.second, elem.first));
-      for (auto& elem : column_ordered_pairs)
+      }
+      for (const auto& elem : column_ordered_pairs)
       {
         while (curr_col < elem.first)
+        {
           starts[(curr_col++) + 1] = total_elem;
+        }
         ++total_elem;
       }
       // Fill all remaining entries from curr_col + 1 to block_size
       for (std::size_t i = curr_col + 1; i <= block_size; ++i)
+      {
         starts[i] = total_elem;
+      }
       return starts;
     }
 

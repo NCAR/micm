@@ -7,29 +7,29 @@
 
 TEST(SparseVectorCompressedRowMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestZeroMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestConstZeroMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, SetScalar)
 {
-  testSetScalar<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestSetScalar<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, AddToDiagonal)
 {
-  testAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, SingleBlockMatrix)
 {
-  auto matrix = testSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  auto matrix = TestSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -50,7 +50,7 @@ TEST(SparseVectorCompressedRowMatrix, SingleBlockMatrix)
 
 TEST(SparseVectorCompressedRowMatrix, ConstSingleBlockMatrix)
 {
-  auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  auto matrix = TestConstSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -69,7 +69,7 @@ TEST(SparseVectorCompressedRowMatrix, ConstSingleBlockMatrix)
 
 TEST(SparseVectorCompressedRowMatrix, MultiBlockMatrix)
 {
-  auto matrix = testMultiBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  auto matrix = TestMultiBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
@@ -90,73 +90,73 @@ TEST(SparseVectorCompressedRowMatrix, MultiBlockMatrix)
 
 TEST(SparseVectorCompressedRowMatrix, Print)
 {
-  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, PrintNonZero)
 {
-  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestPrintNonZero<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
-// Phase 2: BlockFunction infrastructure tests
+// Phase 2: BlockFunction infrastructure Tests
 TEST(SparseVectorCompressedRowMatrix, ArrayFunction)
 {
-  testArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultiMatrixArrayFunction)
 {
-  testMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestMultiMatrixArrayFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleTemporaries)
 {
-  testMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestMultipleTemporaries<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, BlockViewReuse)
 {
-  testBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestBlockViewReuse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, FunctionReusability)
 {
-  testFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestFunctionReusability<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, TwoSparseMatricesDifferentStructure)
 {
-  testTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestTwoSparseMatricesDifferentStructure<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, SparseAndDenseMatrixFunction)
 {
   // Only L=1 is compatible with standard-ordered dense Matrix
-  testSparseAndDenseMatrixFunction<
+  TestSparseAndDenseMatrixFunction<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>,
       micm::Matrix>();
@@ -165,46 +165,46 @@ TEST(SparseVectorCompressedRowMatrix, SparseAndDenseMatrixFunction)
 TEST(SparseVectorCompressedRowMatrix, SparseAndVectorMatrixFunction)
 {
   // Valid: Vector-ordered sparse with matching L vector matrix
-  testSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>, 1>();
-  testSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, 2>();
-  testSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>, 3>();
-  testSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, 4>();
-  testSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<10>, 10>();
+  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>, 1>();
+  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, 2>();
+  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>, 3>();
+  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, 4>();
+  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<10>, 10>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, IncompatibleOrdering)
 {
   // Invalid: L>1 vector-ordered sparse with L=1 standard-ordered dense
-  testIncompatibleOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, micm::Matrix>();
-  testIncompatibleOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>, micm::Matrix>();
-  testIncompatibleOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, micm::Matrix>();
+  TestIncompatibleOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, micm::Matrix>();
+  TestIncompatibleOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>, micm::Matrix>();
+  TestIncompatibleOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, micm::Matrix>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, IncompatibleVectorOrdering)
 {
   // Invalid: Vector-ordered sparse with mismatched L vector matrix
-  testIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, 1>();
-  testIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, 3>();
-  testIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, 2>();
-  testIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, 10>();
+  TestIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, 1>();
+  TestIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, 3>();
+  TestIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, 2>();
+  TestIncompatibleVectorOrdering<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, 10>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, IncompatibleSparseOrdering)
 {
   // Invalid: Two sparse matrices with different L values
-  testIncompatibleSparseOrdering<
+  TestIncompatibleSparseOrdering<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testIncompatibleSparseOrdering<
+  TestIncompatibleSparseOrdering<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<2>,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testIncompatibleSparseOrdering<
+  TestIncompatibleSparseOrdering<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<3>,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
-  testIncompatibleSparseOrdering<
+  TestIncompatibleSparseOrdering<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<4>,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<10>>();
@@ -212,106 +212,106 @@ TEST(SparseVectorCompressedRowMatrix, IncompatibleSparseOrdering)
 
 TEST(SparseVectorCompressedRowMatrix, MismatchedBlockDimensions)
 {
-  testMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestMismatchedBlockDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MismatchedElementDimensions)
 {
-  testMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, WrongMatrixDimensions)
 {
-  testWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, ConstSparseMatrixFunction)
 {
-  testConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, EmptySparseMatrixFunction)
 {
-  testEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestEmptySparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesDifferentBlocksFromCreation)
 {
-  testMultipleSparseMatricesDifferentBlocksFromCreation<
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMultipleSparseMatricesDifferentBlocksFromCreation<
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMultipleSparseMatricesDifferentBlocksFromCreation<
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMultipleSparseMatricesDifferentBlocksFromCreation<
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, SparseMatrixVectorDifferentBlocksFromCreation)
 {
-  testSparseMatrixVectorDifferentBlocksFromCreation<
+  TestSparseMatrixVectorDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testSparseMatrixVectorDifferentBlocksFromCreation<
+  TestSparseMatrixVectorDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testSparseMatrixVectorDifferentBlocksFromCreation<
+  TestSparseMatrixVectorDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testSparseMatrixVectorDifferentBlocksFromCreation<
+  TestSparseMatrixVectorDifferentBlocksFromCreation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MismatchedBlocksAtInvocation)
 {
-  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestMismatchedBlocksAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
 {
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, WrongStructureAtInvocation)
 {
-  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 // ============================================================================
@@ -320,110 +320,110 @@ TEST(SparseVectorCompressedRowMatrix, WrongStructureAtInvocation)
 
 TEST(SparseVectorCompressedRowMatrix, VectorInSparseMatrixFunction)
 {
-  testVectorInSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestVectorInSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, VectorTooSmall)
 {
-  testVectorTooSmall<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestVectorTooSmall<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, VectorTooLarge)
 {
-  testVectorTooLarge<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestVectorTooLarge<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, EmptyVectorNonEmptySparseMatrix)
 {
-  testEmptyVectorNonEmptySparseMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestEmptyVectorNonEmptySparseMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, NonEmptyVectorEmptySparseMatrix)
 {
-  testNonEmptyVectorEmptySparseMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestNonEmptyVectorEmptySparseMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, EmptyVectorEmptySparseMatrix)
 {
-  testEmptyVectorEmptySparseMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestEmptyVectorEmptySparseMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleVectorsDifferentSizes)
 {
-  testMultipleVectorsDifferentSizes<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMultipleVectorsDifferentSizes<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleVectorsSameSize)
 {
-  testMultipleVectorsSameSize<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMultipleVectorsSameSize<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesOneVector)
 {
-  testMultipleSparseMatricesOneVector<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMultipleSparseMatricesOneVector<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesDifferentBlocksVector)
 {
-  testMultipleSparseMatricesDifferentBlocksVector<
+  TestMultipleSparseMatricesDifferentBlocksVector<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, VectorSizeMatchesOneSparseMatrixOnly)
 {
-  testVectorSizeMatchesOneSparseMatrixOnly<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestVectorSizeMatchesOneSparseMatrixOnly<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, ConstVectorSparse)
 {
-  testConstVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestConstVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MutableVectorSparse)
 {
-  testMutableVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMutableVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, FunctionReusabilityWithVectorsSparse)
 {
-  testFunctionReusabilityWithVectorsSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestFunctionReusabilityWithVectorsSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, FunctionInvocationWithWrongSizedVectorSparse)
 {
-  testFunctionInvocationWithWrongSizedVectorSparse<
+  TestFunctionInvocationWithWrongSizedVectorSparse<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, ArraySupportSparse)
 {
-  testArraySupportSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestArraySupportSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, MixedVectorBlockViewBlockVariable)
 {
-  testMixedVectorBlockViewBlockVariable<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestMixedVectorBlockViewBlockVariable<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, IntegerVectorSparse)
 {
-  testIntegerVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestIntegerVectorSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, FunctionWithConstSignatureSparse)
 {
-  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestFunctionWithConstSignatureSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, GetBlockViewByVectorIndex)
 {
-  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  testGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+  TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }

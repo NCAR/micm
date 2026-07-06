@@ -68,7 +68,9 @@ namespace micm
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.vector_length_ = L;
       if (this->param_.number_of_elements_ != 0)
+      {
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      }
     }
 
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
@@ -78,7 +80,9 @@ namespace micm
       this->param_.number_of_grid_cells_ = x_dim;
       this->param_.vector_length_ = L;
       if (this->param_.number_of_elements_ != 0)
+      {
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      }
     }
 
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
@@ -94,7 +98,7 @@ namespace micm
       }
     }
 
-    CudaDenseMatrix(const std::vector<std::vector<T>> other)
+    CudaDenseMatrix(const std::vector<std::vector<T>>& other)
         : VectorMatrix<T, L>(other)
     {
       this->param_.number_of_grid_cells_ = 0;
@@ -105,7 +109,9 @@ namespace micm
         this->param_.number_of_elements_ += inner_vector.size();
       }
       if (this->param_.number_of_elements_ != 0)
+      {
         CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      }
     }
 
     CudaDenseMatrix(const CudaDenseMatrix& other)

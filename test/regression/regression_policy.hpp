@@ -10,12 +10,12 @@
 #include <utility>
 #include <vector>
 
-double calculate_air_density_mol_m3(double pressure, double temperature)
+double CalculateAirDensityMolM3(double pressure, double temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
 
-void writeCSV(
+void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
@@ -57,7 +57,7 @@ void writeCSV(
   }
 }
 
-std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(const std::string& filename)
+std::pair<std::vector<std::string>, std::vector<std::vector<double>>> ReadCsv(const std::string& filename)
 {
   std::ifstream file(filename);
   if (file.is_open())
@@ -102,9 +102,9 @@ std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(c
 }
 
 template<class BuilderPolicy>
-void test_flow_tube(
+void TestFlowTube(
     BuilderPolicy builder,
-    std::string expected_results_path,
+    const std::string& expected_results_path,
     std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
     std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
@@ -146,10 +146,7 @@ void test_flow_tube(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
-  auto solver = builder.SetReorderState(false)
-                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                    .SetReactions(processes)
-                    .Build();
+  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
   size_t N = 3600;
 
@@ -167,7 +164,7 @@ void test_flow_tube(
 
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325;
-  state.conditions_[0].air_density_ = calculate_air_density_mol_m3(101325, 298.15);
+  state.conditions_[0].air_density_ = CalculateAirDensityMolM3(101325, 298.15);
 
   solver.UpdateStateParameters(state);
 
@@ -198,7 +195,7 @@ void test_flow_tube(
   // writeCSV(expected_results_path, header, model_concentrations, times);
 
   // Check that the results we got match exactly to those we expect
-  auto [header_out, data_out] = read_csv(expected_results_path);
+  auto [header_out, data_out] = ReadCsv(expected_results_path);
 
   EXPECT_EQ(header, header_out);
   EXPECT_EQ(model_concentrations.size(), data_out.size());

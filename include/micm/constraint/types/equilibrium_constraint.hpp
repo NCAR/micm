@@ -20,10 +20,10 @@ namespace micm
   /// @brief Define parameters for Van't Hoff equation
   struct VantHoffParam
   {
-    double K_HLC_ref;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
-    double delta_H;                      // Enthalpy of dissolution (J/mol)
-    double R = constants::GAS_CONSTANT;  // (J/mol·K)
-    double T_ref = 298.15;
+    double K_HLC_ref_;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
+    double delta_H_;                      // Enthalpy of dissolution (J/mol)
+    double R_ = constants::GAS_CONSTANT;  // (J/mol·K)
+    double T_ref_ = 298.15;
   };
 
   /// @brief Constraint for chemical equilibrium with temperature-dependent K_eq using Van't Hoff equation
@@ -124,7 +124,7 @@ namespace micm
               "Stoichiometric coefficients must be positive");
         }
       }
-      if (vant_hoff_param_.K_HLC_ref <= 0)
+      if (vant_hoff_param_.K_HLC_ref_ <= 0)
       {
         throw MicmException(
             MICM_ERROR_CATEGORY_CONSTRAINT,
@@ -149,7 +149,7 @@ namespace micm
       equilibrium_constant_function_ = [p = vant_hoff_param_](const Conditions& condition)
       {
         double T = condition.temperature_;
-        return p.K_HLC_ref * std::exp((p.delta_H / p.R) * (1.0 / T - 1.0 / p.T_ref));
+        return p.K_HLC_ref_ * std::exp((p.delta_H_ / p.R_) * (1.0 / T - 1.0 / p.T_ref_));
       };
     }
 

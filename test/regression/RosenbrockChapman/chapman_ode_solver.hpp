@@ -64,14 +64,14 @@ namespace micm
 
     struct SolverStats
     {
-      uint64_t function_calls{};    // Nfun
-      uint64_t jacobian_updates{};  // Njac
-      uint64_t number_of_steps{};   // Nstp
-      uint64_t accepted{};          // Nacc
-      uint64_t rejected{};          // Nrej
-      uint64_t decompositions{};    // Ndec
-      uint64_t solves{};            // Nsol
-      uint64_t total_steps{};       // Ntotstp
+      uint64_t function_calls_{};    // Nfun
+      uint64_t jacobian_updates_{};  // Njac
+      uint64_t number_of_steps_{};   // Nstp
+      uint64_t accepted_{};          // Nacc
+      uint64_t rejected_{};          // Nrej
+      uint64_t decompositions_{};    // Ndec
+      uint64_t solves_{};            // Nsol
+      uint64_t total_steps_{};       // Ntotstp
 
       void Reset();
       std::string State(const ChapmanODESolver::SolverState& state) const;
@@ -93,14 +93,14 @@ namespace micm
     SolverStats stats_;
     std::size_t number_sparse_factor_elements_ = 23;
 
-    static constexpr double delta_min_ = 1.0e-6;
+    static constexpr double DELTA_MIN = 1.0e-6;
 
     /// @brief Default constructor
     ChapmanODESolver();
     ~ChapmanODESolver();
 
     /// @brief Sets parameters for the solver
-    void three_stage_rosenbrock();
+    void ThreeStageRosenbrock();
 
     /// @brief Returns a state variable for the Chapman system
     /// @param number_of_grid_cells The number of grid cells to solve for
@@ -116,22 +116,22 @@ namespace micm
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
-    std::vector<std::string> reaction_names();
+    std::vector<std::string> ReactionNames();
 
     /// @brief Returns a list of species that participate in photolysis
     /// @return vector of strings
-    std::vector<std::string> photolysis_names() const;
+    std::vector<std::string> PhotolysisNames() const;
 
     /// @brief Returns a list of species names
     /// @return vector of strings
-    std::vector<std::string> species_names() const;
+    std::vector<std::string> SpeciesNames() const;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
-    std::vector<double> force(
+    std::vector<double> Force(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
         const double& number_density_air);
@@ -140,13 +140,13 @@ namespace micm
     /// @param dforce_dy
     /// @param alpha
     /// @return An jacobian decomposition
-    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
+    std::vector<double> FactoredAlphaMinusJac(const std::vector<double>& dforce_dy, const double& alpha);
 
     /// @brief Computes product of [dforce_dy * vector]
     /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
-    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
+    std::vector<double> DforceDyTimesVector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -156,14 +156,14 @@ namespace micm
     /// @param K idk, something
     /// @param ode_jacobian the jacobian
     /// @return the new state?
-    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
+    std::vector<double> LinSolve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return The jacobian
-    std::vector<double> dforce_dy(
+    std::vector<double> DforceDy(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
         const double& number_density_air);
@@ -172,7 +172,7 @@ namespace micm
     /// @param H time step (seconds)
     /// @param gamma time step factor for specific rosenbrock method
     /// @param Y  constituent concentration (molec/cm^3)
-    std::vector<double> lin_factor(
+    std::vector<double> LinFactor(
         double& H,
         const double& gamma,
         const std::vector<double>& number_densities,
@@ -181,17 +181,17 @@ namespace micm
 
     /// @brief Factor
     /// @param jacobian
-    void factor(std::vector<double>& jacobian);
+    void Factor(std::vector<double>& jacobian);
 
-    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
-    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
+    std::vector<double> BacksolveLYEqB(const std::vector<double>& jacobian, const std::vector<double>& b);
+    std::vector<double> BacksolveUXEqB(const std::vector<double>& jacobian, const std::vector<double>& y);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities
     /// @param new_number_densities the new number densities
     /// @param errors The computed errors
     /// @return
-    double error_norm(
+    double ErrorNorm(
         std::vector<double> original_number_densities,
         std::vector<double> new_number_densities,
         std::vector<double> errors);
@@ -199,14 +199,14 @@ namespace micm
 
   void ChapmanODESolver::SolverStats::Reset()
   {
-    function_calls = 0;
-    jacobian_updates = 0;
-    number_of_steps = 0;
-    accepted = 0;
-    rejected = 0;
-    decompositions = 0;
-    solves = 0;
-    total_steps = 0;
+    function_calls_ = 0;
+    jacobian_updates_ = 0;
+    number_of_steps_ = 0;
+    accepted_ = 0;
+    rejected_ = 0;
+    decompositions_ = 0;
+    solves_ = 0;
+    total_steps_ = 0;
   }
 
   std::string ChapmanODESolver::SolverStats::State(const ChapmanODESolver::SolverState& state) const
@@ -224,14 +224,14 @@ namespace micm
 
   inline ChapmanODESolver::ChapmanODESolver()
   {
-    three_stage_rosenbrock();
+    ThreeStageRosenbrock();
   }
 
   inline ChapmanODESolver::~ChapmanODESolver()
   {
   }
 
-  inline void ChapmanODESolver::three_stage_rosenbrock()
+  inline void ChapmanODESolver::ThreeStageRosenbrock()
   {
     // an L-stable method, 3 stages, order 3, 2 function evaluations
     //
@@ -300,8 +300,8 @@ namespace micm
   {
     auto state_parameters = micm::StateParameters{
       .number_of_rate_constants_ = 7,
-      .variable_names_ = species_names(),
-      .custom_rate_parameter_labels_ = photolysis_names(),
+      .variable_names_ = SpeciesNames(),
+      .custom_rate_parameter_labels_ = PhotolysisNames(),
     };
 
     return micm::State{ state_parameters, number_of_grid_cells };
@@ -316,7 +316,7 @@ namespace micm
     std::vector<double> forcing{};
 
     parameters_.h_max_ = time_end - time_start;
-    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+    parameters_.h_start_ = std::max(parameters_.h_min_, DELTA_MIN);
 
     double present_time = time_start;
     double H =
@@ -327,7 +327,7 @@ namespace micm
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
     {
-      H = delta_min_;
+      H = DELTA_MIN;
     }
 
     bool reject_last_h = false;
@@ -335,7 +335,7 @@ namespace micm
 
     while ((present_time - time_end + parameters_.round_off_) <= 0)
     {
-      if (stats_.number_of_steps > parameters_.max_number_of_steps_)
+      if (stats_.number_of_steps_ > parameters_.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
@@ -350,19 +350,19 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H, std::abs(time_end - present_time));
 
-      auto initial_forcing = force(rate_constants, Y, number_density_air);
+      auto initial_forcing = Force(rate_constants, Y, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
-        if (stats_.number_of_steps > parameters_.max_number_of_steps_)
+        if (stats_.number_of_steps_ > parameters_.max_number_of_steps_)
         {
           break;
         }
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], Y, number_density_air, rate_constants);
-        stats_.jacobian_updates += 1;
+        auto ode_jacobian = LinFactor(H, parameters_.gamma_[0], Y, number_density_air, rate_constants);
+        stats_.jacobian_updates_ += 1;
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
@@ -377,7 +377,7 @@ namespace micm
             double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
-              auto new_Y(Y);
+              auto new_Y{ Y };
               for (uint64_t j = 0; j < stage; ++j)
               {
                 assert((stage_combinations + j) < parameters_.a_.size());
@@ -387,7 +387,7 @@ namespace micm
                   new_Y[idx] += a * K[j][idx];
                 }
               }
-              forcing = force(rate_constants, new_Y, number_density_air);
+              forcing = Force(rate_constants, new_Y, number_density_air);
             }
             K[stage] = forcing;
             for (uint64_t j = 0; j < stage; ++j)
@@ -399,11 +399,11 @@ namespace micm
               }
             }
           }
-          K[stage] = lin_solve(K[stage], ode_jacobian);
+          K[stage] = LinSolve(K[stage], ode_jacobian);
         }
 
         // Compute the new solution
-        auto new_Y(Y);
+        auto new_Y{ Y };
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
           for (uint64_t idx = 0; idx < new_Y.size(); ++idx)
@@ -421,7 +421,7 @@ namespace micm
             Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
           }
         }
-        auto error = error_norm(Y, new_Y, Yerror);
+        auto error = ErrorNorm(Y, new_Y, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         // Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
@@ -432,11 +432,11 @@ namespace micm
                                   parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
 
         // Check the error magnitude and adjust step size
-        stats_.number_of_steps += 1;
-        stats_.total_steps += 1;
+        stats_.number_of_steps_ += 1;
+        stats_.total_steps_ += 1;
         if ((error < 1) || (H < parameters_.h_min_))
         {
-          stats_.accepted += 1;
+          stats_.accepted_ += 1;
           present_time = present_time + H;
           Y = new_Y;
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
@@ -460,9 +460,9 @@ namespace micm
           reject_more_h = reject_last_h;
           reject_last_h = true;
           H = Hnew;
-          if (stats_.accepted >= 1)
+          if (stats_.accepted_ >= 1)
           {
-            stats_.rejected += 1;
+            stats_.rejected_ += 1;
           }
         }
       }
@@ -476,12 +476,12 @@ namespace micm
     return result;
   }
 
-  inline std::vector<std::string> ChapmanODESolver::reaction_names()
+  inline std::vector<std::string> ChapmanODESolver::ReactionNames()
   {
     return std::vector<std::string>{ "O2_1", "O3_1", "O3_2", "N2_O1D_1", "O1D_O2_1", "O_O3_1", "M_O_O2_1" };
   }
 
-  inline std::vector<std::string> ChapmanODESolver::photolysis_names() const
+  inline std::vector<std::string> ChapmanODESolver::PhotolysisNames() const
   {
     return std::vector<std::string>{
       "O2_1",
@@ -490,14 +490,14 @@ namespace micm
     };
   }
 
-  inline std::vector<std::string> ChapmanODESolver::species_names() const
+  inline std::vector<std::string> ChapmanODESolver::SpeciesNames() const
   {
     return std::vector<std::string>{
       "M", "Ar", "CO2", "H2O", "N2", "O1D", "O", "O2", "O3",
     };
   }
 
-  inline std::vector<double> ChapmanODESolver::force(
+  inline std::vector<double> ChapmanODESolver::Force(
       const std::vector<double>& rate_constants,
       const std::vector<double>& number_densities,
       const double& number_density_air)
@@ -562,11 +562,11 @@ namespace micm
       force[8] = force[8] + rate_constants[3] * number_densities[0] * number_densities[6] * number_densities[7];
     }
 
-    stats_.function_calls += 1;
+    stats_.function_calls_ += 1;
     return force;
   }
 
-  inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(
+  inline std::vector<double> ChapmanODESolver::FactoredAlphaMinusJac(
       const std::vector<double>& dforce_dy,
       const double& alpha)
   {
@@ -586,11 +586,11 @@ namespace micm
     jacobian[17] = -dforce_dy[17] + alpha;
     jacobian[22] = -dforce_dy[22] + alpha;
 
-    factor(jacobian);
+    Factor(jacobian);
     return jacobian;
   }
 
-  inline void ChapmanODESolver::factor(std::vector<double>& jacobian)
+  inline void ChapmanODESolver::Factor(std::vector<double>& jacobian)
   {
     jacobian[0] = 1. / jacobian[0];
     jacobian[1] = jacobian[1] * jacobian[0];
@@ -619,7 +619,7 @@ namespace micm
     jacobian[22] = 1. / jacobian[22];
   }
 
-  inline std::vector<double> ChapmanODESolver::dforce_dy_times_vector(
+  inline std::vector<double> ChapmanODESolver::DforceDyTimesVector(
       const std::vector<double>& dforce_dy,
       const std::vector<double>& vector)
   {
@@ -667,7 +667,7 @@ namespace micm
     return result;
   }
 
-  inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(
+  inline std::vector<double> ChapmanODESolver::BacksolveLYEqB(
       const std::vector<double>& jacobian,
       const std::vector<double>& b)
   {
@@ -695,7 +695,7 @@ namespace micm
     return y;
   }
 
-  inline std::vector<double> ChapmanODESolver::backsolve_U_x_eq_b(
+  inline std::vector<double> ChapmanODESolver::BacksolveUXEqB(
       const std::vector<double>& jacobian,
       const std::vector<double>& y)
   {
@@ -773,7 +773,7 @@ namespace micm
     state.rate_constants_[0][6] = state.custom_rate_parameters_[0][2];
   }
 
-  inline std::vector<double> ChapmanODESolver::lin_factor(
+  inline std::vector<double> ChapmanODESolver::LinFactor(
       double& H,
       const double& gamma,
       const std::vector<double>& number_densities,
@@ -791,21 +791,21 @@ namespace micm
 
     double alpha = 1 / (H * gamma);
     // compute jacobian decomposition of alpha*I - dforce_dy
-    ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants, number_densities, number_density_air), alpha);
-    stats_.decompositions += 1;
+    ode_jacobian = FactoredAlphaMinusJac(DforceDy(rate_constants, number_densities, number_density_air), alpha);
+    stats_.decompositions_ += 1;
 
     return ode_jacobian;
   }
 
-  inline std::vector<double> ChapmanODESolver::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
+  inline std::vector<double> ChapmanODESolver::LinSolve(const std::vector<double>& K, const std::vector<double>& jacobian)
   {
-    auto y = backsolve_L_y_eq_b(jacobian, K);
-    auto x = backsolve_U_x_eq_b(jacobian, y);
-    stats_.solves += 1;
+    auto y = BacksolveLYEqB(jacobian, K);
+    auto x = BacksolveUXEqB(jacobian, y);
+    stats_.solves_ += 1;
     return x;
   }
 
-  inline std::vector<double> ChapmanODESolver::dforce_dy(
+  inline std::vector<double> ChapmanODESolver::DforceDy(
       const std::vector<double>& rate_constants,
       const std::vector<double>& number_densities,
       const double& number_density_air)
@@ -926,7 +926,7 @@ namespace micm
     return jacobian;
   }
 
-  inline double ChapmanODESolver::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
+  inline double ChapmanODESolver::ErrorNorm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

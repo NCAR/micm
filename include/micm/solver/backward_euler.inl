@@ -164,7 +164,7 @@ namespace micm
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
-    auto& abs_tol = absolute_tolerance;
+    const auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
     auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
@@ -193,7 +193,7 @@ namespace micm
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
-    auto& abs_tol = absolute_tolerance;
+    const auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
     auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();

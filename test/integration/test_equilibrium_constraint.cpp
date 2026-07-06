@@ -17,7 +17,7 @@
 using namespace micm;
 
 /// @brief Helper function to compute temperature-dependent equilibrium constant using Van't Hoff equation
-double compute_equilibrium_constant(double K_HLC_ref, double delta_H, double T)
+double ComputeEquilibriumConstant(double K_HLC_ref, double delta_H, double T)
 {
   return K_HLC_ref * std::exp((delta_H / constants::GAS_CONSTANT) * (1.0 / T - 1.0 / 298.15));
 }
@@ -48,12 +48,12 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -91,7 +91,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // Verify UpdateStateParameters works
   solver.UpdateStateParameters(state);
 
-  double expected_K_eq = compute_equilibrium_constant(K_eq, -2400.0, 300.0);
+  double expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 300.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
 }
 
@@ -134,18 +134,18 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = delta_H1 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq1, .delta_H_ = delta_H1 }));
   constraints.push_back(EquilibriumConstraint(
       "E_F_eq",
       F,
       std::vector<StoichSpecies>{ { E, 1.0 } },
       std::vector<StoichSpecies>{ { F, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = delta_H2 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = delta_H2 }));
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn1, rxn2 })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -179,8 +179,8 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   solver.UpdateStateParameters(state);
 
   // Verify temperature-dependent K_eq values are calculated correctly
-  double expected_K_eq1 = compute_equilibrium_constant(K_eq1, delta_H1, current_temp);
-  double expected_K_eq2 = compute_equilibrium_constant(K_eq2, delta_H2, current_temp);
+  double expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, delta_H1, current_temp);
+  double expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, delta_H2, current_temp);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq1, 1e-10);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")], expected_K_eq2, 1e-10);
 }
@@ -214,11 +214,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = delta_H }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -240,7 +240,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   // Verify UpdateStateParameters calculates K_eq correctly before time integration
   solver.UpdateStateParameters(state);
-  double expected_K_eq = compute_equilibrium_constant(K_eq, delta_H, 270.0);
+  double expected_K_eq = ComputeEquilibriumConstant(K_eq, delta_H, 270.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
 
   // Solve with smaller time steps
@@ -312,11 +312,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(true)
@@ -337,7 +337,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
 
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
-  double expected_K_eq = compute_equilibrium_constant(K_eq, -2400.0, 400.0);
+  double expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 400.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq, 1e-10);
 
   double dt = 0.001;
@@ -388,17 +388,17 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq1, .delta_H = -2400.0 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq1, .delta_H_ = -2400.0 }));
   constraints.push_back(EquilibriumConstraint(
       "B_D_eq",
       D,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { D, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq2, .delta_H = -2400.0 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -422,8 +422,8 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   // Verify UpdateStateParameters calculates K_eq correctly for both constraints
   solver.UpdateStateParameters(state);
-  double expected_K_eq1 = compute_equilibrium_constant(K_eq1, -2400.0, 300.0);
-  double expected_K_eq2 = compute_equilibrium_constant(K_eq2, -2400.0, 300.0);
+  double expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, -2400.0, 300.0);
+  double expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, -2400.0, 300.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq1, 1e-10);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_D_eq_idx], expected_K_eq2, 1e-10);
 
@@ -481,11 +481,11 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
       B,
       std::vector<StoichSpecies>{ { A, 2.0 } },
       std::vector<StoichSpecies>{ { B, 1.0 } },
-      VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = -2400.0 }));
+      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                    .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -507,7 +507,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
-  double expected_K_eq = compute_equilibrium_constant(K_eq, -2400.0, 298.0);
+  double expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 298.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][A2_B_eq_idx], expected_K_eq, 1e-10);
 
   double dt = 0.001;

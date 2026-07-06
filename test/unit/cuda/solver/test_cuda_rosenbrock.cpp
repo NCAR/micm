@@ -15,13 +15,13 @@
 template<std::size_t L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
-// In this test, all the elements in the same array are identical;
+// In this Test, all the elements in the same array are identical;
 // thus the calculated RMSE should be the same no matter what the size of the array is.
 template<std::size_t L>
-void testNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
+void TestNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
 {
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  gpu_builder = getSolver(gpu_builder);
+  gpu_builder = GetSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
   auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
@@ -60,13 +60,13 @@ void testNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
   }
 }
 
-// In this test, the elements in the same array are different;
+// In this Test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<std::size_t L>
-void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
+void TestNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
 {
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  gpu_builder = getSolver(gpu_builder);
+  gpu_builder = GetSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
   auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
@@ -120,141 +120,141 @@ void testNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
   // number of grid cells == cuda matrix vector length
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testAlphaMinusJacobian(GpuBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testAlphaMinusJacobian(GpuBuilder<7>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
-  testAlphaMinusJacobian(GpuBuilder<29>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
-  testAlphaMinusJacobian(GpuBuilder<37>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
-  testAlphaMinusJacobian(GpuBuilder<77>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
-  testAlphaMinusJacobian(GpuBuilder<219>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
-  testAlphaMinusJacobian(GpuBuilder<5599>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
-  testAlphaMinusJacobian(GpuBuilder<6603>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
-  testAlphaMinusJacobian(GpuBuilder<200041>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
-  testAlphaMinusJacobian(GpuBuilder<421875>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
-  testAlphaMinusJacobian(GpuBuilder<3395043>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestAlphaMinusJacobian(GpuBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestAlphaMinusJacobian(GpuBuilder<7>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
+  TestAlphaMinusJacobian(GpuBuilder<29>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
+  TestAlphaMinusJacobian(GpuBuilder<37>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
+  TestAlphaMinusJacobian(GpuBuilder<77>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
+  TestAlphaMinusJacobian(GpuBuilder<219>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
+  TestAlphaMinusJacobian(GpuBuilder<5599>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
+  TestAlphaMinusJacobian(GpuBuilder<6603>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
+  TestAlphaMinusJacobian(GpuBuilder<200041>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
+  TestAlphaMinusJacobian(GpuBuilder<421875>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
+  TestAlphaMinusJacobian(GpuBuilder<3395043>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
 
   // number of grid cells != cuda matrix vector length
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
-  testAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
+  TestAlphaMinusJacobian(GpuBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
 
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
-  testAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 7);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 29);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 37);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 77);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 219);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5599);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 6603);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 200041);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 421875);
+  TestAlphaMinusJacobian(GpuBuilder<1109>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3395043);
 }
 
 TEST(RosenbrockSolver, CudaNormalizedError)
 {
-  // Based on my experience, assuming we use BLOCK_SIZE = N, it is better to test the length size (L)
+  // Based on my experience, assuming we use BLOCK_SIZE = N, it is better to Test the length size (L)
   // of arrays at least within the following ranges for robustness: [L<N, N<L<2N, 2N<L<4N, 4N<L<N^2, N^2<L<N^3];
   // Here L = state_size_ * number_of_grid_cells_
   // Trying some odd and weird numbers is always helpful to reveal a potential bug.
 
   /***************************************************************/
-  /* tests where RMSE does not change with the size of the array */
+  /* Tests where RMSE does not change with the size of the array */
   /***************************************************************/
 
   // number of grid cells == cuda matrix vector length
-  testNormalizedErrorConst<1>();
-  testNormalizedErrorConst<2>();
-  testNormalizedErrorConst<7>();
-  testNormalizedErrorConst<29>();
-  testNormalizedErrorConst<37>();
-  testNormalizedErrorConst<77>();
-  testNormalizedErrorConst<219>();
-  testNormalizedErrorConst<5599>();
-  testNormalizedErrorConst<6603>();
-  testNormalizedErrorConst<200041>();
-  testNormalizedErrorConst<421875>();
-  testNormalizedErrorConst<3395043>();
+  TestNormalizedErrorConst<1>();
+  TestNormalizedErrorConst<2>();
+  TestNormalizedErrorConst<7>();
+  TestNormalizedErrorConst<29>();
+  TestNormalizedErrorConst<37>();
+  TestNormalizedErrorConst<77>();
+  TestNormalizedErrorConst<219>();
+  TestNormalizedErrorConst<5599>();
+  TestNormalizedErrorConst<6603>();
+  TestNormalizedErrorConst<200041>();
+  TestNormalizedErrorConst<421875>();
+  TestNormalizedErrorConst<3395043>();
 
   // number of grid cells != cuda matrix vector length
-  testNormalizedErrorConst<1>(2);
-  testNormalizedErrorConst<1>(7);
-  testNormalizedErrorConst<1>(29);
-  testNormalizedErrorConst<1>(37);
-  testNormalizedErrorConst<1>(77);
-  testNormalizedErrorConst<1>(219);
-  testNormalizedErrorConst<1>(5599);
-  testNormalizedErrorConst<1>(6603);
-  testNormalizedErrorConst<1>(200041);
-  testNormalizedErrorConst<1>(421875);
-  testNormalizedErrorConst<1>(3395043);
+  TestNormalizedErrorConst<1>(2);
+  TestNormalizedErrorConst<1>(7);
+  TestNormalizedErrorConst<1>(29);
+  TestNormalizedErrorConst<1>(37);
+  TestNormalizedErrorConst<1>(77);
+  TestNormalizedErrorConst<1>(219);
+  TestNormalizedErrorConst<1>(5599);
+  TestNormalizedErrorConst<1>(6603);
+  TestNormalizedErrorConst<1>(200041);
+  TestNormalizedErrorConst<1>(421875);
+  TestNormalizedErrorConst<1>(3395043);
 
-  testNormalizedErrorConst<1109>(1);
-  testNormalizedErrorConst<1109>(2);
-  testNormalizedErrorConst<1109>(7);
-  testNormalizedErrorConst<1109>(29);
-  testNormalizedErrorConst<1109>(37);
-  testNormalizedErrorConst<1109>(77);
-  testNormalizedErrorConst<1109>(219);
-  testNormalizedErrorConst<1109>(5599);
-  testNormalizedErrorConst<1109>(6603);
-  testNormalizedErrorConst<1109>(200041);
-  testNormalizedErrorConst<1109>(421875);
-  testNormalizedErrorConst<1109>(3395043);
+  TestNormalizedErrorConst<1109>(1);
+  TestNormalizedErrorConst<1109>(2);
+  TestNormalizedErrorConst<1109>(7);
+  TestNormalizedErrorConst<1109>(29);
+  TestNormalizedErrorConst<1109>(37);
+  TestNormalizedErrorConst<1109>(77);
+  TestNormalizedErrorConst<1109>(219);
+  TestNormalizedErrorConst<1109>(5599);
+  TestNormalizedErrorConst<1109>(6603);
+  TestNormalizedErrorConst<1109>(200041);
+  TestNormalizedErrorConst<1109>(421875);
+  TestNormalizedErrorConst<1109>(3395043);
 
   /*******************************************************/
-  /* tests where RMSE changes with the size of the array */
+  /* Tests where RMSE changes with the size of the array */
   /*******************************************************/
 
   // number of grid cells == cuda matrix vector length
-  testNormalizedErrorDiff<1>();
-  testNormalizedErrorDiff<2>();
-  testNormalizedErrorDiff<4>();
-  testNormalizedErrorDiff<7>();
-  testNormalizedErrorDiff<29>();
-  testNormalizedErrorDiff<37>();
-  testNormalizedErrorDiff<77>();
-  testNormalizedErrorDiff<219>();
-  testNormalizedErrorDiff<5599>();
-  testNormalizedErrorDiff<6603>();
-  testNormalizedErrorDiff<200041>();
-  testNormalizedErrorDiff<421875>();
-  testNormalizedErrorDiff<3395043>();
+  TestNormalizedErrorDiff<1>();
+  TestNormalizedErrorDiff<2>();
+  TestNormalizedErrorDiff<4>();
+  TestNormalizedErrorDiff<7>();
+  TestNormalizedErrorDiff<29>();
+  TestNormalizedErrorDiff<37>();
+  TestNormalizedErrorDiff<77>();
+  TestNormalizedErrorDiff<219>();
+  TestNormalizedErrorDiff<5599>();
+  TestNormalizedErrorDiff<6603>();
+  TestNormalizedErrorDiff<200041>();
+  TestNormalizedErrorDiff<421875>();
+  TestNormalizedErrorDiff<3395043>();
 
   // number of grid cells != cuda matrix vector length
-  testNormalizedErrorDiff<1>(2);
-  testNormalizedErrorDiff<1>(4);
-  testNormalizedErrorDiff<1>(7);
-  testNormalizedErrorDiff<1>(29);
-  testNormalizedErrorDiff<1>(37);
-  testNormalizedErrorDiff<1>(77);
-  testNormalizedErrorDiff<1>(219);
-  testNormalizedErrorDiff<1>(5599);
-  testNormalizedErrorDiff<1>(6603);
-  testNormalizedErrorDiff<1>(200041);
-  testNormalizedErrorDiff<1>(421875);
-  testNormalizedErrorDiff<1>(3395043);
+  TestNormalizedErrorDiff<1>(2);
+  TestNormalizedErrorDiff<1>(4);
+  TestNormalizedErrorDiff<1>(7);
+  TestNormalizedErrorDiff<1>(29);
+  TestNormalizedErrorDiff<1>(37);
+  TestNormalizedErrorDiff<1>(77);
+  TestNormalizedErrorDiff<1>(219);
+  TestNormalizedErrorDiff<1>(5599);
+  TestNormalizedErrorDiff<1>(6603);
+  TestNormalizedErrorDiff<1>(200041);
+  TestNormalizedErrorDiff<1>(421875);
+  TestNormalizedErrorDiff<1>(3395043);
 
-  testNormalizedErrorDiff<1109>(1);
-  testNormalizedErrorDiff<1109>(2);
-  testNormalizedErrorDiff<1109>(4);
-  testNormalizedErrorDiff<1109>(7);
-  testNormalizedErrorDiff<1109>(29);
-  testNormalizedErrorDiff<1109>(37);
-  testNormalizedErrorDiff<1109>(77);
-  testNormalizedErrorDiff<1109>(219);
-  testNormalizedErrorDiff<1109>(5599);
-  testNormalizedErrorDiff<1109>(6603);
-  testNormalizedErrorDiff<1109>(200041);
-  testNormalizedErrorDiff<1109>(421875);
-  testNormalizedErrorDiff<1109>(3395043);
+  TestNormalizedErrorDiff<1109>(1);
+  TestNormalizedErrorDiff<1109>(2);
+  TestNormalizedErrorDiff<1109>(4);
+  TestNormalizedErrorDiff<1109>(7);
+  TestNormalizedErrorDiff<1109>(29);
+  TestNormalizedErrorDiff<1109>(37);
+  TestNormalizedErrorDiff<1109>(77);
+  TestNormalizedErrorDiff<1109>(219);
+  TestNormalizedErrorDiff<1109>(5599);
+  TestNormalizedErrorDiff<1109>(6603);
+  TestNormalizedErrorDiff<1109>(200041);
+  TestNormalizedErrorDiff<1109>(421875);
+  TestNormalizedErrorDiff<1109>(3395043);
 }

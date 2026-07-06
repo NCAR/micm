@@ -47,13 +47,23 @@
 # -cert-err58-cpp / -cert-msc51-cpp:
 #   err58 fires on static storage with non-trivial constructors;
 #   msc51 is a Windows-specific RNG check.
+#
+# -bugprone-narrowing-conversions:
+#   Fires on size_t->double in math expressions and unsigned->ptrdiff_t in
+#   std::next calls. All are safe within realistic problem sizes for a chemistry
+#   solver. Too noisy for the benefit.
 
-Checks: >
+Checks: |
   # disable all checks
   -*,
   # explicitly enabled checks
   readability-braces-around-statements,
+  readability-identifier-naming,
+  readability-redundant-inline-specifier,
+  readability-qualified-auto,
+  performance-unnecessary-value-param,
   # explicitly disabled checks
+  -readability-redundant-member-init,
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,
   -readability-magic-numbers,
@@ -64,6 +74,7 @@ Checks: >
   -readability-function-cognitive-complexity,
   -bugprone-signal-handler,
   -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
   -cert-err58-cpp,
   -cert-msc51-cpp,
   -performance-enum-size,
@@ -85,22 +96,24 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.FunctionIgnoredRegexp
     value:           '^(begin|end|operator.*)$'
-  - key:             readability-identifier-naming.VariableCase
-    value:           lower_case
   - key:             readability-identifier-naming.ParameterCase
     value:           aNy_CasE
   - key:             readability-identifier-naming.MemberCase
     value:           aNy_CasE
   - key:             readability-identifier-naming.MemberSuffix
     value:           _
-  - key:             readability-identifier-naming.ConstantCase
-    value:           UPPER_CASE
-  - key:             readability-identifier-naming.ClassConstantCase
-    value:           UPPER_CASE
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           CamelCase
   - key:             readability-identifier-naming.GlobalConstantCase
     value:           UPPER_CASE
+    # Allow Google-style 'k'-prefixed constants (e.g. kConditions) used in tests.
+  - key:             readability-identifier-naming.GlobalConstantIgnoredRegexp
+    value:           '^k[A-Z][A-Za-z0-9_]*$'
   - key:             readability-identifier-naming.TemplateParameterCase
     value:           CamelCase
+    # CUDA tests use 'cuda_matrix_vector_length' as a template parameter name.
+  - key:             readability-identifier-naming.TemplateParameterIgnoredRegexp
+    value:           '^cuda_matrix_vector_length$'
   - key:             readability-implicit-bool-conversion.AllowIntegerConditions
     value:           1
   - key:             readability-implicit-bool-conversion.AllowPointerConditions

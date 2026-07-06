@@ -160,7 +160,9 @@ namespace micm
 
       // Let the thread 0 of this threadblock write its result to output array, inexed by this threadblock
       if (l_tid == 0)
+      {
         d_errors_output[blockIdx.x] = sdata[0];
+      }
     }
 
     // CUDA kernel to compute the scaled vectors

@@ -59,8 +59,10 @@ namespace micm
     {
       FreeDevice(d_ptr);
       if (host_vec.empty())
+      {
         return;
-      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      }
+      auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       CHECK_CUDA_ERROR(cudaMallocAsync(&d_ptr, sizeof(T) * host_vec.size(), stream), "cudaMalloc");
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(d_ptr, host_vec.data(), sizeof(T) * host_vec.size(), cudaMemcpyHostToDevice, stream),
@@ -72,7 +74,7 @@ namespace micm
     {
       if (d_ptr)
       {
-        auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+        auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
         CHECK_CUDA_ERROR(cudaFreeAsync(d_ptr, stream), "cudaFree");
         d_ptr = nullptr;
       }
@@ -173,14 +175,14 @@ namespace micm
       param_.n_user_defined_ = cpu_store.user_defined_.size();
       param_.n_surface_ = cpu_store.surface_.size();
 
-      param_.troe_offset_ = cpu_store.troe_offset();
-      param_.ternary_offset_ = cpu_store.ternary_offset();
-      param_.branched_offset_ = cpu_store.branched_offset();
-      param_.tunneling_offset_ = cpu_store.tunneling_offset();
-      param_.taylor_offset_ = cpu_store.taylor_offset();
-      param_.reversible_offset_ = cpu_store.reversible_offset();
-      param_.user_defined_offset_ = cpu_store.user_defined_offset();
-      param_.surface_offset_ = cpu_store.surface_offset();
+      param_.troe_offset_ = cpu_store.TroeOffset();
+      param_.ternary_offset_ = cpu_store.TernaryOffset();
+      param_.branched_offset_ = cpu_store.BranchedOffset();
+      param_.tunneling_offset_ = cpu_store.TunnelingOffset();
+      param_.taylor_offset_ = cpu_store.TaylorOffset();
+      param_.reversible_offset_ = cpu_store.ReversibleOffset();
+      param_.user_defined_offset_ = cpu_store.UserDefinedOffset();
+      param_.surface_offset_ = cpu_store.SurfaceOffset();
 
       // Upload parameterized-multiplier rc_indices (static per solver build)
       const auto& mults = cpu_store.parameterized_multipliers_;
@@ -191,8 +193,10 @@ namespace micm
       {
         std::vector<std::size_t> rc_indices(mults.size());
         for (std::size_t i = 0; i < mults.size(); ++i)
-          rc_indices[i] = mults[i].rc_index;
-        auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+        {
+          rc_indices[i] = mults[i].rc_index_;
+        }
+        auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
         CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
         CHECK_CUDA_ERROR(
             cudaMemcpyAsync(
@@ -212,7 +216,9 @@ namespace micm
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())
+      {
         return nullptr;
+      }
 
       const std::size_t n_mults = mults.size();
       const std::size_t n_cells = conditions.size();
@@ -221,15 +227,21 @@ namespace micm
 
       std::vector<double> host_vals(n_vals, 0.0);
       for (std::size_t g = 0; g < n_groups; ++g)
+      {
         for (std::size_t i = 0; i < n_mults; ++i)
+        {
           for (std::size_t j = 0; j < L; ++j)
           {
             const std::size_t cell = g * L + j;
             if (cell < n_cells)
-              host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate(conditions[cell]);
+            {
+              host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate_(conditions[cell]);
+            }
           }
+        }
+      }
 
-      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       if (n_vals > d_mult_vals_capacity_)
       {
         FreeDevice(d_mult_vals_);
@@ -246,7 +258,7 @@ namespace micm
     /// @return Device pointer valid until the next call to UploadConditions.
     const Conditions* UploadConditions(const std::vector<Conditions>& conditions)
     {
-      auto stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
+      auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       if (conditions.size() > d_conditions_capacity_)
       {
         FreeDevice(d_conditions_);

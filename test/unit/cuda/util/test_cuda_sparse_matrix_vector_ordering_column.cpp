@@ -8,47 +8,47 @@
 
 #include <cmath>
 
-/* Below are the policy tests on the CPU */
+/* Below are the policy Tests on the CPU */
 
 TEST(SparseVectorCompressedColumnMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, SetScalar)
 {
-  testSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, AddToDiagonal)
 {
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  testAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, Print)
 {
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  testPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, PrintNonZero)
 {
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  testPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
-/* These are the customized tests for GPU only */
+/* These are the customized Tests for GPU only */
 
 TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
 {
@@ -64,7 +64,7 @@ TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -74,33 +74,33 @@ TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
   EXPECT_EQ(2, matrix.AsVector().size());
   EXPECT_EQ(2, oneMatrix.AsVector().size());
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   matrix.CopyToHost();
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -123,22 +123,22 @@ TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrixAddOne)
 
   EXPECT_EQ(matrix.AsVector().size(), 2);
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -161,7 +161,7 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
   }
 
   EXPECT_EQ(2, oneMatrix.AsVector().size());
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -170,14 +170,14 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
   auto param = oneMatrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -193,7 +193,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>> matrix{ builder };
 
   EXPECT_EQ(2, matrix.AsVector().size());
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -202,7 +202,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for (auto& elem : matrix.AsVector())
+  for (const auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -214,14 +214,14 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
         "The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
   }
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for (auto& elem : oneMatrix.AsVector())
+  for (const auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -230,7 +230,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
 template<std::size_t cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
-  auto matrix = testSingleBlockMatrix<
+  auto matrix = TestSingleBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 
@@ -270,7 +270,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
 template<std::size_t cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
-  auto matrix = testMultiBlockMatrix<
+  auto matrix = TestMultiBlockMatrix<
       micm::CudaSparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<cuda_matrix_vector_length>>();
 

@@ -125,14 +125,18 @@ class StubAerosolWithConstraints
   std::set<std::string> ConstraintAlgebraicVariableNames() const
   {
     if (!total_mass_.has_value())
+    {
       return {};
+    }
     return { "AEROSOL.A_AQ" };
   }
 
   std::set<std::string> ConstraintSpeciesDependencies() const
   {
     if (!total_mass_.has_value())
+    {
       return {};
+    }
     return { "A_GAS", "AEROSOL.A_AQ" };
   }
 
@@ -140,7 +144,9 @@ class StubAerosolWithConstraints
       const std::unordered_map<std::string, std::size_t>& state_indices) const
   {
     if (!total_mass_.has_value())
+    {
       return {};
+    }
     auto i_gas = state_indices.at("A_GAS");
     auto i_aq = state_indices.at("AEROSOL.A_AQ");
     // Constraint row is i_aq, depends on both A_GAS and A_AQ

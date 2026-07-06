@@ -39,25 +39,45 @@ static void SortLikeBuilder(std::vector<Process>& procs)
               {
                 using T = std::decay_t<decltype(v)>;
                 if constexpr (std::is_same_v<T, ArrheniusRateConstantParameters>)
+                {
                   return 0;
+                }
                 else if constexpr (std::is_same_v<T, TroeRateConstantParameters>)
+                {
                   return 1;
+                }
                 else if constexpr (std::is_same_v<T, TernaryChemicalActivationRateConstantParameters>)
+                {
                   return 2;
+                }
                 else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
+                {
                   return 3;
+                }
                 else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
+                {
                   return 4;
+                }
                 else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
+                {
                   return 5;
+                }
                 else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
+                {
                   return 6;
+                }
                 else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
+                {
                   return 7;
+                }
                 else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
+                {
                   return 8;
+                }
                 else
+                {
                   return 9;
+                }
               },
               p.process_.rate_constant_);
         };
@@ -80,7 +100,7 @@ static std::vector<std::string> CustomParamLabels(const Process& proc)
 }
 
 template<class DenseMatrixPolicy>
-void testProcessUpdateState(const std::size_t number_of_grid_cells)
+void TestProcessUpdateState(const std::size_t number_of_grid_cells)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   Species bar("bar");
@@ -160,13 +180,13 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
 
     // r3 (UserDefined) at rc_index = user_defined_offset; bar is parameterized
     double expected_ud = user_rate * (cond.air_density_ * 0.82);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.user_defined_offset()], expected_ud, 1.0e-12 * expected_ud)
+    EXPECT_NEAR(state.rate_constants_[i_cell][store.UserDefinedOffset()], expected_ud, 1.0e-12 * expected_ud)
         << "grid cell " << i_cell << "; UserDefined reaction";
 
     // r2 (Surface) at rc_index = surface_offset; foo is not parameterized
     double mean_free_speed = std::sqrt(8.0 * constants::GAS_CONSTANT / (M_PI * 0.025) * cond.temperature_);
     double expected_surf = 4.0 * num_conc * M_PI * radius * radius / (radius / foo_diff_coeff + 4.0 / mean_free_speed);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.surface_offset()], expected_surf, 1.0e-10 * expected_surf)
+    EXPECT_NEAR(state.rate_constants_[i_cell][store.SurfaceOffset()], expected_surf, 1.0e-10 * expected_surf)
         << "grid cell " << i_cell << "; Surface reaction";
   }
 }
@@ -182,15 +202,15 @@ using Group4VectorMatrix = VectorMatrix<T, 4>;
 
 TEST(Process, Matrix)
 {
-  testProcessUpdateState<Matrix<double>>(5);
+  TestProcessUpdateState<Matrix<double>>(5);
 }
 
 TEST(Process, VectorMatrix)
 {
-  testProcessUpdateState<Group1VectorMatrix<double>>(5);
-  testProcessUpdateState<Group2VectorMatrix<double>>(5);
-  testProcessUpdateState<Group3VectorMatrix<double>>(5);
-  testProcessUpdateState<Group4VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group1VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group2VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group3VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group4VectorMatrix<double>>(5);
 }
 
 TEST(Process, BuildsChemicalReaction)

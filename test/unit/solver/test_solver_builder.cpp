@@ -35,7 +35,7 @@ namespace
                          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 })
                          .SetPhase(gas_phase)
                          .Build();
-  micm::System the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  micm::System the_system = micm::System(gas_phase);
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
@@ -50,7 +50,7 @@ TEST(SolverBuilder, ThrowsUnusedSpecies)
 {
   auto d = micm::Species("D");
   micm::Phase phase_with_unused{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
-  micm::System system_with_unused = micm::System(micm::SystemParameters{ .gas_phase_ = phase_with_unused });
+  micm::System system_with_unused = micm::System(phase_with_unused);
 
   try
   {

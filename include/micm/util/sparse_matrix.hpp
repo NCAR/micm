@@ -43,7 +43,7 @@ namespace micm
 
   /// Helper variable template
   template<typename T>
-  inline constexpr std::size_t GroupVectorSize_v = GroupVectorSize<T>::value;
+  inline constexpr std::size_t GROUP_VECTOR_SIZE_V = GroupVectorSize<T>::value;
 
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
@@ -379,9 +379,13 @@ namespace micm
             }
           }
           if (matrix.IsZero(j, matrix.block_size_ - 1))
+          {
             os << "0" << std::endl;
+          }
           else
+          {
             os << matrix[i][j][matrix.block_size_ - 1] << std::endl;
+          }
         }
       }
       return os;
@@ -396,9 +400,15 @@ namespace micm
       {
         os << "Block " << i << std::endl;
         for (std::size_t j = 0; j < block_size_; ++j)
+        {
           for (std::size_t k = 0; k < block_size_; ++k)
+          {
             if (!this->IsZero(j, k))
+            {
               os << j << ", " << k << ", " << (*this)[i][j][k] << std::endl;
+            }
+          }
+        }
       }
     }
 
@@ -532,7 +542,7 @@ namespace micm
             if constexpr (!VectorLike<ArgType>)
             {
               // Get the L value for this matrix using the type trait
-              constexpr std::size_t matrix_L = GroupVectorSize_v<std::decay_t<decltype(arg)>>;
+              constexpr std::size_t matrix_L = GROUP_VECTOR_SIZE_V<std::decay_t<decltype(arg)>>;
 
               if (matrix_L != expected_L)
               {
@@ -663,7 +673,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockView)
     template<SparseMatrixBlockView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
@@ -686,7 +696,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg.Get();
     }
@@ -694,7 +704,7 @@ namespace micm
     /// @brief Get an element reference for a block (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    inline decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
     {
       return arg[block];
     }
