@@ -75,7 +75,7 @@ namespace micm
     };
 
     /// @brief Move constructor
-    CudaState(CudaState&& other)
+    CudaState(CudaState&& other) noexcept
         : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
       absolute_tolerance_param_ = other.absolute_tolerance_param_;
@@ -87,7 +87,7 @@ namespace micm
     }
 
     /// @brief Move assignment operator
-    CudaState& operator=(CudaState&& other)
+    CudaState& operator=(CudaState&& other) noexcept
     {
       if (this != &other)
       {

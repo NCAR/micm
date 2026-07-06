@@ -22,13 +22,13 @@ namespace micm
 
     CudaLuDecompositionMozartInPlace(const CudaLuDecompositionMozartInPlace&) = delete;
     CudaLuDecompositionMozartInPlace& operator=(const CudaLuDecompositionMozartInPlace&) = delete;
-    CudaLuDecompositionMozartInPlace(CudaLuDecompositionMozartInPlace&& other)
+    CudaLuDecompositionMozartInPlace(CudaLuDecompositionMozartInPlace&& other) noexcept
         : LuDecompositionMozartInPlace(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
 
-    CudaLuDecompositionMozartInPlace& operator=(CudaLuDecompositionMozartInPlace&& other)
+    CudaLuDecompositionMozartInPlace& operator=(CudaLuDecompositionMozartInPlace&& other) noexcept
     {
       LuDecompositionMozartInPlace::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);

@@ -28,14 +28,14 @@ namespace micm
 
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
-    CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
+    CudaRosenbrockSolver(CudaRosenbrockSolver&& other) noexcept
         : AbstractRosenbrockSolver<
               RatesPolicy,
               LinearSolverPolicy,
               ConstraintSetPolicy,
               CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(std::move(other)){};
 
-    CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
+    CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other) noexcept
     {
       RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::operator=(std::move(other));
       return *this;
