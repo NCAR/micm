@@ -105,9 +105,9 @@ template<class BuilderPolicy>
 void TestFlowTube(
     BuilderPolicy builder,
     const std::string& expected_results_path,
-    const const std::function<void(typename BuilderPolicy::StatePolicyType&)>&& prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    const const std::function<void(typename BuilderPolicy::StatePolicyType&)>&& postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
