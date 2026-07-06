@@ -10,9 +10,9 @@ template<class BuilderPolicy>
 void TestAnalyticalSurfaceRxn(
     BuilderPolicy& builder,
     double tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90

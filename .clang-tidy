@@ -62,6 +62,7 @@ Checks: |
   readability-redundant-inline-specifier,
   readability-qualified-auto,
   performance-unnecessary-value-param,
+  performance-noexcept-move-constructor,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,

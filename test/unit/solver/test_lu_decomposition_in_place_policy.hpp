@@ -8,7 +8,7 @@
 #include <random>
 
 template<typename T, class SparseMatrixPolicy>
-void CheckResults(const SparseMatrixPolicy& A, const SparseMatrixPolicy& LU, const std::function<void(const T, const T)> f)
+void CheckResults(const SparseMatrixPolicy& A, const SparseMatrixPolicy& LU, const std::function<void(const T, const T)>& f)
 {
   EXPECT_EQ(A.NumberOfBlocks(), LU.NumberOfBlocks());
   for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)

@@ -46,7 +46,7 @@ void CheckResults(
     const SparseMatrixPolicy A,
     const MatrixPolicy b,
     const MatrixPolicy x,
-    const std::function<void(const T, const T)> f)
+    const std::function<void(const T, const T)>& f)
 {
   T result;
   EXPECT_EQ(A.NumberOfBlocks(), b.NumRows());

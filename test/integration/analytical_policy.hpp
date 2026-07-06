@@ -135,9 +135,9 @@ void TestSimpleSystem(
     double absolute_tolerances,
     const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
     const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
-    std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve,
+    const std::unordered_map<std::string, std::vector<double>>& custom_parameters = {})
 {
   auto solver = builder.Build();
 
@@ -252,9 +252,9 @@ void TestSimpleStiffSystem(
     double absolute_tolerances,
     const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
     const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
-    std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve,
+    const std::unordered_map<std::string, std::vector<double>>& custom_parameters = {})
 {
   auto solver = builder.Build();
 
@@ -368,9 +368,9 @@ template<class BuilderPolicy>
 void TestAnalyticalTroe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-10,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -438,9 +438,9 @@ template<class BuilderPolicy>
 void TestAnalyticalStiffTroe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-5,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -532,9 +532,9 @@ template<class BuilderPolicy>
 void TestAnalyticalPhotolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -594,9 +594,9 @@ template<class BuilderPolicy>
 void TestAnalyticalStiffPhotolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-5,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -682,9 +682,9 @@ template<class BuilderPolicy>
 void TestAnalyticalTernaryChemicalActivation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-08,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -754,9 +754,9 @@ template<class BuilderPolicy>
 void TestAnalyticalStiffTernaryChemicalActivation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -850,9 +850,9 @@ template<class BuilderPolicy>
 void TestAnalyticalTunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -910,9 +910,9 @@ template<class BuilderPolicy>
 void TestAnalyticalStiffTunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -993,9 +993,9 @@ template<class BuilderPolicy>
 void TestAnalyticalArrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-9,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1052,9 +1052,9 @@ template<class BuilderPolicy>
 void TestAnalyticalStiffArrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1136,9 +1136,9 @@ template<class BuilderPolicy>
 void TestAnalyticalBranched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-13,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1223,9 +1223,9 @@ template<class BuilderPolicy>
 void TestAnalyticalStiffBranched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1339,9 +1339,9 @@ template<class BuilderPolicy>
 void TestAnalyticalRobertson(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1490,9 +1490,9 @@ template<class BuilderPolicy>
 void TestAnalyticalOregonator(
     BuilderPolicy builder,
     double relative_tolerance = 1e-4,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1695,9 +1695,9 @@ template<class BuilderPolicy>
 void TestAnalyticalHires(
     BuilderPolicy builder,
     double absolute_tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1902,9 +1902,9 @@ template<class BuilderPolicy>
 void TestAnalyticalE5(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
