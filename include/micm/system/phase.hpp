@@ -18,6 +18,7 @@ namespace micm
    public:
     Species species_;
     std::optional<double> diffusion_coefficient_;
+    std::optional<double> density_;
 
     PhaseSpecies(const Species& species)
         : species_(species)
@@ -30,9 +31,21 @@ namespace micm
     {
     }
 
+    PhaseSpecies(const Species& species, double diffusion_coefficient, double density)
+        : species_(species),
+          diffusion_coefficient_(diffusion_coefficient),
+          density_(density)
+    {
+    }
+
     void SetDiffusionCoefficient(double diffusion_coefficient)
     {
       diffusion_coefficient_ = diffusion_coefficient;
+    }
+
+    void SetDensity(double density)
+    {
+      density_ = density;
     }
   };
 
