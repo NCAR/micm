@@ -43,10 +43,10 @@ void CopyToHostDense(MatrixPolicy& matrix)
 
 template<typename T, class MatrixPolicy, class SparseMatrixPolicy>
 void CheckResults(
-    const SparseMatrixPolicy A,
-    const MatrixPolicy b,
-    const MatrixPolicy x,
-    const std::function<void(const T, const T)> f)
+    const SparseMatrixPolicy& A,
+    const MatrixPolicy& b,
+    const MatrixPolicy& x,
+    const std::function<void(const T, const T)>& f)
 {
   T result;
   EXPECT_EQ(A.NumberOfBlocks(), b.NumRows());

@@ -32,13 +32,13 @@ namespace micm
 
     CudaProcessSet(const CudaProcessSet&) = delete;
     CudaProcessSet& operator=(const CudaProcessSet&) = delete;
-    CudaProcessSet(CudaProcessSet&& other)
+    CudaProcessSet(CudaProcessSet&& other) noexcept
         : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other)),
           cuda_rate_store_(std::move(other.cuda_rate_store_))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
-    CudaProcessSet& operator=(CudaProcessSet&& other)
+    CudaProcessSet& operator=(CudaProcessSet&& other) noexcept
     {
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
