@@ -98,7 +98,7 @@ namespace micm
       }
     }
 
-    Solver(Solver&& other) noexcept         
+    Solver(Solver&& other) noexcept
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
           state_parameters_(other.state_parameters_),
@@ -112,7 +112,7 @@ namespace micm
 
     Solver& operator=(const Solver&) = delete;
 
-    Solver& operator=(Solver&& other) noexcept     
+    Solver& operator=(Solver&& other) noexcept
     {
       std::swap(this->solver_, other.solver_);
       state_parameters_ = other.state_parameters_;
