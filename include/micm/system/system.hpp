@@ -21,7 +21,7 @@ namespace micm
 
     System() = default;
 
-    System(Phase  gas_phase)
+    System(Phase gas_phase)
         : gas_phase_(std::move(gas_phase))
     {
     }

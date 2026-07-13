@@ -68,7 +68,7 @@ namespace micm
     Phase& operator=(Phase&&) noexcept = default;
 
     /// @brief Create a phase with a name and a set of species
-    Phase(std::string  name, const std::vector<PhaseSpecies>& phase_species)
+    Phase(std::string name, const std::vector<PhaseSpecies>& phase_species)
         : name_(std::move(name)),
           phase_species_(phase_species)
     {

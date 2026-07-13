@@ -48,12 +48,12 @@ namespace micm
 
     /// @brief Construct a species by name only
     /// @param name The name of the species
-    Species(std::string  name);
+    Species(std::string name);
 
     /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(std::string  name, const std::map<std::string, double>& properties);
+    Species(std::string name, const std::map<std::string, double>& properties);
 
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
@@ -90,13 +90,13 @@ namespace micm
   }
 
   inline Species::Species(const Species& other)
-      
-        = default;
 
-  inline Species::Species(std::string  name)
+      = default;
+
+  inline Species::Species(std::string name)
       : name_(std::move(name)){};
 
-  inline Species::Species(std::string  name, const std::map<std::string, double>& properties)
+  inline Species::Species(std::string name, const std::map<std::string, double>& properties)
       : name_(std::move(name)),
         properties_double_(properties){};
 
