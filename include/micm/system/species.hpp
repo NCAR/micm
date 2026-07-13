@@ -89,12 +89,8 @@ namespace micm
   }
 
   inline Species::Species(const Species& other)
-      : name_(other.name_),
-        properties_string_(other.properties_string_),
-        properties_double_(other.properties_double_),
-        properties_int_(other.properties_int_),
-        properties_bool_(other.properties_bool_),
-        parameterize_(other.parameterize_){};
+      
+        = default;
 
   inline Species::Species(const std::string& name)
       : name_(name){};

@@ -5,8 +5,7 @@ namespace micm
 {
 
   inline LuDecompositionDoolittleInPlace::LuDecompositionDoolittleInPlace()
-  {
-  }
+  = default;
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
