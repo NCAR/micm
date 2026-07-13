@@ -29,7 +29,7 @@ class AnotherStubAerosolModel
 {
  public:
   AnotherStubAerosolModel() = delete;
-  AnotherStubAerosolModel(std::string  name, const std::vector<micm::Phase>& phases)
+  AnotherStubAerosolModel(std::string name, const std::vector<micm::Phase>& phases)
       : name_(std::move(name)),
         phases_(phases)
   {

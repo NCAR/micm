@@ -22,7 +22,7 @@
 class EquilibriumConstraintModel
 {
  public:
-  EquilibriumConstraintModel(std::string  reactant, std::string  product, double K_eq)
+  EquilibriumConstraintModel(std::string reactant, std::string product, double K_eq)
       : reactant_(std::move(reactant)),
         product_(std::move(product)),
         K_eq_(K_eq)
@@ -118,12 +118,7 @@ class EquilibriumConstraintModel
 class ConservativeEquilibriumConstraintModel
 {
  public:
-  ConservativeEquilibriumConstraintModel(
-      std::string  a,
-      std::string  b,
-      std::string  c,
-      double K_eq,
-      double total)
+  ConservativeEquilibriumConstraintModel(std::string a, std::string b, std::string c, double K_eq, double total)
       : species_a_(std::move(a)),
         species_b_(std::move(b)),
         species_c_(std::move(c)),
@@ -235,7 +230,7 @@ class ConservativeEquilibriumConstraintModel
 class MassConservationModel
 {
  public:
-  MassConservationModel(std::string  controlled_species, const std::vector<std::string>& all_species, double total)
+  MassConservationModel(std::string controlled_species, const std::vector<std::string>& all_species, double total)
       : controlled_species_(std::move(controlled_species)),
         all_species_(all_species),
         total_(total)
@@ -1272,7 +1267,7 @@ class TemperatureDependentEquilibriumModel
 {
  public:
   TemperatureDependentEquilibriumModel(
-      std::string  reactant,
+      std::string reactant,
       const std::string& product,
       double K_eq_ref,
       double delta_H_over_R,

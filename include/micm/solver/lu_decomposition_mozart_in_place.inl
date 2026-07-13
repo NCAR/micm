@@ -4,8 +4,7 @@
 namespace micm
 {
 
-  inline LuDecompositionMozartInPlace::LuDecompositionMozartInPlace()
-  = default;
+  inline LuDecompositionMozartInPlace::LuDecompositionMozartInPlace() = default;
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)

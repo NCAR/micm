@@ -36,7 +36,7 @@ class StubAerosolModel
     double baz_mode1_to_mode2_quux_;  // rate constant for baz mode 1 to baz mode 2 conversion
   };
   StubAerosolModel() = delete;
-  StubAerosolModel(std::string  name, const std::vector<micm::Phase>& phases, const RateConstants& rate_constants)
+  StubAerosolModel(std::string name, const std::vector<micm::Phase>& phases, const RateConstants& rate_constants)
       : name_(std::move(name)),
         phases_(phases),
         rate_constants_(rate_constants)

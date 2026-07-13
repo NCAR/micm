@@ -57,7 +57,7 @@ namespace micm
         std::vector<Species> reactants,
         std::vector<StoichSpecies> products,
         RateConstantVariant rate_constant,
-        Phase  phase)
+        Phase phase)
         : reactants_(std::move(reactants)),
           products_(std::move(products)),
           rate_constant_(std::move(rate_constant)),
