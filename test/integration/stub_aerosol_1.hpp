@@ -16,6 +16,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 // some parameters used in the test
@@ -35,8 +36,8 @@ class StubAerosolModel
     double baz_mode1_to_mode2_quux_;  // rate constant for baz mode 1 to baz mode 2 conversion
   };
   StubAerosolModel() = delete;
-  StubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases, const RateConstants& rate_constants)
-      : name_(name),
+  StubAerosolModel(std::string  name, const std::vector<micm::Phase>& phases, const RateConstants& rate_constants)
+      : name_(std::move(name)),
         phases_(phases),
         rate_constants_(rate_constants)
   {

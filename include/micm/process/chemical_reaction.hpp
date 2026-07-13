@@ -16,6 +16,7 @@
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
 
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -56,11 +57,11 @@ namespace micm
         std::vector<Species> reactants,
         std::vector<StoichSpecies> products,
         RateConstantVariant rate_constant,
-        const Phase& phase)
+        Phase  phase)
         : reactants_(std::move(reactants)),
           products_(std::move(products)),
           rate_constant_(std::move(rate_constant)),
-          phase_(phase)
+          phase_(std::move(phase))
     {
     }
   };

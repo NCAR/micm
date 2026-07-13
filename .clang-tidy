@@ -65,6 +65,7 @@ Checks: |
   performance-noexcept-move-constructor,
   clang-diagnostic-error,
   modernize-use-equals-default,
+  modernize-pass-by-value,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
