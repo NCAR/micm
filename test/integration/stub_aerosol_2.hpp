@@ -16,6 +16,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 // Second stubbed aerosol model implementation
@@ -28,8 +29,8 @@ class AnotherStubAerosolModel
 {
  public:
   AnotherStubAerosolModel() = delete;
-  AnotherStubAerosolModel(const std::string& name, const std::vector<micm::Phase>& phases)
-      : name_(name),
+  AnotherStubAerosolModel(std::string  name, const std::vector<micm::Phase>& phases)
+      : name_(std::move(name)),
         phases_(phases)
   {
   }

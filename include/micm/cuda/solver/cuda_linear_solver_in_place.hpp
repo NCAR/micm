@@ -19,7 +19,7 @@ namespace micm
     LinearSolverInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLinearSolverInPlace(){};
+    CudaLinearSolverInPlace() = default;
 
     CudaLinearSolverInPlace(const CudaLinearSolverInPlace&) = delete;
     CudaLinearSolverInPlace& operator=(const CudaLinearSolverInPlace&) = delete;

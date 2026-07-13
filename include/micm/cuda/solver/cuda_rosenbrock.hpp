@@ -42,7 +42,7 @@ namespace micm
     };
 
     /// @brief Default constructor
-    CudaRosenbrockSolver(){};
+    CudaRosenbrockSolver() = default;
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
     /// @param linear_solver Linear solver
@@ -60,7 +60,7 @@ namespace micm
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"
-    ~CudaRosenbrockSolver(){};
+    ~CudaRosenbrockSolver() = default;
 
     /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy

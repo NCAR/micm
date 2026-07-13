@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <utility>
 
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
 ///
@@ -21,9 +22,9 @@
 class EquilibriumConstraintModel
 {
  public:
-  EquilibriumConstraintModel(const std::string& reactant, const std::string& product, double K_eq)
-      : reactant_(reactant),
-        product_(product),
+  EquilibriumConstraintModel(std::string  reactant, std::string  product, double K_eq)
+      : reactant_(std::move(reactant)),
+        product_(std::move(product)),
         K_eq_(K_eq)
   {
   }
@@ -118,14 +119,14 @@ class ConservativeEquilibriumConstraintModel
 {
  public:
   ConservativeEquilibriumConstraintModel(
-      const std::string& a,
-      const std::string& b,
-      const std::string& c,
+      std::string  a,
+      std::string  b,
+      std::string  c,
       double K_eq,
       double total)
-      : species_a_(a),
-        species_b_(b),
-        species_c_(c),
+      : species_a_(std::move(a)),
+        species_b_(std::move(b)),
+        species_c_(std::move(c)),
         K_eq_(K_eq),
         total_(total)
   {
@@ -234,8 +235,8 @@ class ConservativeEquilibriumConstraintModel
 class MassConservationModel
 {
  public:
-  MassConservationModel(const std::string& controlled_species, const std::vector<std::string>& all_species, double total)
-      : controlled_species_(controlled_species),
+  MassConservationModel(std::string  controlled_species, const std::vector<std::string>& all_species, double total)
+      : controlled_species_(std::move(controlled_species)),
         all_species_(all_species),
         total_(total)
   {
@@ -1271,12 +1272,12 @@ class TemperatureDependentEquilibriumModel
 {
  public:
   TemperatureDependentEquilibriumModel(
-      const std::string& reactant,
+      std::string  reactant,
       const std::string& product,
       double K_eq_ref,
       double delta_H_over_R,
       double T_ref = 298.15)
-      : reactant_(reactant),
+      : reactant_(std::move(reactant)),
         product_(product),
         K_eq_ref_(K_eq_ref),
         delta_H_over_R_(delta_H_over_R),
