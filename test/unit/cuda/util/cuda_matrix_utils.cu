@@ -3,9 +3,8 @@
 #include <cstdio>
 #include <iostream>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     __global__ void Square(double* d_data, std::size_t num_elements)
     {
@@ -107,5 +106,4 @@ namespace micm
       DenseMatrixAddOneElement<<<number_of_blocks, 32>>>(
           param.d_data_, number_of_columns, row_id, col_id, cuda_matrix_vector_length);
     }
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

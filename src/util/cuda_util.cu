@@ -3,9 +3,8 @@
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/micm_exception.hpp>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     void CheckCudaError(cudaError_t err, const char* file, int line, const std::string& str)
     {
@@ -105,5 +104,4 @@ namespace micm
       std::lock_guard<std::mutex> lock(mutex_);
       cuda_streams_map_.clear();
     }
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

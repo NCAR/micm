@@ -3,9 +3,8 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// This is the CUDA kernel that performs LU decomposition on the device
     __global__ void DecomposeKernel(CudaMatrixParam ALU_param, const LuDecomposeParam devstruct)
@@ -167,5 +166,4 @@ namespace micm
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           ALU_param, devstruct);
     }  // end of DecomposeKernelDriver
-  }  // end of namespace cuda
-}  // end of namespace micm
+  }  // end of namespace micm::cuda

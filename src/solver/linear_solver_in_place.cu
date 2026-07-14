@@ -5,9 +5,8 @@
 
 #include <chrono>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// This is the CUDA kernel that performs the "solve" function on the device
     __global__ void
@@ -183,5 +182,4 @@ namespace micm
       SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           x_param, ALU_param, devstruct);
     }
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

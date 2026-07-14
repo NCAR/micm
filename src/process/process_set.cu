@@ -3,9 +3,8 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// This is the CUDA kernel that calculates the forcing terms on the device
     __global__ void AddForcingTermsKernel(
@@ -399,5 +398,4 @@ namespace micm
           micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           rate_constants_param, state_variables_param, forcing_param, devstruct);
     }  // end of AddForcingTermsKernelDriver
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

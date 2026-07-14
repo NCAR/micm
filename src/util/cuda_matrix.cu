@@ -8,9 +8,8 @@
 
 #include <vector>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     template<typename T>
     cudaError_t MallocArray(T*& array, std::size_t num_elements)
@@ -172,5 +171,4 @@ namespace micm
         CudaMatrixParam& vectorMatrixDest,
         const CudaMatrixParam& vectorMatrixSrc);
     template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda
