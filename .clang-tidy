@@ -70,6 +70,7 @@ Checks: |
   performance-inefficient-algorithm,
   readability-container-contains,
   readability-container-size-empty,
+  modernize-use-constraints,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
