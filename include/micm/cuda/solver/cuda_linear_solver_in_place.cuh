@@ -4,9 +4,8 @@
 
 #include <micm/cuda/util/cuda_param.hpp>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// This is the host function that will call the CUDA kernel
     ///   to perform the "solve" function on the device
@@ -20,5 +19,4 @@ namespace micm
     /// This is the function that will delete the constant data
     ///   members of class "CudaLinearSolverInPlace" on the device
     void FreeConstData(LinearSolverInPlaceParam& devstruct);
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

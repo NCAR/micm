@@ -4,9 +4,8 @@
 
 #include <micm/cuda/util/cuda_param.hpp>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// This is the host function that will call the CUDA kernel
     ///   to perform LU decomposition on the device
@@ -20,5 +19,4 @@ namespace micm
     ///   members of class "CudaLuDecompositionMozartInPlace" on the device
     void FreeConstData(LuDecomposeMozartInPlaceParam& devstruct);
 
-  }  // end of namespace cuda
-}  // end of namespace micm
+  }  // end of namespace micm::cuda

@@ -13,9 +13,8 @@
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 #define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// @brief Checks for CUDA errors and prints error message if any
     /// @param err Error code to check
@@ -81,5 +80,4 @@ namespace micm
 
       std::mutex mutex_;
     };
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda
