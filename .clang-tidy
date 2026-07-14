@@ -69,6 +69,7 @@ Checks: |
   modernize-concat-nested-namespaces,
   performance-inefficient-algorithm,
   readability-container-contains,
+  readability-container-size-empty,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
