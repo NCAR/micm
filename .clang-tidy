@@ -67,6 +67,7 @@ Checks: |
   modernize-use-equals-default,
   modernize-pass-by-value,
   modernize-concat-nested-namespaces,
+  performance-inefficient-algorithm,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
