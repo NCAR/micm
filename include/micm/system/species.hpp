@@ -107,9 +107,8 @@ namespace micm
 
   inline bool Species::HasProperty(const std::string& key) const
   {
-    return properties_string_.contains(key) ||
-           properties_double_.contains(key) ||
-           properties_bool_.contains(key) || properties_int_.contains(key);
+    return properties_string_.contains(key) || properties_double_.contains(key) || properties_bool_.contains(key) ||
+           properties_int_.contains(key);
   }
 
   inline void Species::SetThirdBody()
