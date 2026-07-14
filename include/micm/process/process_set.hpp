@@ -159,7 +159,7 @@ namespace micm
         {
           continue;  // Skip reactants that are parameterizations
         }
-        if (variable_map.count(reactant.name_) < 1)
+        if (!variable_map.contains(reactant.name_))
         {
           throw MicmException(MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_REACTANT_DOES_NOT_EXIST, reactant.name_);
         }
@@ -173,7 +173,7 @@ namespace micm
         {
           continue;  // Skip products that are parameterizations
         }
-        if (variable_map.count(product.species_.name_) < 1)
+        if (!variable_map.contains(product.species_.name_))
         {
           throw MicmException(
               MICM_ERROR_CATEGORY_PROCESS, MICM_PROCESS_ERROR_CODE_PRODUCT_DOES_NOT_EXIST, product.species_.name_);
