@@ -7,9 +7,8 @@
 
 #include <cublas_v2.h>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// @brief Compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
     /// @param jacobian_param Dimensions and device data pointers for the Jacobian
@@ -35,5 +34,4 @@ namespace micm
         const CudaMatrixParam& absolute_tolerance_param,
         const double relative_tolerance,
         CudaErrorParam& errors_param);
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

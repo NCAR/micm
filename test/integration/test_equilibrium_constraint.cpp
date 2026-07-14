@@ -64,10 +64,10 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // Verify constraint metadata
   ASSERT_EQ(state.state_size_, 3);  // A, B, and C
   ASSERT_EQ(state.constraint_size_, 1);
-  ASSERT_TRUE(state.variable_map_.count("A") > 0);
-  ASSERT_TRUE(state.variable_map_.count("B") > 0);
-  ASSERT_TRUE(state.variable_map_.count("C") > 0);
-  ASSERT_TRUE(state.custom_rate_parameter_map_.count("B_C_eq") > 0);
+  ASSERT_TRUE(state.variable_map_.contains("A"));
+  ASSERT_TRUE(state.variable_map_.contains("B"));
+  ASSERT_TRUE(state.variable_map_.contains("C"));
+  ASSERT_TRUE(state.custom_rate_parameter_map_.contains("B_C_eq"));
 
   // Verify mass-matrix diagonal.
   // Size is species only; constrained species rows are algebraic (0), others are ODE (1).

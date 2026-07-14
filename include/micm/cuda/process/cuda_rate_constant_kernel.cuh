@@ -59,9 +59,8 @@ struct CudaReactionRateStoreParam
   std::size_t n_multipliers_ = 0;
 };
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// @brief Launch the rate constant kernel.  Lambda entries are not touched.
     /// @param d_mult_vals  Per-step interleaved multiplier values [group * n_mults * L + mult * L + lane].
@@ -72,5 +71,4 @@ namespace micm
         CudaMatrixParam& rc_param,
         const CudaMatrixParam& cp_param,
         const double* d_mult_vals);
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

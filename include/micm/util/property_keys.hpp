@@ -4,11 +4,10 @@
 
 #include <string>
 
-namespace micm
-{
-  namespace property_keys
+
+  namespace micm::property_keys
   {
     static constexpr const char* DIFFUSION_COEFFICIENT = "diffusion coefficient [m2 s-1]";
     static constexpr const char* MOLECULAR_WEIGHT = "molecular weight [kg mol-1]";
-  }  // namespace property_keys
-}  // namespace micm
+  } // namespace micm::property_keys
+

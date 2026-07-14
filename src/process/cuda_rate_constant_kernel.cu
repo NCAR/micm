@@ -20,9 +20,8 @@
   #define M_PI 3.14159265358979323846
 #endif
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// @brief Compute all analytic rate constants for one thread and write to rc_base (interleaved).
     /// @param cp_base   Group base pointer into custom_rate_parameters_ for this thread
@@ -169,5 +168,4 @@ namespace micm
           n_cells,
           L);
     }
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

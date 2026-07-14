@@ -7,9 +7,8 @@
 
 #include <cublas_v2.h>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
     __global__ void AlphaMinusJacobianKernel(
@@ -358,5 +357,4 @@ namespace micm
       }  // end of if-else for CUDA/CUBLAS implementation
       return std::max(normalized_error, 1.0e-10);
     }  // end of NormalizedErrorDriver function
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

@@ -157,20 +157,20 @@ namespace micm
       }
       for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (!(std::find(U_ids.begin(), U_ids.end(), std::make_pair(i, k)) != U_ids.end()))
+        if (!(U_ids.contains(std::make_pair(i, k))))
         {
           continue;
         }
         for (std::size_t j = i + 1; j <= k; ++j)
         {
-          if (std::find(L_ids.begin(), L_ids.end(), std::make_pair(j, i)) != L_ids.end())
+          if (L_ids.contains(std::make_pair(j, i)))
           {
             U_ids.insert(std::make_pair(j, k));
           }
         }
         for (std::size_t j = k + 1; j < n; ++j)
         {
-          if (std::find(L_ids.begin(), L_ids.end(), std::make_pair(j, i)) != L_ids.end())
+          if (L_ids.contains(std::make_pair(j, i)))
           {
             L_ids.insert(std::make_pair(j, k));
           }

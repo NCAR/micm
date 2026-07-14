@@ -91,18 +91,18 @@ namespace micm
     {
       for (std::size_t j = i + 1; j < n; ++j)
       {
-        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end())
+        if (ALU_ids.contains(std::make_pair(j, i)))
         {
           ALU_ids.insert(std::make_pair(j, i));
         }
       }
       for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(i, k)) != ALU_ids.end())
+        if (ALU_ids.contains(std::make_pair(i, k)))
         {
           for (std::size_t j = i + 1; j < n; ++j)
           {
-            if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end())
+            if (ALU_ids.contains(std::make_pair(j, i)))
             {
               ALU_ids.insert(std::make_pair(j, k));
             }

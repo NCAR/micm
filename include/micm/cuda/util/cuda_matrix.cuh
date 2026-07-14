@@ -8,9 +8,8 @@
 
 #include <vector>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// @brief Allocate memory on device
     /// @param vectorMatrix Reference to struct containing information about allocated memory
@@ -72,5 +71,4 @@ namespace micm
     /// @param val Value to fill the matrix with
     template<typename T>
     cudaError_t FillCudaMatrix(CudaMatrixParam& param, T val);
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

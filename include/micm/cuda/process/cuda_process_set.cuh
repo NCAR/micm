@@ -4,9 +4,8 @@
 
 #include <micm/cuda/util/cuda_param.hpp>
 
-namespace micm
-{
-  namespace cuda
+
+  namespace micm::cuda
   {
     /// This is the function that will copy the constant data
     ///   members of class "ProcessSet" to the device, except
@@ -41,5 +40,4 @@ namespace micm
         const CudaMatrixParam& state_variables_param,
         CudaMatrixParam& jacobian_param,
         const ProcessSetParam& devstruct);
-  }  // namespace cuda
-}  // namespace micm
+  }  // namespace micm::cuda

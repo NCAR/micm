@@ -66,6 +66,9 @@ Checks: |
   clang-diagnostic-error,
   modernize-use-equals-default,
   modernize-pass-by-value,
+  modernize-concat-nested-namespaces,
+  performance-inefficient-algorithm,
+  readability-container-contains,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
