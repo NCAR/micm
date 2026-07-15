@@ -135,6 +135,10 @@ namespace micm
 
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
     {
+      if (this == &other)
+      {
+        return *this;
+      }
       VectorMatrix<T, L>::operator=(other);
       if (this->param_.number_of_elements_ != other.param_.number_of_elements_)
       {
