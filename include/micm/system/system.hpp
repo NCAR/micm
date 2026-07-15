@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace micm
@@ -20,8 +21,8 @@ namespace micm
 
     System() = default;
 
-    System(const Phase& gas_phase)
-        : gas_phase_(gas_phase)
+    System(Phase gas_phase)
+        : gas_phase_(std::move(gas_phase))
     {
     }
 

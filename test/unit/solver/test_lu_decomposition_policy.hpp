@@ -12,7 +12,7 @@ void CheckResults(
     const SparseMatrixPolicy& A,
     const SparseMatrixPolicy& L,
     const SparseMatrixPolicy& U,
-    const std::function<void(const T, const T)> f)
+    const std::function<void(const T, const T)>& f)
 {
   EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
   EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());

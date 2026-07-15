@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <utility>
 #include <vector>
 
 namespace micm
@@ -18,6 +19,7 @@ namespace micm
    public:
     Species species_;
     std::optional<double> diffusion_coefficient_;
+    std::optional<double> density_;
 
     PhaseSpecies(const Species& species)
         : species_(species)
@@ -30,9 +32,21 @@ namespace micm
     {
     }
 
+    PhaseSpecies(const Species& species, double diffusion_coefficient, double density)
+        : species_(species),
+          diffusion_coefficient_(diffusion_coefficient),
+          density_(density)
+    {
+    }
+
     void SetDiffusionCoefficient(double diffusion_coefficient)
     {
       diffusion_coefficient_ = diffusion_coefficient;
+    }
+
+    void SetDensity(double density)
+    {
+      density_ = density;
     }
   };
 
@@ -54,8 +68,8 @@ namespace micm
     Phase& operator=(Phase&&) noexcept = default;
 
     /// @brief Create a phase with a name and a set of species
-    Phase(const std::string& name, const std::vector<PhaseSpecies>& phase_species)
-        : name_(name),
+    Phase(std::string name, const std::vector<PhaseSpecies>& phase_species)
+        : name_(std::move(name)),
           phase_species_(phase_species)
     {
     }

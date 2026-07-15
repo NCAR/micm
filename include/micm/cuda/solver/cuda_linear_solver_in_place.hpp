@@ -19,17 +19,17 @@ namespace micm
     LinearSolverInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLinearSolverInPlace(){};
+    CudaLinearSolverInPlace() = default;
 
     CudaLinearSolverInPlace(const CudaLinearSolverInPlace&) = delete;
     CudaLinearSolverInPlace& operator=(const CudaLinearSolverInPlace&) = delete;
-    CudaLinearSolverInPlace(CudaLinearSolverInPlace&& other)
+    CudaLinearSolverInPlace(CudaLinearSolverInPlace&& other) noexcept
         : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
 
-    CudaLinearSolverInPlace& operator=(CudaLinearSolverInPlace&& other)
+    CudaLinearSolverInPlace& operator=(CudaLinearSolverInPlace&& other) noexcept
     {
       LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);

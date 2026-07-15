@@ -4,9 +4,7 @@
 namespace micm
 {
 
-  inline LuDecompositionDoolittleInPlace::LuDecompositionDoolittleInPlace()
-  {
-  }
+  inline LuDecompositionDoolittleInPlace::LuDecompositionDoolittleInPlace() = default;
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
@@ -100,7 +98,7 @@ namespace micm
         }
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (ALU_ids.find(std::make_pair(i, j)) != ALU_ids.end() && ALU_ids.find(std::make_pair(j, k)) != ALU_ids.end())
+          if (ALU_ids.contains(std::make_pair(i, j)) && ALU_ids.contains(std::make_pair(j, k)))
           {
             ALU_ids.insert(std::make_pair(i, k));
             break;
@@ -117,7 +115,7 @@ namespace micm
         }
         for (std::size_t j = 0; j < i; ++j)
         {
-          if (ALU_ids.find(std::make_pair(k, j)) != ALU_ids.end() && ALU_ids.find(std::make_pair(j, i)) != ALU_ids.end())
+          if (ALU_ids.contains(std::make_pair(k, j)) && ALU_ids.contains(std::make_pair(j, i)))
           {
             ALU_ids.insert(std::make_pair(k, i));
             break;

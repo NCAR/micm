@@ -227,9 +227,7 @@ namespace micm
     ThreeStageRosenbrock();
   }
 
-  inline ChapmanODESolver::~ChapmanODESolver()
-  {
-  }
+  inline ChapmanODESolver::~ChapmanODESolver() = default;
 
   inline void ChapmanODESolver::ThreeStageRosenbrock()
   {

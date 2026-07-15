@@ -10,6 +10,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace micm
@@ -47,12 +48,12 @@ namespace micm
 
     /// @brief Construct a species by name only
     /// @param name The name of the species
-    Species(const std::string& name);
+    Species(std::string name);
 
     /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(const std::string& name, const std::map<std::string, double>& properties);
+    Species(std::string name, const std::map<std::string, double>& properties);
 
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
@@ -89,18 +90,14 @@ namespace micm
   }
 
   inline Species::Species(const Species& other)
-      : name_(other.name_),
-        properties_string_(other.properties_string_),
-        properties_double_(other.properties_double_),
-        properties_int_(other.properties_int_),
-        properties_bool_(other.properties_bool_),
-        parameterize_(other.parameterize_){};
 
-  inline Species::Species(const std::string& name)
-      : name_(name){};
+      = default;
 
-  inline Species::Species(const std::string& name, const std::map<std::string, double>& properties)
-      : name_(name),
+  inline Species::Species(std::string name)
+      : name_(std::move(name)){};
+
+  inline Species::Species(std::string name, const std::map<std::string, double>& properties)
+      : name_(std::move(name)),
         properties_double_(properties){};
 
   inline bool Species::IsParameterized() const
@@ -110,9 +107,8 @@ namespace micm
 
   inline bool Species::HasProperty(const std::string& key) const
   {
-    return properties_string_.find(key) != properties_string_.end() ||
-           properties_double_.find(key) != properties_double_.end() ||
-           properties_bool_.find(key) != properties_bool_.end() || properties_int_.find(key) != properties_int_.end();
+    return properties_string_.contains(key) || properties_double_.contains(key) || properties_bool_.contains(key) ||
+           properties_int_.contains(key);
   }
 
   inline void Species::SetThirdBody()
