@@ -191,10 +191,7 @@ namespace micm
     /// @param new_number_densities the new number densities
     /// @param errors The computed errors
     /// @return
-    double ErrorNorm(
-        std::vector<double> Y,
-        std::vector<double> Ynew,
-        std::vector<double> errors);
+    double ErrorNorm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors);
   };
 
   void ChapmanODESolver::SolverStats::Reset()

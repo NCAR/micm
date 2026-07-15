@@ -200,7 +200,8 @@ namespace micm
     /// @param model External model instance (will be moved or copied into shared ownership)
     template<typename ModelType>
     ExternalModelSystem(ModelType&& model)
-    requires (!std::is_same_v<std::decay_t<ModelType>, ExternalModelSystem>) {
+      requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelSystem>)
+    {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
       state_size_func_ = [shared_model]() -> std::tuple<std::size_t, std::size_t> { return shared_model->StateSize(); };
       variable_names_func_ = [shared_model]() -> std::set<std::string> { return shared_model->StateVariableNames(); };
@@ -264,10 +265,10 @@ namespace micm
     ///
     /// @tparam ModelType Type of the external model (must implement the external model interface)
     /// @param model External model instance (will be moved or copied into shared ownership)
-    template<
-        typename ModelType>
+    template<typename ModelType>
     ExternalModelProcessSet(ModelType&& model)
-    requires (!std::is_same_v<std::decay_t<ModelType>, ExternalModelProcessSet>) {
+      requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelProcessSet>)
+    {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
       non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
           -> std::set<std::pair<std::size_t, std::size_t>> { return shared_model->NonZeroJacobianElements(species_map); };
@@ -366,10 +367,10 @@ namespace micm
     ///
     /// @tparam ModelType Type of the external model (must satisfy HasConstraints)
     /// @param model External model instance
-    template<
-        typename ModelType>
+    template<typename ModelType>
     ExternalModelConstraintSet(ModelType&& model)
-    requires (!std::is_same_v<std::decay_t<ModelType>, ExternalModelConstraintSet>) {
+      requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelConstraintSet>)
+    {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
       algebraic_variable_names_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintAlgebraicVariableNames(); };
