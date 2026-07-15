@@ -53,7 +53,7 @@ namespace micm
         used_species.begin(),
         used_species.end(),
         std::inserter(unused_species, unused_species.begin()));
-    if (unused_species.size() > 0)
+    if (!unused_species.empty())
     {
       std::string err_msg = "Unused species in chemical system:";
       for (const auto& species : unused_species)

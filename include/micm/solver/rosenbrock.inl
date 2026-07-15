@@ -231,12 +231,12 @@ namespace micm
           result.state_ = SolverState::NaNDetected;
           break;
         }
-        else if (std::isinf(error) == 1)
+        if (std::isinf(error) == 1)
         {
           result.state_ = SolverState::InfDetected;
           break;
         }
-        else if ((error < 1) || (H < h_min))
+        if ((error < 1) || (H < h_min))
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;

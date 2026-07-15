@@ -22,10 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
+        uses: egor-tensin/setup-mingw@v3
         with:
           platform: ${{ matrix.architecture }}
-          version: 12.2.0 # https://github.com/egor-tensin/setup-mingw/issues/14
 
       - name: Run Cmake 
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "MinGW Makefiles"

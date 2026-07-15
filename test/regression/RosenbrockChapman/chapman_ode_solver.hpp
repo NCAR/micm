@@ -192,8 +192,8 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     double ErrorNorm(
-        std::vector<double> original_number_densities,
-        std::vector<double> new_number_densities,
+        std::vector<double> Y,
+        std::vector<double> Ynew,
         std::vector<double> errors);
   };
 

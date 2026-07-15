@@ -122,12 +122,10 @@ namespace micm
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
           break;
         }
-        else
-        {
-          // if we fail, we need to reset the solution to the last known good solution
-          Yn1.Copy(Yn);
-          H *= time_step_reductions[n_convergence_failures++];
-        }
+
+        // if we fail, we need to reset the solution to the last known good solution
+        Yn1.Copy(Yn);
+        H *= time_step_reductions[n_convergence_failures++];
       }
       else
       {

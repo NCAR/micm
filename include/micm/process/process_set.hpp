@@ -143,7 +143,7 @@ namespace micm
         jacobian_product_ids_(),
         jacobian_yields_(),
         jacobian_flat_ids_(),
-        is_algebraic_variable_(variable_map.size(), false),
+        is_algebraic_variable_(variable_map.size(), 0u),
         variable_map_(variable_map)
   {
     // For each process, look up each reactant name in variable_map and
@@ -333,7 +333,7 @@ namespace micm
     std::fill(is_algebraic_variable_.begin(), is_algebraic_variable_.end(), false);
     for (const auto variable_id : variable_ids)
     {
-      is_algebraic_variable_[variable_id] = true;
+      is_algebraic_variable_[variable_id] = 1u;
     }
   }
 

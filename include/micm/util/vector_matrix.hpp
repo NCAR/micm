@@ -245,7 +245,7 @@ namespace micm
 
     VectorMatrix(const std::vector<std::vector<T>>& other)
         : x_dim_(other.size()),
-          y_dim_(other.size() == 0 ? 0 : other[0].size()),
+          y_dim_(other.empty() ? 0 : other[0].size()),
           data_(
               [&]() -> std::vector<T>
               {

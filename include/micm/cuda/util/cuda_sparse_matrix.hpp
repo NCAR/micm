@@ -75,6 +75,10 @@ namespace micm
 
     CudaSparseMatrix& operator=(const CudaSparseMatrix& other)
     {
+      if (this == &other)
+      {
+        return *this;
+      }
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
