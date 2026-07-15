@@ -151,7 +151,7 @@ namespace micm
     // an L-stable method, 2 stages, order 2
 
     RosenbrockSolverParameters parameters;
-    double g = 1.0 + 1.0 / std::sqrt(2.0);
+    double g = 1.0 + 1.0 / std::numbers::sqrt2;
 
     parameters.stages_ = 2;
 
