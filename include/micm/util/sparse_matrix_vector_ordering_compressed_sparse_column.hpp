@@ -171,7 +171,7 @@ namespace micm
       }
 
      private:
-      typename std::conditional<(L > 1), std::array<T, L>, T>::type storage_;
+      std::conditional_t<(L > 1), std::array<T, L>, T>storage_;
     };
 
     /// @brief ConstGroupView provides a const view of a single group of blocks for iteration

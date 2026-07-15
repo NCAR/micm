@@ -119,7 +119,7 @@ namespace micm
   template<class T>
   inline T Species::GetProperty(const std::string& key) const
   {
-    if constexpr (std::is_same<T, std::string>::value)
+    if constexpr (std::is_same_v<T, std::string>)
     {
       try
       {
@@ -133,7 +133,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same<T, double>::value)
+    else if constexpr (std::is_same_v<T, double>)
     {
       try
       {
@@ -147,7 +147,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same<T, bool>::value)
+    else if constexpr (std::is_same_v<T, bool>)
     {
       try
       {
@@ -161,7 +161,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same<T, int>::value)
+    else if constexpr (std::is_same_v<T, int>)
     {
       try
       {
@@ -185,19 +185,19 @@ namespace micm
   template<class T>
   inline void Species::SetProperty(const std::string& key, T value)
   {
-    if constexpr (std::is_same<T, std::string>::value || std::is_same<T, const char*>::value)
+    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, const char*>)
     {
       properties_string_[key] = value;
     }
-    else if constexpr (std::is_same<T, double>::value)
+    else if constexpr (std::is_same_v<T, double>)
     {
       properties_double_[key] = value;
     }
-    else if constexpr (std::is_same<T, bool>::value)
+    else if constexpr (std::is_same_v<T, bool>)
     {
       properties_bool_[key] = value;
     }
-    else if constexpr (std::is_same<T, int>::value)
+    else if constexpr (std::is_same_v<T, int>)
     {
       properties_int_[key] = value;
     }

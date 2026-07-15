@@ -75,6 +75,7 @@ Checks: |
   readability-inconsistent-declaration-parameter-name,
   readability-implicit-bool-conversion,
   readability-else-after-return,
+  modernize-type-traits,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
