@@ -39,7 +39,7 @@ struct SimpleConstrainedSystem
 
     // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
     std::vector<Constraint> constraints;
-    constraints.push_back(EquilibriumConstraint(
+    constraints.emplace_back(EquilibriumConstraint(
         "B_C_eq",
         C,
         std::vector<StoichSpecies>{ { B, 1.0 } },

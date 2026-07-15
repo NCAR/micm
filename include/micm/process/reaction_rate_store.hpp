@@ -143,7 +143,7 @@ namespace micm
           {
             if (reactant.IsParameterized())
             {
-              param_funcs.push_back(reactant.parameterize_);
+              param_funcs.emplace_back(reactant.parameterize_);
             }
           }
 

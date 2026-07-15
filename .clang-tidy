@@ -78,6 +78,7 @@ Checks: |
   modernize-type-traits,
   modernize-deprecated-headers,
   modernize-use-std-numbers,
+  modernize-use-emplace,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,

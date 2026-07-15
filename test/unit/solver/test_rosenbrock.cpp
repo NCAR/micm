@@ -74,7 +74,7 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::s
                                .Build();
 
   std::vector<micm::Constraint> constraints;
-  constraints.push_back(micm::EquilibriumConstraint(
+  constraints.emplace_back(micm::EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
