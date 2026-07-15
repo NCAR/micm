@@ -82,6 +82,7 @@ Checks: |
   modernize-use-std-numbers,
   modernize-use-emplace,
   modernize-use-auto,
+  modernize-loop-convert,
   # explicitly disabled checks
   -modernize-return-braced-init-list,
   -readability-redundant-member-init,
