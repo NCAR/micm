@@ -74,6 +74,7 @@ Checks: |
   cert-oop54-cpp,
   readability-inconsistent-declaration-parameter-name,
   readability-implicit-bool-conversion,
+  readability-else-after-return,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
