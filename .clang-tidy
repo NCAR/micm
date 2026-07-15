@@ -73,6 +73,7 @@ Checks: |
   modernize-use-constraints,
   cert-oop54-cpp,
   readability-inconsistent-declaration-parameter-name,
+  readability-implicit-bool-conversion,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
