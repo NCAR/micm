@@ -76,6 +76,7 @@ Checks: |
   readability-implicit-bool-conversion,
   readability-else-after-return,
   modernize-type-traits,
+  modernize-deprecated-headers,
   # explicitly disabled checks
   -readability-redundant-member-init,
   -readability-identifier-length,
