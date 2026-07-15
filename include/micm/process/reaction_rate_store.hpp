@@ -221,7 +221,7 @@ namespace micm
                 "Diffusion coefficient for species '" + p->phase_species_.species_.name_ + "' is not defined");
           }
           data.diffusion_coefficient_ = p->phase_species_.diffusion_coefficient_.value();
-          double mw = p->phase_species_.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT);
+          auto mw = p->phase_species_.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT);
           data.mean_free_speed_factor_ = 8.0 * constants::GAS_CONSTANT / (M_PI * mw);
           data.reaction_probability_ = p->reaction_probability_;
           data.custom_param_base_index_ = custom_param_off;

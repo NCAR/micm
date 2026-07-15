@@ -52,6 +52,8 @@
 #   Fires on size_t->double in math expressions and unsigned->ptrdiff_t in
 #   std::next calls. All are safe within realistic problem sizes for a chemistry
 #   solver. Too noisy for the benefit.
+# -modernize-return-braced-init-list,
+#   This would remove explicit calls to a constructor using a classname and that feels unnecessary
 
 Checks: |
   # disable all checks
@@ -79,7 +81,9 @@ Checks: |
   modernize-deprecated-headers,
   modernize-use-std-numbers,
   modernize-use-emplace,
+  modernize-use-auto,
   # explicitly disabled checks
+  -modernize-return-braced-init-list,
   -readability-redundant-member-init,
   -readability-identifier-length,
   -readability-convert-member-functions-to-static,

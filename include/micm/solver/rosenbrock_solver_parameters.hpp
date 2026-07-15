@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <numbers>
 
 namespace micm
 {
