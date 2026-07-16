@@ -58,7 +58,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   double C_total = 1.0e-6;
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+  constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -150,7 +150,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   std::vector<Constraint> constraints;
 
   // Equilibrium: K_eq * A_gas = A_aq  (A_aq is the explicitly set algebraic species)
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "gas_aq_eq",
       A_aq,
       std::vector<StoichSpecies>{ { A_gas, 1.0 } },
@@ -158,8 +158,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
   // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
-  constraints.push_back(
-      LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+  constraints.emplace_back(LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
@@ -254,7 +253,7 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
 
     constexpr double C_total = 1.0e-6;
     std::vector<Constraint> constraints;
-    constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+    constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(gas_phase))

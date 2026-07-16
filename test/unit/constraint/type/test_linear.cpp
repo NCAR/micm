@@ -126,7 +126,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   auto B = Species("B");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint(
+  constraints.emplace_back(LinearConstraint(
       "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -194,7 +194,7 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
   auto B = Species("B");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint(
+  constraints.emplace_back(LinearConstraint(
       "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -250,7 +250,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   auto C = Species("C");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint(
+  constraints.emplace_back(LinearConstraint(
       "weighted_sum",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
@@ -324,7 +324,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   auto C = Species("C");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint(
+  constraints.emplace_back(LinearConstraint(
       "ABC_total",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
@@ -392,8 +392,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
   auto B = Species("B");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(
-      LinearConstraint("A_equals_B", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) }, 0.0));
+  constraints.emplace_back(LinearConstraint("A_equals_B", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) }, 0.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -455,7 +454,7 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
   auto B = Species("B");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint(
+  constraints.emplace_back(LinearConstraint(
       "fractional_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 0.5), StoichSpecies(B, 1.5) }, 2.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
@@ -515,8 +514,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   auto B = Species("B");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(
-      LinearConstraint("A_B_sum", B, std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0) }, 1.0));
+  constraints.emplace_back(LinearConstraint("A_B_sum", B, std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0) }, 1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -587,8 +585,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   auto B = Species("B");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(
-      LinearConstraint("conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
+  constraints.emplace_back(LinearConstraint("conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
   const std::size_t num_species = 2;
@@ -650,7 +647,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   auto C = Species("C");
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint(
+  constraints.emplace_back(LinearConstraint(
       "weighted",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },

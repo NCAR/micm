@@ -225,7 +225,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_equilibrium",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -302,7 +302,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_equilibrium",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -368,7 +368,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "dissociation",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
@@ -429,7 +429,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -498,7 +498,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "dissociation",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },

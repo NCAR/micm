@@ -192,7 +192,7 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   species_names.reserve(n_species);
   for (std::size_t i = 0; i < n_species; ++i)
   {
-    phase_species.emplace_back(PhaseSpecies(Species(std::to_string(i))));
+    phase_species.emplace_back(Species(std::to_string(i)));
     species_names.emplace_back(std::to_string(i));
   }
   Phase gas_phase{ "gas", phase_species };
@@ -210,7 +210,7 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     std::vector<Species> reactants{};
     for (std::size_t i_react = 0; i_react < n_react; ++i_react)
     {
-      reactants.push_back({ std::to_string(get_species_id()) });
+      reactants.emplace_back( std::to_string(get_species_id()) );
     }
     auto n_product = get_n_product();
     std::vector<StoichSpecies> products{};
