@@ -154,7 +154,7 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>> matrix{ builder };
 
   auto oneMatrix = std::move(matrix);
-  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
   {
     throw std::runtime_error(
         "The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
@@ -208,7 +208,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 
   auto oneMatrix = std::move(matrix);
-  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
   {
     throw std::runtime_error(
         "The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
