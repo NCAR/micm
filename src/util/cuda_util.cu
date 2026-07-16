@@ -47,7 +47,7 @@ namespace micm::cuda
   // Create a cublas handle and return a unique pointer to it
   CublasHandlePtr CreateCublasHandle()
   {
-    cublasHandle_t* handle = new cublasHandle_t;
+    auto* handle = new cublasHandle_t;
     CHECK_CUBLAS_ERROR(cublasCreate(handle), "CUBLAS initialization failed...");
     return CublasHandlePtr(handle, CublasHandleDeleter());
   }
@@ -81,7 +81,7 @@ namespace micm::cuda
   // Create a CUDA stream and return a unique pointer to it
   CudaStreamPtr CudaStreamSingleton::CreateCudaStream()
   {
-    cudaStream_t* cuda_stream = new cudaStream_t;
+    auto* cuda_stream = new cudaStream_t;
     CHECK_CUDA_ERROR(cudaStreamCreate(cuda_stream), "CUDA stream initialization failed...");
     return CudaStreamPtr(cuda_stream, CudaStreamDeleter());
   }
