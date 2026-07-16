@@ -669,7 +669,7 @@ namespace micm
         // Tight loop over L rows in this group for vectorization
         for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...); // NOLINT(bugprone-use-after-move)
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
