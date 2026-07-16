@@ -85,6 +85,8 @@ Checks: |
   modernize-use-auto,
   modernize-loop-convert,
   bugprone-use-after-move,
+  bugprone-reserved-identifier,
+  bugprone-integer-division,
   # explicitly disabled checks
   -modernize-return-braced-init-list,
   -readability-redundant-member-init,
@@ -144,3 +146,8 @@ CheckOptions:
     value:           1
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           0
+    # _USE_MATH_DEFINES is a standard opt-in macro that must be defined before
+    # <cmath>/<math.h> to expose M_PI etc. (required by MSVC); allow the
+    # otherwise reserved (leading-underscore) name.
+  - key:             bugprone-reserved-identifier.AllowedIdentifiers
+    value:           '_USE_MATH_DEFINES'

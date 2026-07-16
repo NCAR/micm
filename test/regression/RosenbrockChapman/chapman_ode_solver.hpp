@@ -369,7 +369,7 @@ namespace micm
           }
           else
           {
-            double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
+            const std::size_t stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
               auto new_Y{ Y };
