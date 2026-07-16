@@ -40,7 +40,7 @@ namespace micm
     /// @brief Parameter set (unused for this class, always empty).
     std::vector<std::string> parameters_;
 
-   public:
+   
     /// @brief Default constructor
     LinearConstraint() = default;
 

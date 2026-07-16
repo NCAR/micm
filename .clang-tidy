@@ -87,6 +87,8 @@ Checks: |
   bugprone-use-after-move,
   bugprone-reserved-identifier,
   bugprone-integer-division,
+  cert-flp30-c,
+  readability-redundant-access-specifiers,
   # explicitly disabled checks
   -modernize-return-braced-init-list,
   -readability-redundant-member-init,
