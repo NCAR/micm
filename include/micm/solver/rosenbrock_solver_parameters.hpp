@@ -37,8 +37,11 @@ namespace micm
     };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
     double h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
 
-    std::size_t constraint_init_max_iterations_{ 10 };  // max Newton iterations for constraint initialization
-    double constraint_init_tolerance_{ 1e-10 };         // convergence tolerance for constraint initialization
+    std::size_t constraint_init_max_iterations_{ 10 };  // maximum Newton updates for constraint initialization
+    double constraint_init_tolerance_{ 0.1 };  // maximum weighted Newton correction as a fraction of the state tolerance
+    std::size_t constraint_init_max_backtracks_{ 24 };    // maximum line-search reductions per Newton update
+    double constraint_init_backtrack_factor_{ 0.5 };      // line-search step reduction factor
+    double constraint_init_sufficient_decrease_{ 1e-4 };  // required fractional decrease in the correction norm
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
@@ -100,6 +103,11 @@ namespace micm
     std::cout << "h_min: " << h_min_ << std::endl;
     std::cout << "h_max: " << h_max_ << std::endl;
     std::cout << "h_start: " << h_start_ << std::endl;
+    std::cout << "constraint_init_max_iterations: " << constraint_init_max_iterations_ << std::endl;
+    std::cout << "constraint_init_tolerance: " << constraint_init_tolerance_ << std::endl;
+    std::cout << "constraint_init_max_backtracks: " << constraint_init_max_backtracks_ << std::endl;
+    std::cout << "constraint_init_backtrack_factor: " << constraint_init_backtrack_factor_ << std::endl;
+    std::cout << "constraint_init_sufficient_decrease: " << constraint_init_sufficient_decrease_ << std::endl;
     std::cout << "new_function_evaluation: ";
     for (bool val : new_function_evaluation_)
     {

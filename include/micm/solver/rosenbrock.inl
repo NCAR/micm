@@ -442,115 +442,129 @@ namespace micm
     auto& Y = state.variables_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    // Reuse initial_forcing_ as the residual/delta workspace
-    auto& delta = derived_class_temporary_variables->initial_forcing_;
+    auto& correction = derived_class_temporary_variables->initial_forcing_;
+    auto& candidate = derived_class_temporary_variables->Ynew_;
+    auto& candidate_correction = derived_class_temporary_variables->Yerror_;
+    auto& original_state = derived_class_temporary_variables->K_[0];
 
     const auto& diagonal = state.upper_left_identity_diagonal_;
-    double max_residual = 0;
-    bool nan_detected = false;
-    bool inf_detected = false;
+    const auto& atol = state.absolute_tolerance_;
+    const double rtol = state.relative_tolerance_;
+    const std::size_t number_of_tolerances = atol.size();
 
-    // Pre-build reusable Function objects outside the iteration loop
-    auto check_convergence = DenseMatrixPolicy::Function(
-        [&max_residual, &nan_detected, &inf_detected, &diagonal](auto&& delta_view)
-        {
-          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
-          {
-            if (diagonal[i_var] == 0.0)
-            {
-              delta_view.ForEachRow(
-                  [&](const double& val)
-                  {
-                    double abs_val = std::abs(val);
-                    if (std::isnan(abs_val))
-                    {
-                      nan_detected = true;
-                    }
-                    else if (std::isinf(abs_val))
-                    {
-                      inf_detected = true;
-                    }
-                    else
-                    {
-                      max_residual = std::max(max_residual, abs_val);
-                    }
-                  },
-                  delta_view.GetConstColumnView(i_var));
-            }
-          }
-        },
-        delta);
+    // Constraint initialization is transactional: a failed projection must not leave a partially
+    // updated algebraic state for the caller to mistake for a valid solution.
+    original_state.Copy(Y);
 
-    auto apply_update = DenseMatrixPolicy::Function(
-        [&nan_detected, &inf_detected, &diagonal](auto&& y_view, auto&& delta_view)
+    auto finite_algebraic_values = [&diagonal](const DenseMatrixPolicy& values)
+    {
+      SolverState result = SolverState::Converged;
+      for (std::size_t i_cell = 0; i_cell < values.NumRows(); ++i_cell)
+      {
+        for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
         {
-          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          if (diagonal[i_var] != 0.0)
           {
-            if (diagonal[i_var] == 0.0)
-            {
-              y_view.ForEachRow(
-                  [&](double& y_val, const double& d_val)
-                  {
-                    if (std::isnan(d_val))
-                    {
-                      nan_detected = true;
-                    }
-                    else if (std::isinf(d_val))
-                    {
-                      inf_detected = true;
-                    }
-                    else
-                    {
-                      y_val += d_val;
-                    }
-                  },
-                  y_view.GetColumnView(i_var),
-                  delta_view.GetConstColumnView(i_var));
-            }
+            continue;
           }
-        },
-        Y,
-        delta);
+          if (std::isnan(values[i_cell][i_var]))
+          {
+            return SolverState::NaNDetected;
+          }
+          if (std::isinf(values[i_cell][i_var]))
+          {
+            result = SolverState::InfDetected;
+          }
+        }
+      }
+      return result;
+    };
+
+    auto maximum_algebraic_magnitude = [&diagonal](const DenseMatrixPolicy& values)
+    {
+      double maximum = 0.0;
+      for (std::size_t i_cell = 0; i_cell < values.NumRows(); ++i_cell)
+      {
+        for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+        {
+          if (diagonal[i_var] == 0.0)
+          {
+            maximum = std::max(maximum, std::abs(values[i_cell][i_var]));
+          }
+        }
+      }
+      return maximum;
+    };
+
+    auto weighted_correction_norm =
+        [&diagonal, &atol, rtol, number_of_tolerances](const DenseMatrixPolicy& values, const DenseMatrixPolicy& updates)
+    {
+      double maximum = 0.0;
+      for (std::size_t i_cell = 0; i_cell < values.NumRows(); ++i_cell)
+      {
+        for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+        {
+          if (diagonal[i_var] != 0.0)
+          {
+            continue;
+          }
+          const double value = values[i_cell][i_var];
+          const double update = updates[i_cell][i_var];
+          const double scale =
+              atol[i_var % number_of_tolerances] + rtol * std::max(std::abs(value), std::abs(value + update));
+          const double normalized_update =
+              scale > 0.0 ? std::abs(update) / scale : (update == 0.0 ? 0.0 : std::numeric_limits<double>::infinity());
+          maximum = std::max(maximum, normalized_update);
+        }
+      }
+      return maximum;
+    };
+
+    auto set_candidate =
+        [&diagonal](
+            DenseMatrixPolicy& destination, const DenseMatrixPolicy& values, const DenseMatrixPolicy& updates, double step)
+    {
+      destination.Copy(values);
+      for (std::size_t i_cell = 0; i_cell < values.NumRows(); ++i_cell)
+      {
+        for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+        {
+          if (diagonal[i_var] == 0.0)
+          {
+            destination[i_cell][i_var] += step * updates[i_cell][i_var];
+          }
+        }
+      }
+    };
+
+    auto restore_and_return = [&Y, &original_state](SolverState result)
+    {
+      Y.Copy(original_state);
+      return result;
+    };
 
     for (std::size_t iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
     {
-      // 1. Evaluate constraint residuals: G(y)
-      delta.Fill(0);
-      constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
-
-      // 2. Check convergence: ||G||_inf over algebraic rows only
-      max_residual = 0;
-      nan_detected = false;
-      inf_detected = false;
-      check_convergence(delta);
-
-      if (nan_detected)
+      // Evaluate G(y). Exact zeros are accepted without a factorization; all non-zero
+      // residuals are judged through their state-space Newton correction below.
+      correction.Fill(0);
+      constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, correction);
+      stats.constraint_init_iterations_ += 1;
+      const auto residual_state = finite_algebraic_values(correction);
+      if (residual_state != SolverState::Converged)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(residual_state);
       }
-      if (inf_detected)
-      {
-        return SolverState::InfDetected;
-      }
-
-      stats.constraint_init_iterations_ = iter + 1;
-
-      if (max_residual < parameters.constraint_init_tolerance_)
+      if (maximum_algebraic_magnitude(correction) == 0.0)
       {
         return SolverState::Converged;
       }
 
-      // 3. Compute constraint Jacobian: -dG/dy
+      // Compute and factor -dG/dy with identity rows for differential variables.
       state.jacobian_.Fill(0);
       constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
       stats.jacobian_updates_ += 1;
-
-      // 4. Form system matrix with alpha=1.0:
-      //    ODE rows (M=1): identity on diagonal (constraint Jacobian has no ODE-row entries)
-      //    Algebraic rows (M=0): -dG/dy from SubtractJacobianTerms (no alpha contribution)
       static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, 1.0);
-
-      // 5. Factor the system matrix
       if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
       {
         linear_solver_.Factor(state.jacobian_);
@@ -561,34 +575,100 @@ namespace micm
       }
       stats.decompositions_ += 1;
 
-      // 6. Solve: -J * delta = G  =>  delta = -J^{-1} * G
+      // Solve -J delta = G, so delta is the Newton correction in state units.
       if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
       {
-        linear_solver_.Solve(delta, state.jacobian_);
+        linear_solver_.Solve(correction, state.jacobian_);
       }
       else
       {
-        linear_solver_.Solve(delta, state.lower_matrix_, state.upper_matrix_);
+        linear_solver_.Solve(correction, state.lower_matrix_, state.upper_matrix_);
       }
       stats.solves_ += 1;
 
-      // 7. Apply update only to algebraic variables
-      nan_detected = false;
-      inf_detected = false;
-      apply_update(Y, delta);
-
-      if (nan_detected)
+      const auto correction_state = finite_algebraic_values(correction);
+      if (correction_state != SolverState::Converged)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(correction_state);
       }
-      if (inf_detected)
+
+      const double current_correction_norm = weighted_correction_norm(Y, correction);
+      if (!std::isfinite(current_correction_norm))
       {
-        return SolverState::InfDetected;
+        return restore_and_return(SolverState::InfDetected);
+      }
+
+      // Globalize Newton with an affine-covariant merit function: the norm of the
+      // simplified Newton correction computed with the already-factored current
+      // Jacobian. Scaling a complete constraint row changes neither correction.
+      double step = 1.0;
+      bool update_accepted = false;
+      double accepted_correction_norm = std::numeric_limits<double>::infinity();
+      for (std::size_t backtrack = 0; backtrack <= parameters.constraint_init_max_backtracks_; ++backtrack)
+      {
+        set_candidate(candidate, Y, correction, step);
+        if (finite_algebraic_values(candidate) != SolverState::Converged)
+        {
+          step *= parameters.constraint_init_backtrack_factor_;
+          continue;
+        }
+
+        candidate_correction.Fill(0);
+        constraints_.AddForcingTerms(candidate, state.custom_rate_parameters_, candidate_correction);
+        if (finite_algebraic_values(candidate_correction) != SolverState::Converged)
+        {
+          step *= parameters.constraint_init_backtrack_factor_;
+          continue;
+        }
+
+        if (maximum_algebraic_magnitude(candidate_correction) == 0.0)
+        {
+          accepted_correction_norm = 0.0;
+          update_accepted = true;
+          break;
+        }
+
+        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+        {
+          linear_solver_.Solve(candidate_correction, state.jacobian_);
+        }
+        else
+        {
+          linear_solver_.Solve(candidate_correction, state.lower_matrix_, state.upper_matrix_);
+        }
+        stats.solves_ += 1;
+
+        if (finite_algebraic_values(candidate_correction) != SolverState::Converged)
+        {
+          step *= parameters.constraint_init_backtrack_factor_;
+          continue;
+        }
+
+        accepted_correction_norm = weighted_correction_norm(candidate, candidate_correction);
+        const double required_norm =
+            (1.0 - parameters.constraint_init_sufficient_decrease_ * step) * current_correction_norm;
+        if (accepted_correction_norm <= parameters.constraint_init_tolerance_ || accepted_correction_norm < required_norm)
+        {
+          update_accepted = true;
+          break;
+        }
+
+        step *= parameters.constraint_init_backtrack_factor_;
+      }
+
+      if (!update_accepted)
+      {
+        return restore_and_return(SolverState::ConstraintInitializationFailed);
+      }
+
+      Y.Copy(candidate);
+      if (accepted_correction_norm <= parameters.constraint_init_tolerance_)
+      {
+        return SolverState::Converged;
       }
     }
 
-    // Did not converge within max iterations
-    return SolverState::ConstraintInitializationFailed;
+    return restore_and_return(SolverState::ConstraintInitializationFailed);
   }
 
 }  // namespace micm

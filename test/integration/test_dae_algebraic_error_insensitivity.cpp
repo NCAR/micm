@@ -153,10 +153,9 @@ namespace
 
 /// @brief Verify that the algebraic balance variable does not go deeply negative.
 ///
-/// Uses an ultra-stiff system (k=1e4, K1=100, K2=50) where the embedded error
-/// estimate produces near-zero Yerror for all variables. Without the step-change
-/// fix, the solver would accept a huge first step, overshooting P > C_total and
-/// forcing A_gas deeply negative.
+/// Uses an ultra-stiff system (k=1e4, K1=100, K2=50) where the algebraic embedded
+/// error is near zero. Differential error control and constrained stage solves
+/// must nevertheless prevent P from overshooting the conserved total deeply.
 TEST(DAEAlgebraicError, AlgebraicVariableDoesNotOvershootDeeply)
 {
   // Ultra-stiff: transient is ~5e-3 s, solver converges quickly

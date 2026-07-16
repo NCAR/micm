@@ -136,7 +136,7 @@ namespace
     }
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
-                      .SetSystem(System(SystemParameters{ .gas_phase_ = gas }))
+                      .SetSystem(System(gas))
                       .SetReactions(rxns)
                       .SetReorderState(false)
                       .Build();
@@ -154,13 +154,13 @@ namespace
       auto A = Species("A" + std::to_string(i)), B = Species("B" + std::to_string(i)), C = Species("C" + std::to_string(i));
       rxns.push_back(ChemicalReactionBuilder().SetReactants({ B }).SetProducts({ { C, 1 } }).SetRateConstant(ArrheniusRateConstantParameters{ .A_ = ks, .B_ = 0, .C_ = 0 }).SetPhase(gas).Build());
       constraints.push_back(EquilibriumConstraint(
-          "eq" + std::to_string(i), B, std::vector<StoichSpecies>{ { A, 1.0 } }, std::vector<StoichSpecies>{ { B, 1.0 } }, VantHoffParam{ .K_HLC_ref = Keq, .delta_H = 0.0 }));
+          "eq" + std::to_string(i), B, std::vector<StoichSpecies>{ { A, 1.0 } }, std::vector<StoichSpecies>{ { B, 1.0 } }, VantHoffParam{ .K_HLC_ref_ = Keq, .delta_H_ = 0.0 }));
       constraints.push_back(LinearConstraint(
           "mass" + std::to_string(i), A, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, Ctot));
     }
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
-                      .SetSystem(System(SystemParameters{ .gas_phase_ = gas }))
+                      .SetSystem(System(gas))
                       .SetReactions(rxns)
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)

@@ -97,7 +97,7 @@
 ///   ConstraintResidualFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
 ///     const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
 ///   - Returns a function that computes constraint residuals G(y), where G(y) = 0 when satisfied
-///   - Function signature: `void(state_parameters, state_variables, forcing)`
+///   - Function signature: `void(state_variables, state_parameters, forcing)`
 ///
 /// - `template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
 ///   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
@@ -105,7 +105,7 @@
 ///     const std::unordered_map<std::string, std::size_t>& state_variable_indices,
 ///     const SparseMatrixPolicy& jacobian) const`
 ///   - Returns a function that subtracts ∂G/∂y entries (matching the solver's -J convention)
-///   - Function signature: `void(state_parameters, state_variables, jacobian)`
+///   - Function signature: `void(state_variables, state_parameters, jacobian)`
 ///
 /// **Constraint Initialization Methods (Optional — detected via HasInitializeConstraintParameters concept):**
 ///
@@ -425,7 +425,7 @@ namespace micm
         get_initialize_constraint_parameters_function_ = [](const std::unordered_map<std::string, std::size_t>&,
                                                             const std::unordered_map<std::string, std::size_t>&)
             -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-        { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
+        { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) { }; };
       }
     }
   };

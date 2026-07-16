@@ -94,13 +94,13 @@ namespace
     auto solver =
         (method == Method::DaeQssa)
             ? micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                  .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = sys.gas_phase }))
+                  .SetSystem(micm::System(sys.gas_phase))
                   .SetReactions(sys.processes)
                   .AddExternalModel(constraint)
                   .SetReorderState(false)
                   .Build()
             : micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                  .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = sys.gas_phase }))
+                  .SetSystem(micm::System(sys.gas_phase))
                   .SetReactions(sys.processes)
                   .SetReorderState(false)
                   .Build();

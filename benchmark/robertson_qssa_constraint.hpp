@@ -6,7 +6,7 @@
 //
 // B, A, C are pre-existing species, so this model declares no new state
 // variables and is wired via SolverBuilder::AddExternalModel only (no entry in
-// SystemParameters::external_models_).
+// System's external-model collection).
 #pragma once
 
 #include <micm/system/conditions.hpp>
