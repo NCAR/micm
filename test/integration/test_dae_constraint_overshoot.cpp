@@ -158,7 +158,8 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
   // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
-  constraints.emplace_back(LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+  constraints.emplace_back(
+      LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))

@@ -7,8 +7,8 @@
 #include <cstddef>
 #include <iostream>
 #include <limits>
-#include <vector>
 #include <numbers>
+#include <vector>
 
 namespace micm
 {

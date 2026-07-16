@@ -210,7 +210,7 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     std::vector<Species> reactants{};
     for (std::size_t i_react = 0; i_react < n_react; ++i_react)
     {
-      reactants.emplace_back( std::to_string(get_species_id()) );
+      reactants.emplace_back(std::to_string(get_species_id()));
     }
     auto n_product = get_n_product();
     std::vector<StoichSpecies> products{};

@@ -167,7 +167,7 @@ class AnotherStubAerosolModel
     if (fo2_mode2_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end() &&
         fo2_to_baz_param_it != state_parameter_indices.end())
     {
-      forcing_info.emplace_back( fo2_mode2_index_it->second, baz_mode2_index_it->second, fo2_to_baz_param_it->second );
+      forcing_info.emplace_back(fo2_mode2_index_it->second, baz_mode2_index_it->second, fo2_to_baz_param_it->second);
     }
     auto baz_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.BAZ");
     auto qux_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.QUX");
@@ -175,7 +175,7 @@ class AnotherStubAerosolModel
     if (baz_mode3_index_it != state_variable_indices.end() && qux_mode3_index_it != state_variable_indices.end() &&
         baz_to_qux_param_it != state_parameter_indices.end())
     {
-      forcing_info.emplace_back( baz_mode3_index_it->second, qux_mode3_index_it->second, baz_to_qux_param_it->second );
+      forcing_info.emplace_back(baz_mode3_index_it->second, qux_mode3_index_it->second, baz_to_qux_param_it->second);
     }
 
     // copy capture the forcing_info vector in the lambda function that will calculate the forcing terms
@@ -218,14 +218,16 @@ class AnotherStubAerosolModel
     if (fo2_mode2_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end() &&
         fo2_to_baz_param_it != state_parameter_indices.end())
     {
-      jacobian_info.emplace_back( fo2_mode2_index_it->second,
-                                fo2_mode2_index_it->second,
-                                fo2_to_baz_param_it->second,
-                                -1.0 );  // reactant partial derivative
-      jacobian_info.emplace_back( baz_mode2_index_it->second,
-                                fo2_mode2_index_it->second,
-                                fo2_to_baz_param_it->second,
-                                1.0 );  // product partial derivative
+      jacobian_info.emplace_back(
+          fo2_mode2_index_it->second,
+          fo2_mode2_index_it->second,
+          fo2_to_baz_param_it->second,
+          -1.0);  // reactant partial derivative
+      jacobian_info.emplace_back(
+          baz_mode2_index_it->second,
+          fo2_mode2_index_it->second,
+          fo2_to_baz_param_it->second,
+          1.0);  // product partial derivative
     }
     auto baz_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.BAZ");
     auto qux_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.QUX");
@@ -233,14 +235,16 @@ class AnotherStubAerosolModel
     if (baz_mode3_index_it != state_variable_indices.end() && qux_mode3_index_it != state_variable_indices.end() &&
         baz_to_qux_param_it != state_parameter_indices.end())
     {
-      jacobian_info.emplace_back( baz_mode3_index_it->second,
-                                baz_mode3_index_it->second,
-                                baz_to_qux_param_it->second,
-                                -1.0 );  // reactant partial derivative
-      jacobian_info.emplace_back( qux_mode3_index_it->second,
-                                baz_mode3_index_it->second,
-                                baz_to_qux_param_it->second,
-                                1.0 );  // product partial derivative
+      jacobian_info.emplace_back(
+          baz_mode3_index_it->second,
+          baz_mode3_index_it->second,
+          baz_to_qux_param_it->second,
+          -1.0);  // reactant partial derivative
+      jacobian_info.emplace_back(
+          qux_mode3_index_it->second,
+          baz_mode3_index_it->second,
+          baz_to_qux_param_it->second,
+          1.0);  // product partial derivative
     }
 
     // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms
