@@ -25,7 +25,6 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
-#include <math.h>
 #include <type_traits>
 #include <vector>
 

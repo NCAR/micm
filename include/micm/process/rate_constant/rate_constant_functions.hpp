@@ -25,7 +25,6 @@
 
 #include <cmath>
 #include <cstddef>
-#include <math.h>
 
 // constexpr <cmath> functions (std::exp, std::pow, std::sqrt, etc.) require C++23
 // and compiler support (P1383R2). Guard so MSVC and other compilers that haven't
