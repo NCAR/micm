@@ -87,7 +87,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   state.conditions_[0].temperature_ = 2;
   state.conditions_[0].pressure_ = 3;
 
-  for (double t{}; t < 100; ++t)
+  for (int t{}; t < 100; ++t)
   {
     state.custom_rate_parameters_[0] = photo_rates;
     solver.UpdateStateParameters(state);

@@ -56,7 +56,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   state.conditions_[0].temperature_ = 273;
   state.conditions_[0].pressure_ = 1000;
 
-  for (double t{}; t < 100; ++t)
+  for (int t{}; t < 100; ++t)
   {
     if (t > 50)
     {

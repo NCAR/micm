@@ -129,7 +129,7 @@ namespace micm
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
-          double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
+          const std::size_t stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
           {
             K[stage].Copy(initial_forcing);

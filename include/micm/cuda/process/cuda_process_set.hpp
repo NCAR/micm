@@ -32,6 +32,9 @@ namespace micm
 
     CudaProcessSet(const CudaProcessSet&) = delete;
     CudaProcessSet& operator=(const CudaProcessSet&) = delete;
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // members (devstruct_, cuda_rate_store_) untouched, so moving/swapping them out of `other`
+    // afterward is safe.
     CudaProcessSet(CudaProcessSet&& other) noexcept
         : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other)),
           cuda_rate_store_(std::move(other.cuda_rate_store_))
@@ -45,6 +48,7 @@ namespace micm
       cuda_rate_store_ = std::move(other.cuda_rate_store_);
       return *this;
     };
+    // NOLINTEND(bugprone-use-after-move)
 
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for

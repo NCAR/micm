@@ -52,6 +52,7 @@
 #   Fires on size_t->double in math expressions and unsigned->ptrdiff_t in
 #   std::next calls. All are safe within realistic problem sizes for a chemistry
 #   solver. Too noisy for the benefit.
+
 # -modernize-return-braced-init-list,
 #   This would remove explicit calls to a constructor using a classname and that feels unnecessary
 
@@ -83,6 +84,11 @@ Checks: |
   modernize-use-emplace,
   modernize-use-auto,
   modernize-loop-convert,
+  bugprone-use-after-move,
+  bugprone-reserved-identifier,
+  bugprone-integer-division,
+  cert-flp30-c,
+  readability-redundant-access-specifiers,
   # explicitly disabled checks
   -modernize-return-braced-init-list,
   -readability-redundant-member-init,
@@ -142,3 +148,8 @@ CheckOptions:
     value:           1
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           0
+    # _USE_MATH_DEFINES is a standard opt-in macro that must be defined before
+    # <cmath>/<math.h> to expose M_PI etc. (required by MSVC); allow the
+    # otherwise reserved (leading-underscore) name.
+  - key:             bugprone-reserved-identifier.AllowedIdentifiers
+    value:           '_USE_MATH_DEFINES'

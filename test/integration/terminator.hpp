@@ -58,8 +58,10 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
   };
 
   auto orig_state_vars = state.variables_;
-  for (double lon = 0.0; lon < 2.0 * M_PI; lon += 0.3)
+  int steps = std::floor(2.0 * M_PI / 0.3);
+  for (int step = 0; step < steps; ++step)
   {
+    double lon = step * 0.3;
     state.variables_ = orig_state_vars;
     for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     {

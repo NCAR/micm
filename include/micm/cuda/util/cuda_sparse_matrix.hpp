@@ -87,6 +87,8 @@ namespace micm
       return *this;
     }
 
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member param_ untouched, so swapping it out of `other` afterward is safe.
     CudaSparseMatrix& operator=(CudaSparseMatrix&& other) noexcept
     {
       if (this != &other)
@@ -96,6 +98,7 @@ namespace micm
       }
       return *this;
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     ~CudaSparseMatrix()
     {
