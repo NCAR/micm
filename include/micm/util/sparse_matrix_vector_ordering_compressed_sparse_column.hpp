@@ -460,7 +460,7 @@ namespace micm
         // Tight loop over blocks in this group for vectorization
         for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
         {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...); // NOLINT(bugprone-use-after-move)
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
