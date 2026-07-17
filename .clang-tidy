@@ -77,7 +77,7 @@ Checks: |
   modernize-use-equals-default,
   modernize-use-std-numbers,
   performance-for-range-copy,
-  # performance-implicit-conversion-in-loop,
+  performance-implicit-conversion-in-loop,
   performance-inefficient-algorithm,
   # performance-inefficient-string-concatenation,
   # performance-inefficient-vector-operation,
