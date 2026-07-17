@@ -97,7 +97,9 @@ namespace micm
 
     /// @brief Default constructor
     ChapmanODESolver();
-    ~ChapmanODESolver() = default;;;
+    ~ChapmanODESolver() = default;
+    ;
+    ;
 
     /// @brief Sets parameters for the solver
     void ThreeStageRosenbrock();
@@ -223,8 +225,6 @@ namespace micm
   {
     ThreeStageRosenbrock();
   }
-
-  
 
   inline void ChapmanODESolver::ThreeStageRosenbrock()
   {

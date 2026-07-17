@@ -209,14 +209,14 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     auto n_react = get_n_react();
     std::vector<Species> reactants{};
     reactants.reserve(n_react);
-for (std::size_t i_react = 0; i_react < n_react; ++i_react)
+    for (std::size_t i_react = 0; i_react < n_react; ++i_react)
     {
       reactants.emplace_back(std::to_string(get_species_id()));
     }
     auto n_product = get_n_product();
     std::vector<StoichSpecies> products{};
     products.reserve(n_product);
-for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
+    for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
       products.push_back(StoichSpecies(std::to_string(get_species_id()), 1.2));
     }

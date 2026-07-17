@@ -178,7 +178,7 @@ namespace micm
       // Copy data to avoid issues when ConstraintSet is moved
       std::vector<double> coeffs;
       coeffs.reserve(this->terms_.size());
-for (const auto& term : this->terms_)
+      for (const auto& term : this->terms_)
       {
         coeffs.push_back(term.coefficient_);
       }
