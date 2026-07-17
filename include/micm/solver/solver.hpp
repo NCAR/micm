@@ -101,8 +101,8 @@ namespace micm
     Solver(Solver&& other) noexcept
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
-          state_parameters_(other.state_parameters_),
-          solver_parameters_(other.solver_parameters_),
+          state_parameters_(std::move(other.state_parameters_)),
+          solver_parameters_(std::move(other.solver_parameters_)),
           system_(std::move(other.system_)),
           update_state_parameters_functions_(std::move(other.update_state_parameters_functions_)),
           store_(std::move(other.store_)),

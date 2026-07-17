@@ -88,7 +88,7 @@ namespace micm
           algebraic_species_(algebraic_species),
           reactants_(std::move(reactants)),
           products_(std::move(products)),
-          vant_hoff_param_(std::move(vant_hoff_param))
+          vant_hoff_param_(vant_hoff_param)
     {
       if (reactants_.empty())
       {

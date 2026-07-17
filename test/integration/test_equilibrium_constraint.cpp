@@ -52,7 +52,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -144,7 +144,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn1, rxn2 })
                     .SetConstraints(std::move(constraints))
@@ -217,7 +217,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -315,7 +315,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -397,7 +397,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
       VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -484,7 +484,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
