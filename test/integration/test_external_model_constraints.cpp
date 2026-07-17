@@ -278,7 +278,8 @@ class MassConservationModel
   {
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
-    for (const auto& sp : all_species_)
+    indices.reserve(all_species_.size());
+for (const auto& sp : all_species_)
     {
       indices.push_back(var.at(sp));
     }
@@ -305,7 +306,8 @@ class MassConservationModel
   {
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
-    for (const auto& sp : all_species_)
+    indices.reserve(all_species_.size());
+for (const auto& sp : all_species_)
     {
       indices.push_back(var.at(sp));
     }
