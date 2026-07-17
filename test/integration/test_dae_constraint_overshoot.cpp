@@ -61,7 +61,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -162,7 +162,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))

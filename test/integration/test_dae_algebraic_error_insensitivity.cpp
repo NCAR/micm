@@ -88,7 +88,7 @@ namespace
         LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-    auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+    auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))

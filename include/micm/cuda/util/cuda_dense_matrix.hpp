@@ -126,12 +126,15 @@ namespace micm
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member param_ untouched, so swapping it out of `other` afterward is safe.
     CudaDenseMatrix(CudaDenseMatrix&& other) noexcept
-        : VectorMatrix<T, L>(other)
+        : VectorMatrix<T, L>(std::move(other))
     {
       this->param_.d_data_ = nullptr;
       std::swap(this->param_, other.param_);
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
     {
