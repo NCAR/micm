@@ -251,7 +251,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
                          .Build();
 
   // Assign original to copy
-  Process copy_reaction = reaction;
+  const Process& copy_reaction = reaction;
 
   const auto& copy = copy_reaction.process_;
   const auto& original = reaction.process_;
