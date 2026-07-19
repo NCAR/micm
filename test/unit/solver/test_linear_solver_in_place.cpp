@@ -4,13 +4,14 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 #include <functional>
 
-using FloatingPointType = double;
+using FloatingPointType = micm::Real;
 
 using DenseMatrixTest = micm::Matrix<FloatingPointType>;
 using SparseMatrixTest = micm::SparseMatrix<FloatingPointType>;
@@ -37,7 +38,7 @@ TEST(LinearSolverInPlace, DiagonalMarkowitzReorder)
 
 TEST(LinearSolverInPlace, StandardOrderingAgnosticToInitialValue)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
   {
     TestExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolverInPlace<SparseMatrixTest>>(
@@ -73,7 +74,7 @@ TEST(LinearSolverInPlace, RandomMatrixVectorOrdering)
 
 TEST(LinearSolverInPlace, VectorOrderingAgnosticToInitialValue)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
   {
     TestExtremeInitialValue<

@@ -8,6 +8,7 @@
 #include <micm/system/conditions.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <functional>
 #include <optional>
@@ -30,7 +31,7 @@ class StubAerosolWithConstraints
  public:
   StubAerosolWithConstraints() = delete;
 
-  StubAerosolWithConstraints(double rate_constant, std::optional<double> total_mass = std::nullopt)
+  StubAerosolWithConstraints(micm::Real rate_constant, std::optional<micm::Real> total_mass = std::nullopt)
       : rate_constant_(rate_constant),
         total_mass_(total_mass)
   {
@@ -38,7 +39,7 @@ class StubAerosolWithConstraints
 
   // ──── State definition methods ────
 
-  std::tuple<std::size_t, std::size_t> StateSize() const
+  std::tuple<micm::Index, micm::Index> StateSize() const
   {
     return { 1, 0 };  // 1 state variable (A_AQ), 0 parameters
   }
@@ -60,10 +61,10 @@ class StubAerosolWithConstraints
     return { "A_GAS", "AEROSOL.A_AQ" };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
-    std::set<std::pair<std::size_t, std::size_t>> elements;
+    std::set<std::pair<micm::Index, micm::Index>> elements;
     auto i_gas = state_indices.find("A_GAS");
     auto i_aq = state_indices.find("AEROSOL.A_AQ");
     if (i_gas != state_indices.end() && i_aq != state_indices.end())
@@ -77,24 +78,24 @@ class StubAerosolWithConstraints
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
+      const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
-    double k = rate_constant_;
+    micm::Real k = rate_constant_;
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
-        double rate = k * state[i][i_gas];
+        micm::Real rate = k * state[i][i_gas];
         forcing[i][i_gas] -= rate;
         forcing[i][i_aq] += rate;
       }
@@ -103,16 +104,16 @@ class StubAerosolWithConstraints
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
-    double k = rate_constant_;
+    micm::Real k = rate_constant_;
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
+      for (micm::Index i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
       {
         jac[i_block][i_gas][i_gas] -= (-k);
         jac[i_block][i_aq][i_gas] -= k;
@@ -140,8 +141,8 @@ class StubAerosolWithConstraints
     return { "A_GAS", "AEROSOL.A_AQ" };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     if (!total_mass_.has_value())
     {
@@ -160,7 +161,7 @@ class StubAerosolWithConstraints
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, micm::Index>&) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
@@ -168,15 +169,15 @@ class StubAerosolWithConstraints
   /// Constraint residual: G(y) = [A_GAS] + [A_AQ] - total = 0
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
-    double total = total_mass_.value();
+    micm::Real total = total_mass_.value();
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
         forcing[i][i_aq] = state[i][i_gas] + state[i][i_aq] - total;
       }
@@ -187,15 +188,15 @@ class StubAerosolWithConstraints
   /// Subtracted per solver convention: jacobian -= dG/dy
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
+      for (micm::Index i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
       {
         jac[i_block][i_aq][i_gas] -= 1.0;
         jac[i_block][i_aq][i_aq] -= 1.0;
@@ -204,8 +205,8 @@ class StubAerosolWithConstraints
   }
 
  private:
-  double rate_constant_;
-  std::optional<double> total_mass_;
+  micm::Real rate_constant_;
+  std::optional<micm::Real> total_mass_;
 };
 
 /// A variant of StubAerosolWithConstraints that adds a solvent species `S` dependency.
@@ -221,7 +222,7 @@ class StubAerosolWithSolvent
  public:
   StubAerosolWithSolvent() = delete;
 
-  StubAerosolWithSolvent(double rate_constant, double total_mass)
+  StubAerosolWithSolvent(micm::Real rate_constant, micm::Real total_mass)
       : rate_constant_(rate_constant),
         total_mass_(total_mass)
   {
@@ -229,7 +230,7 @@ class StubAerosolWithSolvent
 
   // ──── State definition methods ────
 
-  std::tuple<std::size_t, std::size_t> StateSize() const
+  std::tuple<micm::Index, micm::Index> StateSize() const
   {
     return { 1, 0 };  // 1 state variable (A_AQ), 0 parameters
   }
@@ -251,10 +252,10 @@ class StubAerosolWithSolvent
     return { "A_GAS", "AEROSOL.A_AQ", "S" };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
-    std::set<std::pair<std::size_t, std::size_t>> elements;
+    std::set<std::pair<micm::Index, micm::Index>> elements;
     auto i_gas = state_indices.at("A_GAS");
     auto i_aq = state_indices.at("AEROSOL.A_AQ");
     auto i_s = state_indices.at("S");
@@ -269,25 +270,25 @@ class StubAerosolWithSolvent
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
+      const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
     auto i_s = state_variable_indices.at("S");
-    double k = rate_constant_;
+    micm::Real k = rate_constant_;
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
-        double rate = k * state[i][i_gas] * state[i][i_s];
+        micm::Real rate = k * state[i][i_gas] * state[i][i_s];
         forcing[i][i_gas] -= rate;
         forcing[i][i_aq] += rate;
       }
@@ -296,20 +297,20 @@ class StubAerosolWithSolvent
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
     auto i_s = state_variable_indices.at("S");
-    double k = rate_constant_;
+    micm::Real k = rate_constant_;
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
+      for (micm::Index i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
       {
-        double s_val = state[i_block][i_s];
-        double gas_val = state[i_block][i_gas];
+        micm::Real s_val = state[i_block][i_s];
+        micm::Real gas_val = state[i_block][i_gas];
         // d(rate)/d(A_GAS) = k * [S]
         jac[i_block][i_gas][i_gas] -= (-k * s_val);
         jac[i_block][i_aq][i_gas] -= k * s_val;
@@ -332,8 +333,8 @@ class StubAerosolWithSolvent
     return { "A_GAS", "AEROSOL.A_AQ" };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     auto i_gas = state_indices.at("A_GAS");
     auto i_aq = state_indices.at("AEROSOL.A_AQ");
@@ -348,22 +349,22 @@ class StubAerosolWithSolvent
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, micm::Index>&) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
-    double total = total_mass_;
+    micm::Real total = total_mass_;
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
         forcing[i][i_aq] = state[i][i_gas] + state[i][i_aq] - total;
       }
@@ -372,15 +373,15 @@ class StubAerosolWithSolvent
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     auto i_gas = state_variable_indices.at("A_GAS");
     auto i_aq = state_variable_indices.at("AEROSOL.A_AQ");
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
+      for (micm::Index i_block = 0; i_block < jac.NumberOfBlocks(); ++i_block)
       {
         jac[i_block][i_aq][i_gas] -= 1.0;
         jac[i_block][i_aq][i_aq] -= 1.0;
@@ -389,6 +390,6 @@ class StubAerosolWithSolvent
   }
 
  private:
-  double rate_constant_;
-  double total_mass_;
+  micm::Real rate_constant_;
+  micm::Real total_mass_;
 };

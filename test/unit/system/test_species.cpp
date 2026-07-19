@@ -1,4 +1,5 @@
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -18,16 +19,16 @@ TEST(Species, StringAndVectorConstructor)
 
   EXPECT_EQ(species.name_, "thing");
   EXPECT_EQ(species.properties_double_.size(), 2);
-  EXPECT_EQ(species.GetProperty<double>("name [units]"), 1.0);
-  EXPECT_EQ(species.GetProperty<double>("name2 [units2]"), 2.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name [units]"), 1.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name2 [units2]"), 2.0);
 }
 
 TEST(Species, GetProperty)
 {
   micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
 
-  EXPECT_EQ(species.GetProperty<double>("name [units]"), 1.0);
-  EXPECT_EQ(species.GetProperty<double>("name2 [units2]"), 2.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name [units]"), 1.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name2 [units2]"), 2.0);
   EXPECT_THROW(
       {
         try
@@ -45,7 +46,7 @@ TEST(Species, GetProperty)
       {
         try
         {
-          species.GetProperty<double>("not there");
+          species.GetProperty<micm::Real>("not there");
         }
         catch (micm::MicmException& e)
         {
@@ -116,8 +117,8 @@ TEST(Species, CopyConstructor)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
@@ -134,8 +135,8 @@ TEST(Species, CopyConstructor)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
@@ -156,8 +157,8 @@ TEST(Species, CopyAssignment)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
@@ -174,8 +175,8 @@ TEST(Species, CopyAssignment)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);

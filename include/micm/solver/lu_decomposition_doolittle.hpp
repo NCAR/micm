@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -43,38 +44,38 @@ namespace micm
    protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
-    std::vector<std::pair<std::size_t, std::size_t>> niLU_;
+    std::vector<std::pair<Index, Index>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
     /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
     /// does not support easy retrieval of memory address using data() function.
     std::vector<char> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
-    std::vector<std::size_t> aik_;
+    std::vector<Index> aik_;
     /// Index in U.data_ for U[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when U[i][k] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> uik_nkj_;
+    std::vector<std::pair<Index, Index>> uik_nkj_;
     /// Index in L.data_ for L[i][j], and in U.data_ for U[j][k] in the upper inner (j) loop
     /// when L[i][j] and U[j][k] are both non-zero.
-    std::vector<std::pair<std::size_t, std::size_t>> lij_ujk_;
+    std::vector<std::pair<Index, Index>> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
     /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
     /// does not suppor easy retrieval of memory address using data() function.
     std::vector<char> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when A[k][i] is non-zero.
-    std::vector<std::size_t> aki_;
+    std::vector<Index> aki_;
     /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> lki_nkj_;
+    std::vector<std::pair<Index, Index>> lki_nkj_;
     /// Index in L.data_ for L[k][j], and in U.data_ for U[j][i] in the lower inner (j) loop
     /// when L[k][j] and U[j][i] are both non-zero.
-    std::vector<std::pair<std::size_t, std::size_t>> lkj_uji_;
+    std::vector<std::pair<Index, Index>> lkj_uji_;
     /// Index in U.data_ for U[i][i] for each interation in the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero
-    std::vector<std::size_t> uii_;
+    std::vector<Index> uii_;
 
    public:
     /// @brief default constructor
@@ -129,16 +130,16 @@ namespace micm
     struct FillPattern
     {
       /// Sorted non-zero positions of the L and U factors (used to build the matrices)
-      std::set<std::pair<std::size_t, std::size_t>> L_ids_, U_ids_;
+      std::set<std::pair<Index, Index>> L_ids_, U_ids_;
       /// Non-zero structure of the input matrix A: Arow_[r] = sorted columns,
       /// Acol_[c] = sorted rows
-      std::vector<std::vector<std::size_t>> Arow_, Acol_;
+      std::vector<std::vector<Index>> Arow_, Acol_;
       /// Lrow_[i] = sorted columns j < i where L[i][j] != 0
-      std::vector<std::vector<std::size_t>> Lrow_;
+      std::vector<std::vector<Index>> Lrow_;
       /// Urow_[i] = sorted columns k >= i where U[i][k] != 0
-      std::vector<std::vector<std::size_t>> Urow_;
+      std::vector<std::vector<Index>> Urow_;
       /// Lcol_[i] = sorted rows k > i where L[k][i] != 0
-      std::vector<std::vector<std::size_t>> Lcol_;
+      std::vector<std::vector<Index>> Lcol_;
     };
 
     /// @brief Compute the sparse LU fill pattern of A in time proportional to the

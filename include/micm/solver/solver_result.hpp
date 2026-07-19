@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <cstdint>
 #include <string>
 
@@ -35,23 +37,23 @@ namespace micm
   struct SolverStats
   {
     /// @brief The number of forcing function calls
-    uint64_t function_calls_{};
+    Index function_calls_{};
     /// @brief The number of jacobian function calls
-    uint64_t jacobian_updates_{};
+    Index jacobian_updates_{};
     /// @brief The total number of internal time steps taken
-    uint64_t number_of_steps_{};
+    Index number_of_steps_{};
     /// @brief The number of accepted integrations
-    uint64_t accepted_{};
+    Index accepted_{};
     /// @brief The number of rejected integrations
-    uint64_t rejected_{};
+    Index rejected_{};
     /// @brief The number of LU decompositions
-    uint64_t decompositions_{};
+    Index decompositions_{};
     /// @brief The number of linear solves
-    uint64_t solves_{};
+    Index solves_{};
     /// @brief The number of constraint initialization iterations performed
-    uint64_t constraint_init_iterations_{};
+    Index constraint_init_iterations_{};
     /// @brief The final time the solver iterated to
-    double final_time_{};
+    Real final_time_{};
   };
 
   inline std::string SolverStateToString(const SolverState& state)

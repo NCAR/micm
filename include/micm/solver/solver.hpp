@@ -11,6 +11,7 @@
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <type_traits>
@@ -125,7 +126,7 @@ namespace micm
       return *this;
     }
 
-    SolverResult Solve(double time_step, StatePolicy& state)
+    SolverResult Solve(Real time_step, StatePolicy& state)
     {
       for (const auto& init_func : initialize_constraint_parameters_functions_)
       {
@@ -137,7 +138,7 @@ namespace micm
     }
 
     // Overloaded Solve function to change parameters
-    SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
+    SolverResult Solve(Real time_step, StatePolicy& state, const SolverParametersType& params)
     {
       solver_parameters_ = params;
       for (const auto& init_func : initialize_constraint_parameters_functions_)
@@ -154,7 +155,7 @@ namespace micm
     /// @details This is the maximum number of grid cells that can fit
     ///          within one group for vectorized solvers. For non-vectorized solvers,
     ///          there is no limit other than the maximum size of a std::size_t.
-    std::size_t MaximumNumberOfGridCells() const
+    Index MaximumNumberOfGridCells() const
     {
       if constexpr (VectorizableDense<DenseMatrixType>)
       {
@@ -162,11 +163,11 @@ namespace micm
       }
       else
       {
-        return std::numeric_limits<std::size_t>::max();
+        return std::numeric_limits<Index>::max();
       }
     }
 
-    StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const
+    StatePolicy GetState(const Index number_of_grid_cells = 1) const
     {
       StatePolicy state(state_parameters_, number_of_grid_cells);
 
@@ -262,9 +263,9 @@ namespace micm
     {
       if (state.constraint_size_ > 0)
       {
-        for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
+        for (Index i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
         {
-          for (std::size_t i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
+          for (Index i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
           {
             if (state.upper_left_identity_diagonal_[i_var] > 0.0)
             {

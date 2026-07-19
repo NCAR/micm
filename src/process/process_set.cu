@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
+#include <micm/util/types.hpp>
 
 namespace micm::cuda
 {
@@ -13,25 +14,25 @@ namespace micm::cuda
       const ProcessSetParam devstruct)
   {
     // Calculate global thread ID
-    std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
     // Local device variables
-    const std::size_t* const __restrict__ d_number_of_reactants = devstruct.number_of_reactants_;
-    const std::size_t* __restrict__ d_reactant_ids = devstruct.reactant_ids_;
-    const std::size_t* const __restrict__ d_number_of_products = devstruct.number_of_products_;
-    const std::size_t* __restrict__ d_product_ids = devstruct.product_ids_;
-    const double* __restrict__ d_yields = devstruct.yields_;
+    const Index* const __restrict__ d_number_of_reactants = devstruct.number_of_reactants_;
+    const Index* __restrict__ d_reactant_ids = devstruct.reactant_ids_;
+    const Index* const __restrict__ d_number_of_products = devstruct.number_of_products_;
+    const Index* __restrict__ d_product_ids = devstruct.product_ids_;
+    const Real* __restrict__ d_yields = devstruct.yields_;
     const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
-    const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
-    const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
-    const double* __restrict__ d_state_variables = state_variables_param.d_data_;
-    double* __restrict__ d_forcing = forcing_param.d_data_;
+    const Index number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+    const Real* __restrict__ d_rate_constants = rate_constants_param.d_data_;
+    const Real* __restrict__ d_state_variables = state_variables_param.d_data_;
+    Real* __restrict__ d_forcing = forcing_param.d_data_;
 
-    const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
-    const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
-    const std::size_t local_tid = tid % cuda_matrix_vector_length;
-    const std::size_t group_id = tid / cuda_matrix_vector_length;
-    const std::size_t number_of_reactions =
+    const Index cuda_matrix_vector_length = state_variables_param.vector_length_;
+    const Index number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+    const Index local_tid = tid % cuda_matrix_vector_length;
+    const Index group_id = tid / cuda_matrix_vector_length;
+    const Index number_of_reactions =
         rate_constants_param.number_of_elements_ / number_of_groups / cuda_matrix_vector_length;
 
     d_rate_constants += group_id * rate_constants_param.number_of_elements_ / number_of_groups;
@@ -40,26 +41,26 @@ namespace micm::cuda
 
     if (tid < number_of_grid_cells)
     {
-      for (int i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
+      for (Index i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
-        double rate = d_rate_constants[(i_rxn * cuda_matrix_vector_length) + local_tid];
-        const std::size_t number_of_reactants = d_number_of_reactants[i_rxn];
-        for (int i_react = 0; i_react < number_of_reactants; ++i_react)
+        Real rate = d_rate_constants[(i_rxn * cuda_matrix_vector_length) + local_tid];
+        const Index number_of_reactants = d_number_of_reactants[i_rxn];
+        for (Index i_react = 0; i_react < number_of_reactants; ++i_react)
         {
           rate *= d_state_variables[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid];
         }
-        for (int i_react = 0; i_react < number_of_reactants; ++i_react)
+        for (Index i_react = 0; i_react < number_of_reactants; ++i_react)
         {
-          const std::size_t row_id = d_reactant_ids[i_react];
+          const Index row_id = d_reactant_ids[i_react];
           if (!d_is_algebraic_variable[row_id])
           {
             d_forcing[(row_id * cuda_matrix_vector_length) + local_tid] -= rate;
           }
         }
-        const std::size_t number_of_products = d_number_of_products[i_rxn];
-        for (int i_prod = 0; i_prod < number_of_products; ++i_prod)
+        const Index number_of_products = d_number_of_products[i_rxn];
+        for (Index i_prod = 0; i_prod < number_of_products; ++i_prod)
         {
-          const std::size_t row_id = d_product_ids[i_prod];
+          const Index row_id = d_product_ids[i_prod];
           if (!d_is_algebraic_variable[row_id])
           {
             d_forcing[row_id * cuda_matrix_vector_length + local_tid] += d_yields[i_prod] * rate;
@@ -80,25 +81,25 @@ namespace micm::cuda
       const ProcessSetParam devstruct)
   {
     // Calculate global thread ID
-    std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
     /// Local device variables
     const ProcessInfoParam* const __restrict__ d_jacobian_process_info = devstruct.jacobian_process_info_;
-    const std::size_t* __restrict__ d_reactant_ids = devstruct.jacobian_reactant_ids_;
-    const std::size_t* __restrict__ d_product_ids = devstruct.jacobian_product_ids_;
-    const double* __restrict__ d_yields = devstruct.jacobian_yields_;
-    const std::size_t* __restrict__ d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
+    const Index* __restrict__ d_reactant_ids = devstruct.jacobian_reactant_ids_;
+    const Index* __restrict__ d_product_ids = devstruct.jacobian_product_ids_;
+    const Real* __restrict__ d_yields = devstruct.jacobian_yields_;
+    const Index* __restrict__ d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
     const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
-    const std::size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
-    const std::size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
-    const double* __restrict__ d_rate_constants = rate_constants_param.d_data_;
-    const double* __restrict__ d_state_variables = state_variables_param.d_data_;
-    double* __restrict__ d_jacobian = jacobian_param.d_data_;
+    const Index number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+    const Index number_of_process_infos = devstruct.jacobian_process_info_size_;
+    const Real* __restrict__ d_rate_constants = rate_constants_param.d_data_;
+    const Real* __restrict__ d_state_variables = state_variables_param.d_data_;
+    Real* __restrict__ d_jacobian = jacobian_param.d_data_;
 
-    const std::size_t cuda_matrix_vector_length = state_variables_param.vector_length_;
-    const std::size_t number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
-    const std::size_t local_tid = tid % cuda_matrix_vector_length;
-    const std::size_t group_id = tid / cuda_matrix_vector_length;
+    const Index cuda_matrix_vector_length = state_variables_param.vector_length_;
+    const Index number_of_groups = (number_of_grid_cells + cuda_matrix_vector_length - 1) / cuda_matrix_vector_length;
+    const Index local_tid = tid % cuda_matrix_vector_length;
+    const Index group_id = tid / cuda_matrix_vector_length;
 
     d_rate_constants += group_id * rate_constants_param.number_of_elements_ / number_of_groups;
     d_state_variables += group_id * state_variables_param.number_of_elements_ / number_of_groups;
@@ -107,18 +108,18 @@ namespace micm::cuda
     if (tid < number_of_grid_cells)
     {
       // loop over reactions in a grid
-      for (int i_proc = 0; i_proc < number_of_process_infos; ++i_proc)
+      for (Index i_proc = 0; i_proc < number_of_process_infos; ++i_proc)
       {
         const ProcessInfoParam& process_info = d_jacobian_process_info[i_proc];
         // Calculate d_rate/d_ind
-        double d_rate_d_ind = d_rate_constants[(process_info.process_id_ * cuda_matrix_vector_length) + local_tid];
-        for (int i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
+        Real d_rate_d_ind = d_rate_constants[(process_info.process_id_ * cuda_matrix_vector_length) + local_tid];
+        for (Index i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
           d_rate_d_ind *= d_state_variables[(d_reactant_ids[i_react] * cuda_matrix_vector_length) + local_tid];
         }
-        for (int i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
+        for (Index i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
         {
-          const std::size_t row_id = d_reactant_ids[i_dep];
+          const Index row_id = d_reactant_ids[i_dep];
           if (!d_is_algebraic_variable[row_id])
           {
             d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
@@ -130,12 +131,12 @@ namespace micm::cuda
           d_jacobian[*d_jacobian_flat_ids + local_tid] += d_rate_d_ind;
         }
         ++d_jacobian_flat_ids;
-        for (int i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
+        for (Index i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
         {
-          const std::size_t row_id = d_product_ids[i_dep];
+          const Index row_id = d_product_ids[i_dep];
           if (!d_is_algebraic_variable[row_id])
           {
-            std::size_t jacobian_idx = *d_jacobian_flat_ids + local_tid;
+            Index jacobian_idx = *d_jacobian_flat_ids + local_tid;
             d_jacobian[jacobian_idx] -= d_yields[i_dep] * d_rate_d_ind;
           }
           ++d_jacobian_flat_ids;
@@ -153,12 +154,12 @@ namespace micm::cuda
   ProcessSetParam CopyConstData(ProcessSetParam& hoststruct)
   {
     /// Calculate the memory space of each constant data member
-    std::size_t number_of_reactants_bytes = sizeof(std::size_t) * hoststruct.number_of_reactants_size_;
-    std::size_t reactant_ids_bytes = sizeof(std::size_t) * hoststruct.reactant_ids_size_;
-    std::size_t number_of_products_bytes = sizeof(std::size_t) * hoststruct.number_of_products_size_;
-    std::size_t product_ids_bytes = sizeof(std::size_t) * hoststruct.product_ids_size_;
-    std::size_t yields_bytes = sizeof(double) * hoststruct.yields_size_;
-    std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
+    Index number_of_reactants_bytes = sizeof(Index) * hoststruct.number_of_reactants_size_;
+    Index reactant_ids_bytes = sizeof(Index) * hoststruct.reactant_ids_size_;
+    Index number_of_products_bytes = sizeof(Index) * hoststruct.number_of_products_size_;
+    Index product_ids_bytes = sizeof(Index) * hoststruct.product_ids_size_;
+    Index yields_bytes = sizeof(Real) * hoststruct.yields_size_;
+    Index algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
 
     /// Create a struct whose members contain the addresses in the device memory.
     ProcessSetParam devstruct;
@@ -228,11 +229,11 @@ namespace micm::cuda
   void CopyJacobianParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct)
   {
     /// Calculate the memory space
-    std::size_t jacobian_process_info_bytes = sizeof(ProcessInfoParam) * hoststruct.jacobian_process_info_size_;
-    std::size_t jacobian_reactant_ids_bytes = sizeof(std::size_t) * hoststruct.jacobian_reactant_ids_size_;
-    std::size_t jacobian_product_ids_bytes = sizeof(std::size_t) * hoststruct.jacobian_product_ids_size_;
-    std::size_t jacobian_yields_bytes = sizeof(double) * hoststruct.jacobian_yields_size_;
-    std::size_t jacobian_flat_ids_bytes = sizeof(std::size_t) * hoststruct.jacobian_flat_ids_size_;
+    Index jacobian_process_info_bytes = sizeof(ProcessInfoParam) * hoststruct.jacobian_process_info_size_;
+    Index jacobian_reactant_ids_bytes = sizeof(Index) * hoststruct.jacobian_reactant_ids_size_;
+    Index jacobian_product_ids_bytes = sizeof(Index) * hoststruct.jacobian_product_ids_size_;
+    Index jacobian_yields_bytes = sizeof(Real) * hoststruct.jacobian_yields_size_;
+    Index jacobian_flat_ids_bytes = sizeof(Index) * hoststruct.jacobian_flat_ids_size_;
 
     auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
@@ -298,7 +299,7 @@ namespace micm::cuda
 
   void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct)
   {
-    std::size_t algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
+    Index algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
 
     auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 
@@ -372,7 +373,7 @@ namespace micm::cuda
       CudaMatrixParam& jacobian_param,
       const ProcessSetParam& devstruct)
   {
-    const std::size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    const Index number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     SubtractJacobianTermsKernel<<<
         number_of_blocks,
         BLOCK_SIZE,
@@ -387,7 +388,7 @@ namespace micm::cuda
       CudaMatrixParam& forcing_param,
       const ProcessSetParam& devstruct)
   {
-    const std::size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    const Index number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     AddForcingTermsKernel<<<
         number_of_blocks,
         BLOCK_SIZE,

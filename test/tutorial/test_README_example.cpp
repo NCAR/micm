@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -45,7 +46,7 @@ int main(const int argc, const char *argv[])
   state[foo] = 20.0;                           // mol m-3
 
   state.PrintHeader();
-  for (int i = 0; i < 10; ++i)
+  for (Index i = 0; i < 10; ++i)
   {
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(500.0, state);

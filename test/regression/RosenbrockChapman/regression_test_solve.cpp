@@ -1,11 +1,13 @@
 #include "regression_test_solve_policy.hpp"
 
+#include <micm/util/types.hpp>
+
 #include <gtest/gtest.h>
-template<std::size_t L>
+template<micm::Index L>
 using VectorBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
 TEST(RegressionRosenbrock, TwoStageSolve)
 {

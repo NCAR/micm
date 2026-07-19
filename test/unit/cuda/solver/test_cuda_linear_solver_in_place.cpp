@@ -9,6 +9,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -17,7 +18,7 @@
 #include <functional>
 #include <random>
 
-using FloatingPointType = double;
+using FloatingPointType = micm::Real;
 
 using Group1CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1>;
 using Group3CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 3>;
@@ -153,7 +154,7 @@ TEST(CudaLinearSolverInPlace, DiagonalMatrixVectorOrderingPolicy)
 
 TEST(CudaLinearSolverInPlace, AgnosticToInitialValue)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
   {
     TestExtremeInitialValue<

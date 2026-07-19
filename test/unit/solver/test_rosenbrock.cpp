@@ -8,6 +8,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -15,36 +16,36 @@
 // In this Test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<class SolverBuilderPolicy>
-void TestNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_grid_cells)
 {
   builder = GetSolver(builder);
   auto solver = builder.Build();
   auto state = solver.GetState(number_of_grid_cells);
-  const std::vector<double>& atol = state.absolute_tolerance_;
-  double rtol = state.relative_tolerance_;
+  const std::vector<micm::Real>& atol = state.absolute_tolerance_;
+  micm::Real rtol = state.relative_tolerance_;
 
   using MatrixPolicy = decltype(state.variables_);
   auto y_old = MatrixPolicy(number_of_grid_cells, state.state_size_, 7.7);
   auto y_new = MatrixPolicy(number_of_grid_cells, state.state_size_, -13.9);
   auto errors = MatrixPolicy(number_of_grid_cells, state.state_size_, 81.57);
 
-  double expected_error = 0.0;
-  for (size_t i = 0; i < number_of_grid_cells; ++i)
+  micm::Real expected_error = 0.0;
+  for (micm::Index i = 0; i < number_of_grid_cells; ++i)
   {
-    for (size_t j = 0; j < state.state_size_; ++j)
+    for (micm::Index j = 0; j < state.state_size_; ++j)
     {
       y_old[i][j] = y_old[i][j] * i + j;
       y_new[i][j] = y_new[i][j] / (j + 1) - i;
       errors[i][j] = errors[i][j] / (i + 7) / (j + 3);
-      double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
-      double scale = atol[j] + rtol * ymax;
+      micm::Real ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      micm::Real scale = atol[j] + rtol * ymax;
       expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
-  double error_min_ = 1.0e-10;
+  micm::Real error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
-  double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
@@ -59,7 +60,7 @@ void TestNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
 }
 
 template<class SolverBuilderPolicy>
-void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::Index number_of_grid_cells)
 {
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -95,40 +96,40 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, std::s
   MatrixPolicy y_new(number_of_grid_cells, state.state_size_, 0.0);
   MatrixPolicy errors(number_of_grid_cells, state.state_size_, 0.0);
 
-  double expected_error = 0.0;
+  micm::Real expected_error = 0.0;
   const auto& atol = state.absolute_tolerance_;
   const auto& rtol = state.relative_tolerance_;
 
-  for (std::size_t i = 0; i < number_of_grid_cells; ++i)
+  for (micm::Index i = 0; i < number_of_grid_cells; ++i)
   {
-    for (std::size_t j = 0; j < state.state_size_; ++j)
+    for (micm::Index j = 0; j < state.state_size_; ++j)
     {
       y_old[i][j] = 1.0 + i + 0.1 * j;
       y_new[i][j] = 0.8 + 0.5 * i + 0.2 * j;
       errors[i][j] = 0.01 * (1 + i + j);
 
-      const double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
-      const double scale = atol[j] + rtol * ymax;
+      const micm::Real ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      const micm::Real scale = atol[j] + rtol * ymax;
       expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
 
   expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
-  expected_error = std::max(expected_error, 1.0e-10);
+  expected_error = std::max<micm::Real>(expected_error, 1.0e-10);
 
-  const double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  const micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
   EXPECT_NEAR(computed_error, expected_error, 1e-12);
 }
 
 using StandardBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::Matrix<double>,
-    micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>;
-template<std::size_t L>
+    micm::Matrix<micm::Real>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>;
+template<micm::Index L>
 using VectorBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
@@ -163,7 +164,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
                          .SetPhase(gas_phase)
                          .Build();
 
-  for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
+  for (micm::Index number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())

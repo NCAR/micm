@@ -5,13 +5,14 @@
 #include "../analytical_surface_rxn_policy.hpp"
 
 #include <micm/GPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-template<std::size_t L>
+template<micm::Index L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
-constexpr std::size_t L = 3;
+constexpr micm::Index L = 3;
 using builderType = GpuBuilder<L>;
 
 auto two = builderType(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());

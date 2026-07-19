@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 
@@ -63,7 +65,7 @@ namespace micm::cuda
     static CudaStreamSingleton& GetInstance();
 
     // Get the CUDA stream given a stream ID
-    cudaStream_t& GetCudaStream(std::size_t stream_id);
+    cudaStream_t& GetCudaStream(Index stream_id);
 
     // Empty the map variable to clean up all CUDA streams
     void CleanUp();
@@ -75,7 +77,7 @@ namespace micm::cuda
     // Create a CUDA stream and return a unique pointer to it
     CudaStreamPtr CreateCudaStream();
 
-    std::map<int, CudaStreamPtr> cuda_streams_map_;
+    std::map<Index, CudaStreamPtr> cuda_streams_map_;
 
     std::mutex mutex_;
   };

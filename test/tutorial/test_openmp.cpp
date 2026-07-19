@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <omp.h>
 
@@ -11,7 +12,7 @@ void print_header()
             << "," << std::setw(10) << "C" << std::endl;
 }
 
-void print_results(std::vector<double> results)
+void print_results(std::vector<Real> results)
 {
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
@@ -22,33 +23,33 @@ void print_results(std::vector<double> results)
   std::cout.copyfmt(oldState);
 }
 
-std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& state)
+std::vector<Real> run_solver_on_thread_with_own_state(auto& solver, auto& state)
 {
   std::cout << "Running solver on thread " << omp_get_thread_num() << std::endl;
 
   // mol m-3
   state.variables_[0] = { 1, 0, 0 };
 
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
+  Real k1 = 0.04;
+  Real k2 = 3e7;
+  Real k3 = 1e4;
   state.SetCustomRateParameter("r1", k1);
   state.SetCustomRateParameter("r2", k2);
   state.SetCustomRateParameter("r3", k3);
 
-  double temperature = 272.5;  // [K]
-  double pressure = 101253.3;  // [Pa]
-  double air_density = 1e6;    // [mol m-3]
+  Real temperature = 272.5;  // [K]
+  Real pressure = 101253.3;  // [Pa]
+  Real air_density = 1e6;    // [mol m-3]
 
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
-  double time_step = 200;  // s
+  Real time_step = 200;  // s
 
-  for (int i = 0; i < 10; ++i)
+  for (Index i = 0; i < 10; ++i)
   {
-    double elapsed_solve_time = 0;
+    Real elapsed_solve_time = 0;
     solver.UpdateStateParameters(state);
 
     while (elapsed_solve_time < time_step)
@@ -63,7 +64,7 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
 
 int main()
 {
-  constexpr size_t n_threads = 3;
+  constexpr Index n_threads = 3;
 
   auto a = micm::Species("A");
   auto b = micm::Species("B");
@@ -95,7 +96,7 @@ int main()
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
   auto chemical_system = micm::System(gas_phase );
 
-  std::vector<std::vector<double>> results(n_threads);
+  std::vector<std::vector<Real>> results(n_threads);
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
@@ -107,7 +108,7 @@ int main()
   {
     // each thread should use its own state
     auto state = solver.GetState();
-    std::vector<double> result = run_solver_on_thread_with_own_state(solver, state);
+    std::vector<Real> result = run_solver_on_thread_with_own_state(solver, state);
     results[omp_get_thread_num()] = result;
 #pragma omp barrier
   }

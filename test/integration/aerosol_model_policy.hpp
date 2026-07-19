@@ -6,6 +6,7 @@
 #include "stub_aerosol_2.hpp"
 
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -170,70 +171,70 @@ void TestUpdateMultiCellStateWithStubAerosolModel(BuilderPolicy builder)
   auto solver =
       builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
-  const std::size_t num_cells = 3;
+  const micm::Index num_cells = 3;
 
   // Get a state and set some values
   auto state = solver.GetState(num_cells);
 
   // Set some gas-phase species by name
-  state["FO2"] = std::vector{ 1.34, 1.35, 1.36 };
+  state["FO2"] = std::vector<micm::Real>{ 1.34, 1.35, 1.36 };
 
   // Set some gas-phase species by species object
   auto bar = micm::Species("BAR");
-  state[bar] = std::vector{ 2.53, 2.54, 2.55 };
+  state[bar] = std::vector<micm::Real>{ 2.53, 2.54, 2.55 };
 
   // Set some condensed-phase species in the first aerosol model by unique name
-  state["STUB1.MODE1.QUUX.BAZ"] = std::vector{ 0.75, 0.76, 0.77 };
-  state["STUB1.MODE2.CORGE.FO2"] = std::vector{ 1.23, 1.24, 1.25 };
+  state["STUB1.MODE1.QUUX.BAZ"] = std::vector<micm::Real>{ 0.75, 0.76, 0.77 };
+  state["STUB1.MODE2.CORGE.FO2"] = std::vector<micm::Real>{ 1.23, 1.24, 1.25 };
 
   // Set some condensed-phase species in the second aerosol model by unique name and species object
   auto corge_it = phases.find("CORGE");
   ASSERT_NE(corge_it, phases.end());
   auto& corge = corge_it->second;
   auto qux = micm::Species("QUX");
-  state[aerosol_2.Species(2, corge, qux)] = std::vector{ 0.42, 0.43, 0.44 };
+  state[aerosol_2.Species(2, corge, qux)] = std::vector<micm::Real>{ 0.42, 0.43, 0.44 };
 
   // Set some condensed-phase species in the second aerosol model by index
   auto corge_baz_it = state.variable_map_.find("STUB2.MODE3.CORGE.BAZ");
   ASSERT_NE(corge_baz_it, state.variable_map_.end());
   auto corge_baz_index = corge_baz_it->second;
-  state[corge_baz_index] = std::vector{ 0.33, 0.34, 0.35 };
+  state[corge_baz_index] = std::vector<micm::Real>{ 0.33, 0.34, 0.35 };
 
   // Set some aerosol-model-specific variables by unique name
-  state["STUB2.MODE1.NUMBER"] = std::vector{ 1000.0, 1001.0, 1002.0 };
+  state["STUB2.MODE1.NUMBER"] = std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 };
 
   // Set some aerosol-model-specific variables using the model instance
-  state[aerosol_2.Number(1)] = std::vector{ 500.0, 501.0, 502.0 };
+  state[aerosol_2.Number(1)] = std::vector<micm::Real>{ 500.0, 501.0, 502.0 };
 
   // Verify that all values were set correctly
-  EXPECT_EQ(state["FO2"], (std::vector{ 1.34, 1.35, 1.36 }));
-  EXPECT_EQ(state["BAR"], (std::vector{ 2.53, 2.54, 2.55 }));
-  EXPECT_EQ(state["STUB1.MODE1.QUUX.BAZ"], (std::vector{ 0.75, 0.76, 0.77 }));
-  EXPECT_EQ(state["STUB1.MODE2.CORGE.FO2"], (std::vector{ 1.23, 1.24, 1.25 }));
-  EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], (std::vector{ 0.42, 0.43, 0.44 }));
-  EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], (std::vector{ 0.33, 0.34, 0.35 }));
-  EXPECT_EQ(state["STUB2.MODE1.NUMBER"], (std::vector{ 1000.0, 1001.0, 1002.0 }));
-  EXPECT_EQ(state["STUB2.MODE2.NUMBER"], (std::vector{ 500.0, 501.0, 502.0 }));
+  EXPECT_EQ(state["FO2"], (std::vector<micm::Real>{ 1.34, 1.35, 1.36 }));
+  EXPECT_EQ(state["BAR"], (std::vector<micm::Real>{ 2.53, 2.54, 2.55 }));
+  EXPECT_EQ(state["STUB1.MODE1.QUUX.BAZ"], (std::vector<micm::Real>{ 0.75, 0.76, 0.77 }));
+  EXPECT_EQ(state["STUB1.MODE2.CORGE.FO2"], (std::vector<micm::Real>{ 1.23, 1.24, 1.25 }));
+  EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], (std::vector<micm::Real>{ 0.42, 0.43, 0.44 }));
+  EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], (std::vector<micm::Real>{ 0.33, 0.34, 0.35 }));
+  EXPECT_EQ(state["STUB2.MODE1.NUMBER"], (std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 }));
+  EXPECT_EQ(state["STUB2.MODE2.NUMBER"], (std::vector<micm::Real>{ 500.0, 501.0, 502.0 }));
 
   // Re-verify using indices from the variable map
-  EXPECT_EQ(state[state.variable_map_.find("FO2")->second], (std::vector{ 1.34, 1.35, 1.36 }));
-  EXPECT_EQ(state[state.variable_map_.find("BAR")->second], (std::vector{ 2.53, 2.54, 2.55 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB1.MODE1.QUUX.BAZ")->second], (std::vector{ 0.75, 0.76, 0.77 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB1.MODE2.CORGE.FO2")->second], (std::vector{ 1.23, 1.24, 1.25 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.QUX")->second], (std::vector{ 0.42, 0.43, 0.44 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second], (std::vector{ 0.33, 0.34, 0.35 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE1.NUMBER")->second], (std::vector{ 1000.0, 1001.0, 1002.0 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE2.NUMBER")->second], (std::vector{ 500.0, 501.0, 502.0 }));
+  EXPECT_EQ(state[state.variable_map_.find("FO2")->second], (std::vector<micm::Real>{ 1.34, 1.35, 1.36 }));
+  EXPECT_EQ(state[state.variable_map_.find("BAR")->second], (std::vector<micm::Real>{ 2.53, 2.54, 2.55 }));
+  EXPECT_EQ(state[state.variable_map_.find("STUB1.MODE1.QUUX.BAZ")->second], (std::vector<micm::Real>{ 0.75, 0.76, 0.77 }));
+  EXPECT_EQ(state[state.variable_map_.find("STUB1.MODE2.CORGE.FO2")->second], (std::vector<micm::Real>{ 1.23, 1.24, 1.25 }));
+  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.QUX")->second], (std::vector<micm::Real>{ 0.42, 0.43, 0.44 }));
+  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second], (std::vector<micm::Real>{ 0.33, 0.34, 0.35 }));
+  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE1.NUMBER")->second], (std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 }));
+  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE2.NUMBER")->second], (std::vector<micm::Real>{ 500.0, 501.0, 502.0 }));
 
   // Re-re-verify using species objects where applicable
-  EXPECT_EQ(state[micm::Species("FO2")], (std::vector{ 1.34, 1.35, 1.36 }));
-  EXPECT_EQ(state[bar], (std::vector{ 2.53, 2.54, 2.55 }));
-  EXPECT_EQ(state[aerosol_1.Species(0, phases["QUUX"], micm::Species("BAZ"))], (std::vector{ 0.75, 0.76, 0.77 }));
-  EXPECT_EQ(state[aerosol_1.Species(1, phases["CORGE"], micm::Species("FO2"))], (std::vector{ 1.23, 1.24, 1.25 }));
-  EXPECT_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("QUX"))], (std::vector{ 0.42, 0.43, 0.44 }));
-  EXPECT_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("BAZ"))], (std::vector{ 0.33, 0.34, 0.35 }));
-  EXPECT_EQ(state[aerosol_2.Number(0)], (std::vector{ 1000.0, 1001.0, 1002.0 }));
-  EXPECT_EQ(state[aerosol_2.Number(1)], (std::vector{ 500.0, 501.0, 502.0 }));
+  EXPECT_EQ(state[micm::Species("FO2")], (std::vector<micm::Real>{ 1.34, 1.35, 1.36 }));
+  EXPECT_EQ(state[bar], (std::vector<micm::Real>{ 2.53, 2.54, 2.55 }));
+  EXPECT_EQ(state[aerosol_1.Species(0, phases["QUUX"], micm::Species("BAZ"))], (std::vector<micm::Real>{ 0.75, 0.76, 0.77 }));
+  EXPECT_EQ(state[aerosol_1.Species(1, phases["CORGE"], micm::Species("FO2"))], (std::vector<micm::Real>{ 1.23, 1.24, 1.25 }));
+  EXPECT_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("QUX"))], (std::vector<micm::Real>{ 0.42, 0.43, 0.44 }));
+  EXPECT_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("BAZ"))], (std::vector<micm::Real>{ 0.33, 0.34, 0.35 }));
+  EXPECT_EQ(state[aerosol_2.Number(0)], (std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 }));
+  EXPECT_EQ(state[aerosol_2.Number(1)], (std::vector<micm::Real>{ 500.0, 501.0, 502.0 }));
 }
 
 /// @brief Test single grid cell forcing calculation with stub aerosol model
@@ -271,10 +272,10 @@ void TestSingleCellForcingWithStubAerosolModel(BuilderPolicy builder)
   auto fo2_mode2_index_it = state.variable_map_.find("STUB1.MODE2.CORGE.FO2");
   ASSERT_NE(fo2_gas_index_it, state.variable_map_.end());
   ASSERT_NE(fo2_mode2_index_it, state.variable_map_.end());
-  std::size_t fo2_gas_index = fo2_gas_index_it->second;
-  std::size_t fo2_mode2_index = fo2_mode2_index_it->second;
-  double expected_fo2_loss = -STUB1_RATE_CONSTANT_FO2_CORGE * state["FO2"];
-  double expected_fo2_gain = -expected_fo2_loss;  // should be equal and opposite to the loss
+  micm::Index fo2_gas_index = fo2_gas_index_it->second;
+  micm::Index fo2_mode2_index = fo2_mode2_index_it->second;
+  micm::Real expected_fo2_loss = -STUB1_RATE_CONSTANT_FO2_CORGE * state["FO2"];
+  micm::Real expected_fo2_gain = -expected_fo2_loss;  // should be equal and opposite to the loss
   EXPECT_DOUBLE_EQ(forcing_1[0][fo2_gas_index], expected_fo2_loss);
   EXPECT_DOUBLE_EQ(forcing_1[0][fo2_mode2_index], expected_fo2_gain);
 
@@ -284,10 +285,10 @@ void TestSingleCellForcingWithStubAerosolModel(BuilderPolicy builder)
   auto baz_mode2_index_it = state.variable_map_.find("STUB1.MODE2.QUUX.BAZ");
   ASSERT_NE(baz_mode1_index_it, state.variable_map_.end());
   ASSERT_NE(baz_mode2_index_it, state.variable_map_.end());
-  std::size_t baz_mode1_index = baz_mode1_index_it->second;
-  std::size_t baz_mode2_index = baz_mode2_index_it->second;
-  double expected_baz_loss = -STUB1_RATE_CONSTANT_BAZ_QUUX * state["STUB1.MODE1.QUUX.BAZ"];
-  double expected_baz_gain = -expected_baz_loss;  // should be equal and opposite to the loss
+  micm::Index baz_mode1_index = baz_mode1_index_it->second;
+  micm::Index baz_mode2_index = baz_mode2_index_it->second;
+  micm::Real expected_baz_loss = -STUB1_RATE_CONSTANT_BAZ_QUUX * state["STUB1.MODE1.QUUX.BAZ"];
+  micm::Real expected_baz_gain = -expected_baz_loss;  // should be equal and opposite to the loss
   EXPECT_DOUBLE_EQ(forcing_1[0][baz_mode1_index], expected_baz_loss);
   EXPECT_DOUBLE_EQ(forcing_1[0][baz_mode2_index], expected_baz_gain);
 }
@@ -330,10 +331,10 @@ void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
   auto fo2_mode2_index_it = state.variable_map_.find("STUB1.MODE2.CORGE.FO2");
   ASSERT_NE(fo2_gas_index_it, state.variable_map_.end());
   ASSERT_NE(fo2_mode2_index_it, state.variable_map_.end());
-  std::size_t fo2_gas_index = fo2_gas_index_it->second;
-  std::size_t fo2_mode2_index = fo2_mode2_index_it->second;
-  double expected_fo2_gas_partial = -STUB1_RATE_CONSTANT_FO2_CORGE;
-  double expected_fo2_mode2_partial = STUB1_RATE_CONSTANT_FO2_CORGE;
+  micm::Index fo2_gas_index = fo2_gas_index_it->second;
+  micm::Index fo2_mode2_index = fo2_mode2_index_it->second;
+  micm::Real expected_fo2_gas_partial = -STUB1_RATE_CONSTANT_FO2_CORGE;
+  micm::Real expected_fo2_mode2_partial = STUB1_RATE_CONSTANT_FO2_CORGE;
   // Jacobian function calculates the negative of the partial derivatives for use in implicit solvers
   EXPECT_DOUBLE_EQ(jacobian_1[0][fo2_gas_index][fo2_gas_index], -expected_fo2_gas_partial);
   EXPECT_DOUBLE_EQ(jacobian_1[0][fo2_mode2_index][fo2_gas_index], -expected_fo2_mode2_partial);
@@ -347,10 +348,10 @@ void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
   auto baz_mode2_index_it = state.variable_map_.find("STUB1.MODE2.QUUX.BAZ");
   ASSERT_NE(baz_mode1_index_it, state.variable_map_.end());
   ASSERT_NE(baz_mode2_index_it, state.variable_map_.end());
-  std::size_t baz_mode1_index = baz_mode1_index_it->second;
-  std::size_t baz_mode2_index = baz_mode2_index_it->second;
-  double expected_baz_mode1_partial = -STUB1_RATE_CONSTANT_BAZ_QUUX;
-  double expected_baz_mode2_partial = STUB1_RATE_CONSTANT_BAZ_QUUX;
+  micm::Index baz_mode1_index = baz_mode1_index_it->second;
+  micm::Index baz_mode2_index = baz_mode2_index_it->second;
+  micm::Real expected_baz_mode1_partial = -STUB1_RATE_CONSTANT_BAZ_QUUX;
+  micm::Real expected_baz_mode2_partial = STUB1_RATE_CONSTANT_BAZ_QUUX;
   // Jacobian function calculates the negative of the partial derivatives for use in implicit solvers
   EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode1_index][baz_mode1_index], -expected_baz_mode1_partial);
   EXPECT_DOUBLE_EQ(jacobian_1[0][baz_mode2_index][baz_mode1_index], -expected_baz_mode2_partial);
@@ -358,7 +359,7 @@ void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void TestSolveWithStubAerosolModel1(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithStubAerosolModel1(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -369,9 +370,9 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, double base_relative_
   // Get a state and set some initial values
   auto state = solver.GetState();
 
-  double fo2_initial = 1.0;
-  double baz_mode1_initial = 0.5;
-  double fo2_mode2_initial = 0.8;
+  micm::Real fo2_initial = 1.0;
+  micm::Real baz_mode1_initial = 0.5;
+  micm::Real fo2_mode2_initial = 0.8;
   state["FO2"] = fo2_initial;
   state["BAR"] = 2.0;
   state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
@@ -382,9 +383,9 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, double base_relative_
   state["STUB2.MODE2.NUMBER"] = 500.0;
 
   // Calculate the analytical solution to verify the results
-  double time_step = 10.0;  // seconds
-  double stub1_rxn1_delta = fo2_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
-  double stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
+  micm::Real time_step = 10.0;  // seconds
+  micm::Real stub1_rxn1_delta = fo2_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
+  micm::Real stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
 
   // Solve the system for a single time step
   solver.UpdateStateParameters(state);
@@ -408,7 +409,7 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, double base_relative_
 
 /// @brief Test solving with stub aerosol models
 template<class BuilderPolicy>
-void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -419,15 +420,15 @@ void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, double base_relati
   // Get a state and set some initial values
   auto state = solver.GetState();
 
-  double fo2_initial = 1.0;
-  double baz_mode1_initial = 0.5;
-  double fo2_mode2_initial = 0.8;
-  double stub2_mode2_fo2_initial = 0.4;
-  double stub2_mode2_baz_initial = 0.1;
-  double stub2_mode3_baz_initial = 0.2;
-  double stub2_mode3_qux_initial = 0.3;
-  double temperature = 275.0;
-  double fo2_to_baz_rate_constant = 0.01;
+  micm::Real fo2_initial = 1.0;
+  micm::Real baz_mode1_initial = 0.5;
+  micm::Real fo2_mode2_initial = 0.8;
+  micm::Real stub2_mode2_fo2_initial = 0.4;
+  micm::Real stub2_mode2_baz_initial = 0.1;
+  micm::Real stub2_mode3_baz_initial = 0.2;
+  micm::Real stub2_mode3_qux_initial = 0.3;
+  micm::Real temperature = 275.0;
+  micm::Real fo2_to_baz_rate_constant = 0.01;
   state["FO2"] = fo2_initial;
   state["BAR"] = 2.0;
   state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
@@ -446,11 +447,11 @@ void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, double base_relati
   state.conditions_[0].temperature_ = temperature;
 
   // Calculate the analytical solution to verify the results
-  double time_step = 10.0;  // seconds
-  double stub1_rxn1_delta = fo2_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
-  double stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
-  double stub2_rxn1_delta = stub2_mode2_fo2_initial * (1.0 - std::exp(-fo2_to_baz_rate_constant * time_step));
-  double stub2_rxn2_delta = stub2_mode3_baz_initial * (1.0 - std::exp(-temperature * 0.005 * time_step));
+  micm::Real time_step = 10.0;  // seconds
+  micm::Real stub1_rxn1_delta = fo2_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
+  micm::Real stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
+  micm::Real stub2_rxn1_delta = stub2_mode2_fo2_initial * (1.0 - std::exp(-fo2_to_baz_rate_constant * time_step));
+  micm::Real stub2_rxn2_delta = stub2_mode3_baz_initial * (1.0 - std::exp(-temperature * 0.005 * time_step));
 
   // Solve the system for a single time step
   solver.UpdateStateParameters(state);
@@ -488,7 +489,7 @@ void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, double base_relati
 
 /// @brief Test solving with stub aerosol model using 3 grid cells
 template<class BuilderPolicy>
-void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -496,31 +497,31 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_
   auto solver =
       builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
-  const std::size_t num_cells = 3;
+  const micm::Index num_cells = 3;
 
   // Get a state for multiple grid cells
   auto state = solver.GetState(num_cells);
 
   // Set different initial values for each cell
-  std::vector<double> fo2_initial = { 1.0, 1.5, 2.0 };
-  std::vector<double> baz_mode1_initial = { 0.5, 0.7, 0.9 };
-  std::vector<double> fo2_mode2_initial = { 0.8, 1.0, 1.2 };
+  std::vector<micm::Real> fo2_initial = { 1.0, 1.5, 2.0 };
+  std::vector<micm::Real> baz_mode1_initial = { 0.5, 0.7, 0.9 };
+  std::vector<micm::Real> fo2_mode2_initial = { 0.8, 1.0, 1.2 };
 
   state["FO2"] = fo2_initial;
-  state["BAR"] = std::vector{ 2.0, 2.5, 3.0 };
+  state["BAR"] = std::vector<micm::Real>{ 2.0, 2.5, 3.0 };
   state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
   state["STUB1.MODE2.CORGE.FO2"] = fo2_mode2_initial;
-  state["STUB2.MODE3.CORGE.QUX"] = std::vector{ 0.3, 0.4, 0.5 };
-  state["STUB2.MODE3.CORGE.BAZ"] = std::vector{ 0.2, 0.3, 0.4 };
-  state["STUB2.MODE1.NUMBER"] = std::vector{ 1000.0, 1100.0, 1200.0 };
-  state["STUB2.MODE2.NUMBER"] = std::vector{ 500.0, 550.0, 600.0 };
+  state["STUB2.MODE3.CORGE.QUX"] = std::vector<micm::Real>{ 0.3, 0.4, 0.5 };
+  state["STUB2.MODE3.CORGE.BAZ"] = std::vector<micm::Real>{ 0.2, 0.3, 0.4 };
+  state["STUB2.MODE1.NUMBER"] = std::vector<micm::Real>{ 1000.0, 1100.0, 1200.0 };
+  state["STUB2.MODE2.NUMBER"] = std::vector<micm::Real>{ 500.0, 550.0, 600.0 };
 
   // Calculate the analytical solution to verify the results for each cell
-  double time_step = 10.0;  // seconds
-  std::vector<double> stub1_rxn1_delta(num_cells);
-  std::vector<double> stub1_rxn2_delta(num_cells);
+  micm::Real time_step = 10.0;  // seconds
+  std::vector<micm::Real> stub1_rxn1_delta(num_cells);
+  std::vector<micm::Real> stub1_rxn2_delta(num_cells);
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (micm::Index i = 0; i < num_cells; ++i)
   {
     stub1_rxn1_delta[i] = fo2_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
     stub1_rxn2_delta[i] = baz_mode1_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
@@ -544,24 +545,24 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, double base_
   auto stub2_num1_result = state["STUB2.MODE1.NUMBER"];
   auto stub2_num2_result = state["STUB2.MODE2.NUMBER"];
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (micm::Index i = 0; i < num_cells; ++i)
   {
     EXPECT_NEAR(fo2_result[i], fo2_initial[i] - stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
-    EXPECT_EQ(bar_result[i], (std::vector{ 2.0, 2.5, 3.0 })[i]);
+    EXPECT_EQ(bar_result[i], (std::vector<micm::Real>{ 2.0, 2.5, 3.0 })[i]);
     EXPECT_NEAR(
         baz_mode1_result[i], baz_mode1_initial[i] - stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
     EXPECT_NEAR(baz_mode2_result[i], stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
     EXPECT_NEAR(fo2_mode2_result[i], fo2_mode2_initial[i] + stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
-    EXPECT_EQ(stub2_qux_result[i], (std::vector{ 0.3, 0.4, 0.5 })[i]);
-    EXPECT_EQ(stub2_baz_result[i], (std::vector{ 0.2, 0.3, 0.4 })[i]);
-    EXPECT_EQ(stub2_num1_result[i], (std::vector{ 1000.0, 1100.0, 1200.0 })[i]);
-    EXPECT_EQ(stub2_num2_result[i], (std::vector{ 500.0, 550.0, 600.0 })[i]);
+    EXPECT_EQ(stub2_qux_result[i], (std::vector<micm::Real>{ 0.3, 0.4, 0.5 })[i]);
+    EXPECT_EQ(stub2_baz_result[i], (std::vector<micm::Real>{ 0.2, 0.3, 0.4 })[i]);
+    EXPECT_EQ(stub2_num1_result[i], (std::vector<micm::Real>{ 1000.0, 1100.0, 1200.0 })[i]);
+    EXPECT_EQ(stub2_num2_result[i], (std::vector<micm::Real>{ 500.0, 550.0, 600.0 })[i]);
   }
 }
 
 /// @brief Test solving with two stub aerosol models using 3 grid cells
 template<class BuilderPolicy>
-void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double base_relative_tolerance = 5e-5)
+void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
   auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
@@ -569,50 +570,50 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
   auto solver =
       builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
-  const std::size_t num_cells = 3;
+  const micm::Index num_cells = 3;
 
   // Get a state for multiple grid cells
   auto state = solver.GetState(num_cells);
 
   // Set different initial values for each cell
-  std::vector<double> fo2_initial = { 1.0, 1.5, 2.0 };
-  std::vector<double> baz_mode1_initial = { 0.5, 0.7, 0.9 };
-  std::vector<double> fo2_mode2_initial = { 0.8, 1.0, 1.2 };
-  std::vector<double> stub2_mode2_fo2_initial = { 0.4, 0.6, 0.8 };
-  std::vector<double> stub2_mode2_baz_initial = { 0.1, 0.15, 0.2 };
-  std::vector<double> stub2_mode3_baz_initial = { 0.2, 0.3, 0.4 };
-  std::vector<double> stub2_mode3_qux_initial = { 0.3, 0.4, 0.5 };
-  std::vector<double> temperature = { 275.0, 285.0, 295.0 };
-  std::vector<double> fo2_to_baz_rate_constant = { 0.01, 0.015, 0.02 };
+  std::vector<micm::Real> fo2_initial = { 1.0, 1.5, 2.0 };
+  std::vector<micm::Real> baz_mode1_initial = { 0.5, 0.7, 0.9 };
+  std::vector<micm::Real> fo2_mode2_initial = { 0.8, 1.0, 1.2 };
+  std::vector<micm::Real> stub2_mode2_fo2_initial = { 0.4, 0.6, 0.8 };
+  std::vector<micm::Real> stub2_mode2_baz_initial = { 0.1, 0.15, 0.2 };
+  std::vector<micm::Real> stub2_mode3_baz_initial = { 0.2, 0.3, 0.4 };
+  std::vector<micm::Real> stub2_mode3_qux_initial = { 0.3, 0.4, 0.5 };
+  std::vector<micm::Real> temperature = { 275.0, 285.0, 295.0 };
+  std::vector<micm::Real> fo2_to_baz_rate_constant = { 0.01, 0.015, 0.02 };
 
   state["FO2"] = fo2_initial;
-  state["BAR"] = std::vector{ 2.0, 2.5, 3.0 };
+  state["BAR"] = std::vector<micm::Real>{ 2.0, 2.5, 3.0 };
   state["STUB1.MODE1.QUUX.BAZ"] = baz_mode1_initial;
   state["STUB1.MODE2.CORGE.FO2"] = fo2_mode2_initial;
   state["STUB2.MODE2.CORGE.FO2"] = stub2_mode2_fo2_initial;
   state["STUB2.MODE2.CORGE.BAZ"] = stub2_mode2_baz_initial;
   state["STUB2.MODE3.QUUX.BAZ"] = stub2_mode3_baz_initial;
   state["STUB2.MODE3.QUUX.QUX"] = stub2_mode3_qux_initial;
-  state["STUB2.MODE3.CORGE.BAZ"] = std::vector{ 0.2, 0.25, 0.3 };
-  state["STUB2.MODE1.NUMBER"] = std::vector{ 1000.0, 1100.0, 1200.0 };
-  state["STUB2.MODE2.NUMBER"] = std::vector{ 500.0, 550.0, 600.0 };
+  state["STUB2.MODE3.CORGE.BAZ"] = std::vector<micm::Real>{ 0.2, 0.25, 0.3 };
+  state["STUB2.MODE1.NUMBER"] = std::vector<micm::Real>{ 1000.0, 1100.0, 1200.0 };
+  state["STUB2.MODE2.NUMBER"] = std::vector<micm::Real>{ 500.0, 550.0, 600.0 };
 
   auto param_it = state.custom_rate_parameter_map_.find("STUB2.PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
   ASSERT_NE(param_it, state.custom_rate_parameter_map_.end());
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (micm::Index i = 0; i < num_cells; ++i)
   {
     state.custom_rate_parameters_[i][param_it->second] = fo2_to_baz_rate_constant[i];
     state.conditions_[i].temperature_ = temperature[i];
   }
 
   // Calculate the analytical solution to verify the results for each cell
-  double time_step = 10.0;  // seconds
-  std::vector<double> stub1_rxn1_delta(num_cells);
-  std::vector<double> stub1_rxn2_delta(num_cells);
-  std::vector<double> stub2_rxn1_delta(num_cells);
-  std::vector<double> stub2_rxn2_delta(num_cells);
+  micm::Real time_step = 10.0;  // seconds
+  std::vector<micm::Real> stub1_rxn1_delta(num_cells);
+  std::vector<micm::Real> stub1_rxn2_delta(num_cells);
+  std::vector<micm::Real> stub2_rxn1_delta(num_cells);
+  std::vector<micm::Real> stub2_rxn2_delta(num_cells);
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (micm::Index i = 0; i < num_cells; ++i)
   {
     stub1_rxn1_delta[i] = fo2_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_FO2_CORGE * time_step));
     stub1_rxn2_delta[i] = baz_mode1_initial[i] * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
@@ -640,10 +641,10 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
   auto stub2_num1_result = state["STUB2.MODE1.NUMBER"];
   auto stub2_num2_result = state["STUB2.MODE2.NUMBER"];
 
-  for (std::size_t i = 0; i < num_cells; ++i)
+  for (micm::Index i = 0; i < num_cells; ++i)
   {
     EXPECT_NEAR(fo2_result[i], fo2_initial[i] - stub1_rxn1_delta[i], base_relative_tolerance * fo2_initial[i]);
-    EXPECT_EQ(bar_result[i], (std::vector{ 2.0, 2.5, 3.0 })[i]);
+    EXPECT_EQ(bar_result[i], (std::vector<micm::Real>{ 2.0, 2.5, 3.0 })[i]);
     EXPECT_NEAR(
         baz_mode1_result[i], baz_mode1_initial[i] - stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
     EXPECT_NEAR(baz_mode2_result[i], stub1_rxn2_delta[i], base_relative_tolerance * baz_mode1_initial[i]);
@@ -664,7 +665,7 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, double ba
         stub2_mode3_qux_result[i],
         stub2_mode3_qux_initial[i] + stub2_rxn2_delta[i],
         base_relative_tolerance * stub2_mode3_baz_initial[i]);
-    EXPECT_EQ(stub2_num1_result[i], (std::vector{ 1000.0, 1100.0, 1200.0 })[i]);
-    EXPECT_EQ(stub2_num2_result[i], (std::vector{ 500.0, 550.0, 600.0 })[i]);
+    EXPECT_EQ(stub2_num1_result[i], (std::vector<micm::Real>{ 1000.0, 1100.0, 1200.0 })[i]);
+    EXPECT_EQ(stub2_num2_result[i], (std::vector<micm::Real>{ 500.0, 550.0, 600.0 })[i]);
   }
 }

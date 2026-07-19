@@ -7,6 +7,7 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <cuda_runtime.h>
 
@@ -22,7 +23,7 @@ namespace micm
     using IntMatrix = CudaSparseMatrix<int, OrderingPolicy>;
     using value_type = T;
     // Access vector length via OrderingPolicy::GroupVectorSize()
-    static constexpr std::size_t VECTOR_LENGTH = OrderingPolicy::GroupVectorSize();
+    static constexpr Index VECTOR_LENGTH = OrderingPolicy::GroupVectorSize();
 
    private:
     CudaMatrixParam param_;

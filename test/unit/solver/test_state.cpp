@@ -1,4 +1,5 @@
 #include <micm/solver/state.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -58,25 +59,25 @@ TEST(State, CopyConstructor)
   EXPECT_EQ(copy.relative_tolerance_, original.relative_tolerance_);
   EXPECT_EQ(copy.absolute_tolerance_, original.absolute_tolerance_);
 
-  for (std::size_t i = 0; i < original.variables_.NumRows(); ++i)
+  for (micm::Index i = 0; i < original.variables_.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < original.variables_.NumColumns(); ++j)
+    for (micm::Index j = 0; j < original.variables_.NumColumns(); ++j)
     {
       EXPECT_EQ(copy.variables_[i][j], original.variables_[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < original.custom_rate_parameters_.NumRows(); ++i)
+  for (micm::Index i = 0; i < original.custom_rate_parameters_.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < original.custom_rate_parameters_.NumColumns(); ++j)
+    for (micm::Index j = 0; j < original.custom_rate_parameters_.NumColumns(); ++j)
     {
       EXPECT_EQ(copy.custom_rate_parameters_[i][j], original.custom_rate_parameters_[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < original.rate_constants_.NumRows(); ++i)
+  for (micm::Index i = 0; i < original.rate_constants_.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < original.rate_constants_.NumColumns(); ++j)
+    for (micm::Index j = 0; j < original.rate_constants_.NumColumns(); ++j)
     {
       EXPECT_EQ(copy.rate_constants_[i][j], original.rate_constants_[i][j]);
     }
@@ -107,25 +108,25 @@ TEST(State, CopyAssignmentOperator)
   EXPECT_EQ(copy.relative_tolerance_, original.relative_tolerance_);
   EXPECT_EQ(copy.absolute_tolerance_, original.absolute_tolerance_);
 
-  for (std::size_t i = 0; i < original.variables_.NumRows(); ++i)
+  for (micm::Index i = 0; i < original.variables_.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < original.variables_.NumColumns(); ++j)
+    for (micm::Index j = 0; j < original.variables_.NumColumns(); ++j)
     {
       EXPECT_EQ(copy.variables_[i][j], original.variables_[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < original.custom_rate_parameters_.NumRows(); ++i)
+  for (micm::Index i = 0; i < original.custom_rate_parameters_.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < original.custom_rate_parameters_.NumColumns(); ++j)
+    for (micm::Index j = 0; j < original.custom_rate_parameters_.NumColumns(); ++j)
     {
       EXPECT_EQ(copy.custom_rate_parameters_[i][j], original.custom_rate_parameters_[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < original.rate_constants_.NumRows(); ++i)
+  for (micm::Index i = 0; i < original.rate_constants_.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < original.rate_constants_.NumColumns(); ++j)
+    for (micm::Index j = 0; j < original.rate_constants_.NumColumns(); ++j)
     {
       EXPECT_EQ(copy.rate_constants_[i][j], original.rate_constants_[i][j]);
     }
@@ -159,27 +160,27 @@ TEST(State, MoveConstructor)
   EXPECT_EQ(moved.rate_constants_.NumRows(), 3);
   EXPECT_EQ(moved.rate_constants_.NumColumns(), 10);
   EXPECT_EQ(moved.relative_tolerance_, 1e-05);
-  EXPECT_EQ(moved.absolute_tolerance_, std::vector<double>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
+  EXPECT_EQ(moved.absolute_tolerance_, std::vector<micm::Real>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
 
-  for (std::size_t i = 0; i < expected_variables.NumRows(); ++i)
+  for (micm::Index i = 0; i < expected_variables.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < expected_variables.NumColumns(); ++j)
+    for (micm::Index j = 0; j < expected_variables.NumColumns(); ++j)
     {
       EXPECT_EQ(moved.variables_[i][j], expected_variables[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < expected_custom_rate_parameters.NumRows(); ++i)
+  for (micm::Index i = 0; i < expected_custom_rate_parameters.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < expected_custom_rate_parameters.NumColumns(); ++j)
+    for (micm::Index j = 0; j < expected_custom_rate_parameters.NumColumns(); ++j)
     {
       EXPECT_EQ(moved.custom_rate_parameters_[i][j], expected_custom_rate_parameters[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < expected_rate_constants.NumRows(); ++i)
+  for (micm::Index i = 0; i < expected_rate_constants.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < expected_rate_constants.NumColumns(); ++j)
+    for (micm::Index j = 0; j < expected_rate_constants.NumColumns(); ++j)
     {
       EXPECT_EQ(moved.rate_constants_[i][j], expected_rate_constants[i][j]);
     }
@@ -214,27 +215,27 @@ TEST(State, MoveAssignmentOperator)
   EXPECT_EQ(moved.rate_constants_.NumRows(), 3);
   EXPECT_EQ(moved.rate_constants_.NumColumns(), 10);
   EXPECT_EQ(moved.relative_tolerance_, 1e-05);
-  EXPECT_EQ(moved.absolute_tolerance_, std::vector<double>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
+  EXPECT_EQ(moved.absolute_tolerance_, std::vector<micm::Real>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
 
-  for (std::size_t i = 0; i < expected_variables.NumRows(); ++i)
+  for (micm::Index i = 0; i < expected_variables.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < expected_variables.NumColumns(); ++j)
+    for (micm::Index j = 0; j < expected_variables.NumColumns(); ++j)
     {
       EXPECT_EQ(moved.variables_[i][j], expected_variables[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < expected_custom_rate_parameters.NumRows(); ++i)
+  for (micm::Index i = 0; i < expected_custom_rate_parameters.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < expected_custom_rate_parameters.NumColumns(); ++j)
+    for (micm::Index j = 0; j < expected_custom_rate_parameters.NumColumns(); ++j)
     {
       EXPECT_EQ(moved.custom_rate_parameters_[i][j], expected_custom_rate_parameters[i][j]);
     }
   }
 
-  for (std::size_t i = 0; i < expected_rate_constants.NumRows(); ++i)
+  for (micm::Index i = 0; i < expected_rate_constants.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < expected_rate_constants.NumColumns(); ++j)
+    for (micm::Index j = 0; j < expected_rate_constants.NumColumns(); ++j)
     {
       EXPECT_EQ(moved.rate_constants_[i][j], expected_rate_constants[i][j]);
     }
@@ -250,9 +251,9 @@ TEST(State, SettingSingleConcentrationWithInvalidArgumentsThowsException)
                      },
                      3 };
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, 1.0));
-  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, std::vector<double>{ 1.0, 2.0 }));
+  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, std::vector<micm::Real>{ 1.0, 2.0 }));
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, 1.0));
-  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, std::vector<double>{ 1.0, 2.0, 3.0, 4.0 }));
+  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, std::vector<micm::Real>{ 1.0, 2.0, 3.0, 4.0 }));
 }
 
 TEST(State, SetSingleConcentration)
@@ -264,9 +265,9 @@ TEST(State, SetSingleConcentration)
                            .custom_rate_parameter_labels_{ "quux", "corge" },
                        },
                        3 };
-    std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
+    std::vector<micm::Real> concentrations{ 12.0, 42.0, 35.2 };
     state.SetConcentration(micm::Species{ "bar" }, concentrations);
-    for (std::size_t i = 0; i < concentrations.size(); ++i)
+    for (micm::Index i = 0; i < concentrations.size(); ++i)
     {
       EXPECT_EQ(state.variables_[i][state.variable_map_["bar"]], concentrations[i]);
     }
@@ -308,11 +309,11 @@ TEST(State, SetConcentrationByElementVector)
                      },
                      3 };
 
-  std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
+  std::vector<micm::Real> concentrations{ 12.0, 42.0, 35.2 };
 
   state.SetConcentration("foo", concentrations);
 
-  for (std::size_t i = 0; i < concentrations.size(); ++i)
+  for (micm::Index i = 0; i < concentrations.size(); ++i)
   {
     EXPECT_EQ(state.variables_[i][state.variable_map_["foo"]], concentrations[i]);
   }
@@ -327,7 +328,7 @@ TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
                      },
                      3 };
 
-  std::unordered_map<std::string, std::vector<double>> concentrations = {
+  std::unordered_map<std::string, std::vector<micm::Real>> concentrations = {
     { "FUU", { 0.1 } }, { "bar", { 0.2 } }, { "baz", { 0.3 } }, { "quz", { 0.4 } }
   };
 
@@ -336,8 +337,8 @@ TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 
 TEST(State, SetConcentrations)
 {
-  uint32_t num_grid_cells = 3;
-  uint32_t num_species = 4;
+  micm::Index num_grid_cells = 3;
+  micm::Index num_species = 4;
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
@@ -346,7 +347,7 @@ TEST(State, SetConcentrations)
                      },
                      num_grid_cells };
 
-  std::unordered_map<std::string, std::vector<double>> concentrations = { { "bar", { 0.2, 0.22, 0.222 } },
+  std::unordered_map<std::string, std::vector<micm::Real>> concentrations = { { "bar", { 0.2, 0.22, 0.222 } },
                                                                           { "baz", { 0.3, 0.33, 0.333 } },
                                                                           { "foo", { 0.9, 0.99, 0.999 } },
                                                                           { "quz", { 0.4, 0.44, 0.444 } } };
@@ -354,7 +355,7 @@ TEST(State, SetConcentrations)
   state.SetConcentrations(concentrations);
 
   // Compare concentration values
-  std::vector<double> concentrations_in_order{
+  std::vector<micm::Real> concentrations_in_order{
     0.9, 0.2, 0.3, 0.4, 0.99, 0.22, 0.33, 0.44, 0.999, 0.222, 0.333, 0.444,
   };
 
@@ -416,8 +417,8 @@ TEST(State, SetMultiCellStateWithSquareBrackets)
                      },
                      3 };
 
-  state["foo"] = std::vector{ 1.0, 2.0, 3.0 };
-  state["bar"] = std::vector{ 4.0, 5.0, 6.0 };
+  state["foo"] = std::vector<micm::Real>{ 1.0, 2.0, 3.0 };
+  state["bar"] = std::vector<micm::Real>{ 4.0, 5.0, 6.0 };
 
   EXPECT_EQ(state.variables_[0][state.variable_map_["foo"]], 1.0);
   EXPECT_EQ(state.variables_[1][state.variable_map_["foo"]], 2.0);
@@ -453,7 +454,7 @@ TEST(State, SettingCustomRateParameterWithInvalidVectorSizeThrowsException)
                      3 };
 
   // user input for custom rate parameters (unordered)
-  std::unordered_map<std::string, std::vector<double>> custom_params = {
+  std::unordered_map<std::string, std::vector<micm::Real>> custom_params = {
     { "O3", { 0.3 } }, { "O1", { 0.1 } }, { "O2", { 0.5 } }, { "BBB", { 0.7 } }, { "AAA", { 0.5 } }
   };
 
@@ -470,7 +471,7 @@ TEST(State, SettingCustomRateParameterWithInvalidLabelThrowsException)
                      1 };
 
   // user input for custom rate parameters (unordered)
-  std::unordered_map<std::string, std::vector<double>> custom_params = {
+  std::unordered_map<std::string, std::vector<micm::Real>> custom_params = {
     { "O3", { 0.3 } }, { "O1", { 0.1 } }, { "O2", { 0.5 } }, { "CCC", { 0.7 } }, { "AAA", { 0.5 } }
   };
 
@@ -492,7 +493,7 @@ TEST(State, SetCustomRateParameter)
 
 TEST(State, SetCustomRateParameters)
 {
-  uint32_t num_grid_cells = 3;
+  micm::Index num_grid_cells = 3;
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
@@ -502,13 +503,13 @@ TEST(State, SetCustomRateParameters)
                      num_grid_cells };
 
   // user input for custom rate parameters (unordered)
-  std::unordered_map<std::string, std::vector<double>> custom_params = { { "O3", { 0.3, 0.33, 0.333 } },
+  std::unordered_map<std::string, std::vector<micm::Real>> custom_params = { { "O3", { 0.3, 0.33, 0.333 } },
                                                                          { "O1", { 0.1, 0.11, 0.111 } },
                                                                          { "O2", { 0.5, 0.55, 0.555 } },
                                                                          { "BBB", { 0.7, 0.77, 0.777 } },
                                                                          { "AAA", { 0.5, 0.55, 0.555 } } };
 
-  std::vector<double> custom_params_in_order{ 0.1,  0.5,  0.3,   0.5,   0.7,   0.11,  0.55, 0.33,
+  std::vector<micm::Real> custom_params_in_order{ 0.1,  0.5,  0.3,   0.5,   0.7,   0.11,  0.55, 0.33,
                                               0.55, 0.77, 0.111, 0.555, 0.333, 0.555, 0.777 };
 
   state.SetCustomRateParameters(custom_params);
@@ -532,7 +533,7 @@ TEST(State, UnsafelySetCustomRateParameterOneCell)
                      },
                      1 };
 
-  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
+  std::vector<std::vector<micm::Real>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   state.UnsafelySetCustomRateParameters(parameters);
   EXPECT_EQ(state.custom_rate_parameters_[0][0], 0.1);
@@ -544,7 +545,7 @@ TEST(State, UnsafelySetCustomRateParameterOneCell)
 
 TEST(State, UnsafelySetCustomRateParameterMultiCell)
 {
-  uint32_t num_grid_cells = 3;
+  micm::Index num_grid_cells = 3;
 
   micm::State state{ micm::StateParameters{
                          .number_of_rate_constants_ = 10,
@@ -553,12 +554,12 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
                      },
                      num_grid_cells };
 
-  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 },
+  std::vector<std::vector<micm::Real>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 },
                                                   { 0.1, 0.2, 0.3, 0.4, 0.5 },
                                                   { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   state.UnsafelySetCustomRateParameters(parameters);
-  for (size_t i = 0; i < num_grid_cells; i++)
+  for (micm::Index i = 0; i < num_grid_cells; i++)
   {
     EXPECT_EQ(state.custom_rate_parameters_[i][0], 0.1);
     EXPECT_EQ(state.custom_rate_parameters_[i][1], 0.2);
@@ -577,7 +578,7 @@ TEST(State, UnsafelySetCustomRateParameterCatchesTooFewGridCells)
                      },
                      2 };
 
-  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
+  std::vector<std::vector<micm::Real>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   EXPECT_ANY_THROW(state.UnsafelySetCustomRateParameters(parameters));
 }
@@ -591,7 +592,7 @@ TEST(State, UnsafelySetCustomRateParameterCatchesTooParameters)
                      },
                      2 };
 
-  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3 } };
+  std::vector<std::vector<micm::Real>> parameters = { { 0.1, 0.2, 0.3 } };
 
   EXPECT_ANY_THROW(state.UnsafelySetCustomRateParameters(parameters));
 }

@@ -21,6 +21,7 @@
 #include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -53,8 +54,8 @@ namespace micm
     RatesPolicy rates_;
     ConstraintSetPolicy constraints_;
 
-    static constexpr double DEFAULT_H_MIN = 1.0e-15;   // Minimum internal time step relative to overall time step
-    static constexpr double DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
+    static constexpr Real DEFAULT_H_MIN = 1.0e-15;   // Minimum internal time step relative to overall time step
+    static constexpr Real DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
 
     /// @brief Solver parameters typename
     using ParametersType = RosenbrockSolverParameters;
@@ -81,7 +82,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, auto& state, const RosenbrockSolverParameters& parameters) const noexcept;
+    SolverResult Solve(Real time_step, auto& state, const RosenbrockSolverParameters& parameters) const noexcept;
 
     /// @brief Newton-iterate algebraic variables to satisfy G(y) = 0 before time integration
     /// @param state The solver state
@@ -95,10 +96,10 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const Real& alpha) const
       requires(!VectorizableSparse<SparseMatrixPolicy>);
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const Real& alpha) const
       requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Perform the LU decomposition of the matrix
@@ -106,7 +107,7 @@ namespace micm
     /// @param number_densities The number densities
     /// @param stats The solver stats
     /// @param state The state
-    void LinearFactor(const double alpha, SolverStats& stats, auto& state) const;
+    void LinearFactor(const Real alpha, SolverStats& stats, auto& state) const;
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
@@ -114,14 +115,14 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     template<class DenseMatrixPolicy>
-    double NormalizedError(
+    Real NormalizedError(
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
         auto& state) const
       requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
-    double NormalizedError(
+    Real NormalizedError(
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,

@@ -7,6 +7,7 @@
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -17,9 +18,9 @@ using namespace micm;
 /// @brief Helper: build a simple A→B system with equilibrium constraint C = K_eq * B
 struct SimpleConstrainedSystem
 {
-  static constexpr double K = 0.5;
-  static constexpr double K_EQ = 2.0;
-  static constexpr double DELTA_H = 0.0;  // No temperature dependence for simplicity
+  static constexpr micm::Real K = 0.5;
+  static constexpr micm::Real K_EQ = 2.0;
+  static constexpr micm::Real DELTA_H = 0.0;  // No temperature dependence for simplicity
 
   template<class SolverBuilderPolicy>
   static auto Build(SolverBuilderPolicy builder)
@@ -55,7 +56,7 @@ struct SimpleConstrainedSystem
 };
 
 using StandardBuilder =
-    CpuSolverBuilder<RosenbrockSolverParameters, Matrix<double>, SparseMatrix<double, SparseMatrixStandardOrdering>>;
+    CpuSolverBuilder<RosenbrockSolverParameters, Matrix<micm::Real>, SparseMatrix<micm::Real, SparseMatrixStandardOrdering>>;
 
 /// @brief Test that consistent initial conditions don't change state
 TEST(ConstraintInitialization, ConsistentICsUnchanged)
@@ -105,8 +106,8 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 
   solver.UpdateStateParameters(state);
 
-  double A_before = state.variables_[0][A_idx];
-  double B_before = state.variables_[0][B_idx];
+  micm::Real A_before = state.variables_[0][A_idx];
+  micm::Real B_before = state.variables_[0][B_idx];
 
   auto result = solver.Solve(0.001, state);
 
@@ -119,8 +120,8 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   EXPECT_GT(result.stats_.constraint_init_iterations_, 0u);
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
@@ -148,8 +149,8 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   EXPECT_EQ(result.state_, SolverState::Converged);
 
   // Constraint should be satisfied after initialization + solve
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 
@@ -199,7 +200,7 @@ TEST(ConstraintInitialization, MultiCellSystems)
   auto B_idx = state.variable_map_.at("B");
   auto C_idx = state.variable_map_.at("C");
 
-  double K_eq = SimpleConstrainedSystem::K_EQ;
+  micm::Real K_eq = SimpleConstrainedSystem::K_EQ;
 
   // Cell 0: consistent
   state.variables_[0][A_idx] = 1.0;
@@ -216,7 +217,7 @@ TEST(ConstraintInitialization, MultiCellSystems)
   state.variables_[2][B_idx] = 0.1;
   state.variables_[2][C_idx] = 100.0;  // Should be K_eq * 0.1 = 0.2
 
-  for (std::size_t i = 0; i < 3; ++i)
+  for (micm::Index i = 0; i < 3; ++i)
   {
     state.conditions_[i].temperature_ = 298.15;
     state.conditions_[i].pressure_ = 101325.0;
@@ -229,10 +230,10 @@ TEST(ConstraintInitialization, MultiCellSystems)
   EXPECT_EQ(result.state_, SolverState::Converged);
 
   // Verify constraint satisfied in all cells after solve
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  for (std::size_t i = 0; i < 3; ++i)
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  for (micm::Index i = 0; i < 3; ++i)
   {
-    double residual = K_eq_actual * state.variables_[i][B_idx] - state.variables_[i][C_idx];
+    micm::Real residual = K_eq_actual * state.variables_[i][B_idx] - state.variables_[i][C_idx];
     EXPECT_NEAR(residual, 0.0, 1.0e-5) << "Constraint not satisfied in cell " << i;
   }
 }
@@ -267,8 +268,8 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   EXPECT_EQ(result2.state_, SolverState::Converged);
 
   // Constraint should be re-satisfied after second solve
-  double K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
-  double residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
 

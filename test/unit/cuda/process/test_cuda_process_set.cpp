@@ -4,6 +4,7 @@
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -14,7 +15,7 @@
 #include <random>
 #include <vector>
 
-using FloatingPointType = double;
+using FloatingPointType = micm::Real;
 
 using Group1CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1>;
 using Group3CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 3>;
@@ -30,19 +31,19 @@ using Group512CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 512>;
 using Group739CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 739>;
 using Group1130CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1130>;
 
-using Group1CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group3CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group27CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<27>>;
-using Group32CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<32>>;
-using Group43CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<43>>;
-using Group77CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<77>>;
-using Group113CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<113>>;
-using Group193CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<193>>;
-using Group281CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<281>>;
-using Group472CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<472>>;
-using Group512CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<512>>;
-using Group739CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<739>>;
-using Group1130CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1130>>;
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
+using Group3CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<3>>;
+using Group27CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<27>>;
+using Group32CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<32>>;
+using Group43CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<43>>;
+using Group77CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<77>>;
+using Group113CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<113>>;
+using Group193CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<193>>;
+using Group281CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<281>>;
+using Group472CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<472>>;
+using Group512CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<512>>;
+using Group739CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<739>>;
+using Group1130CudaSparseMatrix = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1130>>;
 
 /* These are the policy Tests on the GPU */
 

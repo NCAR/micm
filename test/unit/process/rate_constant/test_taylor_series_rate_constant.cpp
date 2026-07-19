@@ -1,10 +1,11 @@
 #include <micm/process/rate_constant/rate_constant_functions.hpp>
 #include <micm/process/rate_constant/taylor_series_rate_constant.hpp>
 #include <micm/system/conditions.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-constexpr double TOLERANCE = 1e-13;
+constexpr micm::Real TOLERANCE = 1e-13;
 
 TEST(TaylorSeriesRateConstant, CalculateWithSystem)
 {
@@ -15,8 +16,8 @@ TEST(TaylorSeriesRateConstant, CalculateWithSystem)
   micm::TaylorSeriesRateConstantParameters params{};
 
   // Default parameters: A=1, n_coefficients=1, coefficients[0]=1 → k=1
-  double k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
-  double expected = 1;
+  micm::Real k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
+  micm::Real expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   params.A_ = 1;
@@ -60,8 +61,8 @@ TEST(TaylorSeriesRateConstant, CalculateWithPrescribedArguments)
 
   micm::TaylorSeriesRateConstantParameters params{};
 
-  double k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
-  double expected = 1;
+  micm::Real k = micm::CalculateTaylorSeries(params, conditions.temperature_, conditions.pressure_);
+  micm::Real expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   params.A_ = 1;

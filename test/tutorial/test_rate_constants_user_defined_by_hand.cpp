@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -9,7 +10,7 @@ using namespace micm;
 
 // Conversion factor from moles m-3 to molecules cm-3 for consistency
 // with the configuraion file
-constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
+constexpr micm::Real MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
 
 int main(const int argc, const char* argv[])
 {
@@ -17,7 +18,7 @@ int main(const int argc, const char* argv[])
   auto b = Species("B");
   auto c = Species(
       "C",
-      std::map<std::string, double>{ { "molecular weight [kg mol-1]", 0.025 }});
+      std::map<std::string, micm::Real>{ { "molecular weight [kg mol-1]", 0.025 }});
   auto d = Species("D");
   auto e = Species("E");
   auto f = Species("F");
@@ -35,8 +36,8 @@ int main(const int argc, const char* argv[])
     return 1; // Failure
   }
 
-  double c_diffusion_coefficient = 2.3e2;
-  size_t surface_c_index = std::distance(phase_species_list.begin(), it);
+  micm::Real c_diffusion_coefficient = 2.3e2;
+  micm::Index surface_c_index = std::distance(phase_species_list.begin(), it);
   phase_species_list[surface_c_index].SetDiffusionCoefficient(c_diffusion_coefficient);
 
   Process r1 = ChemicalReactionBuilder()
@@ -95,7 +96,7 @@ int main(const int argc, const char* argv[])
       ChemicalReactionBuilder()
           .SetReactants({ e, e })
           .SetProducts({ StoichSpecies(g, 1) })
-          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
+          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = static_cast<micm::Real>(1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3),
                                                      .k0_B_ = 167.0,
                                                      .k0_C_ = 3.0,
                                                      .kinf_A_ = 136.0 * MOLES_M3_TO_MOLECULES_CM3,
@@ -158,26 +159,26 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("C.particle number concentration [# m-3]", 2.5e6);
 
   // choose and timestep a print the initial state
-  double time_step = 500;  // s
+  micm::Real time_step = 500;  // s
 
   state.PrintHeader();
   state.PrintState(0);
 
-  double photo_rate = 1e-10;
-  double emission_rate = 1e-20;
-  double loss = emission_rate * 1e-3;
+  micm::Real photo_rate = 1e-10;
+  micm::Real emission_rate = 1e-20;
+  micm::Real loss = emission_rate * 1e-3;
   // these rates are constant through the simulation
   state.SetCustomRateParameter("my emission rate", emission_rate);
   state.SetCustomRateParameter("my loss rate", loss);
 
   // solve for ten iterations
-  for (int i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
     // Depending on how stiff the system is
     // the solver integration step may not be able to solve for the full time step
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
-    double elapsed_solve_time = 0;
+    micm::Real elapsed_solve_time = 0;
     // this rate is updated at each time step and would typically vary with time
     state.SetCustomRateParameter("my photolysis rate", photo_rate);
     solver.UpdateStateParameters(state);

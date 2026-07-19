@@ -7,6 +7,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <cmath>
 #include <functional>
@@ -26,17 +27,17 @@ namespace micm
   static_assert(
       LinearSolverInPlaceConcept<
           LinearSolverInPlace<
-              SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
+              SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
               LuDecompositionMozartInPlace>,
-          VectorMatrix<double, 1>,
-          SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
+          VectorMatrix<Real, 1>,
+          SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LinearSolverInPlace for vector matrices does not meet the LinearSolverInPlaceConcept requirements");
 
   /// @brief Reorders a set of state variables using Diagonal Markowitz algorithm
   /// @param matrix Original matrix non-zero elements
   /// @result Reordered mapping vector (reordered[i] = original[map[i]])
   template<template<class> class MatrixPolicy>
-  std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix);
+  std::vector<Index> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix);
 
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
@@ -63,14 +64,14 @@ namespace micm
 
     // Number of non-zero elements (excluding the diagonal) and the index of the diagonal
     // element for each row in L
-    std::vector<std::pair<std::size_t, std::size_t>> nLij_Lii_;
+    std::vector<std::pair<Index, Index>> nLij_Lii_;
     // Indices of non-zero combinations of L_ij and y_j
-    std::vector<std::pair<std::size_t, std::size_t>> Lij_yj_;
+    std::vector<std::pair<Index, Index>> Lij_yj_;
     // Number of non-zero elements (exluding the diagonal) and the index of the diagonal
     // element for each row in U (in reverse order)
-    std::vector<std::pair<std::size_t, std::size_t>> nUij_Uii_;
+    std::vector<std::pair<Index, Index>> nUij_Uii_;
     // Indices of non-zero combinations of U_ij and x_j
-    std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
+    std::vector<std::pair<Index, Index>> Uij_xj_;
 
     LuDecompositionPolicy lu_decomp_;
 

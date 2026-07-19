@@ -1,40 +1,41 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestZeroMatrix()
+MatrixPolicy<micm::Real, OrderingPolicy> TestZeroMatrix()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3);
 
   EXPECT_EQ(builder.NumberOfElements(), 0);
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
@@ -85,36 +86,36 @@ MatrixPolicy<double, OrderingPolicy> TestZeroMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestConstZeroMatrix()
+MatrixPolicy<micm::Real, OrderingPolicy> TestConstZeroMatrix()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3);
 
   EXPECT_EQ(builder.NumberOfElements(), 0);
 
-  const MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  const MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
@@ -141,9 +142,9 @@ MatrixPolicy<double, OrderingPolicy> TestConstZeroMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestSingleBlockMatrix()
+MatrixPolicy<micm::Real, OrderingPolicy> TestSingleBlockMatrix()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(3, 2)
                      .WithElement(2, 3)
@@ -157,7 +158,7 @@ MatrixPolicy<double, OrderingPolicy> TestSingleBlockMatrix()
     EXPECT_EQ(builder.NumberOfElements(), 5);
   }
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   {
     auto diagonal_ids = matrix.DiagonalIndices(0);
@@ -179,31 +180,31 @@ MatrixPolicy<double, OrderingPolicy> TestSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 45);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
@@ -272,31 +273,31 @@ MatrixPolicy<int, OrderingPolicy> TestConstSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 45);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
@@ -305,9 +306,9 @@ MatrixPolicy<int, OrderingPolicy> TestConstSingleBlockMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestMultiBlockMatrix()
+MatrixPolicy<micm::Real, OrderingPolicy> TestMultiBlockMatrix()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(3, 2)
                      .WithElement(2, 3)
@@ -322,7 +323,7 @@ MatrixPolicy<double, OrderingPolicy> TestMultiBlockMatrix()
 
   EXPECT_EQ(builder.NumberOfElements(), 5 * 53);
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 5);
 
@@ -350,37 +351,37 @@ MatrixPolicy<double, OrderingPolicy> TestMultiBlockMatrix()
   EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(2, 1, 1));
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(0, 4, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(2, 1, 5); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(54, 0, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(54, 0, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 2, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(1, 2, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(2, 0, 2); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (micm::MicmException& e) {
+      try { micm::Index elem = matrix.VectorIndex(0, 1); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX);
         throw;
       },
@@ -413,11 +414,11 @@ MatrixPolicy<double, OrderingPolicy> TestMultiBlockMatrix()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestSetScalar()
+MatrixPolicy<micm::Real, OrderingPolicy> TestSetScalar()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3);
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   matrix = 2.0;
 
@@ -560,9 +561,9 @@ MatrixPolicy<int, OrderingPolicy> TestPrint()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestArrayFunction()
+MatrixPolicy<micm::Real, OrderingPolicy> TestArrayFunction()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 0)
                      .WithElement(1, 1)
                      .WithElement(2, 2)
@@ -573,7 +574,7 @@ MatrixPolicy<double, OrderingPolicy> TestArrayFunction()
   // 0 X 0 0
   // 0 0 X X
   // 0 0 0 X
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   // set some values, with unique values in different blocks
   matrix = 1.0;
@@ -583,18 +584,18 @@ MatrixPolicy<double, OrderingPolicy> TestArrayFunction()
   matrix[2][2][3] = 4.0;
   matrix[2][3][3] = 5.0;
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& mat)
       {
         auto tmp = mat.GetBlockVariable();
         mat.ForEachBlock(
-            [&tmp](const double& a, const double& b, const double& c, const double& d, double& t) { t = a + b + c + d; },
+            [&tmp](const micm::Real& a, const micm::Real& b, const micm::Real& c, const micm::Real& d, micm::Real& t) { t = a + b + c + d; },
             mat.GetConstBlockView(0, 0),
             mat.GetConstBlockView(1, 1),
             mat.GetConstBlockView(2, 2),
             mat.GetConstBlockView(2, 3),
             tmp);
-        mat.ForEachBlock([&tmp](double& d, const double& t) { d = 2.0 * t; }, mat.GetBlockView(2, 3), tmp);
+        mat.ForEachBlock([&tmp](micm::Real& d, const micm::Real& t) { d = 2.0 * t; }, mat.GetBlockView(2, 3), tmp);
       },
       matrix);  // pass matrix so the type and dimensions are known by the function
 
@@ -618,7 +619,7 @@ MatrixPolicy<double, OrderingPolicy> TestArrayFunction()
   EXPECT_EQ(matrix[2][3][3], 5.0);
 
   // Use a different matrix with the same dimensions
-  MatrixPolicy<double, OrderingPolicy> matrix2{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder };
   matrix2 = -1.0;
   func(matrix2);
   EXPECT_EQ(matrix2[0][2][3], 2.0 * (-1.0 + -1.0 + -1.0 + -1.0));  // -8.0
@@ -641,16 +642,16 @@ MatrixPolicy<double, OrderingPolicy> TestArrayFunction()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>> TestMultiMatrixArrayFunction()
+std::tuple<MatrixPolicy<micm::Real, OrderingPolicy>, MatrixPolicy<micm::Real, OrderingPolicy>> TestMultiMatrixArrayFunction()
 {
   // MatrixA: 3x3 with 2 non-zero elements per block
-  auto builderA = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+  auto builderA = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
   // 0 X 0
   // 0 0 X
   // 0 0 0
 
   // MatrixB: 3x3 with 3 non-zero elements per block
-  auto builderB = MatrixPolicy<double, OrderingPolicy>::Create(3)
+  auto builderB = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
                       .WithElement(0, 0)
                       .WithElement(1, 1)
                       .WithElement(2, 2)
@@ -659,18 +660,18 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPo
   // 0 X 0
   // 0 0 X
 
-  MatrixPolicy<double, OrderingPolicy> matrixA{ builderA };
-  MatrixPolicy<double, OrderingPolicy> matrixB{ builderB };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixA{ builderA };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixB{ builderB };
 
   // Set initial values that differ by blocks
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrixA[block][0][1] = static_cast<double>(block + 10);
-    matrixA[block][1][2] = static_cast<double>(block * 2 + 20);
+    matrixA[block][0][1] = static_cast<micm::Real>(block + 10);
+    matrixA[block][1][2] = static_cast<micm::Real>(block * 2 + 20);
 
-    matrixB[block][0][0] = static_cast<double>(block * 4);
-    matrixB[block][1][1] = static_cast<double>(block * 3);
-    matrixB[block][2][2] = static_cast<double>(block * 5);
+    matrixB[block][0][0] = static_cast<micm::Real>(block * 4);
+    matrixB[block][1][1] = static_cast<micm::Real>(block * 3);
+    matrixB[block][2][2] = static_cast<micm::Real>(block * 5);
   }
 
   // Initial MatrixA values:
@@ -683,17 +684,17 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPo
   // Block 1: (0,0)=4, (1,1)=3, (2,2)=5
   // Block 2: (0,0)=8, (1,1)=6, (2,2)=10
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& mA, auto&& mB)
       {
         // Use an array function to set element (1,2) in matrixA = element (0,1) in matrixA + element (2,2) in matrixB
         auto tmp = mA.GetBlockVariable();
         mA.ForEachBlock(
-            [&](const double& a, const double& b, double& t) { t = a + b; },
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; },
             mA.GetConstBlockView(0, 1),
             mB.GetConstBlockView(2, 2),
             tmp);
-        mA.ForEachBlock([&](const double& t, double& c) { c = t; }, tmp, mA.GetBlockView(1, 2));
+        mA.ForEachBlock([&](const micm::Real& t, micm::Real& c) { c = t; }, tmp, mA.GetBlockView(1, 2));
       },
       matrixA,
       matrixB);
@@ -717,22 +718,22 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPo
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 void TestMismatchedBlockDimensions()
 {
-  auto builderA = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(3);
+  auto builderA = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(3);
 
-  auto builderB = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(
+  auto builderB = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(
       4);  // Different number of blocks!
 
-  MatrixPolicy<double, OrderingPolicy> matrixA{ builderA };
-  MatrixPolicy<double, OrderingPolicy> matrixB{ builderB };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixA{ builderA };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixB{ builderB };
 
   // Should succeed at creation (different block counts allowed at creation)
-  using SparseMatrixType = MatrixPolicy<double, OrderingPolicy>;
+  using SparseMatrixType = MatrixPolicy<micm::Real, OrderingPolicy>;
   auto func = SparseMatrixType::Function(
       [](auto&& mA, auto&& mB)
       {
         // This should work when matrices have same block counts
         mA.ForEachBlock(
-            [&](const double& a, const double& b, double& c) { c = a + b; },
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; },
             mA.GetConstBlockView(0, 1),
             mB.GetConstBlockView(0, 1),
             mA.GetBlockView(1, 1));
@@ -750,7 +751,7 @@ void TestMismatchedBlockDimensions()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 void TestMismatchedElementDimensions()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(1, 1)
                      .WithElement(2, 2)
@@ -760,15 +761,15 @@ void TestMismatchedElementDimensions()
   // 0 0 X 0
   // 0 0 0 0
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   // Create the function - this should succeed
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         // Try to access a block element that doesn't exist
         m.ForEachBlock(
-            [&](const double& a, double& b) { b = a * 2.0; },
+            [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
             m.GetConstBlockView(0, 1),
             m.GetBlockView(3, 3));  // Element (3,3) doesn't exist in this sparse matrix
       },
@@ -781,29 +782,29 @@ void TestMismatchedElementDimensions()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 void TestWrongMatrixDimensions()
 {
-  auto builder1 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder1 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                       .WithElement(0, 1)
                       .WithElement(1, 1)
                       .WithElement(2, 2)
                       .WithElement(3, 3)
                       .SetNumberOfBlocks(3);
 
-  auto builder2 = MatrixPolicy<double, OrderingPolicy>::Create(5)  // Different block size (5x5 vs 4x4)
+  auto builder2 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(5)  // Different block size (5x5 vs 4x4)
                       .WithElement(0, 1)
                       .WithElement(1, 1)
                       .WithElement(2, 2)
                       .WithElement(3, 3)
                       .SetNumberOfBlocks(3);
 
-  MatrixPolicy<double, OrderingPolicy> matrix1{ builder1 };
-  MatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix1{ builder1 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder2 };
 
   // Create a function with 4x4 block matrix
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         m.ForEachBlock(
-            [&](const double& a, double& b) { b = a * 2.0; },
+            [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
             m.GetConstBlockView(0, 1),
             m.GetBlockView(3, 3));  // Element (3,3) exists in both matrices
       },
@@ -817,9 +818,9 @@ void TestWrongMatrixDimensions()
   EXPECT_NO_THROW(func(matrix2));
 
   // But if we try to use a matrix with different number of blocks, it should fail
-  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(
+  auto builder3 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(
       5);  // Different number of blocks!
-  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder3 };
 
   // Should throw because number of blocks doesn't match (5 vs 3)
   EXPECT_ANY_THROW(func(matrix3));
@@ -827,60 +828,60 @@ void TestWrongMatrixDimensions()
 
 /// @brief Test: Multiple sparse matrices with DIFFERENT block counts from creation (should work)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>>
+std::tuple<MatrixPolicy<micm::Real, OrderingPolicy>, MatrixPolicy<micm::Real, OrderingPolicy>>
 TestMultipleSparseMatricesDifferentBlocksFromCreation()
 {
   // Create function with matrices having 3 blocks
-  auto builder3blocks = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder3blocks = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                             .WithElement(0, 1)
                             .WithElement(1, 2)
                             .WithElement(2, 3)
                             .SetNumberOfBlocks(3);
 
-  MatrixPolicy<double, OrderingPolicy> matrixA_3blocks{ builder3blocks };
-  MatrixPolicy<double, OrderingPolicy> matrixB_3blocks{ builder3blocks };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixA_3blocks{ builder3blocks };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixB_3blocks{ builder3blocks };
 
   // Initialize 3-block matrices
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrixA_3blocks[block][0][1] = static_cast<double>(block + 1);
-    matrixA_3blocks[block][1][2] = static_cast<double>(block + 10);
-    matrixB_3blocks[block][2][3] = static_cast<double>(block + 100);
+    matrixA_3blocks[block][0][1] = static_cast<micm::Real>(block + 1);
+    matrixA_3blocks[block][1][2] = static_cast<micm::Real>(block + 10);
+    matrixB_3blocks[block][2][3] = static_cast<micm::Real>(block + 100);
   }
 
   // Create function with 3-block matrices
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& mA, auto&& mB)
       {
         // Compute mA(2,3) = mA(0,1) + mA(1,2) + mB(2,3)
         auto tmp = mA.GetBlockVariable();
         mA.ForEachBlock(
-            [&](const double& a, const double& b, const double& c, double& t) { t = a + b + c; },
+            [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
             mA.GetConstBlockView(0, 1),
             mA.GetConstBlockView(1, 2),
             mB.GetConstBlockView(2, 3),
             tmp);
-        mA.ForEachBlock([&](const double& t, double& result) { result = t; }, tmp, mA.GetBlockView(2, 3));
+        mA.ForEachBlock([&](const micm::Real& t, micm::Real& result) { result = t; }, tmp, mA.GetBlockView(2, 3));
       },
       matrixA_3blocks,
       matrixB_3blocks);
 
   // Now use with matrices having 4 blocks (different from creation!)
-  auto builder4blocks = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder4blocks = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                             .WithElement(0, 1)
                             .WithElement(1, 2)
                             .WithElement(2, 3)
                             .SetNumberOfBlocks(4);
 
-  MatrixPolicy<double, OrderingPolicy> matrixA_4blocks{ builder4blocks };
-  MatrixPolicy<double, OrderingPolicy> matrixB_4blocks{ builder4blocks };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixA_4blocks{ builder4blocks };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixB_4blocks{ builder4blocks };
 
   // Initialize 4-block matrices
-  for (int block = 0; block < 4; ++block)
+  for (micm::Index block = 0; block < 4; ++block)
   {
-    matrixA_4blocks[block][0][1] = static_cast<double>(block + 1);
-    matrixA_4blocks[block][1][2] = static_cast<double>(block + 10);
-    matrixB_4blocks[block][2][3] = static_cast<double>(block + 100);
+    matrixA_4blocks[block][0][1] = static_cast<micm::Real>(block + 1);
+    matrixA_4blocks[block][1][2] = static_cast<micm::Real>(block + 10);
+    matrixB_4blocks[block][2][3] = static_cast<micm::Real>(block + 100);
   }
 
   // Should work with different block count
@@ -897,35 +898,35 @@ TestMultipleSparseMatricesDifferentBlocksFromCreation()
 
 /// @brief Test: Sparse matrix + vector with DIFFERENT block/size from creation (should work)
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestSparseMatrixVectorDifferentBlocksFromCreation()
+std::tuple<MatrixPolicy<micm::Real, OrderingPolicy>, std::vector<micm::Real>> TestSparseMatrixVectorDifferentBlocksFromCreation()
 {
   // Create function with 3-block matrix and 3-element vector
-  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+  auto builder3 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
 
-  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
-  std::vector<double> vec3 = { 1.0, 2.0, 3.0 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder3 };
+  std::vector<micm::Real> vec3 = { 1.0, 2.0, 3.0 };
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v)
       {
         // m(1,2) = m(0,1) + v
         auto tmp = m.GetBlockVariable();
-        m.ForEachBlock([&](const double& a, const double& b, double& t) { t = a + b; }, m.GetConstBlockView(0, 1), v, tmp);
-        m.ForEachBlock([&](const double& t, double& result) { result = t; }, tmp, m.GetBlockView(1, 2));
+        m.ForEachBlock([&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstBlockView(0, 1), v, tmp);
+        m.ForEachBlock([&](const micm::Real& t, micm::Real& result) { result = t; }, tmp, m.GetBlockView(1, 2));
       },
       matrix3,
       vec3);
 
   // Now use with 5-block matrix and 5-element vector (different from creation!)
-  auto builder5 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(5);
+  auto builder5 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(5);
 
-  MatrixPolicy<double, OrderingPolicy> matrix5{ builder5 };
-  std::vector<double> vec5 = { 10.0, 20.0, 30.0, 40.0, 50.0 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix5{ builder5 };
+  std::vector<micm::Real> vec5 = { 10.0, 20.0, 30.0, 40.0, 50.0 };
 
   // Initialize
-  for (int block = 0; block < 5; ++block)
+  for (micm::Index block = 0; block < 5; ++block)
   {
-    matrix5[block][0][1] = static_cast<double>(block + 1);
+    matrix5[block][0][1] = static_cast<micm::Real>(block + 1);
   }
 
   // Should work with different block/vector size
@@ -945,17 +946,17 @@ std::tuple<MatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestSparse
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 void TestMismatchedBlocksAtInvocation()
 {
-  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+  auto builder3 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
 
-  auto builder4 = MatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(4);
+  auto builder4 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(4);
 
-  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
-  MatrixPolicy<double, OrderingPolicy> matrix4{ builder4 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder3 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix4{ builder4 };
 
   // Create function
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& mA, auto&& mB) {
-        mA.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; }, mB.GetConstBlockView(0, 1), mA.GetBlockView(1, 2));
+        mA.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, mB.GetConstBlockView(0, 1), mA.GetBlockView(1, 2));
       },
       matrix3,
       matrix3);
@@ -972,27 +973,27 @@ void TestMismatchedBlocksAtInvocation()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 void TestMultipleSparseMatricesMismatchedBlocksAtInvocation()
 {
-  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder3 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                       .WithElement(0, 1)
                       .WithElement(1, 2)
                       .WithElement(2, 3)
                       .SetNumberOfBlocks(3);
 
-  auto builder4 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder4 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                       .WithElement(0, 1)
                       .WithElement(1, 2)
                       .WithElement(2, 3)
                       .SetNumberOfBlocks(4);
 
-  MatrixPolicy<double, OrderingPolicy> matrixA_3{ builder3 };
-  MatrixPolicy<double, OrderingPolicy> matrixB_3{ builder3 };
-  MatrixPolicy<double, OrderingPolicy> matrixC_4{ builder4 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixA_3{ builder3 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixB_3{ builder3 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixC_4{ builder4 };
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& mA, auto&& mB, auto&& mC)
       {
         mA.ForEachBlock(
-            [&](const double& a, const double& b, const double& c, double& result) { result = a + b + c; },
+            [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& result) { result = a + b + c; },
             mA.GetConstBlockView(0, 1),
             mB.GetConstBlockView(1, 2),
             mC.GetConstBlockView(2, 3),
@@ -1015,32 +1016,32 @@ template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 void TestWrongStructureAtInvocation()
 {
   // Same structure, different blocks
-  auto builder3 = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder3 = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                       .WithElement(0, 1)
                       .WithElement(1, 2)
                       .WithElement(2, 3)
                       .SetNumberOfBlocks(3);
 
-  auto builder5_same = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder5_same = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                            .WithElement(0, 1)
                            .WithElement(1, 2)
                            .WithElement(2, 3)
                            .SetNumberOfBlocks(5);
 
   // Different structure (different elements)
-  auto builder5_diff = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder5_diff = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                            .WithElement(0, 1)
                            .WithElement(1, 1)  // Different!
                            .WithElement(2, 2)  // Different!
                            .SetNumberOfBlocks(5);
 
-  MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
-  MatrixPolicy<double, OrderingPolicy> matrix5_same{ builder5_same };
-  MatrixPolicy<double, OrderingPolicy> matrix5_diff{ builder5_diff };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder3 };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix5_same{ builder5_same };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix5_diff{ builder5_diff };
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
-      { m.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; }, m.GetConstBlockView(0, 1), m.GetBlockView(1, 2)); },
+      { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, m.GetConstBlockView(0, 1), m.GetBlockView(1, 2)); },
       matrix3);
 
   // Should work with different block count but same structure
@@ -1051,9 +1052,9 @@ void TestWrongStructureAtInvocation()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestMultipleTemporaries()
+MatrixPolicy<micm::Real, OrderingPolicy> TestMultipleTemporaries()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(5)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(5)
                      .WithElement(0, 1)
                      .WithElement(1, 2)
                      .WithElement(2, 3)
@@ -1066,16 +1067,16 @@ MatrixPolicy<double, OrderingPolicy> TestMultipleTemporaries()
   // 0 0 0 0 X
   // 0 0 0 0 X
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   // Initialize first two block elements
-  for (std::size_t block = 0; block < 4; ++block)
+  for (micm::Index block = 0; block < 4; ++block)
   {
-    matrix[block][0][1] = static_cast<double>(block + 1);
-    matrix[block][1][2] = static_cast<double>((block + 1) * 10);
+    matrix[block][0][1] = static_cast<micm::Real>(block + 1);
+    matrix[block][1][2] = static_cast<micm::Real>((block + 1) * 10);
   }
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         // Use TWO temporaries for intermediate calculations
@@ -1084,29 +1085,29 @@ MatrixPolicy<double, OrderingPolicy> TestMultipleTemporaries()
 
         // tmp1 = (0,1) * (1,2)
         m.ForEachBlock(
-            [&](const double& a, const double& b, double& t) { t = a * b; },
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a * b; },
             m.GetConstBlockView(0, 1),
             m.GetConstBlockView(1, 2),
             tmp1);
 
         // tmp2 = (0,1) + (1,2)
         m.ForEachBlock(
-            [&](const double& a, const double& b, double& t) { t = a + b; },
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; },
             m.GetConstBlockView(0, 1),
             m.GetConstBlockView(1, 2),
             tmp2);
 
         // (2,3) = tmp1 + tmp2 (product + sum)
         m.ForEachBlock(
-            [&](const double& t1, const double& t2, double& c) { c = t1 + t2; }, tmp1, tmp2, m.GetBlockView(2, 3));
+            [&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 + t2; }, tmp1, tmp2, m.GetBlockView(2, 3));
 
         // (3,4) = tmp1 - tmp2 (product - sum)
         m.ForEachBlock(
-            [&](const double& t1, const double& t2, double& c) { c = t1 - t2; }, tmp1, tmp2, m.GetBlockView(3, 4));
+            [&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 - t2; }, tmp1, tmp2, m.GetBlockView(3, 4));
 
         // (4,4) = tmp1 * tmp2
         m.ForEachBlock(
-            [&](const double& t1, const double& t2, double& c) { c = t1 * t2; }, tmp1, tmp2, m.GetBlockView(4, 4));
+            [&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 * t2; }, tmp1, tmp2, m.GetBlockView(4, 4));
       },
       matrix);
 
@@ -1132,9 +1133,9 @@ MatrixPolicy<double, OrderingPolicy> TestMultipleTemporaries()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestBlockViewReuse()
+MatrixPolicy<micm::Real, OrderingPolicy> TestBlockViewReuse()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(1, 2)
                      .WithElement(2, 3)
@@ -1145,14 +1146,14 @@ MatrixPolicy<double, OrderingPolicy> TestBlockViewReuse()
   // 0 0 0 X
   // 0 0 0 X
 
-  MatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
-  for (std::size_t block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrix[block][0][1] = static_cast<double>(block + 1);
+    matrix[block][0][1] = static_cast<micm::Real>(block + 1);
   }
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         // Create block views once
@@ -1163,13 +1164,13 @@ MatrixPolicy<double, OrderingPolicy> TestBlockViewReuse()
 
         // Reuse the same block views in multiple ForEachBlock calls
         // (1,2) = (0,1) * 2
-        m.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; }, elem01, elem12);
+        m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, elem01, elem12);
 
         // (2,3) = (0,1) + (1,2) (reusing elem01 and elem12)
-        m.ForEachBlock([&](const double& a, const double& b, double& c) { c = a + b; }, elem01, elem12, elem23);
+        m.ForEachBlock([&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, elem01, elem12, elem23);
 
         // (3,3) = (2,3) * (1,2) (reusing elem12 and elem23)
-        m.ForEachBlock([&](const double& a, const double& b, double& c) { c = a * b; }, elem23, elem12, elem33);
+        m.ForEachBlock([&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a * b; }, elem23, elem12, elem33);
       },
       matrix);
 
@@ -1194,10 +1195,10 @@ MatrixPolicy<double, OrderingPolicy> TestBlockViewReuse()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-MatrixPolicy<double, OrderingPolicy> TestFunctionReusability()
+MatrixPolicy<micm::Real, OrderingPolicy> TestFunctionReusability()
 {
   // Create a function once
-  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3)
+  auto builder = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
                      .WithElement(0, 0)
                      .WithElement(1, 1)
                      .WithElement(2, 2)
@@ -1206,28 +1207,28 @@ MatrixPolicy<double, OrderingPolicy> TestFunctionReusability()
   // 0 X 0
   // 0 0 X
 
-  MatrixPolicy<double, OrderingPolicy> matrix1{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix1{ builder };
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         auto tmp = m.GetBlockVariable();
         m.ForEachBlock(
-            [&](const double& a, const double& b, const double& c, double& t) { t = a + b + c; },
+            [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
             m.GetConstBlockView(0, 0),
             m.GetConstBlockView(1, 1),
             m.GetConstBlockView(2, 2),
             tmp);
-        m.ForEachBlock([&](double& c, const double& t) { c = 2.0 * t; }, m.GetBlockView(2, 2), tmp);
+        m.ForEachBlock([&](micm::Real& c, const micm::Real& t) { c = 2.0 * t; }, m.GetBlockView(2, 2), tmp);
       },
       matrix1);
 
   // Apply to first matrix
-  for (std::size_t block = 0; block < 2; ++block)
+  for (micm::Index block = 0; block < 2; ++block)
   {
-    matrix1[block][0][0] = static_cast<double>(block);
-    matrix1[block][1][1] = static_cast<double>(block + 1);
-    matrix1[block][2][2] = static_cast<double>(block + 2);
+    matrix1[block][0][0] = static_cast<micm::Real>(block);
+    matrix1[block][1][1] = static_cast<micm::Real>(block + 1);
+    matrix1[block][2][2] = static_cast<micm::Real>(block + 2);
   }
 
   func(matrix1);
@@ -1235,18 +1236,18 @@ MatrixPolicy<double, OrderingPolicy> TestFunctionReusability()
   EXPECT_EQ(matrix1[1][2][2], 2.0 * (1 + 2 + 3));  // 12
 
   // Apply to second matrix with same dimensions
-  MatrixPolicy<double, OrderingPolicy> matrix2{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder };
   matrix2 = 5.0;
   func(matrix2);
   EXPECT_EQ(matrix2[0][2][2], 2.0 * (5 + 5 + 5));  // 30
   EXPECT_EQ(matrix2[1][2][2], 2.0 * (5 + 5 + 5));  // 30
 
   // Apply to third matrix with different values
-  MatrixPolicy<double, OrderingPolicy> matrix3{ builder };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder };
   matrix3 = 0.0;
-  for (std::size_t block = 0; block < 2; ++block)
+  for (micm::Index block = 0; block < 2; ++block)
   {
-    matrix3[block][0][0] = static_cast<double>(block * 10);
+    matrix3[block][0][0] = static_cast<micm::Real>(block * 10);
   }
 
   func(matrix3);
@@ -1257,11 +1258,11 @@ MatrixPolicy<double, OrderingPolicy> TestFunctionReusability()
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-std::tuple<MatrixPolicy<double, OrderingPolicy>, MatrixPolicy<double, OrderingPolicy>>
+std::tuple<MatrixPolicy<micm::Real, OrderingPolicy>, MatrixPolicy<micm::Real, OrderingPolicy>>
 TestTwoSparseMatricesDifferentStructure()
 {
   // MatrixA: 3x3 with specific sparsity pattern, 4 blocks
-  auto builderA = MatrixPolicy<double, OrderingPolicy>::Create(3)
+  auto builderA = MatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
                       .WithElement(0, 1)
                       .WithElement(1, 1)
                       .WithElement(2, 2)
@@ -1271,7 +1272,7 @@ TestTwoSparseMatricesDifferentStructure()
   // 0 0 X
 
   // MatrixB: 5x5 with different sparsity pattern and dimensions, but same number of blocks (4)
-  auto builderB = MatrixPolicy<double, OrderingPolicy>::Create(5)
+  auto builderB = MatrixPolicy<micm::Real, OrderingPolicy>::Create(5)
                       .WithElement(0, 0)
                       .WithElement(1, 2)
                       .WithElement(2, 3)
@@ -1283,20 +1284,20 @@ TestTwoSparseMatricesDifferentStructure()
   // 0 0 0 0 X
   // 0 0 0 0 0
 
-  MatrixPolicy<double, OrderingPolicy> matrixA{ builderA };
-  MatrixPolicy<double, OrderingPolicy> matrixB{ builderB };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixA{ builderA };
+  MatrixPolicy<micm::Real, OrderingPolicy> matrixB{ builderB };
 
   // Set initial values that differ by blocks
-  for (int block = 0; block < 4; ++block)
+  for (micm::Index block = 0; block < 4; ++block)
   {
-    matrixA[block][0][1] = static_cast<double>(block * 2 + 1);
-    matrixA[block][1][1] = static_cast<double>(block * 3 + 2);
-    matrixA[block][2][2] = static_cast<double>(block * 5 + 3);
+    matrixA[block][0][1] = static_cast<micm::Real>(block * 2 + 1);
+    matrixA[block][1][1] = static_cast<micm::Real>(block * 3 + 2);
+    matrixA[block][2][2] = static_cast<micm::Real>(block * 5 + 3);
 
-    matrixB[block][0][0] = static_cast<double>(block + 10);
-    matrixB[block][1][2] = static_cast<double>(block + 20);
-    matrixB[block][2][3] = static_cast<double>(block + 30);
-    matrixB[block][3][4] = static_cast<double>(block + 40);
+    matrixB[block][0][0] = static_cast<micm::Real>(block + 10);
+    matrixB[block][1][2] = static_cast<micm::Real>(block + 20);
+    matrixB[block][2][3] = static_cast<micm::Real>(block + 30);
+    matrixB[block][3][4] = static_cast<micm::Real>(block + 40);
   }
 
   // Initial MatrixA values by block:
@@ -1311,19 +1312,19 @@ TestTwoSparseMatricesDifferentStructure()
   // Block 2: (0,0)=12, (1,2)=22, (2,3)=32, (3,4)=42
   // Block 3: (0,0)=13, (1,2)=23, (2,3)=33, (3,4)=43
 
-  auto func = MatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = MatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& mA, auto&& mB)
       {
         // Combine data from both matrices despite different structures
         // Set (2,2) in matrixA = (0,1) + (1,1) from matrixA + (0,0) from matrixB
         auto tmp = mA.GetBlockVariable();
         mA.ForEachBlock(
-            [&](const double& a, const double& b, const double& c, double& t) { t = a + b + c; },
+            [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
             mA.GetConstBlockView(0, 1),
             mA.GetConstBlockView(1, 1),
             mB.GetConstBlockView(0, 0),
             tmp);
-        mA.ForEachBlock([&](const double& t, double& result) { result = t; }, tmp, mA.GetBlockView(2, 2));
+        mA.ForEachBlock([&](const micm::Real& t, micm::Real& result) { result = t; }, tmp, mA.GetBlockView(2, 2));
       },
       matrixA,
       matrixB);
@@ -1352,10 +1353,10 @@ TestTwoSparseMatricesDifferentStructure()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, template<class> class DenseMatrixPolicy>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>> TestSparseAndDenseMatrixFunction()
+std::tuple<SparseMatrixPolicy<micm::Real, OrderingPolicy>, DenseMatrixPolicy<micm::Real>> TestSparseAndDenseMatrixFunction()
 {
   // Sparse matrix: 4x4 with some sparsity pattern, 3 blocks
-  auto sparseBuilder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto sparseBuilder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                            .WithElement(0, 1)
                            .WithElement(1, 2)
                            .WithElement(2, 3)
@@ -1370,24 +1371,24 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>
   // Note: In the implementation, we'll need to validate that the orderings are compatible
   // and that dense.NumRows() == sparse.NumberOfBlocks()
 
-  SparseMatrixPolicy<double, OrderingPolicy> sparseMatrix{ sparseBuilder };
-  DenseMatrixPolicy<double> denseMatrix{ 3, 4, 0.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> sparseMatrix{ sparseBuilder };
+  DenseMatrixPolicy<micm::Real> denseMatrix{ 3, 4, 0.0 };
 
   // Initialize sparse matrix elements
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    sparseMatrix[block][0][1] = static_cast<double>(block + 1);
-    sparseMatrix[block][1][2] = static_cast<double>(block + 10);
-    sparseMatrix[block][2][3] = static_cast<double>(block + 20);
-    sparseMatrix[block][3][3] = static_cast<double>(block + 30);
+    sparseMatrix[block][0][1] = static_cast<micm::Real>(block + 1);
+    sparseMatrix[block][1][2] = static_cast<micm::Real>(block + 10);
+    sparseMatrix[block][2][3] = static_cast<micm::Real>(block + 20);
+    sparseMatrix[block][3][3] = static_cast<micm::Real>(block + 30);
   }
 
   // Initialize dense matrix - each row corresponds to a block in the sparse matrix
-  for (int row = 0; row < 3; ++row)
+  for (micm::Index row = 0; row < 3; ++row)
   {
-    for (int col = 0; col < 4; ++col)
+    for (micm::Index col = 0; col < 4; ++col)
     {
-      denseMatrix[row][col] = static_cast<double>(row * 100 + col * 10);
+      denseMatrix[row][col] = static_cast<micm::Real>(row * 100 + col * 10);
     }
   }
 
@@ -1398,7 +1399,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>
 
   // Create a function that combines sparse blocks with dense rows
   // The function should work with blocks in sparse matrix corresponding to rows in dense matrix
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& sparse, auto&& dense)
       {
         // For each block/row, compute: sparse(3,3) = sparse(0,1) + sparse(1,2) + dense[col0] + dense[col1]
@@ -1406,7 +1407,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>
 
         // tmp = sparse(0,1) + sparse(1,2) + dense[0] + dense[1]
         sparse.ForEachBlock(
-            [&](const double& s1, const double& s2, const double& d0, const double& d1, double& t)
+            [&](const micm::Real& s1, const micm::Real& s2, const micm::Real& d0, const micm::Real& d1, micm::Real& t)
             { t = s1 + s2 + d0 + d1; },
             sparse.GetConstBlockView(0, 1),
             sparse.GetConstBlockView(1, 2),
@@ -1415,7 +1416,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, DenseMatrixPolicy<double>
             tmp);
 
         // sparse(3,3) = tmp
-        sparse.ForEachBlock([&](const double& t, double& result) { result = t; }, tmp, sparse.GetBlockView(3, 3));
+        sparse.ForEachBlock([&](const micm::Real& t, micm::Real& result) { result = t; }, tmp, sparse.GetBlockView(3, 3));
       },
       sparseMatrix,
       denseMatrix);
@@ -1451,69 +1452,69 @@ template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, 
 void TestIncompatibleOrdering()
 {
   // Only run this test if L > 1 (vector ordering)
-  static constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+  static constexpr micm::Index L = OrderingPolicy::GroupVectorSize();
   if constexpr (L > 1)
   {
     // Sparse matrix with vector ordering (L > 1)
     auto sparseBuilder =
-        SparseMatrixPolicy<double, OrderingPolicy>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
-    SparseMatrixPolicy<double, OrderingPolicy> sparseMatrix{ sparseBuilder };
+        SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+    SparseMatrixPolicy<micm::Real, OrderingPolicy> sparseMatrix{ sparseBuilder };
 
     // Dense matrix with standard ordering (L = 1)
-    DenseMatrixPolicy<double> denseMatrix{ 3, 4, 0.0 };
+    DenseMatrixPolicy<micm::Real> denseMatrix{ 3, 4, 0.0 };
 
     // This should throw during validation (before lambda execution)
     EXPECT_THROW(
-        (SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) {}, sparseMatrix, denseMatrix)),
+        (SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function([](auto&&, auto&&) {}, sparseMatrix, denseMatrix)),
         micm::MicmException);
   }
 }
 
 /// @brief Test valid combinations of sparse and vector matrices with matching L
-template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, std::size_t L>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double, L>> TestSparseAndVectorMatrixFunction()
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, micm::Index L>
+std::tuple<SparseMatrixPolicy<micm::Real, OrderingPolicy>, micm::VectorMatrix<micm::Real, L>> TestSparseAndVectorMatrixFunction()
 {
   // Verify L matches
   static_assert(OrderingPolicy::GroupVectorSize() == L, "L parameter must match OrderingPolicy GroupVectorSize");
 
   // Sparse matrix: 4x4 with some sparsity pattern, 3 blocks
-  auto sparseBuilder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto sparseBuilder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                            .WithElement(0, 1)
                            .WithElement(1, 2)
                            .WithElement(2, 3)
                            .WithElement(3, 3)
                            .SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> sparseMatrix{ sparseBuilder };
-  micm::VectorMatrix<double, L> vectorMatrix{ 3, 4, 0.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> sparseMatrix{ sparseBuilder };
+  micm::VectorMatrix<micm::Real, L> vectorMatrix{ 3, 4, 0.0 };
 
   // Initialize sparse matrix elements
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    sparseMatrix[block][0][1] = static_cast<double>(block + 1);
-    sparseMatrix[block][1][2] = static_cast<double>(block + 10);
-    sparseMatrix[block][2][3] = static_cast<double>(block + 20);
-    sparseMatrix[block][3][3] = static_cast<double>(block + 30);
+    sparseMatrix[block][0][1] = static_cast<micm::Real>(block + 1);
+    sparseMatrix[block][1][2] = static_cast<micm::Real>(block + 10);
+    sparseMatrix[block][2][3] = static_cast<micm::Real>(block + 20);
+    sparseMatrix[block][3][3] = static_cast<micm::Real>(block + 30);
   }
 
   // Initialize vector matrix
-  for (int row = 0; row < 3; ++row)
+  for (micm::Index row = 0; row < 3; ++row)
   {
-    for (int col = 0; col < 4; ++col)
+    for (micm::Index col = 0; col < 4; ++col)
     {
-      vectorMatrix[row][col] = static_cast<double>(row * 100 + col * 10);
+      vectorMatrix[row][col] = static_cast<micm::Real>(row * 100 + col * 10);
     }
   }
 
   // Create a function that combines sparse blocks with vector matrix rows
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& sparse, auto&& vector)
       {
         auto tmp = sparse.GetBlockVariable();
 
         // tmp = sparse(0,1) + sparse(1,2) + vector[0] + vector[1]
         sparse.ForEachBlock(
-            [&](const double& s1, const double& s2, const double& v0, const double& v1, double& t)
+            [&](const micm::Real& s1, const micm::Real& s2, const micm::Real& v0, const micm::Real& v1, micm::Real& t)
             { t = s1 + s2 + v0 + v1; },
             sparse.GetConstBlockView(0, 1),
             sparse.GetConstBlockView(1, 2),
@@ -1522,7 +1523,7 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double
             tmp);
 
         // sparse(3,3) = tmp
-        sparse.ForEachBlock([&](const double& t, double& result) { result = t; }, tmp, sparse.GetBlockView(3, 3));
+        sparse.ForEachBlock([&](const micm::Real& t, micm::Real& result) { result = t; }, tmp, sparse.GetBlockView(3, 3));
       },
       sparseMatrix,
       vectorMatrix);
@@ -1538,25 +1539,25 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, micm::VectorMatrix<double
 }
 
 /// @brief Test that mixing vector matrices with different L values throws an error
-template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, std::size_t DifferentL>
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, micm::Index DifferentL>
 void TestIncompatibleVectorOrdering()
 {
-  static constexpr std::size_t SparseL = OrderingPolicy::GroupVectorSize();
+  static constexpr micm::Index SparseL = OrderingPolicy::GroupVectorSize();
 
   // Only run if L values are different
   if constexpr (SparseL != DifferentL)
   {
     // Sparse matrix with OrderingPolicy L
     auto sparseBuilder =
-        SparseMatrixPolicy<double, OrderingPolicy>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
-    SparseMatrixPolicy<double, OrderingPolicy> sparseMatrix{ sparseBuilder };
+        SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+    SparseMatrixPolicy<micm::Real, OrderingPolicy> sparseMatrix{ sparseBuilder };
 
     // Vector matrix with different L
-    micm::VectorMatrix<double, DifferentL> vectorMatrix{ 3, 4, 0.0 };
+    micm::VectorMatrix<micm::Real, DifferentL> vectorMatrix{ 3, 4, 0.0 };
 
     // This should throw during validation (before lambda execution)
     EXPECT_THROW(
-        (SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) {}, sparseMatrix, vectorMatrix)),
+        (SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function([](auto&&, auto&&) {}, sparseMatrix, vectorMatrix)),
         micm::MicmException);
   }
 }
@@ -1565,26 +1566,26 @@ void TestIncompatibleVectorOrdering()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy1, class OrderingPolicy2>
 void TestIncompatibleSparseOrdering()
 {
-  static constexpr std::size_t L1 = OrderingPolicy1::GroupVectorSize();
-  static constexpr std::size_t L2 = OrderingPolicy2::GroupVectorSize();
+  static constexpr micm::Index L1 = OrderingPolicy1::GroupVectorSize();
+  static constexpr micm::Index L2 = OrderingPolicy2::GroupVectorSize();
 
   // Only run if L values are different
   if constexpr (L1 != L2)
   {
     // First sparse matrix
     auto builder1 =
-        SparseMatrixPolicy<double, OrderingPolicy1>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
-    SparseMatrixPolicy<double, OrderingPolicy1> sparseMatrix1{ builder1 };
+        SparseMatrixPolicy<micm::Real, OrderingPolicy1>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+    SparseMatrixPolicy<micm::Real, OrderingPolicy1> sparseMatrix1{ builder1 };
 
     // Second sparse matrix with different ordering
     auto builder2 =
-        SparseMatrixPolicy<double, OrderingPolicy2>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
-    SparseMatrixPolicy<double, OrderingPolicy2> sparseMatrix2{ builder2 };
+        SparseMatrixPolicy<micm::Real, OrderingPolicy2>::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
+    SparseMatrixPolicy<micm::Real, OrderingPolicy2> sparseMatrix2{ builder2 };
 
     // This should throw during validation (before lambda execution)
     // Use a simple lambda that doesn't access mismatched data to avoid template instantiation issues
     EXPECT_THROW(
-        (SparseMatrixPolicy<double, OrderingPolicy1>::Function([](auto&&, auto&&) {}, sparseMatrix1, sparseMatrix2)),
+        (SparseMatrixPolicy<micm::Real, OrderingPolicy1>::Function([](auto&&, auto&&) {}, sparseMatrix1, sparseMatrix2)),
         micm::MicmException);
   }
 }
@@ -1593,40 +1594,40 @@ void TestIncompatibleSparseOrdering()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestConstSparseMatrixFunction()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(1, 2)
                      .WithElement(2, 3)
                      .WithElement(3, 3)
                      .SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   // Set initial values
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrix[block][0][1] = static_cast<double>(block + 1);
-    matrix[block][1][2] = static_cast<double>(block + 10);
+    matrix[block][0][1] = static_cast<micm::Real>(block + 1);
+    matrix[block][1][2] = static_cast<micm::Real>(block + 10);
   }
 
   // Create a const reference
-  const SparseMatrixPolicy<double, OrderingPolicy>& const_matrix = matrix;
+  const SparseMatrixPolicy<micm::Real, OrderingPolicy>& const_matrix = matrix;
 
   // Create a function that only reads from the matrix
-  auto read_func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto read_func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         auto tmp = m.GetBlockVariable();
         // Only use GetConstBlockView - should work with const matrices
         m.ForEachBlock(
-            [&](const double& a, const double& b, double& t) { t = a + b; },
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; },
             m.GetConstBlockView(0, 1),
             m.GetConstBlockView(1, 2),
             tmp);
 
         // Verify we can read the values (no writes to m)
-        double sum = 0.0;
-        m.ForEachBlock([&sum](const double& val) { sum += val; }, m.GetConstBlockView(2, 3));
+        micm::Real sum = 0.0;
+        m.ForEachBlock([&sum](const micm::Real& val) { sum += val; }, m.GetConstBlockView(2, 3));
       },
       const_matrix);
 
@@ -1643,11 +1644,11 @@ template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestEmptySparseMatrixFunction()
 {
   // Test with 0 non-zero elements
-  auto empty_builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4).SetNumberOfBlocks(3);
+  auto empty_builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> empty_matrix{ empty_builder };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> empty_matrix{ empty_builder };
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m)
       {
         // With 0 non-zero elements, GetBlockView would throw
@@ -1661,11 +1662,11 @@ void TestEmptySparseMatrixFunction()
   EXPECT_NO_THROW(func(empty_matrix));
 
   // Test with 0 blocks
-  auto zero_blocks_builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4).WithElement(0, 1).SetNumberOfBlocks(0);
+  auto zero_blocks_builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4).WithElement(0, 1).SetNumberOfBlocks(0);
 
-  SparseMatrixPolicy<double, OrderingPolicy> zero_blocks{ zero_blocks_builder };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> zero_blocks{ zero_blocks_builder };
 
-  auto func2 = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func2 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&&)
       {
         // Should never iterate
@@ -1680,30 +1681,30 @@ void TestEmptySparseMatrixFunction()
 // ============================================================================
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-SparseMatrixPolicy<double, OrderingPolicy> TestVectorInSparseMatrixFunction()
+SparseMatrixPolicy<micm::Real, OrderingPolicy> TestVectorInSparseMatrixFunction()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(1, 2)
                      .WithElement(2, 3)
                      .SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 5.0, 10.0, 15.0 };
 
   // Set matrix values
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrix[block][0][1] = static_cast<double>(block + 1);
-    matrix[block][1][2] = static_cast<double>(block + 2);
-    matrix[block][2][3] = static_cast<double>(block + 3);
+    matrix[block][0][1] = static_cast<micm::Real>(block + 1);
+    matrix[block][1][2] = static_cast<micm::Real>(block + 2);
+    matrix[block][2][3] = static_cast<micm::Real>(block + 3);
   }
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v)
       {
         // Read from vector, write to matrix
-        m.ForEachBlock([&](const double& in_vec, double& out_mat) { out_mat = in_vec * 2.0; }, v, m.GetBlockView(0, 1));
+        m.ForEachBlock([&](const micm::Real& in_vec, micm::Real& out_mat) { out_mat = in_vec * 2.0; }, v, m.GetBlockView(0, 1));
       },
       matrix,
       vec);
@@ -1721,14 +1722,14 @@ SparseMatrixPolicy<double, OrderingPolicy> TestVectorInSparseMatrixFunction()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestVectorTooSmall()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 1.0, 2.0 };  // Too small - needs 3 elements
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 1.0, 2.0 };  // Too small - needs 3 elements
 
   // Should succeed at creation (block counts can differ at creation)
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a; }, v, m.GetBlockView(0, 1)); },
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetBlockView(0, 1)); },
       matrix,
       vec);
 
@@ -1739,14 +1740,14 @@ void TestVectorTooSmall()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestVectorTooLarge()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 1.0, 2.0, 3.0, 4.0 };  // Too large
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 1.0, 2.0, 3.0, 4.0 };  // Too large
 
   // Should succeed at creation (block counts can differ at creation)
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a; }, v, m.GetBlockView(0, 1)); },
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetBlockView(0, 1)); },
       matrix,
       vec);
 
@@ -1757,14 +1758,14 @@ void TestVectorTooLarge()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestEmptyVectorNonEmptySparseMatrix()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec;  // Empty
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec;  // Empty
 
   // Should succeed at creation
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a; }, v, m.GetBlockView(0, 1)); },
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetBlockView(0, 1)); },
       matrix,
       vec);
 
@@ -1775,14 +1776,14 @@ void TestEmptyVectorNonEmptySparseMatrix()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestNonEmptyVectorEmptySparseMatrix()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(0);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(0);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 1.0, 2.0, 3.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 1.0, 2.0, 3.0 };
 
   // Should succeed at creation
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a; }, v, m.GetBlockView(0, 1)); },
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetBlockView(0, 1)); },
       matrix,
       vec);
 
@@ -1793,12 +1794,12 @@ void TestNonEmptyVectorEmptySparseMatrix()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestEmptyVectorEmptySparseMatrix()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(0);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(0);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec;  // Empty
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec;  // Empty
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&&, auto&&)
       {
         // Should never execute
@@ -1814,16 +1815,16 @@ void TestEmptyVectorEmptySparseMatrix()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestMultipleVectorsDifferentSizes()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
-  std::vector<double> vec2 = { 4.0, 5.0 };  // Different size
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<micm::Real> vec2 = { 4.0, 5.0 };  // Different size
 
   // Should succeed at creation (different block counts allowed at creation)
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v1, auto&& v2)
-      { m.ForEachBlock([&](const double& a, const double& b, double& c) { c = a + b; }, v1, v2, m.GetBlockView(0, 1)); },
+      { m.ForEachBlock([&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetBlockView(0, 1)); },
       matrix,
       vec1,
       vec2);
@@ -1835,15 +1836,15 @@ void TestMultipleVectorsDifferentSizes()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestMultipleVectorsSameSize()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
-  std::vector<double> vec2 = { 4.0, 5.0, 6.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<micm::Real> vec2 = { 4.0, 5.0, 6.0 };
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v1, auto&& v2)
-      { m.ForEachBlock([&](const double& a, const double& b, double& out) { out = a + b; }, v1, v2, m.GetBlockView(0, 1)); },
+      { m.ForEachBlock([&](const micm::Real& a, const micm::Real& b, micm::Real& out) { out = a + b; }, v1, v2, m.GetBlockView(0, 1)); },
       matrix,
       vec1,
       vec2);
@@ -1858,23 +1859,23 @@ void TestMultipleVectorsSameSize()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestMultipleSparseMatricesOneVector()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder };
-  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder };
-  std::vector<double> vec = { 10.0, 20.0, 30.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix1{ builder };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder };
+  std::vector<micm::Real> vec = { 10.0, 20.0, 30.0 };
 
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrix1[block][0][1] = static_cast<double>(block + 1);
+    matrix1[block][0][1] = static_cast<micm::Real>(block + 1);
     matrix2[block][0][1] = 0.0;
   }
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m1, auto&& m2, auto&& v)
       {
         m1.ForEachBlock(
-            [&](const double& a, const double& b, double& out) { out = a + b; },
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& out) { out = a + b; },
             m1.GetConstBlockView(0, 1),
             v,
             m2.GetBlockView(0, 1));
@@ -1893,17 +1894,17 @@ void TestMultipleSparseMatricesOneVector()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestMultipleSparseMatricesDifferentBlocksVector()
 {
-  auto builder1 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
-  auto builder2 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(4);
+  auto builder1 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder2 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(4);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder1 };
-  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
-  std::vector<double> vec = { 1.0, 2.0, 3.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix1{ builder1 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder2 };
+  std::vector<micm::Real> vec = { 1.0, 2.0, 3.0 };
 
   // Should succeed at creation (different block counts allowed at creation)
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m1, auto&& m2, auto&& v)
-      { m1.ForEachBlock([&](const double& a, double& b) { b = a; }, v, m1.GetBlockView(0, 1)); },
+      { m1.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m1.GetBlockView(0, 1)); },
       matrix1,
       matrix2,
       vec);
@@ -1915,18 +1916,18 @@ void TestMultipleSparseMatricesDifferentBlocksVector()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestVectorSizeMatchesOneSparseMatrixOnly()
 {
-  auto builder1 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
-  auto builder2 = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder1 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder2 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder1 };
-  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder2 };
-  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
-  std::vector<double> vec2 = { 4.0, 5.0 };  // Wrong size
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix1{ builder1 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder2 };
+  std::vector<micm::Real> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<micm::Real> vec2 = { 4.0, 5.0 };  // Wrong size
 
   // Should succeed at creation (different block counts allowed at creation)
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m1, auto&& m2, auto&& v1, auto&& v2)
-      { m1.ForEachBlock([&](const double& a, double& b) { b = a; }, v1, m1.GetBlockView(0, 1)); },
+      { m1.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v1, m1.GetBlockView(0, 1)); },
       matrix1,
       matrix2,
       vec1,
@@ -1937,15 +1938,15 @@ void TestVectorSizeMatchesOneSparseMatrixOnly()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-SparseMatrixPolicy<double, OrderingPolicy> TestConstVectorSparse()
+SparseMatrixPolicy<micm::Real, OrderingPolicy> TestConstVectorSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  const std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  const std::vector<micm::Real> vec = { 5.0, 10.0, 15.0 };
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a * 3.0; }, v, m.GetBlockView(0, 1)); },
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 3.0; }, v, m.GetBlockView(0, 1)); },
       matrix,
       vec);
 
@@ -1959,21 +1960,21 @@ SparseMatrixPolicy<double, OrderingPolicy> TestConstVectorSparse()
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> TestMutableVectorSparse()
+std::tuple<SparseMatrixPolicy<micm::Real, OrderingPolicy>, std::vector<micm::Real>> TestMutableVectorSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 5.0, 10.0, 15.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 5.0, 10.0, 15.0 };
 
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrix[block][0][1] = static_cast<double>(block + 1);
+    matrix[block][0][1] = static_cast<micm::Real>(block + 1);
   }
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v)
-      { m.ForEachBlock([&](const double& a, double& b) { b = a * 3.0; }, m.GetConstBlockView(0, 1), v); },
+      { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 3.0; }, m.GetConstBlockView(0, 1), v); },
       matrix,
       vec);
 
@@ -1990,15 +1991,15 @@ std::tuple<SparseMatrixPolicy<double, OrderingPolicy>, std::vector<double>> Test
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestFunctionReusabilityWithVectorsSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix1{ builder };
-  SparseMatrixPolicy<double, OrderingPolicy> matrix2{ builder };
-  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
-  std::vector<double> vec2 = { 10.0, 20.0, 30.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix1{ builder };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder };
+  std::vector<micm::Real> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<micm::Real> vec2 = { 10.0, 20.0, 30.0 };
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; }, v, m.GetBlockView(0, 1)); },
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetBlockView(0, 1)); },
       matrix1,
       vec1);
 
@@ -2016,13 +2017,13 @@ void TestFunctionReusabilityWithVectorsSparse()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestFunctionInvocationWithWrongSizedVectorSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec1 = { 1.0, 2.0, 3.0 };
-  std::vector<double> vec2 = { 1.0, 2.0 };  // Wrong size
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec1 = { 1.0, 2.0, 3.0 };
+  std::vector<micm::Real> vec2 = { 1.0, 2.0 };  // Wrong size
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function([](auto&&, auto&&) {}, matrix, vec1);
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function([](auto&&, auto&&) {}, matrix, vec1);
 
   EXPECT_THROW(
       try { func(matrix, vec2); } catch (micm::MicmException& e) {
@@ -2035,14 +2036,14 @@ void TestFunctionInvocationWithWrongSizedVectorSparse()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestArraySupportSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::array<double, 3> arr = { 7.0, 14.0, 21.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::array<micm::Real, 3> arr = { 7.0, 14.0, 21.0 };
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& a)
-      { m.ForEachBlock([&](const double& val, double& out) { out = val / 7.0; }, a, m.GetBlockView(0, 1)); },
+      { m.ForEachBlock([&](const micm::Real& val, micm::Real& out) { out = val / 7.0; }, a, m.GetBlockView(0, 1)); },
       matrix,
       arr);
 
@@ -2056,33 +2057,33 @@ void TestArraySupportSparse()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestMixedVectorBlockViewBlockVariable()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(4)
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(4)
                      .WithElement(0, 1)
                      .WithElement(1, 2)
                      .WithElement(2, 3)
                      .SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 100.0, 200.0, 300.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 100.0, 200.0, 300.0 };
 
-  for (int block = 0; block < 3; ++block)
+  for (micm::Index block = 0; block < 3; ++block)
   {
-    matrix[block][0][1] = static_cast<double>(block + 1);
-    matrix[block][1][2] = static_cast<double>(block + 2);
-    matrix[block][2][3] = static_cast<double>(block + 3);
+    matrix[block][0][1] = static_cast<micm::Real>(block + 1);
+    matrix[block][1][2] = static_cast<micm::Real>(block + 2);
+    matrix[block][2][3] = static_cast<micm::Real>(block + 3);
   }
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v)
       {
         auto tmp = m.GetBlockVariable();
         m.ForEachBlock(
-            [&](const double& a, const double& b, const double& c, double& t) { t = a + b + c; },
+            [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
             m.GetConstBlockView(0, 1),
             m.GetConstBlockView(1, 2),
             v,
             tmp);
-        m.ForEachBlock([&](const double& t, double& out) { out = t * 2.0; }, tmp, m.GetBlockView(2, 3));
+        m.ForEachBlock([&](const micm::Real& t, micm::Real& out) { out = t * 2.0; }, tmp, m.GetBlockView(2, 3));
       },
       matrix,
       vec);
@@ -2097,14 +2098,14 @@ void TestMixedVectorBlockViewBlockVariable()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestIntegerVectorSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(0, 1).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
   std::vector<int> int_vec = { 5, 10, 15 };
 
-  auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [](auto&& m, auto&& v)
-      { m.ForEachBlock([&](const int& i, double& out) { out = static_cast<double>(i) * 1.5; }, v, m.GetBlockView(0, 1)); },
+      { m.ForEachBlock([&](const int& i, micm::Real& out) { out = static_cast<micm::Real>(i) * 1.5; }, v, m.GetBlockView(0, 1)); },
       matrix,
       int_vec);
 
@@ -2118,28 +2119,28 @@ void TestIntegerVectorSparse()
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
 void TestFunctionWithConstSignatureSparse()
 {
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(2).WithElement(0, 0).SetNumberOfBlocks(3);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(2).WithElement(0, 0).SetNumberOfBlocks(3);
 
-  SparseMatrixPolicy<double, OrderingPolicy> matrix{ builder };
-  std::vector<double> vec = { 1.0, 2.0, 3.0 };
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+  std::vector<micm::Real> vec = { 1.0, 2.0, 3.0 };
 
   // Create function - reads from const vector, writes to matrix
-  auto func_auto = SparseMatrixPolicy<double, OrderingPolicy>::Function(
-      [](auto&& m, auto&& v) { m.ForEachBlock([&](const double& a, double& b) { b = a * 2.0; }, v, m.GetBlockView(0, 0)); },
+  auto func_auto = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+      [](auto&& m, auto&& v) { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetBlockView(0, 0)); },
       matrix,
       vec);
 
   // Try to wrap in std::function with const signature
-  std::function<void(SparseMatrixPolicy<double, OrderingPolicy>&, const std::vector<double>&)> func_std = func_auto;
+  std::function<void(SparseMatrixPolicy<micm::Real, OrderingPolicy>&, const std::vector<micm::Real>&)> func_std = func_auto;
 
   func_std(matrix, vec);
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
-SparseMatrixPolicy<double, OrderingPolicy> TestGetBlockViewByVectorIndex()
+SparseMatrixPolicy<micm::Real, OrderingPolicy> TestGetBlockViewByVectorIndex()
 {
   // Create a sparse matrix with a simple 3x3 sparsity pattern
-  auto builder = SparseMatrixPolicy<double, OrderingPolicy>::Create(3).SetNumberOfBlocks(3).InitialValue(0.0);
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).SetNumberOfBlocks(3).InitialValue(0.0);
 
   // Define sparsity pattern
   builder = builder
@@ -2150,10 +2151,10 @@ SparseMatrixPolicy<double, OrderingPolicy> TestGetBlockViewByVectorIndex()
                 .WithElement(2, 1)   // vector index 4
                 .WithElement(2, 2);  // vector index 5
 
-  SparseMatrixPolicy<double, OrderingPolicy> sparse(builder);
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> sparse(builder);
 
   // Get the vector indices for our non-zero elements (relative to block 0)
-  std::vector<std::size_t> vector_indices;
+  std::vector<micm::Index> vector_indices;
   vector_indices.push_back(sparse.VectorIndex(0, 0, 0));  // element (0,0)
   vector_indices.push_back(sparse.VectorIndex(0, 0, 2));  // element (0,2)
   vector_indices.push_back(sparse.VectorIndex(0, 1, 0));  // element (1,0)
@@ -2164,14 +2165,14 @@ SparseMatrixPolicy<double, OrderingPolicy> TestGetBlockViewByVectorIndex()
   std::vector<int> block_values = { 0, 1, 2 };
 
   // Use Function() to set values using vector indices
-  auto set_func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
+  auto set_func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
       [&vector_indices](auto&& matrix, auto&& vector)
       {
         int value = 0;
         for (auto&& index : vector_indices)
         {
           matrix.ForEachBlock(
-              [&](const double& val, double& elem) { elem = val + value; },
+              [&](const micm::Real& val, micm::Real& elem) { elem = val + value; },
               vector,
               matrix.GetBlockView(index));  // get block view using nth non-zero block index
           value += 10;

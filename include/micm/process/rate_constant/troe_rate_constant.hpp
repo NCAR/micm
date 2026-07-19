@@ -2,25 +2,27 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   struct TroeRateConstantParameters
   {
     /// @brief low-pressure pre-exponential factor
-    double k0_A_ = 1.0;
+    Real k0_A_ = 1.0;
     /// @brief low-pressure temperature-scaling parameter
-    double k0_B_ = 0.0;
+    Real k0_B_ = 0.0;
     /// @brief low-pressure exponential factor
-    double k0_C_ = 0.0;
+    Real k0_C_ = 0.0;
     /// @brief high-pressure pre-exponential factor
-    double kinf_A_ = 1.0;
+    Real kinf_A_ = 1.0;
     /// @brief high-pressure temperature-scaling parameter
-    double kinf_B_ = 0.0;
+    Real kinf_B_ = 0.0;
     /// @brief high-pressure exponential factor
-    double kinf_C_ = 0.0;
+    Real kinf_C_ = 0.0;
     /// @brief Troe F_c parameter
-    double Fc_ = 0.6;
+    Real Fc_ = 0.6;
     /// @brief Troe N parameter
-    double N_ = 1.0;
+    Real N_ = 1.0;
   };
 }  // namespace micm

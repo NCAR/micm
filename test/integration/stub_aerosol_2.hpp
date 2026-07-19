@@ -7,6 +7,7 @@
 
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -34,13 +35,13 @@ class AnotherStubAerosolModel
         phases_(phases)
   {
   }
-  std::tuple<std::size_t, std::size_t> StateSize() const
+  std::tuple<micm::Index, micm::Index> StateSize() const
   {
     EXPECT_EQ(phases_.size(), 2);
     // First mode: first phase only
     // Second mode: second phase only
     // Third mode: both phases
-    std::size_t size = 0;
+    micm::Index size = 0;
     size += 1;                       // mode 1 number concentration
     size += phases_[0].StateSize();  // mode 1 species
     size += 1;                       // mode 2 number concentration
@@ -86,11 +87,11 @@ class AnotherStubAerosolModel
     names.insert(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
     return names;
   }
-  std::string Species(const int mode, const micm::Phase& phase, const micm::Species& species) const
+  std::string Species(const micm::Index mode, const micm::Phase& phase, const micm::Species& species) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
   }
-  std::string Number(const int mode) const
+  std::string Number(const micm::Index mode) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + ".NUMBER";
   }
@@ -105,10 +106,10 @@ class AnotherStubAerosolModel
   // 1) conversion of FO2 to BAZ in mode 2 CORGE phase
   // 2) conversion of BAZ to QUX in mode 3 QUUX phase
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
-    std::set<std::pair<std::size_t, std::size_t>> elements;
+    std::set<std::pair<micm::Index, micm::Index>> elements;
     // FO2 to BAZ in mode 2 CORGE
     auto fo2_mode2_index_it = state_indices.find("STUB2.MODE2.CORGE.FO2");
     auto baz_mode2_index_it = state_indices.find("STUB2.MODE2.CORGE.BAZ");
@@ -129,7 +130,7 @@ class AnotherStubAerosolModel
   // We have parameters for this stub model, one of which we will update based on temperature
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const
+      const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
   {
     // Create a function that updates the BAZ-to-QUX rate constant based on temperature for each grid cell
     auto baz_to_qux_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
@@ -139,14 +140,14 @@ class AnotherStubAerosolModel
       // If the parameter is missing, return a no-op updater to avoid undefined behavior.
       return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
     }
-    std::size_t baz_to_qux_param_index = baz_to_qux_param_it->second;
+    micm::Index baz_to_qux_param_index = baz_to_qux_param_it->second;
     return [baz_to_qux_param_index](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
     {
-      for (std::size_t cell = 0; cell < conditions.size(); ++cell)
+      for (micm::Index cell = 0; cell < conditions.size(); ++cell)
       {
         // Simple linear dependence on temperature for this stub model
-        double temperature = conditions[cell].temperature_;
-        double rate_constant = 0.005 * temperature;  // simple function for testing
+        micm::Real temperature = conditions[cell].temperature_;
+        micm::Real rate_constant = 0.005 * temperature;  // simple function for testing
         state_parameters[cell][baz_to_qux_param_index] = rate_constant;
       }
     };
@@ -154,13 +155,13 @@ class AnotherStubAerosolModel
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices) const
+      const std::unordered_map<std::string, micm::Index>& state_parameter_indices,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices) const
   {
     // We'll store the information needed to calculate the forcing terms in a vector of tuples
     // Each tuple will include: reactant state variable index, product state variable index, and the index of the rate
     // constant parameter
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> forcing_info;
+    std::vector<std::tuple<micm::Index, micm::Index, micm::Index>> forcing_info;
     auto fo2_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.FO2");
     auto baz_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.BAZ");
     auto fo2_to_baz_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
@@ -189,9 +190,9 @@ class AnotherStubAerosolModel
       // DenseMatrixPolicy
       for (const auto& [reactant_index, product_index, rate_param_index] : forcing_info)
       {
-        for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
+        for (micm::Index i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
         {
-          double rate_constant = state_parameters[i_cell][rate_param_index];
+          micm::Real rate_constant = state_parameters[i_cell][rate_param_index];
           // Subtract from reactant
           forcing_terms[i_cell][reactant_index] -= rate_constant * state_variables[i_cell][reactant_index];
           // Add to product
@@ -202,15 +203,15 @@ class AnotherStubAerosolModel
   }
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
-      const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-      const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+      const std::unordered_map<std::string, micm::Index>& state_parameter_indices,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
       const SparseMatrixPolicy& jacobian) const
   {
     // For this simple implementation, we'll use the dependent and independent variable indices with the square-bracket
     // syntax of the jacobian matrix. In a real implementation, we should want to get the underlying vector indices of the
     // jacobian elements, and iterate over blocks in the block diagonal sparse matrix in the most efficient way for the
     // specific SparseMatrixPolicy.
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, double>>
+    std::vector<std::tuple<micm::Index, micm::Index, micm::Index, micm::Real>>
         jacobian_info;  // (dependent id, independent id, rate param id, multiplier)
     auto fo2_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.FO2");
     auto baz_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.BAZ");
@@ -253,11 +254,11 @@ class AnotherStubAerosolModel
                const DenseMatrixPolicy& state_variables,
                SparseMatrixPolicy& jacobian)
     {
-      for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
+      for (micm::Index i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
       {
         for (const auto& [dependent_id, independent_id, rate_param_id, multiplier] : jacobian_info)
         {
-          double rate_constant = state_parameters[i_block][rate_param_id];
+          micm::Real rate_constant = state_parameters[i_block][rate_param_id];
           jacobian[i_block][dependent_id][independent_id] -= multiplier * rate_constant;
         }
       }

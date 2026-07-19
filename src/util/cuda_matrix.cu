@@ -3,6 +3,7 @@
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
+#include <micm/util/types.hpp>
 
 #include <cuda_runtime.h>
 
@@ -11,7 +12,7 @@
 namespace micm::cuda
 {
   template<typename T>
-  cudaError_t MallocArray(T*& array, std::size_t num_elements)
+  cudaError_t MallocArray(T*& array, Index num_elements)
   {
     cudaError_t err =
         cudaMallocAsync(&array, sizeof(T) * num_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
@@ -19,7 +20,7 @@ namespace micm::cuda
   }
 
   template<typename T>
-  cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements)
+  cudaError_t MallocVector(CudaMatrixParam& param, Index number_of_elements)
   {
     param.number_of_elements_ = number_of_elements;
     cudaError_t err = cudaMallocAsync(
@@ -53,9 +54,9 @@ namespace micm::cuda
   }
 
   template<typename T>
-  __global__ void MatrixMaxKernel(T* d_data, std::size_t number_of_elements, T val)
+  __global__ void MatrixMaxKernel(T* d_data, Index number_of_elements, T val)
   {
-    std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
     if (tid < number_of_elements)
     {
       d_data[tid] = d_data[tid] > val ? d_data[tid] : val;
@@ -65,7 +66,7 @@ namespace micm::cuda
   template<typename T>
   cudaError_t MatrixMax(CudaMatrixParam& param, T val)
   {
-    const std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    const Index number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     MatrixMaxKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
         param.d_data_, param.number_of_elements_, val);
     cudaError_t err = cudaGetLastError();
@@ -73,9 +74,9 @@ namespace micm::cuda
   }
 
   template<typename T>
-  __global__ void MatrixMinKernel(T* d_data, std::size_t number_of_elements, T val)
+  __global__ void MatrixMinKernel(T* d_data, Index number_of_elements, T val)
   {
-    std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
     if (tid < number_of_elements)
     {
       d_data[tid] = d_data[tid] < val ? d_data[tid] : val;
@@ -85,7 +86,7 @@ namespace micm::cuda
   template<typename T>
   cudaError_t MatrixMin(CudaMatrixParam& param, T val)
   {
-    const std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    const Index number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     MatrixMinKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
         param.d_data_, param.number_of_elements_, val);
     cudaError_t err = cudaGetLastError();
@@ -130,9 +131,9 @@ namespace micm::cuda
   }
 
   template<typename T>
-  __global__ void FillCudaMatrixKernel(T* d_data, std::size_t number_of_elements, T val)
+  __global__ void FillCudaMatrixKernel(T* d_data, Index number_of_elements, T val)
   {
-    std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
     if (tid < number_of_elements)
     {
       d_data[tid] = val;
@@ -142,7 +143,7 @@ namespace micm::cuda
   template<typename T>
   cudaError_t FillCudaMatrix(CudaMatrixParam& param, T val)
   {
-    const std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    const Index number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     FillCudaMatrixKernel<<<
         number_of_blocks,
         BLOCK_SIZE,
@@ -153,21 +154,21 @@ namespace micm::cuda
   }
 
   // source code needs the instantiation of the template
-  template cudaError_t MallocArray<double>(double*& array, std::size_t num_elements);
-  template cudaError_t MallocArray<std::size_t>(std::size_t*& array, std::size_t num_elements);
-  template cudaError_t FreeArray<double>(double*& array);
-  template cudaError_t FreeArray<std::size_t>(std::size_t*& array);
-  template cudaError_t MallocVector<double>(CudaMatrixParam& param, std::size_t number_of_elements);
-  template cudaError_t MallocVector<int>(CudaMatrixParam& param, std::size_t number_of_elements);
-  template cudaError_t MatrixMax<double>(CudaMatrixParam& param, double val);
-  template cudaError_t MatrixMin<double>(CudaMatrixParam& param, double val);
-  template cudaError_t CopyToDevice<double>(CudaMatrixParam& param, const std::vector<double>& h_data);
-  template cudaError_t CopyToHost<double>(CudaMatrixParam& param, std::vector<double>& h_data);
-  template cudaError_t CopyToDeviceFromDevice<double>(
+  template cudaError_t MallocArray<Real>(Real*& array, Index num_elements);
+  template cudaError_t MallocArray<Index>(Index*& array, Index num_elements);
+  template cudaError_t FreeArray<Real>(Real*& array);
+  template cudaError_t FreeArray<Index>(Index*& array);
+  template cudaError_t MallocVector<Real>(CudaMatrixParam& param, Index number_of_elements);
+  template cudaError_t MallocVector<int>(CudaMatrixParam& param, Index number_of_elements);
+  template cudaError_t MatrixMax<Real>(CudaMatrixParam& param, Real val);
+  template cudaError_t MatrixMin<Real>(CudaMatrixParam& param, Real val);
+  template cudaError_t CopyToDevice<Real>(CudaMatrixParam& param, const std::vector<Real>& h_data);
+  template cudaError_t CopyToHost<Real>(CudaMatrixParam& param, std::vector<Real>& h_data);
+  template cudaError_t CopyToDeviceFromDevice<Real>(
       CudaMatrixParam& vectorMatrixDest,
       const CudaMatrixParam& vectorMatrixSrc);
   template cudaError_t CopyToDeviceFromDevice<int>(
       CudaMatrixParam& vectorMatrixDest,
       const CudaMatrixParam& vectorMatrixSrc);
-  template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
+  template cudaError_t FillCudaMatrix<Real>(CudaMatrixParam& param, Real val);
 }  // namespace micm::cuda

@@ -10,6 +10,7 @@
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <array>
@@ -60,7 +61,7 @@ namespace micm
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
     /// @return result of the solver (success or failure, and statistics)
-    SolverResult Solve(double time_step, auto& state, const BackwardEulerSolverParameters& parameters) const;
+    SolverResult Solve(Real time_step, auto& state, const BackwardEulerSolverParameters& parameters) const;
 
     /// @brief Determines whether the residual is small enough to stop the
     ///        internal solver iteration
@@ -72,16 +73,16 @@ namespace micm
         const BackwardEulerSolverParameters& parameters,
         const DenseMatrixPolicy& residual,
         const DenseMatrixPolicy& Yn1,
-        const std::vector<double>& absolute_tolerance,
-        double relative_tolerance)
+        const std::vector<Real>& absolute_tolerance,
+        Real relative_tolerance)
       requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
     static bool IsConverged(
         const BackwardEulerSolverParameters& parameters,
         const DenseMatrixPolicy& residual,
         const DenseMatrixPolicy& Yn1,
-        const std::vector<double>& absolute_tolerance,
-        double relative_tolerance)
+        const std::vector<Real>& absolute_tolerance,
+        Real relative_tolerance)
       requires(VectorizableDense<DenseMatrixPolicy>);
   };
 

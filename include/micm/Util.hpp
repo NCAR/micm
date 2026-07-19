@@ -18,4 +18,5 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_column.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>

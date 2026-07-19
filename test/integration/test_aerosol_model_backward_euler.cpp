@@ -2,57 +2,59 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "aerosol_model_policy.hpp"
 
+#include <micm/util/types.hpp>
+
 #include <gtest/gtest.h>
 
 using BuilderType = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>;
 using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEuler = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittleInPlace>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozartInPlace>;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());

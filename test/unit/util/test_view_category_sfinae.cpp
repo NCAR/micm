@@ -3,6 +3,7 @@
 
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -17,28 +18,28 @@ using namespace micm;
 TEST(ViewCategorySFINAE, VectorTypes)
 {
   // std::vector should have ViewCategory_t = void (fallback)
-  static_assert(std::same_as<ViewCategory_t<std::vector<double>>, void>);
+  static_assert(std::same_as<ViewCategory_t<std::vector<micm::Real>>, void>);
   static_assert(std::same_as<ViewCategory_t<std::vector<int>>, void>);
 
   // std::array should also have ViewCategory_t = void (fallback)
-  static_assert(std::same_as<ViewCategory_t<std::array<double, 10>>, void>);
+  static_assert(std::same_as<ViewCategory_t<std::array<micm::Real, 10>>, void>);
 
   // VectorLike concept should accept vector types
-  static_assert(VectorLike<std::vector<double>>);
+  static_assert(VectorLike<std::vector<micm::Real>>);
   static_assert(VectorLike<std::vector<int>>);
-  static_assert(VectorLike<std::array<double, 10>>);
+  static_assert(VectorLike<std::array<micm::Real, 10>>);
 }
 
 TEST(ViewCategorySFINAE, MatrixViews)
 {
   // Matrix column views should have DenseMatrixColumnViewTag
-  using MatrixColumnView = Matrix<double>::ColumnView;
+  using MatrixColumnView = Matrix<micm::Real>::ColumnView;
   static_assert(std::same_as<ViewCategory_t<MatrixColumnView>, DenseMatrixColumnViewTag>);
   static_assert(DenseMatrixColumnView<MatrixColumnView>);
   static_assert(!VectorLike<MatrixColumnView>);
 
   // VectorMatrix column views should have DenseMatrixColumnViewTag
-  using VectorMatrixColumnView = VectorMatrix<double, 4>::ColumnView;
+  using VectorMatrixColumnView = VectorMatrix<micm::Real, 4>::ColumnView;
   static_assert(std::same_as<ViewCategory_t<VectorMatrixColumnView>, DenseMatrixColumnViewTag>);
   static_assert(DenseMatrixColumnView<VectorMatrixColumnView>);
   static_assert(!VectorLike<VectorMatrixColumnView>);
@@ -47,12 +48,12 @@ TEST(ViewCategorySFINAE, MatrixViews)
 TEST(ViewCategorySFINAE, SparseMatrixViews)
 {
   // Sparse matrix block views should have SparseMatrixBlockViewTag
-  using SparseBlockView = SparseMatrix<double>::BlockView;
+  using SparseBlockView = SparseMatrix<micm::Real>::BlockView;
   static_assert(std::same_as<ViewCategory_t<SparseBlockView>, SparseMatrixBlockViewTag>);
   static_assert(SparseMatrixBlockView<SparseBlockView>);
   static_assert(!VectorLike<SparseBlockView>);
 
-  using SparseConstBlockView = SparseMatrix<double>::ConstBlockView;
+  using SparseConstBlockView = SparseMatrix<micm::Real>::ConstBlockView;
   static_assert(std::same_as<ViewCategory_t<SparseConstBlockView>, SparseMatrixBlockViewTag>);
   static_assert(SparseMatrixBlockView<SparseConstBlockView>);
   static_assert(!VectorLike<SparseConstBlockView>);
@@ -61,26 +62,26 @@ TEST(ViewCategorySFINAE, SparseMatrixViews)
 TEST(ViewCategorySFINAE, MatrixTypesExcluded)
 {
   // Matrix types themselves should be excluded from VectorLike
-  static_assert(!VectorLike<Matrix<double>>);
-  static_assert(!VectorLike<VectorMatrix<double, 4>>);
-  static_assert(!VectorLike<SparseMatrix<double>>);
+  static_assert(!VectorLike<Matrix<micm::Real>>);
+  static_assert(!VectorLike<VectorMatrix<micm::Real, 4>>);
+  static_assert(!VectorLike<SparseMatrix<micm::Real>>);
 }
 
 TEST(ViewCategorySFINAE, RuntimeVectorUse)
 {
   // Verify we can actually use std::vector in a VectorLike context
-  std::vector<double> vec = { 1.0, 2.0, 3.0, 4.0, 5.0 };
+  std::vector<micm::Real> vec = { 1.0, 2.0, 3.0, 4.0, 5.0 };
 
-  auto process_vector = []<VectorLike V>(V& v) -> double
+  auto process_vector = []<VectorLike V>(V& v) -> micm::Real
   {
-    double sum = 0.0;
-    for (std::size_t i = 0; i < v.size(); ++i)
+    micm::Real sum = 0.0;
+    for (micm::Index i = 0; i < v.size(); ++i)
     {
       sum += v[i];
     }
     return sum;
   };
 
-  double sum = process_vector(vec);
+  micm::Real sum = process_vector(vec);
   EXPECT_DOUBLE_EQ(sum, 15.0);
 }

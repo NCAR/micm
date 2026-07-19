@@ -14,6 +14,7 @@
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/system/conditions.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -38,15 +39,15 @@ namespace micm
     SurfaceRateConstantData* d_surface_ = nullptr;
 
     // Parameterized-multiplier rc_index array (static, built once)
-    std::size_t* d_mult_rc_indices_ = nullptr;
+    Index* d_mult_rc_indices_ = nullptr;
 
     // Per-step multiplier values buffer (interleaved layout, grows if needed)
-    double* d_mult_vals_ = nullptr;
-    std::size_t d_mult_vals_capacity_ = 0;
+    Real* d_mult_vals_ = nullptr;
+    Index d_mult_vals_capacity_ = 0;
 
     // Device buffer for per-step conditions (grows if needed)
     Conditions* d_conditions_ = nullptr;
-    std::size_t d_conditions_capacity_ = 0;
+    Index d_conditions_capacity_ = 0;
 
     // Cached kernel param struct (populated by BuildFrom)
     CudaReactionRateStoreParam param_{};
@@ -191,16 +192,16 @@ namespace micm
       param_.d_mult_rc_indices_ = nullptr;
       if (!mults.empty())
       {
-        std::vector<std::size_t> rc_indices(mults.size());
-        for (std::size_t i = 0; i < mults.size(); ++i)
+        std::vector<Index> rc_indices(mults.size());
+        for (Index i = 0; i < mults.size(); ++i)
         {
           rc_indices[i] = mults[i].rc_index_;
         }
         auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
-        CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_rc_indices_, sizeof(std::size_t) * mults.size(), stream), "cudaMalloc");
+        CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_rc_indices_, sizeof(Index) * mults.size(), stream), "cudaMalloc");
         CHECK_CUDA_ERROR(
             cudaMemcpyAsync(
-                d_mult_rc_indices_, rc_indices.data(), sizeof(std::size_t) * mults.size(), cudaMemcpyHostToDevice, stream),
+                d_mult_rc_indices_, rc_indices.data(), sizeof(Index) * mults.size(), cudaMemcpyHostToDevice, stream),
             "cudaMemcpy");
         param_.d_mult_rc_indices_ = d_mult_rc_indices_;
       }
@@ -209,10 +210,10 @@ namespace micm
     /// @brief Evaluate parameterized multipliers on CPU, pack into interleaved layout, and upload.
     ///        Layout: [group * n_mults * L + mult * L + lane]
     /// @return Device pointer to multiplier values, or nullptr if there are no multipliers.
-    const double* UploadMultiplierValues(
+    const Real* UploadMultiplierValues(
         const ReactionRateConstantStore& cpu_store,
         const std::vector<Conditions>& conditions,
-        std::size_t L)
+        Index L)
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())
@@ -220,19 +221,19 @@ namespace micm
         return nullptr;
       }
 
-      const std::size_t n_mults = mults.size();
-      const std::size_t n_cells = conditions.size();
-      const std::size_t n_groups = (n_cells + L - 1) / L;
-      const std::size_t n_vals = n_groups * n_mults * L;
+      const Index n_mults = mults.size();
+      const Index n_cells = conditions.size();
+      const Index n_groups = (n_cells + L - 1) / L;
+      const Index n_vals = n_groups * n_mults * L;
 
-      std::vector<double> host_vals(n_vals, 0.0);
-      for (std::size_t g = 0; g < n_groups; ++g)
+      std::vector<Real> host_vals(n_vals, 0.0);
+      for (Index g = 0; g < n_groups; ++g)
       {
-        for (std::size_t i = 0; i < n_mults; ++i)
+        for (Index i = 0; i < n_mults; ++i)
         {
-          for (std::size_t j = 0; j < L; ++j)
+          for (Index j = 0; j < L; ++j)
           {
-            const std::size_t cell = g * L + j;
+            const Index cell = g * L + j;
             if (cell < n_cells)
             {
               host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate_(conditions[cell]);
@@ -245,11 +246,11 @@ namespace micm
       if (n_vals > d_mult_vals_capacity_)
       {
         FreeDevice(d_mult_vals_);
-        CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_vals_, sizeof(double) * n_vals, stream), "cudaMalloc");
+        CHECK_CUDA_ERROR(cudaMallocAsync(&d_mult_vals_, sizeof(Real) * n_vals, stream), "cudaMalloc");
         d_mult_vals_capacity_ = n_vals;
       }
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(d_mult_vals_, host_vals.data(), sizeof(double) * n_vals, cudaMemcpyHostToDevice, stream),
+          cudaMemcpyAsync(d_mult_vals_, host_vals.data(), sizeof(Real) * n_vals, cudaMemcpyHostToDevice, stream),
           "cudaMemcpy");
       return d_mult_vals_;
     }

@@ -6,6 +6,7 @@
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -17,12 +18,12 @@
 
 using namespace micm;
 
-constexpr double TOLERANCE = 1e-13;
+constexpr micm::Real TOLERANCE = 1e-13;
 
 TEST(SurfaceRateConstant, CalculateDefaultProbability)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
-  double foo_diffusion_coefficient = 2.3e2;
+  micm::Real foo_diffusion_coefficient = 2.3e2;
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
 
   // Build SurfaceRateConstantData as BuildFrom would
@@ -32,12 +33,12 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
   data.reaction_probability_ = 1.0;  // default
   data.custom_param_base_index_ = 0;
 
-  double temperature = 273.65;                  // K
-  double custom_params[2] = { 1.0e-7, 2.5e6 };  // effective radius [m], particle number concentration [# m-3]
-  double k = CalculateSurfaceOne(
+  micm::Real temperature = 273.65;                  // K
+  micm::Real custom_params[2] = { 1.0e-7, 2.5e6 };  // effective radius [m], particle number concentration [# m-3]
+  micm::Real k = CalculateSurfaceOne(
       data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
 
-  double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
+  micm::Real expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                     (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025))));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
@@ -45,7 +46,7 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
 TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
-  double foo_diffusion_coefficient = 2.3e2;
+  micm::Real foo_diffusion_coefficient = 2.3e2;
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
 
   SurfaceRateConstantData data;
@@ -54,12 +55,12 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
   data.reaction_probability_ = 0.74;
   data.custom_param_base_index_ = 0;
 
-  double temperature = 273.65;
-  double custom_params[2] = { 1.0e-7, 2.5e6 };
-  double k = CalculateSurfaceOne(
+  micm::Real temperature = 273.65;
+  micm::Real custom_params[2] = { 1.0e-7, 2.5e6 };
+  micm::Real k = CalculateSurfaceOne(
       data, temperature, custom_params[data.custom_param_base_index_], custom_params[data.custom_param_base_index_ + 1]);
 
-  double expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
+  micm::Real expected = 4.0 * 2.5e6 * M_PI * std::pow(1.0e-7, 2) /
                     (1.0e-7 / 2.3e2 + 4.0 / (std::sqrt(8.0 * constants::GAS_CONSTANT * 273.65 / (M_PI * 0.025)) * 0.74));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
@@ -91,7 +92,7 @@ TEST(SurfaceRateConstant, MolecularWeightIsMissing)
 {
   // BuildFrom throws when molecular weight is missing (GetProperty throws for missing property)
   Species foo("foo");
-  double foo_diffusion_coefficient = 2.3e2;
+  micm::Real foo_diffusion_coefficient = 2.3e2;
   PhaseSpecies foo_gas_species(foo, foo_diffusion_coefficient);
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo_gas_species } };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -36,17 +37,17 @@ namespace micm
    protected:
     /// Number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// and the index in A.data_ for A[i][i] for each iteration of the outer (i) loop
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> nik_nki_aii_;
+    std::vector<std::tuple<Index, Index, Index>> nik_nki_aii_;
     /// Index in A.data_ for A[i][k] for each iteration of the upper middle (k) loop and the
     /// number of elements in the inner (j) loop for each upper (k) element used to set A[i][k]
-    std::vector<std::pair<std::size_t, std::size_t>> aik_njk_;
+    std::vector<std::pair<Index, Index>> aik_njk_;
     /// Index in A.data_ for A[i][j] and A[j][k] for each iteration of the upper inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> aij_ajk_;
+    std::vector<std::pair<Index, Index>> aij_ajk_;
     /// Index in A.data_ for A[k][i] for each iteration of the lower middle (k) loop, the
     /// number of elements in the inner (j) loop for each lower (k) element used to set A[k][i]
-    std::vector<std::pair<std::size_t, std::size_t>> aki_nji_;
+    std::vector<std::pair<Index, Index>> aki_nji_;
     /// Index in A.data_ for A[k][j] and A[j][i] for each iteration of the lower inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> akj_aji_;
+    std::vector<std::pair<Index, Index>> akj_aji_;
 
    public:
     /// @brief default constructor

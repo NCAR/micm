@@ -4,13 +4,14 @@
 #include <micm/solver/state.hpp>
 #include <micm/util/jacobian_verification.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <random>
 
 using namespace micm;
-using index_pair = std::pair<std::size_t, std::size_t>;
+using index_pair = std::pair<micm::Index, micm::Index>;
 
 void ComparePair(const index_pair& a, const index_pair& b)
 {
@@ -179,7 +180,7 @@ void TestProcessSet()
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void TestRandomSystem(micm::Index n_cells, micm::Index n_reactions, micm::Index n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -190,7 +191,7 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   std::vector<std::string> species_names{};
   phase_species.reserve(n_species);
   species_names.reserve(n_species);
-  for (std::size_t i = 0; i < n_species; ++i)
+  for (micm::Index i = 0; i < n_species; ++i)
   {
     phase_species.emplace_back(Species(std::to_string(i)));
     species_names.emplace_back(std::to_string(i));
@@ -204,19 +205,19 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
                                                       },
                                                       n_cells };
   std::vector<Process> processes{};
-  for (std::size_t i = 0; i < n_reactions; ++i)
+  for (micm::Index i = 0; i < n_reactions; ++i)
   {
     auto n_react = get_n_react();
     std::vector<Species> reactants{};
     reactants.reserve(n_react);
-    for (std::size_t i_react = 0; i_react < n_react; ++i_react)
+    for (micm::Index i_react = 0; i_react < n_react; ++i_react)
     {
       reactants.emplace_back(std::to_string(get_species_id()));
     }
     auto n_product = get_n_product();
     std::vector<StoichSpecies> products{};
     products.reserve(n_product);
-    for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
+    for (micm::Index i_prod = 0; i_prod < n_product; ++i_prod)
     {
       products.push_back(StoichSpecies(std::to_string(get_species_id()), 1.2));
     }
@@ -284,7 +285,7 @@ void TestAlgebraicMasking()
   //       focuses on algebraic masking without building the full solver.
   //       The algebraic variables are set arbitrarily for testing purposes only.
   // Mark species B (index 1) and D (index 3) as algebraic variables
-  std::set<std::size_t> algebraic_ids{ 1, 3 };
+  std::set<micm::Index> algebraic_ids{ 1, 3 };
   process_set.SetAlgebraicVariableIds(algebraic_ids);
 
   // Initialize state variables
@@ -402,7 +403,7 @@ void TestProcessSetFiniteDifferenceJacobian()
   auto C = Species("C");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
-  const std::size_t num_species = 3;
+  const micm::Index num_species = 3;
 
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 2, .variable_names_{ "A", "B", "C" } }, 2);

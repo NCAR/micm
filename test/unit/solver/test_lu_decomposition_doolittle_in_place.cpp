@@ -3,15 +3,16 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-using SparseMatrixTest = micm::SparseMatrix<double>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
 
-using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>;
 
 TEST(LuDecompositionDoolittleInPlace, DenseMatrixStandardOrdering)
 {
@@ -31,7 +32,7 @@ TEST(LuDecompositionDoolittleInPlace, DiagonalMatrixStandardOrdering)
 
 TEST(LuDecompositionDoolittleInPlace, AgnosticToInitialValueStandardOrdering)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
     TestExtremeValueInitialization<SparseMatrixTest, micm::LuDecompositionDoolittleInPlace>(5, value);
@@ -64,7 +65,7 @@ TEST(LuDecompositionDoolittleInPlace, DiagonalMatrixVectorOrdering)
 
 TEST(LuDecompositionDoolittleInPlace, AgnosticToInitialValueVectorOrdering)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
     TestExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5, value);

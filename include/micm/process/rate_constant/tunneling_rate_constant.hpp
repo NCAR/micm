@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   struct TunnelingRateConstantParameters
   {
     /// @brief Pre-exponential factor [(mol m−3)^(−(𝑛−1)) s−1]
-    double A_ = 1.0;
+    Real A_ = 1.0;
     /// @brief Linear temperature-dependent parameter [K]
-    double B_ = 0.0;
+    Real B_ = 0.0;
     /// @brief Cubed temperature-dependent parameter [K^3]
-    double C_ = 0.0;
+    Real C_ = 0.0;
   };
 }  // namespace micm

@@ -3,6 +3,7 @@
 
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -52,12 +53,12 @@ TEST(SparseVectorCompressedRowMatrix, PrintNonZero)
 
 TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
+  auto builder = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
                      .WithElement(0, 0)
                      .WithElement(1, 1)
                      .InitialValue(0.0);
 
-  micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
+  micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
 
   matrix.CopyToDevice();
 
@@ -108,12 +109,12 @@ TEST(CudaSparseMatrix, CopyAssignmentZeroMatrixAddOne)
 
 TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrixAddOne)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
+  auto builder = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
                      .WithElement(0, 0)
                      .WithElement(1, 1)
                      .InitialValue(0.0);
 
-  const micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
+  const micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
 
   auto oneMatrix = matrix;
   oneMatrix.CopyToDevice();
@@ -146,12 +147,12 @@ TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrixAddOne)
 
 TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
+  auto builder = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
                      .WithElement(0, 0)
                      .WithElement(1, 1)
                      .InitialValue(0.0);
 
-  micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
+  micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
 
   auto oneMatrix = std::move(matrix);
   if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
@@ -185,12 +186,12 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
 
 TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
+  auto builder = micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>::Create(2)
                      .WithElement(0, 0)
                      .WithElement(1, 1)
                      .InitialValue(0.0);
 
-  micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
+  micm::CudaSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>> matrix{ builder };
 
   EXPECT_EQ(2, matrix.AsVector().size());
   for (const auto& elem : matrix.AsVector())
@@ -227,7 +228,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 }
 
-template<std::size_t cuda_matrix_vector_length>
+template<micm::Index cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
   auto matrix = TestSingleBlockMatrix<
@@ -235,13 +236,13 @@ void TestSingleBlockMatrixAddOneElement()
       micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 
   {
-    std::size_t elem = matrix.VectorIndex(3, 2);
+    micm::Index elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 4 * cuda_matrix_vector_length);
     matrix.AsVector()[elem] = 42;
     EXPECT_EQ(matrix.AsVector()[4 * cuda_matrix_vector_length], 42);
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 3);
+    micm::Index elem = matrix.VectorIndex(2, 3);
     EXPECT_EQ(elem, 3 * cuda_matrix_vector_length);
     matrix.AsVector()[elem] = 39;
     EXPECT_EQ(matrix.AsVector()[3 * cuda_matrix_vector_length], 39);
@@ -252,7 +253,7 @@ void TestSingleBlockMatrixAddOneElement()
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 2;  // in this example, 2 refers to matrix[2][1] which is non-zero
+  micm::Index elem_id = 2;  // in this example, 2 refers to matrix[2][1] which is non-zero
   micm::cuda::SparseMatrixAddOneElementDriver(param, elem_id, 0, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
@@ -267,7 +268,7 @@ TEST(CudaSparseMatrix, SingleBlockMatrixAddOneElement)
   TestSingleBlockMatrixAddOneElement<65>();
 }
 
-template<std::size_t cuda_matrix_vector_length>
+template<micm::Index cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
   auto matrix = TestMultiBlockMatrix<
@@ -275,11 +276,11 @@ void TestMultiBlockMatrixAddOneElement()
       micm::SparseMatrixVectorOrderingCompressedSparseRow<cuda_matrix_vector_length>>();
 
   {
-    std::size_t elem = matrix.VectorIndex(0, 2, 3);
+    micm::Index elem = matrix.VectorIndex(0, 2, 3);
     EXPECT_EQ(elem, 3 * cuda_matrix_vector_length);
     auto idx = 40;
     elem = matrix.VectorIndex(idx, 2, 3);
-    auto a = std::floor(static_cast<double>(idx) / cuda_matrix_vector_length);
+    auto a = std::floor(static_cast<micm::Real>(idx) / cuda_matrix_vector_length);
     auto b = matrix.VectorIndex(0, 2, 3) / cuda_matrix_vector_length;
     auto c = idx % cuda_matrix_vector_length;
     EXPECT_EQ(elem, 5 * cuda_matrix_vector_length * a + b * cuda_matrix_vector_length + c);
@@ -287,15 +288,15 @@ void TestMultiBlockMatrixAddOneElement()
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), cuda_matrix_vector_length * 5);
   // Work around NVHPC compiler bug - force runtime evaluation
-  double num_cells_d = 53.0;
-  auto vec_length_d = static_cast<double>(cuda_matrix_vector_length);
-  auto expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  micm::Real num_cells_d = 53.0;
+  auto vec_length_d = static_cast<micm::Real>(cuda_matrix_vector_length);
+  auto expected_groups = static_cast<micm::Index>(std::ceil(num_cells_d / vec_length_d));
   EXPECT_EQ(matrix.NumberOfGroups(53), expected_groups);
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t elem_id = 4;  // in this example, 4 refers to matrix[3][2] which is non-zero
-  std::size_t grid_id = 43;
+  micm::Index elem_id = 4;  // in this example, 4 refers to matrix[3][2] which is non-zero
+  micm::Index grid_id = 43;
   micm::cuda::SparseMatrixAddOneElementDriver(param, elem_id, grid_id, cuda_matrix_vector_length);
   matrix.CopyToHost();
 

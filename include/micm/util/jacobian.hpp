@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <cstddef>
 #include <set>
 #include <utility>
@@ -11,9 +13,9 @@ namespace micm
   // annonymous namespace to hide jacobian builder
   template<class SparseMatrixPolicy>
   SparseMatrixPolicy BuildJacobian(
-      const std::set<std::pair<std::size_t, std::size_t>>& nonzero_jacobian_elements,
-      std::size_t number_of_grid_cells,
-      std::size_t state_size,
+      const std::set<std::pair<Index, Index>>& nonzero_jacobian_elements,
+      Index number_of_grid_cells,
+      Index state_size,
       bool indexing_only)
   {
     auto builder = SparseMatrixPolicy::Create(state_size).SetNumberOfBlocks(number_of_grid_cells);
@@ -22,7 +24,7 @@ namespace micm
       builder = builder.WithElement(elem.first, elem.second);
     }
     // Always include diagonal elements
-    for (std::size_t i = 0; i < state_size; ++i)
+    for (Index i = 0; i < state_size; ++i)
     {
       builder = builder.WithElement(i, i);
     }

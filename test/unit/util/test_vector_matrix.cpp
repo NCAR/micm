@@ -1,5 +1,6 @@
 #include "test_matrix_policy.hpp"
 
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -17,7 +18,7 @@ TEST(VectorMatrix, SmallVectorMatrix)
 {
   auto matrix = TestSmallMatrix<Group2MatrixAlias>();
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
@@ -32,7 +33,7 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
 {
   auto matrix = TestSmallConstMatrix<Group4MatrixAlias>();
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);

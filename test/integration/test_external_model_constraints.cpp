@@ -7,6 +7,7 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/util/jacobian_verification.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -22,7 +23,7 @@
 class EquilibriumConstraintModel
 {
  public:
-  EquilibriumConstraintModel(std::string reactant, std::string product, double K_eq)
+  EquilibriumConstraintModel(std::string reactant, std::string product, micm::Real K_eq)
       : reactant_(std::move(reactant)),
         product_(std::move(product)),
         K_eq_(K_eq)
@@ -41,8 +42,8 @@ class EquilibriumConstraintModel
     return { reactant_, product_ };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     auto i_r = state_indices.at(reactant_);
     auto i_p = state_indices.at(product_);
@@ -56,7 +57,7 @@ class EquilibriumConstraintModel
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, micm::Index>&) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
@@ -64,15 +65,15 @@ class EquilibriumConstraintModel
   /// Residual: G = K_eq * [reactant] - [product]
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& var) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var) const
   {
     auto i_r = var.at(reactant_);
     auto i_p = var.at(product_);
-    double K = K_eq_;
+    micm::Real K = K_eq_;
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
         forcing[i][i_p] = K * state[i][i_r] - state[i][i_p];
       }
@@ -83,16 +84,16 @@ class EquilibriumConstraintModel
   /// Subtracted per solver convention: jac -= dG/dy
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& var,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var,
       const SparseMatrixPolicy&) const
   {
     auto i_r = var.at(reactant_);
     auto i_p = var.at(product_);
-    double K = K_eq_;
+    micm::Real K = K_eq_;
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
+      for (micm::Index i = 0; i < jac.NumberOfBlocks(); ++i)
       {
         jac[i][i_p][i_r] -= K;     // -dG/d[reactant] = -K_eq
         jac[i][i_p][i_p] -= -1.0;  // -dG/d[product]  = +1
@@ -103,7 +104,7 @@ class EquilibriumConstraintModel
  private:
   std::string reactant_;
   std::string product_;
-  double K_eq_;
+  micm::Real K_eq_;
 };
 
 /// @brief Constraint-only external model providing BOTH equilibrium AND conservation constraints
@@ -118,7 +119,7 @@ class EquilibriumConstraintModel
 class ConservativeEquilibriumConstraintModel
 {
  public:
-  ConservativeEquilibriumConstraintModel(std::string a, std::string b, std::string c, double K_eq, double total)
+  ConservativeEquilibriumConstraintModel(std::string a, std::string b, std::string c, micm::Real K_eq, micm::Real total)
       : species_a_(std::move(a)),
         species_b_(std::move(b)),
         species_c_(std::move(c)),
@@ -137,8 +138,8 @@ class ConservativeEquilibriumConstraintModel
     return { species_a_, species_b_, species_c_ };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     auto i_a = state_indices.at(species_a_);
     auto i_b = state_indices.at(species_b_);
@@ -160,24 +161,24 @@ class ConservativeEquilibriumConstraintModel
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, micm::Index>&) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& var) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var) const
   {
     auto i_a = var.at(species_a_);
     auto i_b = var.at(species_b_);
     auto i_c = var.at(species_c_);
-    double K = K_eq_;
-    double tot = total_;
+    micm::Real K = K_eq_;
+    micm::Real tot = total_;
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
         // B row: conservation
         forcing[i][i_b] = state[i][i_a] + state[i][i_b] + state[i][i_c] - tot;
@@ -189,17 +190,17 @@ class ConservativeEquilibriumConstraintModel
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& var,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var,
       const SparseMatrixPolicy&) const
   {
     auto i_a = var.at(species_a_);
     auto i_b = var.at(species_b_);
     auto i_c = var.at(species_c_);
-    double K = K_eq_;
+    micm::Real K = K_eq_;
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
+      for (micm::Index i = 0; i < jac.NumberOfBlocks(); ++i)
       {
         // B row (conservation): dG_B/dA=1, dG_B/dB=1, dG_B/dC=1
         jac[i][i_b][i_a] -= 1.0;
@@ -216,8 +217,8 @@ class ConservativeEquilibriumConstraintModel
   std::string species_a_;
   std::string species_b_;
   std::string species_c_;
-  double K_eq_;
-  double total_;
+  micm::Real K_eq_;
+  micm::Real total_;
 };
 
 /// @brief Constraint-only external model that enforces mass conservation for one species pool
@@ -230,7 +231,7 @@ class ConservativeEquilibriumConstraintModel
 class MassConservationModel
 {
  public:
-  MassConservationModel(std::string controlled_species, const std::vector<std::string>& all_species, double total)
+  MassConservationModel(std::string controlled_species, const std::vector<std::string>& all_species, micm::Real total)
       : controlled_species_(std::move(controlled_species)),
         all_species_(all_species),
         total_(total)
@@ -247,11 +248,11 @@ class MassConservationModel
     return { all_species_.begin(), all_species_.end() };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     auto i_ctrl = state_indices.at(controlled_species_);
-    std::set<std::pair<std::size_t, std::size_t>> elements;
+    std::set<std::pair<micm::Index, micm::Index>> elements;
     for (const auto& sp : all_species_)
     {
       elements.insert({ i_ctrl, state_indices.at(sp) });
@@ -266,29 +267,29 @@ class MassConservationModel
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>&) const
+      const std::unordered_map<std::string, micm::Index>&) const
   {
     return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& var) const
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var) const
   {
     auto i_ctrl = var.at(controlled_species_);
-    std::vector<std::size_t> indices;
+    std::vector<micm::Index> indices;
     indices.reserve(all_species_.size());
     for (const auto& sp : all_species_)
     {
       indices.push_back(var.at(sp));
     }
-    double tot = total_;
+    micm::Real tot = total_;
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
-        double sum = 0.0;
+        micm::Real sum = 0.0;
         for (auto idx : indices)
         {
           sum += state[i][idx];
@@ -300,12 +301,12 @@ class MassConservationModel
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
-      const std::unordered_map<std::string, std::size_t>&,
-      const std::unordered_map<std::string, std::size_t>& var,
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var,
       const SparseMatrixPolicy&) const
   {
     auto i_ctrl = var.at(controlled_species_);
-    std::vector<std::size_t> indices;
+    std::vector<micm::Index> indices;
     indices.reserve(all_species_.size());
     for (const auto& sp : all_species_)
     {
@@ -313,7 +314,7 @@ class MassConservationModel
     }
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
+      for (micm::Index i = 0; i < jac.NumberOfBlocks(); ++i)
       {
         for (auto idx : indices)
         {
@@ -326,7 +327,7 @@ class MassConservationModel
  private:
   std::string controlled_species_;
   std::vector<std::string> all_species_;
-  double total_;
+  micm::Real total_;
 };
 
 /// @brief Verify that AddExternalModel wraps both processes and constraints for a constrained model
@@ -335,7 +336,7 @@ TEST(ExternalModelConstraints, AddExternalModelWithConstraints)
   auto A_GAS = micm::Species("A_GAS");
   micm::Phase gas_phase{ "gas", { A_GAS } };
 
-  double total = 1.0;
+  micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
   auto system = micm::System(gas_phase);
@@ -396,8 +397,8 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   auto A_GAS = micm::Species("A_GAS");
   micm::Phase gas_phase{ "gas", { A_GAS } };
 
-  double total = 1.0;
-  double k = 0.1;
+  micm::Real total = 1.0;
+  micm::Real k = 0.1;
   StubAerosolWithConstraints aerosol(k, total);
 
   auto system = micm::System(gas_phase);
@@ -419,13 +420,13 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   state.conditions_[0].pressure_ = 101325.0;
 
   // Solve several time steps and verify conservation
-  double dt = 10.0;
-  for (int step = 0; step < 20; ++step)
+  micm::Real dt = 10.0;
+  for (micm::Index step = 0; step < 20; ++step)
   {
     auto result = solver.Solve(dt, state);
     EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Step " << step;
 
-    double sum =
+    micm::Real sum =
         state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")];
     EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated at step " << step;
   }
@@ -439,11 +440,11 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   auto C = micm::Species("C");
   micm::Phase gas_phase{ "gas", { A_GAS, B, C } };
 
-  double total = 1.0;
+  micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
   // Built-in constraint: B <-> C equilibrium
-  double K_eq = 5.0;
+  micm::Real K_eq = 5.0;
   std::vector<micm::Constraint> constraints;
   constraints.emplace_back(micm::EquilibriumConstraint(
       "B_C_eq",
@@ -453,7 +454,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
       micm::VantHoffParam{ K_eq, 0.0 }));
 
   // Process: A_GAS -> B
-  double k_rxn = 0.05;
+  micm::Real k_rxn = 0.05;
   micm::Process rxn = micm::ChemicalReactionBuilder()
                           .SetReactants({ A_GAS })
                           .SetProducts({ { B, 1 } })
@@ -513,7 +514,7 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
   auto A_GAS = micm::Species("A_GAS");
   micm::Phase gas_phase{ "gas", { A_GAS } };
 
-  double total = 1.0;
+  micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
   auto system = micm::System(gas_phase);
@@ -542,7 +543,7 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
   auto result = solver.Solve(50.0, state);
   EXPECT_EQ(result.state_, micm::SolverState::Converged);
 
-  double sum = state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][i_aq];
+  micm::Real sum = state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][i_aq];
   EXPECT_NEAR(sum, total, 1e-4);
 }
 
@@ -552,7 +553,7 @@ TEST(ExternalModelConstraints, MultiGridCell)
   auto A_GAS = micm::Species("A_GAS");
   micm::Phase gas_phase{ "gas", { A_GAS } };
 
-  double total = 1.0;
+  micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.1, total);
 
   auto system = micm::System(gas_phase);
@@ -565,13 +566,13 @@ TEST(ExternalModelConstraints, MultiGridCell)
                     .SetReorderState(false)
                     .Build();
 
-  const int num_cells = 3;
+  const micm::Index num_cells = 3;
   auto state = solver.GetState(num_cells);
 
   // Different initial conditions per cell
-  for (int c = 0; c < num_cells; ++c)
+  for (micm::Index c = 0; c < num_cells; ++c)
   {
-    double gas_frac = 0.9 - 0.2 * c;
+    micm::Real gas_frac = 0.9 - 0.2 * c;
     state.variables_[c][state.variable_map_.at("A_GAS")] = gas_frac;
     state.variables_[c][state.variable_map_.at("AEROSOL.A_AQ")] = total - gas_frac;
     state.conditions_[c].temperature_ = 298.0;
@@ -581,9 +582,9 @@ TEST(ExternalModelConstraints, MultiGridCell)
   auto result = solver.Solve(50.0, state);
   EXPECT_EQ(result.state_, micm::SolverState::Converged);
 
-  for (int c = 0; c < num_cells; ++c)
+  for (micm::Index c = 0; c < num_cells; ++c)
   {
-    double sum =
+    micm::Real sum =
         state.variables_[c][state.variable_map_.at("A_GAS")] + state.variables_[c][state.variable_map_.at("AEROSOL.A_AQ")];
     EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated in cell " << c;
   }
@@ -607,19 +608,19 @@ TEST(ExternalModelConstraints, MultiGridCell)
 namespace
 {
   // Shared parameters for convergence tests
-  constexpr double K_EQ = 5.0;            // equilibrium constant [C]/[B]
-  constexpr double K_DRIVE = 0.1;         // rate constant for A → B (slow driver)
-  constexpr double K_FWD = 10.0;          // rate constant for B → C (fast)
-  constexpr double K_BWD = K_FWD / K_EQ;  // rate constant for C → B
+  constexpr micm::Real K_EQ = 5.0;            // equilibrium constant [C]/[B]
+  constexpr micm::Real K_DRIVE = 0.1;         // rate constant for A → B (slow driver)
+  constexpr micm::Real K_FWD = 10.0;          // rate constant for B → C (fast)
+  constexpr micm::Real K_BWD = K_FWD / K_EQ;  // rate constant for C → B
 
   // Expected steady state for total=1.0
-  constexpr double EXPECTED_A = 0.0;
-  constexpr double EXPECTED_B = 1.0 / (1.0 + K_EQ);
-  constexpr double EXPECTED_C = K_EQ / (1.0 + K_EQ);
+  constexpr micm::Real EXPECTED_A = 0.0;
+  constexpr micm::Real EXPECTED_B = 1.0 / (1.0 + K_EQ);
+  constexpr micm::Real EXPECTED_C = K_EQ / (1.0 + K_EQ);
 
   /// Helper: build and solve a kinetic (ODE) system with forward+backward reactions
   /// Returns (final_A, final_B, final_C)
-  std::tuple<double, double, double> SolveKineticSystem()
+  std::tuple<micm::Real, micm::Real, micm::Real> SolveKineticSystem()
   {
     auto A = micm::Species("A");
     auto B = micm::Species("B");
@@ -662,8 +663,8 @@ namespace
     // Integrate well past all timescales:
     //   A→B timescale ~1/k = 10, B⇌C timescale ~1/(k_f+k_b) ≈ 0.08
     //   Total integration: 200 (20× the slowest timescale)
-    double dt = 1.0;
-    for (int step = 0; step < 200; ++step)
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
     {
       solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
@@ -678,7 +679,7 @@ namespace
   /// Helper: build and solve a DAE system using ConservativeEquilibriumConstraintModel
   /// (equilibrium + conservation constraints, making B and C algebraic)
   /// Returns (final_A, final_B, final_C)
-  std::tuple<double, double, double> SolveConservativeConstraintSystem()
+  std::tuple<micm::Real, micm::Real, micm::Real> SolveConservativeConstraintSystem()
   {
     auto A = micm::Species("A");
     auto B = micm::Species("B");
@@ -711,8 +712,8 @@ namespace
     state.conditions_[0].temperature_ = 298.0;
     state.conditions_[0].pressure_ = 101325.0;
 
-    double dt = 1.0;
-    for (int step = 0; step < 200; ++step)
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
     {
       solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
@@ -727,7 +728,7 @@ namespace
   /// Helper: build and solve a DAE system using the simple EquilibriumConstraintModel
   /// (ratio constraint only — does NOT conserve mass)
   /// Returns (final_A, final_B, final_C)
-  std::tuple<double, double, double> SolveSimpleConstraintSystem()
+  std::tuple<micm::Real, micm::Real, micm::Real> SolveSimpleConstraintSystem()
   {
     auto A = micm::Species("A");
     auto B = micm::Species("B");
@@ -759,8 +760,8 @@ namespace
     state.conditions_[0].temperature_ = 298.0;
     state.conditions_[0].pressure_ = 101325.0;
 
-    double dt = 1.0;
-    for (int step = 0; step < 200; ++step)
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
     {
       solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
@@ -884,8 +885,8 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
     s->conditions_[0].pressure_ = 101325.0;
   }
 
-  double dt = 0.5;
-  for (int step = 0; step < 100; ++step)
+  micm::Real dt = 0.5;
+  for (micm::Index step = 0; step < 100; ++step)
   {
     builtin_solver.UpdateStateParameters(state_bi);
     ext_solver.UpdateStateParameters(state_ext);
@@ -896,12 +897,12 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
     ASSERT_EQ(res_bi.state_, micm::SolverState::Converged) << "Built-in failed step " << step;
     ASSERT_EQ(res_ext.state_, micm::SolverState::Converged) << "External failed step " << step;
 
-    double bi_A = state_bi.variables_[0][state_bi.variable_map_.at("A")];
-    double bi_B = state_bi.variables_[0][state_bi.variable_map_.at("B")];
-    double bi_C = state_bi.variables_[0][state_bi.variable_map_.at("C")];
-    double ext_A_val = state_ext.variables_[0][state_ext.variable_map_.at("A")];
-    double ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
-    double ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
+    micm::Real bi_A = state_bi.variables_[0][state_bi.variable_map_.at("A")];
+    micm::Real bi_B = state_bi.variables_[0][state_bi.variable_map_.at("B")];
+    micm::Real bi_C = state_bi.variables_[0][state_bi.variable_map_.at("C")];
+    micm::Real ext_A_val = state_ext.variables_[0][state_ext.variable_map_.at("A")];
+    micm::Real ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
+    micm::Real ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
 
     EXPECT_NEAR(bi_A, ext_A_val, 1e-8) << "A diverged at step " << step;
     EXPECT_NEAR(bi_B, ext_B_val, 1e-8) << "B diverged at step " << step;
@@ -921,17 +922,17 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 /// Steady state: [A]=0, [B]=1/(1+K1+K2), [C]=K1/(1+K1+K2), [D]=K2/(1+K1+K2)
 TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
 {
-  constexpr double K1 = 5.0;
-  constexpr double K2 = 3.0;
-  constexpr double k_drive = 0.1;
-  constexpr double k_f1 = 10.0;
-  constexpr double k_b1 = k_f1 / K1;
-  constexpr double k_f2 = 8.0;
-  constexpr double k_b2 = k_f2 / K2;
+  constexpr micm::Real K1 = 5.0;
+  constexpr micm::Real K2 = 3.0;
+  constexpr micm::Real k_drive = 0.1;
+  constexpr micm::Real k_f1 = 10.0;
+  constexpr micm::Real k_b1 = k_f1 / K1;
+  constexpr micm::Real k_f2 = 8.0;
+  constexpr micm::Real k_b2 = k_f2 / K2;
 
-  double expected_B = 1.0 / (1.0 + K1 + K2);
-  double expected_C = K1 * expected_B;
-  double expected_D = K2 * expected_B;
+  micm::Real expected_B = 1.0 / (1.0 + K1 + K2);
+  micm::Real expected_C = K1 * expected_B;
+  micm::Real expected_D = K2 * expected_B;
 
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -1009,8 +1010,8 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
     s->conditions_[0].pressure_ = 101325.0;
   }
 
-  double dt = 1.0;
-  for (int step = 0; step < 200; ++step)
+  micm::Real dt = 1.0;
+  for (micm::Index step = 0; step < 200; ++step)
   {
     kin_solver.UpdateStateParameters(state_kin);
     ext_solver.UpdateStateParameters(state_ext);
@@ -1022,15 +1023,15 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
     EXPECT_EQ(res_ext.state_, micm::SolverState::Converged) << "Constraint failed step " << step;
   }
 
-  double kin_A = state_kin.variables_[0][state_kin.variable_map_.at("A")];
-  double kin_B = state_kin.variables_[0][state_kin.variable_map_.at("B")];
-  double kin_C = state_kin.variables_[0][state_kin.variable_map_.at("C")];
-  double kin_D = state_kin.variables_[0][state_kin.variable_map_.at("D")];
+  micm::Real kin_A = state_kin.variables_[0][state_kin.variable_map_.at("A")];
+  micm::Real kin_B = state_kin.variables_[0][state_kin.variable_map_.at("B")];
+  micm::Real kin_C = state_kin.variables_[0][state_kin.variable_map_.at("C")];
+  micm::Real kin_D = state_kin.variables_[0][state_kin.variable_map_.at("D")];
 
-  double ext_A_val = state_ext.variables_[0][state_ext.variable_map_.at("A")];
-  double ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
-  double ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
-  double ext_D_val = state_ext.variables_[0][state_ext.variable_map_.at("D")];
+  micm::Real ext_A_val = state_ext.variables_[0][state_ext.variable_map_.at("A")];
+  micm::Real ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
+  micm::Real ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
+  micm::Real ext_D_val = state_ext.variables_[0][state_ext.variable_map_.at("D")];
 
   // Both near analytical steady state
   EXPECT_NEAR(kin_A, 0.0, 1e-6);
@@ -1069,8 +1070,8 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   auto S = micm::Species("S");
   micm::Phase gas_phase{ "gas", { A_GAS, S } };
 
-  double total = 1.0;
-  double k = 0.1;
+  micm::Real total = 1.0;
+  micm::Real k = 0.1;
   StubAerosolWithSolvent aerosol(k, total);
 
   auto system = micm::System(gas_phase);
@@ -1099,13 +1100,13 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   state.conditions_[0].pressure_ = 101325.0;
 
   // Solve several steps — verifies no runtime exceptions from Jacobian access
-  double dt = 10.0;
-  for (int step = 0; step < 10; ++step)
+  micm::Real dt = 10.0;
+  for (micm::Index step = 0; step < 10; ++step)
   {
     auto result = solver.Solve(dt, state);
     EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Step " << step;
 
-    double sum =
+    micm::Real sum =
         state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")];
     EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated at step " << step;
   }
@@ -1115,18 +1116,18 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
 // Finite-Difference Jacobian Verification for External Models
 // ═══════════════════════════════════════════════════════════════
 
-using DenseMatrix = micm::Matrix<double>;
-using SparseMatrixFD = micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>;
+using DenseMatrix = micm::Matrix<micm::Real>;
+using SparseMatrixFD = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
 
 /// Verify StubAerosolWithConstraints process ForcingFunction/JacobianFunction
 TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
 {
-  double k = 3.5;
+  micm::Real k = 3.5;
   StubAerosolWithConstraints aerosol(k);
 
-  std::unordered_map<std::string, std::size_t> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
-  std::unordered_map<std::string, std::size_t> param_map;
-  const std::size_t num_species = 2;
+  std::unordered_map<std::string, micm::Index> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
+  std::unordered_map<std::string, micm::Index> param_map;
+  const micm::Index num_species = 2;
 
   auto forcing_fn = aerosol.ForcingFunction<DenseMatrix>(param_map, var_map);
   auto nz_elements = aerosol.NonZeroJacobianElements(var_map);
@@ -1170,13 +1171,13 @@ TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
 /// Verify StubAerosolWithConstraints constraint ConstraintResidualFunction/ConstraintJacobianFunction
 TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
 {
-  double k = 0.1;
-  double total = 1.0;
+  micm::Real k = 0.1;
+  micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(k, total);
 
-  std::unordered_map<std::string, std::size_t> param_map;
-  std::unordered_map<std::string, std::size_t> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
-  const std::size_t num_species = 2;
+  std::unordered_map<std::string, micm::Index> param_map;
+  std::unordered_map<std::string, micm::Index> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
+  const micm::Index num_species = 2;
 
   auto residual_fn = aerosol.ConstraintResidualFunction<DenseMatrix>(param_map, var_map);
   auto nz_elements = aerosol.NonZeroConstraintJacobianElements(var_map);
@@ -1214,12 +1215,12 @@ TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
 /// Verify EquilibriumConstraintModel constraint residual/Jacobian pair
 TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
 {
-  double K_eq = 2.5;
+  micm::Real K_eq = 2.5;
   EquilibriumConstraintModel model("A", "B", K_eq);
 
-  std::unordered_map<std::string, std::size_t> param_map;
-  std::unordered_map<std::string, std::size_t> var_map = { { "A", 0 }, { "B", 1 } };
-  const std::size_t num_species = 2;
+  std::unordered_map<std::string, micm::Index> param_map;
+  std::unordered_map<std::string, micm::Index> var_map = { { "A", 0 }, { "B", 1 } };
+  const micm::Index num_species = 2;
 
   auto residual_fn = model.ConstraintResidualFunction<DenseMatrix>(param_map, var_map);
   auto nz_elements = model.NonZeroConstraintJacobianElements(var_map);
@@ -1271,9 +1272,9 @@ class TemperatureDependentEquilibriumModel
   TemperatureDependentEquilibriumModel(
       std::string reactant,
       const std::string& product,
-      double K_eq_ref,
-      double delta_H_over_R,
-      double T_ref = 298.15)
+      micm::Real K_eq_ref,
+      micm::Real delta_H_over_R,
+      micm::Real T_ref = 298.15)
       : reactant_(std::move(reactant)),
         product_(product),
         K_eq_ref_(K_eq_ref),
@@ -1293,8 +1294,8 @@ class TemperatureDependentEquilibriumModel
     return { reactant_, product_ };
   }
 
-  std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-      const std::unordered_map<std::string, std::size_t>& state_indices) const
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     auto i_r = state_indices.at(reactant_);
     auto i_p = state_indices.at(product_);
@@ -1308,17 +1309,17 @@ class TemperatureDependentEquilibriumModel
 
   template<typename DenseMatrixPolicy>
   std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, std::size_t>& param_indices) const
+      const std::unordered_map<std::string, micm::Index>& param_indices) const
   {
     auto i_K = param_indices.at(param_name_);
-    double K_ref = K_eq_ref_;
-    double dH_R = delta_H_over_R_;
-    double T_ref = T_ref_;
+    micm::Real K_ref = K_eq_ref_;
+    micm::Real dH_R = delta_H_over_R_;
+    micm::Real T_ref = T_ref_;
     return [=](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& params)
     {
-      for (std::size_t i = 0; i < conditions.size(); ++i)
+      for (micm::Index i = 0; i < conditions.size(); ++i)
       {
-        double T = conditions[i].temperature_;
+        micm::Real T = conditions[i].temperature_;
         params[i][i_K] = K_ref * std::exp(dH_R * (1.0 / T_ref - 1.0 / T));
       }
     };
@@ -1327,15 +1328,15 @@ class TemperatureDependentEquilibriumModel
   /// Residual: G = K_eq(T) * [reactant] - [product]
   template<typename DenseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
-      const std::unordered_map<std::string, std::size_t>& param_indices,
-      const std::unordered_map<std::string, std::size_t>& var) const
+      const std::unordered_map<std::string, micm::Index>& param_indices,
+      const std::unordered_map<std::string, micm::Index>& var) const
   {
     auto i_r = var.at(reactant_);
     auto i_p = var.at(product_);
     auto i_K = param_indices.at(param_name_);
     return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy& params, DenseMatrixPolicy& forcing)
     {
-      for (std::size_t i = 0; i < state.NumRows(); ++i)
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
       {
         forcing[i][i_p] = params[i][i_K] * state[i][i_r] - state[i][i_p];
       }
@@ -1345,8 +1346,8 @@ class TemperatureDependentEquilibriumModel
   /// Jacobian: dG/d[reactant] = K_eq(T), dG/d[product] = -1
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
-      const std::unordered_map<std::string, std::size_t>& param_indices,
-      const std::unordered_map<std::string, std::size_t>& var,
+      const std::unordered_map<std::string, micm::Index>& param_indices,
+      const std::unordered_map<std::string, micm::Index>& var,
       const SparseMatrixPolicy&) const
   {
     auto i_r = var.at(reactant_);
@@ -1354,7 +1355,7 @@ class TemperatureDependentEquilibriumModel
     auto i_K = param_indices.at(param_name_);
     return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& params, SparseMatrixPolicy& jac)
     {
-      for (std::size_t i = 0; i < jac.NumberOfBlocks(); ++i)
+      for (micm::Index i = 0; i < jac.NumberOfBlocks(); ++i)
       {
         jac[i][i_p][i_r] -= params[i][i_K];
         jac[i][i_p][i_p] -= -1.0;
@@ -1365,9 +1366,9 @@ class TemperatureDependentEquilibriumModel
  private:
   std::string reactant_;
   std::string product_;
-  double K_eq_ref_;
-  double delta_H_over_R_;
-  double T_ref_;
+  micm::Real K_eq_ref_;
+  micm::Real delta_H_over_R_;
+  micm::Real T_ref_;
   std::string param_name_;
 };
 
@@ -1383,10 +1384,10 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
   auto C = micm::Species("C");
   micm::Phase gas_phase{ "gas", { A, B, C } };
 
-  const double K_DRIVE = 0.1;
-  const double K_EQ_REF = 2.0;
-  const double DELTA_H_OVER_R = 3000.0;  // Positive => K_eq increases with T
-  const double T_REF = 298.15;
+  const micm::Real K_DRIVE = 0.1;
+  const micm::Real K_EQ_REF = 2.0;
+  const micm::Real DELTA_H_OVER_R = 3000.0;  // Positive => K_eq increases with T
+  const micm::Real T_REF = 298.15;
 
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
                              .SetReactants({ A })
@@ -1414,17 +1415,17 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
     state.conditions_[0].temperature_ = T_REF;
     state.conditions_[0].pressure_ = 101325.0;
 
-    double dt = 1.0;
-    for (int step = 0; step < 200; ++step)
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
     {
       solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
       EXPECT_EQ(result.state_, micm::SolverState::Converged) << "T=298 solve failed at step " << step;
     }
 
-    double B_val = state.variables_[0][state.variable_map_.at("B")];
-    double C_val = state.variables_[0][state.variable_map_.at("C")];
-    double K_eq_expected = K_EQ_REF;
+    micm::Real B_val = state.variables_[0][state.variable_map_.at("B")];
+    micm::Real C_val = state.variables_[0][state.variable_map_.at("C")];
+    micm::Real K_eq_expected = K_EQ_REF;
     EXPECT_GT(B_val, 0.0);
     EXPECT_NEAR(C_val / B_val, K_eq_expected, 1e-4) << "At T=298.15K, [C]/[B] should equal K_eq_ref";
   }
@@ -1438,17 +1439,17 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
     state.conditions_[0].temperature_ = 350.0;
     state.conditions_[0].pressure_ = 101325.0;
 
-    double dt = 1.0;
-    for (int step = 0; step < 200; ++step)
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
     {
       solver.UpdateStateParameters(state);
       auto result = solver.Solve(dt, state);
       EXPECT_EQ(result.state_, micm::SolverState::Converged) << "T=350 solve failed at step " << step;
     }
 
-    double B_val = state.variables_[0][state.variable_map_.at("B")];
-    double C_val = state.variables_[0][state.variable_map_.at("C")];
-    double K_eq_350 = K_EQ_REF * std::exp(DELTA_H_OVER_R * (1.0 / T_REF - 1.0 / 350.0));
+    micm::Real B_val = state.variables_[0][state.variable_map_.at("B")];
+    micm::Real C_val = state.variables_[0][state.variable_map_.at("C")];
+    micm::Real K_eq_350 = K_EQ_REF * std::exp(DELTA_H_OVER_R * (1.0 / T_REF - 1.0 / 350.0));
     EXPECT_GT(B_val, 0.0);
     EXPECT_GT(K_eq_350, K_EQ_REF) << "K_eq should increase with temperature for positive delta_H";
     EXPECT_NEAR(C_val / B_val, K_eq_350, 1e-4) << "At T=350K, [C]/[B] should equal K_eq(350)";

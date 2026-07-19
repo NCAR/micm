@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/cuda/util/cuda_param.hpp>
+#include <micm/util/types.hpp>
 
 #include <cuda_runtime.h>
 
@@ -15,14 +16,14 @@ namespace micm::cuda
   /// @param num_elements Requested number of elements to allocate
   /// @returns Error code from allocating data on the device, if any
   template<typename T>
-  cudaError_t MallocArray(T*& array, std::size_t num_elements);
+  cudaError_t MallocArray(T*& array, Index num_elements);
 
   /// @brief Allocate memory on device
   /// @param param Reference to struct containing information about allocated memory
   /// @param number_of_elements Requested number of elements to allocate
   /// @returns Error code from allocating data on the device, if any
   template<typename T>
-  cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements);
+  cudaError_t MallocVector(CudaMatrixParam& param, Index number_of_elements);
 
   template<typename T>
   cudaError_t FreeArray(T*& array);

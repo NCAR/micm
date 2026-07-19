@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/process/rate_constant/rate_constant_functions.hpp>
 #include <micm/system/conditions.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-constexpr double TOLERANCE = 1e-13;
+constexpr micm::Real TOLERANCE = 1e-13;
 
 TEST(ArrheniusRateConstant, CalculateWithSystem)
 {
@@ -14,8 +15,8 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
   };
 
   micm::ArrheniusRateConstantParameters zero{};
-  double k = micm::CalculateArrhenius(zero, conditions.temperature_, conditions.pressure_);
-  double expected = 1;
+  micm::Real k = micm::CalculateArrhenius(zero, conditions.temperature_, conditions.pressure_);
+  micm::Real expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;
@@ -51,8 +52,8 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArguments)
   };
 
   micm::ArrheniusRateConstantParameters zero{};
-  double k = micm::CalculateArrhenius(zero, conditions.temperature_, conditions.pressure_);
-  double expected = 1;
+  micm::Real k = micm::CalculateArrhenius(zero, conditions.temperature_, conditions.pressure_);
+  micm::Real expected = 1;
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 
   micm::ArrheniusRateConstantParameters parameters;

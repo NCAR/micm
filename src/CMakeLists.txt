@@ -13,6 +13,10 @@ set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
+if(MICM_USE_DOUBLE)
+  target_compile_definitions(micm INTERFACE MICM_USE_DOUBLE)
+endif()
+
 target_include_directories(micm
   INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

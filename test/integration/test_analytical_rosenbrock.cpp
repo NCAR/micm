@@ -1,104 +1,106 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 
+#include <micm/util/types.hpp>
+
 #include <gtest/gtest.h>
 
 using BuilderType = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>;
 using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrock = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
 using StandardRosenbrockDoolittle = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::Matrix<double>,
-    micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>,
+    micm::Matrix<micm::Real>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
     micm::LuDecompositionDoolittle>;
 using StandardStateTypeDoolittle = micm::State<
-    micm::Matrix<double>,
-    micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>,
+    micm::Matrix<micm::Real>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeDoolittle = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittle>;
 
 using StandardRosenbrockMozart = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::Matrix<double>,
-    micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>,
+    micm::Matrix<micm::Real>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
     micm::LuDecompositionMozart>;
 
 using StandardStateTypeMozart = micm::
-    State<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>, micm::LuDecompositionMozart>;
+    State<micm::Matrix<micm::Real>, micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>, micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrockMozart = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeMozart = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateType =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::State<micm::VectorMatrix<micm::Real, L>, micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrockDolittleCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeDoolittleCSC = typename VectorRosenbrockDolittleCSC<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrockMozartCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeMozartCSC = typename VectorRosenbrockMozartCSC<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrockDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittleInPlace>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeDoolittleInPlace = typename VectorRosenbrockDoolittleInPlace<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozartInPlace>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorRosenbrockMozartInPlace<L>::StatePolicyType;
 
 auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
@@ -611,7 +613,7 @@ TEST(AnalyticalExamples, E5)
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  double rel_tol = 1e-2;
+  micm::Real rel_tol = 1e-2;
   TestAnalyticalOregonator(rosenbrock_2stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_3stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_4stage, rel_tol);

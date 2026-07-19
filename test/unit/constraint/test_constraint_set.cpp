@@ -8,82 +8,83 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 using namespace micm;
-using StandardSparseMatrix = SparseMatrix<double, SparseMatrixStandardOrdering>;
+using StandardSparseMatrix = SparseMatrix<micm::Real, SparseMatrixStandardOrdering>;
 
-using Group1VectorMatrix = VectorMatrix<double, 1>;
-using Group2VectorMatrix = VectorMatrix<double, 2>;
-using Group3VectorMatrix = VectorMatrix<double, 3>;
-using Group4VectorMatrix = VectorMatrix<double, 4>;
+using Group1VectorMatrix = VectorMatrix<micm::Real, 1>;
+using Group2VectorMatrix = VectorMatrix<micm::Real, 2>;
+using Group3VectorMatrix = VectorMatrix<micm::Real, 3>;
+using Group4VectorMatrix = VectorMatrix<micm::Real, 4>;
 
-using Group1SparseVectorMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<4>>;
+using Group1SparseVectorMatrix = SparseMatrix<micm::Real, SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = SparseMatrix<micm::Real, SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = SparseMatrix<micm::Real, SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = SparseMatrix<micm::Real, SparseMatrixVectorOrdering<4>>;
 
 TEST(ConstraintSet, Construction)
 {
-  TestConstruction<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestConstruction<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, ReplaceStateRowsMapsToAlgebraicSpecies)
 {
   TestReplaceStateRowsMapsToAlgebraicSpecies<
-      Matrix<double>,
+      Matrix<micm::Real>,
       StandardSparseMatrix,
-      ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, NonZeroJacobianElements)
 {
-  TestNonZeroJacobianElements<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestNonZeroJacobianElements<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, MultipleConstraints)
 {
-  TestMultipleConstraints<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestMultipleConstraints<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, AddForcingTerms)
 {
-  TestAddForcingTerms<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestAddForcingTerms<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, SubtractJacobianTerms)
 {
-  TestSubtractJacobianTerms<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestSubtractJacobianTerms<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, EmptyConstraintSet)
 {
-  TestEmptyConstraintSet<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestEmptyConstraintSet<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, UnknownSpeciesThrows)
 {
-  TestUnknownSpeciesThrows<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestUnknownSpeciesThrows<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, ThreeDStateOneConstraint)
 {
-  TestThreeDStateOneConstraint<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestThreeDStateOneConstraint<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, FourDStateTwoConstraints)
 {
-  TestFourDStateTwoConstraints<Matrix<double>, StandardSparseMatrix, ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+  TestFourDStateTwoConstraints<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, CoupledConstraintsSharedSpecies)
 {
   TestCoupledConstraintsSharedSpecies<
-      Matrix<double>,
+      Matrix<micm::Real>,
       StandardSparseMatrix,
-      ConstraintSet<Matrix<double>, StandardSparseMatrix>>();
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, VectorizedMatricesRespectGridCellIndexing)

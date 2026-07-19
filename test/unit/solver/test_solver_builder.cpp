@@ -7,6 +7,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -76,12 +77,12 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
                             .SetReactions(reactions)
                             .Build();
 
-  constexpr std::size_t L = 4;
+  constexpr micm::Index L = 4;
   auto backward_euler_vector =
       micm::CpuSolverBuilder<
           micm::BackwardEulerSolverParameters,
-          micm::VectorMatrix<double, L>,
-          micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(micm::BackwardEulerSolverParameters{})
+          micm::VectorMatrix<micm::Real, L>,
+          micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>(micm::BackwardEulerSolverParameters{})
           .SetSystem(the_system)
           .SetReactions(reactions)
           .Build();
@@ -99,11 +100,11 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                         .SetReactions(reactions)
                         .Build();
 
-  constexpr std::size_t L = 4;
+  constexpr micm::Index L = 4;
   auto rosenbrock_vector = micm::CpuSolverBuilder<
                                micm::RosenbrockSolverParameters,
-                               micm::VectorMatrix<double, L>,
-                               micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(
+                               micm::VectorMatrix<micm::Real, L>,
+                               micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>(
                                micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                                .SetSystem(the_system)
                                .SetReactions(reactions)

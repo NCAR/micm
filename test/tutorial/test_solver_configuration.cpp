@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <chrono>
 #include <iomanip>
@@ -14,38 +15,38 @@ void TestSolverType(auto& solver)
   // mol m-3
   state.variables_[0] = { 1, 0, 0 };
 
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
+  micm::Real k1 = 0.04;
+  micm::Real k2 = 3e7;
+  micm::Real k3 = 1e4;
   state.SetCustomRateParameter("r1", k1);
   state.SetCustomRateParameter("r2", k2);
   state.SetCustomRateParameter("r3", k3);
 
-  double temperature = 272.5;  // [K]
-  double pressure = 101253.3;  // [Pa]
-  double air_density = 1e6;    // [mol m-3]
+  micm::Real temperature = 272.5;  // [K]
+  micm::Real pressure = 101253.3;  // [Pa]
+  micm::Real air_density = 1e6;    // [mol m-3]
 
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
   // choose a timestep and print the initial state
-  double time_step = 200;  // s
+  micm::Real time_step = 200;  // s
 
   state.PrintHeader();
   state.PrintState(0);
 
   SolverStats total_stats;
-  std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
+  std::chrono::duration<micm::Real, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
 
   // solve for ten iterations
-  for (int i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
     // Depending on how stiff the system is
     // the solver integration step may not be able to solve for the full time step
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
-    double elapsed_solve_time = 0;
+    micm::Real elapsed_solve_time = 0;
 
     while (elapsed_solve_time < time_step)
     {

@@ -3,43 +3,44 @@
 #include "analytical_policy.hpp"  // RelativeError
 
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy>
 void TestAnalyticalSurfaceRxn(
     BuilderPolicy& builder,
-    double tolerance = 1e-8,
+    micm::Real tolerance = 1e-8,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
-  const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
-  const double mode_GSD = 0.1;               // mode geometric standard deviation [unitless]
-  const double DENSITY_stuff = 1000.0;       // [kg m-3]
-  const double DENSITY_more_stuff = 1000.0;  // [kg m-3]
-  const double MW_foo = 0.04607;             // [kg mol-1]
-  const double Dg_foo = 0.95e-5;             // diffusion coefficient [m2 s-1]
-  const double rxn_gamma = 2.0e-2;           // [unitless]
-  const double bar_yield = 1.0;              // [unitless]
-  const double baz_yield = 0.4;              // [unitless]
+  const micm::Real mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
+  const micm::Real mode_GSD = 0.1;               // mode geometric standard deviation [unitless]
+  const micm::Real DENSITY_stuff = 1000.0;       // [kg m-3]
+  const micm::Real DENSITY_more_stuff = 1000.0;  // [kg m-3]
+  const micm::Real MW_foo = 0.04607;             // [kg mol-1]
+  const micm::Real Dg_foo = 0.95e-5;             // diffusion coefficient [m2 s-1]
+  const micm::Real rxn_gamma = 2.0e-2;           // [unitless]
+  const micm::Real bar_yield = 1.0;              // [unitless]
+  const micm::Real baz_yield = 0.4;              // [unitless]
 
   // environment
-  const double temperature = 272.5;  // temperature (K)
-  const double pressure = 101253.3;  // pressure (Pa)
+  const micm::Real temperature = 272.5;  // temperature (K)
+  const micm::Real pressure = 101253.3;  // pressure (Pa)
 
   // initial conditions
-  const double conc_foo = 1.0;
-  const double conc_stuff = 2.0e-3;
-  const double conc_more_stuff = 3.0e-3;
+  const micm::Real conc_foo = 1.0;
+  const micm::Real conc_stuff = 2.0e-3;
+  const micm::Real conc_more_stuff = 3.0e-3;
 
   // effective radius
-  double radius = mode_GMD / 2.0 * exp(5.0 * log(mode_GSD) * log(mode_GSD) / 2.0);
+  micm::Real radius = mode_GMD / 2.0 * exp(5.0 * log(mode_GSD) * log(mode_GSD) / 2.0);
 
   // particle number concentration [# m-3]
-  double number_conc = 6.0 /
+  micm::Real number_conc = 6.0 /
                        (M_PI * std::pow(mode_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(mode_GSD) * std::log(mode_GSD))) *
                        (conc_stuff / DENSITY_stuff + conc_more_stuff / DENSITY_more_stuff);
 
@@ -84,23 +85,23 @@ void TestAnalyticalSurfaceRxn(
   state.SetConcentration(foo, conc_foo);
 
   // Surface reaction rate calculation
-  double mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_foo) * temperature);
-  double k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
+  micm::Real mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_foo) * temperature);
+  micm::Real k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
 
-  double time_step = 0.1 / k1;  // s
-  int nstep = 10;
+  micm::Real time_step = 0.1 / k1;  // s
+  micm::Index nstep = 10;
 
-  std::vector<std::vector<double>> model_conc(nstep + 1, std::vector<double>(3));
-  std::vector<std::vector<double>> analytic_conc(nstep + 1, std::vector<double>(3));
+  std::vector<std::vector<micm::Real>> model_conc(nstep + 1, std::vector<micm::Real>(3));
+  std::vector<std::vector<micm::Real>> analytic_conc(nstep + 1, std::vector<micm::Real>(3));
 
   model_conc[0] = { conc_foo, 0, 0 };
   analytic_conc[0] = { conc_foo, 0, 0 };
 
-  size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
+  micm::Index idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
-  for (int i = 1; i <= nstep; ++i)
+  for (micm::Index i = 1; i <= nstep; ++i)
   {
-    double elapsed_solve_time = 0;
+    micm::Real elapsed_solve_time = 0;
     solver.UpdateStateParameters(state);
 
     prepare_for_solve(state);
@@ -117,7 +118,7 @@ void TestAnalyticalSurfaceRxn(
 
     model_conc[i] = state.variables_.AsVector();
 
-    double time = i * time_step;
+    micm::Real time = i * time_step;
     analytic_conc[i][idx_foo] = conc_foo * std::exp(-k1 * time);
     analytic_conc[i][idx_bar] = bar_yield * (1.0 - analytic_conc[i][idx_foo]);
     analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);

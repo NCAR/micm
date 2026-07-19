@@ -22,11 +22,12 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/solver/solver_builder.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
-  using CudaDenseMatrixVector = CudaDenseMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
-  using CudaSparseMatrixVector = CudaSparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+  using CudaDenseMatrixVector = CudaDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
+  using CudaSparseMatrixVector = CudaSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
   using GpuState = CudaState<CudaDenseMatrixVector, CudaSparseMatrixVector, CudaLuDecompositionMozartInPlace>;
 

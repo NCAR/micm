@@ -1,11 +1,12 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <utility>
 #include <vector>
 
-using SparseMatrixTest = micm::SparseMatrix<double>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
 
 TEST(ChapmanIntegration, CanBuildChapmanSystem)
 {
@@ -80,14 +81,14 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   auto state = solver.GetState();
 
-  std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
+  std::vector<micm::Real> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
   state.variables_[0] = concentrations;
-  std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
+  std::vector<micm::Real> photo_rates{ 0.1, 0.2, 0.3 };
   state.custom_rate_parameters_[0] = photo_rates;
   state.conditions_[0].temperature_ = 2;
   state.conditions_[0].pressure_ = 3;
 
-  for (int t{}; t < 100; ++t)
+  for (micm::Index t{}; t < 100; ++t)
   {
     state.custom_rate_parameters_[0] = photo_rates;
     solver.UpdateStateParameters(state);

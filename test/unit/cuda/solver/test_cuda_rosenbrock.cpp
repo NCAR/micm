@@ -6,30 +6,31 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 #include <iostream>
 
-template<std::size_t L>
+template<micm::Index L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
 // In this Test, all the elements in the same array are identical;
 // thus the calculated RMSE should be the same no matter what the size of the array is.
-template<std::size_t L>
-void TestNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
+template<micm::Index L>
+void TestNormalizedErrorConst(const micm::Index number_of_grid_cells = L)
 {
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = GetSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
   auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
-  double rtol = state.relative_tolerance_;
+  micm::Real rtol = state.relative_tolerance_;
 
-  auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 1.0);
-  auto y_new = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 2.0);
-  auto errors = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 3.0);
+  auto y_old = micm::CudaDenseMatrix<micm::Real, L>(number_of_grid_cells, state.state_size_, 1.0);
+  auto y_new = micm::CudaDenseMatrix<micm::Real, L>(number_of_grid_cells, state.state_size_, 2.0);
+  auto errors = micm::CudaDenseMatrix<micm::Real, L>(number_of_grid_cells, state.state_size_, 3.0);
 
   y_old.CopyToDevice();
   y_new.CopyToDevice();
@@ -37,16 +38,16 @@ void TestNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
 
   state.SyncInputsToDevice();
 
-  double error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  micm::Real error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto expected_error = 0.0;
-  for (size_t i = 0; i < state.state_size_; ++i)
+  for (micm::Index i = 0; i < state.state_size_; ++i)
   {
-    double ymax = std::max(std::abs(y_old[0][i]), std::abs(y_new[0][i]));
-    double scale = atol[i] + rtol * ymax;
+    micm::Real ymax = std::max(std::abs(y_old[0][i]), std::abs(y_new[0][i]));
+    micm::Real scale = atol[i] + rtol * ymax;
     expected_error += errors[0][i] * errors[0][i] / (scale * scale);
   }
-  double error_min_ = 1.0e-10;
+  micm::Real error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / state.state_size_), error_min_);
 
   // use the following function instead to avoid tiny numerical differece
@@ -62,40 +63,40 @@ void TestNormalizedErrorConst(const std::size_t number_of_grid_cells = L)
 
 // In this Test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
-template<std::size_t L>
-void TestNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
+template<micm::Index L>
+void TestNormalizedErrorDiff(const micm::Index number_of_grid_cells = L)
 {
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = GetSolver(gpu_builder);
   auto gpu_solver = gpu_builder.Build();
   auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
-  double rtol = state.relative_tolerance_;
-  auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 7.7);
-  auto y_new = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, -13.9);
-  auto errors = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 81.57);
+  micm::Real rtol = state.relative_tolerance_;
+  auto y_old = micm::CudaDenseMatrix<micm::Real, L>(number_of_grid_cells, state.state_size_, 7.7);
+  auto y_new = micm::CudaDenseMatrix<micm::Real, L>(number_of_grid_cells, state.state_size_, -13.9);
+  auto errors = micm::CudaDenseMatrix<micm::Real, L>(number_of_grid_cells, state.state_size_, 81.57);
 
   // manually change each value of atol
-  for (size_t i = 0; i < state.state_size_; ++i)
+  for (micm::Index i = 0; i < state.state_size_; ++i)
   {
     atol[i] = atol[i] * (1 + i * 0.01);
   }
   state.SetAbsoluteTolerances(atol);  // copy atol to the device
 
-  double expected_error = 0.0;
-  for (size_t i = 0; i < number_of_grid_cells; ++i)
+  micm::Real expected_error = 0.0;
+  for (micm::Index i = 0; i < number_of_grid_cells; ++i)
   {
-    for (size_t j = 0; j < state.state_size_; ++j)
+    for (micm::Index j = 0; j < state.state_size_; ++j)
     {
       y_old[i][j] = y_old[i][j] * i + j;
       y_new[i][j] = y_new[i][j] / (j + 1) - i;
       errors[i][j] = errors[i][j] / (i + 7) / (j + 3);
-      double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
-      double scale = atol[j] + rtol * ymax;
+      micm::Real ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      micm::Real scale = atol[j] + rtol * ymax;
       expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
-  double error_min_ = 1.0e-10;
+  micm::Real error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
   y_old.CopyToDevice();
@@ -103,7 +104,7 @@ void TestNormalizedErrorDiff(const std::size_t number_of_grid_cells = L)
   errors.CopyToDevice();
   state.SyncInputsToDevice();
 
-  double computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  micm::Real computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));

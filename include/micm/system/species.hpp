@@ -5,6 +5,7 @@
 #include <micm/system/conditions.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/types.hpp>
 
 #include <functional>
 #include <map>
@@ -25,7 +26,7 @@ namespace micm
 
     /// @brief A list of properties of this species
     std::map<std::string, std::string> properties_string_;
-    std::map<std::string, double> properties_double_;
+    std::map<std::string, Real> properties_double_;
     std::map<std::string, bool> properties_bool_;
     std::map<std::string, int> properties_int_;
 
@@ -33,7 +34,7 @@ namespace micm
     ///        the concentration of this species during solving.
     ///        Species with this function defined will be excluded from
     ///        the solver state.
-    std::function<double(const Conditions)> parameterize_{ nullptr };
+    std::function<Real(const Conditions)> parameterize_{ nullptr };
 
     /// @brief Default constructor
     Species() = default;
@@ -53,7 +54,7 @@ namespace micm
     /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(std::string name, const std::map<std::string, double>& properties);
+    Species(std::string name, const std::map<std::string, Real>& properties);
 
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
@@ -96,7 +97,7 @@ namespace micm
   inline Species::Species(std::string name)
       : name_(std::move(name)){};
 
-  inline Species::Species(std::string name, const std::map<std::string, double>& properties)
+  inline Species::Species(std::string name, const std::map<std::string, Real>& properties)
       : name_(std::move(name)),
         properties_double_(properties){};
 
@@ -133,7 +134,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same_v<T, double>)
+    else if constexpr (std::is_same_v<T, Real>)
     {
       try
       {
@@ -189,7 +190,7 @@ namespace micm
     {
       properties_string_[key] = value;
     }
-    else if constexpr (std::is_same_v<T, double>)
+    else if constexpr (std::is_same_v<T, Real>)
     {
       properties_double_[key] = value;
     }

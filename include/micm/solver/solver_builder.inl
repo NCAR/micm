@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   template<
@@ -73,7 +75,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, Index> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -82,8 +84,8 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetSpeciesMap() const
   {
-    std::unordered_map<std::string, std::size_t> species_map;
-    std::size_t index = 0;
+    std::unordered_map<std::string, Index> species_map;
+    Index index = 0;
 
     auto all_names = this->MergedUniqueNames();
     for (auto& name : all_names)
@@ -107,7 +109,7 @@ namespace micm
       auto reorder_map = DiagonalMarkowitzReorder<Matrix>(unsorted_jac_non_zeros);
 
       index = 0;
-      for (std::size_t i = 0; i < all_names.size(); ++i)
+      for (Index i = 0; i < all_names.size(); ++i)
       {
         species_map[all_names[reorder_map[i]]] = index++;
       }
@@ -124,7 +126,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, Index> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -133,7 +135,7 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetCustomParameterMap() const
   {
-    std::unordered_map<std::string, std::size_t> params{};
+    std::unordered_map<std::string, Index> params{};
     std::vector<std::string> duplicates;
 
     auto add_param = [&params, &duplicates](const std::string& label, const std::string& source)
@@ -201,16 +203,16 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
+      SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map)
           const
   {
-    tolerances = std::vector<double>(species_map.size(), 1e-3);
+    tolerances = std::vector<Real>(species_map.size(), 1e-3);
     for (const auto& phase_species : system_.gas_phase_.phase_species_)
     {
       const auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
       {
-        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
+        tolerances[species_map.at(species.name_)] = species.template GetProperty<Real>("absolute tolerance");
       }
     }
   }
@@ -238,7 +240,7 @@ namespace micm
           MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
     }
 
-    std::size_t number_of_species = this->MergedStateSize();
+    Index number_of_species = this->MergedStateSize();
     if (number_of_species == 0)
     {
       throw MicmException(
@@ -342,8 +344,8 @@ namespace micm
     ConstraintSetPolicy constraint_set;
 
     // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
-    std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
-    std::set<std::size_t> algebraic_variable_ids;
+    std::vector<Real> mass_matrix_diagonal(number_of_species, 1.0);
+    std::set<Index> algebraic_variable_ids;
 
     if (!constraints_.empty())
     {

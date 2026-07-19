@@ -9,6 +9,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <cstddef>
 #include <functional>
@@ -38,13 +39,13 @@ namespace micm
     std::vector<ConstraintInfo> constraint_info_;
 
     /// @brief Flat list of species indices for each constraint's dependencies
-    std::vector<std::size_t> dependency_ids_;
+    std::vector<Index> dependency_ids_;
 
     /// @brief Flat indices into the Jacobian sparse matrix for each constraint's Jacobian entries
-    std::vector<std::size_t> jacobian_flat_ids_;
+    std::vector<Index> jacobian_flat_ids_;
 
     /// @brief Species variable ids whose ODE rows are replaced by constraints
-    std::set<std::size_t> algebraic_variable_ids_;
+    std::set<Index> algebraic_variable_ids_;
 
     /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
     std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
@@ -61,7 +62,7 @@ namespace micm
     std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
 
     /// @brief Runtime count of algebraic variables contributed by external models
-    std::size_t external_constraint_count_ = 0;
+    Index external_constraint_count_ = 0;
 
     /// @brief Pre-compiled external constraint residual functions
     std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
@@ -94,12 +95,12 @@ namespace micm
     ///        Constraints replace selected species rows in the state/Jacobian (DAE formulation)
     /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
-    ConstraintSet(std::vector<Constraint>&& constraints, const std::unordered_map<std::string, std::size_t>& variable_map)
+    ConstraintSet(std::vector<Constraint>&& constraints, const std::unordered_map<std::string, Index>& variable_map)
         : constraints_(std::move(constraints))
     {
       // Build constraint info and dependency indices
-      std::size_t dependency_offset = 0;
-      for (std::size_t i = 0; i < constraints_.size(); ++i)
+      Index dependency_offset = 0;
+      for (Index i = 0; i < constraints_.size(); ++i)
       {
         const auto& constraint = constraints_[i];
 
@@ -162,14 +163,14 @@ namespace micm
     ConstraintSet& operator=(const ConstraintSet&) = default;
 
     /// @brief Get the number of constraints (built-in + external model)
-    std::size_t Size() const
+    Index Size() const
     {
       return constraints_.size() + external_constraint_count_;
     }
 
     /// @brief Returns species ids whose rows are algebraic when constraints replace state rows
     /// @return Set of variable ids for algebraic rows
-    const std::set<std::size_t>& AlgebraicVariableIds() const
+    const std::set<Index>& AlgebraicVariableIds() const
     {
       return algebraic_variable_ids_;
     }
@@ -184,7 +185,7 @@ namespace micm
     void SetUniqueParameterNames()
     {
       std::unordered_set<std::string> used_names;
-      std::unordered_map<std::string, int> name_counts;
+      std::unordered_map<std::string, Index> name_counts;
 
       for (auto& each : constraints_)
       {
@@ -289,9 +290,9 @@ namespace micm
 
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
     /// @return Set of (row, column) index pairs
-    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const
+    std::set<std::pair<Index, Index>> NonZeroJacobianElements() const
     {
-      std::set<std::pair<std::size_t, std::size_t>> ids;
+      std::set<std::pair<Index, Index>> ids;
 
       auto dep_id = dependency_ids_.begin();
       for (const auto& info : constraint_info_)
@@ -299,7 +300,7 @@ namespace micm
         // Ensure the diagonal element exists for the constraint row (required by AlphaMinusJacobian and LU decomposition)
         ids.insert(std::make_pair(info.row_index_, info.row_index_));
         // Each constraint contributes Jacobian entries at (constraint_row, dependency_column)
-        for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
+        for (Index i = 0; i < info.number_of_dependencies_; ++i)
         {
           ids.insert(std::make_pair(info.row_index_, dep_id[i]));
         }
@@ -312,18 +313,18 @@ namespace micm
     /// @brief Computes and stores flat indices for Jacobian elements
     /// @param matrix The sparse Jacobian matrix
     template<typename OrderingPolicy>
-    void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
+    void SetJacobianFlatIds(const SparseMatrix<Real, OrderingPolicy>& matrix)
     {
       jacobian_flat_ids_.clear();
 
-      std::size_t flat_offset = 0;
+      Index flat_offset = 0;
       for (auto& info : constraint_info_)
       {
         info.jacobian_flat_offset_ = flat_offset;
 
         // Store flat indices for each dependency of this constraint
-        const std::size_t* dep_id = dependency_ids_.data() + info.dependency_offset_;
-        for (std::size_t i = 0; i < info.number_of_dependencies_; ++i)
+        const Index* dep_id = dependency_ids_.data() + info.dependency_offset_;
+        for (Index i = 0; i < info.number_of_dependencies_; ++i)
         {
           jacobian_flat_ids_.push_back(matrix.VectorIndex(0, info.row_index_, dep_id[i]));
         }
@@ -338,8 +339,8 @@ namespace micm
     /// @param state_variable_indices Map from species names to state variable indices
     /// @param jacobian The sparse Jacobian matrix (used for function template instantiation)
     void SetConstraintFunctions(
-        const auto& state_variable_indices,   // std::unordered_map<std::string, std::size_t>
-        const auto& state_parameter_indices,  // std::unordered_map<std::string, std::size_t>
+        const auto& state_variable_indices,   // std::unordered_map<std::string, Index>
+        const auto& state_parameter_indices,  // std::unordered_map<std::string, Index>
         SparseMatrixPolicy& jacobian)
     {
       SetConstraintParamIndices(state_parameter_indices);
@@ -391,7 +392,7 @@ namespace micm
     /// Populates `external_constraint_count_` and adds to `algebraic_variable_ids_`.
     ///
     /// @param variable_map Map from species names to state variable indices
-    void ResolveExternalConstraints(const std::unordered_map<std::string, std::size_t>& variable_map)
+    void ResolveExternalConstraints(const std::unordered_map<std::string, Index>& variable_map)
     {
       external_constraint_count_ = 0;
       for (const auto& model : external_constraints_)
@@ -422,10 +423,10 @@ namespace micm
     /// @brief Returns non-zero Jacobian elements contributed by external model constraints
     /// @param variable_map Map from species names to state variable indices
     /// @return Set of (row, column) index pairs
-    std::set<std::pair<std::size_t, std::size_t>> ExternalNonZeroJacobianElements(
-        const std::unordered_map<std::string, std::size_t>& variable_map) const
+    std::set<std::pair<Index, Index>> ExternalNonZeroJacobianElements(
+        const std::unordered_map<std::string, Index>& variable_map) const
     {
-      std::set<std::pair<std::size_t, std::size_t>> ids;
+      std::set<std::pair<Index, Index>> ids;
       for (const auto& model : external_constraints_)
       {
         auto alg_names = model.algebraic_variable_names_func_();
@@ -536,8 +537,8 @@ namespace micm
     /// @param state_variable_indices Map from species names to state variable indices
     /// @param jacobian The sparse Jacobian matrix
     void SetExternalModelConstraintFunctions(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const std::unordered_map<std::string, Index>& state_parameter_indices,
+        const std::unordered_map<std::string, Index>& state_variable_indices,
         const SparseMatrixPolicy& jacobian)
     {
       external_constraint_forcing_functions_.clear();
@@ -576,7 +577,7 @@ namespace micm
         return;
       }
 
-      std::vector<std::size_t> alg_ids(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
+      std::vector<Index> alg_ids(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
       DenseMatrixPolicy temp{ 1, state_variable_indices.size(), 0.0 };
 
       algebraic_error_function_ = DenseMatrixPolicy::Function(
@@ -585,7 +586,7 @@ namespace micm
             for (const auto& col : alg_ids)
             {
               yerr.ForEachRow(
-                  [](const double& ynew_a, const double& y_a, double& err_a) { err_a = ynew_a - y_a; },
+                  [](const Real& ynew_a, const Real& y_a, Real& err_a) { err_a = ynew_a - y_a; },
                   ynew.GetConstColumnView(col),
                   y.GetConstColumnView(col),
                   yerr.GetColumnView(col));
@@ -600,9 +601,9 @@ namespace micm
     ///        Populates constraint_info_[i].state_param_indices_ for each constraint
     ///        Called internally by SetConstraintFunctions after parameter map is finalized
     /// @param state_parameter_indices Map from parameter names to column indices in state_param matrix
-    void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, std::size_t>)
+    void SetConstraintParamIndices(const auto& state_parameter_indices)  // std::unordered_map<std::string, Index>)
     {
-      for (std::size_t i = 0; i < constraints_.size(); ++i)
+      for (Index i = 0; i < constraints_.size(); ++i)
       {
         for (const auto& name : constraints_[i].GetParameterNames())
         {

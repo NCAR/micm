@@ -9,6 +9,7 @@
 
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -25,7 +26,7 @@ namespace micm
   static_assert(
       LuDecompositionInPlaceConcept<
           LuDecompositionMozartInPlace,
-          SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
+          SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LuDecompositionMozartInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
   static_assert(
       LuDecompositionInPlaceConcept<LuDecompositionDoolittleInPlace, StandardSparseMatrix>,
@@ -33,7 +34,7 @@ namespace micm
   static_assert(
       LuDecompositionInPlaceConcept<
           LuDecompositionDoolittleInPlace,
-          SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
+          SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LuDecompositionDoolittleInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
 
   /// @brief Alias for the default LU decomposition algorithm

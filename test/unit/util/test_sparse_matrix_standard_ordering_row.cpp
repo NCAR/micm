@@ -2,6 +2,7 @@
 
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -33,13 +34,13 @@ TEST(SparseCompressedRowMatrix, SingleBlockMatrix)
     auto matrix = TestSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
 
     {
-      std::size_t elem = matrix.VectorIndex(3, 2);
+      micm::Index elem = matrix.VectorIndex(3, 2);
       EXPECT_EQ(elem, 4);
       matrix.AsVector()[elem] = 42;
       EXPECT_EQ(matrix.AsVector()[4], 42);
     }
     {
-      std::size_t elem = matrix.VectorIndex(2, 3);
+      micm::Index elem = matrix.VectorIndex(2, 3);
       EXPECT_EQ(elem, 3);
       matrix.AsVector()[elem] = 21;
       EXPECT_EQ(matrix.AsVector()[3], 21);
@@ -52,12 +53,12 @@ TEST(SparseCompressedRowMatrix, ConstSingleBlockMatrix)
   {
     auto matrix = TestConstSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
     {
-      std::size_t elem = matrix.VectorIndex(3, 2);
+      micm::Index elem = matrix.VectorIndex(3, 2);
       EXPECT_EQ(elem, 4);
       EXPECT_EQ(matrix.AsVector()[4], 42);
     }
     {
-      std::size_t elem = matrix.VectorIndex(2, 3);
+      micm::Index elem = matrix.VectorIndex(2, 3);
       EXPECT_EQ(elem, 3);
       EXPECT_EQ(matrix.AsVector()[3], 21);
     }
@@ -70,13 +71,13 @@ TEST(SparseCompressedRowMatrix, MultiBlockMatrix)
     auto matrix = TestMultiBlockMatrix<micm::SparseMatrix, StandardOrdering>();
 
     {
-      std::size_t elem = matrix.VectorIndex(0, 2, 3);
+      micm::Index elem = matrix.VectorIndex(0, 2, 3);
       EXPECT_EQ(elem, 3);
       matrix.AsVector()[elem] = 21;
       EXPECT_EQ(matrix.AsVector()[3], 21);
     }
     {
-      std::size_t elem = matrix.VectorIndex(2, 2, 1);
+      micm::Index elem = matrix.VectorIndex(2, 2, 1);
       EXPECT_EQ(elem, 12);
       matrix.AsVector()[elem] = 31;
       EXPECT_EQ(matrix.AsVector()[12], 31);
@@ -97,19 +98,19 @@ TEST(SparseCompressedRowMatrix, PrintNonZero)
 TEST(SparseMatrixBuilder, BadConfiguration)
 {
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(3, 0); } catch (micm::MicmException& e) {
+      try { auto builder = micm::SparseMatrix<micm::Real>::Create(3).WithElement(3, 0); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(2, 4); } catch (micm::MicmException& e) {
+      try { auto builder = micm::SparseMatrix<micm::Real>::Create(3).WithElement(2, 4); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },
       micm::MicmException);
   EXPECT_THROW(
-      try { auto builder = micm::SparseMatrix<double>::Create(3).WithElement(6, 7); } catch (micm::MicmException& e) {
+      try { auto builder = micm::SparseMatrix<micm::Real>::Create(3).WithElement(6, 7); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
         throw;
       },

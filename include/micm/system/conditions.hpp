@@ -3,15 +3,16 @@
 #pragma once
 
 #include <micm/util/constants.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
   /// @brief Environemental conditions
   struct Conditions
   {
-    double temperature_{ 0.0 };  // K
-    double pressure_{ 0.0 };     // Pa
-    double air_density_{ 0.0 };  // mol m-3
+    Real temperature_{ 0.0 };  // K
+    Real pressure_{ 0.0 };     // Pa
+    Real air_density_{ 0.0 };  // mol m-3
 
     void CalculateIdealAirDensity();
   };

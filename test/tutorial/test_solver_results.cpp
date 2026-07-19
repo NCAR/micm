@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <chrono>
 #include <iomanip>
@@ -36,7 +37,7 @@ int main()
                    .SetPhase(gas_phase)
                    .Build();
 
-  const std::size_t number_of_grid_cells = 3;
+  const micm::Index number_of_grid_cells = 3;
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
@@ -47,22 +48,22 @@ int main()
   auto state = solver.GetState(number_of_grid_cells);
 
   // mol m-3
-  state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });
-  state.SetConcentration(b, std::vector<double>(3, 0));
-  state.SetConcentration(c, std::vector<double>(3, 0));
+  state.SetConcentration(a, std::vector<micm::Real>{ 1, 2, 0.5 });
+  state.SetConcentration(b, std::vector<micm::Real>(3, 0));
+  state.SetConcentration(c, std::vector<micm::Real>(3, 0));
 
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
-  state.SetCustomRateParameter("r1", std::vector<double>(3, k1));
-  state.SetCustomRateParameter("r2", std::vector<double>(3, k2));
-  state.SetCustomRateParameter("r3", std::vector<double>(3, k3));
+  micm::Real k1 = 0.04;
+  micm::Real k2 = 3e7;
+  micm::Real k3 = 1e4;
+  state.SetCustomRateParameter("r1", std::vector<micm::Real>(3, k1));
+  state.SetCustomRateParameter("r2", std::vector<micm::Real>(3, k2));
+  state.SetCustomRateParameter("r3", std::vector<micm::Real>(3, k3));
 
-  double temperature = 272.5;  // [K]
-  double pressure = 101253.3;  // [Pa]
-  double air_density = 1e6;    // [mol m-3]
+  micm::Real temperature = 272.5;  // [K]
+  micm::Real pressure = 101253.3;  // [Pa]
+  micm::Real air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (micm::Index cell = 0; cell < number_of_grid_cells; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
@@ -71,7 +72,7 @@ int main()
   solver.UpdateStateParameters(state);
 
   // choose a timestep and print the initial state
-  double time_step = 200;  // s
+  micm::Real time_step = 200;  // s
 
   auto result = solver.Solve(time_step, state);
   std::cout << "Solver state: " << SolverStateToString(result.state_) << std::endl;

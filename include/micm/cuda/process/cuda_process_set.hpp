@@ -10,6 +10,7 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/process/reaction_rate_store.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -53,7 +54,7 @@ namespace micm
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
-    CudaProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, std::size_t>& variable_map);
+    CudaProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, Index>& variable_map);
 
     /// @brief Create a process set calculator for a given set of processes with external models
     /// @param processes Processes to create calculator for
@@ -61,7 +62,7 @@ namespace micm
     /// @param external_models External models to include
     CudaProcessSet(
         const std::vector<Process>& processes,
-        const std::unordered_map<std::string, std::size_t>& variable_map,
+        const std::unordered_map<std::string, Index>& variable_map,
         const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models);
 
     ~CudaProcessSet()
@@ -105,7 +106,7 @@ namespace micm
       state.custom_rate_parameters_.CopyToDevice();
 
       // Evaluate parameterized multipliers on CPU and upload in interleaved layout
-      const double* d_mult_vals =
+      const Real* d_mult_vals =
           cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
 
       // GPU analytic calculation (includes multiplier application)
@@ -125,7 +126,7 @@ namespace micm
     ///        If algebraic variable IDs are not set post-construction, then this function may not be
     ///        necessary.
     /// @param variable_ids Set of variable ids whose forcing/Jacobian rows should not receive kinetic contributions
-    void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids);
+    void SetAlgebraicVariableIds(const std::set<Index>& variable_ids);
 
     void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
       requires(VectorizableDense<DenseMatrixPolicy>);
@@ -162,7 +163,7 @@ namespace micm
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::CudaProcessSet(
       const std::vector<Process>& processes,
-      const std::unordered_map<std::string, std::size_t>& variable_map)
+      const std::unordered_map<std::string, Index>& variable_map)
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map)
   {
     InitDevStruct();
@@ -172,7 +173,7 @@ namespace micm
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::CudaProcessSet(
       const std::vector<Process>& processes,
-      const std::unordered_map<std::string, std::size_t>& variable_map,
+      const std::unordered_map<std::string, Index>& variable_map,
       const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models)
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map, external_models)
   {
@@ -192,7 +193,7 @@ namespace micm
 
     ProcessSetParam hoststruct;
     std::vector<ProcessInfoParam> jacobian_process_info(this->jacobian_process_info_.size());
-    std::size_t i_process = 0;
+    Index i_process = 0;
     for (const auto& process_info : this->jacobian_process_info_)
     {
       jacobian_process_info[i_process].process_id_ = process_info.process_id_;
@@ -219,7 +220,7 @@ namespace micm
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(
-      const std::set<std::size_t>& variable_ids)
+      const std::set<Index>& variable_ids)
   {
     // Update the host-side is_algebraic_variable_ array
     ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(variable_ids);

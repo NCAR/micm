@@ -3,6 +3,7 @@
 
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_matrix.cuh>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -24,7 +25,7 @@ TEST(CudaDenseMatrix, SmallVectorMatrixPolicy)
 {
   auto matrix = TestSmallMatrix<Group2MatrixAlias>();
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
@@ -39,7 +40,7 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrixPolicy)
 {
   auto matrix = TestSmallConstMatrix<Group4MatrixAlias>();
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
@@ -180,13 +181,13 @@ TEST(CudaDenseMatrix, IntDataTypeMoveAssignment)
 
 TEST(CudaDenseMatrix, ConversionFromVector)
 {
-  Group2MatrixAlias<double> zero_matrix = std::vector<std::vector<double>>{};
+  Group2MatrixAlias<micm::Real> zero_matrix = std::vector<std::vector<micm::Real>>{};
 
   EXPECT_EQ(zero_matrix.NumRows(), 0);
 
-  std::vector<std::vector<double>> vec = { { 412.3, 32.4, 41.3 }, { 5.33, -0.3, 31.2 } };
+  std::vector<std::vector<micm::Real>> vec = { { 412.3, 32.4, 41.3 }, { 5.33, -0.3, 31.2 } };
 
-  Group2MatrixAlias<double> matrix = vec;
+  Group2MatrixAlias<micm::Real> matrix = vec;
 
   EXPECT_EQ(matrix.NumRows(), 2);
   EXPECT_EQ(matrix.NumColumns(), 3);
@@ -204,15 +205,15 @@ TEST(CudaDenseMatrix, ConversionFromVector)
 
 TEST(CudaDenseMatrix, DeviceMemCopy)
 {
-  std::vector<double> h_vector{ 1, 2, 3, 4 };
-  double* h_data = h_vector.data();
-  std::size_t num_elements = h_vector.size();
+  std::vector<micm::Real> h_vector{ 1, 2, 3, 4 };
+  micm::Real* h_data = h_vector.data();
+  micm::Index num_elements = h_vector.size();
   CudaMatrixParam param;
 
-  micm::cuda::MallocVector<double>(param, num_elements);
-  micm::cuda::CopyToDevice<double>(param, h_vector);
+  micm::cuda::MallocVector<micm::Real>(param, num_elements);
+  micm::cuda::CopyToDevice<micm::Real>(param, h_vector);
   micm::cuda::SquareDriver(param);
-  micm::cuda::CopyToHost<double>(param, h_vector);
+  micm::cuda::CopyToHost<micm::Real>(param, h_vector);
   micm::cuda::FreeVector(param);
 
   EXPECT_EQ(h_vector[0], 1 * 1);
@@ -221,7 +222,7 @@ TEST(CudaDenseMatrix, DeviceMemCopy)
   EXPECT_EQ(h_vector[3], 4 * 4);
 }
 
-template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+template<class T, micm::Index L = MICM_DEFAULT_VECTOR_SIZE>
 static void ModifyAndSyncToHost(micm::CudaDenseMatrix<T, L>& matrix)
 {
   matrix.CopyToDevice();
@@ -232,8 +233,8 @@ static void ModifyAndSyncToHost(micm::CudaDenseMatrix<T, L>& matrix)
 
 TEST(CudaDenseMatrix, CopyConstructorVerifyDeviceMemoryEqual)
 {
-  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
   matrix[0][0] = 5;
 
@@ -290,8 +291,8 @@ TEST(CudaDenseMatrix, CopyConstructorVerifyDeviceMemoryEqual)
 
 TEST(CudaDenseMatrix, CopyConstructorSquareAfterCopyAssignment)
 {
-  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
   auto matrix2 = matrix;
 
@@ -322,8 +323,8 @@ TEST(CudaDenseMatrix, CopyConstructorSquareAfterCopyAssignment)
 
 TEST(CudaDenseMatrix, CopyConstructorDeSyncedHostDevice)
 {
-  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
   EXPECT_EQ(matrix[0][0], 1);
   EXPECT_EQ(matrix[0][1], 2);
@@ -368,10 +369,10 @@ TEST(CudaDenseMatrix, CopyConstructorDeSyncedHostDevice)
 
 TEST(CudaDenseMatrix, CopyAssignment)
 {
-  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
-  micm::CudaDenseMatrix<double, 2> matrix2;
+  micm::CudaDenseMatrix<micm::Real, 2> matrix2;
   matrix2 = matrix;
 
   matrix[0][0] = 5;
@@ -400,8 +401,8 @@ TEST(CudaDenseMatrix, CopyAssignment)
 
 TEST(CudaDenseMatrix, MoveConstructor)
 {
-  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
   EXPECT_EQ(matrix[0][0], 1);
   EXPECT_EQ(matrix[0][1], 2);
@@ -439,10 +440,10 @@ TEST(CudaDenseMatrix, MoveConstructor)
 
 TEST(CudaDenseMatrix, MoveAssignment)
 {
-  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
-  micm::CudaDenseMatrix<double, 2> matrix2;
+  micm::CudaDenseMatrix<micm::Real, 2> matrix2;
   matrix2 = std::move(matrix);
 
   EXPECT_EQ(matrix2[0][0], 1);
@@ -469,7 +470,7 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrix)
   EXPECT_EQ(matrix[0][0], 41.2);
   EXPECT_EQ(matrix[2][4], 102.3);
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
@@ -504,10 +505,10 @@ TEST(CudaDenseMatrix, InitializeConstVectorMatrix)
 
 TEST(CudaDenseMatrix, LoopOverVectorMatrix)
 {
-  Group2MatrixAlias<double> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.NumRows(); ++i)
+  Group2MatrixAlias<micm::Real> matrix(3, 4, 0);
+  for (micm::Index i{}; i < matrix.NumRows(); ++i)
   {
-    for (std::size_t j{}; j < matrix.NumColumns(); ++j)
+    for (micm::Index j{}; j < matrix.NumColumns(); ++j)
     {
       matrix[i][j] = i * 100 + j;
     }
@@ -529,16 +530,16 @@ TEST(CudaDenseMatrix, LoopOverVectorMatrix)
 
 TEST(CudaDenseMatrix, LoopOverConstVectorMatrix)
 {
-  Group2MatrixAlias<double> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.NumRows(); ++i)
+  Group2MatrixAlias<micm::Real> matrix(3, 4, 0);
+  for (micm::Index i{}; i < matrix.NumRows(); ++i)
   {
-    for (std::size_t j{}; j < matrix.NumColumns(); ++j)
+    for (micm::Index j{}; j < matrix.NumColumns(); ++j)
     {
       matrix[i][j] = i * 100 + j;
     }
   }
 
-  const Group2MatrixAlias<double> const_matrix = matrix;
+  const Group2MatrixAlias<micm::Real> const_matrix = matrix;
 
   EXPECT_EQ(const_matrix[0][0], 0);
   EXPECT_EQ(const_matrix[1][2], 102);
@@ -595,11 +596,11 @@ TEST(CudaDenseMatrix, AssignmentFromVector)
 
 TEST(CudaDenseMatrix, Axpy)
 {
-  const double alpha = 2.0;
+  const micm::Real alpha = 2.0;
 
   // Generate a 20 x 10 matrix with all elements set to 10.0
-  auto gpu_x = micm::CudaDenseMatrix<double, 10>(20, 10, 10.0);
-  auto gpu_y = micm::CudaDenseMatrix<double, 10>(20, 10, 20.0);
+  auto gpu_x = micm::CudaDenseMatrix<micm::Real, 10>(20, 10, 10.0);
+  auto gpu_y = micm::CudaDenseMatrix<micm::Real, 10>(20, 10, 20.0);
   gpu_x[0][1] = 20.0;
   gpu_x[1][1] = 30.0;
 
@@ -612,17 +613,17 @@ TEST(CudaDenseMatrix, Axpy)
   EXPECT_EQ(gpu_y[0][1], 60.0);
   EXPECT_EQ(gpu_y[1][1], 80.0);
 
-  double sum = std::accumulate(gpu_y.AsVector().begin(), gpu_y.AsVector().end(), 0);
+  micm::Real sum = std::accumulate(gpu_y.AsVector().begin(), gpu_y.AsVector().end(), 0);
   EXPECT_EQ(sum, (10 * 2.0 + 20.0) * 198 + 20.0 * 2.0 + 20.0 + 30.0 * 2.0 + 20.0);
 }
 
 TEST(CudaDenseMatrix, CopyFunction)
 {
-  std::vector<std::vector<double>> h_vector{ { 0.1, 2.9 }, { 7.3, 4.5 } };
-  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+  std::vector<std::vector<micm::Real>> h_vector{ { 0.1, 2.9 }, { 7.3, 4.5 } };
+  auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
-  std::vector<std::vector<double>> h_vector2{ { 2.1, 5.9 }, { 6.3, 4.8 } };
-  auto matrix2 = micm::CudaDenseMatrix<double, 2>(h_vector2);
+  std::vector<std::vector<micm::Real>> h_vector2{ { 2.1, 5.9 }, { 6.3, 4.8 } };
+  auto matrix2 = micm::CudaDenseMatrix<micm::Real, 2>(h_vector2);
 
   matrix[0][0] = 8.5;
 
@@ -643,9 +644,9 @@ TEST(CudaDenseMatrix, CopyFunction)
   EXPECT_EQ(matrix[0][1], 8.41);
   EXPECT_EQ(matrix[1][0], 53.29);
   EXPECT_EQ(matrix[1][1], 20.25);
-  for (int i = 0; i < 2; i++)
+  for (micm::Index i = 0; i < 2; i++)
   {
-    for (int j = 0; j < 2; j++)
+    for (micm::Index j = 0; j < 2; j++)
     {
       EXPECT_EQ(matrix2[i][j], matrix[i][j]);
     }
@@ -654,7 +655,7 @@ TEST(CudaDenseMatrix, CopyFunction)
 
 TEST(CudaDenseMatrix, TestMax)
 {
-  micm::CudaDenseMatrix<double, 4> matrix{ 2, 3, 0.0 };
+  micm::CudaDenseMatrix<micm::Real, 4> matrix{ 2, 3, 0.0 };
   matrix.CopyToDevice();
   matrix.Max(2.0);
   matrix.CopyToHost();
@@ -683,7 +684,7 @@ TEST(CudaDenseMatrix, TestMax)
 
 TEST(CudaDenseMatrix, TestMin)
 {
-  micm::CudaDenseMatrix<double, 4> matrix{ 2, 3, 0.0 };
+  micm::CudaDenseMatrix<micm::Real, 4> matrix{ 2, 3, 0.0 };
   matrix.CopyToDevice();
   matrix.Min(2.0);
   matrix.CopyToHost();
@@ -710,25 +711,25 @@ TEST(CudaDenseMatrix, TestMin)
   EXPECT_EQ(matrix[1][2], 1.0);
 }
 
-template<std::size_t cuda_matrix_vector_length>
+template<micm::Index cuda_matrix_vector_length>
 void TestSingleBlockMatrixAddOneElement()
 {
-  const std::size_t number_of_grid_cells = 1;
-  const std::size_t number_of_columns = 43;
-  auto matrix = micm::CudaDenseMatrix<double, cuda_matrix_vector_length>(number_of_grid_cells, number_of_columns, 79.0);
+  const micm::Index number_of_grid_cells = 1;
+  const micm::Index number_of_columns = 43;
+  auto matrix = micm::CudaDenseMatrix<micm::Real, cuda_matrix_vector_length>(number_of_grid_cells, number_of_columns, 79.0);
 
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), number_of_columns * cuda_matrix_vector_length);
   // Work around NVHPC compiler bug - force runtime evaluation
-  auto num_cells_d = static_cast<double>(number_of_grid_cells);
-  auto vec_length_d = static_cast<double>(cuda_matrix_vector_length);
-  auto expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  auto num_cells_d = static_cast<micm::Real>(number_of_grid_cells);
+  auto vec_length_d = static_cast<micm::Real>(cuda_matrix_vector_length);
+  auto expected_groups = static_cast<micm::Index>(std::ceil(num_cells_d / vec_length_d));
   EXPECT_EQ(matrix.NumberOfGroups(), expected_groups);
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t row_id = 0;
-  std::size_t col_id = 40;
+  micm::Index row_id = 0;
+  micm::Index col_id = 40;
   micm::cuda::DenseMatrixAddOneElementDriver(param, row_id, col_id, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
@@ -744,26 +745,26 @@ TEST(CudaDenseMatrix, SingleBlockMatrixAddOneElement)
   TestSingleBlockMatrixAddOneElement<65>();
 }
 
-template<std::size_t cuda_matrix_vector_length>
+template<micm::Index cuda_matrix_vector_length>
 void TestMultiBlockMatrixAddOneElement()
 {
-  const std::size_t number_of_grid_cells = 79;
-  const std::size_t number_of_columns = 13;
+  const micm::Index number_of_grid_cells = 79;
+  const micm::Index number_of_columns = 13;
   // For MICM vector matrix class, the first dimension is the fast-varying one regardless dense/sparse, CSR/CSC, etc
-  auto matrix = micm::CudaDenseMatrix<double, cuda_matrix_vector_length>(number_of_grid_cells, number_of_columns, 54.0);
+  auto matrix = micm::CudaDenseMatrix<micm::Real, cuda_matrix_vector_length>(number_of_grid_cells, number_of_columns, 54.0);
 
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), number_of_columns * cuda_matrix_vector_length);
   // Work around NVHPC compiler bug - force runtime evaluation
-  auto num_cells_d = static_cast<double>(number_of_grid_cells);
-  auto vec_length_d = static_cast<double>(cuda_matrix_vector_length);
-  auto expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  auto num_cells_d = static_cast<micm::Real>(number_of_grid_cells);
+  auto vec_length_d = static_cast<micm::Real>(cuda_matrix_vector_length);
+  auto expected_groups = static_cast<micm::Index>(std::ceil(num_cells_d / vec_length_d));
   EXPECT_EQ(matrix.NumberOfGroups(), expected_groups);
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
-  std::size_t row_id = 73;
-  std::size_t col_id = 6;
+  micm::Index row_id = 73;
+  micm::Index col_id = 6;
   micm::cuda::DenseMatrixAddOneElementDriver(param, row_id, col_id, cuda_matrix_vector_length);
   matrix.CopyToHost();
 

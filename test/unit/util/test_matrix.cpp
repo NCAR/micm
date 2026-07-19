@@ -1,6 +1,7 @@
 #include "test_matrix_policy.hpp"
 
 #include <micm/util/matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -8,7 +9,7 @@ TEST(Matrix, SmallMatrix)
 {
   auto matrix = TestSmallMatrix<micm::Matrix>();
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
   EXPECT_EQ(data[0], 41.2);
@@ -20,7 +21,7 @@ TEST(Matrix, SmallConstMatrix)
 {
   auto matrix = TestSmallConstMatrix<micm::Matrix>();
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
   EXPECT_EQ(data[0], 41.2);

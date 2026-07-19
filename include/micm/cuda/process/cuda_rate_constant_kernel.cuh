@@ -13,6 +13,7 @@
 #include <micm/process/rate_constant/tunneling_rate_constant.hpp>
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/system/conditions.hpp>
+#include <micm/util/types.hpp>
 
 #include <cstddef>
 
@@ -34,29 +35,29 @@ struct CudaReactionRateStoreParam
   const micm::SurfaceRateConstantData* d_surface_ = nullptr;
 
   // Reaction counts per type
-  std::size_t n_arrhenius_ = 0;
-  std::size_t n_troe_ = 0;
-  std::size_t n_ternary_ = 0;
-  std::size_t n_branched_ = 0;
-  std::size_t n_tunneling_ = 0;
-  std::size_t n_taylor_ = 0;
-  std::size_t n_reversible_ = 0;
-  std::size_t n_user_defined_ = 0;
-  std::size_t n_surface_ = 0;
+  micm::Index n_arrhenius_ = 0;
+  micm::Index n_troe_ = 0;
+  micm::Index n_ternary_ = 0;
+  micm::Index n_branched_ = 0;
+  micm::Index n_tunneling_ = 0;
+  micm::Index n_taylor_ = 0;
+  micm::Index n_reversible_ = 0;
+  micm::Index n_user_defined_ = 0;
+  micm::Index n_surface_ = 0;
 
   // Offsets into rate_constants_[cell] (cumulative type counts)
-  std::size_t troe_offset_ = 0;
-  std::size_t ternary_offset_ = 0;
-  std::size_t branched_offset_ = 0;
-  std::size_t tunneling_offset_ = 0;
-  std::size_t taylor_offset_ = 0;
-  std::size_t reversible_offset_ = 0;
-  std::size_t user_defined_offset_ = 0;
-  std::size_t surface_offset_ = 0;
+  micm::Index troe_offset_ = 0;
+  micm::Index ternary_offset_ = 0;
+  micm::Index branched_offset_ = 0;
+  micm::Index tunneling_offset_ = 0;
+  micm::Index taylor_offset_ = 0;
+  micm::Index reversible_offset_ = 0;
+  micm::Index user_defined_offset_ = 0;
+  micm::Index surface_offset_ = 0;
 
   // Parameterized-reactant multipliers (static per solver build)
-  const std::size_t* d_mult_rc_indices_ = nullptr;
-  std::size_t n_multipliers_ = 0;
+  const micm::Index* d_mult_rc_indices_ = nullptr;
+  micm::Index n_multipliers_ = 0;
 };
 
 namespace micm::cuda
@@ -69,5 +70,5 @@ namespace micm::cuda
       const micm::Conditions* d_conditions,
       CudaMatrixParam& rc_param,
       const CudaMatrixParam& cp_param,
-      const double* d_mult_vals);
+      const Real* d_mult_vals);
 }  // namespace micm::cuda

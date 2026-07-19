@@ -6,6 +6,7 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -63,7 +64,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   // Constraint: A + B + C = 1
   // ---------------------------------------------------------------------------
 
-  double sum_initial_conc = 1.0;
+  micm::Real sum_initial_conc = 1.0;
 
   std::vector<micm::Constraint> constraints;
   constraints.emplace_back(
@@ -103,12 +104,12 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   solver.UpdateStateParameters(state);
 
-  constexpr size_t N = 12;
-  double time_step = 1.0;
+  constexpr micm::Index N = 12;
+  micm::Real time_step = 1.0;
 
-  for (size_t i = 0; i < N; ++i)
+  for (micm::Index i = 0; i < N; ++i)
   {
-    double advanced = 0.0;
+    micm::Real advanced = 0.0;
 
     while (advanced < time_step)
     {

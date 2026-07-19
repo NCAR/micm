@@ -1,5 +1,6 @@
 #include <micm/solver/linear_solver.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -17,12 +18,12 @@ void CheckResults(
   T result;
   EXPECT_EQ(A.NumberOfBlocks(), b.NumRows());
   EXPECT_EQ(A.NumberOfBlocks(), x.NumRows());
-  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
+  for (micm::Index i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
-    for (std::size_t i = 0; i < A.NumRows(); ++i)
+    for (micm::Index i = 0; i < A.NumRows(); ++i)
     {
       result = 0.0;
-      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+      for (micm::Index j = 0; j < A.NumColumns(); ++j)
       {
         if (!A.IsZero(i, j))
         {
@@ -35,14 +36,14 @@ void CheckResults(
 }
 
 template<class SparseMatrixPolicy>
-void PrintMatrix(const SparseMatrixPolicy& matrix, std::size_t width)
+void PrintMatrix(const SparseMatrixPolicy& matrix, micm::Index width)
 {
-  for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
+  for (micm::Index i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
     std::cout << "block: " << i_block << std::endl;
-    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    for (micm::Index i = 0; i < matrix.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
+      for (micm::Index j = 0; j < matrix.NumColumns(); ++j)
       {
         if (matrix.IsZero(i, j))
         {
@@ -101,9 +102,9 @@ void TestDenseMatrix()
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   alu.Fill(0);
-  for (std::size_t i = 0; i < A.NumRows(); ++i)
+  for (micm::Index i = 0; i < A.NumRows(); ++i)
   {
-    for (std::size_t j = 0; j < A.NumColumns(); ++j)
+    for (micm::Index j = 0; j < A.NumColumns(); ++j)
     {
       if (!A.IsZero(i, j))
       {
@@ -126,7 +127,7 @@ void TestDenseMatrix()
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestRandomMatrix(std::size_t number_of_blocks)
+void TestRandomMatrix(micm::Index number_of_blocks)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
@@ -134,9 +135,9 @@ void TestRandomMatrix(std::size_t number_of_blocks)
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
-    for (std::size_t j = 0; j < 10; ++j)
+    for (micm::Index j = 0; j < 10; ++j)
     {
       if (i == j || gen_bool())
       {
@@ -149,13 +150,13 @@ void TestRandomMatrix(std::size_t number_of_blocks)
   MatrixPolicy b(number_of_blocks, 10, 0.0);
   MatrixPolicy x(number_of_blocks, 10, 0.0);
 
-  for (std::size_t i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
-    for (std::size_t j = 0; j < 10; ++j)
+    for (micm::Index j = 0; j < 10; ++j)
     {
       if (!A.IsZero(i, j))
       {
-        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+        for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
         {
           A[i_block][i][j] = get_double();
         }
@@ -163,9 +164,9 @@ void TestRandomMatrix(std::size_t number_of_blocks)
     }
   }
 
-  for (std::size_t i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
-    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
     {
       b[i_block][i] = get_double();
     }
@@ -179,11 +180,11 @@ void TestRandomMatrix(std::size_t number_of_blocks)
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   alu.Fill(0);
-  for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+  for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
   {
-    for (std::size_t i = 0; i < A.NumRows(); ++i)
+    for (micm::Index i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+      for (micm::Index j = 0; j < A.NumColumns(); ++j)
       {
         if (!A.IsZero(i, j))
         {
@@ -207,23 +208,23 @@ void TestRandomMatrix(std::size_t number_of_blocks)
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
+void TestExtremeInitialValue(micm::Index number_of_blocks, micm::Real initial_value)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
   const unsigned int seed = 12345;
   std::mt19937 generator(seed);
-  const double point_five = 0.5;
-  const double two = 2.0;
+  const micm::Real point_five = 0.5;
+  const micm::Real two = 2.0;
 
   auto gen_bool = std::bind(std::bernoulli_distribution(point_five), generator);
-  auto get_double = std::bind(std::lognormal_distribution<double>(-two, two), generator);
-  const size_t size = 30;
+  auto get_double = std::bind(std::lognormal_distribution<micm::Real>(-two, two), generator);
+  const micm::Index size = 30;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < size; ++i)
+  for (micm::Index i = 0; i < size; ++i)
   {
-    for (std::size_t j = 0; j < size; ++j)
+    for (micm::Index j = 0; j < size; ++j)
     {
       if (i == j || gen_bool())
       {
@@ -236,13 +237,13 @@ void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   MatrixPolicy b(number_of_blocks, size, 0.0);
   MatrixPolicy x(number_of_blocks, size, 0.0);
 
-  for (std::size_t i = 0; i < size; ++i)
+  for (micm::Index i = 0; i < size; ++i)
   {
-    for (std::size_t j = 0; j < size; ++j)
+    for (micm::Index j = 0; j < size; ++j)
     {
       if (!A.IsZero(i, j))
       {
-        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+        for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
         {
           A[i_block][i][j] = get_double();
         }
@@ -250,9 +251,9 @@ void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
     }
   }
 
-  for (std::size_t i = 0; i < size; ++i)
+  for (micm::Index i = 0; i < size; ++i)
   {
-    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
     {
       b[i_block][i] = get_double();
     }
@@ -265,11 +266,11 @@ void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value, false);
-  for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+  for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
   {
-    for (std::size_t i = 0; i < A.NumRows(); ++i)
+    for (micm::Index i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+      for (micm::Index j = 0; j < A.NumColumns(); ++j)
       {
         if (!A.IsZero(i, j))
         {
@@ -301,14 +302,14 @@ void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestDiagonalMatrix(std::size_t number_of_blocks)
+void TestDiagonalMatrix(micm::Index number_of_blocks)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < 6; ++i)
+  for (micm::Index i = 0; i < 6; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -317,17 +318,17 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
   MatrixPolicy b(number_of_blocks, 6, 0.0);
   MatrixPolicy x(number_of_blocks, 6, 0.0);
 
-  for (std::size_t i = 0; i < 6; ++i)
+  for (micm::Index i = 0; i < 6; ++i)
   {
-    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
     {
       A[i_block][i][i] = get_double();
     }
   }
 
-  for (std::size_t i = 0; i < 6; ++i)
+  for (micm::Index i = 0; i < 6; ++i)
   {
-    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
     {
       b[i_block][i] = get_double();
     }
@@ -341,11 +342,11 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
   alu.Fill(0);
-  for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+  for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
   {
-    for (std::size_t i = 0; i < A.NumRows(); ++i)
+    for (micm::Index i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+      for (micm::Index j = 0; j < A.NumColumns(); ++j)
       {
         if (!A.IsZero(i, j))
         {
@@ -371,13 +372,13 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
 template<class MatrixPolicy, class SparseMatrixPolicy>
 void TestMarkowitzReordering()
 {
-  const std::size_t order = 50;
+  const micm::Index order = 50;
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   MatrixPolicy orig(order, order, 0);
 
-  for (std::size_t i = 0; i < order; ++i)
+  for (micm::Index i = 0; i < order; ++i)
   {
-    for (std::size_t j = 0; j < order; ++j)
+    for (micm::Index j = 0; j < order; ++j)
     {
       orig[i][j] = (i == j || gen_bool()) ? 1 : 0;
     }
@@ -386,9 +387,9 @@ void TestMarkowitzReordering()
   auto reorder_map = micm::DiagonalMarkowitzReorder<MatrixPolicy>(orig);
 
   auto builder = SparseMatrixPolicy::Create(50);
-  for (std::size_t i = 0; i < order; ++i)
+  for (micm::Index i = 0; i < order; ++i)
   {
-    for (std::size_t j = 0; j < order; ++j)
+    for (micm::Index j = 0; j < order; ++j)
     {
       if (orig[i][j] != 0)
       {
@@ -399,9 +400,9 @@ void TestMarkowitzReordering()
   SparseMatrixPolicy orig_jac{ builder };
 
   builder = SparseMatrixPolicy::Create(50);
-  for (std::size_t i = 0; i < order; ++i)
+  for (micm::Index i = 0; i < order; ++i)
   {
-    for (std::size_t j = 0; j < order; ++j)
+    for (micm::Index j = 0; j < order; ++j)
     {
       if (orig[reorder_map[i]][reorder_map[j]] != 0)
       {
@@ -417,9 +418,9 @@ void TestMarkowitzReordering()
   auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0, false);
   auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0, false);
 
-  std::size_t sum_orig = 0;
-  std::size_t sum_reordered = 0;
-  for (std::size_t i = 0; i < reorder_map.size(); ++i)
+  micm::Index sum_orig = 0;
+  micm::Index sum_reordered = 0;
+  for (micm::Index i = 0; i < reorder_map.size(); ++i)
   {
     sum_orig += i;
     sum_reordered += reorder_map[i];

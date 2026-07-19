@@ -4,6 +4,7 @@
 
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/util/types.hpp>
 
 #include <cublas_v2.h>
 
@@ -16,7 +17,7 @@ namespace micm::cuda
   /// @return
   void AlphaMinusJacobianDriver(
       CudaMatrixParam& jacobian_param,
-      const double& alpha,
+      const Real& alpha,
       const CudaJacobianDiagonalElementsParam& jacobian_diagonal_elements_param);
 
   /// @brief Computes the scaled norm of the matrix errors on the GPU; assume all the data are GPU resident already
@@ -26,11 +27,11 @@ namespace micm::cuda
   /// @param ros_param struct of Rosenbrock solver parameters
   /// @param handle cublas handle
   /// @return the scaled norm of the matrix errors
-  double NormalizedErrorDriver(
+  Real NormalizedErrorDriver(
       const CudaMatrixParam& y_old_param,
       const CudaMatrixParam& y_new_param,
       const CudaMatrixParam& y_error_param,
       const CudaMatrixParam& absolute_tolerance_param,
-      const double relative_tolerance,
+      const Real relative_tolerance,
       CudaErrorParam& errors_param);
 }  // namespace micm::cuda

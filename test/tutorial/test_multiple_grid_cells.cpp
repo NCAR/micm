@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -35,7 +36,7 @@ int main()
                          .SetPhase(gas_phase)
                          .Build();
 
-  const std::size_t number_of_grid_cells = 3;
+  const Index number_of_grid_cells = 3;
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
@@ -46,22 +47,22 @@ int main()
   auto state = solver.GetState(number_of_grid_cells);
 
   // mol m-3
-  state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });
-  state.SetConcentration(b, std::vector<double>(3, 0));
-  state.SetConcentration(c, std::vector<double>(3, 0));
+  state.SetConcentration(a, std::vector<Real>{ 1, 2, 0.5 });
+  state.SetConcentration(b, std::vector<Real>(3, 0));
+  state.SetConcentration(c, std::vector<Real>(3, 0));
 
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
-  state.SetCustomRateParameter("r1", std::vector<double>(3, k1));
-  state.SetCustomRateParameter("r2", std::vector<double>(3, k2));
-  state.SetCustomRateParameter("r3", std::vector<double>(3, k3));
+  Real k1 = 0.04;
+  Real k2 = 3e7;
+  Real k3 = 1e4;
+  state.SetCustomRateParameter("r1", std::vector<Real>(3, k1));
+  state.SetCustomRateParameter("r2", std::vector<Real>(3, k2));
+  state.SetCustomRateParameter("r3", std::vector<Real>(3, k3));
 
-  double temperature = 272.5;  // [K]
-  double pressure = 101253.3;  // [Pa]
-  double air_density = 1e6;    // [mol m-3]
+  Real temperature = 272.5;  // [K]
+  Real pressure = 101253.3;  // [Pa]
+  Real air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (Index cell = 0; cell < number_of_grid_cells; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
@@ -69,19 +70,19 @@ int main()
   }
 
   // choose a timestep and print the initial state
-  double time_step = 200;  // s
+  Real time_step = 200;  // s
 
   state.PrintHeader();
   state.PrintState(0);
 
   // solve for ten iterations
-  for (int i = 0; i < 10; ++i)
+  for (Index i = 0; i < 10; ++i)
   {
     // Depending on how stiff the system is
     // the solver integration step may not be able to solve for the full time step
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
-    double elapsed_solve_time = 0;
+    Real elapsed_solve_time = 0;
 
     while (elapsed_solve_time < time_step)
     {

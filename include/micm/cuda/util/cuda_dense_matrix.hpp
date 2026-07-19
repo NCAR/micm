@@ -5,6 +5,7 @@
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/error.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <cublas_v2.h>
@@ -36,7 +37,7 @@ namespace micm
    * has been allocated correctly. A check is done before doing the copy
    * to make sure that both matrices have the same size.
    *
-   * CUDA functionality requires T to be of type double, otherwise this
+   * CUDA functionality requires T to be of type Real, otherwise this
    * behaves similarily to VectorMatrix.
    */
 
@@ -48,7 +49,7 @@ namespace micm
     { t.AsDeviceParam() } -> std::same_as<CudaMatrixParam>;
   };
 
-  template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  template<class T, Index L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaDenseMatrix : public VectorMatrix<T, L>
   {
    public:
@@ -73,7 +74,7 @@ namespace micm
       }
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
+    CudaDenseMatrix(Index x_dim, Index y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       this->param_.number_of_elements_ = this->data_.size();
@@ -85,7 +86,7 @@ namespace micm
       }
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
+    CudaDenseMatrix(Index x_dim, Index y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       this->param_.number_of_elements_ = this->data_.size();
@@ -189,11 +190,12 @@ namespace micm
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
     /// @param x The input VectorMatrix
     /// @return 0 if successful, otherwise an error code
-    void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x)
+    void Axpy(const Real alpha, const CudaDenseMatrix<T, L>& x)
     {
       const int incx = 1;  // increment for the elements of x
       const int incy = 1;  // increment for the elements of y
-      static_assert(std::is_same_v<T, double>);
+      static_assert(std::is_same_v<T, Real>);
+      static_assert(std::is_same_v<micm::Real, double>, "cuBLAS D-routines require Real == double");
       CHECK_CUBLAS_ERROR(
           cublasDaxpy(
               micm::cuda::GetCublasHandle(),
@@ -210,7 +212,7 @@ namespace micm
     /// @param x The scalar constant to compare against
     void Max(const T x)
     {
-      static_assert(std::is_same_v<T, double>);
+      static_assert(std::is_same_v<T, Real>);
       CHECK_CUDA_ERROR(micm::cuda::MatrixMax(this->param_, x), "CudaMatrixMax");
     }
 
@@ -218,7 +220,7 @@ namespace micm
     /// @param x The scalar constant to compare against
     void Min(const T x)
     {
-      static_assert(std::is_same_v<T, double>);
+      static_assert(std::is_same_v<T, Real>);
       CHECK_CUDA_ERROR(micm::cuda::MatrixMin(this->param_, x), "CudaMatrixMin");
     }
 

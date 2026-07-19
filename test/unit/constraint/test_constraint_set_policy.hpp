@@ -7,6 +7,7 @@
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -33,7 +34,7 @@ void TestConstruction()
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -53,7 +54,7 @@ void TestReplaceStateRowsMapsToAlgebraicSpecies()
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -81,7 +82,7 @@ void TestNonZeroJacobianElements()
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -118,7 +119,7 @@ void TestMultipleConstraints()
       std::vector<StoichSpecies>{ StoichSpecies(D, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
+  std::unordered_map<std::string, micm::Index> variable_map = {
     { "A", 0 }, { "B", 1 }, { "AB", 2 }, { "C", 3 }, { "D", 4 }
   };
 
@@ -154,16 +155,16 @@ void TestAddForcingTerms()
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
-  std::size_t num_species = 3;
+  micm::Index num_species = 3;
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   // Build sparse Jacobian for SetConstraintFunctions
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -174,7 +175,7 @@ void TestAddForcingTerms()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 2 grid cells
@@ -211,9 +212,9 @@ void TestSubtractJacobianTerms()
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
-  std::size_t num_species = 3;
+  micm::Index num_species = 3;
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -223,7 +224,7 @@ void TestSubtractJacobianTerms()
   // Build a 3x3 sparse Jacobian (constraint replaces AB's row)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);  // Diagonals
   }
@@ -236,7 +237,7 @@ void TestSubtractJacobianTerms()
 
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 1 grid cell
@@ -304,7 +305,7 @@ void TestUnknownSpeciesThrows()
       std::vector<StoichSpecies>{ StoichSpecies(XY, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
   EXPECT_THROW((ConstraintSetPolicy(std::move(constraints), variable_map)), micm::MicmException);
 }
@@ -313,8 +314,8 @@ void TestUnknownSpeciesThrows()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestThreeDStateOneConstraint()
 {
-  const double K_eq = 3.3e-2;
-  const std::size_t num_species = 3;
+  const micm::Real K_eq = 3.3e-2;
+  const micm::Index num_species = 3;
 
   // Create constraint: X <-> Y with K_eq = 3.3e-2
   auto X = Species("X");
@@ -327,7 +328,7 @@ void TestThreeDStateOneConstraint()
       std::vector<StoichSpecies>{ StoichSpecies(Y, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -346,7 +347,7 @@ void TestThreeDStateOneConstraint()
                      .SetNumberOfBlocks(2)  // Test with 2 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -358,7 +359,7 @@ void TestThreeDStateOneConstraint()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "X_Y_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "X_Y_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 2 grid cells
@@ -410,9 +411,9 @@ void TestThreeDStateOneConstraint()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestFourDStateTwoConstraints()
 {
-  const double K_eq1 = 3.3e-2;
-  const double K_eq2 = 3.3e-2;
-  const std::size_t num_species = 4;
+  const micm::Real K_eq1 = 3.3e-2;
+  const micm::Real K_eq2 = 3.3e-2;
+  const micm::Index num_species = 4;
 
   // Create two constraints
   std::vector<Constraint> constraints;
@@ -437,7 +438,7 @@ void TestFourDStateTwoConstraints()
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -463,7 +464,7 @@ void TestFourDStateTwoConstraints()
                      .SetNumberOfBlocks(3)  // Test with 3 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -475,7 +476,7 @@ void TestFourDStateTwoConstraints()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 }, { "CD_A_eq", 1 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "CD_A_eq", 1 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 3 grid cells
@@ -504,7 +505,7 @@ void TestFourDStateTwoConstraints()
 
   // State parameters: K_eq for each constraint (3 cells, 2 parameters)
   DenseMatrixPolicy state_parameters(3, 2);
-  for (std::size_t i = 0; i < 3; ++i)
+  for (micm::Index i = 0; i < 3; ++i)
   {
     state_parameters[i][0] = 3.3e-2;  // K_eq1 for A_B_eq
     state_parameters[i][1] = 3.3e-2;  // K_eq2 for CD_A_eq
@@ -557,9 +558,9 @@ void TestFourDStateTwoConstraints()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestCoupledConstraintsSharedSpecies()
 {
-  const double K_eq1 = 3.3e-2;
-  const double K_eq2 = 3.3e-2;
-  const std::size_t num_species = 3;
+  const micm::Real K_eq1 = 3.3e-2;
+  const micm::Real K_eq2 = 3.3e-2;
+  const micm::Index num_species = 3;
 
   std::vector<Constraint> constraints;
 
@@ -581,7 +582,7 @@ void TestCoupledConstraintsSharedSpecies()
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -603,7 +604,7 @@ void TestCoupledConstraintsSharedSpecies()
   // Build Jacobian (3x3)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -615,7 +616,7 @@ void TestCoupledConstraintsSharedSpecies()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 }, { "A_C_eq", 1 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "A_C_eq", 1 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State at dual equilibrium: [B]/[A] = 3.3e-2, [C]/[A] = 3.3e-2
@@ -653,7 +654,7 @@ void TestCoupledConstraintsSharedSpecies()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestVectorizedMatricesRespectGridCellIndexing()
 {
-  const std::size_t num_species = 3;
+  const micm::Index num_species = 3;
 
   auto A = Species("A");
   auto B = Species("B");
@@ -666,14 +667,14 @@ void TestVectorizedMatricesRespectGridCellIndexing()
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
   auto non_zero_elements = set.NonZeroJacobianElements();
 
   // Constraint replaces AB's row (index 2), Jacobian is 3x3
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(3).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -685,7 +686,7 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrixPolicy state(3, num_species, 0.0);
