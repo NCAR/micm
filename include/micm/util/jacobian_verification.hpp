@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <functional>
 #include <string>
+#include <type_traits>
 
 namespace micm
 {
@@ -44,7 +45,9 @@ namespace micm
       ForcingFunc forcing_func,
       const DenseMatrixPolicy& base_variables,
       Index num_species,
-      Real perturbation = 1.0e-8)
+      // The optimal finite-difference step scales with the working precision: a double-tuned step
+      // (1e-8) is smaller than a float ULP for O(1) variables, which collapses the difference to zero.
+      Real perturbation = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-8) : static_cast<Real>(1.0e-3))
   {
     const Index num_blocks = base_variables.NumRows();
     DenseMatrixPolicy result(num_blocks, num_species * num_species, 0.0);
@@ -119,8 +122,10 @@ namespace micm
       const SparseMatrixPolicy& analytical_jacobian,
       const DenseMatrixPolicy& fd_jacobian,
       Index num_species,
-      Real atol = 1.0e-7,
-      Real rtol = 1.0e-7)
+      // Finite-difference roundoff grows with the working precision, so the default agreement
+      // tolerance is relaxed for float; callers may still pass a tighter value explicitly.
+      Real atol = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-7) : static_cast<Real>(1.0e-2),
+      Real rtol = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-7) : static_cast<Real>(1.0e-2))
   {
     JacobianComparisonResult result;
     const Index num_blocks = analytical_jacobian.NumberOfBlocks();
@@ -179,7 +184,9 @@ namespace micm
       const SparseMatrixPolicy& analytical_jacobian,
       const DenseMatrixPolicy& fd_jacobian,
       Index num_species,
-      Real threshold = 1.0e-6)
+      // The threshold must sit above finite-difference roundoff on a genuinely-zero entry, which is
+      // far larger in float; otherwise a true zero is misreported as an undeclared dependency.
+      Real threshold = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-6) : static_cast<Real>(1.0e-2))
   {
     JacobianComparisonResult result;
     const Index num_blocks = analytical_jacobian.NumberOfBlocks();

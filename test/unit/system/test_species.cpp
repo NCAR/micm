@@ -3,6 +3,9 @@
 
 #include <gtest/gtest.h>
 
+#include <limits>
+#include <type_traits>
+
 TEST(Species, StringConstructor)
 {
   micm::Species species("thing");
@@ -102,7 +105,9 @@ TEST(Species, SetThirdBody)
   species.SetThirdBody();
   EXPECT_EQ(species.name_, "M");
   EXPECT_TRUE(species.IsParameterized());
-  EXPECT_EQ(species.parameterize_({ .air_density_ = 42.4 }), 42.4);
+  // parameterize_ returns micm::Real, so 42.4 is only exact in double mode
+  const double tol = std::is_same_v<micm::Real, double> ? 0.0 : 42.4 * 10 * std::numeric_limits<micm::Real>::epsilon();
+  EXPECT_NEAR(species.parameterize_({ .air_density_ = 42.4 }), 42.4, tol);
 }
 
 TEST(Species, CopyConstructor)
@@ -141,7 +146,9 @@ TEST(Species, CopyConstructor)
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_TRUE(species2.IsParameterized());
-    EXPECT_EQ(species.parameterize_({}), 15.4);
+    // parameterize_ returns micm::Real, so 15.4 is only exact in double mode
+    const double tol = std::is_same_v<micm::Real, double> ? 0.0 : 15.4 * 10 * std::numeric_limits<micm::Real>::epsilon();
+    EXPECT_NEAR(species.parameterize_({}), 15.4, tol);
   }
 }
 
@@ -181,6 +188,8 @@ TEST(Species, CopyAssignment)
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_TRUE(species2.IsParameterized());
-    EXPECT_EQ(species.parameterize_({}), 15.4);
+    // parameterize_ returns micm::Real, so 15.4 is only exact in double mode
+    const double tol = std::is_same_v<micm::Real, double> ? 0.0 : 15.4 * 10 * std::numeric_limits<micm::Real>::epsilon();
+    EXPECT_NEAR(species.parameterize_({}), 15.4, tol);
   }
 }

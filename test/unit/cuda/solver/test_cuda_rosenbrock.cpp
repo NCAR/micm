@@ -11,6 +11,8 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 #include <iostream>
 
 template<micm::Index L>
@@ -52,7 +54,9 @@ void TestNormalizedErrorConst(const micm::Index number_of_grid_cells = L)
 
   // use the following function instead to avoid tiny numerical differece
   auto relative_error = std::abs(error - expected_error) / std::max(std::abs(error), std::abs(expected_error));
-  if (relative_error > 1.e-14)
+  // GPU and CPU reduce the error norm in different orders; at float precision they agree only to ~epsilon.
+  const micm::Real norm_match_tol = std::is_same_v<micm::Real, double> ? 1.e-14 : 1.e-4;
+  if (relative_error > norm_match_tol)
   {
     std::cout << "error: " << std::setprecision(12) << error << std::endl;
     std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
@@ -109,7 +113,9 @@ void TestNormalizedErrorDiff(const micm::Index number_of_grid_cells = L)
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
 
-  if (relative_error > 1.e-11)
+  // GPU and CPU reduce the error norm in different orders; at float precision they agree only to ~epsilon.
+  const micm::Real norm_match_tol = std::is_same_v<micm::Real, double> ? 1.e-11 : 1.e-4;
+  if (relative_error > norm_match_tol)
   {
     std::cout << "computed_error: " << std::setprecision(12) << computed_error << std::endl;
     std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;

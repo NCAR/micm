@@ -12,6 +12,8 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <limits>
+#include <type_traits>
 #include <utility>
 
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
@@ -618,6 +620,14 @@ namespace
   constexpr micm::Real EXPECTED_B = 1.0 / (1.0 + K_EQ);
   constexpr micm::Real EXPECTED_C = K_EQ / (1.0 + K_EQ);
 
+  // Kinetic-ODE mass conservation is limited by accumulated float round-off over 200 steps: the sum
+  // of the O(1) species differs from 1.0 by tens of float ULPs. Double keeps the original 1e-6 bound.
+  constexpr micm::Real KINETIC_MASS_TOL = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-5;
+  // The built-in and external DAE formulations are mathematically identical but their float round-off
+  // diverges as the solution grows over 100 steps (C reaches ~5, so the gap accumulates to ~1e-5;
+  // 1e-8 sits below the float epsilon of ~1.19e-7). Double keeps the original 1e-8 bound.
+  constexpr micm::Real DAE_FORMULATION_AGREEMENT_TOL = std::is_same_v<micm::Real, double> ? 1.0e-8 : 2.0e-5;
+
   /// Helper: build and solve a kinetic (ODE) system with forward+backward reactions
   /// Returns (final_A, final_B, final_C)
   std::tuple<micm::Real, micm::Real, micm::Real> SolveKineticSystem()
@@ -698,6 +708,12 @@ namespace
     ConservativeEquilibriumConstraintModel eq_model("A", "B", "C", K_EQ, 1.0);
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    // Float cannot drive the algebraic-constraint Newton residual below the default
+    // constraint_init_tolerance_ (1e-10) once the state is off-equilibrium (the residual floor is
+    // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
+    // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
+    if constexpr (!std::is_same_v<micm::Real, double>)
+      options.constraint_init_tolerance_ = 1.0e-5;
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
@@ -746,6 +762,12 @@ namespace
     EquilibriumConstraintModel eq_model("B", "C", K_EQ);
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    // Float cannot drive the algebraic-constraint Newton residual below the default
+    // constraint_init_tolerance_ (1e-10) once the state is off-equilibrium (the residual floor is
+    // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
+    // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
+    if constexpr (!std::is_same_v<micm::Real, double>)
+      options.constraint_init_tolerance_ = 1.0e-5;
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
@@ -803,7 +825,7 @@ TEST(ExternalModelConstraints, KineticVsConservativeConstraintConvergence)
   EXPECT_NEAR(kin_C, con_C, 1e-3);
 
   // Mass conservation in both
-  EXPECT_NEAR(kin_A + kin_B + kin_C, 1.0, 1e-6);
+  EXPECT_NEAR(kin_A + kin_B + kin_C, 1.0, KINETIC_MASS_TOL);
   EXPECT_NEAR(con_A + con_B + con_C, 1.0, 1e-3);
 }
 
@@ -824,7 +846,7 @@ TEST(ExternalModelConstraints, SimpleConstraintPreservesRatioNotMass)
   EXPECT_NEAR(sim_C / sim_B, K_EQ, 1e-3);
 
   // Kinetic system conserves mass
-  EXPECT_NEAR(kin_A + kin_B + kin_C, 1.0, 1e-6);
+  EXPECT_NEAR(kin_A + kin_B + kin_C, 1.0, KINETIC_MASS_TOL);
 
   // Simple constraint system does NOT conserve total mass — C is created algebraically.
   // At t→∞: A≈0, B≈1 (all A→B mass), C≈K_eq*1=5, so total≈1+K_eq=6
@@ -857,6 +879,12 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
       micm::VantHoffParam{ K_EQ, 0.0 }));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  // Float cannot drive the algebraic-constraint Newton residual below the default
+  // constraint_init_tolerance_ (1e-10) once the state is off-equilibrium (the residual floor is
+  // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
+  // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.constraint_init_tolerance_ = 1.0e-5;
   auto builtin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                             .SetSystem(micm::System(gas_phase))
                             .SetReactions({ rxn_ab })
@@ -904,9 +932,9 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
     micm::Real ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
     micm::Real ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
 
-    EXPECT_NEAR(bi_A, ext_A_val, 1e-8) << "A diverged at step " << step;
-    EXPECT_NEAR(bi_B, ext_B_val, 1e-8) << "B diverged at step " << step;
-    EXPECT_NEAR(bi_C, ext_C_val, 1e-8) << "C diverged at step " << step;
+    EXPECT_NEAR(bi_A, ext_A_val, DAE_FORMULATION_AGREEMENT_TOL) << "A diverged at step " << step;
+    EXPECT_NEAR(bi_B, ext_B_val, DAE_FORMULATION_AGREEMENT_TOL) << "B diverged at step " << step;
+    EXPECT_NEAR(bi_C, ext_C_val, DAE_FORMULATION_AGREEMENT_TOL) << "C diverged at step " << step;
 
     EXPECT_NEAR(K_EQ * bi_B - bi_C, 0.0, 1e-6) << "Built-in constraint violated at step " << step;
     EXPECT_NEAR(K_EQ * ext_B_val - ext_C_val, 0.0, 1e-6) << "External constraint violated at step " << step;
@@ -987,6 +1015,12 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   MassConservationModel conservation("B", { "A", "B", "C", "D" }, 1.0);  // B row: A+B+C+D-1=0
 
   auto dae_options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  // Float cannot drive the algebraic-constraint Newton residual below the default
+  // constraint_init_tolerance_ (1e-10) once the state is off-equilibrium (the residual floor is
+  // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
+  // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    dae_options.constraint_init_tolerance_ = 1.0e-5;
   auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
                         .SetSystem(system)
                         .SetReactions({ rxn_ab })
@@ -1049,7 +1083,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   EXPECT_NEAR(kin_D, ext_D_val, 1e-3);
 
   // Mass conservation
-  EXPECT_NEAR(kin_A + kin_B + kin_C + kin_D, 1.0, 1e-6);
+  EXPECT_NEAR(kin_A + kin_B + kin_C + kin_D, 1.0, KINETIC_MASS_TOL);
   EXPECT_NEAR(ext_A_val + ext_B_val + ext_C_val + ext_D_val, 1.0, 1e-3);
 
   // Equilibrium constraints satisfied
@@ -1399,6 +1433,12 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
   TemperatureDependentEquilibriumModel eq_model("B", "C", K_EQ_REF, DELTA_H_OVER_R, T_REF);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  // Float cannot drive the algebraic-constraint Newton residual below the default
+  // constraint_init_tolerance_ (1e-10) once the state is off-equilibrium (the residual floor is
+  // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
+  // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.constraint_init_tolerance_ = 1.0e-5;
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(gas_phase))
                     .SetReactions({ rxn_ab })

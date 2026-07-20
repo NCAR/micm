@@ -269,7 +269,7 @@ namespace micm
           {
             if (state.upper_left_identity_diagonal_[i_var] > 0.0)
             {
-              state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
+              state.variables_[i_cell][i_var] = std::max<Real>(0.0, state.variables_[i_cell][i_var]);
             }
           }
         }

@@ -9,8 +9,13 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 using DenseMatrix = micm::Matrix<micm::Real>;
 using SparseMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+
+// Finite differences lose accuracy at lower precision, so the agreement tolerance scales with Real.
+constexpr micm::Real kFdTolerance = std::is_same_v<micm::Real, double> ? 1e-5 : 1e-2;
 
 // Simple 2-variable system: f(x,y) = [x*y, x^2 - y]
 // Analytical Jacobian:
@@ -37,10 +42,10 @@ TEST(JacobianVerification, FiniteDifferenceMatchesAnalytical)
   auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(SimpleForcing, variables, num_species);
 
   // Expected: df0/dx = y = 5, df0/dy = x = 3, df1/dx = 2x = 6, df1/dy = -1
-  EXPECT_NEAR(fd_jac[0][0 * num_species + 0], 5.0, 1e-5);   // df0/dx
-  EXPECT_NEAR(fd_jac[0][0 * num_species + 1], 3.0, 1e-5);   // df0/dy
-  EXPECT_NEAR(fd_jac[0][1 * num_species + 0], 6.0, 1e-5);   // df1/dx
-  EXPECT_NEAR(fd_jac[0][1 * num_species + 1], -1.0, 1e-5);  // df1/dy
+  EXPECT_NEAR(fd_jac[0][0 * num_species + 0], 5.0, kFdTolerance);   // df0/dx
+  EXPECT_NEAR(fd_jac[0][0 * num_species + 1], 3.0, kFdTolerance);   // df0/dy
+  EXPECT_NEAR(fd_jac[0][1 * num_species + 0], 6.0, kFdTolerance);   // df1/dx
+  EXPECT_NEAR(fd_jac[0][1 * num_species + 1], -1.0, kFdTolerance);  // df1/dy
 }
 
 TEST(JacobianVerification, MultiBlockFiniteDifference)
@@ -57,22 +62,22 @@ TEST(JacobianVerification, MultiBlockFiniteDifference)
   auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(SimpleForcing, variables, num_species);
 
   // Block 0: x=1, y=2
-  EXPECT_NEAR(fd_jac[0][0], 2.0, 1e-5);   // df0/dx = y
-  EXPECT_NEAR(fd_jac[0][1], 1.0, 1e-5);   // df0/dy = x
-  EXPECT_NEAR(fd_jac[0][2], 2.0, 1e-5);   // df1/dx = 2x
-  EXPECT_NEAR(fd_jac[0][3], -1.0, 1e-5);  // df1/dy
+  EXPECT_NEAR(fd_jac[0][0], 2.0, kFdTolerance);   // df0/dx = y
+  EXPECT_NEAR(fd_jac[0][1], 1.0, kFdTolerance);   // df0/dy = x
+  EXPECT_NEAR(fd_jac[0][2], 2.0, kFdTolerance);   // df1/dx = 2x
+  EXPECT_NEAR(fd_jac[0][3], -1.0, kFdTolerance);  // df1/dy
 
   // Block 1: x=0.5, y=4
-  EXPECT_NEAR(fd_jac[1][0], 4.0, 1e-5);
-  EXPECT_NEAR(fd_jac[1][1], 0.5, 1e-5);
-  EXPECT_NEAR(fd_jac[1][2], 1.0, 1e-5);
-  EXPECT_NEAR(fd_jac[1][3], -1.0, 1e-5);
+  EXPECT_NEAR(fd_jac[1][0], 4.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[1][1], 0.5, kFdTolerance);
+  EXPECT_NEAR(fd_jac[1][2], 1.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[1][3], -1.0, kFdTolerance);
 
   // Block 2: x=10, y=0.1
-  EXPECT_NEAR(fd_jac[2][0], 0.1, 1e-5);
-  EXPECT_NEAR(fd_jac[2][1], 10.0, 1e-5);
-  EXPECT_NEAR(fd_jac[2][2], 20.0, 1e-5);
-  EXPECT_NEAR(fd_jac[2][3], -1.0, 1e-5);
+  EXPECT_NEAR(fd_jac[2][0], 0.1, kFdTolerance);
+  EXPECT_NEAR(fd_jac[2][1], 10.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[2][2], 20.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[2][3], -1.0, kFdTolerance);
 }
 
 TEST(JacobianVerification, ComparePassesForCorrectJacobian)
@@ -103,7 +108,7 @@ TEST(JacobianVerification, ComparePassesForCorrectJacobian)
   auto result = micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrix>(analytical, fd_jac, num_species);
 
   EXPECT_TRUE(result.passed_);
-  EXPECT_LT(result.max_abs_error_, 1e-4);
+  EXPECT_LT(result.max_abs_error_, kFdTolerance);
 }
 
 TEST(JacobianVerification, CompareFailsForWrongJacobian)
@@ -198,8 +203,8 @@ TEST(JacobianVerification, NearZeroVariableHandled)
   auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(SimpleForcing, variables, num_species);
 
   // At x=0, y=1: df0/dx = y = 1, df0/dy = x = 0, df1/dx = 2x = 0, df1/dy = -1
-  EXPECT_NEAR(fd_jac[0][0 * num_species + 0], 1.0, 1e-5);
-  EXPECT_NEAR(fd_jac[0][0 * num_species + 1], 0.0, 1e-5);
-  EXPECT_NEAR(fd_jac[0][1 * num_species + 0], 0.0, 1e-5);
-  EXPECT_NEAR(fd_jac[0][1 * num_species + 1], -1.0, 1e-5);
+  EXPECT_NEAR(fd_jac[0][0 * num_species + 0], 1.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[0][0 * num_species + 1], 0.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[0][1 * num_species + 0], 0.0, kFdTolerance);
+  EXPECT_NEAR(fd_jac[0][1 * num_species + 1], -1.0, kFdTolerance);
 }

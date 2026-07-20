@@ -7,6 +7,7 @@
 #include <functional>
 #include <iomanip>
 #include <random>
+#include <type_traits>
 
 template<typename T, class SparseMatrixPolicy>
 void CheckResults(
@@ -145,8 +146,9 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   auto LU =
       LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-9 : 1.0e-4;
   CheckResults<micm::Real, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
+      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, tol); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -204,8 +206,9 @@ void TestExtremeValueInitialization(micm::Index number_of_blocks, micm::Real ini
   CheckCopyToHost<SparseMatrixPolicy>(LU.first);
   CheckCopyToHost<SparseMatrixPolicy>(LU.second);
 
+  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-09 : 1.0e-4;
   CheckResults<micm::Real, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-09); });
+      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, tol); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>

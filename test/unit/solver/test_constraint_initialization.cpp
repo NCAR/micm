@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <type_traits>
 
 using namespace micm;
 
@@ -62,6 +63,12 @@ using StandardBuilder =
 TEST(ConstraintInitialization, ConsistentICsUnchanged)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // In float precision the default initial internal step (DEFAULT_H_START * time_step)
+  // falls below the unit round-off (float epsilon ~1.2e-7), tripping the
+  // step-size-too-small guard on the first iteration. Start with a larger step in
+  // float mode; double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
@@ -91,6 +98,12 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
 TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // In float precision the default initial internal step (DEFAULT_H_START * time_step)
+  // falls below the unit round-off (float epsilon ~1.2e-7), tripping the
+  // step-size-too-small guard on the first iteration. Start with a larger step in
+  // float mode; double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
@@ -129,6 +142,12 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // In float precision the default initial internal step (DEFAULT_H_START * time_step)
+  // falls below the unit round-off (float epsilon ~1.2e-7), tripping the
+  // step-size-too-small guard on the first iteration. Start with a larger step in
+  // float mode; double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
@@ -170,6 +189,12 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
                     .Build();
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // In float precision the default initial internal step (DEFAULT_H_START * time_step)
+  // falls below the unit round-off (float epsilon ~1.2e-7), tripping the
+  // step-size-too-small guard on the first iteration. Start with a larger step in
+  // float mode; double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -193,6 +218,12 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
 TEST(ConstraintInitialization, MultiCellSystems)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // In float precision the default initial internal step (DEFAULT_H_START * time_step)
+  // falls below the unit round-off (float epsilon ~1.2e-7), tripping the
+  // step-size-too-small guard on the first iteration. Start with a larger step in
+  // float mode; double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(3);  // 3 grid cells
 
@@ -242,6 +273,12 @@ TEST(ConstraintInitialization, MultiCellSystems)
 TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // In float precision the default initial internal step (DEFAULT_H_START * time_step)
+  // falls below the unit round-off (float epsilon ~1.2e-7), tripping the
+  // step-size-too-small guard on the first iteration. Start with a larger step in
+  // float mode; double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 

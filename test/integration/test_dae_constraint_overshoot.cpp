@@ -28,6 +28,12 @@
 
 #include <cmath>
 #include <string>
+#include <type_traits>
+
+// Float precision cannot satisfy a 1.0e-12 absolute error floor (stage-algebra roundoff at
+// float precision exceeds it, shrinking the step size until the solver gives up), so relax
+// the absolute tolerance in float mode only; double mode keeps the original strictness.
+constexpr micm::Real kAbsTol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-10;
 
 using namespace micm;
 
@@ -71,7 +77,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
-  state.SetAbsoluteTolerances(std::vector<micm::Real>(3, 1.0e-12));
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(3, kAbsTol));
 
   micm::Index A_idx = state.variable_map_.at("A");
   micm::Index B_idx = state.variable_map_.at("B");
@@ -266,7 +272,7 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
 
     auto state = solver.GetState(1);
     state.SetRelativeTolerance(1.0e-6);
-    state.SetAbsoluteTolerances(std::vector<micm::Real>(3, 1.0e-12));
+    state.SetAbsoluteTolerances(std::vector<micm::Real>(3, kAbsTol));
 
     const micm::Index A_idx = state.variable_map_.at("A");
     const micm::Index B_idx = state.variable_map_.at("B");

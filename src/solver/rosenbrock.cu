@@ -277,10 +277,18 @@ namespace micm::cuda
     {
       // call cublas function to perform the norm:
       // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
-      static_assert(std::is_same_v<micm::Real, double>, "cuBLAS D-routines require Real == double");
-      CHECK_CUBLAS_ERROR(
-          cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
-          "cublasDnrm2");
+      if constexpr (std::is_same_v<micm::Real, double>)
+      {
+        CHECK_CUBLAS_ERROR(
+            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
+            "cublasDnrm2");
+      }
+      else
+      {
+        CHECK_CUBLAS_ERROR(
+            cublasSnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
+            "cublasSnrm2");
+      }
       cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
       normalized_error = normalized_error * std::sqrt(1.0 / (number_of_grid_cells * number_of_species));
     }

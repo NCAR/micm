@@ -131,32 +131,33 @@ void TestUpdateStateWithStubAerosolModel(BuilderPolicy builder)
   state[aerosol_2.Number(1)] = 500.0;
 
   // Verify that all values were set correctly
-  EXPECT_DOUBLE_EQ(state["FO2"], 1.34);
-  EXPECT_DOUBLE_EQ(state["BAR"], 2.53);
+  // (expected values are cast to micm::Real so float builds compare against the float-rounded literal)
+  EXPECT_DOUBLE_EQ(state["FO2"], micm::Real{ 1.34 });
+  EXPECT_DOUBLE_EQ(state["BAR"], micm::Real{ 2.53 });
   EXPECT_DOUBLE_EQ(state["STUB1.MODE1.QUUX.BAZ"], 0.75);
-  EXPECT_DOUBLE_EQ(state["STUB1.MODE2.CORGE.FO2"], 1.23);
-  EXPECT_DOUBLE_EQ(state["STUB2.MODE3.CORGE.QUX"], 0.42);
-  EXPECT_DOUBLE_EQ(state["STUB2.MODE3.CORGE.BAZ"], 0.33);
+  EXPECT_DOUBLE_EQ(state["STUB1.MODE2.CORGE.FO2"], micm::Real{ 1.23 });
+  EXPECT_DOUBLE_EQ(state["STUB2.MODE3.CORGE.QUX"], micm::Real{ 0.42 });
+  EXPECT_DOUBLE_EQ(state["STUB2.MODE3.CORGE.BAZ"], micm::Real{ 0.33 });
   EXPECT_DOUBLE_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
   EXPECT_DOUBLE_EQ(state["STUB2.MODE2.NUMBER"], 500.0);
 
   // Re-verify using indices from the variable map
-  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("FO2")->second], 1.34);
-  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("BAR")->second], 2.53);
+  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("FO2")->second], micm::Real{ 1.34 });
+  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("BAR")->second], micm::Real{ 2.53 });
   EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB1.MODE1.QUUX.BAZ")->second], 0.75);
-  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB1.MODE2.CORGE.FO2")->second], 1.23);
-  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.QUX")->second], 0.42);
-  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second], 0.33);
+  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB1.MODE2.CORGE.FO2")->second], micm::Real{ 1.23 });
+  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.QUX")->second], micm::Real{ 0.42 });
+  EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second], micm::Real{ 0.33 });
   EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB2.MODE1.NUMBER")->second], 1000.0);
   EXPECT_DOUBLE_EQ(state[state.variable_map_.find("STUB2.MODE2.NUMBER")->second], 500.0);
 
   // Re-re-verify using species objects where applicable
-  EXPECT_DOUBLE_EQ(state[micm::Species("FO2")], 1.34);
-  EXPECT_DOUBLE_EQ(state[bar], 2.53);
+  EXPECT_DOUBLE_EQ(state[micm::Species("FO2")], micm::Real{ 1.34 });
+  EXPECT_DOUBLE_EQ(state[bar], micm::Real{ 2.53 });
   EXPECT_DOUBLE_EQ(state[aerosol_1.Species(0, phases["QUUX"], micm::Species("BAZ"))], 0.75);
-  EXPECT_DOUBLE_EQ(state[aerosol_1.Species(1, phases["CORGE"], micm::Species("FO2"))], 1.23);
-  EXPECT_DOUBLE_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("QUX"))], 0.42);
-  EXPECT_DOUBLE_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("BAZ"))], 0.33);
+  EXPECT_DOUBLE_EQ(state[aerosol_1.Species(1, phases["CORGE"], micm::Species("FO2"))], micm::Real{ 1.23 });
+  EXPECT_DOUBLE_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("QUX"))], micm::Real{ 0.42 });
+  EXPECT_DOUBLE_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("BAZ"))], micm::Real{ 0.33 });
   EXPECT_DOUBLE_EQ(state[aerosol_2.Number(0)], 1000.0);
   EXPECT_DOUBLE_EQ(state[aerosol_2.Number(1)], 500.0);
 }
@@ -401,8 +402,8 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, micm::Real base_relat
       state["STUB1.MODE1.QUUX.BAZ"], baz_mode1_initial - stub1_rxn2_delta, base_relative_tolerance * baz_mode1_initial);
   EXPECT_NEAR(state["STUB1.MODE2.QUUX.BAZ"], stub1_rxn2_delta, base_relative_tolerance * baz_mode1_initial);
   EXPECT_NEAR(state["STUB1.MODE2.CORGE.FO2"], fo2_mode2_initial + stub1_rxn1_delta, base_relative_tolerance * fo2_initial);
-  EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], 0.3);
-  EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], 0.2);
+  EXPECT_EQ(state["STUB2.MODE3.CORGE.QUX"], micm::Real{ 0.3 });
+  EXPECT_EQ(state["STUB2.MODE3.CORGE.BAZ"], micm::Real{ 0.2 });
   EXPECT_EQ(state["STUB2.MODE1.NUMBER"], 1000.0);
   EXPECT_EQ(state["STUB2.MODE2.NUMBER"], 500.0);
 }

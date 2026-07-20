@@ -15,9 +15,9 @@ MatrixPolicy<micm::Real> TestSmallMatrix()
   matrix[0][0] = 41.2;
   matrix[2][4] = 102.3;
 
-  EXPECT_EQ(matrix[1][3], 64.7);
-  EXPECT_EQ(matrix[0][0], 41.2);
-  EXPECT_EQ(matrix[2][4], 102.3);
+  EXPECT_EQ(matrix[1][3], static_cast<micm::Real>(64.7));
+  EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(matrix[2][4], static_cast<micm::Real>(102.3));
 
   std::vector<micm::Real>& data = matrix.AsVector();
 
@@ -37,9 +37,9 @@ const MatrixPolicy<micm::Real> TestSmallConstMatrix()
 
   const MatrixPolicy<micm::Real> const_matrix = matrix;
 
-  EXPECT_EQ(const_matrix[1][3], 64.7);
-  EXPECT_EQ(const_matrix[0][0], 41.2);
-  EXPECT_EQ(const_matrix[2][4], 102.3);
+  EXPECT_EQ(const_matrix[1][3], static_cast<micm::Real>(64.7));
+  EXPECT_EQ(const_matrix[0][0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(const_matrix[2][4], static_cast<micm::Real>(102.3));
 
   const std::vector<micm::Real>& data = const_matrix.AsVector();
 
@@ -53,9 +53,9 @@ MatrixPolicy<micm::Real> TestInializeMatrix()
 {
   MatrixPolicy<micm::Real> matrix{ 2, 3, 12.4 };
 
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(12.4));
+  EXPECT_EQ(matrix[1][0], static_cast<micm::Real>(12.4));
+  EXPECT_EQ(matrix[1][2], static_cast<micm::Real>(12.4));
 
   return matrix;
 }
@@ -65,9 +65,9 @@ const MatrixPolicy<micm::Real> TestInializeConstMatrix()
 {
   const MatrixPolicy<micm::Real> matrix{ 2, 3, 12.4 };
 
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(12.4));
+  EXPECT_EQ(matrix[1][0], static_cast<micm::Real>(12.4));
+  EXPECT_EQ(matrix[1][2], static_cast<micm::Real>(12.4));
 
   return matrix;
 }
@@ -154,9 +154,9 @@ MatrixPolicy<micm::Real> TestConversionToVector()
 
   std::vector<micm::Real> slice = matrix[1];
 
-  EXPECT_EQ(slice[0], 13.2);
-  EXPECT_EQ(slice[1], 31.2);
-  EXPECT_EQ(slice[2], 314.2);
+  EXPECT_EQ(slice[0], static_cast<micm::Real>(13.2));
+  EXPECT_EQ(slice[1], static_cast<micm::Real>(31.2));
+  EXPECT_EQ(slice[2], static_cast<micm::Real>(314.2));
 
   return matrix;
 }
@@ -173,9 +173,9 @@ const MatrixPolicy<micm::Real> TestConstConversionToVector()
   const MatrixPolicy<micm::Real> const_matrix = matrix;
   std::vector<micm::Real> slice = const_matrix[1];
 
-  EXPECT_EQ(slice[0], 13.2);
-  EXPECT_EQ(slice[1], 31.2);
-  EXPECT_EQ(slice[2], 314.2);
+  EXPECT_EQ(slice[0], static_cast<micm::Real>(13.2));
+  EXPECT_EQ(slice[1], static_cast<micm::Real>(31.2));
+  EXPECT_EQ(slice[2], static_cast<micm::Real>(314.2));
 
   return const_matrix;
 }
@@ -194,13 +194,13 @@ MatrixPolicy<micm::Real> TestConversionFromVector()
   EXPECT_EQ(matrix.NumRows(), 2);
   EXPECT_EQ(matrix.NumColumns(), 3);
   EXPECT_EQ(matrix[0].Size(), 3);
-  EXPECT_EQ(matrix[0][0], 412.3);
-  EXPECT_EQ(matrix[0][1], 32.4);
-  EXPECT_EQ(matrix[0][2], 41.3);
+  EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(412.3));
+  EXPECT_EQ(matrix[0][1], static_cast<micm::Real>(32.4));
+  EXPECT_EQ(matrix[0][2], static_cast<micm::Real>(41.3));
   EXPECT_EQ(matrix[1].Size(), 3);
-  EXPECT_EQ(matrix[1][0], 5.33);
-  EXPECT_EQ(matrix[1][1], -0.3);
-  EXPECT_EQ(matrix[1][2], 31.2);
+  EXPECT_EQ(matrix[1][0], static_cast<micm::Real>(5.33));
+  EXPECT_EQ(matrix[1][1], static_cast<micm::Real>(-0.3));
+  EXPECT_EQ(matrix[1][2], static_cast<micm::Real>(31.2));
 
   std::vector<std::vector<int>> bad_vector = { { 3 }, { 4, 5 }, { 5 } };
 
@@ -221,17 +221,17 @@ MatrixPolicy<micm::Real> TestAssignmentFromVector()
   matrix[2] = other;
 
   EXPECT_EQ(matrix[0][0], 0.0);
-  EXPECT_EQ(matrix[2][0], 12.3);
-  EXPECT_EQ(matrix[2][1], 15.1);
-  EXPECT_EQ(matrix[2][2], 24.3);
+  EXPECT_EQ(matrix[2][0], static_cast<micm::Real>(12.3));
+  EXPECT_EQ(matrix[2][1], static_cast<micm::Real>(15.1));
+  EXPECT_EQ(matrix[2][2], static_cast<micm::Real>(24.3));
   EXPECT_EQ(matrix[3][0], 0.0);
 
   matrix[2] = big_other;
 
   EXPECT_EQ(matrix[0][0], 0.0);
-  EXPECT_EQ(matrix[2][0], 14.3);
-  EXPECT_EQ(matrix[2][1], 52.3);
-  EXPECT_EQ(matrix[2][2], 65.7);
+  EXPECT_EQ(matrix[2][0], static_cast<micm::Real>(14.3));
+  EXPECT_EQ(matrix[2][1], static_cast<micm::Real>(52.3));
+  EXPECT_EQ(matrix[2][2], static_cast<micm::Real>(65.7));
   EXPECT_EQ(matrix[3][0], 0.0);
 
   EXPECT_ANY_THROW(matrix[2] = small_other);

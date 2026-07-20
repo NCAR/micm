@@ -6,7 +6,9 @@
 
 #include <gtest/gtest.h>
 
-constexpr micm::Real TOLERANCE = 1e-13;
+#include <type_traits>
+
+constexpr micm::Real TOLERANCE = std::is_same_v<micm::Real, double> ? 1e-13 : 1e-6;
 
 TEST(ArrheniusRateConstant, CalculateWithSystem)
 {

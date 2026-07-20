@@ -19,11 +19,13 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <type_traits>
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
 
-constexpr micm::Real TOLERANCE = 1e-10;
+// Rate constants are only accurate to ~1 ULP, so the GPU-vs-CPU relative tolerance scales with Real.
+constexpr micm::Real TOLERANCE = std::is_same_v<micm::Real, double> ? 1e-10 : 1e-6;
 constexpr micm::Index L = 1;
 
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;

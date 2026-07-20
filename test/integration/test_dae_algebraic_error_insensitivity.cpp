@@ -33,6 +33,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <type_traits>
 #include <vector>
 
 using namespace micm;
@@ -97,7 +98,10 @@ namespace
                       .Build();
 
     auto state = solver.GetState(1);
-    state.SetRelativeTolerance(1.0e-6);
+    // Float precision cannot support a 1e-6 relative tolerance (~8x float epsilon);
+    // the ultra-stiff case underflows the step size. Keep double mode unchanged.
+    constexpr micm::Real rel_tol = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-4;
+    state.SetRelativeTolerance(rel_tol);
 
     auto& vm = state.variable_map_;
     micm::Index gi = vm.at("A_gas");
@@ -112,6 +116,13 @@ namespace
     atols[gi] = balance_atol;
     atols[ai] = 1.0e-8;
     atols[bi] = 1.0e-8;
+    // P's atol sets the internal step size near P=0 (dP/dt is large in the
+    // ultra-stiff case). A 1e-12 atol demands a step below the float unit
+    // roundoff, so the step size underflows and the solver reports
+    // StepSizeTooSmall. Relax P's atol for float (still the tightest of any
+    // variable) while keeping double mode at its original 1e-12.
+    constexpr micm::Real p_atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-9;
+    atols[pi] = p_atol;
     state.SetAbsoluteTolerances(atols);
 
     // Initial: equilibrium satisfied, P = 0

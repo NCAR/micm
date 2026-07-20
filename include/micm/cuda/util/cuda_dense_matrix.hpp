@@ -195,17 +195,32 @@ namespace micm
       const int incx = 1;  // increment for the elements of x
       const int incy = 1;  // increment for the elements of y
       static_assert(std::is_same_v<T, Real>);
-      static_assert(std::is_same_v<micm::Real, double>, "cuBLAS D-routines require Real == double");
-      CHECK_CUBLAS_ERROR(
-          cublasDaxpy(
-              micm::cuda::GetCublasHandle(),
-              x.param_.number_of_elements_,
-              &alpha,
-              x.param_.d_data_,
-              incx,
-              this->param_.d_data_,
-              incy),
-          "CUBLAS Daxpy operation failed...");
+      if constexpr (std::is_same_v<micm::Real, double>)
+      {
+        CHECK_CUBLAS_ERROR(
+            cublasDaxpy(
+                micm::cuda::GetCublasHandle(),
+                x.param_.number_of_elements_,
+                &alpha,
+                x.param_.d_data_,
+                incx,
+                this->param_.d_data_,
+                incy),
+            "CUBLAS Daxpy operation failed...");
+      }
+      else
+      {
+        CHECK_CUBLAS_ERROR(
+            cublasSaxpy(
+                micm::cuda::GetCublasHandle(),
+                x.param_.number_of_elements_,
+                &alpha,
+                x.param_.d_data_,
+                incx,
+                this->param_.d_data_,
+                incy),
+            "CUBLAS Saxpy operation failed...");
+      }
     }
 
     /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant

@@ -11,6 +11,8 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <limits>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -93,7 +95,11 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   solver.UpdateStateParameters(state);
 
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 300.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
+  // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][B_C_eq_idx],
+      expected_K_eq,
+      std::abs(expected_K_eq) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 }
 
 /// @brief Verifies that multiple constraints can be added via SetConstraints and the solver
@@ -183,7 +189,11 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   micm::Real expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, delta_H1, current_temp);
   micm::Real expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, delta_H2, current_temp);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq1, 1e-10);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")], expected_K_eq2, 1e-10);
+  // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")],
+      expected_K_eq2,
+      std::abs(expected_K_eq2) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 }
 
 /// @brief Test DAE solving - actually calls Solve() with algebraic constraints
@@ -218,6 +228,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -242,7 +257,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // Verify UpdateStateParameters calculates K_eq correctly before time integration
   solver.UpdateStateParameters(state);
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, delta_H, 270.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
+  // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][B_C_eq_idx],
+      expected_K_eq,
+      std::abs(expected_K_eq) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 
   // Solve with smaller time steps
   micm::Real dt = 0.001;
@@ -316,6 +335,11 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -398,6 +422,11 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
       VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -485,6 +514,11 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    options.h_start_ = 1.0e-6;
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })

@@ -12,9 +12,9 @@ TEST(Matrix, SmallMatrix)
   std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[3 * 5 - 1], 102.3);
-  EXPECT_EQ(data[1 * 5 + 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[3 * 5 - 1], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 * 5 + 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(Matrix, SmallConstMatrix)
@@ -24,9 +24,9 @@ TEST(Matrix, SmallConstMatrix)
   const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[3 * 5 - 1], 102.3);
-  EXPECT_EQ(data[1 * 5 + 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[3 * 5 - 1], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 * 5 + 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(Matrix, InitializeMatrix)

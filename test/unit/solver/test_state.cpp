@@ -3,6 +3,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+#include <limits>
+
 TEST(State, DefaultConstructor)
 {
   EXPECT_NO_THROW(micm::State state);
@@ -159,7 +162,7 @@ TEST(State, MoveConstructor)
   EXPECT_EQ(moved.custom_rate_parameters_.NumColumns(), 2);
   EXPECT_EQ(moved.rate_constants_.NumRows(), 3);
   EXPECT_EQ(moved.rate_constants_.NumColumns(), 10);
-  EXPECT_EQ(moved.relative_tolerance_, 1e-05);
+  EXPECT_NEAR(moved.relative_tolerance_, 1e-05, std::abs(1e-05) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
   EXPECT_EQ(moved.absolute_tolerance_, std::vector<micm::Real>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
 
   for (micm::Index i = 0; i < expected_variables.NumRows(); ++i)
@@ -214,7 +217,7 @@ TEST(State, MoveAssignmentOperator)
   EXPECT_EQ(moved.custom_rate_parameters_.NumColumns(), 2);
   EXPECT_EQ(moved.rate_constants_.NumRows(), 3);
   EXPECT_EQ(moved.rate_constants_.NumColumns(), 10);
-  EXPECT_EQ(moved.relative_tolerance_, 1e-05);
+  EXPECT_NEAR(moved.relative_tolerance_, 1e-05, std::abs(1e-05) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
   EXPECT_EQ(moved.absolute_tolerance_, std::vector<micm::Real>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
 
   for (micm::Index i = 0; i < expected_variables.NumRows(); ++i)
@@ -280,7 +283,10 @@ TEST(State, SetSingleConcentration)
                        },
                        1 };
     state.SetConcentration(micm::Species{ "bar" }, 324.2);
-    EXPECT_EQ(state.variables_[0][state.variable_map_["bar"]], 324.2);
+    EXPECT_NEAR(
+        state.variables_[0][state.variable_map_["bar"]],
+        324.2,
+        std::abs(324.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
   }
 }
 
@@ -387,15 +393,17 @@ TEST(State, SetStateWithSquareBracketOperator)
   state[micm::Species{ "baz" }] = 35.2;
   state[micm::Species{ "quz" }] = 24.2;
 
-  EXPECT_EQ(state.variables_[0][state.variable_map_["baz"]], 35.2);
-  EXPECT_EQ(state.variables_[0][state.variable_map_["quz"]], 24.2);
+  EXPECT_NEAR(
+      state.variables_[0][state.variable_map_["baz"]], 35.2, std::abs(35.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+  EXPECT_NEAR(
+      state.variables_[0][state.variable_map_["quz"]], 24.2, std::abs(24.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
 
   // make const copy and confirm that operator[] works for const state as well
   const auto& const_state = state;
   EXPECT_EQ(const_state["foo"], 42.0);
   EXPECT_EQ(const_state["bar"], 12.0);
-  EXPECT_EQ(const_state[micm::Species{ "baz" }], 35.2);
-  EXPECT_EQ(const_state[micm::Species{ "quz" }], 24.2);
+  EXPECT_NEAR(const_state[micm::Species{ "baz" }], 35.2, std::abs(35.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+  EXPECT_NEAR(const_state[micm::Species{ "quz" }], 24.2, std::abs(24.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
 
   // also test math operations
   state["foo"] += 8.0;
@@ -488,7 +496,7 @@ TEST(State, SetCustomRateParameter)
                      1 };
 
   state.SetCustomRateParameter("O2", 42.3);
-  EXPECT_EQ(state.custom_rate_parameters_[0][1], 42.3);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][1], 42.3, std::abs(42.3) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
 }
 
 TEST(State, SetCustomRateParameters)
@@ -536,10 +544,10 @@ TEST(State, UnsafelySetCustomRateParameterOneCell)
   std::vector<std::vector<micm::Real>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   state.UnsafelySetCustomRateParameters(parameters);
-  EXPECT_EQ(state.custom_rate_parameters_[0][0], 0.1);
-  EXPECT_EQ(state.custom_rate_parameters_[0][1], 0.2);
-  EXPECT_EQ(state.custom_rate_parameters_[0][2], 0.3);
-  EXPECT_EQ(state.custom_rate_parameters_[0][3], 0.4);
+  EXPECT_NEAR(state.custom_rate_parameters_[0][0], 0.1, std::abs(0.1) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+  EXPECT_NEAR(state.custom_rate_parameters_[0][1], 0.2, std::abs(0.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+  EXPECT_NEAR(state.custom_rate_parameters_[0][2], 0.3, std::abs(0.3) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+  EXPECT_NEAR(state.custom_rate_parameters_[0][3], 0.4, std::abs(0.4) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
   EXPECT_EQ(state.custom_rate_parameters_[0][4], 0.5);
 }
 
@@ -561,10 +569,10 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
   state.UnsafelySetCustomRateParameters(parameters);
   for (micm::Index i = 0; i < num_grid_cells; i++)
   {
-    EXPECT_EQ(state.custom_rate_parameters_[i][0], 0.1);
-    EXPECT_EQ(state.custom_rate_parameters_[i][1], 0.2);
-    EXPECT_EQ(state.custom_rate_parameters_[i][2], 0.3);
-    EXPECT_EQ(state.custom_rate_parameters_[i][3], 0.4);
+    EXPECT_NEAR(state.custom_rate_parameters_[i][0], 0.1, std::abs(0.1) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+    EXPECT_NEAR(state.custom_rate_parameters_[i][1], 0.2, std::abs(0.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+    EXPECT_NEAR(state.custom_rate_parameters_[i][2], 0.3, std::abs(0.3) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+    EXPECT_NEAR(state.custom_rate_parameters_[i][3], 0.4, std::abs(0.4) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
     EXPECT_EQ(state.custom_rate_parameters_[i][4], 0.5);
   }
 }

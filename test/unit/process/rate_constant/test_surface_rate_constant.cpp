@@ -12,13 +12,14 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <type_traits>
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
 
 using namespace micm;
 
-constexpr micm::Real TOLERANCE = 1e-13;
+constexpr micm::Real TOLERANCE = std::is_same_v<micm::Real, double> ? 1e-13 : 1e-6;
 
 TEST(SurfaceRateConstant, CalculateDefaultProbability)
 {
