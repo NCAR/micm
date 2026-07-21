@@ -392,7 +392,13 @@ namespace
     std::uint64_t rejected = 0;
     bool converged = true;
     std::vector<double> o3, co, no2;
+    std::vector<std::vector<double>> tracked;  // per kTracked species, per output time
+    std::vector<double> final_state;           // mech.species order, at the last output time
   };
+
+  // Species exported for the physics plots (skipped silently if absent).
+  const std::vector<std::string> kTracked = { "O3",  "NO",  "NO2", "CO",    "CH2O",  "HNO3",   "H2O2", "PAN",
+                                              "ISOP", "CH4", "OH",  "HO2",   "O",     "O1D",    "CH3O2", "CH3CO3" };
 
   template<typename Solver>
   RunResult RunCase(
@@ -446,7 +452,15 @@ namespace
       out.o3.push_back(state.variables_[0][m.at("O3")]);
       out.co.push_back(state.variables_[0][m.at("CO")]);
       out.no2.push_back(state.variables_[0][m.at("NO2")]);
+      out.tracked.resize(kTracked.size());
+      for (std::size_t s = 0; s < kTracked.size(); ++s)
+      {
+        const auto it = m.find(kTracked[s]);
+        out.tracked[s].push_back(it == m.end() ? 0.0 : state.variables_[0][it->second]);
+      }
     }
+    for (const auto& name : mech.species)
+      out.final_state.push_back(state.variables_[0][m.at(name)]);
     return out;
   }
 
@@ -728,11 +742,62 @@ int main()
     std::cout << label << " (" << names.size() << " radicals): acc=" << run.accepted << " rej=" << run.rejected
               << " us=" << us << " err=" << err << "\n";
   };
-  run_variant("dae_qssa9", { "O1D", "O", "OH", "HO2", "CH3O2", "C2H5O2", "CH3CO3", "C3H7O2", "PO2" });
-  run_variant(
-      "dae_qssa17",
-      { "O1D",    "O",     "OH",    "HO2",   "CH3O2", "C2H5O2", "CH3CO3", "C3H7O2", "PO2",
-        "MCO3",   "EO2",   "ALKO2", "MEKO2", "ENEO2", "XO2",    "RO2",    "HOCH2OO" });
-  std::cout << "wrote ts1_dae.csv\n";
+  const std::vector<std::string> family9 = { "O1D", "O", "OH", "HO2", "CH3O2", "C2H5O2", "CH3CO3", "C3H7O2", "PO2" };
+  const std::vector<std::string> family17 = { "O1D",  "O",   "OH",    "HO2",   "CH3O2", "C2H5O2", "CH3CO3", "C3H7O2",
+                                              "PO2",  "MCO3", "EO2",   "ALKO2", "MEKO2", "ENEO2",  "XO2",    "RO2",
+                                              "HOCH2OO" };
+  run_variant("dae_qssa9", family9);
+  run_variant("dae_qssa17", family17);
+
+  // Physics exports: tracked trajectories (reference ODE + 4-radical DAE) and
+  // the species lifetime spectrum at the daytime end state.
+  {
+    std::ofstream ts("ts1_timeseries.csv");
+    ts << "method,species,time,value\n";
+    ts.precision(12);
+    auto dump = [&](const char* label, const RunResult& run)
+    {
+      for (std::size_t s = 0; s < kTracked.size(); ++s)
+        for (std::size_t i = 0; i < run.tracked[s].size(); ++i)
+          ts << label << ',' << kTracked[s] << ',' << output_times[i] << ',' << run.tracked[s][i] << '\n';
+    };
+    dump("reference", reference);
+    dump("dae_qssa4", dae);
+
+    auto family_of = [&](const std::string& name) -> int
+    {
+      auto has = [&](const std::vector<std::string>& v) { return std::find(v.begin(), v.end(), name) != v.end(); };
+      if (has(radical_names))
+        return 4;
+      if (has(family9))
+        return 9;
+      if (has(family17))
+        return 17;
+      return 0;
+    };
+    std::ofstream sc("ts1_timescales.csv");
+    sc << "species,concentration,lifetime_s,family\n";
+    sc.precision(12);
+    for (std::size_t i = 0; i < mech.species.size(); ++i)
+    {
+      const double conc = reference.final_state[i];
+      double loss = 0.0;
+      for (const auto& r : table)
+      {
+        const double stoich = NetStoichD(r, static_cast<int>(i));
+        if (stoich >= 0.0)
+          continue;
+        double rate = r.k;
+        for (int q : r.reactants)
+          rate *= reference.final_state[q];
+        loss += -stoich * rate;
+      }
+      sc << mech.species[i] << ',' << conc << ',';
+      if (conc > 0.0 && loss > 0.0)
+        sc << (conc / loss);
+      sc << ',' << family_of(mech.species[i]) << '\n';
+    }
+  }
+  std::cout << "wrote ts1_dae.csv, ts1_timeseries.csv, ts1_timescales.csv\n";
   return 0;
 }
