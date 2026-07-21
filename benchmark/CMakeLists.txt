@@ -29,3 +29,6 @@ target_compile_definitions(robertson_conservation_dae PRIVATE MICM_BENCHMARK_DAT
 add_executable(ivp_testset ivp_testset.cpp)
 target_link_libraries(ivp_testset PUBLIC musica::micm)
 target_compile_definitions(ivp_testset PRIVATE MICM_BENCHMARK_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+
+add_executable(constraint_cost_probe constraint_cost_probe.cpp)
+target_link_libraries(constraint_cost_probe PUBLIC musica::micm)
