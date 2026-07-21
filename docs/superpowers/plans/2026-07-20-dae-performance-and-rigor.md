@@ -189,3 +189,38 @@ numbers). Lives in the `DAE` analysis repository, not this repo.
   are credible; Phase 7b alongside.
 - Then: Phases 3 → 4 (cost, then dimension), 5–6 as policy/method work,
   7c–7f as the rigor suite matures, Phase 8 last.
+
+## Follow-on results (2026-07-21, branch `dae-constraint-batch`, merged `8efafbc6`)
+
+- **Batched built-in constraint evaluation** (`775426f3`): equilibrium and
+  linear constraints compiled into type-packed flat arrays (stoichiometries,
+  species ids, pre-resolved Jacobian flat positions) evaluated in single
+  tight loops, bit-identical arithmetic, guarded to the non-vectorized CPU
+  path. Equilibrium family closed to ODE parity: N=256 DAE/ODE 2.59 -> 1.28
+  in the before/after run; merged-branch sweep 0.93-1.40 across N, DAE
+  faster than ODE at N=1.
+- **Schur re-measurement with batching active**: on the fill-free
+  equilibrium matrix, row elimination saves nothing and per-step S assembly
+  is exposed (Schur/ODE 0.99-3.6, above plain DAE at every N). Exact
+  reduction ceiling unchanged at 0.16-0.42x ODE. Schur stays a guarded
+  opt-in for the fill-heavy-J / small-cheap-algebraic-block regime, which
+  neither measured extreme realizes.
+- **MOZART-TS1 import + scale-up** (`34deacbc`): real TS1 from CAM
+  (`pp_trop_strat_mam4_vbsext` chem_mech.in, TS1-fullVBS for CESM2.2) via
+  `benchmark/import_ts1.py` -> 227 species + M/O2/N2 fixed, 501 reactions
+  (Arrhenius/Troe exact, steady-J photolysis, 3 usr_ rates in JPL form, 46
+  usr_/het_ excluded). `benchmark/ts1_dae.cpp`: boundary-layer box 1e-2..1e5 s,
+  rtol 1e-6, generic table-driven QSSA external model, families of 4/9/17
+  radicals. **Result: NO step advantage at any family size** (ODE 463 acc;
+  DAE-4 465, DAE-9 455, DAE-17 462; wall-clock 1.4-1.6x ODE; QSSA model
+  error 1.3e-2 -> 1.8e-2 with family width). TS1's steps are
+  accuracy-limited on slow species; the L-stable method already absorbs the
+  radical timescales. Boundary-of-applicability finding for the paper:
+  QSSA-DAE pays where constraints remove step-limiting stiffness.
+  Infrastructure holds at scale (17-constraint init + factorization robust).
+- **Schur fill guard**: TS1's radicals couple ~200 species so nnz(S) >
+  nnz(J); `SchurStageSolver` now counts the S pattern in a cheap pre-pass
+  and skips building S/LU when unprofitable; `rosenbrock.inl` falls back to
+  the full stage matrix (`SchurNonZeros()` check). TS1 DAE+Schur overhead
+  2.9x -> 6%.
+- Paper v3 in the ODE repo (`35427af`) carries all of the above.
