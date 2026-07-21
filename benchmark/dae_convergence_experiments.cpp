@@ -585,6 +585,217 @@ namespace
     bool constant_forcing_;
   };
 
+  /// Van der Pol oscillator in singular-perturbation (Lienard) form, with the
+  /// fast variable negated (Z := -dX/dt) so the whole trajectory stays in the
+  /// positive orthant — MICM clamps species nonnegative on exit, which would
+  /// otherwise zero the reported fast variable:
+  ///   X' = -Z,   eps * Z' = (1 - X^2) Z + X.
+  /// The eps = 0 limit is the index-1 DAE with G = (1 - X^2) Z + X = 0 on the
+  /// Z row (Z = X / (X^2 - 1), positive for X > 1) — the same structural limit
+  /// QSSA takes for a fast species. The epsilon experiment measures uniform
+  /// convergence of the stiff-ODE terminal state to the DAE terminal state as
+  /// eps -> 0.
+  ///
+  /// Two model classes so the eps > 0 case is a genuinely constraint-free
+  /// external model (the HasConstraints concept is not satisfied).
+  class VanDerPolOdeModel
+  {
+   public:
+    explicit VanDerPolOdeModel(double epsilon)
+        : epsilon_(epsilon)
+    {
+    }
+
+    std::set<std::string> SpeciesUsed() const
+    {
+      return { "X", "Z" };
+    }
+
+    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      return { { x, z }, { z, x }, { z, z } };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
+        const std::unordered_map<std::string, std::size_t>&) const
+    {
+      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      const double epsilon = epsilon_;
+      return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+      {
+        for (std::size_t cell = 0; cell < state.NumRows(); ++cell)
+        {
+          const double xv = state[cell][x];
+          const double zv = state[cell][z];
+          forcing[cell][x] -= zv;
+          forcing[cell][z] += ((1.0 - xv * xv) * zv + xv) / epsilon;
+        }
+      };
+    }
+
+    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices,
+        const SparseMatrixPolicy&) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      const double epsilon = epsilon_;
+      // ProcessSet invokes external Jacobian functions as (parameters, state, jacobian).
+      return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, SparseMatrixPolicy& jacobian)
+      {
+        for (std::size_t block = 0; block < jacobian.NumberOfBlocks(); ++block)
+        {
+          const double xv = state[block][x];
+          const double zv = state[block][z];
+          jacobian[block][x][z] -= -1.0;
+          jacobian[block][z][x] -= (-2.0 * xv * zv + 1.0) / epsilon;
+          jacobian[block][z][z] -= (1.0 - xv * xv) / epsilon;
+        }
+      };
+    }
+
+   private:
+    double epsilon_;
+  };
+
+  /// The eps = 0 limit: X row differential (X' = -Z), Z row algebraic
+  /// (G = (1 - X^2) Z + X = 0).
+  class VanDerPolDaeModel
+  {
+   public:
+    std::set<std::string> SpeciesUsed() const
+    {
+      return { "X", "Z" };
+    }
+
+    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      return { { indices.at("X"), indices.at("Z") } };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
+        const std::unordered_map<std::string, std::size_t>&) const
+    {
+      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+      {
+        for (std::size_t cell = 0; cell < state.NumRows(); ++cell)
+        {
+          forcing[cell][x] -= state[cell][z];
+        }
+      };
+    }
+
+    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices,
+        const SparseMatrixPolicy&) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy& jacobian)
+      {
+        for (std::size_t block = 0; block < jacobian.NumberOfBlocks(); ++block)
+        {
+          jacobian[block][x][z] -= -1.0;
+        }
+      };
+    }
+
+    std::set<std::string> ConstraintAlgebraicVariableNames() const
+    {
+      return { "Z" };
+    }
+
+    std::set<std::string> ConstraintSpeciesDependencies() const
+    {
+      return { "X", "Z" };
+    }
+
+    std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto z = indices.at("Z");
+      return { { z, indices.at("X") }, { z, z } };
+    }
+
+    std::set<std::string> ConstraintStateParameterNames() const
+    {
+      return {};
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+        const std::unordered_map<std::string, std::size_t>&) const
+    {
+      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
+      {
+        for (std::size_t cell = 0; cell < state.NumRows(); ++cell)
+        {
+          const double xv = state[cell][x];
+          forcing[cell][z] = (1.0 - xv * xv) * state[cell][z] + xv;
+        }
+      };
+    }
+
+    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices,
+        const SparseMatrixPolicy&) const
+    {
+      const auto x = indices.at("X");
+      const auto z = indices.at("Z");
+      return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, SparseMatrixPolicy& jacobian)
+      {
+        for (std::size_t block = 0; block < jacobian.NumberOfBlocks(); ++block)
+        {
+          const double xv = state[block][x];
+          const double zv = state[block][z];
+          jacobian[block][z][x] -= (-2.0 * xv * zv + 1.0);
+          jacobian[block][z][z] -= (1.0 - xv * xv);
+        }
+      };
+    }
+  };
+
   auto BuildManufacturedSolver(
       const micm::RosenbrockSolverParameters& parameters,
       double row_scale,
@@ -726,6 +937,30 @@ namespace
     return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters)
         .SetSystem(micm::System(gas))
         .AddExternalModel(ProtheroRobinsonModel(lambda))
+        .SetReorderState(false)
+        .Build();
+  }
+
+  auto BuildVanDerPolOdeSolver(const micm::RosenbrockSolverParameters& parameters, double epsilon)
+  {
+    const auto x = micm::Species("X");
+    const auto z = micm::Species("Z");
+    const micm::Phase gas{ "gas", std::vector<micm::PhaseSpecies>{ x, z } };
+    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters)
+        .SetSystem(micm::System(gas))
+        .AddExternalModel(VanDerPolOdeModel(epsilon))
+        .SetReorderState(false)
+        .Build();
+  }
+
+  auto BuildVanDerPolDaeSolver(const micm::RosenbrockSolverParameters& parameters)
+  {
+    const auto x = micm::Species("X");
+    const auto z = micm::Species("Z");
+    const micm::Phase gas{ "gas", std::vector<micm::PhaseSpecies>{ x, z } };
+    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters)
+        .SetSystem(micm::System(gas))
+        .AddExternalModel(VanDerPolDaeModel())
         .SetReorderState(false)
         .Build();
   }
@@ -1212,6 +1447,82 @@ namespace
               << finest_prefloor_order << " (classical order " << method.expected_order << ").\n";
     }
   }
+
+  void RunVanDerPolEpsilon(const std::filesystem::path& output_directory, std::ostream& summary)
+  {
+    std::ofstream csv(output_directory / "vanderpol_epsilon.csv");
+    csv << std::scientific << std::setprecision(17);
+    csv << "epsilon,state,accepted,rejected,x_final,z_final,x_diff_vs_dae,z_diff_vs_dae\n";
+
+    // Lienard-plane Van der Pol (negated fast variable, see the model classes)
+    // from X0 = 2 with Z0 on the eps = 0 manifold (Z = X/(X^2-1)), integrated
+    // to T = 0.5 — safely before the fold of the reduced problem at
+    // t* = 3/2 - ln 2 ~ 0.807 where Z blows up at X = 1.
+    constexpr double X0 = 2.0;
+    constexpr double Z0 = X0 / (X0 * X0 - 1.0);
+    constexpr double T_FINAL = 0.5;
+    const double rtol = 1.0e-10;
+    const double atol = 1.0e-13;
+
+    auto parameters = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    parameters.max_number_of_steps_ = 1000000;
+
+    struct VdpResult
+    {
+      micm::SolverState state;
+      std::uint64_t accepted;
+      std::uint64_t rejected;
+      double x;
+      double z;
+    };
+    auto run = [&](auto& solver) -> VdpResult
+    {
+      auto state = solver.GetState(1);
+      SetConditions(state);
+      state.SetRelativeTolerance(rtol);
+      state.SetAbsoluteTolerances(std::vector<double>(state.state_size_, atol));
+      state.variables_[0][state.variable_map_.at("X")] = X0;
+      state.variables_[0][state.variable_map_.at("Z")] = Z0;
+      const auto result = solver.Solve(T_FINAL, state, parameters);
+      return { result.state_,
+               result.stats_.accepted_,
+               result.stats_.rejected_,
+               state.variables_[0][state.variable_map_.at("X")],
+               state.variables_[0][state.variable_map_.at("Z")] };
+    };
+
+    auto dae_solver = BuildVanDerPolDaeSolver(parameters);
+    const auto dae = run(dae_solver);
+    csv << 0.0 << ',' << StateName(dae.state) << ',' << dae.accepted << ',' << dae.rejected << ',' << dae.x << ','
+        << dae.z << ",0,0\n";
+
+    std::vector<double> epsilons;
+    std::vector<double> x_diffs;
+    bool all_converged = dae.state == micm::SolverState::Converged;
+    for (int exponent = 0; exponent >= -6; --exponent)
+    {
+      const double epsilon = std::pow(10.0, exponent);
+      auto solver = BuildVanDerPolOdeSolver(parameters, epsilon);
+      const auto ode = run(solver);
+      const double x_diff = std::abs(ode.x - dae.x);
+      const double z_diff = std::abs(ode.z - dae.z);
+      csv << epsilon << ',' << StateName(ode.state) << ',' << ode.accepted << ',' << ode.rejected << ',' << ode.x << ','
+          << ode.z << ',' << x_diff << ',' << z_diff << '\n';
+      epsilons.push_back(epsilon);
+      x_diffs.push_back(x_diff);
+      all_converged = all_converged && ode.state == micm::SolverState::Converged;
+    }
+
+    // Observed order of |x_ODE(eps) - x_DAE| over the two smallest decades;
+    // singular-perturbation theory predicts first order in eps on the stable
+    // slow manifold.
+    const std::size_t n = x_diffs.size();
+    const double observed_order =
+        std::log10(x_diffs[n - 2] / x_diffs[n - 1]) / std::log10(epsilons[n - 2] / epsilons[n - 1]);
+    summary << "- Van der Pol eps-limit: all runs " << (all_converged ? "converged" : "DID NOT ALL CONVERGE") << "; |x_ODE(eps)-x_DAE| = " << x_diffs.front()
+            << " at eps=1 down to " << x_diffs.back() << " at eps=1e-6; observed order "
+            << observed_order << " (expect ~1); DAE accepted steps " << dae.accepted << ".\n";
+  }
 }  // namespace
 
 int main(int argc, char** argv)
@@ -1230,6 +1541,7 @@ int main(int argc, char** argv)
   RunNonlinearInitialization(output_directory, summary_file);
   RunControllerAndCadence(output_directory, summary_file);
   RunProtheroRobinson(output_directory, summary_file);
+  RunVanDerPolEpsilon(output_directory, summary_file);
   std::cout << "Completed DAE convergence experiments\n";
   return 0;
 }
