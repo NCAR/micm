@@ -37,6 +37,8 @@ namespace micm
       0.0
     };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
     double h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
+    bool h_persist_{ false };  // carry the step-size controller's suggestion across Solve() calls via
+                               // State::solver_step_size_suggestion_ instead of restarting from h_start_
 
     std::size_t constraint_init_max_iterations_{ 10 };  // maximum Newton updates for constraint initialization
     double constraint_init_tolerance_{ 0.1 };  // maximum weighted Newton correction as a fraction of the state tolerance
