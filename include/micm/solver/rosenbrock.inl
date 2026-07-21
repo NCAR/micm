@@ -377,6 +377,26 @@ namespace micm
     double errors_over_scale = 0;
     double error = 0;
 
+    if (state.cellwise_error_norm_)
+    {
+      // Maximum cellwise WRMS: per-cell accuracy independent of batch
+      // composition (a global RMS dilutes one active cell's error by the
+      // number of quiescent cells sharing the batch).
+      double worst_cell = 0;
+      for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+      {
+        double cell_error = 0;
+        for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
+        {
+          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+          cell_error += errors_over_scale * errors_over_scale;
+        }
+        worst_cell = std::max(worst_cell, cell_error);
+      }
+      return std::max(std::sqrt(worst_cell / std::max<std::size_t>(1, Y.NumColumns())), 1.0e-10);
+    }
+
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
       for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
@@ -412,6 +432,24 @@ namespace micm
     double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
+
+    if (state.cellwise_error_norm_)
+    {
+      // Maximum cellwise WRMS (see the non-vectorized overload).
+      double worst_cell = 0;
+      for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
+      {
+        double cell_error = 0;
+        for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
+        {
+          ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
+          errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
+          cell_error += errors_over_scale * errors_over_scale;
+        }
+        worst_cell = std::max(worst_cell, cell_error);
+      }
+      return std::max(std::sqrt(worst_cell / std::max<std::size_t>(1, Y.NumColumns())), 1.0e-10);
+    }
 
     for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
     {
@@ -574,6 +612,39 @@ namespace micm
         linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
       }
       stats.decompositions_ += 1;
+
+      // Pivot-quality diagnostic: a converged residual or Newton correction
+      // cannot certify forward error once the algebraic block is numerically
+      // singular, so record the worst ratio of the smallest algebraic-row U
+      // pivot to the largest U pivot for the caller to inspect.
+      {
+        const auto& factored_upper = [&]() -> const auto&
+        {
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+            return state.jacobian_;
+          else
+            return state.upper_matrix_;
+        }();
+        for (std::size_t block = 0; block < factored_upper.NumberOfBlocks(); ++block)
+        {
+          double max_pivot = 0.0;
+          double min_algebraic_pivot = std::numeric_limits<double>::infinity();
+          for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            const double pivot = std::abs(factored_upper[block][i_var][i_var]);
+            max_pivot = std::max(max_pivot, pivot);
+            if (diagonal[i_var] == 0.0)
+            {
+              min_algebraic_pivot = std::min(min_algebraic_pivot, pivot);
+            }
+          }
+          if (max_pivot > 0.0 && std::isfinite(min_algebraic_pivot))
+          {
+            stats.constraint_init_min_pivot_ratio_ =
+                std::min(stats.constraint_init_min_pivot_ratio_, min_algebraic_pivot / max_pivot);
+          }
+        }
+      }
 
       // Solve -J delta = G, so delta is the Newton correction in state units.
       if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)

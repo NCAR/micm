@@ -78,6 +78,11 @@ namespace micm
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
+    /// @brief Error-norm policy for step acceptance: false (default) uses the
+    ///        global WRMS over all cells and variables; true uses the maximum
+    ///        cellwise WRMS, making per-cell accuracy independent of how many
+    ///        other (possibly quiescent) cells share the batch.
+    bool cellwise_error_norm_{ false };
 
     class VariableProxy
     {
@@ -174,6 +179,7 @@ namespace micm
       temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
       relative_tolerance_ = other.relative_tolerance_;
       absolute_tolerance_ = other.absolute_tolerance_;
+      cellwise_error_norm_ = other.cellwise_error_norm_;
     }
 
     /// @brief Assignment operator
@@ -201,6 +207,7 @@ namespace micm
         temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = other.absolute_tolerance_;
+        cellwise_error_norm_ = other.cellwise_error_norm_;
       }
       return *this;
     }
@@ -225,7 +232,8 @@ namespace micm
           number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
-          absolute_tolerance_(std::move(other.absolute_tolerance_))
+          absolute_tolerance_(std::move(other.absolute_tolerance_)),
+          cellwise_error_norm_(other.cellwise_error_norm_)
     {
     }
 
@@ -254,6 +262,7 @@ namespace micm
         temporary_variables_ = std::move(other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = std::move(other.absolute_tolerance_);
+        cellwise_error_norm_ = other.cellwise_error_norm_;
 
         other.state_size_ = 0;
         other.constraint_size_ = 0;

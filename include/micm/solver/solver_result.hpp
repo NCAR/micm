@@ -50,6 +50,13 @@ namespace micm
     uint64_t solves_{};
     /// @brief The number of constraint initialization iterations performed
     uint64_t constraint_init_iterations_{};
+    /// @brief Worst ratio of the smallest algebraic-row U pivot to the largest
+    ///        U pivot seen across constraint-initialization factorizations
+    ///        (1.0 when no constrained factorization occurred). A ratio near
+    ///        machine epsilon means the algebraic block is numerically
+    ///        singular and a converged residual or Newton correction cannot
+    ///        certify forward error.
+    double constraint_init_min_pivot_ratio_{ 1.0 };
     /// @brief The final time the solver iterated to
     double final_time_{};
   };

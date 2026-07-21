@@ -863,7 +863,7 @@ namespace
     std::ofstream csv(output_directory / "nonlinear_initialization.csv");
     csv << std::scientific << std::setprecision(17);
     csv << "problem,row_scale_or_epsilon,initial_z1,initial_z2,state,iterations,final_z1,final_z2,"
-           "state_error,residual_1,residual_2\n";
+           "state_error,residual_1,residual_2,min_pivot_ratio\n";
 
     const std::array<double, 3> row_scales{ 1.0e-8, 1.0, 1.0e8 };
     const std::array<double, 9> initial_z{ -10.0, -1.0, -1.0e-6, 0.0, 1.0e-6, 0.1, 1.0, 2.0, 10.0 };
@@ -891,7 +891,7 @@ namespace
         }
         csv << "sqrt," << row_scale << ',' << initial << ",nan," << StateName(status) << ','
             << stats.constraint_init_iterations_ << ',' << final_z << ",nan," << std::abs(final_z - 1.0) << ',' << residual
-            << ",nan\n";
+            << ",nan," << stats.constraint_init_min_pivot_ratio_ << '\n';
       }
     }
 
@@ -920,7 +920,8 @@ namespace
         ++conditioning_failures;
       }
       csv << "ill_conditioned," << epsilon << ",0,0," << StateName(status) << ',' << stats.constraint_init_iterations_ << ','
-          << final_z1 << ',' << final_z2 << ',' << error << ',' << residual_1 << ',' << residual_2 << '\n';
+          << final_z1 << ',' << final_z2 << ',' << error << ',' << residual_1 << ',' << residual_2 << ','
+          << stats.constraint_init_min_pivot_ratio_ << '\n';
     }
 
     summary << "- Nonlinear initialization: sqrt failures=" << nonlinear_failures
@@ -973,6 +974,7 @@ namespace
     // All but one cell are exactly stationary. A global RMS controller dilutes the
     // one active cell's error by the number of zero-error cells.
     const std::array<std::size_t, 4> cell_counts{ 1, 10, 100, 1000 };
+    for (const bool cellwise_norm : { false, true })
     for (const std::size_t cells : cell_counts)
     {
       auto parameters = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
@@ -980,6 +982,7 @@ namespace
       auto solver = BuildSlavedSolver(parameters, 1);
       auto state = solver.GetState(cells);
       SetConditions(state);
+      state.cellwise_error_norm_ = cellwise_norm;
       const double rtol = 1.0e-6;
       state.SetRelativeTolerance(rtol);
       state.SetAbsoluteTolerances(std::vector<double>(state.state_size_, 1.0e-9));
@@ -993,7 +996,7 @@ namespace
       const double x_error = RelativeError(state.variables_[cells - 1][x], exact);
       const double z_error = RelativeError(state.variables_[cells - 1][z], exact);
       const double residual = std::abs(state.variables_[cells - 1][z] - state.variables_[cells - 1][x]);
-      csv << "cell_rms_dilution,1," << cells << ",1," << rtol << ',' << StateName(result.state_) << ','
+      csv << (cellwise_norm ? "cell_maxwrms_dilution,1," : "cell_rms_dilution,1,") << cells << ",1," << rtol << ',' << StateName(result.state_) << ','
           << result.stats_.accepted_ << ',' << result.stats_.rejected_ << ',' << result.stats_.constraint_init_iterations_
           << ',' << x_error << ',' << z_error << ',' << residual << '\n';
     }
