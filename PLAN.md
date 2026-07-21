@@ -23,7 +23,7 @@ adversarial tests, mechanism scale-up), each on its own dev branch off
 | 1 — step-size persistence | `dae-step-persistence` | done (`c9ba020f`): 9000→1008 segmented steps |
 | 2 — work–precision rig | `dae-work-precision` | done (`ab9231d7`): external Radau refs, ODE tracks rtol, DAE floors at model error |
 | 3 — constraint evaluation cost | `dae-constraint-cost` | done (`cdf71882`): mass-coupling inlined; DAE per-step at parity, faster than ODE on both chemistry sweeps |
-| 4 — Schur reduction | `dae-schur-reduction` | ceiling + design done (`a9af974e`): reduction ceiling 0.2× ODE — go; `SchurLinearSolver` core is follow-on |
+| 4 — Schur reduction | `dae-schur-reduction`, `dae-schur-core` | done: `SchurStageSolver` implemented in full (exact, order-preserving, cached, tested); measurement shows the equilibrium family's bottleneck is constraint evaluation, not factored dimension — see the updated design note |
 | 5 — norm policy + diagnostics | `dae-norms-diagnostics` | done (`73b9acda`): cellwise-max WRMS batch-invariant; pivot ratio tracks conditioning |
 | 6 — RODAS-P tableaus | `dae-rodas-p` | done (`e9753b66`): RODAS4P holds stiff order 3.03 where RODAS4 drops to 1.02 |
 | 7a — Van der Pol ε-sweep | `dae-vdp-epsilon` | done (`e0f076a5`): uniform first-order ODE→DAE convergence |

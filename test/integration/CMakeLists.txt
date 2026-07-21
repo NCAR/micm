@@ -19,6 +19,7 @@ create_standard_test(NAME norms_and_diagnostics SOURCES test_norms_and_diagnosti
 create_standard_test(NAME rodas4p SOURCES test_rodas4p.cpp)
 
 create_standard_test(NAME structural_dae SOURCES test_structural_dae.cpp)
+create_standard_test(NAME schur_reduction SOURCES test_schur_reduction.cpp)
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)

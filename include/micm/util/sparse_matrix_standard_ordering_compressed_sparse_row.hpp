@@ -458,6 +458,18 @@ namespace micm
       auto elem = std::find(begin, end, column);
       return (elem == end);
     }
+
+    /// @brief Read-only CSR pattern accessors: row_start_[r]..row_start_[r+1]
+    ///        index into RowIds(), and a position k in RowIds() is exactly the
+    ///        block-0 flat data offset of that element.
+    const std::vector<std::size_t>& RowStart() const
+    {
+      return row_start_;
+    }
+    const std::vector<std::size_t>& RowIds() const
+    {
+      return row_ids_;
+    }
   };
 
 }  // namespace micm

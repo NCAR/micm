@@ -46,6 +46,7 @@ namespace
   struct Result
   {
     std::uint64_t steps = 0;
+    std::uint64_t rejected = 0;
     double wall_us = 0.0;
     bool converged = true;
   };
@@ -53,9 +54,13 @@ namespace
   template<typename Solver>
   Result RunLoop(Solver& solver, auto init, int reps)
   {
+    // One state reused across repetitions: initialization resets the
+    // variables, and any solver-side caches (e.g. the Schur symbolic
+    // structures) warm up in the stats pass — the production pattern, where a
+    // host model owns long-lived states.
+    auto state = solver.GetState(1);
     Result out;
     {
-      auto state = solver.GetState(1);
       init(state);
       solver.UpdateStateParameters(state);
       double done = 0.0;
@@ -69,13 +74,13 @@ namespace
           return out;
         }
         out.steps += r.stats_.accepted_;
+        out.rejected += r.stats_.rejected_;
         done += r.stats_.final_time_;
       }
     }
     std::vector<double> samples;
     for (int rep = 0; rep < reps; ++rep)
     {
-      auto state = solver.GetState(1);
       init(state);
       solver.UpdateStateParameters(state);
       const auto t0 = std::chrono::steady_clock::now();
@@ -230,17 +235,47 @@ int main()
       state.conditions_[0].pressure_ = 101325.0;
     };
 
+    std::vector<Constraint> schur_constraints;
+    for (int i = 0; i < N; ++i)
+    {
+      auto A = Species("A" + std::to_string(i));
+      auto B = Species("B" + std::to_string(i));
+      auto C = Species("C" + std::to_string(i));
+      schur_constraints.push_back(EquilibriumConstraint(
+          "eq" + std::to_string(i),
+          B,
+          std::vector<StoichSpecies>{ { A, 1.0 } },
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          VantHoffParam{ .K_HLC_ref_ = Keq, .delta_H_ = 0.0 }));
+      schur_constraints.push_back(
+          LinearConstraint("mass" + std::to_string(i), A, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, Ctot));
+    }
+    auto schur_options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    schur_options.schur_reduction_ = true;
+    auto schur_solver = CpuSolverBuilder<RosenbrockSolverParameters>(schur_options)
+                            .SetSystem(System(gas))
+                            .SetReactions(slow_processes)
+                            .SetConstraints(std::move(schur_constraints))
+                            .SetReorderState(false)
+                            .Build();
+
     auto ode = RunLoop(ode_solver, MakeCommonInit(N, false), reps);
     auto dae = RunLoop(dae_solver, MakeCommonInit(N, true), reps);
+    auto dae_schur = RunLoop(schur_solver, MakeCommonInit(N, true), reps);
     auto reduced = RunLoop(reduced_solver, reduced_init, reps);
 
     csv << N << ",full_ode," << ode.steps << ',' << ode.wall_us << '\n';
     csv << N << ",dae," << dae.steps << ',' << dae.wall_us << '\n';
+    csv << N << ",dae_schur," << dae_schur.steps << ',' << dae_schur.wall_us << '\n';
     csv << N << ",reduced_ode," << reduced.steps << ',' << reduced.wall_us << '\n';
-    std::cout << "N=" << N << "  ODE us=" << ode.wall_us << "  DAE us=" << dae.wall_us
-              << "  reduced us=" << reduced.wall_us << "  DAE/ODE=" << dae.wall_us / ode.wall_us
+    std::cout << "N=" << N << "  ODE us=" << ode.wall_us << " (acc=" << ode.steps << " rej=" << ode.rejected
+              << ")  DAE us=" << dae.wall_us << " (acc=" << dae.steps << " rej=" << dae.rejected
+              << ")  DAE+Schur us=" << dae_schur.wall_us << "  reduced us=" << reduced.wall_us << " (acc="
+              << reduced.steps << ")  DAE/ODE=" << dae.wall_us / ode.wall_us
+              << "  Schur/ODE=" << dae_schur.wall_us / ode.wall_us
               << "  ceiling reduced/ODE=" << reduced.wall_us / ode.wall_us
-              << (ode.converged && dae.converged && reduced.converged ? "" : "  [FAILED]") << "\n";
+              << (ode.converged && dae.converged && dae_schur.converged && reduced.converged ? "" : "  [FAILED]")
+              << "\n";
   }
   std::cout << "wrote schur_ceiling.csv\n";
   return 0;

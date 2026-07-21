@@ -40,6 +40,10 @@ namespace micm
     bool h_persist_{ false };  // carry the step-size controller's suggestion across Solve() calls via
                                // State::solver_step_size_suggestion_ instead of restarting from h_start_
 
+    bool schur_reduction_{ false };  // solve DAE stages on the Schur complement of the differential block
+                                     // (CPU standard-ordering matrices only; exact linear algebra, reduces the
+                                     // factored dimension from n_x + n_z to n_x)
+
     std::size_t constraint_init_max_iterations_{ 10 };  // maximum Newton updates for constraint initialization
     double constraint_init_tolerance_{ 0.1 };  // maximum weighted Newton correction as a fraction of the state tolerance
     std::size_t constraint_init_max_backtracks_{ 24 };    // maximum line-search reductions per Newton update

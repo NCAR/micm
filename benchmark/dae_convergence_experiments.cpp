@@ -1056,7 +1056,7 @@ namespace
       double expected_order;
       std::function<micm::RosenbrockSolverParameters()> parameters;
     };
-    const std::array<Method, 3> methods{
+    const std::array<Method, 4> methods{
       Method{ "four_stage_dae",
               3.0,
               []() { return micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(); } },
@@ -1066,6 +1066,14 @@ namespace
       Method{ "rodas4p_dae",
               4.0,
               []() { return micm::RosenbrockSolverParameters::Rodas4PDifferentialAlgebraicRosenbrockParameters(); } },
+      Method{ "four_stage_dae_schur",
+              3.0,
+              []()
+              {
+                auto p = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+                p.schur_reduction_ = true;
+                return p;
+              } },
     };
     const std::array<double, 3> row_scales{ 1.0e-12, 1.0, 1.0e12 };
     const std::array<double, 3> state_scales{ 1.0e-12, 1.0, 1.0e12 };

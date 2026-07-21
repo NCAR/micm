@@ -64,6 +64,27 @@ namespace micm
       }
     }
 
+    // Schur-reduced stage solves (opt-in): factor only the differential block.
+    // Exact linear algebra with the same solutions to roundoff; supported for
+    // host-side standard-ordering matrices.
+    constexpr bool schur_supported = !VectorizableDense<DenseMatrixPolicy> && !VectorizableSparse<SparseMatrixPolicy>;
+    const bool use_schur = schur_supported && parameters.schur_reduction_ && has_constraints;
+    SchurStageSolver<SparseMatrixPolicy, DenseMatrixPolicy>* schur = nullptr;
+    if constexpr (schur_supported)
+    {
+      if (use_schur)
+      {
+        // Symbolic structures and workspaces are cached on the State and
+        // reused across Solve() calls.
+        if (!state.schur_stage_cache_)
+        {
+          state.schur_stage_cache_ = std::make_shared<SchurStageSolver<SparseMatrixPolicy, DenseMatrixPolicy>>(
+              state.jacobian_, state.upper_left_identity_diagonal_);
+        }
+        schur = static_cast<SchurStageSolver<SparseMatrixPolicy, DenseMatrixPolicy>*>(state.schur_stage_cache_.get());
+      }
+    }
+
     double present_time = 0.0;
 
     bool reject_last_h = false;
@@ -116,16 +137,36 @@ namespace micm
       {
         // Compute alpha for AlphaMinusJacobian function
         double alpha = 1.0 / (H * parameters.gamma_[0]);
-        if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+        if (use_schur)
         {
-          // Compute alpha accounting for the last alpha value
-          // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
-          alpha -= last_alpha;
-          last_alpha = alpha;
+          // The reduction reads the unshifted -J each attempt, so the true
+          // alpha applies (no delta-alpha trick) and state.jacobian_ is left
+          // intact.
+          bool factored = false;
+          if constexpr (schur_supported)
+          {
+            factored = schur->Factor(state.jacobian_, alpha);
+          }
+          if (!factored)
+          {
+            result.state_ = SolverState::NaNDetected;
+            break;
+          }
+          result.stats_.decompositions_ += 1;
         }
+        else
+        {
+          if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            // Compute alpha accounting for the last alpha value
+            // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
+            alpha -= last_alpha;
+            last_alpha = alpha;
+          }
 
-        // Form and factor the rosenbrock ode jacobian
-        LinearFactor(alpha, result.stats_, state);
+          // Form and factor the rosenbrock ode jacobian
+          LinearFactor(alpha, result.stats_, state);
+        }
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
@@ -180,7 +221,14 @@ namespace micm
               }
             }
           }
-          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          if (use_schur)
+          {
+            if constexpr (schur_supported)
+            {
+              schur->Solve(K[stage]);
+            }
+          }
+          else if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
             linear_solver_.Solve(K[stage], state.jacobian_);
           }

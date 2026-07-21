@@ -15,6 +15,7 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/solver/schur_stage_solver.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>

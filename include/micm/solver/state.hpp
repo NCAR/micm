@@ -86,6 +86,11 @@ namespace micm
     ///        cellwise WRMS, making per-cell accuracy independent of how many
     ///        other (possibly quiescent) cells share the batch.
     bool cellwise_error_norm_{ false };
+    /// @brief Lazily built Schur stage solver (symbolic structures + numeric
+    ///        workspaces) reused across Solve() calls when
+    ///        RosenbrockSolverParameters::schur_reduction_ is set. A cache
+    ///        only: copies of a State start with an empty cache and rebuild.
+    std::shared_ptr<void> schur_stage_cache_;
 
     class VariableProxy
     {
@@ -239,7 +244,8 @@ namespace micm
           relative_tolerance_(other.relative_tolerance_),
           absolute_tolerance_(std::move(other.absolute_tolerance_)),
           solver_step_size_suggestion_(other.solver_step_size_suggestion_),
-          cellwise_error_norm_(other.cellwise_error_norm_)
+          cellwise_error_norm_(other.cellwise_error_norm_),
+          schur_stage_cache_(std::move(other.schur_stage_cache_))
     {
     }
 
@@ -270,6 +276,7 @@ namespace micm
         absolute_tolerance_ = std::move(other.absolute_tolerance_);
         solver_step_size_suggestion_ = other.solver_step_size_suggestion_;
         cellwise_error_norm_ = other.cellwise_error_norm_;
+        schur_stage_cache_ = std::move(other.schur_stage_cache_);
 
         other.state_size_ = 0;
         other.constraint_size_ = 0;
