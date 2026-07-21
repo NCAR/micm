@@ -32,3 +32,6 @@ target_compile_definitions(ivp_testset PRIVATE MICM_BENCHMARK_DATA_DIR="${CMAKE_
 
 add_executable(constraint_cost_probe constraint_cost_probe.cpp)
 target_link_libraries(constraint_cost_probe PUBLIC musica::micm)
+
+add_executable(diurnal_dae diurnal_dae.cpp)
+target_link_libraries(diurnal_dae PUBLIC musica::micm)
