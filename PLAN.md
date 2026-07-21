@@ -20,13 +20,13 @@ adversarial tests, mechanism scale-up), each on its own dev branch off
 
 | Phase | Branch | Status |
 |---|---|---|
-| 1 — step-size persistence | `dae-step-persistence` | in progress |
-| 2 — work–precision rig | `dae-work-precision` | planned |
+| 1 — step-size persistence | `dae-step-persistence` | implemented on branch (`c9ba020f`) |
+| 2 — work–precision rig | `dae-work-precision` | implemented on branch (`ab9231d7`) |
 | 3 — constraint evaluation cost | `dae-constraint-cost` | planned |
 | 4 — Schur reduction | `dae-schur-reduction` | planned |
 | 5 — norm policy + diagnostics | `dae-norms-diagnostics` | planned |
 | 6 — RODAS-P tableaus | `dae-rodas-p` | planned |
-| 7a — Van der Pol ε-sweep | `dae-vdp-epsilon` | in progress |
+| 7a — Van der Pol ε-sweep | `dae-vdp-epsilon` | implemented on branch (`e0f076a5`) |
 | 7b — IVP test-set problems | `dae-ivp-testset` | planned |
 | 7c — diurnal photolysis | `dae-diurnal` | planned |
 | 7d — conservation audit | `dae-conservation` | planned |
