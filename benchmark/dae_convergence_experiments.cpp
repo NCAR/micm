@@ -643,6 +643,93 @@ namespace
         .Build();
   }
 
+  /// Autonomized Prothero-Robinson problem: S' = 1, Y' = lambda*(Y - sin(S)) + cos(S),
+  /// exact solution Y(t) = sin(t) from Y(0) = 0. In the stiff regime |lambda|*H >> 1,
+  /// classical Rosenbrock tableaus suffer order reduction; RODAS4P's additional
+  /// order conditions are designed to retain the order.
+  class ProtheroRobinsonModel
+  {
+   public:
+    explicit ProtheroRobinsonModel(double lambda)
+        : lambda_(lambda)
+    {
+    }
+
+    std::set<std::string> SpeciesUsed() const
+    {
+      return { "S", "Y" };
+    }
+
+    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto y = indices.at("Y");
+      return { { y, indices.at("S") }, { y, y } };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
+        const std::unordered_map<std::string, std::size_t>&) const
+    {
+      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) { };
+    }
+
+    template<typename DenseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices) const
+    {
+      const auto s = indices.at("S");
+      const auto y = indices.at("Y");
+      const double lambda = lambda_;
+      return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, DenseMatrixPolicy& forcing)
+      {
+        for (std::size_t cell = 0; cell < state.NumRows(); ++cell)
+        {
+          const double sv = state[cell][s];
+          forcing[cell][s] += 1.0;
+          forcing[cell][y] += lambda * (state[cell][y] - std::sin(sv)) + std::cos(sv);
+        }
+      };
+    }
+
+    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+        const std::unordered_map<std::string, std::size_t>&,
+        const std::unordered_map<std::string, std::size_t>& indices,
+        const SparseMatrixPolicy&) const
+    {
+      const auto s = indices.at("S");
+      const auto y = indices.at("Y");
+      const double lambda = lambda_;
+      // ProcessSet invokes external Jacobian functions as (parameters, state, jacobian).
+      return [=](const DenseMatrixPolicy&, const DenseMatrixPolicy& state, SparseMatrixPolicy& jacobian)
+      {
+        for (std::size_t block = 0; block < jacobian.NumberOfBlocks(); ++block)
+        {
+          const double sv = state[block][s];
+          jacobian[block][y][y] -= lambda;
+          jacobian[block][y][s] -= -lambda * std::cos(sv) - std::sin(sv);
+        }
+      };
+    }
+
+   private:
+    double lambda_;
+  };
+
+  auto BuildProtheroRobinsonSolver(const micm::RosenbrockSolverParameters& parameters, double lambda)
+  {
+    const auto s = micm::Species("S");
+    const auto y = micm::Species("Y");
+    const micm::Phase gas{ "gas", std::vector<micm::PhaseSpecies>{ s, y } };
+    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters)
+        .SetSystem(micm::System(gas))
+        .AddExternalModel(ProtheroRobinsonModel(lambda))
+        .SetReorderState(false)
+        .Build();
+  }
+
   void RunProjectionScaling(const std::filesystem::path& output_directory, std::ostream& summary)
   {
     std::ofstream csv(output_directory / "projection_scaling.csv");
@@ -734,13 +821,16 @@ namespace
       double expected_order;
       std::function<micm::RosenbrockSolverParameters()> parameters;
     };
-    const std::array<Method, 2> methods{
+    const std::array<Method, 3> methods{
       Method{ "four_stage_dae",
               3.0,
               []() { return micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(); } },
       Method{ "six_stage_dae",
               4.0,
               []() { return micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(); } },
+      Method{ "rodas4p_dae",
+              4.0,
+              []() { return micm::RosenbrockSolverParameters::Rodas4PDifferentialAlgebraicRosenbrockParameters(); } },
     };
     const std::array<double, 3> row_scales{ 1.0e-12, 1.0, 1.0e12 };
     const std::array<double, 3> state_scales{ 1.0e-12, 1.0, 1.0e12 };
@@ -1059,6 +1149,66 @@ namespace
 
     summary << "- Controller/cadence: completed algebraic-count and public-Solve cadence sweeps.\n";
   }
+
+  void RunProtheroRobinson(const std::filesystem::path& output_directory, std::ostream& summary)
+  {
+    std::ofstream csv(output_directory / "prothero_robinson.csv");
+    csv << std::scientific << std::setprecision(17);
+    csv << "method,expected_order,k,H,lambda,state,steps,y_error,observed_order\n";
+
+    struct Method
+    {
+      const char* name;
+      double expected_order;
+      std::function<micm::RosenbrockSolverParameters()> parameters;
+    };
+    const std::array<Method, 2> methods{
+      Method{ "six_stage_dae",
+              4.0,
+              []() { return micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(); } },
+      Method{ "rodas4p_dae",
+              4.0,
+              []() { return micm::RosenbrockSolverParameters::Rodas4PDifferentialAlgebraicRosenbrockParameters(); } },
+    };
+    const double lambda = -1.0e6;
+    const double t_final = 1.0;
+
+    for (const auto& method : methods)
+    {
+      double previous_error = std::numeric_limits<double>::quiet_NaN();
+      double finest_prefloor_order = std::numeric_limits<double>::quiet_NaN();
+      for (int k = 3; k <= 11; ++k)
+      {
+        const double H = std::ldexp(1.0, -k);
+        auto parameters = method.parameters();
+        parameters.h_start_ = H;
+        parameters.h_min_ = H;
+        parameters.h_max_ = H;
+        parameters.max_number_of_steps_ = 10000000;
+        auto solver = BuildProtheroRobinsonSolver(parameters, lambda);
+        auto state = solver.GetState(1);
+        SetConditions(state);
+        state.SetRelativeTolerance(1.0e6);
+        state.SetAbsoluteTolerances(std::vector<double>(state.state_size_, 1.0e6));
+        state.variables_[0][state.variable_map_.at("S")] = 0.0;
+        state.variables_[0][state.variable_map_.at("Y")] = 0.0;
+        const auto result = solver.Solve(t_final, state, parameters);
+        const double y_error = std::abs(state.variables_[0][state.variable_map_.at("Y")] - std::sin(t_final));
+        const double observed_order =
+            std::isnan(previous_error) ? std::numeric_limits<double>::quiet_NaN() : std::log2(previous_error / y_error);
+        if (!std::isnan(observed_order) && y_error > 1.0e-13)
+        {
+          finest_prefloor_order = observed_order;
+        }
+        csv << method.name << ',' << method.expected_order << ',' << k << ',' << H << ',' << lambda << ','
+            << StateName(result.state_) << ',' << result.stats_.accepted_ << ',' << y_error << ',' << observed_order
+            << '\n';
+        previous_error = y_error;
+      }
+      summary << "- Prothero-Robinson (lambda=-1e6): " << method.name << " finest pre-floor observed order "
+              << finest_prefloor_order << " (classical order " << method.expected_order << ").\n";
+    }
+  }
 }  // namespace
 
 int main(int argc, char** argv)
@@ -1076,6 +1226,7 @@ int main(int argc, char** argv)
   RunToleranceCoupling(output_directory, summary_file);
   RunNonlinearInitialization(output_directory, summary_file);
   RunControllerAndCadence(output_directory, summary_file);
+  RunProtheroRobinson(output_directory, summary_file);
   std::cout << "Completed DAE convergence experiments\n";
   return 0;
 }

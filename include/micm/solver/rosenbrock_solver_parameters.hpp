@@ -86,6 +86,12 @@ namespace micm
     /// @brief stiffly-stable rosenbrock method of order 4, with 6 stages
     /// @return
     static RosenbrockSolverParameters SixStageDifferentialAlgebraicRosenbrockParameters();
+    /// @brief RODAS4P (Steinebach): stiffly-stable method of order 4, 6 stages,
+    ///        satisfying the additional order conditions that avoid the
+    ///        Prothero-Robinson-type order reduction of the standard RODAS4
+    ///        tableau on very stiff and parabolic problems
+    /// @return
+    static RosenbrockSolverParameters Rodas4PDifferentialAlgebraicRosenbrockParameters();
 
    private:
     RosenbrockSolverParameters() = default;
@@ -420,6 +426,93 @@ namespace micm
     parameters.c_[12] = -0.3152159432874371E+02;
     parameters.c_[13] = 0.1631930543123136E+02;
     parameters.c_[14] = -0.6058818238834054E+01;
+
+    parameters.m_.fill(0.0);
+    parameters.m_[0] = parameters.a_[6];
+    parameters.m_[1] = parameters.a_[7];
+    parameters.m_[2] = parameters.a_[8];
+    parameters.m_[3] = parameters.a_[9];
+    parameters.m_[4] = 1.0;
+    parameters.m_[5] = 1.0;
+
+    parameters.e_.fill(0.0);
+    parameters.e_[5] = 1.0;
+
+    parameters.new_function_evaluation_.fill(true);
+
+    parameters.estimator_of_local_order_ = 4.0;
+
+    return parameters;
+  }
+
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::Rodas4PDifferentialAlgebraicRosenbrockParameters()
+  {
+    // RODAS4P: STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, 6 STAGES,
+    // WITH THE ADDITIONAL ORDER CONDITIONS OF
+    //
+    // G. STEINEBACH, ORDER-REDUCTION OF ROW-METHODS FOR DAES AND METHOD
+    // OF LINES APPLICATIONS. PREPRINT 1741, TU DARMSTADT (1995).
+    //
+    // Coefficients as distributed in rodasp.f and cross-checked against the
+    // OrdinaryDiffEq.jl Rodas4P tableau. Encoding identical to
+    // SixStageDifferentialAlgebraicRosenbrockParameters(): a_/c_ packed
+    // row-wise, gamma_ holds the per-stage d-vector, the sixth stage is the
+    // stiffly accurate solution stage (a6j = a5j, a65 = 1), and the embedded
+    // error is K6.
+
+    RosenbrockSolverParameters parameters;
+
+    parameters.stages_ = 6;
+
+    parameters.alpha_.fill(0.0);
+    parameters.alpha_[0] = 0.000;
+    parameters.alpha_[1] = 0.750;
+    parameters.alpha_[2] = 0.210;
+    parameters.alpha_[3] = 0.630;
+    parameters.alpha_[4] = 1.000;
+    parameters.alpha_[5] = 1.000;
+
+    parameters.gamma_.fill(0.0);
+    parameters.gamma_[0] = 0.2500000000000000;
+    parameters.gamma_[1] = -0.5000000000000000;
+    parameters.gamma_[2] = -0.0235040000000000;
+    parameters.gamma_[3] = -0.0362000000000000;
+    parameters.gamma_[4] = 0.0;
+    parameters.gamma_[5] = 0.0;
+
+    parameters.a_.fill(0.0);
+    parameters.a_[0] = 3.000000000000000;
+    parameters.a_[1] = 1.831036793486759;
+    parameters.a_[2] = 0.4955183967433795;
+    parameters.a_[3] = 2.304376582692669;
+    parameters.a_[4] = -0.05249275245743001;
+    parameters.a_[5] = -1.176798761832782;
+    parameters.a_[6] = -7.170454962423024;
+    parameters.a_[7] = -4.741636671481785;
+    parameters.a_[8] = -16.31002631330971;
+    parameters.a_[9] = -1.062004044111401;
+    parameters.a_[10] = parameters.a_[6];
+    parameters.a_[11] = parameters.a_[7];
+    parameters.a_[12] = parameters.a_[8];
+    parameters.a_[13] = parameters.a_[9];
+    parameters.a_[14] = 1.0;
+
+    parameters.c_.fill(0.0);
+    parameters.c_[0] = -12.00000000000000;
+    parameters.c_[1] = -8.791795173947035;
+    parameters.c_[2] = -2.207865586973518;
+    parameters.c_[3] = 10.81793056857153;
+    parameters.c_[4] = 6.780270611428266;
+    parameters.c_[5] = 19.53485944642410;
+    parameters.c_[6] = 34.19095006749676;
+    parameters.c_[7] = 15.49671153725963;
+    parameters.c_[8] = 54.74760875964130;
+    parameters.c_[9] = 14.16005392148534;
+    parameters.c_[10] = 34.62605830930532;
+    parameters.c_[11] = 15.30084976114473;
+    parameters.c_[12] = 56.99955578662667;
+    parameters.c_[13] = 18.40807009793095;
+    parameters.c_[14] = -5.714285714285717;
 
     parameters.m_.fill(0.0);
     parameters.m_[0] = parameters.a_[6];
