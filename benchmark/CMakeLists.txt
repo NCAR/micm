@@ -6,12 +6,14 @@ set(CMAKE_CXX_CLANG_TIDY "")
 
 add_executable(robertson_dae robertson_dae.cpp)
 target_link_libraries(robertson_dae PUBLIC musica::micm)
+target_compile_definitions(robertson_dae PRIVATE MICM_BENCHMARK_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 
 add_executable(equilibrium_efficiency equilibrium_efficiency.cpp)
 target_link_libraries(equilibrium_efficiency PUBLIC musica::micm)
 
 add_executable(tropospheric_dae tropospheric_dae.cpp)
 target_link_libraries(tropospheric_dae PUBLIC musica::micm)
+target_compile_definitions(tropospheric_dae PRIVATE MICM_BENCHMARK_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 
 add_executable(dae_convergence_experiments dae_convergence_experiments.cpp)
 target_link_libraries(dae_convergence_experiments PUBLIC musica::micm)
