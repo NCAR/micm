@@ -73,24 +73,24 @@ namespace
                       .Build();
 
     std::vector<Constraint> constraints;
-    constraints.push_back(EquilibriumConstraint(
+    constraints.emplace_back(EquilibriumConstraint(
         "eq1",
         A_aq,
         std::vector<StoichSpecies>{ { A_gas, 1.0 } },
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         VantHoffParam{ .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
-    constraints.push_back(EquilibriumConstraint(
+    constraints.emplace_back(EquilibriumConstraint(
         "eq2",
         B_aq,
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
         VantHoffParam{ .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
     // A_gas is explicitly set as the algebraic balance variable
-    constraints.push_back(
+    constraints.emplace_back(
         LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-    auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+    auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))

@@ -17,7 +17,7 @@
 #include <random>
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
@@ -251,7 +251,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
                          .Build();
 
   // Assign original to copy
-  Process copy_reaction = reaction;
+  const Process& copy_reaction = reaction;
 
   const auto& copy = copy_reaction.process_;
   const auto& original = reaction.process_;

@@ -419,7 +419,7 @@ TEST(CudaDenseMatrix, MoveConstructor)
   EXPECT_EQ(matrix[1][1], 4);
 
   auto matrix2 = std::move(matrix);
-  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
   {
     throw std::runtime_error(
         "The 'd_data_' pointer of matrix2 is not initialized to a null pointer in the move constructor.");
@@ -720,9 +720,9 @@ void TestSingleBlockMatrixAddOneElement()
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), number_of_columns * cuda_matrix_vector_length);
   // Work around NVHPC compiler bug - force runtime evaluation
-  double num_cells_d = static_cast<double>(number_of_grid_cells);
-  double vec_length_d = static_cast<double>(cuda_matrix_vector_length);
-  std::size_t expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  auto num_cells_d = static_cast<double>(number_of_grid_cells);
+  auto vec_length_d = static_cast<double>(cuda_matrix_vector_length);
+  auto expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
   EXPECT_EQ(matrix.NumberOfGroups(), expected_groups);
 
   matrix.CopyToDevice();
@@ -755,9 +755,9 @@ void TestMultiBlockMatrixAddOneElement()
   EXPECT_EQ(matrix.GroupVectorSize(), cuda_matrix_vector_length);
   EXPECT_EQ(matrix.GroupSize(), number_of_columns * cuda_matrix_vector_length);
   // Work around NVHPC compiler bug - force runtime evaluation
-  double num_cells_d = static_cast<double>(number_of_grid_cells);
-  double vec_length_d = static_cast<double>(cuda_matrix_vector_length);
-  std::size_t expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  auto num_cells_d = static_cast<double>(number_of_grid_cells);
+  auto vec_length_d = static_cast<double>(cuda_matrix_vector_length);
+  auto expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
   EXPECT_EQ(matrix.NumberOfGroups(), expected_groups);
 
   matrix.CopyToDevice();

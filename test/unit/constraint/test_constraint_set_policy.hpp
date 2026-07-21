@@ -26,7 +26,7 @@ void TestConstruction()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -46,7 +46,7 @@ void TestReplaceStateRowsMapsToAlgebraicSpecies()
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
@@ -74,7 +74,7 @@ void TestNonZeroJacobianElements()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -105,13 +105,13 @@ void TestMultipleConstraints()
   auto C = Species("C");
   auto D = Species("D");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "C_D_eq",
       D,
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
@@ -147,7 +147,7 @@ void TestAddForcingTerms()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -204,7 +204,7 @@ void TestSubtractJacobianTerms()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
@@ -297,7 +297,7 @@ void TestUnknownSpeciesThrows()
   auto Y = Species("Y");
   auto XY = Species("XY");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "invalid",
       XY,
       std::vector<StoichSpecies>{ StoichSpecies(X, 1.0), StoichSpecies(Y, 1.0) },
@@ -320,7 +320,7 @@ void TestThreeDStateOneConstraint()
   auto X = Species("X");
   auto Y = Species("Y");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "X_Y_eq",
       Y,
       std::vector<StoichSpecies>{ StoichSpecies(X, 1.0) },
@@ -422,7 +422,7 @@ void TestFourDStateTwoConstraints()
   auto B = Species("B");
   auto C = Species("C");
   auto D = Species("D");
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
@@ -430,7 +430,7 @@ void TestFourDStateTwoConstraints()
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   // Constraint 2: C + D <-> A with K_eq2 = 3.3e-2, algebraic species = A (row 0)
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "CD_A_eq",
       A,
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0), StoichSpecies(D, 1.0) },
@@ -567,14 +567,14 @@ void TestCoupledConstraintsSharedSpecies()
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_C_eq",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
@@ -659,7 +659,7 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },

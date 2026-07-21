@@ -18,45 +18,45 @@ namespace micm::cuda
   cudaError_t MallocArray(T*& array, std::size_t num_elements);
 
   /// @brief Allocate memory on device
-  /// @param vectorMatrix Reference to struct containing information about allocated memory
-  /// @param num_elements Requested number of elements to allocate
+  /// @param param Reference to struct containing information about allocated memory
+  /// @param number_of_elements Requested number of elements to allocate
   /// @returns Error code from allocating data on the device, if any
   template<typename T>
-  cudaError_t MallocVector(CudaMatrixParam& vectorMatrix, std::size_t num_elements);
+  cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements);
 
   template<typename T>
   cudaError_t FreeArray(T*& array);
 
   /// @brief Free memory allocated on device
-  /// @param vectorMatrix Struct containing allocated device memory
+  /// @param param Struct containing allocated device memory
   /// @returns Error code from free-ing data on device, if any
-  cudaError_t FreeVector(CudaMatrixParam& vectorMatrix);
+  cudaError_t FreeVector(CudaMatrixParam& param);
 
   /// @brief Sets all elements in a CUDA matrix to their current value or a specified value, whichever is greater
-  /// @param vectorMatrix Struct containing allocated device memory
+  /// @param param Struct containing allocated device memory
   /// @param val Value to compare with each element in the matrix
   template<typename T>
-  cudaError_t MatrixMax(CudaMatrixParam& vectorMatrix, T val);
+  cudaError_t MatrixMax(CudaMatrixParam& param, T val);
 
   /// @brief Sets all elements in a CUDA matrix to their current value or a specified value, whichever is lesser
-  /// @param vectorMatrix Struct containing allocated device memory
+  /// @param param Struct containing allocated device memory
   /// @param val Value to compare with each element in the matrix
   template<typename T>
-  cudaError_t MatrixMin(CudaMatrixParam& vectorMatrix, T val);
+  cudaError_t MatrixMin(CudaMatrixParam& param, T val);
 
   /// @brief Copies data from the host to the device
-  /// @param vectorMatrix Struct containing allocated device memory
+  /// @param param Struct containing allocated device memory
   /// @param h_data Host data to copy from
   /// @returns Error code from copying to device from the host, if any
   template<typename T>
-  cudaError_t CopyToDevice(CudaMatrixParam& vectorMatrix, const std::vector<T>& h_data);
+  cudaError_t CopyToDevice(CudaMatrixParam& param, const std::vector<T>& h_data);
 
   /// @brief Copies data from the device to the host
-  /// @param vectorMatrix Struct containing allocated device memory
+  /// @param param Struct containing allocated device memory
   /// @param h_data Host data to copy data to
   /// @returns Error code from copying from the device to the host, if any
   template<typename T>
-  cudaError_t CopyToHost(CudaMatrixParam& vectorMatrix, std::vector<T>& h_data);
+  cudaError_t CopyToHost(CudaMatrixParam& param, std::vector<T>& h_data);
 
   /// @brief Copies data to the destination device memory block from the source device memory block
   /// @param vectorMatrixDest Struct containing allocated destination device memory to copy to

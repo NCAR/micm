@@ -245,7 +245,7 @@ namespace micm
 
     VectorMatrix(const std::vector<std::vector<T>>& other)
         : x_dim_(other.size()),
-          y_dim_(other.size() == 0 ? 0 : other[0].size()),
+          y_dim_(other.empty() ? 0 : other[0].size()),
           data_(
               [&]() -> std::vector<T>
               {
@@ -669,7 +669,7 @@ namespace micm
         // Tight loop over L rows in this group for vectorization
         for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -759,7 +759,7 @@ namespace micm
         // Tight loop over L rows in this group for vectorization
         for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 

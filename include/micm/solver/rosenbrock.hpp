@@ -116,14 +116,14 @@ namespace micm
     template<class DenseMatrixPolicy>
     double NormalizedError(
         const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
         auto& state) const
       requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
     double NormalizedError(
         const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
         auto& state) const
       requires(VectorizableDense<DenseMatrixPolicy>);

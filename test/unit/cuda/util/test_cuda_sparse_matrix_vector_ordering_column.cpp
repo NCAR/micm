@@ -154,7 +154,7 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrixAddOne)
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>> matrix{ builder };
 
   auto oneMatrix = std::move(matrix);
-  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
   {
     throw std::runtime_error(
         "The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
@@ -208,7 +208,7 @@ TEST(CudaSparseMatrix, MoveAssignmentZeroMatrixAddOne)
   }
 
   auto oneMatrix = std::move(matrix);
-  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
   {
     throw std::runtime_error(
         "The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
@@ -288,8 +288,8 @@ void TestMultiBlockMatrixAddOneElement()
   EXPECT_EQ(matrix.GroupSize(), cuda_matrix_vector_length * 5);
   // Work around NVHPC compiler bug - force runtime evaluation
   double num_cells_d = 53.0;
-  double vec_length_d = static_cast<double>(cuda_matrix_vector_length);
-  std::size_t expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
+  auto vec_length_d = static_cast<double>(cuda_matrix_vector_length);
+  auto expected_groups = static_cast<std::size_t>(std::ceil(num_cells_d / vec_length_d));
   EXPECT_EQ(matrix.NumberOfGroups(53), expected_groups);
 
   matrix.CopyToDevice();

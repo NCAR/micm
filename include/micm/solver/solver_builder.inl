@@ -53,7 +53,7 @@ namespace micm
         used_species.begin(),
         used_species.end(),
         std::inserter(unused_species, unused_species.begin()));
-    if (unused_species.size() > 0)
+    if (!unused_species.empty())
     {
       std::string err_msg = "Unused species in chemical system:";
       for (const auto& species : unused_species)
@@ -491,6 +491,7 @@ namespace micm
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
     // Compile external process set update functions now that params_map is finalized
+    update_state_param_funcs.reserve(external_process_sets_.size());
     for (const auto& process_set : external_process_sets_)
     {
       update_state_param_funcs.push_back(process_set.update_state_parameters_function_(params_map));

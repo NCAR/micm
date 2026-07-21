@@ -43,7 +43,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // C is an algebraic variable (not in any kinetic reaction)
   double K_eq = 0.034;
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
@@ -52,7 +52,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -129,13 +129,13 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   double delta_H2 = -2000.0;
 
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref_ = K_eq1, .delta_H_ = delta_H1 }));
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "E_F_eq",
       F,
       std::vector<StoichSpecies>{ { E, 1.0 } },
@@ -144,7 +144,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn1, rxn2 })
                     .SetConstraints(std::move(constraints))
@@ -209,7 +209,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   double K_eq = 2.0;
   double delta_H = -2400.0;
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
@@ -217,7 +217,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -307,7 +307,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   double K_eq = 2.0;
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
@@ -315,7 +315,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -383,13 +383,13 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   double K_eq1 = 3.0;
   double K_eq2 = 5.0;
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
       VantHoffParam{ .K_HLC_ref_ = K_eq1, .delta_H_ = -2400.0 }));
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_D_eq",
       D,
       std::vector<StoichSpecies>{ { B, 1.0 } },
@@ -397,7 +397,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
       VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -476,7 +476,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
   double K_eq = 10.0;
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A2_B_eq",
       B,
       std::vector<StoichSpecies>{ { A, 2.0 } },
@@ -484,7 +484,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))

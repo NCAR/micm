@@ -97,7 +97,9 @@ namespace micm
 
     /// @brief Default constructor
     ChapmanODESolver();
-    ~ChapmanODESolver();
+    ~ChapmanODESolver() = default;
+    ;
+    ;
 
     /// @brief Sets parameters for the solver
     void ThreeStageRosenbrock();
@@ -191,10 +193,7 @@ namespace micm
     /// @param new_number_densities the new number densities
     /// @param errors The computed errors
     /// @return
-    double ErrorNorm(
-        std::vector<double> original_number_densities,
-        std::vector<double> new_number_densities,
-        std::vector<double> errors);
+    double ErrorNorm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors);
   };
 
   void ChapmanODESolver::SolverStats::Reset()
@@ -226,8 +225,6 @@ namespace micm
   {
     ThreeStageRosenbrock();
   }
-
-  inline ChapmanODESolver::~ChapmanODESolver() = default;
 
   inline void ChapmanODESolver::ThreeStageRosenbrock()
   {
@@ -372,7 +369,7 @@ namespace micm
           }
           else
           {
-            double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
+            const std::size_t stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
               auto new_Y{ Y };

@@ -177,7 +177,7 @@ namespace micm
       }
 
      private:
-      typename std::conditional<(L > 1), std::array<T, L>, T>::type storage_;
+      std::conditional_t<(L > 1), std::array<T, L>, T> storage_;
     };
 
     /// @brief ConstGroupView provides a const view of a single group of blocks for iteration
@@ -309,7 +309,7 @@ namespace micm
         // Tight loop over blocks in this group for vectorization
         for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
         {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -466,7 +466,7 @@ namespace micm
         // Tight loop over blocks in this group for vectorization
         for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
         {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 

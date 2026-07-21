@@ -22,6 +22,8 @@ namespace micm
 
     CudaLuDecompositionMozartInPlace(const CudaLuDecompositionMozartInPlace&) = delete;
     CudaLuDecompositionMozartInPlace& operator=(const CudaLuDecompositionMozartInPlace&) = delete;
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member devstruct_ untouched, so swapping it out of `other` afterward is safe.
     CudaLuDecompositionMozartInPlace(CudaLuDecompositionMozartInPlace&& other) noexcept
         : LuDecompositionMozartInPlace(std::move(other))
     {
@@ -34,6 +36,7 @@ namespace micm
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
+    // NOLINTEND(bugprone-use-after-move)
 
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and

@@ -278,6 +278,7 @@ class MassConservationModel
   {
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
+    indices.reserve(all_species_.size());
     for (const auto& sp : all_species_)
     {
       indices.push_back(var.at(sp));
@@ -305,6 +306,7 @@ class MassConservationModel
   {
     auto i_ctrl = var.at(controlled_species_);
     std::vector<std::size_t> indices;
+    indices.reserve(all_species_.size());
     for (const auto& sp : all_species_)
     {
       indices.push_back(var.at(sp));
@@ -443,7 +445,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   // Built-in constraint: B <-> C equilibrium
   double K_eq = 5.0;
   std::vector<micm::Constraint> constraints;
-  constraints.push_back(micm::EquilibriumConstraint(
+  constraints.emplace_back(micm::EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
@@ -846,7 +848,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 
   // Built-in constraint solver
   std::vector<micm::Constraint> constraints;
-  constraints.push_back(micm::EquilibriumConstraint(
+  constraints.emplace_back(micm::EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },

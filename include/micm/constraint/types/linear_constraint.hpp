@@ -40,7 +40,6 @@ namespace micm
     /// @brief Parameter set (unused for this class, always empty).
     std::vector<std::string> parameters_;
 
-   public:
     /// @brief Default constructor
     LinearConstraint() = default;
 
@@ -178,9 +177,10 @@ namespace micm
 
       // Copy data to avoid issues when ConstraintSet is moved
       std::vector<double> coeffs;
-      for (std::size_t i = 0; i < this->terms_.size(); ++i)
+      coeffs.reserve(this->terms_.size());
+      for (const auto& term : this->terms_)
       {
-        coeffs.push_back(this->terms_[i].coefficient_);
+        coeffs.push_back(term.coefficient_);
       }
 
       return SparseMatrixPolicy::Function(

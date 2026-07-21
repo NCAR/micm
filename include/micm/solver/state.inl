@@ -81,6 +81,10 @@ namespace micm
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
       operator=(const VariableProxy& other)
   {
+    if (this == &other)
+    {
+      return *this;
+    }
     if (state_.number_of_grid_cells_ != other.state_.number_of_grid_cells_)
     {
       throw MicmException(

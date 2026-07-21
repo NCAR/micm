@@ -94,11 +94,9 @@ std::pair<std::vector<std::string>, std::vector<std::vector<double>>> ReadCsv(co
     file.close();
     return { header, data };
   }
-  else
-  {
-    std::cerr << "Error opening file: " << filename << std::endl;
-    return {};
-  }
+
+  std::cerr << "Error opening file: " << filename << std::endl;
+  return {};
 }
 
 template<class BuilderPolicy>

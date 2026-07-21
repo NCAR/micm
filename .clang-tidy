@@ -53,44 +53,78 @@
 #   std::next calls. All are safe within realistic problem sizes for a chemistry
 #   solver. Too noisy for the benefit.
 
+# -modernize-return-braced-init-list,
+#   This would remove explicit calls to a constructor using a classname and that feels unnecessary
+
 Checks: |
   # disable all checks
   -*,
   # explicitly enabled checks
-  readability-braces-around-statements,
-  readability-identifier-naming,
-  readability-redundant-inline-specifier,
-  readability-qualified-auto,
-  performance-unnecessary-value-param,
-  performance-noexcept-move-constructor,
+  bugprone-integer-division,
+  bugprone-reserved-identifier,
+  bugprone-use-after-move,
+  cert-flp30-c,
+  cert-oop54-cpp,
   clang-diagnostic-error,
-  modernize-use-equals-default,
-  modernize-pass-by-value,
   modernize-concat-nested-namespaces,
+  modernize-deprecated-headers,
+  modernize-loop-convert,
+  modernize-pass-by-value,
+  modernize-type-traits,
+  modernize-use-auto,
+  modernize-use-constraints,
+  modernize-use-emplace,
+  modernize-use-equals-default,
+  modernize-use-std-numbers,
+  performance-for-range-copy,
+  performance-implicit-conversion-in-loop,
   performance-inefficient-algorithm,
+  performance-inefficient-string-concatenation,
+  performance-inefficient-vector-operation,
+  performance-move-const-arg,
+  performance-move-constructor-init,
+  performance-no-automatic-move,
+  performance-no-int-to-ptr,
+  performance-noexcept-destructor,
+  performance-noexcept-move-constructor,
+  performance-noexcept-swap,
+  performance-trivially-destructible,
+  performance-type-promotion-in-math-fn,
+  performance-unnecessary-copy-initialization,
+  performance-unnecessary-value-param,
+  readability-braces-around-statements,
   readability-container-contains,
+  readability-container-size-empty,
+  readability-else-after-return,
+  readability-identifier-naming,
+  readability-implicit-bool-conversion,
+  readability-inconsistent-declaration-parameter-name,
+  readability-qualified-auto,
+  readability-redundant-inline-specifier,
+  readability-redundant-access-specifiers,
   # explicitly disabled checks
-  -readability-redundant-member-init,
-  -readability-identifier-length,
-  -readability-convert-member-functions-to-static,
-  -readability-magic-numbers,
-  -readability-avoid-const-params-in-decls,
-  -readability-isolate-declaration,
-  -readability-avoid-unconditional-preprocessor-if,
-  -readability-named-parameter,
-  -readability-function-cognitive-complexity,
-  -bugprone-signal-handler,
   -bugprone-easily-swappable-parameters,
   -bugprone-narrowing-conversions,
+  -bugprone-signal-handler,
   -cert-err58-cpp,
   -cert-msc51-cpp,
-  -performance-enum-size,
-  -performance-avoid-endl,
-  -modernize-use-trailing-return-type,
-  -modernize-use-nodiscard,
-  -modernize-macro-to-enum,
-  -modernize-avoid-c-arrays,
   -clang-analyzer-alpha.*,
+  -modernize-avoid-c-arrays,
+  -modernize-macro-to-enum,
+  -modernize-return-braced-init-list,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -performance-avoid-endl,
+  -performance-enum-size,
+  -readability-avoid-const-params-in-decls,
+  -readability-avoid-unconditional-preprocessor-if,
+  -readability-convert-member-functions-to-static,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-redundant-member-init,
 
 WarningsAsErrors: '*'
 
@@ -127,3 +161,8 @@ CheckOptions:
     value:           1
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           0
+    # _USE_MATH_DEFINES is a standard opt-in macro that must be defined before
+    # <cmath>/<math.h> to expose M_PI etc. (required by MSVC); allow the
+    # otherwise reserved (leading-underscore) name.
+  - key:             bugprone-reserved-identifier.AllowedIdentifiers
+    value:           '_USE_MATH_DEFINES'

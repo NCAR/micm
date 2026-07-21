@@ -75,6 +75,8 @@ namespace micm
     };
 
     /// @brief Move constructor
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // *_param_ members untouched, so copying/resetting them on `other` afterward is safe.
     CudaState(CudaState&& other) noexcept
         : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
@@ -101,6 +103,7 @@ namespace micm
       }
       return *this;
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance) override
     {

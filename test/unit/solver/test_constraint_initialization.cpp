@@ -43,7 +43,7 @@ struct SimpleConstrainedSystem
 
     // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
     std::vector<Constraint> constraints;
-    constraints.push_back(EquilibriumConstraint(
+    constraints.emplace_back(EquilibriumConstraint(
         "B_C_eq",
         C,
         std::vector<StoichSpecies>{ { B, 1.0 } },
@@ -277,7 +277,7 @@ auto BuildSlavedConstantForcingSolver(const RosenbrockSolverParameters& paramete
 TEST(ConstraintInitialization, ConsistentICsUnchanged)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
+  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
   auto A_idx = state.variable_map_.at("A");
@@ -306,7 +306,7 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
 TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
+  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
   auto A_idx = state.variable_map_.at("A");
@@ -344,7 +344,7 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
 TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
+  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
   auto A_idx = state.variable_map_.at("A");
@@ -385,7 +385,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
                     .Build();
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetReorderState(false)
@@ -408,7 +408,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
 TEST(ConstraintInitialization, MultiCellSystems)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
+  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(3);  // 3 grid cells
 
   auto A_idx = state.variable_map_.at("A");
@@ -457,7 +457,7 @@ TEST(ConstraintInitialization, MultiCellSystems)
 TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
 {
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(std::move(options)));
+  auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
   auto A_idx = state.variable_map_.at("A");

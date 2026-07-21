@@ -23,6 +23,8 @@ namespace micm
 
     CudaLinearSolverInPlace(const CudaLinearSolverInPlace&) = delete;
     CudaLinearSolverInPlace& operator=(const CudaLinearSolverInPlace&) = delete;
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member devstruct_ untouched, so swapping it out of `other` afterward is safe.
     CudaLinearSolverInPlace(CudaLinearSolverInPlace&& other) noexcept
         : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
@@ -35,6 +37,7 @@ namespace micm
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
+    // NOLINTEND(bugprone-use-after-move)
 
     /// This constructor takes two arguments: a sparse matrix and its values
     /// The base class here takes three arguments: the third argument is

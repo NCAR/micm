@@ -129,7 +129,7 @@ namespace micm
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
-          double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
+          const std::size_t stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
           {
             K[stage].Copy(initial_forcing);
@@ -230,12 +230,12 @@ namespace micm
           result.state_ = SolverState::NaNDetected;
           break;
         }
-        else if (std::isinf(error) == 1)
+        if (std::isinf(error) == 1)
         {
           result.state_ = SolverState::InfDetected;
           break;
         }
-        else if ((error < 1) || (H < h_min))
+        if ((error < 1) || (H < h_min))
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
