@@ -21,3 +21,7 @@ target_link_libraries(dae_convergence_experiments PUBLIC musica::micm)
 add_executable(test_robertson_qssa test_robertson_qssa.cpp)
 target_link_libraries(test_robertson_qssa PUBLIC musica::micm GTest::gtest_main)
 add_test(NAME test_robertson_qssa COMMAND test_robertson_qssa)
+
+add_executable(robertson_conservation_dae robertson_conservation_dae.cpp)
+target_link_libraries(robertson_conservation_dae PUBLIC musica::micm)
+target_compile_definitions(robertson_conservation_dae PRIVATE MICM_BENCHMARK_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")

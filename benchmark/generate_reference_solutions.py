@@ -77,6 +77,24 @@ def robertson_reference(out_dir: Path) -> None:
         raise RuntimeError(f"Robertson reference failed: {result.message}")
     write_csv(out_dir / "robertson_reference.csv", times, ["A", "B", "C"], result.y)
 
+    # Long-time reference for the conservation-DAE benchmark (IVP test-set
+    # style, t -> 1e11): B falls to ~8e-14, so its absolute tolerance must sit
+    # well below that for the reference to resolve it relatively.
+    long_times = output_times(1.0e-3, 1.0e11, 29)
+    long_result = solve_ivp(
+        rhs,
+        (0.0, long_times[-1]),
+        [1.0, 0.0, 0.0],
+        method="Radau",
+        jac=jac,
+        rtol=1.0e-13,
+        atol=[1.0e-19, 1.0e-22, 1.0e-14],
+        t_eval=long_times,
+    )
+    if not long_result.success:
+        raise RuntimeError(f"Robertson long-time reference failed: {long_result.message}")
+    write_csv(out_dir / "robertson_longtime_reference.csv", long_times, ["A", "B", "C"], long_result.y)
+
 
 # ---------------------------------------------------------------------------
 # Tropospheric O3-NOx-HOx (tropospheric_system.hpp)
