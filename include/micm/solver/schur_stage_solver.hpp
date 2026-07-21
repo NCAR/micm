@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <memory>
 #include <numeric>
+#include <set>
 #include <vector>
 
 namespace micm
@@ -180,6 +181,29 @@ namespace micm
       xz_values_.resize(n_cells_ * xz_entries_.size());
       yz_.resize(n_z_);
 
+      // Cheap fill pre-pass: count the distinct Schur-complement pattern
+      // entries first, and skip the expensive S/LU construction entirely when
+      // product fill makes the reduction unprofitable (denser than the full
+      // stage matrix). The caller checks SchurNonZeros() before use.
+      {
+        std::set<std::size_t> pattern;
+        for (std::size_t r = 0; r < n_x_; ++r)
+          pattern.insert(r * n_x_ + r);
+        for (const auto& e : xx_entries_)
+          pattern.insert(e.r * n_x_ + e.c);
+        for (const auto& e : xz_entries_)
+        {
+          const Group& group = groups_[group_of_z_[e.c]];
+          for (const std::size_t col : group.x_cols)
+            pattern.insert(e.r * n_x_ + col);
+        }
+        s_pattern_size_ = pattern.size();
+        if (s_pattern_size_ > jac_stride_)
+        {
+          return;  // unprofitable: leave the heavy structures unbuilt
+        }
+      }
+
       // Symbolic Schur complement: pattern(A_xx) + diagonal + the product
       // pattern of A_xz through each group's x-column set.
       auto builder = SparseMatrixPolicy::Create(n_x_).SetNumberOfBlocks(n_cells_).InitialValue(0.0);
@@ -225,6 +249,15 @@ namespace micm
     std::size_t NumDifferential() const
     {
       return n_x_;
+    }
+
+    /// @brief Nonzeros per block of the Schur complement — compare against the
+    ///        full Jacobian's nonzeros to decide whether the reduction is
+    ///        profitable (dense radical coupling can fill S beyond the cost of
+    ///        the unreduced solve; see the design note's fill-in risk).
+    std::size_t SchurNonZeros() const
+    {
+      return s_pattern_size_;
     }
 
     std::size_t NumAlgebraic() const
@@ -440,6 +473,7 @@ namespace micm
     std::vector<std::size_t> s_diag_offsets_, s_xx_offsets_;
     SparseMatrixPolicy s_;
     std::size_t s_stride_ = 0, zz_dense_stride_ = 0, w_stride_ = 0;
+    std::size_t s_pattern_size_ = 0;
     SparseMatrixPolicy s_lower_, s_upper_;
     LinearSolver<SparseMatrixPolicy, LuDecompositionDoolittle> s_solver_;
     DenseMatrixPolicy x_rhs_;

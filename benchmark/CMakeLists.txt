@@ -44,3 +44,7 @@ target_link_libraries(mechanism_scale PUBLIC musica::micm)
 
 add_executable(schur_ceiling schur_ceiling.cpp)
 target_link_libraries(schur_ceiling PUBLIC musica::micm)
+
+add_executable(ts1_dae ts1_dae.cpp)
+target_link_libraries(ts1_dae PUBLIC musica::micm)
+target_compile_definitions(ts1_dae PRIVATE MICM_BENCHMARK_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")

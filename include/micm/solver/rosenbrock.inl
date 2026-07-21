@@ -68,7 +68,7 @@ namespace micm
     // Exact linear algebra with the same solutions to roundoff; supported for
     // host-side standard-ordering matrices.
     constexpr bool schur_supported = !VectorizableDense<DenseMatrixPolicy> && !VectorizableSparse<SparseMatrixPolicy>;
-    const bool use_schur = schur_supported && parameters.schur_reduction_ && has_constraints;
+    bool use_schur = schur_supported && parameters.schur_reduction_ && has_constraints;
     SchurStageSolver<SparseMatrixPolicy, DenseMatrixPolicy>* schur = nullptr;
     if constexpr (schur_supported)
     {
@@ -82,6 +82,14 @@ namespace micm
               state.jacobian_, state.upper_left_identity_diagonal_);
         }
         schur = static_cast<SchurStageSolver<SparseMatrixPolicy, DenseMatrixPolicy>*>(state.schur_stage_cache_.get());
+        // Fill guard: when product fill makes the Schur complement denser
+        // than the full stage matrix (e.g. radicals coupled to most of the
+        // mechanism), the reduction cannot pay — use the standard solve.
+        if (schur->SchurNonZeros() > state.jacobian_.FlatBlockSize())
+        {
+          schur = nullptr;
+          use_schur = false;
+        }
       }
     }
 
