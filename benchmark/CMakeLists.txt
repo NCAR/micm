@@ -38,3 +38,6 @@ target_link_libraries(diurnal_dae PUBLIC musica::micm)
 
 add_executable(conservation_audit conservation_audit.cpp)
 target_link_libraries(conservation_audit PUBLIC musica::micm)
+
+add_executable(mechanism_scale mechanism_scale.cpp)
+target_link_libraries(mechanism_scale PUBLIC musica::micm)
