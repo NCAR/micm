@@ -18,6 +18,8 @@ create_standard_test(NAME step_size_persistence SOURCES test_step_size_persisten
 create_standard_test(NAME norms_and_diagnostics SOURCES test_norms_and_diagnostics.cpp)
 create_standard_test(NAME rodas4p SOURCES test_rodas4p.cpp)
 
+create_standard_test(NAME structural_dae SOURCES test_structural_dae.cpp)
+
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)
 endif()
