@@ -310,6 +310,106 @@ namespace
     return worst;
   }
 
+  // Interleaved sweep timing: builds both solvers for the given photolysis
+  // scale and alternates their timed repetitions, so thermal or frequency
+  // drift affects both methods equally instead of biasing whichever method's
+  // consecutive block ran during the transient.
+  struct WallClockPair
+  {
+    double ode_us;
+    double dae_us;
+  };
+
+  WallClockPair InterleavedWallClock(double j_scale, double rtol, const std::vector<double>& output_times, int reps)
+  {
+    auto sys = tropospheric::MakeSystem();
+    const double j1 = j_scale * tropospheric::JNO2_DEFAULT;
+    const double j2 = j_scale * tropospheric::JO1D_DEFAULT;
+    const double j3 = j_scale * tropospheric::JO3P_DEFAULT;
+    auto rates = tropospheric::RadicalRates::At(T_BOX, P_BOX, j1, j2, j3);
+    const auto ref_rad =
+        tropospheric::ProjectRadicals(rates, N_O3_0, N_NO_0, N_NO2_0, N_CO_0, N_CH4_0, N_N2, N_O2, N_M, N_H2O);
+    const tropospheric::RefConc conc_ref{ .O1D = ref_rad.O1D, .O = ref_rad.O,   .OH = ref_rad.OH, .HO2 = ref_rad.HO2,
+                                          .O3 = N_O3_0,       .NO = N_NO_0,     .NO2 = N_NO2_0,   .CO = N_CO_0,
+                                          .CH4 = N_CH4_0,     .N2 = N_N2,       .O2 = N_O2,       .M = N_M,
+                                          .H2O = N_H2O };
+    tropospheric::QssaRadicalConstraint constraint(rates, conc_ref);
+
+    auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    auto ode_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                          .SetSystem(micm::System(sys.gas_phase))
+                          .SetReactions(sys.processes)
+                          .SetReorderState(false)
+                          .Build();
+    auto dae_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                          .SetSystem(micm::System(sys.gas_phase))
+                          .SetReactions(sys.processes)
+                          .AddExternalModel(constraint)
+                          .SetReorderState(false)
+                          .Build();
+
+    auto timed_pass = [&](auto& solver) -> double
+    {
+      auto state = solver.GetState(1);
+      state.SetRelativeTolerance(rtol);
+      state.SetAbsoluteTolerances(std::vector<double>(state.state_size_, 1.0e2));
+      state.SetCustomRateParameter("p1", j1);
+      state.SetCustomRateParameter("p2", j2);
+      state.SetCustomRateParameter("p3", j3);
+      auto& m = state.variable_map_;
+      auto set = [&](const std::string& name, double val) { state.variables_[0][m.at(name)] = val; };
+      set("O3", N_O3_0);
+      set("NO", N_NO_0);
+      set("NO2", N_NO2_0);
+      set("CO", N_CO_0);
+      set("CH4", N_CH4_0);
+      set("CO2", N_CO2_0);
+      set("H2O2", 0.0);
+      set("HNO3", 0.0);
+      set("O2", N_O2);
+      set("N2", N_N2);
+      set("M", N_M);
+      set("H2O", N_H2O);
+      set("O1D", ref_rad.O1D);
+      set("O", ref_rad.O);
+      set("OH", ref_rad.OH);
+      set("HO2", ref_rad.HO2);
+      state.conditions_[0].temperature_ = T_BOX;
+      state.conditions_[0].pressure_ = P_BOX;
+      state.conditions_[0].air_density_ = N_M;
+      solver.UpdateStateParameters(state);
+      const auto t0 = std::chrono::steady_clock::now();
+      double current = 0.0;
+      for (double t_out : output_times)
+      {
+        double done = 0.0;
+        const double dt = t_out - current;
+        while (done < dt)
+        {
+          auto result = solver.Solve(dt - done, state);
+          if (result.state_ != micm::SolverState::Converged && result.state_ != micm::SolverState::ConvergenceExceededMaxSteps)
+            break;
+          if (result.stats_.final_time_ <= 0.0)
+            break;
+          done += result.stats_.final_time_;
+        }
+        current = t_out;
+      }
+      const auto t1 = std::chrono::steady_clock::now();
+      return std::chrono::duration<double, std::micro>(t1 - t0).count();
+    };
+
+    std::vector<double> ode_samples, dae_samples;
+    for (int rep = 0; rep < reps; ++rep)
+    {
+      ode_samples.push_back(timed_pass(ode_solver));
+      dae_samples.push_back(timed_pass(dae_solver));
+    }
+    std::sort(ode_samples.begin(), ode_samples.end());
+    std::sort(dae_samples.begin(), dae_samples.end());
+    return { ode_samples[ode_samples.size() / 2], dae_samples[dae_samples.size() / 2] };
+  }
+
   // Work-precision sweep at fixed photolysis (j_scale = 1): error vs cost
   // across rtol, accuracy against the external Radau reference, wall-clock
   // repetitions interleaved between the two methods.
@@ -441,7 +541,7 @@ int main()
 {
   const double rtol = 1e-6;
   const double t_skip = 10.0;     // skip the radical transient (slowest radical HO2 ~ 5 s)
-  const int wallclock_reps = 7;
+  const int wallclock_reps = 21;  // odd -> well-defined median; enough to suppress thermal-drift outliers
   const std::vector<double> j_scale_sweep = { 0.1, 0.25, 0.5, 1.0, 2.0 };
   const auto output_times = OutputTimes(1e-3, 1e5, 25);  // ns transient up to ~1 day relaxation
 
@@ -461,8 +561,11 @@ int main()
   for (double j_scale : j_scale_sweep)
   {
     auto reference = RunCase(Method::FullOde, j_scale, 1e-10, output_times, 0);
-    auto ode = RunCase(Method::FullOde, j_scale, rtol, output_times, wallclock_reps);
-    auto dae = RunCase(Method::DaeQssa, j_scale, rtol, output_times, wallclock_reps);
+    auto ode = RunCase(Method::FullOde, j_scale, rtol, output_times, 0);
+    auto dae = RunCase(Method::DaeQssa, j_scale, rtol, output_times, 0);
+    const auto wall = InterleavedWallClock(j_scale, rtol, output_times, wallclock_reps);
+    ode.wallclock_median_us = wall.ode_us;
+    dae.wallclock_median_us = wall.dae_us;
 
     const double ode_err = MaxRelErrorPostTransient(ode, reference, output_times, t_skip);
     const double dae_err = MaxRelErrorPostTransient(dae, reference, output_times, t_skip);
