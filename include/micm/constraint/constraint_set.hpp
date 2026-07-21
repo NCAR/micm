@@ -12,6 +12,8 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
+#include <variant>
 #include <memory>
 #include <set>
 #include <string>
@@ -45,6 +47,38 @@ namespace micm
 
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<std::size_t> algebraic_variable_ids_;
+
+    /// @brief Built-in constraints compiled into type-batched packed arrays so
+    ///        residual/Jacobian evaluation is two tight loops instead of one
+    ///        std::function dispatch per constraint (the measured hot path:
+    ///        four evaluations per step over all constraints). Available for
+    ///        host standard-ordering matrix policies; other policies keep the
+    ///        per-constraint compiled functions.
+    static constexpr bool kBatchedEvaluation =
+        !VectorizableDense<DenseMatrixPolicy> && !VectorizableSparse<SparseMatrixPolicy>;
+    struct BatchedEquilibrium
+    {
+      std::size_t row_index;
+      std::size_t param_index;     // K_eq column in the state parameters
+      std::size_t entry_start;     // into batched_stoich_/batched_species_/batched_jac_flat_
+      std::size_t reactant_count;
+      std::size_t product_count;
+    };
+    struct BatchedLinear
+    {
+      std::size_t row_index;
+      double constant;
+      std::size_t entry_start;
+      std::size_t term_count;
+    };
+    std::vector<BatchedEquilibrium> batched_equilibria_;
+    std::vector<BatchedLinear> batched_linears_;
+    std::vector<double> batched_stoich_;         // equilibrium reactants then products, per constraint
+    std::vector<std::size_t> batched_species_;   // aligned state-variable indices
+    std::vector<std::size_t> batched_jac_flat_;  // aligned block-0 flat Jacobian offsets
+    std::vector<double> linear_coeffs_;
+    std::vector<std::size_t> linear_species_;
+    std::vector<std::size_t> linear_jac_flat_;
 
     /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
     std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
@@ -236,9 +270,16 @@ namespace micm
         const DenseMatrixPolicy& state_parameters,
         DenseMatrixPolicy& forcing) const
     {
-      for (const auto& forcing_fn : constraint_forcing_functions_)
+      if constexpr (kBatchedEvaluation)
       {
-        forcing_fn(state_variables, state_parameters, forcing);
+        AddBatchedForcingTerms(state_variables, state_parameters, forcing);
+      }
+      else
+      {
+        for (const auto& forcing_fn : constraint_forcing_functions_)
+        {
+          forcing_fn(state_variables, state_parameters, forcing);
+        }
       }
       for (const auto& forcing_fn : external_constraint_forcing_functions_)
       {
@@ -257,9 +298,16 @@ namespace micm
         const DenseMatrixPolicy& state_parameters,
         SparseMatrixPolicy& jacobian) const
     {
-      for (const auto& jacobian_fn : constraint_jacobian_functions_)
+      if constexpr (kBatchedEvaluation)
       {
-        jacobian_fn(state_variables, state_parameters, jacobian);
+        SubtractBatchedJacobianTerms(state_variables, state_parameters, jacobian);
+      }
+      else
+      {
+        for (const auto& jacobian_fn : constraint_jacobian_functions_)
+        {
+          jacobian_fn(state_variables, state_parameters, jacobian);
+        }
       }
       for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
       {
@@ -332,16 +380,185 @@ namespace micm
         constraint_param_functions_.push_back(
             constraints_[info.index_].template ConstraintParameterFunction<DenseMatrixPolicy>(info));
 
-        constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
-            info, state_variable_indices, state_parameter_indices));
+        if constexpr (!kBatchedEvaluation)
+        {
+          constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
+              info, state_variable_indices, state_parameter_indices));
 
-        constraint_jacobian_functions_.push_back(
-            constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info,
-                state_variable_indices,
-                state_parameter_indices,
-                jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
-                jacobian));
+          constraint_jacobian_functions_.push_back(
+              constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
+                  info,
+                  state_variable_indices,
+                  state_parameter_indices,
+                  jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
+                  jacobian));
+        }
+      }
+      if constexpr (kBatchedEvaluation)
+      {
+        BuildBatchedEvaluation();
+      }
+    }
+
+    /// @brief Compile the built-in constraints into type-batched packed arrays.
+    ///        Dependency order within a constraint is reactants-then-products
+    ///        (equilibrium) or term order (linear) by construction, matching
+    ///        both info.state_indices_ and the per-constraint spans of
+    ///        jacobian_flat_ids_; the arithmetic in the batched evaluators
+    ///        replicates the per-constraint compiled functions exactly.
+    void BuildBatchedEvaluation()
+    {
+      batched_equilibria_.clear();
+      batched_linears_.clear();
+      batched_stoich_.clear();
+      batched_species_.clear();
+      batched_jac_flat_.clear();
+      linear_coeffs_.clear();
+      linear_species_.clear();
+      linear_jac_flat_.clear();
+      for (const auto& info : constraint_info_)
+      {
+        std::visit(
+            [&](const auto& constraint)
+            {
+              using T = std::decay_t<decltype(constraint)>;
+              if constexpr (std::is_same_v<T, EquilibriumConstraint>)
+              {
+                BatchedEquilibrium batch;
+                batch.row_index = info.row_index_;
+                batch.param_index = info.state_param_indices_[0];
+                batch.entry_start = batched_stoich_.size();
+                batch.reactant_count = constraint.reactants_.size();
+                batch.product_count = constraint.products_.size();
+                for (std::size_t i = 0; i < constraint.reactants_.size() + constraint.products_.size(); ++i)
+                {
+                  const bool is_reactant = i < constraint.reactants_.size();
+                  const auto& term = is_reactant ? constraint.reactants_[i]
+                                                 : constraint.products_[i - constraint.reactants_.size()];
+                  batched_stoich_.push_back(term.coefficient_);
+                  batched_species_.push_back(info.state_indices_[i]);
+                  batched_jac_flat_.push_back(jacobian_flat_ids_[info.jacobian_flat_offset_ + i]);
+                }
+                batched_equilibria_.push_back(batch);
+              }
+              else if constexpr (std::is_same_v<T, LinearConstraint>)
+              {
+                BatchedLinear batch;
+                batch.row_index = info.row_index_;
+                batch.constant = constraint.constant_;
+                batch.entry_start = linear_coeffs_.size();
+                batch.term_count = constraint.terms_.size();
+                for (std::size_t i = 0; i < constraint.terms_.size(); ++i)
+                {
+                  linear_coeffs_.push_back(constraint.terms_[i].coefficient_);
+                  linear_species_.push_back(info.state_indices_[i]);
+                  linear_jac_flat_.push_back(jacobian_flat_ids_[info.jacobian_flat_offset_ + i]);
+                }
+                batched_linears_.push_back(batch);
+              }
+            },
+            constraints_[info.index_].constraint_);
+      }
+    }
+
+    /// @brief Batched residual evaluation (see BuildBatchedEvaluation).
+    void AddBatchedForcingTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        DenseMatrixPolicy& forcing) const
+    {
+      const std::size_t cells = state_variables.NumRows();
+      for (std::size_t cell = 0; cell < cells; ++cell)
+      {
+        for (const auto& eq : batched_equilibria_)
+        {
+          const double* stoich = batched_stoich_.data() + eq.entry_start;
+          const std::size_t* species = batched_species_.data() + eq.entry_start;
+          double reactant_product = state_parameters[cell][eq.param_index];
+          for (std::size_t i = 0; i < eq.reactant_count; ++i)
+            reactant_product *= std::pow(std::max(0.0, state_variables[cell][species[i]]), stoich[i]);
+          double product_product = 1.0;
+          for (std::size_t i = 0; i < eq.product_count; ++i)
+            product_product *=
+                std::pow(std::max(0.0, state_variables[cell][species[eq.reactant_count + i]]), stoich[eq.reactant_count + i]);
+          forcing[cell][eq.row_index] = reactant_product - product_product;
+        }
+        for (const auto& lin : batched_linears_)
+        {
+          const double* coeffs = linear_coeffs_.data() + lin.entry_start;
+          const std::size_t* species = linear_species_.data() + lin.entry_start;
+          double sum = 0.0;
+          for (std::size_t i = 0; i < lin.term_count; ++i)
+            sum += coeffs[i] * state_variables[cell][species[i]];
+          forcing[cell][lin.row_index] = sum - lin.constant;
+        }
+      }
+    }
+
+    /// @brief Batched Jacobian evaluation (see BuildBatchedEvaluation).
+    void SubtractBatchedJacobianTerms(
+        const DenseMatrixPolicy& state_variables,
+        const DenseMatrixPolicy& state_parameters,
+        SparseMatrixPolicy& jacobian) const
+    {
+      auto& data = jacobian.AsVector();
+      const std::size_t stride = jacobian.FlatBlockSize();
+      const std::size_t cells = state_variables.NumRows();
+      for (std::size_t cell = 0; cell < cells; ++cell)
+      {
+        const std::size_t base = cell * stride;
+        for (const auto& eq : batched_equilibria_)
+        {
+          const double* stoich = batched_stoich_.data() + eq.entry_start;
+          const std::size_t* species = batched_species_.data() + eq.entry_start;
+          const std::size_t* flat = batched_jac_flat_.data() + eq.entry_start;
+          const double K_eq = state_parameters[cell][eq.param_index];
+          for (std::size_t i = 0; i < eq.reactant_count; ++i)
+          {
+            double partial_product = K_eq;
+            for (std::size_t j = 0; j < eq.reactant_count; ++j)
+            {
+              if (j != i)
+                partial_product *= std::pow(std::max(0.0, state_variables[cell][species[j]]), stoich[j]);
+            }
+            const double conc = state_variables[cell][species[i]];
+            double partial;
+            if (stoich[i] == 1.0)
+              partial = partial_product;
+            else if (conc > 0.0)
+              partial = stoich[i] * partial_product * std::pow(conc, stoich[i] - 1.0);
+            else
+              partial = 0.0;
+            data[base + flat[i]] -= partial;
+          }
+          for (std::size_t i = 0; i < eq.product_count; ++i)
+          {
+            const std::size_t pi = eq.reactant_count + i;
+            double partial_product = 1.0;
+            for (std::size_t j = 0; j < eq.product_count; ++j)
+            {
+              if (j != i)
+                partial_product *=
+                    std::pow(std::max(0.0, state_variables[cell][species[eq.reactant_count + j]]), stoich[eq.reactant_count + j]);
+            }
+            const double conc = state_variables[cell][species[pi]];
+            double partial;
+            if (stoich[pi] == 1.0)
+              partial = partial_product;
+            else if (conc > 0.0)
+              partial = stoich[pi] * partial_product * std::pow(conc, stoich[pi] - 1.0);
+            else
+              partial = 0.0;
+            data[base + flat[pi]] += partial;
+          }
+        }
+        for (const auto& lin : batched_linears_)
+        {
+          const double* coeffs = linear_coeffs_.data() + lin.entry_start;
+          const std::size_t* flat = linear_jac_flat_.data() + lin.entry_start;
+          for (std::size_t i = 0; i < lin.term_count; ++i)
+            data[base + flat[i]] -= coeffs[i];
+        }
       }
     }
 
