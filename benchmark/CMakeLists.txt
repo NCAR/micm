@@ -35,3 +35,6 @@ target_link_libraries(constraint_cost_probe PUBLIC musica::micm)
 
 add_executable(diurnal_dae diurnal_dae.cpp)
 target_link_libraries(diurnal_dae PUBLIC musica::micm)
+
+add_executable(conservation_audit conservation_audit.cpp)
+target_link_libraries(conservation_audit PUBLIC musica::micm)
