@@ -16,8 +16,13 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+
+#ifndef MICM_BENCHMARK_DATA_DIR
+#define MICM_BENCHMARK_DATA_DIR "benchmark/data"
+#endif
 
 namespace
 {
@@ -192,6 +197,180 @@ namespace
     }
     return worst;
   }
+
+  // External reference (independent solver), A and C at the benchmark output times.
+  struct ExternalReference
+  {
+    std::vector<double> times;
+    std::vector<double> a;
+    std::vector<double> c;
+  };
+
+  ExternalReference LoadExternalReference(const std::string& path)
+  {
+    ExternalReference ref;
+    std::ifstream file(path);
+    if (!file)
+      return ref;
+    std::string line;
+    std::getline(file, line);  // header
+    std::vector<std::string> names;
+    {
+      std::istringstream header(line);
+      std::string field;
+      while (std::getline(header, field, ','))
+        names.push_back(field);
+    }
+    auto column = [&](const std::string& name) -> std::ptrdiff_t
+    {
+      for (std::size_t i = 0; i < names.size(); ++i)
+        if (names[i] == name)
+          return static_cast<std::ptrdiff_t>(i);
+      return -1;
+    };
+    const auto i_time = column("time"), i_a = column("A"), i_c = column("C");
+    if (i_time < 0 || i_a < 0 || i_c < 0)
+      return ref;
+    while (std::getline(file, line))
+    {
+      std::istringstream row(line);
+      std::string field;
+      std::vector<double> values;
+      while (std::getline(row, field, ','))
+        values.push_back(std::stod(field));
+      if (static_cast<std::ptrdiff_t>(values.size()) <= std::max({ i_time, i_a, i_c }))
+        continue;
+      ref.times.push_back(values[i_time]);
+      ref.a.push_back(values[i_a]);
+      ref.c.push_back(values[i_c]);
+    }
+    return ref;
+  }
+
+  double MaxRelErrorVsExternal(
+      const CaseResult& cand,
+      const ExternalReference& ref,
+      const std::vector<double>& output_times,
+      double t_skip)
+  {
+    double worst = 0.0;
+    auto rel = [](double got, double r) { return std::abs(got - r) / (std::abs(r) + 1e-30); };
+    for (std::size_t i = 0; i < output_times.size() && i < ref.times.size(); ++i)
+    {
+      if (output_times[i] < t_skip)
+        continue;
+      if (i >= cand.a_at_output.size())
+        break;
+      worst = std::max(worst, rel(cand.a_at_output[i], ref.a[i]));
+      worst = std::max(worst, rel(cand.c_at_output[i], ref.c[i]));
+    }
+    return worst;
+  }
+
+  // Work-precision sweep at fixed k2: error vs cost across rtol. Accuracy is
+  // measured against the external Radau reference (never self-referentially),
+  // and the wall-clock repetitions interleave the two methods so thermal or
+  // frequency drift cannot bias one side.
+  void RunWorkPrecision(double k1, double k2, double k3, const std::vector<double>& output_times, const ExternalReference& ref)
+  {
+    const std::vector<double> rtols = { 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10 };
+    const int reps = 11;  // odd -> well-defined median
+    const double t_skip = 1.0;
+
+    // Cross-solver validation: the tight-tolerance MICM reference used by the
+    // stiffness sweep, judged against the independent Radau reference.
+    {
+      auto tight = RunCase(Method::FullOde, k1, k2, k3, 1e-10, output_times, 0);
+      std::cout << "cross-solver agreement (MICM rtol=1e-10 vs Radau rtol=1e-12, all output times): "
+                << MaxRelErrorVsExternal(tight, ref, output_times, 0.0) << "\n";
+    }
+
+    auto sys = robertson::MakeSystem();
+    auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    robertson::QssaConstraint constraint(k1, k2, k3);
+    auto ode_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                          .SetSystem(micm::System(sys.gas_phase))
+                          .SetReactions(sys.processes)
+                          .SetReorderState(false)
+                          .Build();
+    auto dae_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                          .SetSystem(micm::System(sys.gas_phase))
+                          .SetReactions(sys.processes)
+                          .AddExternalModel(constraint)
+                          .SetReorderState(false)
+                          .Build();
+
+    auto timed_pass = [&](auto& solver, double rtol, bool dae) -> double
+    {
+      auto state = solver.GetState(1);
+      state.SetRelativeTolerance(rtol);
+      state.SetAbsoluteTolerances(std::vector<double>(state.state_size_, rtol * 1e-2));
+      state.SetCustomRateParameter("r1", k1);
+      state.SetCustomRateParameter("r2", k2);
+      state.SetCustomRateParameter("r3", k3);
+      auto map = state.variable_map_;
+      state.variables_[0][map.at("A")] = 1.0;
+      state.variables_[0][map.at("B")] = dae ? robertson::ConsistentB(k1, k2, k3, 1.0, 0.0) : 0.0;
+      state.variables_[0][map.at("C")] = 0.0;
+      state.conditions_[0].temperature_ = 272.5;
+      state.conditions_[0].pressure_ = 101253.3;
+      state.conditions_[0].air_density_ = 1e6;
+      solver.UpdateStateParameters(state);
+      const auto t0 = std::chrono::steady_clock::now();
+      double current = 0.0;
+      for (double t_out : output_times)
+      {
+        double done = 0.0;
+        const double dt = t_out - current;
+        while (done < dt)
+        {
+          auto result = solver.Solve(dt - done, state);
+          if (result.state_ != micm::SolverState::Converged && result.state_ != micm::SolverState::ConvergenceExceededMaxSteps)
+            break;
+          if (result.stats_.final_time_ <= 0.0)
+            break;
+          done += result.stats_.final_time_;
+        }
+        current = t_out;
+      }
+      const auto t1 = std::chrono::steady_clock::now();
+      return std::chrono::duration<double, std::micro>(t1 - t0).count();
+    };
+
+    std::ofstream csv("robertson_work_precision.csv");
+    csv << "method,rtol,number_of_steps,accepted,rejected,function_calls,"
+           "jacobian_updates,decompositions,solves,converged,wallclock_median_us,max_rel_err\n";
+    auto write_row = [&](const std::string& method, double rtol, const CaseResult& r, double wall_us, double err)
+    {
+      csv << method << ',' << rtol << ',' << r.number_of_steps << ',' << r.accepted << ',' << r.rejected << ','
+          << r.function_calls << ',' << r.jacobian_updates << ',' << r.decompositions << ',' << r.solves << ','
+          << (r.converged ? 1 : 0) << ',' << wall_us << ',' << err << '\n';
+    };
+
+    std::cout << "Robertson work-precision at k2=" << k2 << " (errors vs external Radau reference)\n";
+    for (double rtol : rtols)
+    {
+      auto ode = RunCase(Method::FullOde, k1, k2, k3, rtol, output_times, 0);
+      auto dae = RunCase(Method::DaeQssa, k1, k2, k3, rtol, output_times, 0);
+      std::vector<double> ode_samples, dae_samples;
+      for (int rep = 0; rep < reps; ++rep)
+      {
+        ode_samples.push_back(timed_pass(ode_solver, rtol, false));
+        dae_samples.push_back(timed_pass(dae_solver, rtol, true));
+      }
+      std::sort(ode_samples.begin(), ode_samples.end());
+      std::sort(dae_samples.begin(), dae_samples.end());
+      const double ode_wall = ode_samples[ode_samples.size() / 2];
+      const double dae_wall = dae_samples[dae_samples.size() / 2];
+      const double ode_err = MaxRelErrorVsExternal(ode, ref, output_times, t_skip);
+      const double dae_err = MaxRelErrorVsExternal(dae, ref, output_times, t_skip);
+      write_row("full_ode", rtol, ode, ode_wall, ode_err);
+      write_row("dae_qssa", rtol, dae, dae_wall, dae_err);
+      std::cout << "rtol=" << rtol << "  ODE err=" << ode_err << " (us=" << ode_wall << ")  DAE err=" << dae_err
+                << " (us=" << dae_wall << ")\n";
+    }
+    std::cout << "wrote robertson_work_precision.csv\n";
+  }
 }  // namespace
 
 int main()
@@ -234,5 +413,17 @@ int main()
   }
 
   std::cout << "wrote robertson_dae_benchmark.csv\n";
+
+  const auto reference = LoadExternalReference(std::string(MICM_BENCHMARK_DATA_DIR) + "/robertson_reference.csv");
+  if (reference.times.empty())
+  {
+    std::cout << "no external reference at " << MICM_BENCHMARK_DATA_DIR
+              << "/robertson_reference.csv; skipping work-precision sweep "
+                 "(generate with benchmark/generate_reference_solutions.py)\n";
+  }
+  else
+  {
+    RunWorkPrecision(k1, robertson::K2_DEFAULT, k3, output_times, reference);
+  }
   return 0;
 }

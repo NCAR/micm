@@ -24,8 +24,13 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+
+#ifndef MICM_BENCHMARK_DATA_DIR
+#define MICM_BENCHMARK_DATA_DIR "benchmark/data"
+#endif
 
 namespace
 {
@@ -235,6 +240,201 @@ namespace
     }
     return worst;
   }
+
+  // External reference (independent solver), O3 and HNO3 at the benchmark output times.
+  struct ExternalReference
+  {
+    std::vector<double> times;
+    std::vector<double> o3;
+    std::vector<double> hno3;
+  };
+
+  ExternalReference LoadExternalReference(const std::string& path)
+  {
+    ExternalReference ref;
+    std::ifstream file(path);
+    if (!file)
+      return ref;
+    std::string line;
+    std::getline(file, line);  // header
+    std::vector<std::string> names;
+    {
+      std::istringstream header(line);
+      std::string field;
+      while (std::getline(header, field, ','))
+        names.push_back(field);
+    }
+    auto column = [&](const std::string& name) -> std::ptrdiff_t
+    {
+      for (std::size_t i = 0; i < names.size(); ++i)
+        if (names[i] == name)
+          return static_cast<std::ptrdiff_t>(i);
+      return -1;
+    };
+    const auto i_time = column("time"), i_o3 = column("O3"), i_hno3 = column("HNO3");
+    if (i_time < 0 || i_o3 < 0 || i_hno3 < 0)
+      return ref;
+    while (std::getline(file, line))
+    {
+      std::istringstream row(line);
+      std::string field;
+      std::vector<double> values;
+      while (std::getline(row, field, ','))
+        values.push_back(std::stod(field));
+      if (static_cast<std::ptrdiff_t>(values.size()) <= std::max({ i_time, i_o3, i_hno3 }))
+        continue;
+      ref.times.push_back(values[i_time]);
+      ref.o3.push_back(values[i_o3]);
+      ref.hno3.push_back(values[i_hno3]);
+    }
+    return ref;
+  }
+
+  double MaxRelErrorVsExternal(
+      const CaseResult& cand,
+      const ExternalReference& ref,
+      const std::vector<double>& output_times,
+      double t_skip)
+  {
+    double worst = 0.0;
+    auto rel = [](double got, double r) { return std::abs(got - r) / (std::abs(r) + 1e-30); };
+    for (std::size_t i = 0; i < output_times.size() && i < ref.times.size(); ++i)
+    {
+      if (output_times[i] < t_skip)
+        continue;
+      if (i >= cand.o3_at_output.size())
+        break;
+      worst = std::max(worst, rel(cand.o3_at_output[i], ref.o3[i]));
+      worst = std::max(worst, rel(cand.hno3_at_output[i], ref.hno3[i]));
+    }
+    return worst;
+  }
+
+  // Work-precision sweep at fixed photolysis (j_scale = 1): error vs cost
+  // across rtol, accuracy against the external Radau reference, wall-clock
+  // repetitions interleaved between the two methods.
+  void RunWorkPrecision(double j_scale, const std::vector<double>& output_times, const ExternalReference& ref)
+  {
+    const std::vector<double> rtols = { 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10 };
+    const int reps = 11;
+    const double t_skip = 10.0;
+
+    {
+      auto tight = RunCase(Method::FullOde, j_scale, 1e-10, output_times, 0);
+      std::cout << "cross-solver agreement (MICM rtol=1e-10 vs Radau rtol=1e-12, all output times): "
+                << MaxRelErrorVsExternal(tight, ref, output_times, 0.0) << "\n";
+    }
+
+    auto sys = tropospheric::MakeSystem();
+    const double j1 = j_scale * tropospheric::JNO2_DEFAULT;
+    const double j2 = j_scale * tropospheric::JO1D_DEFAULT;
+    const double j3 = j_scale * tropospheric::JO3P_DEFAULT;
+    auto rates = tropospheric::RadicalRates::At(T_BOX, P_BOX, j1, j2, j3);
+    const auto ref_rad = tropospheric::ProjectRadicals(rates, N_O3_0, N_NO_0, N_NO2_0, N_CO_0, N_CH4_0, N_N2, N_O2, N_M, N_H2O);
+    const tropospheric::RefConc conc_ref{ .O1D = ref_rad.O1D, .O = ref_rad.O,   .OH = ref_rad.OH, .HO2 = ref_rad.HO2,
+                                          .O3 = N_O3_0,       .NO = N_NO_0,     .NO2 = N_NO2_0,   .CO = N_CO_0,
+                                          .CH4 = N_CH4_0,     .N2 = N_N2,       .O2 = N_O2,       .M = N_M,
+                                          .H2O = N_H2O };
+    tropospheric::QssaRadicalConstraint constraint(rates, conc_ref);
+
+    auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    auto ode_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                          .SetSystem(micm::System(sys.gas_phase))
+                          .SetReactions(sys.processes)
+                          .SetReorderState(false)
+                          .Build();
+    auto dae_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                          .SetSystem(micm::System(sys.gas_phase))
+                          .SetReactions(sys.processes)
+                          .AddExternalModel(constraint)
+                          .SetReorderState(false)
+                          .Build();
+
+    auto timed_pass = [&](auto& solver, double rtol) -> double
+    {
+      auto state = solver.GetState(1);
+      state.SetRelativeTolerance(rtol);
+      state.SetAbsoluteTolerances(std::vector<double>(state.state_size_, 1.0e2));
+      state.SetCustomRateParameter("p1", j1);
+      state.SetCustomRateParameter("p2", j2);
+      state.SetCustomRateParameter("p3", j3);
+      auto& m = state.variable_map_;
+      auto set = [&](const std::string& name, double val) { state.variables_[0][m.at(name)] = val; };
+      set("O3", N_O3_0);
+      set("NO", N_NO_0);
+      set("NO2", N_NO2_0);
+      set("CO", N_CO_0);
+      set("CH4", N_CH4_0);
+      set("CO2", N_CO2_0);
+      set("H2O2", 0.0);
+      set("HNO3", 0.0);
+      set("O2", N_O2);
+      set("N2", N_N2);
+      set("M", N_M);
+      set("H2O", N_H2O);
+      set("O1D", ref_rad.O1D);
+      set("O", ref_rad.O);
+      set("OH", ref_rad.OH);
+      set("HO2", ref_rad.HO2);
+      state.conditions_[0].temperature_ = T_BOX;
+      state.conditions_[0].pressure_ = P_BOX;
+      state.conditions_[0].air_density_ = N_M;
+      solver.UpdateStateParameters(state);
+      const auto t0 = std::chrono::steady_clock::now();
+      double current = 0.0;
+      for (double t_out : output_times)
+      {
+        double done = 0.0;
+        const double dt = t_out - current;
+        while (done < dt)
+        {
+          auto result = solver.Solve(dt - done, state);
+          if (result.state_ != micm::SolverState::Converged && result.state_ != micm::SolverState::ConvergenceExceededMaxSteps)
+            break;
+          if (result.stats_.final_time_ <= 0.0)
+            break;
+          done += result.stats_.final_time_;
+        }
+        current = t_out;
+      }
+      const auto t1 = std::chrono::steady_clock::now();
+      return std::chrono::duration<double, std::micro>(t1 - t0).count();
+    };
+
+    std::ofstream csv("tropospheric_work_precision.csv");
+    csv << "method,rtol,number_of_steps,accepted,rejected,function_calls,"
+           "jacobian_updates,decompositions,solves,converged,wallclock_median_us,max_rel_err\n";
+    auto write_row = [&](const std::string& method, double rtol, const CaseResult& r, double wall_us, double err)
+    {
+      csv << method << ',' << rtol << ',' << r.number_of_steps << ',' << r.accepted << ',' << r.rejected << ','
+          << r.function_calls << ',' << r.jacobian_updates << ',' << r.decompositions << ',' << r.solves << ','
+          << (r.converged ? 1 : 0) << ',' << wall_us << ',' << err << '\n';
+    };
+
+    std::cout << "Tropospheric work-precision at j_scale=" << j_scale << " (errors vs external Radau reference)\n";
+    for (double rtol : rtols)
+    {
+      auto ode = RunCase(Method::FullOde, j_scale, rtol, output_times, 0);
+      auto dae = RunCase(Method::DaeQssa, j_scale, rtol, output_times, 0);
+      std::vector<double> ode_samples, dae_samples;
+      for (int rep = 0; rep < reps; ++rep)
+      {
+        ode_samples.push_back(timed_pass(ode_solver, rtol));
+        dae_samples.push_back(timed_pass(dae_solver, rtol));
+      }
+      std::sort(ode_samples.begin(), ode_samples.end());
+      std::sort(dae_samples.begin(), dae_samples.end());
+      const double ode_wall = ode_samples[ode_samples.size() / 2];
+      const double dae_wall = dae_samples[dae_samples.size() / 2];
+      const double ode_err = MaxRelErrorVsExternal(ode, ref, output_times, t_skip);
+      const double dae_err = MaxRelErrorVsExternal(dae, ref, output_times, t_skip);
+      write_row("full_ode", rtol, ode, ode_wall, ode_err);
+      write_row("dae_qssa", rtol, dae, dae_wall, dae_err);
+      std::cout << "rtol=" << rtol << "  ODE err=" << ode_err << " (us=" << ode_wall << ")  DAE err=" << dae_err
+                << " (us=" << dae_wall << ")\n";
+    }
+    std::cout << "wrote tropospheric_work_precision.csv\n";
+  }
 }  // namespace
 
 int main()
@@ -276,5 +476,17 @@ int main()
   }
 
   std::cout << "wrote tropospheric_dae_benchmark.csv\n";
+
+  const auto reference = LoadExternalReference(std::string(MICM_BENCHMARK_DATA_DIR) + "/tropospheric_reference.csv");
+  if (reference.times.empty())
+  {
+    std::cout << "no external reference at " << MICM_BENCHMARK_DATA_DIR
+              << "/tropospheric_reference.csv; skipping work-precision sweep "
+                 "(generate with benchmark/generate_reference_solutions.py)\n";
+  }
+  else
+  {
+    RunWorkPrecision(1.0, output_times, reference);
+  }
   return 0;
 }
