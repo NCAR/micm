@@ -25,6 +25,13 @@ namespace micm
     const double h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
     const double h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
     double H = std::min(std::max(h_min, std::abs(h_start)), std::abs(h_max));
+    if (parameters.h_persist_ && state.solver_step_size_suggestion_ > 0.0)
+    {
+      H = std::min(std::max(h_min, state.solver_step_size_suggestion_), std::abs(h_max));
+    }
+    // Controller suggestion carried into the next Solve() call when h_persist_ is
+    // set; tracked separately so end-of-interval truncation cannot poison it.
+    double h_persist_suggestion = H;
 
     const bool has_constraints = constraints_.Size() > 0;
 
@@ -77,6 +84,7 @@ namespace micm
       }
 
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
+      const double h_before_end_clamp = H;
       H = std::min(H, std::abs(time_step - present_time));
 
       // compute the initial forcing at the beginning of the current time
@@ -240,6 +248,11 @@ namespace micm
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
           Y.Swap(Ynew);
+          // A step shortened only to land on the interval end says nothing about
+          // stability at the controller's natural size, so the pre-clamp value is
+          // the better continuation suggestion; a rejection within this segment
+          // invalidates it.
+          const bool truncated_only = (H < h_before_end_clamp) && !reject_last_h;
           Hnew = std::max(h_min, std::min(Hnew, h_max));
           if (reject_last_h)
           {
@@ -249,6 +262,7 @@ namespace micm
           reject_last_h = false;
           reject_more_h = false;
           H = Hnew;
+          h_persist_suggestion = truncated_only ? std::max(Hnew, std::min(h_before_end_clamp, h_max)) : Hnew;
           accepted = true;
         }
         else
@@ -287,6 +301,11 @@ namespace micm
     }
 
     result.stats_.final_time_ = present_time;
+
+    if (parameters.h_persist_ && result.state_ == SolverState::Converged)
+    {
+      state.solver_step_size_suggestion_ = h_persist_suggestion;
+    }
 
     return result;
   }
