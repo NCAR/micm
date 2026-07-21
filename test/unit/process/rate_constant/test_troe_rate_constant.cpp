@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <type_traits>

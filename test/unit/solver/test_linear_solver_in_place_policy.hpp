@@ -393,7 +393,9 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
   CheckCopyToHost<MatrixPolicy>(x);
 
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType) -> void {
+        EXPECT_NEAR(a, b, 1.0e-5);
+      });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy>

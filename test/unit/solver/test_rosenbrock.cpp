@@ -13,6 +13,8 @@
 
 #include <gtest/gtest.h>
 
+#include <iomanip>
+
 // In this Test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
 template<class SolverBuilderPolicy>

@@ -49,6 +49,30 @@ namespace micm
     { t.AsDeviceParam() } -> std::same_as<CudaMatrixParam>;
   };
 
+  namespace cuda
+  {
+    // Precision-dispatching wrapper around cuBLAS axpy. Templating on the value type is
+    // required so that if constexpr actually discards the untaken branch: the cuBLAS
+    // arguments must depend on the template parameter. A guard on the fixed micm::Real
+    // alias would leave the untaken (non-dependent) branch fully type-checked, and the
+    // double->float argument mismatch would fail to compile.
+    template<typename T>
+    inline cublasStatus_t CublasAxpy(
+        cublasHandle_t handle,
+        int n,
+        const T* alpha,
+        const T* x,
+        int incx,
+        T* y,
+        int incy)
+    {
+      if constexpr (std::is_same_v<T, double>)
+        return cublasDaxpy(handle, n, alpha, x, incx, y, incy);
+      else
+        return cublasSaxpy(handle, n, alpha, x, incx, y, incy);
+    }
+  }  // namespace cuda
+
   template<class T, Index L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaDenseMatrix : public VectorMatrix<T, L>
   {
@@ -195,32 +219,16 @@ namespace micm
       const int incx = 1;  // increment for the elements of x
       const int incy = 1;  // increment for the elements of y
       static_assert(std::is_same_v<T, Real>);
-      if constexpr (std::is_same_v<micm::Real, double>)
-      {
-        CHECK_CUBLAS_ERROR(
-            cublasDaxpy(
-                micm::cuda::GetCublasHandle(),
-                x.param_.number_of_elements_,
-                &alpha,
-                x.param_.d_data_,
-                incx,
-                this->param_.d_data_,
-                incy),
-            "CUBLAS Daxpy operation failed...");
-      }
-      else
-      {
-        CHECK_CUBLAS_ERROR(
-            cublasSaxpy(
-                micm::cuda::GetCublasHandle(),
-                x.param_.number_of_elements_,
-                &alpha,
-                x.param_.d_data_,
-                incx,
-                this->param_.d_data_,
-                incy),
-            "CUBLAS Saxpy operation failed...");
-      }
+      CHECK_CUBLAS_ERROR(
+          micm::cuda::CublasAxpy(
+              micm::cuda::GetCublasHandle(),
+              x.param_.number_of_elements_,
+              &alpha,
+              x.param_.d_data_,
+              incx,
+              this->param_.d_data_,
+              incy),
+          "CUBLAS Axpy operation failed...");
     }
 
     /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant

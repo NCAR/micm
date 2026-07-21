@@ -12,6 +12,23 @@
 
 namespace micm::cuda
 {
+  namespace
+  {
+    // Compile-time dispatch to the correct precision cuBLAS 2-norm. This must live in a
+    // templated wrapper: written directly inside a non-template function, `if constexpr`
+    // still type-checks the untaken branch (it only skips *executing* it), so passing a
+    // double* to cublasSnrm2 fails to compile. Deducing T makes the condition
+    // value-dependent, so the discarded branch is not instantiated.
+    template<typename T>
+    inline cublasStatus_t CublasNrm2(cublasHandle_t handle, int n, const T* x, int incx, T* result)
+    {
+      if constexpr (std::is_same_v<T, double>)
+        return cublasDnrm2(handle, n, x, incx, result);
+      else
+        return cublasSnrm2(handle, n, x, incx, result);
+    }
+  }  // namespace
+
   /// CUDA kernel to compute alpha - J[i] for each element i at the diagonal of Jacobian matrix
   __global__ void AlphaMinusJacobianKernel(
       CudaMatrixParam jacobian_param,
@@ -277,18 +294,9 @@ namespace micm::cuda
     {
       // call cublas function to perform the norm:
       // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
-      if constexpr (std::is_same_v<micm::Real, double>)
-      {
-        CHECK_CUBLAS_ERROR(
-            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
-            "cublasDnrm2");
-      }
-      else
-      {
-        CHECK_CUBLAS_ERROR(
-            cublasSnrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
-            "cublasSnrm2");
-      }
+      CHECK_CUBLAS_ERROR(
+          CublasNrm2(micm::cuda::GetCublasHandle(), number_of_elements, errors_param.errors_input_, 1, &normalized_error),
+          "cublasNrm2");
       cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
       normalized_error = normalized_error * std::sqrt(1.0 / (number_of_grid_cells * number_of_species));
     }
