@@ -41,3 +41,6 @@ target_link_libraries(conservation_audit PUBLIC musica::micm)
 
 add_executable(mechanism_scale mechanism_scale.cpp)
 target_link_libraries(mechanism_scale PUBLIC musica::micm)
+
+add_executable(schur_ceiling schur_ceiling.cpp)
+target_link_libraries(schur_ceiling PUBLIC musica::micm)
