@@ -220,8 +220,98 @@ def tropospheric_reference(out_dir: Path) -> None:
     write_csv(out_dir / "tropospheric_reference.csv", times, SPECIES, result.y)
 
 
+# ---------------------------------------------------------------------------
+# Chemical Akzo Nobel (CWI/Bari IVP test set): index-1 DAE of dimension 6,
+#   M = diag(1,1,1,1,1,0), 0 = Ks*y1*y4 - y6.
+# y6 is explicitly slaved, so the exact equivalent reduced ODE substitutes
+# y6 = Ks*y1*y4 into r5 — integrable by scipy Radau (no mass-matrix support)
+# with y6 reconstructed afterwards. Constants from the test-set description.
+# ---------------------------------------------------------------------------
+
+AKZO_K1, AKZO_K2, AKZO_K3, AKZO_K4 = 18.7, 0.58, 0.09, 0.42
+AKZO_BIGK, AKZO_KLA, AKZO_KS = 34.4, 3.3, 115.83
+AKZO_PCO2, AKZO_H = 0.9, 737.0
+
+
+def akzo_reduced_rhs(_t, y):
+    y1, y2, y3, y4, y5 = y
+    y6 = AKZO_KS * y1 * y4
+    sq2 = np.sqrt(max(y2, 0.0))
+    r1 = AKZO_K1 * y1**4 * sq2
+    r2 = AKZO_K2 * y3 * y4
+    r3 = (AKZO_K2 / AKZO_BIGK) * y1 * y5
+    r4 = AKZO_K3 * y1 * y4**2
+    r5 = AKZO_K4 * y6**2 * sq2
+    f_in = AKZO_KLA * (AKZO_PCO2 / AKZO_H - y2)
+    return [
+        -2.0 * r1 + r2 - r3 - r4,
+        -0.5 * r1 - r4 - 0.5 * r5 + f_in,
+        r1 - r2 + r3,
+        -r2 + r3 - 2.0 * r4,
+        r2 - r3 + r5,
+    ]
+
+
+def akzo_reference(out_dir: Path) -> None:
+    y0 = [0.444, 0.00123, 0.0, 0.007, 0.0]
+    times = output_times(1.0e-1, 180.0, 21)
+    result = solve_ivp(
+        akzo_reduced_rhs,
+        (0.0, times[-1]),
+        y0,
+        method="Radau",
+        rtol=1.0e-12,
+        atol=1.0e-16,
+        t_eval=times,
+    )
+    if not result.success:
+        raise RuntimeError(f"Akzo Nobel reference failed: {result.message}")
+    y6 = AKZO_KS * result.y[0] * result.y[3]
+    solution = np.vstack([result.y, y6])
+    write_csv(out_dir / "akzo_reference.csv", times, ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6"], solution)
+    print("  Akzo terminal state:", ", ".join(f"{v:.10e}" for v in solution[:, -1]))
+
+
+# ---------------------------------------------------------------------------
+# HIRES (IVP test set): stiff ODE of dimension 8, t_end = 321.8122.
+# ---------------------------------------------------------------------------
+
+def hires_rhs(_t, y):
+    y1, y2, y3, y4, y5, y6, y7, y8 = y
+    return [
+        -1.71 * y1 + 0.43 * y2 + 8.32 * y3 + 0.0007,
+        1.71 * y1 - 8.75 * y2,
+        -10.03 * y3 + 0.43 * y4 + 0.035 * y5,
+        8.32 * y2 + 1.71 * y3 - 1.12 * y4,
+        -1.745 * y5 + 0.43 * y6 + 0.43 * y7,
+        -280.0 * y6 * y8 + 0.69 * y4 + 1.71 * y5 - 0.43 * y6 + 0.69 * y7,
+        280.0 * y6 * y8 - 1.81 * y7,
+        -280.0 * y6 * y8 + 1.81 * y7,
+    ]
+
+
+def hires_reference(out_dir: Path) -> None:
+    y0 = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0057]
+    times = output_times(1.0e-1, 321.8122, 21)
+    result = solve_ivp(
+        hires_rhs,
+        (0.0, times[-1]),
+        y0,
+        method="Radau",
+        rtol=1.0e-12,
+        atol=1.0e-16,
+        t_eval=times,
+    )
+    if not result.success:
+        raise RuntimeError(f"HIRES reference failed: {result.message}")
+    write_csv(out_dir / "hires_reference.csv", times, [f"H{i}" for i in range(1, 9)], result.y)
+    print("  HIRES terminal state:", ", ".join(f"{v:.10e}" for v in result.y[:, -1]))
+
+
 if __name__ == "__main__":
     out_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
     robertson_reference(out_dir)
     tropospheric_reference(out_dir)
+    akzo_reference(out_dir)
+    hires_reference(out_dir)
