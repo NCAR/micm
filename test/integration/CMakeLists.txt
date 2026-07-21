@@ -16,6 +16,7 @@ create_standard_test(NAME dae_algebraic_error_insensitivity SOURCES test_dae_alg
 create_standard_test(NAME dae_algebraic_error_step_economy SOURCES test_dae_algebraic_error_step_economy.cpp)
 create_standard_test(NAME step_size_persistence SOURCES test_step_size_persistence.cpp)
 create_standard_test(NAME norms_and_diagnostics SOURCES test_norms_and_diagnostics.cpp)
+create_standard_test(NAME rodas4p SOURCES test_rodas4p.cpp)
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)
