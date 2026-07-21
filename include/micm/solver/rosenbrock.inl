@@ -28,33 +28,26 @@ namespace micm
 
     const bool has_constraints = constraints_.Size() > 0;
 
-    // Declared here so they remain in scope for the solver loop below (captured by reference by mass_coupling).
-    // std::function gives mass_coupling a concrete, nameable type; the closure type returned by
-    // DenseMatrixPolicy::Function() is anonymous and cannot be named directly.
-    double current_c_over_h = 0.0;
-    const auto& diagonal = state.upper_left_identity_diagonal_;
-    std::function<void(DenseMatrixPolicy&, DenseMatrixPolicy&)> mass_coupling;
+    // Differential-variable indices (mass-matrix diagonal 1), precomputed once
+    // per solve. The DAE stage coupling accumulates c/H * K[j] on these rows
+    // only; a direct indexed loop replaces the former per-invocation
+    // DenseMatrixPolicy::Function closure (std::function dispatch, dimension
+    // re-validation, and column-view construction per call), which the
+    // constraint-cost probe measured as the dominant DAE per-step overhead.
+    // See docs/superpowers/notes/2026-07-20-dae-constraint-cost-probe.md.
+    std::vector<std::size_t> differential_indices;
 
-    // Initialize algebraic constraint variables and pre-build the mass-coupling function.
-    // All K matrices have the same shape, so K[0] is used to capture column counts at creation time.
+    // Initialize algebraic constraint variables.
     if (has_constraints)
     {
-      mass_coupling = DenseMatrixPolicy::Function(
-          [&current_c_over_h, &diagonal](auto&& k_stage_view, auto&& k_j_view)
-          {
-            for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
-            {
-              if (diagonal[i_var] != 0.0)
-              {
-                k_stage_view.ForEachRow(
-                    [&current_c_over_h](double& ks, const double& kj) { ks += current_c_over_h * kj; },
-                    k_stage_view.GetColumnView(i_var),
-                    k_j_view.GetConstColumnView(i_var));
-              }
-            }
-          },
-          K[0],
-          K[0]);
+      const auto& diagonal = state.upper_left_identity_diagonal_;
+      for (std::size_t i_var = 0; i_var < diagonal.size(); ++i_var)
+      {
+        if (diagonal[i_var] != 0.0)
+        {
+          differential_indices.push_back(i_var);
+        }
+      }
 
       auto init_state = InitializeConstraints(state, parameters, result.stats_);
       if (init_state != SolverState::Converged)
@@ -168,8 +161,15 @@ namespace micm
               // DAE path: scale by mass matrix diagonal element-wise.
               // For ODE variables (diagonal = 1), accumulate c/H * K[j].
               // For algebraic variables (diagonal = 0), the coupling is zero.
-              current_c_over_h = c_over_h;
-              mass_coupling(K[stage], K[j]);
+              auto& k_stage = K[stage];
+              const auto& k_j = K[j];
+              for (std::size_t i_cell = 0; i_cell < k_stage.NumRows(); ++i_cell)
+              {
+                for (const std::size_t i_var : differential_indices)
+                {
+                  k_stage[i_cell][i_var] += c_over_h * k_j[i_cell][i_var];
+                }
+              }
             }
           }
           if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)

@@ -43,7 +43,40 @@ Single-call run (one `Solve(1e6)`, initialization amortized to once):
    - the constraint residual (3×/step) and Jacobian (1×/step) sweeps;
    - algebraic-row handling in `AlphaMinusJacobian` and the error norm.
 
-## Revised phase-3 plan
+## Fix and outcome (same day)
+
+Replaced the `mass_coupling` closure in `rosenbrock.inl` with a direct
+indexed loop over a `differential_indices` list precomputed once per solve.
+The replacement is bit-exact (per-element independent operations, identical
+counters) and host-side for every dense-matrix policy, exactly like the
+closure it replaces (`CudaDenseMatrix` inherits `VectorMatrix::Function`,
+which is host-side validation + views). Full test suite green (66/66).
+
+Probe after the fix (same protocol):
+
+| Variant | µs | µs/step |
+|---|---:|---:|
+| full ODE | 138.7 | 0.323 |
+| QSSA-DAE | 133.2 | 0.320 |
+
+Per-step DAE machinery overhead: −1.5% (parity within noise; was +16.6%).
+Benchmark effects (clean, uncontended runs):
+
+- Robertson sweep: DAE now faster than the ODE at every k2
+  (e.g. 131.8 vs 138.1 µs at k2 = 3e7; previously 156.8 vs 137.7).
+- Tropospheric at j = 1: DAE 606 µs vs ODE 906 µs on the sweep point;
+  work–precision shows parity to advantage at rtol ≤ 1e-5.
+- Equilibrium triples: ratios improve only modestly
+  (N = 1: 1.51 → 1.31; N = 256: 2.62 → 2.55) — that family's overhead is
+  in the per-constraint residual/Jacobian evaluations and the larger
+  algebraic blocks, i.e. phase-4 (Schur) territory, not stage coupling.
+
+Phase-3 acceptance (Robertson DAE within ±5% of the ODE at equal step
+advantage) is met with margin; the remaining planned phase-3 items
+(devirtualization, constant-entry caching) are dropped as measured
+non-factors.
+
+## Revised phase-3 plan (superseded by the fix above)
 
 - Replace the `mass_coupling` closure with a direct loop over a precomputed
   list of differential-variable indices (no per-call closure dispatch, no
