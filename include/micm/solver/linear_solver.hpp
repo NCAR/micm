@@ -41,9 +41,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<
-      class SparseMatrixPolicy,
-      class LuDecompositionPolicy = LuDecomposition>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:
