@@ -6,19 +6,19 @@ namespace micm
 
   inline LuDecompositionDoolittle::LuDecompositionDoolittle() = default;
 
-  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecompositionDoolittle::LuDecompositionDoolittle(const SparseMatrixPolicy& matrix)
   {
-    Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
-  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecompositionDoolittle LuDecompositionDoolittle::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionDoolittle lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(
+    lu_decomp.Initialize<SparseMatrixPolicy>(
         matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
@@ -130,7 +130,7 @@ namespace micm
     return fp;
   }
 
-  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittle::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
@@ -138,17 +138,17 @@ namespace micm
     FillPattern fp = ComputeFillPattern(matrix);
     // Build the (indexing-only) L and U matrices from the fill pattern so we can map
     // (row, column) positions to data-vector indices below.
-    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
+    auto L_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
     for (const auto& pair : fp.L_ids_)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
+    auto U_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(matrix.NumberOfBlocks()).InitialValue(initial_value);
     for (const auto& pair : fp.U_ids_)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
-    std::pair<LMatrixPolicy, UMatrixPolicy> LU(LMatrixPolicy(L_builder, true), UMatrixPolicy(U_builder, true));
+    std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LU(SparseMatrixPolicy(L_builder, true), SparseMatrixPolicy(U_builder, true));
 
     // O(1)-amortized membership on the sorted adjacency rows; bounded by the
     // factorization's own operation count (times a log factor) rather than O(n^3).
@@ -222,27 +222,27 @@ namespace micm
     uii_.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
   }
 
-  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline std::pair<LMatrixPolicy, UMatrixPolicy> LuDecompositionDoolittle::GetLUMatrices(
+  inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecompositionDoolittle::GetLUMatrices(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
       bool indexing_only)
   {
     std::size_t n = A.NumRows();
     FillPattern fp = ComputeFillPattern(A);
-    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto L_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (const auto& pair : fp.L_ids_)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto U_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (const auto& pair : fp.U_ids_)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
-    std::pair<LMatrixPolicy, UMatrixPolicy> LU(
-        LMatrixPolicy(L_builder, indexing_only), UMatrixPolicy(U_builder, indexing_only));
+    std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LU(
+        SparseMatrixPolicy(L_builder, indexing_only), SparseMatrixPolicy(U_builder, indexing_only));
     return LU;
   }
 

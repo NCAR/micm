@@ -7,10 +7,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      class LuDecompositionPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
   operator double() const
   {
     if (state_.variables_.NumRows() != 1)
@@ -26,12 +24,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator=(double value)
   {
     if (state_.variables_.NumRows() != 1)
@@ -48,12 +44,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator=(const std::vector<double>& values)
   {
     if (values.size() != state_.number_of_grid_cells_)
@@ -73,12 +67,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator=(const VariableProxy& other)
   {
     if (this == &other)
@@ -102,12 +94,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator+=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
@@ -124,12 +114,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator-=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
@@ -146,12 +134,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator*=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
@@ -168,12 +154,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy&
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::VariableProxy::
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::
       operator/=(double value)
   {
     if (state_.number_of_grid_cells_ != 1)
@@ -190,10 +174,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy::operator[](std::size_t grid_cell_index)
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
@@ -206,10 +188,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy::operator[](std::size_t grid_cell_index) const
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
@@ -222,10 +202,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       ConstVariableProxy::operator double() const
   {
     if (state_.variables_.NumRows() != 1)
@@ -241,10 +219,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       ConstVariableProxy::operator[](std::size_t grid_cell_index) const
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
@@ -257,10 +233,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy::operator==(const std::vector<double>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
@@ -280,10 +254,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       ConstVariableProxy::operator==(const std::vector<double>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
@@ -303,10 +275,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State()
+      class LuDecompositionPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::State()
       : variables_(),
         custom_rate_parameters_(),
         rate_constants_(),
@@ -331,10 +301,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State(
+      class LuDecompositionPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::State(
       const StateParameters& parameters,
       const std::size_t number_of_grid_cells)
       : conditions_(number_of_grid_cells),
@@ -394,7 +362,7 @@ namespace micm
     {
       jacobian_ =
           BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, false);
-      auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(
+      auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(
           jacobian_, 0, false);
       auto lower_matrix = std::move(lu.first);
       auto upper_matrix = std::move(lu.second);
@@ -407,12 +375,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](
           std::size_t index)
   {
     if (index >= state_size_)
@@ -425,12 +391,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       ConstVariableProxy
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](
           std::size_t index) const
   {
     if (index >= state_size_)
@@ -443,12 +407,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](
           const std::string& name)
   {
     auto var = variable_map_.find(name);
@@ -462,12 +424,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       ConstVariableProxy
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](
           const std::string& name) const
   {
     auto var = variable_map_.find(name);
@@ -481,12 +441,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       VariableProxy
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](
           const Species& species)
   {
     return operator[](species.name_);
@@ -495,12 +453,10 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       ConstVariableProxy
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::operator[](
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](
           const Species& species) const
   {
     return operator[](species.name_);
@@ -509,11 +465,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentrations(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
     const std::size_t num_grid_cells = conditions_.size();
@@ -526,11 +480,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const Species& species,
       double concentration)
   {
@@ -552,11 +504,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const Species& species,
       const std::vector<double>& concentration)
   {
@@ -582,11 +532,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const std::string& element,
       double concentration)
   {
@@ -608,11 +556,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const std::string& element,
       const std::vector<double>& concentration)
   {
@@ -638,10 +584,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      class LuDecompositionPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::
       UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
@@ -669,11 +613,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameters(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
     for (const auto& pair : parameters)
@@ -685,11 +627,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameter(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameter(
       const std::string& label,
       double value)
   {
@@ -711,11 +651,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameter(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameter(
       const std::string& label,
       const std::vector<double>& values)
   {
@@ -740,11 +678,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetRelativeTolerance(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetRelativeTolerance(
       double relativeTolerance)
   {
     this->relative_tolerance_ = relativeTolerance;
@@ -753,11 +689,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetAbsoluteTolerances(
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(
       const std::vector<double>& absoluteTolerance)
   {
     this->absolute_tolerance_ = absoluteTolerance;
@@ -766,11 +700,9 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
+      class LuDecompositionPolicy>
   inline void
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintHeader()
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::PrintHeader()
   {
     auto largest_str_iter = std::max_element(
         variable_names_.begin(), variable_names_.end(), [](const auto& a, const auto& b) { return a.size() < b.size(); });
@@ -793,10 +725,8 @@ namespace micm
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintState(
+      class LuDecompositionPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::PrintState(
       double time)
   {
     std::ios oldState(nullptr);
