@@ -42,9 +42,7 @@ namespace micm
   template<
       class DenseMatrixPolicy = StandardDenseMatrix,
       class SparseMatrixPolicy = StandardSparseMatrix,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+      class LuDecompositionPolicy = LuDecomposition>
   struct State
   {
     /// Type of the DenseMatrixPolicy
@@ -71,8 +69,8 @@ namespace micm
     std::unordered_map<std::string, std::size_t> variable_map_;
     std::unordered_map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
-    LMatrixPolicy lower_matrix_;
-    UMatrixPolicy upper_matrix_;
+    SparseMatrixPolicy lower_matrix_;
+    SparseMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;

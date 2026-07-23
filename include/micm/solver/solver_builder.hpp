@@ -221,23 +221,19 @@ namespace micm
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam LuDecompositionPolicy Policy for the LU decomposition
-  /// @tparam LMatrixPolicy Policy for the Lower matrix
-  /// @tparam UMatrixPolicy Policy for the Upper matrix
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<double>,
       class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+      class LuDecompositionPolicy = LuDecomposition>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
+      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
   /// @brief Builder of CPU-based general solvers with in-place LU decomposition
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
