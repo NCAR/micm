@@ -43,7 +43,7 @@ void TestNormalizedErrorConst(const micm::Index number_of_grid_cells = L)
 
   micm::Real error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
-  auto expected_error = 0.0;
+  micm::Real expected_error = 0.0;
   for (micm::Index i = 0; i < state.state_size_; ++i)
   {
     micm::Real ymax = std::max(std::abs(y_old[0][i]), std::abs(y_new[0][i]));
