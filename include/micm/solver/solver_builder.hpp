@@ -232,7 +232,7 @@ namespace micm
       SparseMatrixPolicy,
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>,
+      LinearSolver<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
   /// @brief Builder of CPU-based general solvers with in-place LU decomposition

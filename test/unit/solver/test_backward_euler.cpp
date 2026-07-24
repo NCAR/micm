@@ -64,7 +64,7 @@ TEST(BackwardEuler, CanCallSolve)
 template<class DenseMatrixPolicy>
 void CheckIsConverged()
 {
-  using LinearSolverPolicy = micm::LinearSolver<micm::StandardSparseMatrix>;
+  using LinearSolverPolicy = micm::LinearSolver<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using RatesPolicy = micm::ProcessSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using ConstraintSetPolicy = micm::ConstraintSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using BackwardEuler = micm::AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;

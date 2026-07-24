@@ -41,7 +41,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:
@@ -69,6 +69,9 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
 
     LuDecompositionPolicy lu_decomp_;
+
+    // Solve function
+    std::function<void(MatrixPolicy&, const SparseMatrixPolicy&, const SparseMatrixPolicy&)> solve_func_;
 
    public:
     /// @brief default constructor
@@ -100,12 +103,12 @@ namespace micm
     void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix) const;
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
-    template<class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const;
-    template<class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const;
+
+   private:
+    /// @brief Helper for creating the linear solve function during initialization
+    std::function<void(MatrixPolicy&, const SparseMatrixPolicy&, const SparseMatrixPolicy&)> LinearSolveFunc(
+        const MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix);
   };
 
 }  // namespace micm
