@@ -18,8 +18,7 @@ namespace micm
   inline LuDecompositionMozart LuDecompositionMozart::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionMozart lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(
-        matrix, typename SparseMatrixPolicy::value_type());
+    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 

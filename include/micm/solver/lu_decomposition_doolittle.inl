@@ -18,8 +18,7 @@ namespace micm
   inline LuDecompositionDoolittle LuDecompositionDoolittle::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionDoolittle lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(
-        matrix, typename SparseMatrixPolicy::value_type());
+    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
@@ -148,7 +147,8 @@ namespace micm
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
-    std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LU(SparseMatrixPolicy(L_builder, true), SparseMatrixPolicy(U_builder, true));
+    std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LU(
+        SparseMatrixPolicy(L_builder, true), SparseMatrixPolicy(U_builder, true));
 
     // O(1)-amortized membership on the sorted adjacency rows; bounded by the
     // factorization's own operation count (times a log factor) rather than O(n^3).
