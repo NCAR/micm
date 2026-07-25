@@ -76,17 +76,13 @@ namespace micm
     /// @return Index of the element in the compressed data vector
     std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
-      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks)
-      {
-        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
-      }
+      assert(
+          row < row_start_.size() - 1 && column < row_start_.size() - 1 && block < number_of_blocks &&
+          "element out of range");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
-      if (elem == end)
-      {
-        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS, "Zero element access");
-      }
+      assert(elem != end && "zero element access");
       return std::size_t{ (elem - row_ids_.begin()) * L + block % L + (block / L) * L * row_ids_.size() };
     }
 
@@ -120,17 +116,11 @@ namespace micm
     /// @return The index of the nth non-zero element within a block (0-based)
     std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
     {
-      if (row >= row_start_.size() - 1 || col >= row_start_.size() - 1)
-      {
-        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
-      }
+      assert(row < row_start_.size() - 1 && col < row_start_.size() - 1 && "element out of range");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, col);
-      if (elem == end)
-      {
-        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS, "Zero element access");
-      }
+      assert(elem != end && "zero element access");
       return std::distance(row_ids_.begin(), elem);
     }
 
@@ -306,10 +296,26 @@ namespace micm
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args) const
       {
-        // Tight loop over blocks in this group for vectorization
-        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        // Vector-ordered matrix storage is padded to ceil(N/L)*L cells, so it is always
+        // safe to process L blocks per group for matrix args. VectorLike args (e.g.
+        // std::vector<T>), however, have exactly N elements and would OOB past the
+        // vector's real size, so we fall back to the runtime bound whenever any arg is
+        // VectorLike.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
         {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+          {
+            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
+          for (std::size_t block_in_group = 0; block_in_group < L; ++block_in_group)
+          {
+            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
         }
       }
 
@@ -463,10 +469,21 @@ namespace micm
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args)
       {
-        // Tight loop over blocks in this group for vectorization
-        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        // See ConstGroupView::ForEachBlock for rationale.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
         {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+          {
+            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          for (std::size_t block_in_group = 0; block_in_group < L; ++block_in_group)
+          {
+            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
         }
       }
 
@@ -559,10 +576,7 @@ namespace micm
     /// @return true if the element is always zero, false otherwise
     bool IsZero(std::size_t row, std::size_t column) const
     {
-      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
-      {
-        throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE, "Element out of range");
-      }
+      assert(row < row_start_.size() - 1 && column < row_start_.size() - 1 && "element out of range");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       return std::find(begin, end, column) == end;

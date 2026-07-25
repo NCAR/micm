@@ -177,10 +177,6 @@ namespace micm
       // There must always be a non-zero element on the diagonal
       nUij_Uii_.push_back(std::make_pair(nUij, upper_matrix.VectorIndex(0, i, i)));
     }
-
-    /// create and save the solver function
-    auto x = MatrixPolicy(matrix.NumberOfBlocks(), matrix.NumRows());
-    solve_func_ = LinearSolveFunc(x, lower_matrix, upper_matrix);
   };
 
   template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -198,84 +194,60 @@ namespace micm
       const SparseMatrixPolicy& lower_matrix,
       const SparseMatrixPolicy& upper_matrix) const
   {
-    solve_func_(x, lower_matrix, upper_matrix);
-  }
-
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline std::function<void(MatrixPolicy&, const SparseMatrixPolicy&, const SparseMatrixPolicy&)>
-  LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolveFunc(
-      const MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix)
-  {
-    return SparseMatrixPolicy::Function(
-      [nLij_Lii = nLij_Lii_,
-       Lij_yj = Lij_yj_,
-       nUij_Uii = nUij_Uii_,
-       Uij_xj = Uij_xj_](auto&& x, auto&& lower, auto&& upper){
-        // Forward Substitution
-        // b values passed in as x; overwrites b values with y values
+    SparseMatrixPolicy::Function(
+        [this](auto&& x_view, auto&& lower_view, auto&& upper_view)
         {
-          auto Lij_yj_it = Lij_yj.begin();
-          std::size_t i = 0;
-          for (const auto& nLij_Lii_entry : nLij_Lii)
+          // Forward Substitution
+          // b values passed in as x; overwrites b values with y values
           {
-            for (std::size_t k = 0; k < nLij_Lii_entry.first; ++k)
+            auto Lij_yj_it = Lij_yj_.begin();
+            std::size_t i = 0;
+            for (const auto& nLij_Lii_entry : nLij_Lii_)
             {
-              lower.ForEachBlock(
-                [&](double& yi, const double& Lij, const double& yj)
-                {
-                  yi -= Lij * yj;
-                },
-                x.GetColumnView(i),
-                lower.GetConstBlockView((*Lij_yj_it).first),
-                x.GetConstColumnView((*Lij_yj_it).second)
-              );
-              ++Lij_yj_it;
-            }
-            lower.ForEachBlock(
-              [&](double& yi, const double& Lii)
+              auto x_col_i = x_view.GetColumnView(i);
+              for (std::size_t k = 0; k < nLij_Lii_entry.first; ++k)
               {
-                yi /= Lii;
-              },
-              x.GetColumnView(i),
-              lower.GetConstBlockView(nLij_Lii_entry.second)
-            );
-            ++i;
+                lower_view.ForEachBlock(
+                    [](double& yi, const double& Lij, const double& yj) { yi -= Lij * yj; },
+                    x_col_i,
+                    lower_view.GetConstBlockView((*Lij_yj_it).first),
+                    x_view.GetConstColumnView((*Lij_yj_it).second));
+                ++Lij_yj_it;
+              }
+              lower_view.ForEachBlock(
+                  [](double& yi, const double& Lii) { yi /= Lii; },
+                  x_col_i,
+                  lower_view.GetConstBlockView(nLij_Lii_entry.second));
+              ++i;
+            }
           }
-        }
-        // Backward Substitution
-        // overwrites y values with x values
-        {
-          auto Uij_xj_it = Uij_xj.begin();
-          std::size_t i = size(nUij_Uii);
-          for (const auto& nUij_Uii_entry : nUij_Uii)
+          // Backward Substitution
+          // overwrites y values with x values
           {
-            --i;
-            for (std::size_t k = 0; k < nUij_Uii_entry.first; ++k)
+            auto Uij_xj_it = Uij_xj_.begin();
+            std::size_t i = nUij_Uii_.size();
+            for (const auto& nUij_Uii_entry : nUij_Uii_)
             {
-              upper.ForEachBlock(
-                [&](double& xi, const double& Uij, const double& xj)
-                {
-                  xi -= Uij * xj;
-                },
-                x.GetColumnView(i),
-                upper.GetConstBlockView((*Uij_xj_it).first),
-                x.GetConstColumnView((*Uij_xj_it).second)
-              );
-              ++Uij_xj_it;
-            }
-            upper.ForEachBlock(
-              [&](double& xi, const double& Uii)
+              --i;
+              auto x_col_i = x_view.GetColumnView(i);
+              for (std::size_t k = 0; k < nUij_Uii_entry.first; ++k)
               {
-                xi /= Uii;
-              },
-              x.GetColumnView(i),
-              upper.GetConstBlockView(nUij_Uii_entry.second)
-            );
+                upper_view.ForEachBlock(
+                    [](double& xi, const double& Uij, const double& xj) { xi -= Uij * xj; },
+                    x_col_i,
+                    upper_view.GetConstBlockView((*Uij_xj_it).first),
+                    x_view.GetConstColumnView((*Uij_xj_it).second));
+                ++Uij_xj_it;
+              }
+              upper_view.ForEachBlock(
+                  [](double& xi, const double& Uii) { xi /= Uii; },
+                  x_col_i,
+                  upper_view.GetConstBlockView(nUij_Uii_entry.second));
+            }
           }
-        }
-      },
-      x,
-      lower_matrix,
-      upper_matrix);
+        },
+        x,
+        lower_matrix,
+        upper_matrix)(x, lower_matrix, upper_matrix);
   }
 }  // namespace micm

@@ -427,21 +427,8 @@ namespace micm
     /// @return A ConstBlockView descriptor
     ConstBlockView GetConstBlockView(std::size_t row, std::size_t col) const
     {
-      if (row >= block_size_ || col >= block_size_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Block element (" + std::to_string(row) + "," + std::to_string(col) +
-                ") out of range for matrix with block size " + std::to_string(block_size_));
-      }
-      if (this->IsZero(row, col))
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
-            "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
-      }
+      assert(row < block_size_ && col < block_size_ && "block element out of range");
+      assert(!this->IsZero(row, col) && "cannot create view for zero block element");
       std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
       return ConstBlockView(this, vector_index);
     }
@@ -461,21 +448,8 @@ namespace micm
     /// @return A BlockView descriptor
     BlockView GetBlockView(std::size_t row, std::size_t col)
     {
-      if (row >= block_size_ || col >= block_size_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Block element (" + std::to_string(row) + "," + std::to_string(col) +
-                ") out of range for matrix with block size " + std::to_string(block_size_));
-      }
-      if (this->IsZero(row, col))
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
-            "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
-      }
+      assert(row < block_size_ && col < block_size_ && "block element out of range");
+      assert(!this->IsZero(row, col) && "cannot create view for zero block element");
       std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
       return BlockView(this, vector_index);
     }

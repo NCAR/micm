@@ -70,9 +70,6 @@ namespace micm
 
     LuDecompositionPolicy lu_decomp_;
 
-    // Solve function
-    std::function<void(MatrixPolicy&, const SparseMatrixPolicy&, const SparseMatrixPolicy&)> solve_func_;
-
    public:
     /// @brief default constructor
     LinearSolver() = default;
@@ -104,11 +101,6 @@ namespace micm
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const;
-
-   private:
-    /// @brief Helper for creating the linear solve function during initialization
-    std::function<void(MatrixPolicy&, const SparseMatrixPolicy&, const SparseMatrixPolicy&)> LinearSolveFunc(
-        const MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix);
   };
 
 }  // namespace micm

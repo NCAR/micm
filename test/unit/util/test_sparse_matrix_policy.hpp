@@ -14,73 +14,19 @@ MatrixPolicy<double, OrderingPolicy> TestZeroMatrix()
   MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
-
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][0][4] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[1][0][0] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][3][0] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][1][1] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(0, 0);, "zero element access");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(6, 0);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 3);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(6, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 0);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(1, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 3);, "out of range");
+  EXPECT_DEATH(matrix[0][0][4] = 2.0;, "out of range");
+  EXPECT_DEATH(matrix[1][0][0] = 2.0;, "out of range");
+  EXPECT_DEATH(matrix[0][3][0] = 2.0;, "out of range");
+  EXPECT_DEATH(matrix[0][1][1] = 2.0;, "zero element access");
+#endif
   return matrix;
 }
 
@@ -94,49 +40,15 @@ MatrixPolicy<double, OrderingPolicy> TestConstZeroMatrix()
   const MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
-
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(0, 0);, "zero element access");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(6, 0);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 3);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(6, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 0);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(1, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 3);, "out of range");
+#endif
   return matrix;
 }
 
@@ -177,61 +89,17 @@ MatrixPolicy<double, OrderingPolicy> TestSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 0);
   matrix[0][2][1] = 45;
   EXPECT_EQ(matrix[0][2][1], 45);
-
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[1][0][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][3][3] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(4, 2);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 5);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 0, 2);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(2, 2);, "zero element access");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(0, 2);, "zero element access");
+  EXPECT_DEATH(matrix[0][0][4] = 2;, "out of range");
+  EXPECT_DEATH(matrix[1][0][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][5][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][3][3] = 2;, "zero element access");
+#endif
   return matrix;
 }
 
@@ -270,37 +138,13 @@ MatrixPolicy<int, OrderingPolicy> TestConstSingleBlockMatrix()
   EXPECT_EQ(matrix.IsZero(3, 3), true);
 
   EXPECT_EQ(matrix[0][2][1], 45);
-
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(4, 2);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 5);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 0, 2);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(2, 2);, "zero element access");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(0, 2);, "zero element access");
+#endif
   return matrix;
 }
 
@@ -348,67 +192,25 @@ MatrixPolicy<double, OrderingPolicy> TestMultiBlockMatrix()
   diagonal_ids = matrix.DiagonalIndices(2);
   EXPECT_EQ(diagonal_ids.size(), 1);
   EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(2, 1, 1));
-
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(54, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 2, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(0, 4, 2);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(2, 1, 5);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(54, 0, 2);, "out of range");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(1, 2, 2);, "zero element access");
+  EXPECT_DEATH(std::size_t elem = matrix.VectorIndex(2, 0, 2);, "zero element access");
+#endif
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX);
         throw;
       },
       micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[53][0][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][3][3] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(matrix[0][0][4] = 2;, "out of range");
+  EXPECT_DEATH(matrix[53][0][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][5][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][3][3] = 2;, "zero element access");
+#endif
   return matrix;
 }
 
@@ -774,8 +576,10 @@ void TestMismatchedElementDimensions()
       },
       matrix);
 
-  // Should throw when invoking the function because element (3,3) doesn't exist
-  EXPECT_ANY_THROW(func(matrix));
+  // Should fail when invoking the function because element (3,3) doesn't exist
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix),"");
+#endif
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
@@ -821,8 +625,10 @@ void TestWrongMatrixDimensions()
       5);  // Different number of blocks!
   MatrixPolicy<double, OrderingPolicy> matrix3{ builder3 };
 
-  // Should throw because number of blocks doesn't match (5 vs 3)
-  EXPECT_ANY_THROW(func(matrix3));
+  // Should fail because number of blocks doesn't match (5 vs 3)
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix3), "");
+#endif
 }
 
 /// @brief Test: Multiple sparse matrices with DIFFERENT block counts from creation (should work)
@@ -1044,10 +850,12 @@ void TestWrongStructureAtInvocation()
       matrix3);
 
   // Should work with different block count but same structure
-  EXPECT_NO_THROW(func(matrix5_same));
+  func(matrix5_same);
 
-  // Should throw with different element structure
-  EXPECT_ANY_THROW(func(matrix5_diff));
+  // Should fail assertion in debug mode with different element structure
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix5_diff),"");
+#endif
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>

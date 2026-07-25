@@ -435,15 +435,7 @@ namespace micm
     /// @return A ConstColumnView descriptor
     ConstColumnView GetConstColumnView(std::size_t column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ConstColumnView(this, column_index);
     }
 
@@ -452,14 +444,7 @@ namespace micm
     /// @return A ColumnView descriptor
     ColumnView GetColumnView(std::size_t column_index)
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
     }
 

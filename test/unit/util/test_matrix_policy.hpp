@@ -818,8 +818,10 @@ void TestMismatchedColumnDimensions()
       },
       matrix);
 
-  // Should throw when invoking the function because column 5 doesn't exist
-  EXPECT_ANY_THROW(func(matrix));
+  // Should fail assert when invoking the function because column 5 doesn't exist
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix), "");
+#endif
 }
 
 template<template<class> class MatrixPolicy>

@@ -491,14 +491,7 @@ namespace micm
     /// @return A ConstColumnView descriptor
     ConstColumnView GetConstColumnView(std::size_t column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ConstColumnView(this, column_index);
     }
 
@@ -507,14 +500,7 @@ namespace micm
     /// @return A ColumnView descriptor
     ColumnView GetColumnView(std::size_t column_index)
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
     }
 
@@ -666,10 +652,25 @@ namespace micm
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
-        // Tight loop over L rows in this group for vectorization
-        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        // VectorMatrix storage is padded to ceil(x_dim/L)*L cells, so it is always safe to
+        // process L rows per group for matrix args. VectorLike args (e.g. std::vector<T>),
+        // however, have exactly N elements and would OOB past the vector's real size, so
+        // we fall back to the runtime bound whenever any arg is VectorLike.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
+          for (std::size_t row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
         }
       }
 
@@ -756,10 +757,21 @@ namespace micm
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args)
       {
-        // Tight loop over L rows in this group for vectorization
-        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        // See ConstGroupView::ForEachRow for rationale.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          for (std::size_t row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
         }
       }
 
