@@ -104,10 +104,11 @@ namespace micm
       }
     }
 
-    /// @brief Convert row and column indices to vector index
+    /// @brief Convert row and column indices to a block-relative offset
     /// @param row The row index
     /// @param col The column index
-    /// @return The index of the nth non-zero element within a block (0-based)
+    /// @return The block-relative offset (elem_position * L), matching what
+    ///         VectorIndex(0, row, col) returns and what GetBlockElement consumes.
     std::size_t VectorIndexFromRowColumn(std::size_t row, std::size_t col) const
     {
       assert(col < column_start_.size() - 1 && row < column_start_.size() - 1 && "element out of range");
@@ -115,16 +116,22 @@ namespace micm
       auto end = std::next(column_ids_.begin(), column_start_[col + 1]);
       auto elem = std::find(begin, end, row);
       assert(elem != end && "zero element access");
-      return std::distance(column_ids_.begin(), elem);
+      return std::distance(column_ids_.begin(), elem) * L;
     }
 
-    /// @brief Extract element position from VectorIndex(0, row, col) result
+    /// @brief Extract the block-relative offset from a VectorIndex(0, row, col) result
     /// @param vector_index_block_zero The result of VectorIndex(0, row, col)
-    /// @return The element position (0 to number_of_non_zero_elements-1)
+    /// @return The offset used by GetBlockElement to locate the element within a group.
+    ///
+    /// For vector ordering this is `elem_position * L` (the raw offset within a
+    /// group), NOT `elem_position` (0..number_of_non_zero_elements-1). Returning
+    /// the raw offset lets GetBlockElement skip a `* L` per element access, which
+    /// balances the `/ L` that a naive implementation would do here. Both cancel
+    /// out. The stored value in ConstBlockView / BlockView is opaque to callers,
+    /// so this is safe.
     std::size_t ElementPositionFromVectorIndex(std::size_t vector_index_block_zero) const
     {
-      // For vector ordering: VectorIndex(0, row, col) = elem_position * L
-      return vector_index_block_zero / L;
+      return vector_index_block_zero;
     }
 
     std::vector<std::size_t> DiagonalIndices(const std::size_t number_of_blocks, const std::size_t block_id) const
@@ -179,14 +186,14 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        // Calculate the actual block index from group and block_in_group
-        std::size_t block = group_ * L + block_in_group;
         auto* source_matrix = arg.GetMatrix();
-        std::size_t elem_position = arg.ElementPosition();
+        // arg.ElementPosition() is the raw block-relative offset (elem_position * L);
+        // see ElementPositionFromVectorIndex above. block_in_group < L is guaranteed
+        // by the ForEachBlock loop bound, so (group_ * L + block_in_group) / L == group_
+        // and % L == block_in_group; write the address arithmetic without the div/mod.
+        std::size_t block_offset = arg.ElementPosition();
         std::size_t num_non_zero = source_matrix->FlatBlockSize();
-        // For vector ordering: (block / L) * (num_non_zero * L) + elem_position * L + (block % L)
-        std::size_t data_index = (block / L) * num_non_zero * L + elem_position * L + (block % L);
-        return source_matrix->AsVector()[data_index];
+        return source_matrix->AsVector()[group_ * num_non_zero * L + block_offset + block_in_group];
       }
 
       /// @brief Get element from VectorMatrix ConstColumnView (tiered grouping L>1)
@@ -195,17 +202,12 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        // Calculate the actual block index from group and block_in_group
-        std::size_t block = group_ * L + block_in_group;
         auto* source_matrix = arg.GetMatrix();
-
-        // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
-        std::size_t matrix_L = source_matrix->GroupVectorSize();
-        std::size_t row = block;
-        std::size_t row_group = row / matrix_L;
-        std::size_t row_in_group = row % matrix_L;
-        return source_matrix
-            ->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
+        // Function() enforces matching L across all matrix args, so we can use L
+        // (the sparse ordering's compile-time L) rather than the dense matrix's
+        // runtime GroupVectorSize(). block_in_group < L is the ForEachBlock guarantee.
+        return source_matrix->AsVector()
+            [(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
       }
 
       /// @brief Get element from Matrix or VectorMatrix<1> ConstColumnView (simple grouping L==1)
@@ -342,14 +344,11 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
-        // Calculate the actual block index from group and block_in_group
-        std::size_t block = group_ * L + block_in_group;
         auto* source_matrix = arg.GetMatrix();
-        std::size_t elem_position = arg.ElementPosition();
+        // See ConstGroupView::GetBlockElement for the reasoning.
+        std::size_t block_offset = arg.ElementPosition();
         std::size_t num_non_zero = source_matrix->FlatBlockSize();
-        // For vector ordering: (block / L) * (num_non_zero * L) + elem_position * L + (block % L)
-        std::size_t data_index = (block / L) * num_non_zero * L + elem_position * L + (block % L);
-        return source_matrix->AsVector()[data_index];
+        return source_matrix->AsVector()[group_ * num_non_zero * L + block_offset + block_in_group];
       }
 
       /// @brief Get element from VectorMatrix ColumnView (tiered grouping L>1)
@@ -358,17 +357,10 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
-        // Calculate the actual block index from group and block_in_group
-        std::size_t block = group_ * L + block_in_group;
         auto* source_matrix = arg.GetMatrix();
-
-        // VectorMatrix layout: data_[(group * y_dim + column) * L + row_in_group]
-        std::size_t matrix_L = source_matrix->GroupVectorSize();
-        std::size_t row = block;
-        std::size_t row_group = row / matrix_L;
-        std::size_t row_in_group = row % matrix_L;
-        return source_matrix
-            ->AsVector()[(row_group * source_matrix->NumColumns() + arg.ColumnIndex()) * matrix_L + row_in_group];
+        // See ConstGroupView::GetBlockElement for the reasoning.
+        return source_matrix->AsVector()
+            [(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
       }
 
       /// @brief Get element from Matrix or VectorMatrix<1> ColumnView (simple grouping L==1)
