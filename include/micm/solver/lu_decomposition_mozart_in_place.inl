@@ -167,7 +167,7 @@ namespace micm
             ++aik_njk;
           }
         }
-      }
-    )(ALU);
+      },
+      ALU)(ALU);
   } 
 }  // namespace micm
