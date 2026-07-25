@@ -37,7 +37,7 @@
   #define CALLGRIND_ZERO_STATS            do {} while (0)
 #endif
 
-#define SOLVER_BUILDER micm::CpuSolverBuilder
+#define SOLVER_BUILDER micm::CpuSolverBuilderInPlace
 
 namespace
 {
