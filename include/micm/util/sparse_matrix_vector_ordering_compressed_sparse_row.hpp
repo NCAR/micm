@@ -182,6 +182,25 @@ namespace micm
     template<typename SparseMatrixType>
     class ConstGroupView
     {
+     public:
+      using T = typename SparseMatrixType::value_type;
+
+      /// @brief Enriched const block view returned by GetConstBlockView on a ConstGroupView.
+      ///
+      /// Carries a precomputed base pointer into this group's slice of the sparse data
+      /// vector (`matrix.data() + group * FlatBlockSize() * L`). Element access via
+      /// GetBlockElement is `group_base[block_offset + block_in_group]` (contiguous!),
+      /// avoiding the `group * num_non_zero * L + elem_position * L + block_in_group`
+      /// recomputation the raw ConstBlockView requires. Only valid for the group its
+      /// parent ConstGroupView was constructed for and only while the underlying matrix's
+      /// data buffer is not reallocated.
+      struct GroupedConstBlockView
+      {
+        using category = GroupedSparseMatrixBlockViewTag;
+        const T* group_base;
+        std::size_t block_offset;
+      };
+
      private:
       const SparseMatrixType& matrix_;
       std::size_t group_;
@@ -202,6 +221,16 @@ namespace micm
         return source_matrix->AsVector()[group_ * num_non_zero * L + block_offset + block_in_group];
       }
 
+      /// @brief Get element from GroupedConstBlockView (fast path)
+      /// group_base and block_offset were precomputed at GetConstBlockView() time; the
+      /// per-element cost is a single add + indexed load.
+      template<GroupedSparseMatrixBlockView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg.group_base[arg.block_offset + block_in_group];
+      }
+
       /// @brief Get element from VectorMatrix ConstColumnView (tiered grouping L>1)
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
@@ -214,6 +243,14 @@ namespace micm
         // runtime GroupVectorSize(). block_in_group < L is the ForEachBlock guarantee.
         return source_matrix->AsVector()
             [(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
+      }
+
+      /// @brief Get element from GroupedColumnView (fast path)
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
+      {
+        return arg.base[block_in_group];
       }
 
       /// @brief Get element from Matrix or VectorMatrix<1> ConstColumnView (simple grouping L==1)
@@ -279,9 +316,11 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
-      auto GetConstBlockView(std::size_t vector_index) const
+      /// @brief Returns a grouped const block view whose group base pointer is
+      ///        precomputed for this ConstGroupView's group.
+      GroupedConstBlockView GetConstBlockView(std::size_t vector_index) const
       {
-        return matrix_.GetConstBlockView(vector_index);
+        return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
       }
 
       auto GetConstBlockView(std::size_t row, std::size_t col) const
@@ -291,7 +330,6 @@ namespace micm
 
       auto GetBlockVariable() const
       {
-        using T = typename SparseMatrixType::value_type;
         return BlockVariable<T>();
       }
 
@@ -340,6 +378,25 @@ namespace micm
     template<typename SparseMatrixType>
     class GroupView
     {
+     public:
+      using T = typename SparseMatrixType::value_type;
+
+      /// @brief Enriched mutable block view returned by GetBlockView on a GroupView.
+      ///        See ConstGroupView::GroupedConstBlockView for rationale.
+      struct GroupedBlockView
+      {
+        using category = GroupedSparseMatrixBlockViewTag;
+        T* group_base;
+        std::size_t block_offset;
+      };
+      /// @brief Const variant, for GetConstBlockView on a mutable GroupView.
+      struct GroupedConstBlockView
+      {
+        using category = GroupedSparseMatrixBlockViewTag;
+        const T* group_base;
+        std::size_t block_offset;
+      };
+
      private:
       SparseMatrixType& matrix_;
       std::size_t group_;
@@ -357,6 +414,14 @@ namespace micm
         return source_matrix->AsVector()[group_ * num_non_zero * L + block_offset + block_in_group];
       }
 
+      /// @brief Get element from GroupedBlockView (fast path)
+      template<GroupedSparseMatrixBlockView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg.group_base[arg.block_offset + block_in_group];
+      }
+
       /// @brief Get element from VectorMatrix ColumnView (tiered grouping L>1)
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
@@ -367,6 +432,14 @@ namespace micm
         // See ConstGroupView::GetBlockElement for the reasoning.
         return source_matrix->AsVector()
             [(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
+      }
+
+      /// @brief Get element from GroupedColumnView (fast path)
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
+      {
+        return arg.base[block_in_group];
       }
 
       /// @brief Get element from Matrix or VectorMatrix<1> ColumnView (simple grouping L==1)
@@ -432,9 +505,11 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
-      auto GetConstBlockView(std::size_t vector_index) const
+      /// @brief Returns a grouped const block view whose group base pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedConstBlockView GetConstBlockView(std::size_t vector_index) const
       {
-        return matrix_.GetConstBlockView(vector_index);
+        return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
       }
 
       auto GetConstBlockView(std::size_t row, std::size_t col) const
@@ -442,9 +517,11 @@ namespace micm
         return matrix_.GetConstBlockView(row, col);
       }
 
-      auto GetBlockView(std::size_t vector_index)
+      /// @brief Returns a grouped mutable block view whose group base pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedBlockView GetBlockView(std::size_t vector_index)
       {
-        return matrix_.GetBlockView(vector_index);
+        return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
       }
 
       auto GetBlockView(std::size_t row, std::size_t col)
@@ -454,7 +531,6 @@ namespace micm
 
       auto GetBlockVariable()
       {
-        using T = typename SparseMatrixType::value_type;
         return BlockVariable<T>();
       }
 

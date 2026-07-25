@@ -587,6 +587,22 @@ namespace micm
     /// @brief ConstGroupView provides a const view of a single group of L rows for iteration
     class ConstGroupView
     {
+     public:
+      /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
+      ///
+      /// Carries a precomputed base pointer into this ConstGroupView's slice of the
+      /// underlying storage. For VectorMatrix, `base` points at the first row of the
+      /// group's L-row block for `column_index`, so element access is
+      /// `arg.base[row_in_group]` (contiguous!) instead of recomputing
+      /// `(group * y_dim + column) * L + row_in_group` per element. Only valid for
+      /// the group its parent ConstGroupView was constructed for and only while the
+      /// underlying matrix's data buffer is not reallocated.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base;
+      };
+
      private:
       const VectorMatrix& matrix_;
       std::size_t group_;
@@ -600,6 +616,15 @@ namespace micm
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
         return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
+      }
+
+      /// @brief Get a const element reference for a specific row in this group (GroupedColumnView)
+      /// Fast path: `base` already points at row 0 of this group's L-row block.
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      {
+        return arg.base[row_in_group];
       }
 
       /// @brief Get a const element reference for a specific row in this group (RowVariable)
@@ -638,9 +663,12 @@ namespace micm
       {
       }
 
-      auto GetConstColumnView(std::size_t column_index) const
+      /// @brief Returns a grouped const column view whose element base pointer is
+      ///        precomputed for this ConstGroupView's group.
+      GroupedConstColumnView GetConstColumnView(std::size_t column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
       RowVariable GetRowVariable() const
@@ -687,6 +715,21 @@ namespace micm
     /// @brief GroupView provides a view of a single group of L rows for iteration
     class GroupView
     {
+     public:
+      /// @brief Enriched mutable column view returned by GetColumnView on a GroupView.
+      ///        See ConstGroupView::GroupedConstColumnView for rationale.
+      struct GroupedColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        T* base;
+      };
+      /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base;
+      };
+
      private:
       VectorMatrix& matrix_;
       std::size_t group_;
@@ -700,6 +743,15 @@ namespace micm
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
         return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
+      }
+
+      /// @brief Get an element reference for a specific row in this group (GroupedColumnView)
+      /// Fast path: `base` already points at row 0 of this group's L-row block.
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      {
+        return arg.base[row_in_group];
       }
 
       /// @brief Get an element reference for a specific row in this group (RowVariable)
@@ -738,14 +790,20 @@ namespace micm
       {
       }
 
-      auto GetConstColumnView(std::size_t column_index) const
+      /// @brief Returns a grouped const column view whose element base pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedConstColumnView GetConstColumnView(std::size_t column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
-      auto GetColumnView(std::size_t column_index)
+      /// @brief Returns a grouped mutable column view whose element base pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedColumnView GetColumnView(std::size_t column_index)
       {
-        return matrix_.GetColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
       RowVariable GetRowVariable()

@@ -14,7 +14,7 @@
 #   BUILD_DIR = build
 #   CELLS     = 10000
 #   STEPS     = 30
-#   KINDS     = standard vector1 vector2 vector4 vector8
+#   KINDS     = standard vector1 vector2 vector4 vector8 vector128
 #
 # Requires: chapman_bench built inside BUILD_DIR (i.e. cmake --build BUILD_DIR
 # --target chapman_bench).
@@ -27,7 +27,7 @@ steps="${3:-30}"
 shift $(( $# > 3 ? 3 : $# )) || true
 kinds=("$@")
 if [[ ${#kinds[@]} -eq 0 ]]; then
-  kinds=(standard vector1 vector2 vector4 vector8)
+  kinds=(standard vector1 vector2 vector4 vector8 vector128)
 fi
 
 bin="${build}/chapman_bench"

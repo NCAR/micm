@@ -4,7 +4,7 @@
 // so per-Solve() work dominates over per-call overhead.
 //
 // Usage: chapman_bench [num_cells] [num_steps] [dt_seconds] [matrix_kind]
-//   matrix_kind: "standard" (default) or "vector1|2|4|8"
+//   matrix_kind: "standard" (default) or "vector1|2|4|8|128"
 //
 // Prints a single line with configuration and elapsed wall time (ms).
 
@@ -199,10 +199,18 @@ int main(int argc, char** argv)
                                      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<8>>>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
+  else if (kind == "vector128")
+  {
+    auto solver = BuildChapmanSolver(micm::CpuSolverBuilder<
+                                     micm::RosenbrockSolverParameters,
+                                     micm::VectorMatrix<double, 128>,
+                                     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<128>>>(options));
+    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+  }
   else
   {
     std::cerr << "Unknown matrix kind: " << kind
-              << " (expected standard|vector1|vector2|vector4|vector8)\n";
+              << " (expected standard|vector1|vector2|vector4|vector8|vector128)\n";
     return 1;
   }
 

@@ -22,6 +22,25 @@ namespace micm
   {
   };
 
+  /// @brief Tag for dense matrix column views obtained from a GroupView.
+  /// These carry a precomputed base pointer into the current group's slice of
+  /// the underlying storage, so element access reduces to `base[block_in_group]`
+  /// instead of recomputing `(group * y_dim + column) * L + block_in_group` per
+  /// element. Only valid for the group the parent GroupView was constructed for
+  /// and only while the underlying matrix's data buffer is not reallocated.
+  struct GroupedDenseMatrixColumnViewTag
+  {
+  };
+
+  /// @brief Tag for sparse matrix block views obtained from a GroupView.
+  /// Carry a precomputed base pointer to the current group's slice of the
+  /// sparse data vector, so element access is `group_base[block_offset +
+  /// block_in_group]`. Same lifetime/validity constraints as the dense grouped
+  /// tag above.
+  struct GroupedSparseMatrixBlockViewTag
+  {
+  };
+
   /// @brief Tag for block variables (vector-like data holders)
   struct BlockVariableTag
   {
@@ -103,6 +122,16 @@ namespace micm
   template<typename T>
   concept DenseMatrixColumnView = std::same_as<ViewCategory_t<T>, DenseMatrixColumnViewTag>;
 
+  /// @brief Dense matrix column view obtained from a GroupView (carries a
+  ///        precomputed group-relative base pointer).
+  template<typename T>
+  concept GroupedDenseMatrixColumnView = std::same_as<ViewCategory_t<T>, GroupedDenseMatrixColumnViewTag>;
+
+  /// @brief Sparse matrix block view obtained from a GroupView (carries a
+  ///        precomputed group-relative base pointer).
+  template<typename T>
+  concept GroupedSparseMatrixBlockView = std::same_as<ViewCategory_t<T>, GroupedSparseMatrixBlockViewTag>;
+
   /// @brief Block variable (vector-like data holder)
   template<typename T>
   concept BlockVariableView = std::same_as<ViewCategory_t<T>, BlockVariableTag>;
@@ -113,10 +142,11 @@ namespace micm
   concept VectorLike = requires(T t, std::size_t i) {
     { t[i] };  // Can index with []
     { t.size() } -> std::convertible_to<std::size_t>;
-  } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> && !requires(T t) {
-    t.NumRows();
-    t.NumColumns();
-  };  // Exclude matrix types
+  } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> &&
+                       !GroupedDenseMatrixColumnView<T> && !GroupedSparseMatrixBlockView<T> && !requires(T t) {
+                         t.NumRows();
+                         t.NumColumns();
+                       };  // Exclude matrix types
 
   // ============================================================================
   // Concepts for Grouping Strategies

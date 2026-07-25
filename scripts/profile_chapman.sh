@@ -25,7 +25,7 @@
 #   BUILD_DIR = build
 #   CELLS     = 2000
 #   STEPS     = 5
-#   KINDS     = standard vector1 vector2 vector4 vector8
+#   KINDS     = standard vector1 vector2 vector4 vector8 vector128
 #
 # Requires: chapman_bench built inside BUILD_DIR, and valgrind on PATH.
 # For the tightest scoping the benchmark should also see <valgrind/callgrind.h>
@@ -42,7 +42,7 @@ steps="${3:-5}"
 shift $(( $# > 3 ? 3 : $# )) || true
 kinds=("$@")
 if [[ ${#kinds[@]} -eq 0 ]]; then
-  kinds=(standard vector1 vector2 vector4 vector8)
+  kinds=(standard vector1 vector2 vector4 vector8 vector128)
 fi
 
 bin="${build}/chapman_bench"
