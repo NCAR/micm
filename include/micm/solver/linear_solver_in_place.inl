@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 namespace micm
 {
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolverInPlace(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolverInPlace(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value)
-      : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(
+      : LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
@@ -14,8 +14,8 @@ namespace micm
   {
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolverInPlace(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolverInPlace(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
       const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp)
@@ -57,133 +57,76 @@ namespace micm
     }
   };
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(SparseMatrixPolicy& matrix) const
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(SparseMatrixPolicy& matrix) const
   {
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix);
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  template<class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy& x,
       const SparseMatrixPolicy& lu_matrix) const
   {
-    for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
-    {
-      auto x_cell = x[i_cell];
-      const std::size_t grid_offset = i_cell * lu_matrix.FlatBlockSize();
-      auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
-
-      // Forward Substitution
+    SparseMatrixPolicy::Function(
+      [this](auto&& x_view, auto&& lu_view)
       {
-        auto y_elem = y_cell.begin();
-        auto Lij_yj = Lij_yj_.begin();
-        for (const auto& nLij : nLij_)
+        // Forward substitution
+        // b values passed in as x; overwrites b with y values
         {
-          for (std::size_t i = 0; i < nLij; ++i)
+          auto Lij_yj = Lij_yj_.begin();
+          std::size_t i = 0;
+          for (const auto& nLij : nLij_)
           {
-            *y_elem -= lu_matrix.AsVector()[grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
-            ++Lij_yj;
-          }
-          ++y_elem;
-        }
-      }
-
-      // Backward Substitution
-      {
-        auto x_elem = std::next(x_cell.end(), -1);
-        auto Uij_xj = Uij_xj_.begin();
-        for (const auto& nUij_Uii : nUij_Uii_)
-        {
-          // x_elem starts out as y_elem from the previous loop
-          for (std::size_t i = 0; i < nUij_Uii.first; ++i)
-          {
-            *x_elem -= lu_matrix.AsVector()[grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
-            ++Uij_xj;
-          }
-
-          *(x_elem) /= lu_matrix.AsVector()[grid_offset + nUij_Uii.second];
-          // don't iterate before the beginning of the vector
-          if (x_elem != x_cell.begin())
-          {
-            --x_elem;
-          }
-        }
-      }
-    }
-  }
-
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  template<class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
-      MatrixPolicy& x,
-      const SparseMatrixPolicy& lu_matrix) const
-  {
-    constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
-    // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
-    {
-      auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto LU_group = std::next(lu_matrix.AsVector().begin(), i_group * lu_matrix.GroupSize());
-      // Forward Substitution
-      {
-        auto y_elem = x_group;
-        auto Lij_yj = Lij_yj_.begin();
-        for (const auto& nLij : nLij_)
-        {
-          for (std::size_t i = 0; i < nLij; ++i)
-          {
-            const std::size_t Lij_yj_first = (*Lij_yj).first;
-            const std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
-            auto LU_group_it = LU_group + Lij_yj_first;
-            auto x_group_it = x_group + Lij_yj_second_times_n_cells;
-            auto y_elem_it = y_elem;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            auto x_col_i = x_view.GetColumnView(i);
+            for (std::size_t k = 0; k < nLij; ++k)
             {
-              *(y_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
+              lu_view.ForEachBlock(
+                [](double& yi, const double& Lij, const double& yj)
+                {
+                  yi -= Lij * yj;
+                },
+                x_col_i,
+                lu_view.GetConstBlockView((*Lij_yj).first),
+                x_view.GetConstColumnView((*Lij_yj).second));
+              ++Lij_yj;
             }
-            ++Lij_yj;
+            ++i;
           }
-          y_elem += n_cells;
         }
-      }
-
-      // Backward Substitution
-      {
-        auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
-        auto Uij_xj = Uij_xj_.begin();
-        for (const auto& nUij_Uii : nUij_Uii_)
+        // Backward substitution
+        // overwrites y values with x values
         {
-          // x_elem starts out as y_elem from the previous loop
-          for (std::size_t i = 0; i < nUij_Uii.first; ++i)
+          auto Uij_xj = Uij_xj_.begin();
+          std::size_t i = nUij_Uii_.size();
+          for (const auto& nUij_Uii : nUij_Uii_)
           {
-            const std::size_t Uij_xj_first = (*Uij_xj).first;
-            const std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
-            auto LU_group_it = LU_group + Uij_xj_first;
-            auto x_group_it = x_group + Uij_xj_second_times_n_cells;
-            auto x_elem_it = x_elem;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            --i;
+            auto x_col_i = x_view.GetColumnView(i);
+            for (std::size_t k = 0; k < nUij_Uii.first; ++k)
             {
-              *(x_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
+              lu_view.ForEachBlock(
+                [](double& xi, const double& Uij, const double& xj)
+                {
+                  xi -= Uij * xj;
+                },
+                x_col_i,
+                lu_view.GetConstBlockView((*Uij_xj).first),
+                x_view.GetConstColumnView((*Uij_xj).second));
+              ++Uij_xj;
             }
-            ++Uij_xj;
+            lu_view.ForEachBlock(
+              [](double& xi, const double& Uii)
+              {
+                xi /= Uii;
+              },
+              x_col_i,
+              lu_view.GetConstBlockView(nUij_Uii.second));
           }
-          const std::size_t nUij_Uii_second = nUij_Uii.second;
-          auto LU_group_it = LU_group + nUij_Uii_second;
-          auto x_elem_it = x_elem;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            *(x_elem_it++) /= *(LU_group_it++);
-          }
-
-          // don't iterate before the beginning of the vector
-          const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
-          x_elem -= std::min(n_cells, x_elem_distance);
         }
-      }
-    }
+      },
+      x,
+      lu_matrix
+    )(x, lu_matrix);
   }
 }  // namespace micm

@@ -15,7 +15,7 @@ namespace micm
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
   /// The L and U matrices are decomposed in-place over the original A matrix.
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace>
   class LinearSolverInPlace
   {
    protected:
@@ -75,11 +75,6 @@ namespace micm
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     /// @param x The solution vector
     /// @param LU The LU decomposition of the matrix as a square sparse matrix
-    template<class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
-    template<class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
   };
 

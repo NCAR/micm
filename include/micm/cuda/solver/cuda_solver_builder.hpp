@@ -27,7 +27,10 @@ namespace micm
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       CudaProcessSet<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>,
       CudaLuDecompositionMozartInPlace,
-      CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecompositionMozartInPlace>,
+      CudaLinearSolverInPlace<
+          CudaDenseMatrix<double, L>,
+          CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+          CudaLuDecompositionMozartInPlace>,
       CudaState<
           CudaDenseMatrix<double, L>,
           CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,

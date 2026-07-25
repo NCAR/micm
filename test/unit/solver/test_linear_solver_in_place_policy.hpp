@@ -116,7 +116,7 @@ void TestDenseMatrix()
   CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
-  solver.template Solve<MatrixPolicy>(x, alu);
+  solver.Solve(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
@@ -197,7 +197,7 @@ void TestRandomMatrix(std::size_t number_of_blocks)
   CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
-  solver.template Solve<MatrixPolicy>(x, alu);
+  solver.Solve(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
@@ -291,7 +291,7 @@ void TestExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<SparseMatrixPolicy>(alu);
 
-  solver.template Solve<MatrixPolicy>(x, alu);
+  solver.Solve(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);
@@ -359,7 +359,7 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
   CheckCopyToDevice<SparseMatrixPolicy>(alu);
 
   solver.Factor(alu);
-  solver.template Solve<MatrixPolicy>(x, alu);
+  solver.Solve(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CheckCopyToHost<MatrixPolicy>(x);

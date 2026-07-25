@@ -37,6 +37,8 @@
   #define CALLGRIND_ZERO_STATS            do {} while (0)
 #endif
 
+#define SOLVER_BUILDER micm::CpuSolverBuilder
+
 namespace
 {
   template<class Builder>
@@ -164,12 +166,12 @@ int main(int argc, char** argv)
   if (kind == "standard")
   {
     auto solver =
-        BuildChapmanSolver(micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options));
+        BuildChapmanSolver(SOLVER_BUILDER<micm::RosenbrockSolverParameters>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
   else if (kind == "vector1")
   {
-    auto solver = BuildChapmanSolver(micm::CpuSolverBuilder<
+    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
                                      micm::VectorMatrix<double, 1>,
                                      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>>(options));
@@ -177,7 +179,7 @@ int main(int argc, char** argv)
   }
   else if (kind == "vector2")
   {
-    auto solver = BuildChapmanSolver(micm::CpuSolverBuilder<
+    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
                                      micm::VectorMatrix<double, 2>,
                                      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>>(options));
@@ -185,7 +187,7 @@ int main(int argc, char** argv)
   }
   else if (kind == "vector4")
   {
-    auto solver = BuildChapmanSolver(micm::CpuSolverBuilder<
+    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
                                      micm::VectorMatrix<double, 4>,
                                      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>>(options));
@@ -193,7 +195,7 @@ int main(int argc, char** argv)
   }
   else if (kind == "vector8")
   {
-    auto solver = BuildChapmanSolver(micm::CpuSolverBuilder<
+    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
                                      micm::VectorMatrix<double, 8>,
                                      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<8>>>(options));
@@ -201,7 +203,7 @@ int main(int argc, char** argv)
   }
   else if (kind == "vector128")
   {
-    auto solver = BuildChapmanSolver(micm::CpuSolverBuilder<
+    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
                                      micm::VectorMatrix<double, 128>,
                                      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<128>>>(options));

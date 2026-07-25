@@ -251,7 +251,7 @@ namespace micm
       SparseMatrixPolicy,
       ProcessSet<DenseMatrix, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>,
+      LinearSolverInPlace<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>,
       State<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
 }  // namespace micm

@@ -208,14 +208,20 @@ namespace micm
               for (std::size_t k = 0; k < nLij_Lii_entry.first; ++k)
               {
                 lower_view.ForEachBlock(
-                    [](double& yi, const double& Lij, const double& yj) { yi -= Lij * yj; },
+                    [](double& yi, const double& Lij, const double& yj)
+                    {
+                      yi -= Lij * yj;
+                    },
                     x_col_i,
                     lower_view.GetConstBlockView((*Lij_yj_it).first),
                     x_view.GetConstColumnView((*Lij_yj_it).second));
                 ++Lij_yj_it;
               }
               lower_view.ForEachBlock(
-                  [](double& yi, const double& Lii) { yi /= Lii; },
+                  [](double& yi, const double& Lii)
+                  {
+                    yi /= Lii;
+                  },
                   x_col_i,
                   lower_view.GetConstBlockView(nLij_Lii_entry.second));
               ++i;
@@ -233,14 +239,20 @@ namespace micm
               for (std::size_t k = 0; k < nUij_Uii_entry.first; ++k)
               {
                 upper_view.ForEachBlock(
-                    [](double& xi, const double& Uij, const double& xj) { xi -= Uij * xj; },
+                    [](double& xi, const double& Uij, const double& xj)
+                    {
+                      xi -= Uij * xj;
+                    },
                     x_col_i,
                     upper_view.GetConstBlockView((*Uij_xj_it).first),
                     x_view.GetConstColumnView((*Uij_xj_it).second));
                 ++Uij_xj_it;
               }
               upper_view.ForEachBlock(
-                  [](double& xi, const double& Uii) { xi /= Uii; },
+                  [](double& xi, const double& Uii)
+                  {
+                    xi /= Uii;
+                  },
                   x_col_i,
                   upper_view.GetConstBlockView(nUij_Uii_entry.second));
             }
