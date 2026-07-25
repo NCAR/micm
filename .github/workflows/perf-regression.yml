@@ -1,0 +1,91 @@
+name: Performance Regression
+
+# Runs the Chapman micro-benchmark under callgrind on both the PR head and the
+# base branch, and fails if the PR adds instructions to the Rosenbrock Solve()
+# function for any matrix ordering (standard, vector1,2,4,8).
+#
+# See docs/performance.md for how to reproduce this locally.
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chapman:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CC: gcc
+      CXX: g++
+      CELLS: 2000
+      STEPS: 5
+      # Tolerance is the allowed absolute per-ordering instruction-count
+      # increase. Keep at 0 by default so any hot-path regression fails the
+      # PR. Bump only when a feature change adds required work.
+      TOLERANCE: 0
+    steps:
+      - name: Install valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          path: pr
+
+      - name: Checkout base (${{ github.base_ref }})
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Overlay PR's benchmark harness onto base
+        # The PR is the source of truth for the benchmark and scripts - that
+        # way we're measuring the same workload on both revisions, and this
+        # workflow keeps working even before the benchmark existed on main.
+        run: |
+          set -euo pipefail
+          mkdir -p base/test/benchmark base/scripts
+          cp pr/test/benchmark/chapman_bench.cpp base/test/benchmark/
+          cp pr/test/benchmark/CMakeLists.txt   base/test/benchmark/
+          cp pr/scripts/profile_chapman.sh      base/scripts/
+          cp pr/scripts/compare_chapman.py      base/scripts/
+          chmod +x base/scripts/profile_chapman.sh base/scripts/compare_chapman.py
+          if ! grep -q "add_subdirectory(benchmark)" base/test/CMakeLists.txt; then
+            printf '\nadd_subdirectory(benchmark)\n' >> base/test/CMakeLists.txt
+          fi
+
+      - name: Build PR (chapman_bench)
+        run: |
+          cmake -S pr -B pr/build -D CMAKE_BUILD_TYPE=Release
+          cmake --build pr/build --target chapman_bench --parallel
+
+      - name: Build base (chapman_bench)
+        run: |
+          cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release
+          cmake --build base/build --target chapman_bench --parallel
+
+      - name: Profile PR
+        run: pr/scripts/profile_chapman.sh pr/build "$CELLS" "$STEPS" | tee pr.txt
+
+      - name: Profile base
+        run: pr/scripts/profile_chapman.sh base/build "$CELLS" "$STEPS" | tee base.txt
+
+      - name: Compare
+        run: pr/scripts/compare_chapman.py base.txt pr.txt --tolerance "$TOLERANCE"
+
+      - name: Upload profile outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chapman-profile
+          path: |
+            base.txt
+            pr.txt

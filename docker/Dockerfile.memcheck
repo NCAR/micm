@@ -9,6 +9,7 @@ RUN dnf -y update \
         git \
         make \
         valgrind \
+        valgrind-devel \
     && dnf clean all
 
 # copy the MICM code
