@@ -121,10 +121,6 @@ namespace micm
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
     template<class SparseMatrixPolicy>
-      requires(!VectorizableSparse<SparseMatrixPolicy>)
-    void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
-    template<class SparseMatrixPolicy>
-      requires(VectorizableSparse<SparseMatrixPolicy>)
     void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
 
    private:
