@@ -534,6 +534,46 @@ namespace micm
         return BlockVariable<T>();
       }
 
+      /// @brief Assign value to every cell of the block within this group.
+      ///        Semantically equivalent to
+      ///          ForEachBlock([&](T& x){ x = value; }, view)
+      ///        but bulk-writes a contiguous block.
+      [[gnu::always_inline]]
+      void Fill(GroupedBlockView view, T value)
+      {
+        if constexpr (L >= 16)
+        {
+          std::fill_n(view.group_base + view.block_offset, L, value);
+        }
+        else
+        {
+          T* dst = view.group_base + view.block_offset;
+          for (std::size_t i = 0; i < L; ++i)
+            dst[i] = value;
+        }
+      }
+
+      /// @brief Copy src block into dst block within this group.
+      ///        Semantically equivalent to
+      ///          ForEachBlock([](T& d, const T& s){ d = s; }, dst, src)
+      ///        but bulk-copies contiguous storage.
+      template<GroupedSparseMatrixBlockView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedBlockView dst_view, Src&& src_view)
+      {
+        if constexpr (L >= 16)
+        {
+          std::copy_n(src_view.group_base + src_view.block_offset, L, dst_view.group_base + dst_view.block_offset);
+        }
+        else
+        {
+          T* dst = dst_view.group_base + dst_view.block_offset;
+          const T* src = src_view.group_base + src_view.block_offset;
+          for (std::size_t i = 0; i < L; ++i)
+            dst[i] = src[i];
+        }
+      }
+
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args)
       {

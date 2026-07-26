@@ -475,3 +475,150 @@ TEST(GroupedView, ConstGroupViewProducesGroupedViews)
   for (std::size_t i = 0; i < 4; ++i)
     EXPECT_EQ(dv.base[i], static_cast<double>(100 + i));
 }
+
+// ---------------------------------------------------------------------------
+// GroupView.Fill / GroupView.Copy: bulk-fill and bulk-copy sibling primitives
+// of ForEachBlock. Each test verifies:
+//   (a) the write only touches the addressed block (surrounding non-zero
+//       elements and neighbouring blocks in the group are untouched);
+//   (b) semantically the result matches the ForEachBlock equivalent.
+// ---------------------------------------------------------------------------
+namespace
+{
+  template<class SM, std::size_t L>
+  void RunSparseFillCopyTest()
+  {
+    // Two non-zero positions per block; a full group and one partial group.
+    auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(L + 1);
+    SM matrix{ builder };
+    for (std::size_t b = 0; b < L + 1; ++b)
+    {
+      matrix[b][0][1] = static_cast<double>(b + 1);
+      matrix[b][2][0] = static_cast<double>(100 + b);
+    }
+
+    // Fill on the full group: only [0][1] cells change, [2][0] cells untouched.
+    {
+      typename SM::GroupView gv(matrix, 0);
+      gv.Fill(gv.GetBlockView(matrix.VectorIndex(0, 0, 1)), 42.0);
+      for (std::size_t b = 0; b < L; ++b)
+      {
+        EXPECT_DOUBLE_EQ(matrix[b][0][1], 42.0);
+        EXPECT_DOUBLE_EQ(matrix[b][2][0], static_cast<double>(100 + b));
+      }
+      // Partial group is unaffected.
+      EXPECT_DOUBLE_EQ(matrix[L][0][1], static_cast<double>(L + 1));
+    }
+
+    // Copy on the full group: [2][0] <- [0][1].
+    {
+      typename SM::GroupView gv(matrix, 0);
+      gv.Copy(gv.GetBlockView(matrix.VectorIndex(0, 2, 0)), gv.GetConstBlockView(matrix.VectorIndex(0, 0, 1)));
+      for (std::size_t b = 0; b < L; ++b)
+      {
+        EXPECT_DOUBLE_EQ(matrix[b][2][0], 42.0);
+        EXPECT_DOUBLE_EQ(matrix[b][0][1], 42.0);
+      }
+    }
+
+    // Fill on the partial (last) group behaves the same as ForEachBlock
+    // semantically for the in-range cells. Because the storage is padded to L,
+    // padding cells past num_blocks_in_group are also written but never
+    // observable through the matrix interface.
+    {
+      const std::size_t last_group = matrix.NumberOfBlocks() / L;
+      typename SM::GroupView gv(matrix, last_group);
+      gv.Fill(gv.GetBlockView(matrix.VectorIndex(0, 0, 1)), -7.0);
+      EXPECT_DOUBLE_EQ(matrix[L][0][1], -7.0);
+    }
+  }
+}  // namespace
+
+TEST(GroupedView, FillAndCopySparseStandardCSR)
+{
+  using SM = SparseMatrix<double, SparseMatrixStandardOrderingCompressedSparseRow>;
+  // Standard ordering: L=1 (one "group" per block).
+  auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(2);
+  SM matrix{ builder };
+  for (std::size_t b = 0; b < 2; ++b)
+  {
+    matrix[b][0][1] = static_cast<double>(b + 1);
+    matrix[b][2][0] = static_cast<double>(100 + b);
+  }
+
+  SM::GroupView gv0(matrix, 0);
+  gv0.Fill(gv0.GetBlockView(matrix.VectorIndex(0, 0, 1)), 42.0);
+  EXPECT_DOUBLE_EQ(matrix[0][0][1], 42.0);
+  EXPECT_DOUBLE_EQ(matrix[0][2][0], 100.0);  // untouched
+  EXPECT_DOUBLE_EQ(matrix[1][0][1], 2.0);    // other group untouched
+
+  gv0.Copy(gv0.GetBlockView(matrix.VectorIndex(0, 2, 0)), gv0.GetConstBlockView(matrix.VectorIndex(0, 0, 1)));
+  EXPECT_DOUBLE_EQ(matrix[0][2][0], 42.0);
+}
+
+TEST(GroupedView, FillAndCopySparseStandardCSC)
+{
+  using SM = SparseMatrix<double, SparseMatrixStandardOrderingCompressedSparseColumn>;
+  auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(2);
+  SM matrix{ builder };
+  for (std::size_t b = 0; b < 2; ++b)
+  {
+    matrix[b][0][1] = static_cast<double>(b + 1);
+    matrix[b][2][0] = static_cast<double>(100 + b);
+  }
+
+  SM::GroupView gv1(matrix, 1);
+  gv1.Fill(gv1.GetBlockView(matrix.VectorIndex(0, 0, 1)), 9.0);
+  EXPECT_DOUBLE_EQ(matrix[1][0][1], 9.0);
+  EXPECT_DOUBLE_EQ(matrix[0][0][1], 1.0);  // other group untouched
+  EXPECT_DOUBLE_EQ(matrix[1][2][0], 101.0);
+
+  gv1.Copy(gv1.GetBlockView(matrix.VectorIndex(0, 2, 0)), gv1.GetConstBlockView(matrix.VectorIndex(0, 0, 1)));
+  EXPECT_DOUBLE_EQ(matrix[1][2][0], 9.0);
+}
+
+TEST(GroupedView, FillAndCopySparseVectorCSR_L4)
+{
+  RunSparseFillCopyTest<SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>, 4>();
+}
+
+TEST(GroupedView, FillAndCopySparseVectorCSC_L4)
+{
+  RunSparseFillCopyTest<SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseColumn<4>>, 4>();
+}
+
+TEST(GroupedView, FillAndCopySparseVectorCSR_L8)
+{
+  RunSparseFillCopyTest<SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<8>>, 8>();
+}
+
+// Fill/Copy on a mutable GroupView must accept a GroupedConstBlockView from a
+// separate ConstGroupView on the same underlying storage as the Copy source.
+TEST(GroupedView, FillCopyCrossGroupViewSources)
+{
+  using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
+  auto builder = SM::Create(2).WithElement(0, 1).SetNumberOfBlocks(4);
+  SM src{ builder };
+  SM dst{ builder };
+  for (std::size_t b = 0; b < 4; ++b)
+  {
+    src[b][0][1] = static_cast<double>(b + 1);
+    dst[b][0][1] = 0.0;
+  }
+
+  SM::GroupView dgv(dst, 0);
+  SM::ConstGroupView sgv(src, 0);
+  dgv.Copy(dgv.GetBlockView(dst.VectorIndex(0, 0, 1)), sgv.GetConstBlockView(src.VectorIndex(0, 0, 1)));
+  for (std::size_t b = 0; b < 4; ++b)
+    EXPECT_DOUBLE_EQ(dst[b][0][1], static_cast<double>(b + 1));
+
+  // Fill result matches the equivalent ForEachBlock lambda.
+  SM ref{ builder };
+  for (std::size_t b = 0; b < 4; ++b)
+    ref[b][0][1] = 999.0;
+  SM::GroupView rgv(ref, 0);
+  rgv.ForEachBlock([](double& x) { x = 55.5; }, rgv.GetBlockView(ref.VectorIndex(0, 0, 1)));
+  dgv.Fill(dgv.GetBlockView(dst.VectorIndex(0, 0, 1)), 55.5);
+  for (std::size_t b = 0; b < 4; ++b)
+    EXPECT_DOUBLE_EQ(dst[b][0][1], ref[b][0][1]);
+}

@@ -415,6 +415,21 @@ namespace micm
         return BlockVariable<T>();
       }
 
+      /// @brief Assign value to the (single) cell of the block within this group.
+      [[gnu::always_inline]]
+      void Fill(GroupedBlockView view, T value)
+      {
+        view.group_base[view.block_offset] = value;
+      }
+
+      /// @brief Copy src block value into dst block value within this group.
+      template<GroupedSparseMatrixBlockView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedBlockView dst, Src&& src)
+      {
+        dst.group_base[dst.block_offset] = src.group_base[src.block_offset];
+      }
+
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args)
       {

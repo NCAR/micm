@@ -247,160 +247,83 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittle::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
-    // Loop over blocks
-    for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
-    {
-      auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
-      auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
-      auto U_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
-      auto do_aik = do_aik_.begin();
-      auto aik = aik_.begin();
-      auto uik_nkj = uik_nkj_.begin();
-      auto lij_ujk = lij_ujk_.begin();
-      auto do_aki = do_aki_.begin();
-      auto aki = aki_.begin();
-      auto lki_nkj = lki_nkj_.begin();
-      auto lkj_uji = lkj_uji_.begin();
-      auto uii = uii_.begin();
-      for (const auto& inLU : niLU_)
+    SparseMatrixPolicy::Function(
+      [this](const auto&& A_view, auto&& lower_view, auto&& upper_view)
       {
-        // Upper trianglur matrix
-        for (std::size_t iU = 0; iU < inLU.second; ++iU)
+        auto do_aik = do_aik_.begin();
+        auto aik = aik_.begin();
+        auto uik_nkj = uik_nkj_.begin();
+        auto lij_ujk = lij_ujk_.begin();
+        auto do_aki = do_aki_.begin();
+        auto aki = aki_.begin();
+        auto lki_nkj = lki_nkj_.begin();
+        auto lkj_uji = lkj_uji_.begin();
+        auto uii = uii_.begin();
+        for (const auto& niLU : niLU_)
         {
-          if (*(do_aik++))
+          // Upper triangular matrix
+          for(std::size_t iU = 0; iU < niLU.second; ++iU)
           {
-            U_vector[uik_nkj->first] = A_vector[*(aik++)];
-          }
-          else
-          {
-            U_vector[uik_nkj->first] = 0;
-          }
-          for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
-          {
-            U_vector[uik_nkj->first] -= L_vector[lij_ujk->first] * U_vector[lij_ujk->second];
-            ++lij_ujk;
-          }
-          ++uik_nkj;
-        }
-        // Lower triangular matrix
-        L_vector[(lki_nkj++)->first] = 1.0;
-        for (std::size_t iL = 0; iL < inLU.first; ++iL)
-        {
-          if (*(do_aki++))
-          {
-            L_vector[lki_nkj->first] = A_vector[*(aki++)];
-          }
-          else
-          {
-            L_vector[lki_nkj->first] = 0;
-          }
-          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-          {
-            L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
-            ++lkj_uji;
-          }
-          L_vector[lki_nkj->first] /= U_vector[*uii];
-          ++lki_nkj;
-          ++uii;
-        }
-      }
-    }
-  }
-
-  template<class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy>)
-  inline void LuDecompositionDoolittle::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
-  {
-    const std::size_t A_BlockSize = A.NumberOfBlocks();
-    constexpr std::size_t A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize();
-    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize();
-    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize();
-
-    // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
-    {
-      auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
-      auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
-      auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
-      auto do_aik = do_aik_.begin();
-      auto aik = aik_.begin();
-      auto uik_nkj = uik_nkj_.begin();
-      auto lij_ujk = lij_ujk_.begin();
-      auto do_aki = do_aki_.begin();
-      auto aki = aki_.begin();
-      auto lki_nkj = lki_nkj_.begin();
-      auto lkj_uji = lkj_uji_.begin();
-      auto uii = uii_.begin();
-      const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      for (const auto& inLU : niLU_)
-      {
-        // Upper trianglur matrix
-        for (std::size_t iU = 0; iU < inLU.second; ++iU)
-        {
-          const std::size_t uik_nkj_first = uik_nkj->first;
-          if (*(do_aik++))
-          {
-            std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
-            ++aik;
-          }
-          else
-          {
-            std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
-          }
-          for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
-          {
-            const std::size_t lij_ujk_first = lij_ujk->first;
-            const std::size_t lij_ujk_second = lij_ujk->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            auto uik_view = upper_view.GetBlockView(uik_nkj->first);
+            if (*(do_aik++))
             {
-              U_vector[uik_nkj_first + i_cell] -= L_vector[lij_ujk_first + i_cell] * U_vector[lij_ujk_second + i_cell];
+              upper_view.Copy(uik_view, A_view.GetConstBlockView(*(aik++)));
             }
-            ++lij_ujk;
-          }
-          ++uik_nkj;
-        }
-        // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        {
-          L_vector[lki_nkj->first + i_cell] = 1.0;
-        }
-        ++lki_nkj;
-        for (std::size_t iL = 0; iL < inLU.first; ++iL)
-        {
-          const std::size_t lki_nkj_first = lki_nkj->first;
-          if (*(do_aki++))
-          {
-            std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
-            ++aki;
-          }
-          else
-          {
-            std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
-          }
-          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-          {
-            const std::size_t lkj_uji_first = lkj_uji->first;
-            const std::size_t lkj_uji_second = lkj_uji->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            else
             {
-              L_vector[lki_nkj_first + i_cell] -= L_vector[lkj_uji_first + i_cell] * U_vector[lkj_uji_second + i_cell];
+              upper_view.Fill(uik_view, 0.0);
             }
-            ++lkj_uji;
+            for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
+            {
+              upper_view.ForEachBlock(
+                [](double& uik, const double& lij, const double& ujk)
+                {
+                  uik -= lij * ujk;
+                },
+                uik_view,
+                lower_view.GetConstBlockView(lij_ujk->first),
+                upper_view.GetConstBlockView(lij_ujk->second));
+              ++lij_ujk;
+            }
+            ++uik_nkj;
           }
-          const std::size_t uii_deref = *uii;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          // Lower triangular matrix
+          lower_view.Fill(lower_view.GetBlockView((lki_nkj++)->first), 1.0);
+          for (std::size_t iL = 0; iL < niLU.first; ++iL)
           {
-            L_vector[lki_nkj_first + i_cell] /= U_vector[uii_deref + i_cell];
+            auto lki_view = lower_view.GetBlockView(lki_nkj->first);
+            if (*(do_aki++))
+            {
+              lower_view.Copy(lki_view, A_view.GetConstBlockView(*(aki++)));
+            }
+            else
+            {
+              lower_view.Fill(lki_view, 0.0);
+            }
+            for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
+            {
+              lower_view.ForEachBlock(
+                [](double& lki, const double& lkj, const double& uji)
+                {
+                  lki -= lkj * uji;
+                },
+                lki_view,
+                lower_view.GetConstBlockView(lkj_uji->first),
+                upper_view.GetConstBlockView(lkj_uji->second));
+              ++lkj_uji;
+            }
+            lower_view.ForEachBlock(
+              [](double& lki, const double& uii)
+              {
+                lki /= uii;
+              },
+              lki_view,
+              upper_view.GetConstBlockView(*(uii++)));
+            ++lki_nkj;
           }
-          ++lki_nkj;
-          ++uii;
         }
-      }
-    }
+      }, A, L, U)(A, L, U);
   }
-
 }  // namespace micm
