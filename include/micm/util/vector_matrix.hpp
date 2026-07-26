@@ -677,6 +677,40 @@ namespace micm
         return RowVariable();
       }
 
+      /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (L >= 16)
+        {
+          std::fill_n(storage.data(), L, value);
+        }
+        else
+        {
+          for (std::size_t i = 0; i < L; ++i)
+            storage[i] = value;
+        }
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (L >= 16)
+        {
+          std::copy_n(src.base, L, storage.data());
+        }
+        else
+        {
+          for (std::size_t i = 0; i < L; ++i)
+            storage[i] = src.base[i];
+        }
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
@@ -810,6 +844,72 @@ namespace micm
       {
         // Stack-allocated array of L elements
         return RowVariable();
+      }
+
+      [[gnu::always_inline]]
+      void Fill(GroupedColumnView view, T value)
+      {
+        if constexpr (L >= 16)
+        {
+          std::fill_n(view.base, L, value);
+        }
+        else
+        {
+          T* dst = view.base;
+          for (std::size_t i = 0; i < L; ++i)
+            dst[i] = value;
+        }
+      }
+
+      template<GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst_view, Src&& src_view)
+      {
+        if constexpr (L >= 16)
+        {
+          std::copy_n(src_view.base, L, dst_view.base);
+        }
+        else
+        {
+          T* dst = dst_view.base;
+          const T* src = src_view.base;
+          for (std::size_t i = 0; i < L; ++i)
+            dst[i] = src[i];
+        }
+      }
+
+      /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value)
+      {
+        auto& storage = dst.Get();
+        if constexpr (L >= 16)
+        {
+          std::fill_n(storage.data(), L, value);
+        }
+        else
+        {
+          for (std::size_t i = 0; i < L; ++i)
+            storage[i] = value;
+        }
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src)
+      {
+        auto& storage = dst.Get();
+        if constexpr (L >= 16)
+        {
+          std::copy_n(src.base, L, storage.data());
+        }
+        else
+        {
+          for (std::size_t i = 0; i < L; ++i)
+            storage[i] = src.base[i];
+        }
       }
 
       template<typename Func, typename... Args>

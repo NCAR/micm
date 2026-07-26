@@ -568,6 +568,22 @@ namespace micm
         return RowVariable();
       }
 
+      /// @brief Assign value to the caller-owned row-variable temp (L=1).
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        dst.Get() = value;
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp (L=1).
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        dst.Get() = src.base[0];
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
@@ -667,6 +683,37 @@ namespace micm
       {
         // Stack-allocated single value
         return RowVariable();
+      }
+
+      /// @brief Assign value to the (single) cell of the column within this group.
+      [[gnu::always_inline]]
+      void Fill(GroupedColumnView view, T value)
+      {
+        view.base[0] = value;
+      }
+
+      /// @brief Copy src column into dst column within this group.
+      template<GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst, Src&& src)
+      {
+        dst.base[0] = src.base[0];
+      }
+
+      /// @brief Assign value to the caller-owned row-variable temp (L=1).
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value)
+      {
+        dst.Get() = value;
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp (L=1).
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src)
+      {
+        dst.Get() = src.base[0];
       }
 
       template<typename Func, typename... Args>
