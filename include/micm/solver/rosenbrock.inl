@@ -297,43 +297,24 @@ namespace micm
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
       auto& state,
       const double& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
     // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
     // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
-    for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
-    {
-      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
-      std::size_t i_diag = 0;
-      for (const auto& i_elem : state.jacobian_diagonal_elements_)
+    SparseMatrixPolicy::Function(
+      [alpha, &state](auto&& jacobian_view)
       {
-        jacobian_vector[i_elem] += alpha * state.upper_left_identity_diagonal_[i_diag++];
-      }
-    }
-  }
-
-  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class SparseMatrixPolicy>
-  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
-      auto& state,
-      const double& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy>)
-  {
-    constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
-    // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
-    for (std::size_t i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
-    {
-      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
-      std::size_t i_diag = 0;
-      for (const auto& i_elem : state.jacobian_diagonal_elements_)
-      {
-        const double diagonal_scale = state.upper_left_identity_diagonal_[i_diag++];
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        std::size_t i_diag = 0;
+        for (const auto& i_elem : state.jacobian_diagonal_elements_)
         {
-          jacobian_vector[i_elem + i_cell] += alpha * diagonal_scale;
+          const double scaled_alpha = alpha * state.upper_left_identity_diagonal_[i_diag++];
+          jacobian_view.ForEachBlock(
+            [scaled_alpha](double& diag) {
+              diag += scaled_alpha;
+            },
+            jacobian_view.GetBlockView(i_elem));
         }
-      }
-    }
+      },
+      state.jacobian_)(state.jacobian_);
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>

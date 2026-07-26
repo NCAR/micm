@@ -95,11 +95,7 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy>);
-    template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy>);
+    void AlphaMinusJacobian(auto& state, const double& alpha) const;
 
     /// @brief Perform the LU decomposition of the matrix
     /// @param alpha The alpha value
