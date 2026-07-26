@@ -346,68 +346,38 @@ namespace micm
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors,
       auto& state) const
-    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const std::size_t n_vars = atol.size();
-
-    double ymax = 0;
-    double errors_over_scale = 0;
+    const std::size_t n_vars = Y.NumColumns();
+    const std::size_t n_cells = Y.NumRows();
+    
     double error = 0;
 
-    for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-    {
-      for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
+    DenseMatrixPolicy::Function(
+      [&](const auto&& y_view, const auto&& ynew_view, const auto&& errors_view)
       {
-        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-        error += errors_over_scale * errors_over_scale;
-      }
-    }
-
-    double error_min = 1.0e-10;
+        for (std::size_t i_var = 0; i_var < n_vars; ++i_var)
+        {
+          // Strict variant: skip padding rows so their (possibly non-zero) values
+          // do not contaminate this global reduction.
+          y_view.ForEachRowStrict(
+            [&](const double& y, const double& ynew, const double& var_error)
+            {
+              double ymax = std::max(std::abs(y), std::abs(ynew));
+              double errors_over_scale = var_error / (atol[i_var % n_vars] + rtol * ymax);
+              error += errors_over_scale * errors_over_scale;
+            },
+            y_view.GetConstColumnView(i_var),
+            ynew_view.GetConstColumnView(i_var),
+            errors_view.GetConstColumnView(i_var));
+        }
+      }, Y, Ynew, errors)(Y, Ynew, errors);
+    constexpr double error_min = 1.0e-10;
     const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
-
-    return std::max(std::sqrt(error / N), error_min);
-  }
-
-  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class DenseMatrixPolicy>
-  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
-      const DenseMatrixPolicy& Y,
-      const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors,
-      auto& state) const
-    requires(VectorizableDense<DenseMatrixPolicy>)
-  {
-    // Solving Ordinary Differential Equations II, page 123
-    // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
-    const auto& atol = state.absolute_tolerance_;
-    const auto& rtol = state.relative_tolerance_;
-    const std::size_t n_vars = atol.size();
-
-    double ymax = 0;
-    double errors_over_scale = 0;
-    double error = 0;
-
-    for (std::size_t i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-    {
-      for (std::size_t i_var = 0; i_var < Y.NumColumns(); ++i_var)
-      {
-        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-        error += errors_over_scale * errors_over_scale;
-      }
-    }
-
-    double error_min = 1.0e-10;
-    const std::size_t N = std::max<std::size_t>(1, Y.NumRows() * Y.NumColumns());
-
+  
     return std::max(std::sqrt(error / N), error_min);
   }
 

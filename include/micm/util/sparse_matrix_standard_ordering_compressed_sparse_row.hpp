@@ -282,6 +282,16 @@ namespace micm
         func(GetBlockElement(0, std::forward<Args>(args))...);
       }
 
+      /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
+      ///        For standard ordering (L=1) there is no padding, so this is identical
+      ///        to ForEachBlock. Provided for API symmetry with the vector-ordered
+      ///        sparse matrix; use this variant in read-side reductions.
+      template<typename Func, typename... Args>
+      void ForEachBlockStrict(Func&& func, Args&&... args) const
+      {
+        func(GetBlockElement(0, std::forward<Args>(args))...);
+      }
+
       std::size_t NumberOfBlocks() const
       {
         return matrix_.NumberOfBlocks();
@@ -443,6 +453,14 @@ namespace micm
       void ForEachBlock(Func&& func, Args&&... args)
       {
         // For standard ordering, only one block per group
+        func(GetBlockElement(0, std::forward<Args>(args))...);
+      }
+
+      /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
+      ///        See ConstGroupView::ForEachBlockStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachBlockStrict(Func&& func, Args&&... args)
+      {
         func(GetBlockElement(0, std::forward<Args>(args))...);
       }
 

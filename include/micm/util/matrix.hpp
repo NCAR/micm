@@ -591,6 +591,17 @@ namespace micm
         func(GetRowElement(std::forward<Args>(args))...);
       }
 
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        For plain Matrix (L=1) there is no padding, so this is identical
+      ///        to ForEachRow. Provided for API symmetry with VectorMatrix; use
+      ///        this variant in read-side reductions where padding contamination
+      ///        would corrupt the result.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
       std::size_t NumRows() const
       {
         return matrix_.NumRows();
@@ -720,6 +731,15 @@ namespace micm
       void ForEachRow(Func&& func, Args&&... args)
       {
         // For Matrix with L=1, just process the single row (no loop needed)
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        For plain Matrix (L=1) there is no padding, so this is identical
+      ///        to ForEachRow. See ConstGroupView::ForEachRowStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args)
+      {
         func(GetRowElement(std::forward<Args>(args))...);
       }
 

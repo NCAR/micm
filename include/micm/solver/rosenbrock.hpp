@@ -114,15 +114,7 @@ namespace micm
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
-        auto& state) const
-      requires(!VectorizableDense<DenseMatrixPolicy>);
-    template<class DenseMatrixPolicy>
-    double NormalizedError(
-        const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& Ynew,
-        const DenseMatrixPolicy& errors,
-        auto& state) const
-      requires(VectorizableDense<DenseMatrixPolicy>);
+        auto& state) const;
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>

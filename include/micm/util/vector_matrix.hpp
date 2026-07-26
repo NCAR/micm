@@ -767,6 +767,22 @@ namespace micm
         }
       }
 
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        ForEachRow's fast path iterates the full compile-time L for every group
+      ///        (safe for pure writes into padded storage). For **read-side reductions**
+      ///        that accumulate outside the group (e.g. a global sum-of-squares), reading
+      ///        padding cells corrupts the result — use this variant instead. Always uses
+      ///        the runtime `num_rows_in_group_` bound and never unrolls to L; that costs
+      ///        a runtime compare + jump per group, but keeps the reduction well-defined.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
+        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
       std::size_t NumRows() const
       {
         return matrix_.NumRows();
@@ -986,6 +1002,17 @@ namespace micm
           {
             func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
           }
+        }
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        See ConstGroupView::ForEachRowStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args)
+      {
+        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 

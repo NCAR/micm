@@ -359,6 +359,21 @@ namespace micm
         }
       }
 
+      /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
+      ///        ForEachBlock's fast path iterates the full compile-time L for every group
+      ///        (safe for pure writes into padded storage). For **read-side reductions**
+      ///        that accumulate outside the group (e.g. a global sum-of-squares), reading
+      ///        padding cells corrupts the result — use this variant instead. Always uses
+      ///        the runtime `num_blocks_in_group_` bound and never unrolls to L.
+      template<typename Func, typename... Args>
+      void ForEachBlockStrict(Func&& func, Args&&... args) const
+      {
+        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        {
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
       std::size_t NumberOfBlocks() const
       {
         return matrix_.NumberOfBlocks();
@@ -592,6 +607,17 @@ namespace micm
           {
             func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
           }
+        }
+      }
+
+      /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
+      ///        See ConstGroupView::ForEachBlockStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachBlockStrict(Func&& func, Args&&... args)
+      {
+        for (std::size_t block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
+        {
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
