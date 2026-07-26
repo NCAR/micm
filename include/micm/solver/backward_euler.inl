@@ -153,79 +153,34 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
   inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
-      const BackwardEulerSolverParameters& parameters,
-      const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1,
-      const std::vector<double>& absolute_tolerance,
-      double relative_tolerance)
-    requires(!VectorizableDense<DenseMatrixPolicy>)
+    const BackwardEulerSolverParameters& parameters,
+    const DenseMatrixPolicy& residual,
+    const DenseMatrixPolicy& Yn1,
+    const std::vector<double>& absolute_tolerance,
+    double relative_tolerance)
   {
-    double small = parameters.small_;
-    double rel_tol = relative_tolerance;
-    const auto& abs_tol = absolute_tolerance;
-    auto residual_iter = residual.AsVector().begin();
-    auto Yn1_iter = Yn1.AsVector().begin();
-    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
-    const std::size_t n_vars = abs_tol.size();
-    for (std::size_t i = 0; i < n_elem; ++i)
-    {
-      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
+    const std::size_t n_vars = absolute_tolerance.size();
+    bool retval = true;
+    DenseMatrixPolicy::Function(
+      [&](const auto&& residual_view, const auto&& Yn1_view)
       {
-        return false;
-      }
-      ++residual_iter, ++Yn1_iter;
-    }
-    return true;
-  }
-
-  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
-  template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
-      const BackwardEulerSolverParameters& parameters,
-      const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1,
-      const std::vector<double>& absolute_tolerance,
-      double relative_tolerance)
-    requires(VectorizableDense<DenseMatrixPolicy>)
-  {
-    double small = parameters.small_;
-    double rel_tol = relative_tolerance;
-    const auto& abs_tol = absolute_tolerance;
-    auto residual_iter = residual.AsVector().begin();
-    auto Yn1_iter = Yn1.AsVector().begin();
-    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
-    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
-    const std::size_t n_vars = abs_tol.size();
-    const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
-    // evaluate the rows that fit exactly into the vectorizable dimension (L)
-    for (std::size_t i = 0; i < whole_blocks; ++i)
-    {
-      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
-      {
-        return false;
-      }
-      ++residual_iter, ++Yn1_iter;
-    }
-
-    // evaluate the remaining rows
-    const std::size_t remaining_rows = residual.NumRows() % L;
-    if (remaining_rows > 0)
-    {
-      for (std::size_t y = 0; y < residual.NumColumns(); ++y)
-      {
-        const std::size_t offset = y * L;
-        for (std::size_t i = offset; i < offset + remaining_rows; ++i)
+        for (std::size_t i_var = 0; i_var < n_vars; ++i_var)
         {
-          if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
-              std::abs(residual_iter[i]) > rel_tol * std::abs(Yn1_iter[i]))
-          {
-            return false;
-          }
+          const double var_abs_tol = absolute_tolerance[i_var];
+          residual_view.ForEachRow(
+            [&](const double& residual, const double& Yn1)
+            {
+              if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
+                  std::abs(residual) > relative_tolerance * std::abs(Yn1))
+              {
+                retval = false;
+              }
+            },
+            residual_view.GetConstColumnView(i_var),
+            Yn1_view.GetConstColumnView(i_var));
+          if (!retval) return;
         }
-      }
-    }
-    return true;
+      }, residual, Yn1)(residual, Yn1);
+    return retval;
   }
 }  // namespace micm

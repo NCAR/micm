@@ -73,16 +73,7 @@ namespace micm
         const DenseMatrixPolicy& residual,
         const DenseMatrixPolicy& Yn1,
         const std::vector<double>& absolute_tolerance,
-        double relative_tolerance)
-      requires(!VectorizableDense<DenseMatrixPolicy>);
-    template<class DenseMatrixPolicy>
-    static bool IsConverged(
-        const BackwardEulerSolverParameters& parameters,
-        const DenseMatrixPolicy& residual,
-        const DenseMatrixPolicy& Yn1,
-        const std::vector<double>& absolute_tolerance,
-        double relative_tolerance)
-      requires(VectorizableDense<DenseMatrixPolicy>);
+        double relative_tolerance);
   };
 
 }  // namespace micm
