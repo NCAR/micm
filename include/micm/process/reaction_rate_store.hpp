@@ -250,38 +250,22 @@ namespace micm
       }
 
       using DenseMatrixPolicy = typename StatePolicy::DenseMatrixPolicyType;
-
-      if constexpr (VectorizableDense<DenseMatrixPolicy>)
-      {
-        auto& v_rc = state.rate_constants_.AsVector();
-        constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
-
-        for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
+      DenseMatrixPolicy::Function(
+        [&store](auto&& rc_view, const auto& conditions)
         {
-          const std::size_t rc_base = i_group * state.rate_constants_.GroupSize();
-          const std::size_t n_local = std::min(L, state.rate_constants_.NumRows() - i_group * L);
-
-          for (std::size_t i_cell = 0; i_cell < n_local; ++i_cell)
-          {
-            const auto& cond = state.conditions_[i_group * L + i_cell];
-            for (const auto& entry : store.lambda_entries_)
-            {
-              v_rc[rc_base + entry.rc_index_ * L + i_cell] = entry.source_->lambda_function_(cond);
-            }
-          }
-        }
-      }
-      else
-      {
-        for (std::size_t i_cell = 0; i_cell < state.rate_constants_.NumRows(); ++i_cell)
-        {
-          const auto& cond = state.conditions_[i_cell];
           for (const auto& entry : store.lambda_entries_)
           {
-            state.rate_constants_[i_cell][entry.rc_index_] = entry.source_->lambda_function_(cond);
+            rc_view.ForEachRow(
+              [&entry](double& rate_constant, const Conditions& conditions)
+              {
+                rate_constant = entry.source_->lambda_function_(conditions);
+              },
+              rc_view.GetColumnView(entry.rc_index_),
+              conditions);
           }
-        }
-      }
+        },
+        state.rate_constants_,
+        state.conditions_) (state.rate_constants_, state.conditions_);
     }
 
     /// @brief Calculate all analytic rate constants into state.rate_constants_.
