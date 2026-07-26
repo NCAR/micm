@@ -627,12 +627,21 @@ namespace micm
         return arg.base[row_in_group];
       }
 
-      /// @brief Get a const element reference for a specific row in this group (RowVariable)
+      /// @brief Get a const element reference for a specific row in this group (BlockVariable).
+      ///        BlockVariable::Get() flavor depends on the source policy:
+      ///          - Dense RowVariable is `std::array<T, L>` for all L (including L=1).
+      ///          - Sparse L>1 BlockVariable is `std::array<T, L>`.
+      ///          - Sparse L=1 BlockVariable is a scalar T.
+      ///        Dispatch on whether the returned storage is subscriptable rather
+      ///        than on L, so both flavors work for either L.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
       {
-        return arg.Get()[row_in_group];
+        if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+          return arg.Get()[row_in_group];
+        else
+          return arg.Get();
       }
 
       /// @brief Get a const element reference for a specific row in this group (Vector-like)
@@ -678,36 +687,58 @@ namespace micm
       }
 
       /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      ///        Handles both flavors of `BlockVariable::Get()`:
+      ///          - Array-like (dense RowVariable, and sparse L>1 BlockVariable):
+      ///            `Get()` returns `std::array<T, L>&`, so we index it.
+      ///          - Scalar (sparse L=1 BlockVariable): `Get()` returns `T&`, so we
+      ///            assign directly. Only meaningful when this GroupView's L=1.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
       void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
-        if constexpr (L >= 16)
+        if constexpr (requires { storage[std::size_t{ 0 }]; })
         {
-          std::fill_n(storage.data(), L, value);
+          if constexpr (L >= 16)
+          {
+            std::fill_n(storage.data(), L, value);
+          }
+          else
+          {
+            for (std::size_t i = 0; i < L; ++i)
+              storage[i] = value;
+          }
         }
         else
         {
-          for (std::size_t i = 0; i < L; ++i)
-            storage[i] = value;
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = value;
         }
       }
 
       /// @brief Copy src column into the caller-owned row-variable temp.
+      ///        See Fill above for the two `Get()` flavors this dispatches over.
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
-        if constexpr (L >= 16)
+        if constexpr (requires { storage[std::size_t{ 0 }]; })
         {
-          std::copy_n(src.base, L, storage.data());
+          if constexpr (L >= 16)
+          {
+            std::copy_n(src.base, L, storage.data());
+          }
+          else
+          {
+            for (std::size_t i = 0; i < L; ++i)
+              storage[i] = src.base[i];
+          }
         }
         else
         {
-          for (std::size_t i = 0; i < L; ++i)
-            storage[i] = src.base[i];
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = src.base[0];
         }
       }
 
@@ -788,12 +819,17 @@ namespace micm
         return arg.base[row_in_group];
       }
 
-      /// @brief Get an element reference for a specific row in this group (RowVariable)
+      /// @brief Get an element reference for a specific row in this group (BlockVariable).
+      ///        See ConstGroupView::GetRowElement above for the subscriptable-vs-scalar
+      ///        dispatch rationale.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
-        return arg.Get()[row_in_group];
+        if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+          return arg.Get()[row_in_group];
+        else
+          return arg.Get();
       }
 
       /// @brief Get an element reference for a specific row in this group (Vector-like)
@@ -879,36 +915,56 @@ namespace micm
       }
 
       /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      ///        See ConstGroupView::Fill(Dst&&, T) for the array-vs-scalar
+      ///        dispatch rationale.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
       void Fill(Dst&& dst, T value)
       {
         auto& storage = dst.Get();
-        if constexpr (L >= 16)
+        if constexpr (requires { storage[std::size_t{ 0 }]; })
         {
-          std::fill_n(storage.data(), L, value);
+          if constexpr (L >= 16)
+          {
+            std::fill_n(storage.data(), L, value);
+          }
+          else
+          {
+            for (std::size_t i = 0; i < L; ++i)
+              storage[i] = value;
+          }
         }
         else
         {
-          for (std::size_t i = 0; i < L; ++i)
-            storage[i] = value;
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = value;
         }
       }
 
       /// @brief Copy src column into the caller-owned row-variable temp.
+      ///        See ConstGroupView::Copy(Dst&&, Src&&) for the array-vs-scalar
+      ///        dispatch rationale.
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src)
       {
         auto& storage = dst.Get();
-        if constexpr (L >= 16)
+        if constexpr (requires { storage[std::size_t{ 0 }]; })
         {
-          std::copy_n(src.base, L, storage.data());
+          if constexpr (L >= 16)
+          {
+            std::copy_n(src.base, L, storage.data());
+          }
+          else
+          {
+            for (std::size_t i = 0; i < L; ++i)
+              storage[i] = src.base[i];
+          }
         }
         else
         {
-          for (std::size_t i = 0; i < L; ++i)
-            storage[i] = src.base[i];
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = src.base[0];
         }
       }
 
@@ -1138,12 +1194,17 @@ namespace micm
       return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
     }
 
-    /// @brief Get an element reference for a row (RowVariable)
+    /// @brief Get an element reference for a row (BlockVariable).
+    ///        See GroupView::GetRowElement above for the subscriptable-vs-scalar
+    ///        dispatch rationale.
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(std::size_t /*row*/, std::size_t /*group*/, std::size_t row_in_group, Arg&& arg)
     {
-      return arg.Get()[row_in_group];
+      if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+        return arg.Get()[row_in_group];
+      else
+        return arg.Get();
     }
 
     /// @brief Get an element reference for a row (Vector-like)
@@ -1164,12 +1225,17 @@ namespace micm
       return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
     }
 
-    /// @brief Get a const element reference for a row (RowVariable) - const version
+    /// @brief Get a const element reference for a row (BlockVariable) - const version.
+    ///        See GroupView::GetRowElement above for the subscriptable-vs-scalar
+    ///        dispatch rationale.
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(std::size_t /*row*/, std::size_t /*group*/, std::size_t row_in_group, Arg&& arg) const
     {
-      return arg.Get()[row_in_group];
+      if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+        return arg.Get()[row_in_group];
+      else
+        return arg.Get();
     }
 
     /// @brief Get a const element reference for a row (Vector-like) - const version
