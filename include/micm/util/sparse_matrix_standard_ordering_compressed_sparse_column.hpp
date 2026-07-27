@@ -198,7 +198,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        // L=1 for standard ordering, so block_in_group is always 0.
+        // For standard ordering, block_in_group is always 0.
         return arg.group_base[arg.block_offset];
       }
 
@@ -219,7 +219,7 @@ namespace micm
         return source_matrix->AsVector()[group_ * source_matrix->NumColumns() + arg.ColumnIndex()];
       }
 
-      /// @brief Get element from GroupedColumnView (fast path)
+      /// @brief Get element from GroupedColumnView
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
@@ -267,7 +267,7 @@ namespace micm
         return BlockVariable<T>();
       }
 
-      /// @brief Assign value to the caller-owned block-variable temp (L=1).
+      /// @brief Assign value to the caller-owned block-variable temp.
       ///        Dispatches on whether `Dst::Get()` returns something subscriptable.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
@@ -280,7 +280,7 @@ namespace micm
           storage = value;
       }
 
-      /// @brief Copy a sparse-block value into the caller-owned block-variable temp (L=1).
+      /// @brief Copy a sparse-block value into the caller-owned block-variable temp.
       template<BlockVariableView Dst, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src) const
@@ -300,7 +300,7 @@ namespace micm
         vec[group_] = value;
       }
 
-      /// @brief Copy a sparse-block value into `vec[group_]` (L=1).
+      /// @brief Copy a sparse-block value into `vec[group_]`.
       template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src) const
@@ -308,6 +308,7 @@ namespace micm
         vec[group_] = src.group_base[src.block_offset];
       }
 
+      /// @brief Execute a function for every block in the matrix
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args) const
       {
@@ -316,9 +317,8 @@ namespace micm
       }
 
       /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
-      ///        For standard ordering (L=1) there is no padding, so this is identical
-      ///        to ForEachBlock. Provided for API symmetry with the vector-ordered
-      ///        sparse matrix; use this variant in read-side reductions.
+      ///        For standard ordering there is no padding, so this is identical
+      ///        to ForEachBlock.
       template<typename Func, typename... Args>
       void ForEachBlockStrict(Func&& func, Args&&... args) const
       {
@@ -380,7 +380,7 @@ namespace micm
         return source_matrix->AsVector()[data_index];
       }
 
-      /// @brief Get element from GroupedBlockView (fast path)
+      /// @brief Get element from GroupedBlockView
       template<GroupedSparseMatrixBlockView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
@@ -481,7 +481,7 @@ namespace micm
         dst.group_base[dst.block_offset] = src.group_base[src.block_offset];
       }
 
-      /// @brief Copy `src[group_]` from a caller-owned vector into dst block (L=1).
+      /// @brief Copy `src[group_]` from a caller-owned vector into dst block.
       template<VectorLike Src>
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst, Src&& src)
@@ -489,7 +489,7 @@ namespace micm
         dst.group_base[dst.block_offset] = src[group_];
       }
 
-      /// @brief Assign value to the caller-owned block-variable temp (L=1).
+      /// @brief Assign value to the caller-owned block-variable temp.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
       void Fill(Dst&& dst, T value)
@@ -501,7 +501,7 @@ namespace micm
           storage = value;
       }
 
-      /// @brief Copy a sparse-block value into the caller-owned block-variable temp (L=1).
+      /// @brief Copy a sparse-block value into the caller-owned block-variable temp.
       template<BlockVariableView Dst, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src)
@@ -521,14 +521,15 @@ namespace micm
         vec[group_] = value;
       }
 
-      /// @brief Copy a sparse-block value into `vec[group_]` (L=1).
+      /// @brief Copy a sparse-block value into `vec[group_]`.
       template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src)
       {
         vec[group_] = src.group_base[src.block_offset];
       }
-
+      
+      /// @brief Execute a function for every block in the matrix
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args)
       {

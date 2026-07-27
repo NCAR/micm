@@ -467,8 +467,6 @@ namespace micm
                 jacobian_view.GetBlockView(*flat_id),
                 d_rate_d_ind);
             }
-            // Advance flat_id unconditionally: algebraic rows use a placeholder
-            // flat id but still occupy a slot in jacobian_flat_ids_.
             ++flat_id;
           }
           if (!is_algebraic_variable_[process_info.independent_id_])

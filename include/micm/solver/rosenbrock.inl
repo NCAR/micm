@@ -361,8 +361,8 @@ namespace micm
       {
         for (std::size_t i_var = 0; i_var < n_vars; ++i_var)
         {
-          // Strict variant: skip padding rows so their (possibly non-zero) values
-          // do not contaminate this global reduction.
+          // skip padding rows so their possibly non-zero values
+          // do not end up in the normalized error.
           y_view.ForEachRowStrict(
             [&](const double& y, const double& ynew, const double& var_error)
             {

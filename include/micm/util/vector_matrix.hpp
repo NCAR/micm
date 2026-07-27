@@ -593,10 +593,8 @@ namespace micm
       /// Carries a precomputed base pointer into this ConstGroupView's slice of the
       /// underlying storage. For VectorMatrix, `base` points at the first row of the
       /// group's L-row block for `column_index`, so element access is
-      /// `arg.base[row_in_group]` (contiguous!) instead of recomputing
-      /// `(group * y_dim + column) * L + row_in_group` per element. Only valid for
-      /// the group its parent ConstGroupView was constructed for and only while the
-      /// underlying matrix's data buffer is not reallocated.
+      /// `arg.base[row_in_group]` (contiguous) instead of recomputing
+      /// `(group * y_dim + column) * L + row_in_group` per element.
       struct GroupedConstColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
@@ -793,12 +791,6 @@ namespace micm
       }
 
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
-      ///        ForEachRow's fast path iterates the full compile-time L for every group
-      ///        (safe for pure writes into padded storage). For **read-side reductions**
-      ///        that accumulate outside the group (e.g. a global sum-of-squares), reading
-      ///        padding cells corrupts the result — use this variant instead. Always uses
-      ///        the runtime `num_rows_in_group_` bound and never unrolls to L; that costs
-      ///        a runtime compare + jump per group, but keeps the reduction well-defined.
       template<typename Func, typename... Args>
       void ForEachRowStrict(Func&& func, Args&&... args) const
       {

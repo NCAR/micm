@@ -489,12 +489,10 @@ namespace micm
       /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
       ///
       /// Carries a precomputed base pointer into the group's slice of the underlying
-      /// storage. For plain Matrix (L=1), `base` points at the single element that
+      /// storage. For standard-ordered matrices, `base` points at the single element that
       /// row_ intersects with column_index_. Element access via GetRowElement is then
-      /// `arg.base[0]`, avoiding the `row_ * y_dim_ + column_index` recomputation the
-      /// raw Matrix::ConstColumnView requires. The view is only valid for the group
-      /// its parent ConstGroupView represents and only while the underlying matrix's
-      /// data buffer is not reallocated.
+      /// `arg.base[0]`, avoiding the `row_ * y_dim_ + column_index` recomputation the raw
+      /// Matrix::ConstColumnView requires.
       struct GroupedConstColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
@@ -515,7 +513,6 @@ namespace micm
       }
 
       /// @brief Get a const element reference for the current row in this group (GroupedColumnView)
-      /// Fast path: element address was already precomputed at view construction time.
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(Arg&& arg) const
@@ -560,7 +557,7 @@ namespace micm
         return RowVariable();
       }
 
-      /// @brief Assign value to the caller-owned row-variable temp (L=1).
+      /// @brief Assign value to the caller-owned row-variable temp.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
       void Fill(Dst&& dst, T value) const
@@ -569,8 +566,6 @@ namespace micm
       }
 
       /// @brief Assign value to `vec[row_]` of an external vector.
-      ///        For plain Matrix (L=1) each group is one row, so this writes
-      ///        a single element into the caller-owned vector.
       template<VectorLike Vec>
       [[gnu::always_inline]]
       void Fill(Vec& vec, T value) const
@@ -578,7 +573,7 @@ namespace micm
         vec[row_] = value;
       }
 
-      /// @brief Copy src column into the caller-owned row-variable temp (L=1).
+      /// @brief Copy src column into the caller-owned row-variable temp.
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src) const
@@ -603,10 +598,8 @@ namespace micm
       }
 
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
-      ///        For plain Matrix (L=1) there is no padding, so this is identical
-      ///        to ForEachRow. Provided for API symmetry with VectorMatrix; use
-      ///        this variant in read-side reductions where padding contamination
-      ///        would corrupt the result.
+      ///        For standard-ordered matrices, there is no padding, so this is
+      ///        identical to ForEachRow.
       template<typename Func, typename... Args>
       void ForEachRowStrict(Func&& func, Args&&... args) const
       {
@@ -723,8 +716,6 @@ namespace micm
       }
 
       /// @brief Copy a per-row vector into dst column within this group.
-      ///        For plain Matrix (L=1) each group is one row, so this writes
-      ///        `src[row_]` into `dst`.
       template<VectorLike Src>
       [[gnu::always_inline]]
       void Copy(GroupedColumnView dst, Src&& src)
@@ -732,7 +723,7 @@ namespace micm
         dst.base[0] = src[row_];
       }
 
-      /// @brief Assign value to the caller-owned row-variable temp (L=1).
+      /// @brief Assign value to the caller-owned row-variable temp.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
       void Fill(Dst&& dst, T value)
@@ -748,7 +739,7 @@ namespace micm
         vec[row_] = value;
       }
 
-      /// @brief Copy src column into the caller-owned row-variable temp (L=1).
+      /// @brief Copy src column into the caller-owned row-variable temp.
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src)
@@ -772,7 +763,7 @@ namespace micm
       }
 
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
-      ///        For plain Matrix (L=1) there is no padding, so this is identical
+      ///        For standard-ordered matrices there is no padding, so this is identical
       ///        to ForEachRow. See ConstGroupView::ForEachRowStrict for details.
       template<typename Func, typename... Args>
       void ForEachRowStrict(Func&& func, Args&&... args)

@@ -26,8 +26,7 @@ namespace micm
   /// These carry a precomputed base pointer into the current group's slice of
   /// the underlying storage, so element access reduces to `base[block_in_group]`
   /// instead of recomputing `(group * y_dim + column) * L + block_in_group` per
-  /// element. Only valid for the group the parent GroupView was constructed for
-  /// and only while the underlying matrix's data buffer is not reallocated.
+  /// element.
   struct GroupedDenseMatrixColumnViewTag
   {
   };
@@ -35,8 +34,7 @@ namespace micm
   /// @brief Tag for sparse matrix block views obtained from a GroupView.
   /// Carry a precomputed base pointer to the current group's slice of the
   /// sparse data vector, so element access is `group_base[block_offset +
-  /// block_in_group]`. Same lifetime/validity constraints as the dense grouped
-  /// tag above.
+  /// block_in_group]`.
   struct GroupedSparseMatrixBlockViewTag
   {
   };
