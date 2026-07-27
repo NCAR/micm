@@ -568,12 +568,31 @@ namespace micm
         dst.Get() = value;
       }
 
+      /// @brief Assign value to `vec[row_]` of an external vector.
+      ///        For plain Matrix (L=1) each group is one row, so this writes
+      ///        a single element into the caller-owned vector.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        vec[row_] = value;
+      }
+
       /// @brief Copy src column into the caller-owned row-variable temp (L=1).
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src) const
       {
         dst.Get() = src.base[0];
+      }
+
+      /// @brief Copy src column into `vec[row_]` of an external vector.
+      ///        Inverse of Copy(GroupedColumnView, VectorLike).
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        vec[row_] = src.base[0];
       }
 
       template<typename Func, typename... Args>
@@ -703,6 +722,16 @@ namespace micm
         dst.base[0] = src.base[0];
       }
 
+      /// @brief Copy a per-row vector into dst column within this group.
+      ///        For plain Matrix (L=1) each group is one row, so this writes
+      ///        `src[row_]` into `dst`.
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst, Src&& src)
+      {
+        dst.base[0] = src[row_];
+      }
+
       /// @brief Assign value to the caller-owned row-variable temp (L=1).
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
@@ -711,12 +740,28 @@ namespace micm
         dst.Get() = value;
       }
 
+      /// @brief Assign value to `vec[row_]` of an external vector.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value)
+      {
+        vec[row_] = value;
+      }
+
       /// @brief Copy src column into the caller-owned row-variable temp (L=1).
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src)
       {
         dst.Get() = src.base[0];
+      }
+
+      /// @brief Copy src column into `vec[row_]` of an external vector.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src)
+      {
+        vec[row_] = src.base[0];
       }
 
       template<typename Func, typename... Args>

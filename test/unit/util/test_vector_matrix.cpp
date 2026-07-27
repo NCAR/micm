@@ -414,3 +414,19 @@ TEST(VectorMatrix, FunctionWithConstSignature)
   TestFunctionWithConstSignature<Group3MatrixAlias>();
   TestFunctionWithConstSignature<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, TestFill)
+{
+  TestFill<Group1MatrixAlias>();
+  TestFill<Group2MatrixAlias>();
+  TestFill<Group3MatrixAlias>();
+  TestFill<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, TestCopy)
+{
+  TestCopy<Group1MatrixAlias>();
+  TestCopy<Group2MatrixAlias>();
+  TestCopy<Group3MatrixAlias>();
+  TestCopy<Group4MatrixAlias>();
+}

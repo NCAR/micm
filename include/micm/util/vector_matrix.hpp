@@ -742,6 +742,31 @@ namespace micm
         }
       }
 
+      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
+      ///        Respects `num_rows_in_group_` so the last (partial) group doesn't
+      ///        write past the vector's real size (VectorLike has NumRows() entries,
+      ///        not padded).
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        const std::size_t start = group_ * L;
+        for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+          vec[start + i] = value;
+      }
+
+      /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
+      ///        Respects `num_rows_in_group_` so the last group doesn't write past
+      ///        the vector's real size.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        const std::size_t start = group_ * L;
+        for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+          vec[start + i] = src.base[i];
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
@@ -930,6 +955,21 @@ namespace micm
         }
       }
 
+      /// @brief Copy a per-row vector into dst column within this group.
+      ///        `src` has one entry per real row of the matrix (size == NumRows()),
+      ///        so we must respect `num_rows_in_group_` on the last (partial) group
+      ///        to avoid reading past the vector's end. Padding cells of `dst` are
+      ///        left untouched (they're scratch storage).
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst_view, Src&& src)
+      {
+        T* dst = dst_view.base;
+        const std::size_t start = group_ * L;
+        for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+          dst[i] = src[start + i];
+      }
+
       /// @brief Assign value to every cell of the caller-owned row-variable temp.
       ///        See ConstGroupView::Fill(Dst&&, T) for the array-vs-scalar
       ///        dispatch rationale.
@@ -982,6 +1022,28 @@ namespace micm
           static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
           storage = src.base[0];
         }
+      }
+
+      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
+      ///        See ConstGroupView::Fill(Vec&, T) for details.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value)
+      {
+        const std::size_t start = group_ * L;
+        for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+          vec[start + i] = value;
+      }
+
+      /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
+      ///        See ConstGroupView::Copy(Vec&, Src&&) for details.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src)
+      {
+        const std::size_t start = group_ * L;
+        for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+          vec[start + i] = src.base[i];
       }
 
       template<typename Func, typename... Args>

@@ -299,3 +299,13 @@ TEST(Matrix, FunctionWithConstSignature)
 {
   TestFunctionWithConstSignature<micm::Matrix>();
 }
+
+TEST(Matrix, TestFill)
+{
+  TestFill<micm::Matrix>();
+}
+
+TEST(Matrix, TestCopy)
+{
+  TestCopy<micm::Matrix>();
+}
