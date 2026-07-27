@@ -15,7 +15,8 @@
 
 | Phase | Branch | Status |
 |---|---|---|
-| 0 — rejection-alpha fix | `fix-rejection-alpha` (off `main`, pushed) | fix + regression test committed (`a826c8d0`); PR, CI run, and benchmark re-runs pending |
+| 0 — rejection-alpha fix | `fix-rejection-alpha` (off `main`, pushed) | fix + regression test committed (`a826c8d0`); merged to the DAE branch (`19ed87d8`); benchmarks re-measured; upstream PR pending |
+| 0b — init/error-control port to `main` | `init-weighted-correction` (off `fix-rejection-alpha`, pushed) | two cherry-picked commits, 65/65 suite; upstream PR pending (stack on Phase 0's) |
 | 1–9 | — | not started |
 
 ## Purpose
@@ -130,6 +131,53 @@ with NCAR/micm `main`) and should be shaped as cherry-pickable commits.
   #1045/#1046 merge and/or toolchain and need re-canonicalizing on the
   paper's rig, and the mechanism-scale per-cell timing ratios (0.85–0.87 vs
   published 0.71–0.87, identical step counts) are timing scatter.
+
+### Phase 0b — Port the DAE initialization and error-control corrections to `main`
+- **Branch:** `init-weighted-correction` (off `fix-rejection-alpha`, pushed
+  2026-07-26; upstream PR to stack on Phase 0's)
+- **Evidence:** `main` never received two corrections that the DAE branch
+  validated months ago, and MUSICA builds against `main`:
+  (1) the constraint-initialization acceptance rule on `main` is still the
+  raw-residual test (`max_residual < constraint_init_tolerance_`) that the
+  5400-case projection sweep discredited — 564 false convergences and 842
+  reached-the-solution-but-reported-failure cases, both eliminated by the
+  weighted-correction rule of `d7bf2087`. With Van't Hoff equilibrium
+  constants the raw residual's cancellation floor moves exponentially in
+  temperature across any fixed absolute tolerance — the mechanism matching
+  NCAR/musica#956 Case 2 (t = 0 failure with 1 K sensitivity).
+  (2) `main` still overwrites the algebraic rows of the embedded error
+  estimate with the O(H) step change (`SetAlgebraicErrors`), the step-size
+  throttle (up to ~100×) removed by `6b02b76e`.
+- **Tasks (done 2026-07-26):**
+  - Cherry-pick `6b02b76e` then `d7bf2087` onto `fix-rejection-alpha`,
+    library + unit/integration tests only (benchmark harness and planning
+    docs excluded); register the restored step-economy integration test in
+    `test/integration/CMakeLists.txt`. Both picks: library headers applied
+    conflict-free; conflicts were confined to excluded paths plus the two
+    error-control integration tests (taken from the DAE side).
+  - Result: `0c1b568e` (error-control) + `03dc6693` (initialization),
+    65/65 ctest (main's 64 + restored step-economy test).
+- **Dependency note (why 0b stacks on 0):** the ported
+  `PostSolveClampReprojectsAlgebraicVariables` test fails on unfixed `main`
+  — its reprojection scenario rejects the first step attempts repeatedly,
+  walking straight into the rejected-step alpha bug (3 init iterations and
+  a wrong final state instead of 2 and zeros). The initialization test
+  suite independently detects the Phase 0 bug, which is direct evidence the
+  two PRs belong together and in this order.
+- **Remaining:**
+  - Open the upstream PRs as a stack: Phase 0's fix first, this branch on
+    top. Offer maintainers the alternative of a single combined PR.
+  - Ask the MUSICA side (issue #956) to rerun Case 2 (T_INIT=286 K) and
+    Case 4 (LWC=0.03e-3) against the stacked branches; post the drafted
+    diagnosis comment when appropriate.
+  - CUDA caveat for the PR description: constraints are CPU-only
+    (`MICM_SOLVER_ERROR_CODE_CUDA_CONSTRAINTS_UNSUPPORTED`), so the port
+    does not touch GPU paths; GitHub CI must confirm the CUDA builds
+    compile (`solver.hpp`'s clamp/reproject edits are shared code).
+- **Acceptance:** 65/65 locally (met); GitHub CI green across platforms;
+  MUSICA Case 2 either initializes successfully or fails transactionally
+  with a named state and diagnosable pivot ratio (no silent knife edge);
+  no behavior change for constraint-free (pure ODE) solves.
 
 ## Performance thread
 
