@@ -17,14 +17,6 @@
 namespace micm
 {
 
-  /// Concept for vectorizable matrices
-  template<typename T>
-  concept VectorizableDense = requires(T t) {
-    t.GroupSize();
-    t.GroupVectorSize();
-    t.NumberOfGroups();
-  };
-
   /// @brief A 2D array class with contiguous memory
   template<class T = double>
   class Matrix

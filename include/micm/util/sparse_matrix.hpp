@@ -19,14 +19,6 @@
 
 namespace micm
 {
-  /// Concept for vectorizable matrices
-  template<typename T>
-  concept VectorizableSparse = requires(T t) {
-    t.GroupSize();
-    t.GroupVectorSize();
-    t.NumberOfGroups(0);
-  };
-
   /// @brief Type trait to extract GroupVectorSize (L) from matrix types at compile-time
   /// Default: L=1 for types without GroupVectorSize
   template<typename T>

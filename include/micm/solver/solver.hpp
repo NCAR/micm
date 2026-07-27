@@ -156,7 +156,7 @@ namespace micm
     ///          there is no limit other than the maximum size of a std::size_t.
     std::size_t MaximumNumberOfGridCells() const
     {
-      if constexpr (VectorizableDense<DenseMatrixType>)
+      if constexpr (requires() {DenseMatrixType::GroupVectorSize();})
       {
         return DenseMatrixType::GroupVectorSize();
       }
