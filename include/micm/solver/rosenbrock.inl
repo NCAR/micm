@@ -166,10 +166,12 @@ namespace micm
         {
           if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
           {
-            // Compute alpha accounting for the last alpha value
-            // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
+            // The Jacobian retains the alpha shift applied on earlier attempts of
+            // this step, so shift by the difference only. last_alpha must hold the
+            // cumulative shift now present in the matrix, not the per-attempt delta.
+            const double cumulative_alpha = alpha;
             alpha -= last_alpha;
-            last_alpha = alpha;
+            last_alpha = cumulative_alpha;
           }
 
           // Form and factor the rosenbrock ode jacobian
