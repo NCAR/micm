@@ -164,12 +164,27 @@ with NCAR/micm `main`) and should be shaped as cherry-pickable commits.
   a wrong final state instead of 2 and zeros). The initialization test
   suite independently detects the Phase 0 bug, which is direct evidence the
   two PRs belong together and in this order.
+- **Case-2 reproduction (2026-07-26):** a standalone mechanism-faithful
+  reproducer (`benchmark/musica956_knife_edge.cpp`, note
+  `docs/superpowers/notes/2026-07-26-musica956-knife-edge-repro.md`)
+  reproduces the t = 0 knife-edge *signature* on `main`: erratic 1 K
+  Converged/Failed flips (fails 284/287/290 K, passes neighbors) on a
+  Henry's-law + quadratic-dissociation system, with the projection on the
+  manifold even in the failing cases. `fix-rejection-alpha` alone shows
+  identical flips (as predicted — t = 0 is untouched by the alpha fix);
+  the full stack converges at all temperatures. Two adjacent modes also
+  observed and fixed by the port: cold-start 10-iteration budget
+  exhaustion (undamped overshoot on the quadratic; the ported line search
+  converges), and all-fail-with-converged-state at larger scale (the
+  842-class live). Exact replication still requires the reporter's config.
 - **Remaining:**
   - Open the upstream PRs as a stack: Phase 0's fix first, this branch on
-    top. Offer maintainers the alternative of a single combined PR.
+    top. Offer maintainers the alternative of a single combined PR. Cite
+    the reproducer matrix in PR 2's description.
   - Ask the MUSICA side (issue #956) to rerun Case 2 (T_INIT=286 K) and
-    Case 4 (LWC=0.03e-3) against the stacked branches; post the drafted
-    diagnosis comment when appropriate.
+    Case 4 (LWC=0.03e-3) against the stacked branches, share their config
+    for exact replication, and log the returned `SolverState` per failing
+    case; post the drafted diagnosis comment when appropriate.
   - CUDA caveat for the PR description: constraints are CPU-only
     (`MICM_SOLVER_ERROR_CODE_CUDA_CONSTRAINTS_UNSUPPORTED`), so the port
     does not touch GPU paths; GitHub CI must confirm the CUDA builds
