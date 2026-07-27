@@ -6,7 +6,7 @@
 //
 // The grouped views (`GroupedColumnView` and `GroupedConstColumnView` on the
 // dense matrices, `GroupedBlockView` and `GroupedConstBlockView` on the sparse
-// orderings) carry a precomputed base pointer scoped to a specific group. They
+// orderings) carry a precomputed base_ pointer scoped to a specific group. They
 // are returned by `GetColumnView` / `GetConstColumnView` / `GetBlockView` /
 // `GetConstBlockView` when those methods are called on a `GroupView` /
 // `ConstGroupView` (as opposed to the raw matrix).
@@ -71,7 +71,7 @@ TEST(GroupedView, CategoryTagsAreDistinct)
 
 // ---------------------------------------------------------------------------
 // Dense matrix (L=1): GroupView.GetColumnView returns a grouped view whose
-// base pointer maps to the exact element and round-trips through ForEachRow.
+// base_ pointer maps to the exact element and round-trips through ForEachRow.
 // ---------------------------------------------------------------------------
 
 TEST(GroupedView, MatrixColumnViewRoundTrip)
@@ -93,9 +93,9 @@ TEST(GroupedView, MatrixColumnViewRoundTrip)
   static_assert(GroupedDenseMatrixColumnView<decltype(col3_const)>);
 
   // Base pointer aims at the exact element (row=1, col=2, expected value 12).
-  EXPECT_EQ(*col2_mut.base, 12.0);
-  EXPECT_EQ(*col2_const.base, 12.0);
-  EXPECT_EQ(*col3_const.base, 13.0);
+  EXPECT_EQ(*col2_mut.base_, 12.0);
+  EXPECT_EQ(*col2_const.base_, 12.0);
+  EXPECT_EQ(*col3_const.base_, 13.0);
 
   // Write via ForEachRow: col2 = col3 * 2  ==> row 1 only.
   row_view.ForEachRow(
@@ -106,8 +106,8 @@ TEST(GroupedView, MatrixColumnViewRoundTrip)
 }
 
 // ---------------------------------------------------------------------------
-// Dense matrix (L>1): GroupView.GetColumnView base points at the L-row block.
-// Element access is contiguous: base[0..L-1].
+// Dense matrix (L>1): GroupView.GetColumnView base_ points at the L-row block.
+// Element access is contiguous: base_[0..L-1].
 // ---------------------------------------------------------------------------
 
 TEST(GroupedView, VectorMatrixColumnViewContiguousBlock)
@@ -126,11 +126,11 @@ TEST(GroupedView, VectorMatrixColumnViewContiguousBlock)
   static_assert(GroupedDenseMatrixColumnView<decltype(col1_mut)>);
   static_assert(GroupedDenseMatrixColumnView<decltype(col2_const)>);
 
-  // base points at row 4 for the requested column; base[i] is row 4+i.
+  // base_ points at row 4 for the requested column; base_[i] is row 4+i.
   for (std::size_t i = 0; i < 4; ++i)
   {
-    EXPECT_EQ(col1_mut.base[i], static_cast<double>(100 + 10 * (4 + i) + 1));
-    EXPECT_EQ(col2_const.base[i], static_cast<double>(100 + 10 * (4 + i) + 2));
+    EXPECT_EQ(col1_mut.base_[i], static_cast<double>(100 + 10 * (4 + i) + 1));
+    EXPECT_EQ(col2_const.base_[i], static_cast<double>(100 + 10 * (4 + i) + 2));
   }
 
   // ForEachRow scales col1 by 2 over the group; other groups untouched.
@@ -240,7 +240,7 @@ TEST(GroupedView, PlainMatrixGroupedRoundTrip)
 }
 
 // ---------------------------------------------------------------------------
-// Sparse matrix (standard, L=1): grouped block view carries a base + offset.
+// Sparse matrix (standard, L=1): grouped block view carries a base_ + offset.
 // ---------------------------------------------------------------------------
 
 TEST(GroupedView, SparseStandardBlockViewRoundTrip)
@@ -262,10 +262,10 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
   static_assert(GroupedSparseMatrixBlockView<decltype(v01_mut)>);
   static_assert(GroupedSparseMatrixBlockView<decltype(v12_const)>);
 
-  // group_base points at the start of block 1's data slice; offset picks the
+  // group_base_ points at the start of block 1's data slice; offset picks the
   // right non-zero element. For standard ordering block_in_group is always 0.
-  EXPECT_EQ(v01_mut.group_base[v01_mut.block_offset], 10.0);
-  EXPECT_EQ(v12_const.group_base[v12_const.block_offset], 20.0);
+  EXPECT_EQ(v01_mut.group_base_[v01_mut.block_offset], 10.0);
+  EXPECT_EQ(v12_const.group_base_[v12_const.block_offset], 20.0);
 
   group1.ForEachBlock(
       [](double& a, const double& b) { a = b + 5.0; }, v01_mut, v12_const);
@@ -275,7 +275,7 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
 
 // ---------------------------------------------------------------------------
 // Sparse matrix (vector ordering, L=4): grouped block view spans L blocks
-// contiguously. Element access is `group_base[block_offset + block_in_group]`.
+// contiguously. Element access is `group_base_[block_offset + block_in_group]`.
 // ---------------------------------------------------------------------------
 
 TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
@@ -297,11 +297,11 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
   static_assert(GroupedSparseMatrixBlockView<decltype(v01)>);
   static_assert(GroupedSparseMatrixBlockView<decltype(v12)>);
 
-  // group_base + block_offset + i lands on the (block_in_group = i) block.
+  // group_base_ + block_offset + i lands on the (block_in_group = i) block.
   for (std::size_t i = 0; i < 4; ++i)
   {
-    EXPECT_EQ(v01.group_base[v01.block_offset + i], 100.0 + (4 + i));
-    EXPECT_EQ(v12.group_base[v12.block_offset + i], 200.0 + (4 + i));
+    EXPECT_EQ(v01.group_base_[v01.block_offset + i], 100.0 + (4 + i));
+    EXPECT_EQ(v12.group_base_[v12.block_offset + i], 200.0 + (4 + i));
   }
 
   // ForEachBlock touches only the L=4 blocks of the group.
@@ -463,7 +463,7 @@ TEST(GroupedView, ConstGroupViewProducesGroupedViews)
   auto v = cgv.GetConstBlockView(matrix.VectorIndex(0, 0, 1));
   static_assert(GroupedSparseMatrixBlockView<decltype(v)>);
   for (std::size_t i = 0; i < 4; ++i)
-    EXPECT_EQ(v.group_base[v.block_offset + i], static_cast<double>(i + 1));
+    EXPECT_EQ(v.group_base_[v.block_offset + i], static_cast<double>(i + 1));
 
   VectorMatrix<double, 4> dense{ 4, 2, 0.0 };
   for (std::size_t b = 0; b < 4; ++b)
@@ -473,7 +473,7 @@ TEST(GroupedView, ConstGroupViewProducesGroupedViews)
   auto dv = dcgv.GetConstColumnView(1);
   static_assert(GroupedDenseMatrixColumnView<decltype(dv)>);
   for (std::size_t i = 0; i < 4; ++i)
-    EXPECT_EQ(dv.base[i], static_cast<double>(100 + i));
+    EXPECT_EQ(dv.base_[i], static_cast<double>(100 + i));
 }
 
 // ---------------------------------------------------------------------------

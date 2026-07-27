@@ -69,7 +69,7 @@ namespace micm
     /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(auto& state, const double& alpha) const
-      requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+      requires(CudaMatrix<SparseMatrixPolicy>)
     {
       auto jacobian_param =
           state.jacobian_.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
@@ -88,7 +88,7 @@ namespace micm
         const DenseMatrixPolicy& y_new,
         const DenseMatrixPolicy& errors,
         auto& state) const
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+      requires(CudaMatrix<DenseMatrixPolicy>)
     {
       return micm::cuda::NormalizedErrorDriver(
           y_old.AsDeviceParam(),

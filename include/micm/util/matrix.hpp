@@ -488,15 +488,15 @@ namespace micm
      public:
       /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
       ///
-      /// Carries a precomputed base pointer into the group's slice of the underlying
-      /// storage. For standard-ordered matrices, `base` points at the single element that
+      /// Carries a precomputed base_ pointer into the group's slice of the underlying
+      /// storage. For standard-ordered matrices, `base_` points at the single element that
       /// row_ intersects with column_index_. Element access via GetRowElement is then
-      /// `arg.base[0]`, avoiding the `row_ * y_dim_ + column_index` recomputation the raw
+      /// `arg.base_[0]`, avoiding the `row_ * y_dim_ + column_index` recomputation the raw
       /// Matrix::ConstColumnView requires.
       struct GroupedConstColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
-        const T* base;
+        const T* base_;
       };
 
      private:
@@ -517,7 +517,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(Arg&& arg) const
       {
-        return arg.base[0];
+        return arg.base_[0];
       }
 
       /// @brief Get a const element reference for the current row in this group (RowVariable)
@@ -543,7 +543,7 @@ namespace micm
       {
       }
 
-      /// @brief Returns a grouped const column view whose element base pointer is
+      /// @brief Returns a grouped const column view whose element base_ pointer is
       ///        precomputed for this ConstGroupView's row.
       GroupedConstColumnView GetConstColumnView(std::size_t column_index) const
       {
@@ -578,7 +578,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src) const
       {
-        dst.Get() = src.base[0];
+        dst.Get() = src.base_[0];
       }
 
       /// @brief Copy src column into `vec[row_]` of an external vector.
@@ -587,7 +587,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src) const
       {
-        vec[row_] = src.base[0];
+        vec[row_] = src.base_[0];
       }
 
       template<typename Func, typename... Args>
@@ -625,13 +625,13 @@ namespace micm
       struct GroupedColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
-        T* base;
+        T* base_;
       };
       /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
       struct GroupedConstColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
-        const T* base;
+        const T* base_;
       };
 
      private:
@@ -652,7 +652,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(Arg&& arg)
       {
-        return arg.base[0];
+        return arg.base_[0];
       }
 
       /// @brief Get an element reference for the current row in this group (RowVariable)
@@ -678,7 +678,7 @@ namespace micm
       {
       }
 
-      /// @brief Returns a grouped const column view whose element base pointer is
+      /// @brief Returns a grouped const column view whose element base_ pointer is
       ///        precomputed for this GroupView's row.
       GroupedConstColumnView GetConstColumnView(std::size_t column_index) const
       {
@@ -686,7 +686,7 @@ namespace micm
         return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
       }
 
-      /// @brief Returns a grouped mutable column view whose element base pointer is
+      /// @brief Returns a grouped mutable column view whose element base_ pointer is
       ///        precomputed for this GroupView's row.
       GroupedColumnView GetColumnView(std::size_t column_index)
       {
@@ -704,7 +704,7 @@ namespace micm
       [[gnu::always_inline]]
       void Fill(GroupedColumnView view, T value)
       {
-        view.base[0] = value;
+        view.base_[0] = value;
       }
 
       /// @brief Copy src column into dst column within this group.
@@ -712,7 +712,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedColumnView dst, Src&& src)
       {
-        dst.base[0] = src.base[0];
+        dst.base_[0] = src.base_[0];
       }
 
       /// @brief Copy a per-row vector into dst column within this group.
@@ -720,7 +720,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedColumnView dst, Src&& src)
       {
-        dst.base[0] = src[row_];
+        dst.base_[0] = src[row_];
       }
 
       /// @brief Assign value to the caller-owned row-variable temp.
@@ -744,7 +744,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Dst&& dst, Src&& src)
       {
-        dst.Get() = src.base[0];
+        dst.Get() = src.base_[0];
       }
 
       /// @brief Copy src column into `vec[row_]` of an external vector.
@@ -752,7 +752,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src)
       {
-        vec[row_] = src.base[0];
+        vec[row_] = src.base_[0];
       }
 
       template<typename Func, typename... Args>

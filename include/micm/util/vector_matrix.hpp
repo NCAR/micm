@@ -590,15 +590,15 @@ namespace micm
      public:
       /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
       ///
-      /// Carries a precomputed base pointer into this ConstGroupView's slice of the
-      /// underlying storage. For VectorMatrix, `base` points at the first row of the
+      /// Carries a precomputed base_ pointer into this ConstGroupView's slice of the
+      /// underlying storage. For VectorMatrix, `base_` points at the first row of the
       /// group's L-row block for `column_index`, so element access is
-      /// `arg.base[row_in_group]` (contiguous) instead of recomputing
+      /// `arg.base_[row_in_group]` (contiguous) instead of recomputing
       /// `(group * y_dim + column) * L + row_in_group` per element.
       struct GroupedConstColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
-        const T* base;
+        const T* base_;
       };
 
      private:
@@ -617,12 +617,12 @@ namespace micm
       }
 
       /// @brief Get a const element reference for a specific row in this group (GroupedColumnView)
-      /// Fast path: `base` already points at row 0 of this group's L-row block.
+      /// Fast path: `base_` already points at row 0 of this group's L-row block.
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
       {
-        return arg.base[row_in_group];
+        return arg.base_[row_in_group];
       }
 
       /// @brief Get a const element reference for a specific row in this group (BlockVariable).
@@ -670,7 +670,7 @@ namespace micm
       {
       }
 
-      /// @brief Returns a grouped const column view whose element base pointer is
+      /// @brief Returns a grouped const column view whose element base_ pointer is
       ///        precomputed for this ConstGroupView's group.
       GroupedConstColumnView GetConstColumnView(std::size_t column_index) const
       {
@@ -725,18 +725,18 @@ namespace micm
         {
           if constexpr (L >= 16)
           {
-            std::copy_n(src.base, L, storage.data());
+            std::copy_n(src.base_, L, storage.data());
           }
           else
           {
             for (std::size_t i = 0; i < L; ++i)
-              storage[i] = src.base[i];
+              storage[i] = src.base_[i];
           }
         }
         else
         {
           static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
-          storage = src.base[0];
+          storage = src.base_[0];
         }
       }
 
@@ -762,7 +762,7 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
-          vec[start + i] = src.base[i];
+          vec[start + i] = src.base_[i];
       }
 
       template<typename Func, typename... Args>
@@ -819,13 +819,13 @@ namespace micm
       struct GroupedColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
-        T* base;
+        T* base_;
       };
       /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
       struct GroupedConstColumnView
       {
         using category = GroupedDenseMatrixColumnViewTag;
-        const T* base;
+        const T* base_;
       };
 
      private:
@@ -844,12 +844,12 @@ namespace micm
       }
 
       /// @brief Get an element reference for a specific row in this group (GroupedColumnView)
-      /// Fast path: `base` already points at row 0 of this group's L-row block.
+      /// Fast path: `base_` already points at row 0 of this group's L-row block.
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
-        return arg.base[row_in_group];
+        return arg.base_[row_in_group];
       }
 
       /// @brief Get an element reference for a specific row in this group (BlockVariable).
@@ -893,7 +893,7 @@ namespace micm
       {
       }
 
-      /// @brief Returns a grouped const column view whose element base pointer is
+      /// @brief Returns a grouped const column view whose element base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstColumnView GetConstColumnView(std::size_t column_index) const
       {
@@ -901,7 +901,7 @@ namespace micm
         return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
-      /// @brief Returns a grouped mutable column view whose element base pointer is
+      /// @brief Returns a grouped mutable column view whose element base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedColumnView GetColumnView(std::size_t column_index)
       {
@@ -920,11 +920,11 @@ namespace micm
       {
         if constexpr (L >= 16)
         {
-          std::fill_n(view.base, L, value);
+          std::fill_n(view.base_, L, value);
         }
         else
         {
-          T* dst = view.base;
+          T* dst = view.base_;
           for (std::size_t i = 0; i < L; ++i)
             dst[i] = value;
         }
@@ -936,12 +936,12 @@ namespace micm
       {
         if constexpr (L >= 16)
         {
-          std::copy_n(src_view.base, L, dst_view.base);
+          std::copy_n(src_view.base_, L, dst_view.base_);
         }
         else
         {
-          T* dst = dst_view.base;
-          const T* src = src_view.base;
+          T* dst = dst_view.base_;
+          const T* src = src_view.base_;
           for (std::size_t i = 0; i < L; ++i)
             dst[i] = src[i];
         }
@@ -956,7 +956,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedColumnView dst_view, Src&& src)
       {
-        T* dst = dst_view.base;
+        T* dst = dst_view.base_;
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
           dst[i] = src[start + i];
@@ -1001,18 +1001,18 @@ namespace micm
         {
           if constexpr (L >= 16)
           {
-            std::copy_n(src.base, L, storage.data());
+            std::copy_n(src.base_, L, storage.data());
           }
           else
           {
             for (std::size_t i = 0; i < L; ++i)
-              storage[i] = src.base[i];
+              storage[i] = src.base_[i];
           }
         }
         else
         {
           static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
-          storage = src.base[0];
+          storage = src.base_[0];
         }
       }
 
@@ -1035,7 +1035,7 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
-          vec[start + i] = src.base[i];
+          vec[start + i] = src.base_[i];
       }
 
       template<typename Func, typename... Args>

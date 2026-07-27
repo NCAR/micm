@@ -117,14 +117,14 @@ namespace micm
     ///        Rate constants are NOT copied here; they are computed directly on the
     ///        GPU by Solver::UpdateStateParameters (via CudaProcessSet::GpuCalculateRateConstants).
     void SyncInputsToDevice()
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+      requires(CudaMatrix<DenseMatrixPolicy>)
     {
       this->variables_.CopyToDevice();
     }
 
     /// @brief Copy output variables to the host
     void SyncOutputsToHost()
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+      requires(CudaMatrix<DenseMatrixPolicy>)
     {
       this->variables_.CopyToHost();
       // our tests require we check the rate constants

@@ -86,9 +86,7 @@ namespace micm
     /// After this call, device rate_constants_ is fully populated for the current step.
     template<class StatePolicy>
     void GpuCalculateRateConstants(const ReactionRateConstantStore& cpu_store, StatePolicy& state)
-      requires(
-          CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
-          VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
+      requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType>)
     {
       using DM = typename StatePolicy::DenseMatrixPolicyType;
 
@@ -128,11 +126,11 @@ namespace micm
     void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids);
 
     void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
-      requires(VectorizableDense<DenseMatrixPolicy>);
+      requires(CudaMatrix<DenseMatrixPolicy>);
 
     void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
         const
-      requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
+      requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrixPolicy<SparseMatrixPolicy>);
 
    private:
     void InitDevStruct();
@@ -239,7 +237,7 @@ namespace micm
       const auto& state,
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
-    requires(VectorizableDense<DenseMatrixPolicy>)
+    requires(CudaMatrix<DenseMatrixPolicy>)
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue
     micm::cuda::AddForcingTermsKernelDriver(
@@ -252,7 +250,7 @@ namespace micm
       const auto& state,
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
-    requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   {
     auto jacobian_param =
         jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue

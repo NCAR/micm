@@ -168,13 +168,13 @@ namespace micm
 
       /// @brief Enriched const block view returned by GetConstBlockView on a ConstGroupView.
       ///
-      /// Carries a precomputed base pointer into this group's slice of the sparse data
+      /// Carries a precomputed base_ pointer into this group's slice of the sparse data
       /// vector (`matrix.data() + group * FlatBlockSize()` for standard ordering).
-      /// Element access via GetBlockElement is `group_base[block_offset]`.
+      /// Element access via GetBlockElement is `group_base_[block_offset]`.
       struct GroupedConstBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
-        const T* group_base;
+        const T* group_base_;
         std::size_t block_offset;
       };
 
@@ -201,7 +201,7 @@ namespace micm
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // L=1 for standard ordering, so block_in_group is always 0.
-        return arg.group_base[arg.block_offset];
+        return arg.group_base_[arg.block_offset];
       }
 
       /// @brief Get element from Matrix or VectorMatrix ConstColumnView
@@ -226,8 +226,8 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        // L=1 for standard ordering: base already points at the exact element.
-        return arg.base[0];
+        // L=1 for standard ordering: base_ already points at the exact element.
+        return arg.base_[0];
       }
 
       /// @brief Get element from BlockVariable
@@ -253,7 +253,7 @@ namespace micm
       {
       }
 
-      /// @brief Returns a grouped const block view whose group base pointer is
+      /// @brief Returns a grouped const block view whose group base_ pointer is
       ///        precomputed for this ConstGroupView's group.
       GroupedConstBlockView GetConstBlockView(std::size_t vector_index) const
       {
@@ -291,9 +291,9 @@ namespace micm
       {
         auto& storage = dst.Get();
         if constexpr (requires(std::size_t i) { storage[i]; })
-          storage[0] = src.group_base[src.block_offset];
+          storage[0] = src.group_base_[src.block_offset];
         else
-          storage = src.group_base[src.block_offset];
+          storage = src.group_base_[src.block_offset];
       }
 
       /// @brief Assign value to `vec[group_]`.
@@ -309,7 +309,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src) const
       {
-        vec[group_] = src.group_base[src.block_offset];
+        vec[group_] = src.group_base_[src.block_offset];
       }
 
       /// @brief Execute a function for every block in the matrix
@@ -356,14 +356,14 @@ namespace micm
       struct GroupedBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
-        T* group_base;
+        T* group_base_;
         std::size_t block_offset;
       };
       /// @brief Const variant, for GetConstBlockView on a mutable GroupView.
       struct GroupedConstBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
-        const T* group_base;
+        const T* group_base_;
         std::size_t block_offset;
       };
 
@@ -390,7 +390,7 @@ namespace micm
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // for standard ordering, block_in_group is always 0.
-        return arg.group_base[arg.block_offset];
+        return arg.group_base_[arg.block_offset];
       }
 
       /// @brief Get element from Matrix or VectorMatrix ColumnView
@@ -415,8 +415,8 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
-        // for standard ordering: base already points at the exact element.
-        return arg.base[0];
+        // for standard ordering: base_ already points at the exact element.
+        return arg.base_[0];
       }
 
       /// @brief Get element from BlockVariable
@@ -442,7 +442,7 @@ namespace micm
       {
       }
 
-      /// @brief Returns a grouped const block view whose group base pointer is
+      /// @brief Returns a grouped const block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstBlockView GetConstBlockView(std::size_t vector_index) const
       {
@@ -454,7 +454,7 @@ namespace micm
         return matrix_.GetConstBlockView(row, col);
       }
 
-      /// @brief Returns a grouped mutable block view whose group base pointer is
+      /// @brief Returns a grouped mutable block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedBlockView GetBlockView(std::size_t vector_index)
       {
@@ -475,7 +475,7 @@ namespace micm
       [[gnu::always_inline]]
       void Fill(GroupedBlockView view, T value)
       {
-        view.group_base[view.block_offset] = value;
+        view.group_base_[view.block_offset] = value;
       }
 
       /// @brief Copy src block value into dst block value within this group.
@@ -483,7 +483,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst, Src&& src)
       {
-        dst.group_base[dst.block_offset] = src.group_base[src.block_offset];
+        dst.group_base_[dst.block_offset] = src.group_base_[src.block_offset];
       }
 
       /// @brief Copy `src[group_]` from a caller-owned vector into dst block.
@@ -491,7 +491,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst, Src&& src)
       {
-        dst.group_base[dst.block_offset] = src[group_];
+        dst.group_base_[dst.block_offset] = src[group_];
       }
 
       /// @brief Assign value to the caller-owned block-variable temp.
@@ -514,9 +514,9 @@ namespace micm
       {
         auto& storage = dst.Get();
         if constexpr (requires(std::size_t i) { storage[i]; })
-          storage[0] = src.group_base[src.block_offset];
+          storage[0] = src.group_base_[src.block_offset];
         else
-          storage = src.group_base[src.block_offset];
+          storage = src.group_base_[src.block_offset];
       }
 
       /// @brief Assign value to `vec[group_]`.
@@ -532,7 +532,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src)
       {
-        vec[group_] = src.group_base[src.block_offset];
+        vec[group_] = src.group_base_[src.block_offset];
       }
 
       /// @brief Execute a function for every block in the matrix

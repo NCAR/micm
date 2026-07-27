@@ -91,12 +91,12 @@ namespace micm
     /// @brief This is the function to perform an LU decomposition on a given A matrix on the GPU
     /// @param ALU Sparse matrix to decompose (will be overwritten with L and U matrices)
     template<class SparseMatrixPolicy>
-      requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+      requires(CudaMatrix<SparseMatrixPolicy>)
     void Decompose(SparseMatrixPolicy& ALU) const;
   };
 
   template<class SparseMatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    requires(CudaMatrix<SparseMatrixPolicy>)
   void CudaLuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
     auto ALU_param = ALU.AsDeviceParam();

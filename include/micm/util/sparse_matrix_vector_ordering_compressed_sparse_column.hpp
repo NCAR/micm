@@ -181,7 +181,7 @@ namespace micm
       struct GroupedConstBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
-        const T* group_base;
+        const T* group_base_;
         std::size_t block_offset;
       };
 
@@ -208,7 +208,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        return arg.group_base[arg.block_offset + block_in_group];
+        return arg.group_base_[arg.block_offset + block_in_group];
       }
 
       /// @brief Get element from VectorMatrix ConstColumnView (tiered grouping L>1)
@@ -227,7 +227,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
-        return arg.base[block_in_group];
+        return arg.base_[block_in_group];
       }
 
       /// @brief Get element from Matrix or VectorMatrix<1> ConstColumnView (simple grouping L==1)
@@ -293,7 +293,7 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
-      /// @brief Returns a grouped const block view whose group base pointer is
+      /// @brief Returns a grouped const block view whose group base_ pointer is
       ///        precomputed for this ConstGroupView's group.
       GroupedConstBlockView GetConstBlockView(std::size_t vector_index) const
       {
@@ -337,12 +337,12 @@ namespace micm
         if constexpr (requires(std::size_t i) { storage[i]; })
         {
           for (std::size_t i = 0; i < L; ++i)
-            storage[i] = src.group_base[src.block_offset + i];
+            storage[i] = src.group_base_[src.block_offset + i];
         }
         else
         {
           static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
-          storage = src.group_base[src.block_offset];
+          storage = src.group_base_[src.block_offset];
         }
       }
 
@@ -364,7 +364,7 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_blocks_in_group_; ++i)
-          vec[start + i] = src.group_base[src.block_offset + i];
+          vec[start + i] = src.group_base_[src.block_offset + i];
       }
 
       /// @brief Execute a function for every block in the matrix
@@ -432,14 +432,14 @@ namespace micm
       struct GroupedBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
-        T* group_base;
+        T* group_base_;
         std::size_t block_offset;
       };
       /// @brief Const variant, for GetConstBlockView on a mutable GroupView.
       struct GroupedConstBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
-        const T* group_base;
+        const T* group_base_;
         std::size_t block_offset;
       };
 
@@ -465,7 +465,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
-        return arg.group_base[arg.block_offset + block_in_group];
+        return arg.group_base_[arg.block_offset + block_in_group];
       }
 
       /// @brief Get element from VectorMatrix ColumnView (tiered grouping L>1)
@@ -485,7 +485,7 @@ namespace micm
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
-        return arg.base[block_in_group];
+        return arg.base_[block_in_group];
       }
 
       /// @brief Get element from Matrix or VectorMatrix<1> ColumnView (simple grouping L==1)
@@ -551,7 +551,7 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
-      /// @brief Returns a grouped const block view whose group base pointer is
+      /// @brief Returns a grouped const block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstBlockView GetConstBlockView(std::size_t vector_index) const
       {
@@ -563,7 +563,7 @@ namespace micm
         return matrix_.GetConstBlockView(row, col);
       }
 
-      /// @brief Returns a grouped mutable block view whose group base pointer is
+      /// @brief Returns a grouped mutable block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedBlockView GetBlockView(std::size_t vector_index)
       {
@@ -589,11 +589,11 @@ namespace micm
       {
         if constexpr (L >= 16)
         {
-          std::fill_n(view.group_base + view.block_offset, L, value);
+          std::fill_n(view.group_base_ + view.block_offset, L, value);
         }
         else
         {
-          T* dst = view.group_base + view.block_offset;
+          T* dst = view.group_base_ + view.block_offset;
           for (std::size_t i = 0; i < L; ++i)
             dst[i] = value;
         }
@@ -609,12 +609,12 @@ namespace micm
       {
         if constexpr (L >= 16)
         {
-          std::copy_n(src_view.group_base + src_view.block_offset, L, dst_view.group_base + dst_view.block_offset);
+          std::copy_n(src_view.group_base_ + src_view.block_offset, L, dst_view.group_base_ + dst_view.block_offset);
         }
         else
         {
-          T* dst = dst_view.group_base + dst_view.block_offset;
-          const T* src = src_view.group_base + src_view.block_offset;
+          T* dst = dst_view.group_base_ + dst_view.block_offset;
+          const T* src = src_view.group_base_ + src_view.block_offset;
           for (std::size_t i = 0; i < L; ++i)
             dst[i] = src[i];
         }
@@ -626,7 +626,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst_view, Src&& src)
       {
-        T* dst = dst_view.group_base + dst_view.block_offset;
+        T* dst = dst_view.group_base_ + dst_view.block_offset;
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_blocks_in_group_; ++i)
           dst[i] = src[start + i];
@@ -659,12 +659,12 @@ namespace micm
         if constexpr (requires(std::size_t i) { storage[i]; })
         {
           for (std::size_t i = 0; i < L; ++i)
-            storage[i] = src.group_base[src.block_offset + i];
+            storage[i] = src.group_base_[src.block_offset + i];
         }
         else
         {
           static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
-          storage = src.group_base[src.block_offset];
+          storage = src.group_base_[src.block_offset];
         }
       }
 
@@ -685,7 +685,7 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_blocks_in_group_; ++i)
-          vec[start + i] = src.group_base[src.block_offset + i];
+          vec[start + i] = src.group_base_[src.block_offset + i];
       }
 
       /// @brief Execute a function for every block in the matrix

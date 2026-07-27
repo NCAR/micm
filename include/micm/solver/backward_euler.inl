@@ -178,7 +178,7 @@ namespace micm
             },
             residual_view.GetConstColumnView(i_var),
             Yn1_view.GetConstColumnView(i_var));
-          if (!retval) return;
+          if (!retval) { return; }
         }
       }, residual, Yn1)(residual, Yn1);
     return retval;
