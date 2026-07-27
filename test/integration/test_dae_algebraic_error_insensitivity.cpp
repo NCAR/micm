@@ -1,14 +1,16 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
-// Tests verifying that the Rosenbrock DAE step-change error estimate for
-// algebraic variables makes the solver sensitive to algebraic tolerances
-// and prevents overshoot.
+// Tests verifying that an algebraic conservation/balance variable is not driven
+// into an unphysical (negative) state under stiff DAE conditions.
 //
-// Root cause: The embedded error formula Yerror = sum(e_i * K_i) produces
-// near-zero entries for algebraic variables because the mass matrix diagonal
-// M_ii = 0 zeroes out the inter-stage coupling terms (c/H) * M_ii * K[j].
-// Fix: replace Yerror[a] with Ynew[a] - Y[a] for algebraic variables.
+// The Rosenbrock DAE solver uses the method's embedded local truncation error
+// estimate Yerror = sum(e_i * K_i) for all variables, including algebraic rows
+// (where it correctly evaluates to ~0 because an algebraic variable is slaved to
+// the differential variables through its constraint). Feasibility is preserved
+// by constraint enforcement at each stage plus differential-variable error
+// control, NOT by any algebraic-tolerance throttling. See
+// docs/superpowers/notes/2026-05-28-dae-algebraic-error-investigation.md.
 //
 // System (4 species, 2 equilibria, 1 reaction, 1 conservation):
 //   A_gas <-> A_aq   (equilibrium, K1)    -- A_aq is algebraic
@@ -40,11 +42,11 @@ namespace
 {
   struct SolveResult
   {
-    double A_gas_final_;
-    double P_final_;
-    double min_A_gas_;
-    uint64_t accepted_;
-    uint64_t rejected_;
+    double A_gas_final;
+    double P_final;
+    double min_A_gas;
+    uint64_t accepted;
+    uint64_t rejected;
   };
 
   /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (A_gas)
@@ -71,25 +73,25 @@ namespace
                       .Build();
 
     std::vector<Constraint> constraints;
-    constraints.emplace_back(EquilibriumConstraint(
+    constraints.push_back(EquilibriumConstraint(
         "eq1",
         A_aq,
         std::vector<StoichSpecies>{ { A_gas, 1.0 } },
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
-    constraints.emplace_back(EquilibriumConstraint(
+        VantHoffParam{ .K_HLC_ref = K1, .delta_H = 0.0 }));
+    constraints.push_back(EquilibriumConstraint(
         "eq2",
         B_aq,
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
+        VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));
     // A_gas is explicitly set as the algebraic balance variable
-    constraints.emplace_back(
+    constraints.push_back(
         LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-    auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
-                      .SetSystem(System(gas_phase))
+    auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+                      .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)
@@ -149,23 +151,6 @@ namespace
   }
 }  // namespace
 
-/// @brief Prove that the step-change error estimate makes the solver sensitive to algebraic atol.
-///
-/// With the step-change error injection, tighter atol for the algebraic balance
-/// variable (A_gas) should produce more internal steps during the transient.
-/// Uses moderate stiffness so the transient is long enough to require many steps.
-TEST(DAEAlgebraicError, ErrorSensitiveToBalanceAtol)
-{
-  // Moderate stiffness: k=100, K1=2, K2=2
-  // Time constant ≈ 1/(k*K1*K2/(1+K1+K1*K2)) = 7/(100*4) ≈ 0.018 s
-  // A_gas0 = C/7 ≈ 1.43e-7
-  auto r_loose = RunCascadeSystem(1e-3, 100.0, 2.0, 2.0);
-  auto r_tight = RunCascadeSystem(1e-8, 100.0, 2.0, 2.0);
-
-  // With the fix, tight balance atol should produce more steps
-  EXPECT_GT(r_tight.accepted_, r_loose.accepted_) << "Tight atol should require more steps than loose atol. "
-                                                  << "loose=" << r_loose.accepted_ << " tight=" << r_tight.accepted_;
-}
 
 /// @brief Verify that the algebraic balance variable does not go deeply negative.
 ///
@@ -180,9 +165,9 @@ TEST(DAEAlgebraicError, AlgebraicVariableDoesNotOvershootDeeply)
 
   // A_gas should stay non-negative (or very close to zero).
   // The analytical solution has A_gas >= 0 at all times.
-  EXPECT_GE(r.min_A_gas_, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas_;
+  EXPECT_GE(r.min_A_gas, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas;
 
   // After 30s the system should be fully converted: P ≈ C_total, A_gas ≈ 0
-  EXPECT_NEAR(r.P_final_, 1.0e-6, 1.0e-8);
-  EXPECT_NEAR(r.A_gas_final_, 0.0, 1.0e-10);
+  EXPECT_NEAR(r.P_final, 1.0e-6, 1.0e-8);
+  EXPECT_NEAR(r.A_gas_final, 0.0, 1.0e-10);
 }

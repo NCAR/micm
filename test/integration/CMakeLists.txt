@@ -13,6 +13,7 @@ create_standard_test(NAME linear_constraint SOURCES test_linear_constraint.cpp)
 create_standard_test(NAME external_model_constraints SOURCES test_external_model_constraints.cpp)
 create_standard_test(NAME dae_constraint_overshoot SOURCES test_dae_constraint_overshoot.cpp)
 create_standard_test(NAME dae_algebraic_error_insensitivity SOURCES test_dae_algebraic_error_insensitivity.cpp)
+create_standard_test(NAME dae_algebraic_error_step_economy SOURCES test_dae_algebraic_error_step_economy.cpp)
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)
