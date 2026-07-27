@@ -1309,9 +1309,11 @@ namespace micm
     decltype(auto) GetRowElement(std::size_t /*row*/, std::size_t /*group*/, std::size_t row_in_group, Arg&& arg)
     {
       if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+      {
         return arg.Get()[row_in_group];
-      else
+      } else {
         return arg.Get();
+      }
     }
 
     /// @brief Get an element reference for a row (Vector-like)
@@ -1340,9 +1342,11 @@ namespace micm
     decltype(auto) GetRowElement(std::size_t /*row*/, std::size_t /*group*/, std::size_t row_in_group, Arg&& arg) const
     {
       if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+      {
         return arg.Get()[row_in_group];
-      else
+      } else {
         return arg.Get();
+      }
     }
 
     /// @brief Get a const element reference for a row (Vector-like) - const version
