@@ -132,7 +132,9 @@ namespace micm
         init_func(state.variables_, state.custom_rate_parameters_);
       }
       auto result = solver_.Solve(time_step, state, solver_parameters_);
-      PostSolveClamp(state);
+      const bool state_changed =
+          (result.state_ == SolverState::Converged || result.stats_.accepted_ > 0) ? PostSolveClamp(state) : false;
+      ReprojectAfterClamp(state, solver_parameters_, state_changed, result);
       return result;
     }
 
@@ -145,7 +147,9 @@ namespace micm
         init_func(state.variables_, state.custom_rate_parameters_);
       }
       auto result = solver_.Solve(time_step, state, params);
-      PostSolveClamp(state);
+      const bool state_changed =
+          (result.state_ == SolverState::Converged || result.stats_.accepted_ > 0) ? PostSolveClamp(state) : false;
+      ReprojectAfterClamp(state, params, state_changed, result);
       return result;
     }
 
@@ -258,8 +262,9 @@ namespace micm
    private:
     /// @brief Clamp state variables to non-negative after a solve
     ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
-    void PostSolveClamp(StatePolicy& state)
+    bool PostSolveClamp(StatePolicy& state)
     {
+      bool state_changed = false;
       if (state.constraint_size_ > 0)
       {
         for (std::size_t i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
@@ -268,6 +273,7 @@ namespace micm
           {
             if (state.upper_left_identity_diagonal_[i_var] > 0.0)
             {
+              state_changed = state_changed || state.variables_[i_cell][i_var] < 0.0;
               state.variables_[i_cell][i_var] = std::max(0.0, state.variables_[i_cell][i_var]);
             }
           }
@@ -276,6 +282,24 @@ namespace micm
       else
       {
         state.variables_.Max(0.0);
+      }
+      return state_changed;
+    }
+
+    /// @brief Restore algebraic consistency when physical-bound enforcement changes a DAE state
+    void
+    ReprojectAfterClamp(StatePolicy& state, const SolverParametersType& parameters, bool state_changed, SolverResult& result)
+    {
+      if constexpr (std::is_convertible_v<SolverParametersType, RosenbrockSolverParameters>)
+      {
+        if (state_changed && state.constraint_size_ > 0)
+        {
+          const auto projection_state = solver_.InitializeConstraints(state, parameters, result.stats_);
+          if (projection_state != SolverState::Converged)
+          {
+            result.state_ = projection_state;
+          }
+        }
       }
     }
   };

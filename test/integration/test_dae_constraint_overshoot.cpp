@@ -3,20 +3,20 @@
 //
 // Regression test for algebraic-variable overshoot in the Rosenbrock DAE solver.
 //
-// The NormalizedError() function previously excluded algebraic variables from
-// the step-acceptance error norm.  This allowed the solver to accept large
-// internal steps where differential species overshoot a conservation budget,
-// forcing the algebraic "balance" variable negative — a physically impossible
-// state that the continuous system can never reach.
+// This guards the physical feasibility of algebraic balance variables while
+// the solver uses its embedded LTE for algebraic rows. The embedded algebraic
+// entries are generally near zero, so feasibility must follow from the
+// differential-variable error control and the constrained Rosenbrock stages,
+// not from throttling the algebraic variable's raw step change.
 //
 // System:
 //   Species: A (reactant), B (product), C (algebraic balance)
 //   Kinetics: A -> B   (fast, rate k = 1e4)
 //   Constraint: A + B + C = C_total   (C is algebraic)
 //
-// With enough initial A and a fast rate, the solver used to overshoot: B would
-// exceed C_total, making C = C_total - A - B negative.  Including algebraic
-// variables in the error norm causes the solver to reject those steps.
+// With enough initial A and a fast rate, an inaccurate integration could let B
+// exceed C_total, making C = C_total - A - B negative. These tests preserve the
+// required nonnegative balance behavior independently of the LTE design.
 
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
@@ -178,8 +178,8 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   // Use reasonable absolute tolerances:
   // - Differential variable (P): tight tolerance for accuracy
-  // - Algebraic variables (A_gas, A_aq): moderate tolerance to allow legitimate step changes
-  //   while still detecting overshoot via the step-change error estimate
+  // - Algebraic variables (A_gas, A_aq): moderate values; their embedded LTE
+  //   entries are near zero and should not control the step size
   std::vector<double> atols(3, 1.0e-12);
   atols[A_gas_idx] = 1.0e-8;
   atols[A_aq_idx] = 1.0e-8;

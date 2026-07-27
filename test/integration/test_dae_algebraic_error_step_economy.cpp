@@ -3,22 +3,19 @@
 //
 // Regression tests for the DAE Rosenbrock algebraic-variable error treatment.
 //
-// These pin two requirements that the current step-change error estimate
-// (rosenbrock.inl: Yerror[a] = Ynew[a] - Y[a] for algebraic rows) handles
-// asymmetrically. See docs/superpowers/notes/2026-05-28-dae-algebraic-error-investigation.md.
+// These pin two requirements for the embedded-error treatment now used for
+// algebraic rows. See
+// docs/superpowers/notes/2026-05-28-dae-algebraic-error-investigation.md.
 //
 //   FEASIBILITY: an algebraic conservation/balance variable must not be driven
 //   into an unphysical (negative) state under stiff conditions. This is the
-//   property the step-change override was introduced (in #969) to protect.
+//   property that motivated the former step-change override.
 //
 //   EFFICIENCY: a *slaved* algebraic variable that legitimately spans orders of
 //   magnitude must not inflate the solver step count when its absolute tolerance
-//   is tightened. The step change is O(H) (not a truncation error O(H^(p+1))),
-//   so dividing it by a tight atol throttles H to keep dY_algebraic ~ atol per
-//   step, costing many steps for no accuracy benefit. The efficiency test is
-//   currently DISABLED because it fails under the present error treatment; it
-//   should be enabled once the algebraic error handling is fixed (e.g. a
-//   constructed local truncation error or a feasibility-only guard).
+//   is tightened. The former O(H) raw-step-change override made this cost grow
+//   dramatically; the embedded LTE must keep the step count insensitive to a
+//   tolerance on a slaved algebraic variable.
 
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
@@ -74,19 +71,19 @@ namespace
         A_aq,
         std::vector<StoichSpecies>{ { A_gas, 1.0 } },
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K1, .delta_H = 0.0 }));
+        VantHoffParam{ .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
     constraints.push_back(EquilibriumConstraint(
         "eq2",
         B_aq,
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K2, .delta_H = 0.0 }));
+        VantHoffParam{ .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
     constraints.push_back(
         LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                      .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                      .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)
@@ -146,9 +143,9 @@ namespace
   };
 
   // Slow decay coupled to a slaved equilibrium variable, integrated over many
-  // decades (Robertson-like): this is the regime where the step-change error
-  // estimate inflates step counts, because the algebraic variable B = K_eq*A
-  // slowly sweeps orders of magnitude as A decays.
+  // decades (Robertson-like): this is the regime where the former step-change
+  // error estimate inflated step counts, because the algebraic variable
+  // B = K_eq*A slowly sweeps orders of magnitude as A decays.
   //   A -> P            (rate k, A and P differential; A+P conserved)
   //   K_eq*A - B = 0    (B algebraic, slaved to A; B0 = K_eq ~ 1e-5 scale)
   // Tightening atol_B throttles H to keep dB ~ atol_B per step over the whole
@@ -174,11 +171,11 @@ namespace
         B,
         std::vector<StoichSpecies>{ { A, 1.0 } },
         std::vector<StoichSpecies>{ { B, 1.0 } },
-        VantHoffParam{ .K_HLC_ref = K_eq, .delta_H = 0.0 }));
+        VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
-                      .SetSystem(System(SystemParameters{ .gas_phase_ = gas_phase }))
+                      .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)
@@ -252,7 +249,7 @@ TEST(DAEAlgebraicStepEconomy, TightBalanceAtolDoesNotInflateSteps)
   // The algebraic variable B = K_eq*A is slaved; its accuracy is determined by A
   // and the constraint, not by its own atol. A correct algebraic-error treatment
   // should not pay a large step-count penalty for a tighter atol on it. Under the
-  // current step-change estimate, tight atol inflates the count many-fold.
+  // former step-change estimate, tight atol inflated the count many-fold.
   EXPECT_LE(static_cast<double>(tight.accepted), 2.0 * static_cast<double>(loose.accepted))
       << "tightening balance atol inflated steps: loose=" << loose.accepted << " tight=" << tight.accepted;
 }
