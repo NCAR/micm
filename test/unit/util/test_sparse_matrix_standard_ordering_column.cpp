@@ -304,3 +304,13 @@ TEST(SparseCompressedColumnMatrix, GetBlockViewByVectorIndex)
 {
   TestGetBlockViewByVectorIndex<micm::SparseMatrix, StandardOrdering>();
 }
+
+TEST(SparseCompressedColumnMatrix, TestFill)
+{
+  TestFill<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedColumnMatrix, TestCopy)
+{
+  TestCopy<micm::SparseMatrix, StandardOrdering, micm::Matrix<double>>();
+}

@@ -275,6 +275,48 @@ namespace micm
         return BlockVariable<T>();
       }
 
+      /// @brief Assign value to the caller-owned block-variable temp (L=1).
+      ///        Dispatches on whether `Dst::Get()` returns something subscriptable
+      ///        (dense L=1 uses `std::array<T,1>&`; sparse L=1 uses `T&`).
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires(std::size_t i) { storage[i]; })
+          storage[0] = value;
+        else
+          storage = value;
+      }
+
+      /// @brief Copy a sparse-block value into the caller-owned block-variable temp (L=1).
+      template<BlockVariableView Dst, GroupedSparseMatrixBlockView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires(std::size_t i) { storage[i]; })
+          storage[0] = src.group_base[src.block_offset];
+        else
+          storage = src.group_base[src.block_offset];
+      }
+
+      /// @brief Assign value to `vec[group_]` (L=1: one block per group).
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        vec[group_] = value;
+      }
+
+      /// @brief Copy a sparse-block value into `vec[group_]` (L=1).
+      template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        vec[group_] = src.group_base[src.block_offset];
+      }
+
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args) const
       {
@@ -447,6 +489,55 @@ namespace micm
       void Copy(GroupedBlockView dst, Src&& src)
       {
         dst.group_base[dst.block_offset] = src.group_base[src.block_offset];
+      }
+
+      /// @brief Copy `src[group_]` from a caller-owned vector into dst block (L=1).
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedBlockView dst, Src&& src)
+      {
+        dst.group_base[dst.block_offset] = src[group_];
+      }
+
+      /// @brief Assign value to the caller-owned block-variable temp (L=1).
+      ///        See ConstGroupView::Fill(Dst&&, T) for details.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value)
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires(std::size_t i) { storage[i]; })
+          storage[0] = value;
+        else
+          storage = value;
+      }
+
+      /// @brief Copy a sparse-block value into the caller-owned block-variable temp (L=1).
+      template<BlockVariableView Dst, GroupedSparseMatrixBlockView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src)
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires(std::size_t i) { storage[i]; })
+          storage[0] = src.group_base[src.block_offset];
+        else
+          storage = src.group_base[src.block_offset];
+      }
+
+      /// @brief Assign value to `vec[group_]` (L=1).
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value)
+      {
+        vec[group_] = value;
+      }
+
+      /// @brief Copy a sparse-block value into `vec[group_]` (L=1).
+      template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src)
+      {
+        vec[group_] = src.group_base[src.block_offset];
       }
 
       template<typename Func, typename... Args>
