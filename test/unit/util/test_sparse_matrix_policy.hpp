@@ -2054,9 +2054,9 @@ void TestFill()
 
     func(matrix, vec);
 
-    for (std::size_t b = 0; b < vec.size(); ++b)
+    for (double b : vec)
     {
-      EXPECT_EQ(vec[b], 3.2);
+      EXPECT_EQ(b, 3.2);
     }
   }
 
@@ -2208,7 +2208,7 @@ void TestCopy()
     {
       dense[b][1] = static_cast<double>(b + 1) * 100.0;
     }
-    
+
     auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
         [idx_20](auto&& m, auto&& d)
         {

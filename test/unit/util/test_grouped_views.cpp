@@ -351,7 +351,7 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
 // Forward declaration; body appears further down (needs the same
 // SparseMatrix<...>::VectorIndex mapping the live matrix uses).
 template<std::size_t L>
-static std::size_t sparse_ref_indexA();
+static std::size_t sparse_ref_index_a();
 
 template<std::size_t L>
 void RunSparseVectorMixedGroupedEquivalence()
@@ -389,7 +389,7 @@ void RunSparseVectorMixedGroupedEquivalence()
             [](double& out, const double& a, const double& b) { out = a + b; },
             dm.GetColumnView(0),
             dm.GetConstColumnView(1),
-            sm.GetConstBlockView(sparse_ref_indexA<L>()));
+            sm.GetConstBlockView(sparse_ref_index_a<L>()));
       },
       sparse,
       dense);
@@ -414,7 +414,7 @@ void RunSparseVectorMixedGroupedEquivalence()
 // to construct a throwaway matrix and read its VectorIndex mapping so we don't
 // depend on internal ordering-policy details in the test.
 template<std::size_t L>
-static std::size_t sparse_ref_indexA()
+static std::size_t sparse_ref_index_a()
 {
   using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<L>>;
   static const std::size_t idx = []
