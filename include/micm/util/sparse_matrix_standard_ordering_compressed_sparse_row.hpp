@@ -170,12 +170,12 @@ namespace micm
       ///
       /// Carries a precomputed base_ pointer into this group's slice of the sparse data
       /// vector (`matrix.data() + group * FlatBlockSize()` for standard ordering).
-      /// Element access via GetBlockElement is `group_base_[block_offset]`.
+      /// Element access via GetBlockElement is `group_base_[block_offset_]`.
       struct GroupedConstBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
         const T* group_base_;
-        std::size_t block_offset;
+        std::size_t block_offset_;
       };
 
      private:
@@ -201,7 +201,7 @@ namespace micm
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg) const
       {
         // L=1 for standard ordering, so block_in_group is always 0.
-        return arg.group_base_[arg.block_offset];
+        return arg.group_base_[arg.block_offset_];
       }
 
       /// @brief Get element from Matrix or VectorMatrix ConstColumnView
@@ -279,9 +279,11 @@ namespace micm
       {
         auto& storage = dst.Get();
         if constexpr (requires(std::size_t i) { storage[i]; })
+        {
           storage[0] = value;
-        else
+        } else {
           storage = value;
+        }
       }
 
       /// @brief Copy a sparse-block value into the caller-owned block-variable temp.
@@ -291,9 +293,11 @@ namespace micm
       {
         auto& storage = dst.Get();
         if constexpr (requires(std::size_t i) { storage[i]; })
-          storage[0] = src.group_base_[src.block_offset];
-        else
-          storage = src.group_base_[src.block_offset];
+        {
+          storage[0] = src.group_base_[src.block_offset_];
+        } else {
+          storage = src.group_base_[src.block_offset_];
+        }
       }
 
       /// @brief Assign value to `vec[group_]`.
@@ -309,7 +313,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src) const
       {
-        vec[group_] = src.group_base_[src.block_offset];
+        vec[group_] = src.group_base_[src.block_offset_];
       }
 
       /// @brief Execute a function for every block in the matrix
@@ -357,14 +361,14 @@ namespace micm
       {
         using category = GroupedSparseMatrixBlockViewTag;
         T* group_base_;
-        std::size_t block_offset;
+        std::size_t block_offset_;
       };
       /// @brief Const variant, for GetConstBlockView on a mutable GroupView.
       struct GroupedConstBlockView
       {
         using category = GroupedSparseMatrixBlockViewTag;
         const T* group_base_;
-        std::size_t block_offset;
+        std::size_t block_offset_;
       };
 
      private:
@@ -390,7 +394,7 @@ namespace micm
       decltype(auto) GetBlockElement(std::size_t block_in_group, Arg&& arg)
       {
         // for standard ordering, block_in_group is always 0.
-        return arg.group_base_[arg.block_offset];
+        return arg.group_base_[arg.block_offset_];
       }
 
       /// @brief Get element from Matrix or VectorMatrix ColumnView
@@ -475,7 +479,7 @@ namespace micm
       [[gnu::always_inline]]
       void Fill(GroupedBlockView view, T value)
       {
-        view.group_base_[view.block_offset] = value;
+        view.group_base_[view.block_offset_] = value;
       }
 
       /// @brief Copy src block value into dst block value within this group.
@@ -483,7 +487,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst, Src&& src)
       {
-        dst.group_base_[dst.block_offset] = src.group_base_[src.block_offset];
+        dst.group_base_[dst.block_offset_] = src.group_base_[src.block_offset_];
       }
 
       /// @brief Copy `src[group_]` from a caller-owned vector into dst block.
@@ -491,7 +495,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst, Src&& src)
       {
-        dst.group_base_[dst.block_offset] = src[group_];
+        dst.group_base_[dst.block_offset_] = src[group_];
       }
 
       /// @brief Assign value to the caller-owned block-variable temp.
@@ -502,9 +506,11 @@ namespace micm
       {
         auto& storage = dst.Get();
         if constexpr (requires(std::size_t i) { storage[i]; })
+        {
           storage[0] = value;
-        else
+        } else {
           storage = value;
+        }
       }
 
       /// @brief Copy a sparse-block value into the caller-owned block-variable temp.
@@ -514,9 +520,11 @@ namespace micm
       {
         auto& storage = dst.Get();
         if constexpr (requires(std::size_t i) { storage[i]; })
-          storage[0] = src.group_base_[src.block_offset];
-        else
-          storage = src.group_base_[src.block_offset];
+        {
+          storage[0] = src.group_base_[src.block_offset_];
+        } else {
+          storage = src.group_base_[src.block_offset_];
+        }
       }
 
       /// @brief Assign value to `vec[group_]`.
@@ -532,7 +540,7 @@ namespace micm
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src)
       {
-        vec[group_] = src.group_base_[src.block_offset];
+        vec[group_] = src.group_base_[src.block_offset_];
       }
 
       /// @brief Execute a function for every block in the matrix

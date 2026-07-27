@@ -264,8 +264,8 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
 
   // group_base_ points at the start of block 1's data slice; offset picks the
   // right non-zero element. For standard ordering block_in_group is always 0.
-  EXPECT_EQ(v01_mut.group_base_[v01_mut.block_offset], 10.0);
-  EXPECT_EQ(v12_const.group_base_[v12_const.block_offset], 20.0);
+  EXPECT_EQ(v01_mut.group_base_[v01_mut.block_offset_], 10.0);
+  EXPECT_EQ(v12_const.group_base_[v12_const.block_offset_], 20.0);
 
   group1.ForEachBlock(
       [](double& a, const double& b) { a = b + 5.0; }, v01_mut, v12_const);
@@ -275,7 +275,7 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
 
 // ---------------------------------------------------------------------------
 // Sparse matrix (vector ordering, L=4): grouped block view spans L blocks
-// contiguously. Element access is `group_base_[block_offset + block_in_group]`.
+// contiguously. Element access is `group_base_[block_offset_ + block_in_group]`.
 // ---------------------------------------------------------------------------
 
 TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
@@ -297,11 +297,11 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
   static_assert(GroupedSparseMatrixBlockView<decltype(v01)>);
   static_assert(GroupedSparseMatrixBlockView<decltype(v12)>);
 
-  // group_base_ + block_offset + i lands on the (block_in_group = i) block.
+  // group_base_ + block_offset_ + i lands on the (block_in_group = i) block.
   for (std::size_t i = 0; i < 4; ++i)
   {
-    EXPECT_EQ(v01.group_base_[v01.block_offset + i], 100.0 + (4 + i));
-    EXPECT_EQ(v12.group_base_[v12.block_offset + i], 200.0 + (4 + i));
+    EXPECT_EQ(v01.group_base_[v01.block_offset_ + i], 100.0 + (4 + i));
+    EXPECT_EQ(v12.group_base_[v12.block_offset_ + i], 200.0 + (4 + i));
   }
 
   // ForEachBlock touches only the L=4 blocks of the group.
@@ -416,7 +416,7 @@ TEST(GroupedView, MixedSparseAndDenseGroupedL8)
 // ---------------------------------------------------------------------------
 // The sparse GroupView also exposes (row, col) overloads for GetConstBlockView
 // and GetBlockView. Those keep the raw ConstBlockView return type (they don't
-// know the block_offset until VectorIndexFromRowColumn resolves the element),
+// know the block_offset_ until VectorIndexFromRowColumn resolves the element),
 // and remain routed through the SparseMatrixBlockView overload of
 // GetBlockElement. This test guards against accidental breakage of that path
 // while the grouped path is added alongside.
@@ -463,7 +463,7 @@ TEST(GroupedView, ConstGroupViewProducesGroupedViews)
   auto v = cgv.GetConstBlockView(matrix.VectorIndex(0, 0, 1));
   static_assert(GroupedSparseMatrixBlockView<decltype(v)>);
   for (std::size_t i = 0; i < 4; ++i)
-    EXPECT_EQ(v.group_base_[v.block_offset + i], static_cast<double>(i + 1));
+    EXPECT_EQ(v.group_base_[v.block_offset_ + i], static_cast<double>(i + 1));
 
   VectorMatrix<double, 4> dense{ 4, 2, 0.0 };
   for (std::size_t b = 0; b < 4; ++b)

@@ -637,9 +637,11 @@ namespace micm
       decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
       {
         if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+        {
           return arg.Get()[row_in_group];
-        else
+        } else {
           return arg.Get();
+        }
       }
 
       /// @brief Get a const element reference for a specific row in this group (Vector-like)
@@ -704,7 +706,9 @@ namespace micm
           else
           {
             for (std::size_t i = 0; i < L; ++i)
+            {
               storage[i] = value;
+            }
           }
         }
         else
@@ -730,7 +734,9 @@ namespace micm
           else
           {
             for (std::size_t i = 0; i < L; ++i)
+            {
               storage[i] = src.base_[i];
+            }
           }
         }
         else
@@ -750,7 +756,9 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+        {
           vec[start + i] = value;
+        }
       }
 
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
@@ -762,7 +770,9 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+        {
           vec[start + i] = src.base_[i];
+        }
       }
 
       template<typename Func, typename... Args>
@@ -860,9 +870,11 @@ namespace micm
       decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
       {
         if constexpr (requires(std::size_t i) { arg.Get()[i]; })
+        {
           return arg.Get()[row_in_group];
-        else
+        } else {
           return arg.Get();
+        }
       }
 
       /// @brief Get an element reference for a specific row in this group (Vector-like)
@@ -926,7 +938,9 @@ namespace micm
         {
           T* dst = view.base_;
           for (std::size_t i = 0; i < L; ++i)
+          {
             dst[i] = value;
+          }
         }
       }
 
@@ -943,7 +957,9 @@ namespace micm
           T* dst = dst_view.base_;
           const T* src = src_view.base_;
           for (std::size_t i = 0; i < L; ++i)
+          {
             dst[i] = src[i];
+          }
         }
       }
 
@@ -959,7 +975,9 @@ namespace micm
         T* dst = dst_view.base_;
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+        {
           dst[i] = src[start + i];
+        }
       }
 
       /// @brief Assign value to every cell of the caller-owned row-variable temp.
@@ -979,7 +997,9 @@ namespace micm
           else
           {
             for (std::size_t i = 0; i < L; ++i)
+            {
               storage[i] = value;
+            }
           }
         }
         else
@@ -1006,7 +1026,9 @@ namespace micm
           else
           {
             for (std::size_t i = 0; i < L; ++i)
+            {
               storage[i] = src.base_[i];
+            }
           }
         }
         else
@@ -1024,7 +1046,9 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+        {
           vec[start + i] = value;
+        }
       }
 
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
@@ -1035,7 +1059,9 @@ namespace micm
       {
         const std::size_t start = group_ * L;
         for (std::size_t i = 0; i < num_rows_in_group_; ++i)
+        {
           vec[start + i] = src.base_[i];
+        }
       }
 
       template<typename Func, typename... Args>

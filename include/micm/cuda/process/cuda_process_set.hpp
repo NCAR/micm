@@ -130,7 +130,7 @@ namespace micm
 
     void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
         const
-      requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrixPolicy<SparseMatrixPolicy>);
+      requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>);
 
    private:
     void InitDevStruct();

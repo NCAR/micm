@@ -33,7 +33,7 @@ namespace micm
 
   /// @brief Tag for sparse matrix block views obtained from a GroupView.
   /// Carry a precomputed base pointer to the current group's slice of the
-  /// sparse data vector, so element access is `group_base[block_offset +
+  /// sparse data vector, so element access is `group_base[block_offset_ +
   /// block_in_group]`.
   struct GroupedSparseMatrixBlockViewTag
   {
