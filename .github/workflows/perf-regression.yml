@@ -75,10 +75,10 @@ jobs:
         # Run the benchmarks (timing) for the base and PR branch, just so they
         # appear in the action logs. Doesn't affect pass/fail
       - name: Benchmark PR
-        run: pr/scripts/benchmark_chapman.sh pr/build
+        run: pr/scripts/bench_chapman.sh pr/build
 
       - name: Benchmark base
-        run: pr/scripts/benchmark_chapman.sh base/build
+        run: pr/scripts/bench_chapman.sh base/build
 
       - name: Profile PR
         run: pr/scripts/profile_chapman.sh pr/build "$CELLS" "$STEPS" | tee pr.txt
