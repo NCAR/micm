@@ -1691,8 +1691,10 @@ void TestCopy()
   {
     // Reset column 0 so we can observe the copy.
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    {
       matrix[i][0] = 0.0;
-
+    }
+    
     auto func = MatrixPolicy<double>::Function(
       [](auto&& m){ m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); },
       matrix);

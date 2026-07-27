@@ -79,8 +79,12 @@ TEST(GroupedView, MatrixColumnViewRoundTrip)
   Matrix<double> matrix{ 3, 4, 0.0 };
   // Set distinct values so aliasing bugs would show up immediately.
   for (std::size_t r = 0; r < 3; ++r)
+  {
     for (std::size_t c = 0; c < 4; ++c)
+    {
       matrix[r][c] = static_cast<double>(10 * r + c);
+    }
+  }
 
   // Row 1 of the matrix acts as the "group".
   Matrix<double>::GroupView row_view(matrix, 1);
@@ -115,8 +119,12 @@ TEST(GroupedView, VectorMatrixColumnViewContiguousBlock)
   // Two full L=4 groups of rows, 3 columns.
   VectorMatrix<double, 4> matrix{ 8, 3, 0.0 };
   for (std::size_t r = 0; r < 8; ++r)
+  {
     for (std::size_t c = 0; c < 3; ++c)
+    {
       matrix[r][c] = static_cast<double>(100 + 10 * r + c);
+    }
+  }
 
   // Group 1 spans rows 4..7.
   VectorMatrix<double, 4>::GroupView group1(matrix, 1);
@@ -163,11 +171,13 @@ void RunDenseGroupedVsRawEquivalence()
 
   // Fill both matrices identically.
   for (std::size_t r = 0; r < rows; ++r)
+  {
     for (std::size_t c = 0; c < cols; ++c)
     {
       raw[r][c] = static_cast<double>(r * 10 + c);
       grouped[r][c] = static_cast<double>(r * 10 + c);
     }
+  }
 
   // "grouped" path: uses group view GetColumnView (returns grouped view).
   auto grouped_func = M::Function(
@@ -184,11 +194,17 @@ void RunDenseGroupedVsRawEquivalence()
   // "raw" path: same math, but read from the matrix directly. Any dispatch
   // bug in the grouped overloads would cause the two matrices to diverge.
   for (std::size_t r = 0; r < rows; ++r)
+  {
     raw[r][3] = raw[r][0] * 3.0 + 1.0;
+  }
 
   for (std::size_t r = 0; r < rows; ++r)
+  {
     for (std::size_t c = 0; c < cols; ++c)
+    {
       EXPECT_EQ(raw[r][c], grouped[r][c]) << "row=" << r << " col=" << c << " L=" << L;
+    }
+  }
 }
 
 TEST(GroupedView, DenseGroupedMatchesRawL1)
@@ -214,11 +230,13 @@ TEST(GroupedView, PlainMatrixGroupedRoundTrip)
   Matrix<double> raw{ 4, 3, 0.0 };
   Matrix<double> grouped{ 4, 3, 0.0 };
   for (std::size_t r = 0; r < 4; ++r)
+  {
     for (std::size_t c = 0; c < 3; ++c)
     {
       raw[r][c] = static_cast<double>(r + c * 5);
       grouped[r][c] = static_cast<double>(r + c * 5);
     }
+  }
 
   auto func = Matrix<double>::Function(
       [](auto&& m)
@@ -232,11 +250,17 @@ TEST(GroupedView, PlainMatrixGroupedRoundTrip)
       grouped);
   func(grouped);
   for (std::size_t r = 0; r < 4; ++r)
+  {
     raw[r][2] = raw[r][0] - raw[r][1];
+  }
 
   for (std::size_t r = 0; r < 4; ++r)
+  {
     for (std::size_t c = 0; c < 3; ++c)
+    {
       EXPECT_EQ(raw[r][c], grouped[r][c]) << "row=" << r << " col=" << c;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -373,11 +397,17 @@ void RunSparseVectorMixedGroupedEquivalence()
 
   // Reference: same math done by hand.
   for (std::size_t b = 0; b < blocks; ++b)
+  {
     dense_ref[b][0] = dense_ref[b][1] + sparse_ref[b][0][1];
+  }
 
   for (std::size_t b = 0; b < blocks; ++b)
+  {
     for (std::size_t c = 0; c < 3; ++c)
+    {
       EXPECT_EQ(dense[b][c], dense_ref[b][c]) << "b=" << b << " c=" << c << " L=" << L;
+    }
+  }
 }
 
 // Helper: fetch the sparse (0,1) vector index for the given L. We use a lambda
@@ -456,24 +486,32 @@ TEST(GroupedView, ConstGroupViewProducesGroupedViews)
   auto builder = SM::Create(3).WithElement(0, 1).SetNumberOfBlocks(4);
   SM matrix{ builder };
   for (std::size_t b = 0; b < 4; ++b)
+  {
     matrix[b][0][1] = static_cast<double>(b + 1);
+  }
 
   const SM& cmatrix = matrix;
   SM::ConstGroupView cgv(cmatrix, 0);
   auto v = cgv.GetConstBlockView(matrix.VectorIndex(0, 0, 1));
   static_assert(GroupedSparseMatrixBlockView<decltype(v)>);
   for (std::size_t i = 0; i < 4; ++i)
+  {
     EXPECT_EQ(v.group_base_[v.block_offset_ + i], static_cast<double>(i + 1));
+  }
 
   VectorMatrix<double, 4> dense{ 4, 2, 0.0 };
   for (std::size_t b = 0; b < 4; ++b)
+  {
     dense[b][1] = static_cast<double>(100 + b);
+  }
   const VectorMatrix<double, 4>& cdense = dense;
   VectorMatrix<double, 4>::ConstGroupView dcgv(cdense, 0);
   auto dv = dcgv.GetConstColumnView(1);
   static_assert(GroupedDenseMatrixColumnView<decltype(dv)>);
   for (std::size_t i = 0; i < 4; ++i)
+  {
     EXPECT_EQ(dv.base_[i], static_cast<double>(100 + i));
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -610,15 +648,21 @@ TEST(GroupedView, FillCopyCrossGroupViewSources)
   SM::ConstGroupView sgv(src, 0);
   dgv.Copy(dgv.GetBlockView(dst.VectorIndex(0, 0, 1)), sgv.GetConstBlockView(src.VectorIndex(0, 0, 1)));
   for (std::size_t b = 0; b < 4; ++b)
+  {
     EXPECT_DOUBLE_EQ(dst[b][0][1], static_cast<double>(b + 1));
+  }
 
   // Fill result matches the equivalent ForEachBlock lambda.
   SM ref{ builder };
   for (std::size_t b = 0; b < 4; ++b)
+  {
     ref[b][0][1] = 999.0;
+  }
   SM::GroupView rgv(ref, 0);
   rgv.ForEachBlock([](double& x) { x = 55.5; }, rgv.GetBlockView(ref.VectorIndex(0, 0, 1)));
   dgv.Fill(dgv.GetBlockView(dst.VectorIndex(0, 0, 1)), 55.5);
   for (std::size_t b = 0; b < 4; ++b)
+  {
     EXPECT_DOUBLE_EQ(dst[b][0][1], ref[b][0][1]);
+  }
 }

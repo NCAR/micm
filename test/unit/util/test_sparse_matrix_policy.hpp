@@ -2055,7 +2055,9 @@ void TestFill()
     func(matrix, vec);
 
     for (std::size_t b = 0; b < vec.size(); ++b)
+    {
       EXPECT_EQ(vec[b], 3.2);
+    }
   }
 
   // Fill a caller-owned block-variable temp with a scalar value, then broadcast
@@ -2073,7 +2075,9 @@ void TestFill()
     func(matrix);
 
     for (std::size_t b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
       EXPECT_EQ(matrix[b][2][0], 9.9);
+    }
   }
 }
 
@@ -2111,7 +2115,9 @@ void TestCopy()
   {
     auto matrix = make_matrix();
     for (std::size_t b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
       matrix[b][0][1] = 0.0;
+    }
 
     std::vector<double> vec{ 10.0, 20.0, 30.0 };
     auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
@@ -2193,12 +2199,16 @@ void TestCopy()
   {
     auto matrix = make_matrix();
     for (std::size_t b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
       matrix[b][2][0] = 0.0;
+    }
 
     DenseMatrixType dense{ matrix.NumberOfBlocks(), 2, 0.0 };
     for (std::size_t b = 0; b < dense.NumRows(); ++b)
+    {
       dense[b][1] = static_cast<double>(b + 1) * 100.0;
-
+    }
+    
     auto func = SparseMatrixPolicy<double, OrderingPolicy>::Function(
         [idx_20](auto&& m, auto&& d)
         {
