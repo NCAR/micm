@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../../precision_matchers.hpp"
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 #ifndef M_PI
@@ -194,10 +196,10 @@ TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.arrhenius_.size(), 1u);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].A_, 2.15e-4);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].B_, 1.2);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].C_, 110.0);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].D_, 300.0);
+  EXPECT_REAL_EQ(store.arrhenius_[0].A_, 2.15e-4);
+  EXPECT_REAL_EQ(store.arrhenius_[0].B_, 1.2);
+  EXPECT_REAL_EQ(store.arrhenius_[0].C_, 110.0);
+  EXPECT_REAL_EQ(store.arrhenius_[0].D_, 300.0);
 }
 
 // ============================================================
@@ -263,10 +265,10 @@ TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
   ASSERT_EQ(store.user_defined_.size(), 2u);
 
   EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
-  EXPECT_DOUBLE_EQ(store.user_defined_[0].scaling_factor_, 2.0);
+  EXPECT_REAL_EQ(store.user_defined_[0].scaling_factor_, 2.0);
 
   EXPECT_EQ(store.user_defined_[1].custom_param_index_, 1u);
-  EXPECT_DOUBLE_EQ(store.user_defined_[1].scaling_factor_, 0.5);
+  EXPECT_REAL_EQ(store.user_defined_[1].scaling_factor_, 0.5);
 }
 
 // ============================================================
@@ -295,9 +297,9 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.surface_.size(), 1u);
 
-  EXPECT_DOUBLE_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
-  EXPECT_NEAR(store.surface_[0].mean_free_speed_factor_, 8.0 * constants::GAS_CONSTANT / (M_PI * mw), 1.0e-14);
-  EXPECT_DOUBLE_EQ(store.surface_[0].reaction_probability_, prob);
+  EXPECT_REAL_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
+  EXPECT_NEAR(store.surface_[0].mean_free_speed_factor_, 8.0 * constants::GAS_CONSTANT / (M_PI * mw), (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-3);
+  EXPECT_REAL_EQ(store.surface_[0].reaction_probability_, prob);
   EXPECT_EQ(store.surface_[0].custom_param_base_index_, 0u);
 }
 
@@ -373,7 +375,7 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
   // Pointer should be non-null and function should work
   ASSERT_NE(store.lambda_entries_[0].source_, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
-  EXPECT_NEAR(store.lambda_entries_[0].source_->lambda_function_(cond), 0.3, 1.0e-14);
+  EXPECT_NEAR(store.lambda_entries_[0].source_->lambda_function_(cond), 0.3, (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-5);
 }
 
 // ============================================================

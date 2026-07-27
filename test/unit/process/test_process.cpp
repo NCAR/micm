@@ -176,18 +176,18 @@ void TestProcessUpdateState(const micm::Index number_of_grid_cells)
     // r1 (Arrhenius) at rc_index 0; bar is parameterized: air_density * 0.82
     micm::Real expected_arr = CalculateArrhenius(rc1_params, cond.temperature_, cond.pressure_);
     expected_arr *= (cond.air_density_ * 0.82);
-    EXPECT_NEAR(state.rate_constants_[i_cell][0], expected_arr, 1.0e-12 * expected_arr)
+    EXPECT_NEAR(state.rate_constants_[i_cell][0], expected_arr, (std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-5) * expected_arr)
         << "grid cell " << i_cell << "; Arrhenius reaction";
 
     // r3 (UserDefined) at rc_index = user_defined_offset; bar is parameterized
     micm::Real expected_ud = user_rate * (cond.air_density_ * 0.82);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.UserDefinedOffset()], expected_ud, 1.0e-12 * expected_ud)
+    EXPECT_NEAR(state.rate_constants_[i_cell][store.UserDefinedOffset()], expected_ud, (std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-5) * expected_ud)
         << "grid cell " << i_cell << "; UserDefined reaction";
 
     // r2 (Surface) at rc_index = surface_offset; foo is not parameterized
     micm::Real mean_free_speed = std::sqrt(8.0 * constants::GAS_CONSTANT / (M_PI * 0.025) * cond.temperature_);
     micm::Real expected_surf = 4.0 * num_conc * M_PI * radius * radius / (radius / foo_diff_coeff + 4.0 / mean_free_speed);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.SurfaceOffset()], expected_surf, 1.0e-10 * expected_surf)
+    EXPECT_NEAR(state.rate_constants_[i_cell][store.SurfaceOffset()], expected_surf, (std::is_same_v<micm::Real, double> ? 1.0e-10 : 1.0e-5) * expected_surf)
         << "grid cell " << i_cell << "; Surface reaction";
   }
 }

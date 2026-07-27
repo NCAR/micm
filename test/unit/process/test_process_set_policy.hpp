@@ -6,9 +6,12 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 
+#include "../../precision_matchers.hpp"
+
 #include <gtest/gtest.h>
 
 #include <random>
+#include <type_traits>
 
 using namespace micm;
 using index_pair = std::pair<micm::Index, micm::Index>;
@@ -102,17 +105,21 @@ void TestProcessSet()
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 
-  EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
-  EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
-  EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
-  EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2 * 80.0 * 0.72 + 140.0 * 80.0 * 0.72 * 1.3);
-  EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3 - 40.0 * 70.0 * 0.72 * 0.3);  // baz
-  EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3 - 140.0 * 80.0 * 0.72 * 1.3);
-  EXPECT_DOUBLE_EQ(
+  EXPECT_REAL_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
+  EXPECT_REAL_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
+  EXPECT_REAL_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
+  // forcing[1][1] telescopes two large opposing terms (~-8.3e3 and ~+1.0e4) down to ~3.3e3; in
+  // single precision the intermediate rounding is ~6 ULP of the result, exceeding EXPECT_REAL_EQ's
+  // 4-ULP bound, so use a small relative tolerance here (double stays effectively exact).
+  const double forcing_1_1 = 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2 * 80.0 * 0.72 + 140.0 * 80.0 * 0.72 * 1.3;
+  EXPECT_NEAR(forcing[1][1], forcing_1_1, forcing_1_1 * (std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-5));
+  EXPECT_REAL_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3 - 40.0 * 70.0 * 0.72 * 0.3);  // baz
+  EXPECT_REAL_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3 - 140.0 * 80.0 * 0.72 * 1.3);
+  EXPECT_REAL_EQ(
       forcing[0][3], 1000.0 + 20.0 * 70.0 * 0.72 * 0.2 * 1.4 - 30.0 * 0.4 + 40.0 * 70.0 * 0.72 * 2.5 * 0.3);  // quz
-  EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 80.0 * 0.72 * 1.2 * 1.4 - 130.0 * 1.4 + 140.0 * 80.0 * 0.72 * 2.5 * 1.3);
-  EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);  // quuz
-  EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+  EXPECT_REAL_EQ(forcing[1][3], 1000.0 + 120.0 * 80.0 * 0.72 * 1.2 * 1.4 - 130.0 * 1.4 + 140.0 * 80.0 * 0.72 * 2.5 * 1.3);
+  EXPECT_REAL_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);  // quuz
+  EXPECT_REAL_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   // ---- foo  bar  baz  quz  quuz
@@ -151,32 +158,32 @@ void TestProcessSet()
 
   CheckCopyToHost<SparseMatrixPolicy>(jacobian);
 
-  EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][0][1], 100.0 - 120.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][0][2], 100.0 + 10.0 * 0.1);  // foo -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][0][2], 100.0 + 110.0 * 1.1);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][0], 100.0 - 10.0 * 0.3);  // bar -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][1][0], 100.0 - 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][1], 100.0 + 20.0 * 70.0 * 0.72);  // bar -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][1][1], 100.0 + 120.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1 - 40.0 * 70.0 * 0.72);  // bar -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1 - 140.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][2][0], 100.0 + 10.0 * 0.3);  // baz -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][2][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1 + 40.0 * 70.0 * 0.72);  // baz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1 + 140.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0 * 70.0 * 0.72);  // quz -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][2], 100.0 - 2.5 * 40.0 * 70.0 * 0.72);  // quz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][3][2], 100.0 - 2.5 * 140.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][3], 100.0 + 30.0);  // quz -> quz
-  EXPECT_DOUBLE_EQ(jacobian[1][3][3], 100.0 + 130.0);
-  EXPECT_DOUBLE_EQ(jacobian[0][4][0], 100.0 - 2.4 * 10.0 * 0.3);  // quuz -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][4][0], 100.0 - 2.4 * 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][4][2], 100.0 - 2.4 * 10.0 * 0.1);  // quuz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
+  EXPECT_REAL_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
+  EXPECT_REAL_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
+  EXPECT_REAL_EQ(jacobian[1][0][1], 100.0 - 120.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][0][2], 100.0 + 10.0 * 0.1);  // foo -> baz
+  EXPECT_REAL_EQ(jacobian[1][0][2], 100.0 + 110.0 * 1.1);
+  EXPECT_REAL_EQ(jacobian[0][1][0], 100.0 - 10.0 * 0.3);  // bar -> foo
+  EXPECT_REAL_EQ(jacobian[1][1][0], 100.0 - 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][1][1], 100.0 + 20.0 * 70.0 * 0.72);  // bar -> bar
+  EXPECT_REAL_EQ(jacobian[1][1][1], 100.0 + 120.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1 - 40.0 * 70.0 * 0.72);  // bar -> baz
+  EXPECT_REAL_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1 - 140.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][2][0], 100.0 + 10.0 * 0.3);  // baz -> foo
+  EXPECT_REAL_EQ(jacobian[1][2][0], 100.0 + 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1 + 40.0 * 70.0 * 0.72);  // baz -> baz
+  EXPECT_REAL_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1 + 140.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0 * 70.0 * 0.72);  // quz -> bar
+  EXPECT_REAL_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][3][2], 100.0 - 2.5 * 40.0 * 70.0 * 0.72);  // quz -> baz
+  EXPECT_REAL_EQ(jacobian[1][3][2], 100.0 - 2.5 * 140.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][3][3], 100.0 + 30.0);  // quz -> quz
+  EXPECT_REAL_EQ(jacobian[1][3][3], 100.0 + 130.0);
+  EXPECT_REAL_EQ(jacobian[0][4][0], 100.0 - 2.4 * 10.0 * 0.3);  // quuz -> foo
+  EXPECT_REAL_EQ(jacobian[1][4][0], 100.0 - 2.4 * 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][4][2], 100.0 - 2.4 * 10.0 * 0.1);  // quuz -> baz
+  EXPECT_REAL_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
@@ -317,20 +324,20 @@ void TestAlgebraicMasking()
     // Cell 1: rate = 20.0 * 5.0 * 6.0 = 600.0
 
     // Species A (index 0) is NOT algebraic: should be updated (loses reactant)
-    EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 600.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][0], 1000.0 - 20.0);   // Cell 0
+    EXPECT_REAL_EQ(forcing[1][0], 1000.0 - 600.0);  // Cell 1
 
     // Species B (index 1) IS algebraic: should remain unchanged
-    EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][1], 1000.0);  // Cell 0
+    EXPECT_REAL_EQ(forcing[1][1], 1000.0);  // Cell 1
 
     // Species C (index 2) is NOT algebraic: should be updated (gains product)
-    EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 + 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 + 600.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][2], 1000.0 + 20.0);   // Cell 0
+    EXPECT_REAL_EQ(forcing[1][2], 1000.0 + 600.0);  // Cell 1
 
     // Species D (index 3) IS algebraic: should remain unchanged
-    EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][3], 1000.0);  // Cell 0
+    EXPECT_REAL_EQ(forcing[1][3], 1000.0);  // Cell 1
   }
 
   // Test SubtractJacobianTerms with algebraic masking
@@ -359,35 +366,35 @@ void TestAlgebraicMasking()
 
     // Row A (index 0, NOT algebraic) should be updated
     // A->A: +d_rate/d_A (diagonal, reactant)
-    EXPECT_DOUBLE_EQ(jacobian[0][0][0], 500.0 + 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][0][0], 500.0 + 120.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][0][0], 500.0 + 20.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][0][0], 500.0 + 120.0);  // Cell 1
 
     // A->B: +d_rate/d_B (off-diagonal, reactant)
-    EXPECT_DOUBLE_EQ(jacobian[0][0][1], 500.0 + 10.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][0][1], 500.0 + 100.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][0][1], 500.0 + 10.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][0][1], 500.0 + 100.0);  // Cell 1
 
     // Row B (index 1, IS algebraic) should remain unchanged at 500.0
     // B->A and B->B should not be updated
-    EXPECT_DOUBLE_EQ(jacobian[0][1][0], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][1][0], 500.0);  // Cell 1
-    EXPECT_DOUBLE_EQ(jacobian[0][1][1], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][1][1], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][1][0], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][1][0], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][1][1], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][1][1], 500.0);  // Cell 1
 
     // Row C (index 2, NOT algebraic) should be updated (product)
     // C->A: -d_rate/d_A (product contribution)
-    EXPECT_DOUBLE_EQ(jacobian[0][2][0], 500.0 - 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][2][0], 500.0 - 120.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][2][0], 500.0 - 20.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][2][0], 500.0 - 120.0);  // Cell 1
 
     // C->B: -d_rate/d_B (product contribution)
-    EXPECT_DOUBLE_EQ(jacobian[0][2][1], 500.0 - 10.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][2][1], 500.0 - 100.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][2][1], 500.0 - 10.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][2][1], 500.0 - 100.0);  // Cell 1
 
     // Row D (index 3, IS algebraic) should remain unchanged at 500.0
     // D->A and D->B should not be updated
-    EXPECT_DOUBLE_EQ(jacobian[0][3][0], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][3][0], 500.0);  // Cell 1
-    EXPECT_DOUBLE_EQ(jacobian[0][3][1], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][3][1], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][3][0], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][3][0], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][3][1], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][3][1], 500.0);  // Cell 1
   }
 }
 

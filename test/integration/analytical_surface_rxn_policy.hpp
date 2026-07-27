@@ -1,6 +1,7 @@
 #pragma once
 
-#include "analytical_policy.hpp"  // RelativeError
+#include "../precision_matchers.hpp"
+#include "analytical_policy.hpp"
 
 #include <micm/CPU.hpp>
 #include <micm/util/types.hpp>
@@ -92,7 +93,8 @@ void TestAnalyticalSurfaceRxn(
   micm::Index nstep = 10;
 
   std::vector<std::vector<micm::Real>> model_conc(nstep + 1, std::vector<micm::Real>(3));
-  std::vector<std::vector<micm::Real>> analytic_conc(nstep + 1, std::vector<micm::Real>(3));
+  // Reference always in double, whatever the solver's working precision -- see TestSimpleSystem.
+  std::vector<std::vector<double>> analytic_conc(nstep + 1, std::vector<double>(3));
 
   model_conc[0] = { conc_foo, 0, 0 };
   analytic_conc[0] = { conc_foo, 0, 0 };
@@ -118,14 +120,16 @@ void TestAnalyticalSurfaceRxn(
 
     model_conc[i] = state.variables_.AsVector();
 
-    micm::Real time = i * time_step;
-    analytic_conc[i][idx_foo] = conc_foo * std::exp(-k1 * time);
-    analytic_conc[i][idx_bar] = bar_yield * (1.0 - analytic_conc[i][idx_foo]);
-    analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
+    const double t = i * time_step;
+    analytic_conc[i][idx_foo] = (double)conc_foo * std::exp(-(double)k1 * t);
+    analytic_conc[i][idx_bar] = (double)bar_yield * (1.0 - analytic_conc[i][idx_foo]);
+    analytic_conc[i][idx_baz] = (double)baz_yield * (1.0 - analytic_conc[i][idx_foo]);
 
-    // Check concentrations
-    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
-    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
-    EXPECT_NEAR(0, RelativeError(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
+    // Check concentrations. The requested relative tolerance is floored at the working precision:
+    // the default 1e-7 sits below float epsilon (1.2e-7), so a float build was being asked for
+    // sub-ULP agreement.
+    EXPECT_REAL_REL(model_conc[i][idx_foo], analytic_conc[i][idx_foo], tolerance);
+    EXPECT_REAL_REL(model_conc[i][idx_bar], analytic_conc[i][idx_bar], tolerance);
+    EXPECT_REAL_REL(model_conc[i][idx_baz], analytic_conc[i][idx_baz], tolerance);
   }
 }

@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../../../precision_matchers.hpp"
+
 #include <cmath>
 #include <numeric>
 
@@ -31,9 +33,9 @@ TEST(CudaDenseMatrix, SmallVectorMatrixPolicy)
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 2);
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
-  EXPECT_EQ(data[1 + 2 * 3], 64.7);
+  EXPECT_REAL_EQ(data[0], 41.2);
+  EXPECT_REAL_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
+  EXPECT_REAL_EQ(data[1 + 2 * 3], 64.7);
 }
 
 TEST(CudaDenseMatrix, SmallConstVectorMatrixPolicy)
@@ -46,9 +48,9 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrixPolicy)
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 1);
   EXPECT_EQ(matrix.GroupVectorSize(), 4);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 + 4 * 4], 102.3);
-  EXPECT_EQ(data[1 + 4 * 3], 64.7);
+  EXPECT_REAL_EQ(data[0], 41.2);
+  EXPECT_REAL_EQ(data[2 + 4 * 4], 102.3);
+  EXPECT_REAL_EQ(data[1 + 4 * 3], 64.7);
 }
 
 TEST(CudaDenseMatrix, InitializeVectorMatrixPolicy)
@@ -126,10 +128,10 @@ TEST(CudaDenseMatrix, IntDataType)
 
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 }
 
 TEST(CudaDenseMatrix, IntDataTypeCopyAssignment)
@@ -139,23 +141,23 @@ TEST(CudaDenseMatrix, IntDataTypeCopyAssignment)
 
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   auto matrix2 = matrix;
   matrix2[0][0] = 10;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
-  EXPECT_EQ(matrix2[0][0], 10);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 10);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 }
 
 TEST(CudaDenseMatrix, IntDataTypeMoveAssignment)
@@ -165,18 +167,18 @@ TEST(CudaDenseMatrix, IntDataTypeMoveAssignment)
 
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   auto matrix2 = std::move(matrix);
   matrix2[0][0] = 10;
 
-  EXPECT_EQ(matrix2[0][0], 10);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 10);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 }
 
 TEST(CudaDenseMatrix, ConversionFromVector)
@@ -192,13 +194,13 @@ TEST(CudaDenseMatrix, ConversionFromVector)
   EXPECT_EQ(matrix.NumRows(), 2);
   EXPECT_EQ(matrix.NumColumns(), 3);
   EXPECT_EQ(matrix[0].Size(), 3);
-  EXPECT_EQ(matrix[0][0], 412.3);
-  EXPECT_EQ(matrix[0][1], 32.4);
-  EXPECT_EQ(matrix[0][2], 41.3);
+  EXPECT_REAL_EQ(matrix[0][0], 412.3);
+  EXPECT_REAL_EQ(matrix[0][1], 32.4);
+  EXPECT_REAL_EQ(matrix[0][2], 41.3);
   EXPECT_EQ(matrix[1].Size(), 3);
-  EXPECT_EQ(matrix[1][0], 5.33);
-  EXPECT_EQ(matrix[1][1], -0.3);
-  EXPECT_EQ(matrix[1][2], 31.2);
+  EXPECT_REAL_EQ(matrix[1][0], 5.33);
+  EXPECT_REAL_EQ(matrix[1][1], -0.3);
+  EXPECT_REAL_EQ(matrix[1][2], 31.2);
 }
 
 /* These are the customized Tests running on the GPUs */
@@ -238,55 +240,55 @@ TEST(CudaDenseMatrix, CopyConstructorVerifyDeviceMemoryEqual)
 
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   matrix.CopyToDevice();
   auto matrixParam = matrix.AsDeviceParam();
   micm::cuda::SquareDriver(matrixParam);
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   auto matrix2 = matrix;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
-  EXPECT_EQ(matrix2[0][0], 5);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 5);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 25);
-  EXPECT_EQ(matrix[0][1], 4);
-  EXPECT_EQ(matrix[1][0], 9);
-  EXPECT_EQ(matrix[1][1], 16);
+  EXPECT_REAL_EQ(matrix[0][0], 25);
+  EXPECT_REAL_EQ(matrix[0][1], 4);
+  EXPECT_REAL_EQ(matrix[1][0], 9);
+  EXPECT_REAL_EQ(matrix[1][1], 16);
 
-  EXPECT_EQ(matrix2[0][0], 5);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 5);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   matrix2.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 25);
-  EXPECT_EQ(matrix[0][1], 4);
-  EXPECT_EQ(matrix[1][0], 9);
-  EXPECT_EQ(matrix[1][1], 16);
+  EXPECT_REAL_EQ(matrix[0][0], 25);
+  EXPECT_REAL_EQ(matrix[0][1], 4);
+  EXPECT_REAL_EQ(matrix[1][0], 9);
+  EXPECT_REAL_EQ(matrix[1][1], 16);
 
-  EXPECT_EQ(matrix2[0][0], 25);
-  EXPECT_EQ(matrix2[0][1], 4);
-  EXPECT_EQ(matrix2[1][0], 9);
-  EXPECT_EQ(matrix2[1][1], 16);
+  EXPECT_REAL_EQ(matrix2[0][0], 25);
+  EXPECT_REAL_EQ(matrix2[0][1], 4);
+  EXPECT_REAL_EQ(matrix2[1][0], 9);
+  EXPECT_REAL_EQ(matrix2[1][1], 16);
 }
 
 TEST(CudaDenseMatrix, CopyConstructorSquareAfterCopyAssignment)
@@ -298,27 +300,27 @@ TEST(CudaDenseMatrix, CopyConstructorSquareAfterCopyAssignment)
 
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   ModifyAndSyncToHost(matrix);
   ModifyAndSyncToHost(matrix2);
 
-  EXPECT_EQ(matrix[0][0], 25);
-  EXPECT_EQ(matrix[0][1], 4);
-  EXPECT_EQ(matrix[1][0], 9);
-  EXPECT_EQ(matrix[1][1], 16);
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 4);
-  EXPECT_EQ(matrix2[1][0], 9);
-  EXPECT_EQ(matrix2[1][1], 16);
+  EXPECT_REAL_EQ(matrix[0][0], 25);
+  EXPECT_REAL_EQ(matrix[0][1], 4);
+  EXPECT_REAL_EQ(matrix[1][0], 9);
+  EXPECT_REAL_EQ(matrix[1][1], 16);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 4);
+  EXPECT_REAL_EQ(matrix2[1][0], 9);
+  EXPECT_REAL_EQ(matrix2[1][1], 16);
 }
 
 TEST(CudaDenseMatrix, CopyConstructorDeSyncedHostDevice)
@@ -326,45 +328,45 @@ TEST(CudaDenseMatrix, CopyConstructorDeSyncedHostDevice)
   std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
-  EXPECT_EQ(matrix[0][0], 1);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 1);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   matrix.CopyToDevice();
   auto matrixParam = matrix.AsDeviceParam();
   micm::cuda::SquareDriver(matrixParam);
 
-  EXPECT_EQ(matrix[0][0], 1);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 1);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   auto matrix2 = matrix;
   matrix2[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 1);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 1);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
-  EXPECT_EQ(matrix2[0][0], 5);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 5);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   matrix.CopyToHost();
   ModifyAndSyncToHost(matrix2);
 
-  EXPECT_EQ(matrix[0][0], 1);
-  EXPECT_EQ(matrix[0][1], 4);
-  EXPECT_EQ(matrix[1][0], 9);
-  EXPECT_EQ(matrix[1][1], 16);
+  EXPECT_REAL_EQ(matrix[0][0], 1);
+  EXPECT_REAL_EQ(matrix[0][1], 4);
+  EXPECT_REAL_EQ(matrix[1][0], 9);
+  EXPECT_REAL_EQ(matrix[1][1], 16);
 
-  EXPECT_EQ(matrix2[0][0], 25);
-  EXPECT_EQ(matrix2[0][1], 4);
-  EXPECT_EQ(matrix2[1][0], 9);
-  EXPECT_EQ(matrix2[1][1], 16);
+  EXPECT_REAL_EQ(matrix2[0][0], 25);
+  EXPECT_REAL_EQ(matrix2[0][1], 4);
+  EXPECT_REAL_EQ(matrix2[1][0], 9);
+  EXPECT_REAL_EQ(matrix2[1][1], 16);
 }
 
 TEST(CudaDenseMatrix, CopyAssignment)
@@ -377,26 +379,26 @@ TEST(CudaDenseMatrix, CopyAssignment)
 
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   ModifyAndSyncToHost(matrix);
   ModifyAndSyncToHost(matrix2);
 
-  EXPECT_EQ(matrix[0][0], 25);
-  EXPECT_EQ(matrix[0][1], 4);
-  EXPECT_EQ(matrix[1][0], 9);
-  EXPECT_EQ(matrix[1][1], 16);
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 4);
-  EXPECT_EQ(matrix2[1][0], 9);
-  EXPECT_EQ(matrix2[1][1], 16);
+  EXPECT_REAL_EQ(matrix[0][0], 25);
+  EXPECT_REAL_EQ(matrix[0][1], 4);
+  EXPECT_REAL_EQ(matrix[1][0], 9);
+  EXPECT_REAL_EQ(matrix[1][1], 16);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 4);
+  EXPECT_REAL_EQ(matrix2[1][0], 9);
+  EXPECT_REAL_EQ(matrix2[1][1], 16);
 }
 
 TEST(CudaDenseMatrix, MoveConstructor)
@@ -404,20 +406,20 @@ TEST(CudaDenseMatrix, MoveConstructor)
   std::vector<std::vector<micm::Real>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaDenseMatrix<micm::Real, 2>(h_vector);
 
-  EXPECT_EQ(matrix[0][0], 1);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 1);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   matrix.CopyToDevice();
   auto matrixParam = matrix.AsDeviceParam();
   micm::cuda::SquareDriver(matrixParam);
   matrix[0][0] = 5;
 
-  EXPECT_EQ(matrix[0][0], 5);
-  EXPECT_EQ(matrix[0][1], 2);
-  EXPECT_EQ(matrix[1][0], 3);
-  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_REAL_EQ(matrix[0][0], 5);
+  EXPECT_REAL_EQ(matrix[0][1], 2);
+  EXPECT_REAL_EQ(matrix[1][0], 3);
+  EXPECT_REAL_EQ(matrix[1][1], 4);
 
   auto matrix2 = std::move(matrix);
   if (matrix.AsDeviceParam().d_data_ != nullptr)  // NOLINT(bugprone-use-after-move): checks moved-from state
@@ -425,17 +427,17 @@ TEST(CudaDenseMatrix, MoveConstructor)
     throw std::runtime_error(
         "The 'd_data_' pointer of matrix2 is not initialized to a null pointer in the move constructor.");
   }
-  EXPECT_EQ(matrix2[0][0], 5);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 5);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   matrix2.CopyToHost();
 
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 4);
-  EXPECT_EQ(matrix2[1][0], 9);
-  EXPECT_EQ(matrix2[1][1], 16);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 4);
+  EXPECT_REAL_EQ(matrix2[1][0], 9);
+  EXPECT_REAL_EQ(matrix2[1][1], 16);
 }
 
 TEST(CudaDenseMatrix, MoveAssignment)
@@ -446,17 +448,17 @@ TEST(CudaDenseMatrix, MoveAssignment)
   micm::CudaDenseMatrix<micm::Real, 2> matrix2;
   matrix2 = std::move(matrix);
 
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 2);
-  EXPECT_EQ(matrix2[1][0], 3);
-  EXPECT_EQ(matrix2[1][1], 4);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 2);
+  EXPECT_REAL_EQ(matrix2[1][0], 3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4);
 
   ModifyAndSyncToHost(matrix2);
 
-  EXPECT_EQ(matrix2[0][0], 1);
-  EXPECT_EQ(matrix2[0][1], 4);
-  EXPECT_EQ(matrix2[1][0], 9);
-  EXPECT_EQ(matrix2[1][1], 16);
+  EXPECT_REAL_EQ(matrix2[0][0], 1);
+  EXPECT_REAL_EQ(matrix2[0][1], 4);
+  EXPECT_REAL_EQ(matrix2[1][0], 9);
+  EXPECT_REAL_EQ(matrix2[1][1], 16);
 }
 
 TEST(CudaDenseMatrix, SmallConstVectorMatrix)
@@ -466,9 +468,9 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrix)
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[1][3], 64.7);
-  EXPECT_EQ(matrix[0][0], 41.2);
-  EXPECT_EQ(matrix[2][4], 102.3);
+  EXPECT_REAL_EQ(matrix[1][3], 64.7);
+  EXPECT_REAL_EQ(matrix[0][0], 41.2);
+  EXPECT_REAL_EQ(matrix[2][4], 102.3);
 
   const std::vector<micm::Real>& data = matrix.AsVector();
 
@@ -476,9 +478,9 @@ TEST(CudaDenseMatrix, SmallConstVectorMatrix)
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 1);
   EXPECT_EQ(matrix.GroupVectorSize(), 4);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 + 4 * 4], 102.3);
-  EXPECT_EQ(data[1 + 4 * 3], 64.7);
+  EXPECT_REAL_EQ(data[0], 41.2);
+  EXPECT_REAL_EQ(data[2 + 4 * 4], 102.3);
+  EXPECT_REAL_EQ(data[1 + 4 * 3], 64.7);
 }
 
 TEST(CudaDenseMatrix, InitializeVectorMatrix)
@@ -487,9 +489,9 @@ TEST(CudaDenseMatrix, InitializeVectorMatrix)
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  EXPECT_REAL_EQ(matrix[0][0], 12.4);
+  EXPECT_REAL_EQ(matrix[1][0], 12.4);
+  EXPECT_REAL_EQ(matrix[1][2], 12.4);
 }
 
 TEST(CudaDenseMatrix, InitializeConstVectorMatrix)
@@ -498,9 +500,9 @@ TEST(CudaDenseMatrix, InitializeConstVectorMatrix)
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  EXPECT_REAL_EQ(matrix[0][0], 12.4);
+  EXPECT_REAL_EQ(matrix[1][0], 12.4);
+  EXPECT_REAL_EQ(matrix[1][2], 12.4);
 }
 
 TEST(CudaDenseMatrix, LoopOverVectorMatrix)
@@ -514,18 +516,18 @@ TEST(CudaDenseMatrix, LoopOverVectorMatrix)
     }
   }
 
-  EXPECT_EQ(matrix[0][0], 0);
-  EXPECT_EQ(matrix[1][2], 102);
-  EXPECT_EQ(matrix[2][3], 203);
-  EXPECT_EQ(matrix[0][3], 3);
+  EXPECT_REAL_EQ(matrix[0][0], 0);
+  EXPECT_REAL_EQ(matrix[1][2], 102);
+  EXPECT_REAL_EQ(matrix[2][3], 203);
+  EXPECT_REAL_EQ(matrix[0][3], 3);
 
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 0);
-  EXPECT_EQ(matrix[1][2], 102);
-  EXPECT_EQ(matrix[2][3], 203);
-  EXPECT_EQ(matrix[0][3], 3);
+  EXPECT_REAL_EQ(matrix[0][0], 0);
+  EXPECT_REAL_EQ(matrix[1][2], 102);
+  EXPECT_REAL_EQ(matrix[2][3], 203);
+  EXPECT_REAL_EQ(matrix[0][3], 3);
 }
 
 TEST(CudaDenseMatrix, LoopOverConstVectorMatrix)
@@ -549,10 +551,10 @@ TEST(CudaDenseMatrix, LoopOverConstVectorMatrix)
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 0);
-  EXPECT_EQ(matrix[1][2], 102);
-  EXPECT_EQ(matrix[2][3], 203);
-  EXPECT_EQ(matrix[0][3], 3);
+  EXPECT_REAL_EQ(matrix[0][0], 0);
+  EXPECT_REAL_EQ(matrix[1][2], 102);
+  EXPECT_REAL_EQ(matrix[2][3], 203);
+  EXPECT_REAL_EQ(matrix[0][3], 3);
 }
 
 TEST(CudaDenseMatrix, ConversionToVector)
@@ -563,9 +565,9 @@ TEST(CudaDenseMatrix, ConversionToVector)
 
   auto slice = matrix[1];
 
-  EXPECT_EQ(slice[0], 13.2);
-  EXPECT_EQ(slice[1], 31.2);
-  EXPECT_EQ(slice[2], 314.2);
+  EXPECT_REAL_EQ(slice[0], 13.2);
+  EXPECT_REAL_EQ(slice[1], 31.2);
+  EXPECT_REAL_EQ(slice[2], 314.2);
 }
 
 TEST(CudaDenseMatrix, ConstConversionToVector)
@@ -576,9 +578,9 @@ TEST(CudaDenseMatrix, ConstConversionToVector)
 
   auto slice = matrix[1];
 
-  EXPECT_EQ(slice[0], 13.2);
-  EXPECT_EQ(slice[1], 31.2);
-  EXPECT_EQ(slice[2], 314.2);
+  EXPECT_REAL_EQ(slice[0], 13.2);
+  EXPECT_REAL_EQ(slice[1], 31.2);
+  EXPECT_REAL_EQ(slice[2], 314.2);
 }
 
 TEST(CudaDenseMatrix, AssignmentFromVector)
@@ -587,11 +589,11 @@ TEST(CudaDenseMatrix, AssignmentFromVector)
   matrix.CopyToDevice();
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 0.0);
-  EXPECT_EQ(matrix[2][0], 14.3);
-  EXPECT_EQ(matrix[2][1], 52.3);
-  EXPECT_EQ(matrix[2][2], 65.7);
-  EXPECT_EQ(matrix[3][0], 0.0);
+  EXPECT_REAL_EQ(matrix[0][0], 0.0);
+  EXPECT_REAL_EQ(matrix[2][0], 14.3);
+  EXPECT_REAL_EQ(matrix[2][1], 52.3);
+  EXPECT_REAL_EQ(matrix[2][2], 65.7);
+  EXPECT_REAL_EQ(matrix[3][0], 0.0);
 }
 
 TEST(CudaDenseMatrix, Axpy)
@@ -627,28 +629,28 @@ TEST(CudaDenseMatrix, CopyFunction)
 
   matrix[0][0] = 8.5;
 
-  EXPECT_EQ(matrix[0][0], 8.5);
-  EXPECT_EQ(matrix[0][1], 2.9);
-  EXPECT_EQ(matrix[1][0], 7.3);
-  EXPECT_EQ(matrix[1][1], 4.5);
-  EXPECT_EQ(matrix2[0][0], 2.1);
-  EXPECT_EQ(matrix2[0][1], 5.9);
-  EXPECT_EQ(matrix2[1][0], 6.3);
-  EXPECT_EQ(matrix2[1][1], 4.8);
+  EXPECT_REAL_EQ(matrix[0][0], 8.5);
+  EXPECT_REAL_EQ(matrix[0][1], 2.9);
+  EXPECT_REAL_EQ(matrix[1][0], 7.3);
+  EXPECT_REAL_EQ(matrix[1][1], 4.5);
+  EXPECT_REAL_EQ(matrix2[0][0], 2.1);
+  EXPECT_REAL_EQ(matrix2[0][1], 5.9);
+  EXPECT_REAL_EQ(matrix2[1][0], 6.3);
+  EXPECT_REAL_EQ(matrix2[1][1], 4.8);
 
   ModifyAndSyncToHost(matrix);
   matrix2.Copy(matrix);
   matrix2.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 72.25);
-  EXPECT_EQ(matrix[0][1], 8.41);
-  EXPECT_EQ(matrix[1][0], 53.29);
-  EXPECT_EQ(matrix[1][1], 20.25);
+  EXPECT_REAL_EQ(matrix[0][0], 72.25);
+  EXPECT_REAL_EQ(matrix[0][1], 8.41);
+  EXPECT_REAL_EQ(matrix[1][0], 53.29);
+  EXPECT_REAL_EQ(matrix[1][1], 20.25);
   for (micm::Index i = 0; i < 2; i++)
   {
     for (micm::Index j = 0; j < 2; j++)
     {
-      EXPECT_EQ(matrix2[i][j], matrix[i][j]);
+      EXPECT_REAL_EQ(matrix2[i][j], matrix[i][j]);
     }
   }
 }
@@ -674,12 +676,12 @@ TEST(CudaDenseMatrix, TestMax)
   matrix.Max(2.0);
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 2.0);
-  EXPECT_EQ(matrix[0][1], 2.0);
-  EXPECT_EQ(matrix[0][2], 2.0);
-  EXPECT_EQ(matrix[1][0], 2.0);
-  EXPECT_EQ(matrix[1][1], 3.0);
-  EXPECT_EQ(matrix[1][2], 2.0);
+  EXPECT_REAL_EQ(matrix[0][0], 2.0);
+  EXPECT_REAL_EQ(matrix[0][1], 2.0);
+  EXPECT_REAL_EQ(matrix[0][2], 2.0);
+  EXPECT_REAL_EQ(matrix[1][0], 2.0);
+  EXPECT_REAL_EQ(matrix[1][1], 3.0);
+  EXPECT_REAL_EQ(matrix[1][2], 2.0);
 }
 
 TEST(CudaDenseMatrix, TestMin)
@@ -703,12 +705,12 @@ TEST(CudaDenseMatrix, TestMin)
   matrix.Min(2.0);
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 1.0);
-  EXPECT_EQ(matrix[0][1], 1.0);
-  EXPECT_EQ(matrix[0][2], 1.0);
-  EXPECT_EQ(matrix[1][0], 1.0);
-  EXPECT_EQ(matrix[1][1], 2.0);
-  EXPECT_EQ(matrix[1][2], 1.0);
+  EXPECT_REAL_EQ(matrix[0][0], 1.0);
+  EXPECT_REAL_EQ(matrix[0][1], 1.0);
+  EXPECT_REAL_EQ(matrix[0][2], 1.0);
+  EXPECT_REAL_EQ(matrix[1][0], 1.0);
+  EXPECT_REAL_EQ(matrix[1][1], 2.0);
+  EXPECT_REAL_EQ(matrix[1][2], 1.0);
 }
 
 template<micm::Index cuda_matrix_vector_length>
@@ -733,7 +735,7 @@ void TestSingleBlockMatrixAddOneElement()
   micm::cuda::DenseMatrixAddOneElementDriver(param, row_id, col_id, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[row_id][col_id], 80);
+  EXPECT_REAL_EQ(matrix[row_id][col_id], 80);
 }
 
 TEST(CudaDenseMatrix, SingleBlockMatrixAddOneElement)
@@ -768,7 +770,7 @@ void TestMultiBlockMatrixAddOneElement()
   micm::cuda::DenseMatrixAddOneElementDriver(param, row_id, col_id, cuda_matrix_vector_length);
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[row_id][col_id], 55);
+  EXPECT_REAL_EQ(matrix[row_id][col_id], 55);
 }
 
 TEST(CudaDenseMatrix, MultiBlockMatrixAddOneElement)

@@ -11,6 +11,10 @@
 
 #include <gtest/gtest.h>
 
+#include "../../precision_matchers.hpp"
+
+#include <type_traits>
+
 #include <cmath>
 #include <memory>
 #include <set>
@@ -256,9 +260,9 @@ void TestSubtractJacobianTerms()
 
   // Jacobian subtracts these values (matching ProcessSet convention)
   // Constraint replaces row 2 (AB's row)
-  EXPECT_NEAR(jacobian[0][2][0], -0.00066, 1e-10);  // J[2, A] -= dG/dA
-  EXPECT_NEAR(jacobian[0][2][1], -0.00033, 1e-10);  // J[2, B] -= dG/dB
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-10);       // J[2, AB] -= dG/dAB = -(-1) = 1
+  EXPECT_NEAR(jacobian[0][2][0], -0.00066, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, A] -= dG/dA
+  EXPECT_NEAR(jacobian[0][2][1], -0.00033, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, B] -= dG/dB
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);       // J[2, AB] -= dG/dAB = -(-1) = 1
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -284,10 +288,10 @@ void TestEmptyConstraintSet()
   set.AddForcingTerms(state, state_parameters, forcing);
 
   // Forcing should be unchanged
-  EXPECT_DOUBLE_EQ(forcing[0][0], 1.0);
-  EXPECT_DOUBLE_EQ(forcing[0][1], 1.0);
-  EXPECT_DOUBLE_EQ(forcing[0][2], 1.0);
-  EXPECT_DOUBLE_EQ(forcing[0][3], 1.0);
+  EXPECT_REAL_EQ(forcing[0][0], 1.0);
+  EXPECT_REAL_EQ(forcing[0][1], 1.0);
+  EXPECT_REAL_EQ(forcing[0][2], 1.0);
+  EXPECT_REAL_EQ(forcing[0][3], 1.0);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -383,9 +387,9 @@ void TestThreeDStateOneConstraint()
 
   // Constraint replaces row 1 (Y's row)
   // Grid cell 0: G = K_eq * [X] - [Y] = 3.3e-2 * 10.0 - 0.2 = 0.33 - 0.2 = 0.13
-  EXPECT_NEAR(forcing[0][1], 0.13, 1e-10);
+  EXPECT_NEAR(forcing[0][1], 0.13, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
   // Grid cell 1: G = 3.3e-2 * 10.0 - 0.33 = 0.0 (at equilibrium)
-  EXPECT_NEAR(forcing[1][1], 0.0, 1e-10);
+  EXPECT_NEAR(forcing[1][1], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
@@ -396,15 +400,15 @@ void TestThreeDStateOneConstraint()
   // Jacobian subtracts at row 1:
 
   // Grid cell 0
-  EXPECT_NEAR(jacobian[0][1][0], -K_eq, 1e-10);  // dG/dX
-  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);    // dG/dY (subtracted -1)
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // dG/dX
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);    // dG/dY (subtracted -1)
   // Grid cell 1
-  EXPECT_NEAR(jacobian[1][1][0], -K_eq, 1e-10);
-  EXPECT_NEAR(jacobian[1][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][0], -K_eq, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Z row should be unaffected
-  EXPECT_NEAR(jacobian[0][2][2], 0.0, 1e-10);
-  EXPECT_NEAR(jacobian[1][2][2], 0.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][2][2], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][2][2], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 /// @brief Test 4D state (4 species) with 2 constraints
@@ -516,15 +520,15 @@ void TestFourDStateTwoConstraints()
   // Constraint 1 replaces row 1, Constraint 2 replaces row 0
   // Grid cell 0: Both at equilibrium
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-5);   // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
-  EXPECT_NEAR(forcing[0][0], 0.0, 1e-10);  // G2 = K_eq2 * 10.0 * 1.0 - 0.33 = 0
+  EXPECT_NEAR(forcing[0][0], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 10.0 * 1.0 - 0.33 = 0
 
   // Grid cell 1: First satisfied, second not
   EXPECT_NEAR(forcing[1][1], 0.0, 1e-5);      // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
-  EXPECT_NEAR(forcing[1][0], -0.165, 1e-10);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = 0.165 - 0.33 = -0.165
+  EXPECT_NEAR(forcing[1][0], -0.165, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = 0.165 - 0.33 = -0.165
 
   // Grid cell 2: Neither satisfied
   EXPECT_NEAR(forcing[2][1], -0.00911, 1e-5);  // G1 = K_eq1 * 0.33 - 0.02 = 0.01089 - 0.02 = -0.00911
-  EXPECT_NEAR(forcing[2][0], -0.165, 1e-10);   // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = -0.165
+  EXPECT_NEAR(forcing[2][0], -0.165, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);   // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = -0.165
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
@@ -533,25 +537,25 @@ void TestFourDStateTwoConstraints()
   // Constraint 2 at row 0: dG2/dC = K_eq2*[D], dG2/dD = K_eq2*[C], dG2/dA = -1
 
   // Grid cell 0:
-  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[0][0][2], -K_eq2 * state[0][3], 1e-10);
-  EXPECT_NEAR(jacobian[0][0][3], -K_eq2 * state[0][2], 1e-10);
-  EXPECT_NEAR(jacobian[0][0][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][0][2], -K_eq2 * state[0][3], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][0][3], -K_eq2 * state[0][2], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][0][0], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Grid cell 1:
-  EXPECT_NEAR(jacobian[1][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[1][1][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[1][0][2], -K_eq2 * state[1][3], 1e-10);
-  EXPECT_NEAR(jacobian[1][0][3], -K_eq2 * state[1][2], 1e-10);
-  EXPECT_NEAR(jacobian[1][0][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][0][2], -K_eq2 * state[1][3], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][0][3], -K_eq2 * state[1][2], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][0][0], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Grid cell 2:
-  EXPECT_NEAR(jacobian[2][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[2][1][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[2][0][2], -K_eq2 * state[2][3], 1e-10);
-  EXPECT_NEAR(jacobian[2][0][3], -K_eq2 * state[2][2], 1e-10);
-  EXPECT_NEAR(jacobian[2][0][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[2][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][0][2], -K_eq2 * state[2][3], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][0][3], -K_eq2 * state[2][2], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][0][0], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 /// @brief Test coupled constraints where constraints share species
@@ -636,19 +640,19 @@ void TestCoupledConstraintsSharedSpecies()
   set.AddForcingTerms(state, state_parameters, forcing);
 
   // Both constraints should be satisfied
-  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);  // G1 at row 1
-  EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);  // G2 at row 2
+  EXPECT_NEAR(forcing[0][1], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G1 at row 1
+  EXPECT_NEAR(forcing[0][2], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 at row 2
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Constraint 1 at row 1: dG1/dA = K_eq1 = 3.3e-2, dG1/dB = -1
-  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Constraint 2 at row 2: dG2/dA = K_eq2 = 3.3e-2, dG2/dC = -1
-  EXPECT_NEAR(jacobian[0][2][0], -K_eq2, 1e-10);
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][2][0], -K_eq2, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -703,22 +707,22 @@ void TestVectorizedMatricesRespectGridCellIndexing()
 
   // Constraint residual replaces row 2 (AB)
   // K_eq = 3.3e-2
-  EXPECT_NEAR(forcing[0][2], 3.3e-2 * 0.01 * 0.02 - 0.05, 1e-9);
-  EXPECT_NEAR(forcing[1][2], 3.3e-2 * 0.03 * 0.01 - 0.2, 1e-9);
-  EXPECT_NEAR(forcing[2][2], 3.3e-2 * 0.001 * 0.002 - 0.004, 1e-9);
+  EXPECT_NEAR(forcing[0][2], 3.3e-2 * 0.01 * 0.02 - 0.05, (std::is_same_v<micm::Real, double>) ? 1e-9 : 1e-5);
+  EXPECT_NEAR(forcing[1][2], 3.3e-2 * 0.03 * 0.01 - 0.2, (std::is_same_v<micm::Real, double>) ? 1e-9 : 1e-5);
+  EXPECT_NEAR(forcing[2][2], 3.3e-2 * 0.001 * 0.002 - 0.004, (std::is_same_v<micm::Real, double>) ? 1e-9 : 1e-5);
 
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Jacobian entries at row 2 (AB's row, replaced by constraint)
-  EXPECT_NEAR(jacobian[0][2][0], -(3.3e-2 * 0.02), 1e-12);
-  EXPECT_NEAR(jacobian[0][2][1], -(3.3e-2 * 0.01), 1e-12);
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[0][2][0], -(3.3e-2 * 0.02), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[0][2][1], -(3.3e-2 * 0.01), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
 
-  EXPECT_NEAR(jacobian[1][2][0], -(3.3e-2 * 0.01), 1e-12);
-  EXPECT_NEAR(jacobian[1][2][1], -(3.3e-2 * 0.03), 1e-12);
-  EXPECT_NEAR(jacobian[1][2][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[1][2][0], -(3.3e-2 * 0.01), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[1][2][1], -(3.3e-2 * 0.03), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[1][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
 
-  EXPECT_NEAR(jacobian[2][2][0], -(3.3e-2 * 0.002), 1e-12);
-  EXPECT_NEAR(jacobian[2][2][1], -(3.3e-2 * 0.001), 1e-12);
-  EXPECT_NEAR(jacobian[2][2][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[2][2][0], -(3.3e-2 * 0.002), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[2][2][1], -(3.3e-2 * 0.001), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[2][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
 }

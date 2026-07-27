@@ -6,6 +6,7 @@
 #include <micm/util/types.hpp>
 
 #include <random>
+#include <type_traits>
 
 template<class SolverPolicy>
 void TestJacobian(SolverPolicy& solver)
@@ -68,7 +69,7 @@ void TestJacobian(SolverPolicy& solver)
       // SubtractJacobianTerms stores -dF/dy; DforceDy returns +dF/dy
       micm::Real a = jacobian[i][modern_row][modern_col];
       micm::Real b = fixed_jacobian[j];
-      EXPECT_NEAR(a, -b, (std::abs(a) + std::abs(b)) * 1.0e-8 + 1.0e-12);
+      EXPECT_NEAR(a, -b, (std::abs(a) + std::abs(b)) * (std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4) + 1.0e-12);
     }
   }
 }

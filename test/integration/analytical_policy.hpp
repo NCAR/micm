@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../precision_matchers.hpp"
+
 #include <micm/CPU.hpp>
 #include <micm/util/types.hpp>
 
@@ -34,10 +36,13 @@ micm::Real CombinedError(micm::Real a, micm::Real b, micm::Real abs_tol)
   return abs(a - b) * 2 / (abs(a) + abs(b) + abs_tol);
 }
 
+// Templated on the value type so the same writer serves both the model results (micm::Real) and the
+// analytical reference (always double -- see TestSimpleSystem).
+template<class ValueType>
 void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
-    const std::vector<std::vector<micm::Real>>& data,
+    const std::vector<std::vector<ValueType>>& data,
     const std::vector<micm::Real>& times)
 {
   std::ofstream file(filename);
@@ -76,10 +81,11 @@ void WriteCsv(
   }
 }
 
+template<class ValueType>
 void WriteCsV2D(
     const std::string& filename,
     const std::vector<std::string>& header,
-    const std::vector<std::vector<std::vector<micm::Real>>>& data,
+    const std::vector<std::vector<std::vector<ValueType>>>& data,
     const std::vector<micm::Real>& times)
 {
   std::ofstream file(filename);
@@ -170,15 +176,20 @@ void TestSimpleSystem(
 
   std::vector<std::vector<std::vector<micm::Real>>> model_concentrations(
       NSTEPS, std::vector<std::vector<micm::Real>>(NUM_CELLS, std::vector<micm::Real>(3)));
-  std::vector<std::vector<std::vector<micm::Real>>> analytical_concentrations(
-      NSTEPS, std::vector<std::vector<micm::Real>>(NUM_CELLS, std::vector<micm::Real>(3)));
+  // The reference solution is always evaluated in double, whatever the solver's working precision.
+  // Its closed form for species C differences two nearly equal exponentials, and in a float build
+  // that cancellation is large enough to make the "truth" itself wrong (it goes negative early on).
+  std::vector<std::vector<std::vector<double>>> analytical_concentrations(
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
   for (micm::Index i = 0; i < NUM_CELLS; ++i)
   {
     model_concentrations[0][i][idx_A] = 1.0 - (micm::Real)i / (micm::Real)NUM_CELLS;
     model_concentrations[0][i][idx_B] = 0.0;
     model_concentrations[0][i][idx_C] = 0.0;
-    analytical_concentrations[0][i] = model_concentrations[0][i];
+    analytical_concentrations[0][i] = { model_concentrations[0][i][idx_A],
+                                       model_concentrations[0][i][idx_B],
+                                       model_concentrations[0][i][idx_C] };
 
     state.variables_[i][_a] = model_concentrations[0][i][idx_A];
     state.variables_[i][_b] = model_concentrations[0][i][idx_B];
@@ -201,8 +212,14 @@ void TestSimpleSystem(
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
-      EXPECT_NEAR(k1[i], state.rate_constants_[i][0], absolute_tolerances);
-      EXPECT_NEAR(k2[i], state.rate_constants_[i][1], absolute_tolerances);
+      // Rate constants are compared relatively, not against the concentration tolerance: they range
+      // up to ~1e6 here, so an absolute tolerance sized for concentrations of order 1 is a demand
+      // for accuracy finer than one ULP of the value being checked. The bound is a few tens of
+      // epsilon rather than an equality: the reference below and micm's own implementation evaluate
+      // the same formula by different routes, which in float costs more than the 4 ULP an equality
+      // macro allows.
+      EXPECT_REAL_FORMULA_EQ(k1[i], state.rate_constants_[i][0]);
+      EXPECT_REAL_FORMULA_EQ(k2[i], state.rate_constants_[i][1]);
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
       model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
@@ -214,13 +231,17 @@ void TestSimpleSystem(
 
     for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
-      micm::Real initial_A = analytical_concentrations[0][i][idx_A];
-      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-(k1[i]) * time);
+      // Widen to double for the closed form only. k1/k2 keep the values the solver itself was handed,
+      // so the reference stays consistent with the ODE actually being integrated; only the roundoff of
+      // evaluating the formula is removed.
+      const double initial_A = analytical_concentrations[0][i][idx_A];
+      const double kk1 = k1[i], kk2 = k2[i], t = time;
+      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-kk1 * t);
       analytical_concentrations[i_time][i][idx_B] =
-          initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
+          initial_A * (kk1 / (kk2 - kk1)) * (std::exp(-kk1 * t) - std::exp(-kk2 * t));
 
       analytical_concentrations[i_time][i][idx_C] =
-          initial_A * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
+          initial_A * (1.0 + (kk1 * std::exp(-kk2 * t) - kk2 * std::exp(-kk1 * t)) / (kk2 - kk1));
     }
   }
 
@@ -232,13 +253,13 @@ void TestSimpleSystem(
   {
     for (micm::Index i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
@@ -288,15 +309,18 @@ void TestSimpleStiffSystem(
 
   std::vector<std::vector<std::vector<micm::Real>>> model_concentrations(
       NSTEPS, std::vector<std::vector<micm::Real>>(NUM_CELLS, std::vector<micm::Real>(3)));
-  std::vector<std::vector<std::vector<micm::Real>>> analytical_concentrations(
-      NSTEPS, std::vector<std::vector<micm::Real>>(NUM_CELLS, std::vector<micm::Real>(3)));
+  // Reference always in double -- see TestSimpleSystem.
+  std::vector<std::vector<std::vector<double>>> analytical_concentrations(
+      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
   for (micm::Index i = 0; i < NUM_CELLS; ++i)
   {
     model_concentrations[0][i][idx_A] = 1.0 - (micm::Real)i / (micm::Real)NUM_CELLS;
     model_concentrations[0][i][idx_B] = 0.0;
     model_concentrations[0][i][idx_C] = 0.0;
-    analytical_concentrations[0][i] = model_concentrations[0][i];
+    analytical_concentrations[0][i] = { model_concentrations[0][i][idx_A],
+                                       model_concentrations[0][i][idx_B],
+                                       model_concentrations[0][i][idx_C] };
 
     state.variables_[i][_a1] = 0.5 * model_concentrations[0][i][idx_A];
     state.variables_[i][_a2] = 0.5 * model_concentrations[0][i][idx_A];
@@ -331,12 +355,13 @@ void TestSimpleStiffSystem(
 
     for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
-      micm::Real initial_A = analytical_concentrations[0][i][idx_A];
-      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-k1[i] * time);
+      const double initial_A = analytical_concentrations[0][i][idx_A];
+      const double kk1 = k1[i], kk2 = k2[i], t = time;
+      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-kk1 * t);
       analytical_concentrations[i_time][i][idx_B] =
-          initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
+          initial_A * (kk1 / (kk2 - kk1)) * (std::exp(-kk1 * t) - std::exp(-kk2 * t));
       analytical_concentrations[i_time][i][idx_C] =
-          initial_A * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
+          initial_A * (1.0 + (kk1 * std::exp(-kk2 * t) - kk2 * std::exp(-kk1 * t)) / (kk2 - kk1));
     }
   }
 
@@ -348,13 +373,13 @@ void TestSimpleStiffSystem(
   {
     for (micm::Index i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }

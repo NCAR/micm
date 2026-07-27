@@ -9,6 +9,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../../precision_matchers.hpp"
+
 #include <array>
 #include <vector>
 
@@ -83,5 +85,5 @@ TEST(ViewCategorySFINAE, RuntimeVectorUse)
   };
 
   micm::Real sum = process_vector(vec);
-  EXPECT_DOUBLE_EQ(sum, 15.0);
+  EXPECT_REAL_EQ(sum, 15.0);
 }

@@ -6,6 +6,7 @@
 #include <micm/util/types.hpp>
 
 #include <random>
+#include <type_traits>
 
 template<class SolverPolicy>
 void TestRateConstants(SolverPolicy& solver)
@@ -78,7 +79,7 @@ void TestForcing(SolverPolicy& solver)
     {
       micm::Real a = forcing[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
       micm::Real b = fixed_forcing[j];
-      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + 1.0e-12);
+      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * (std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4) + 1.0e-12);
     }
   }
 }

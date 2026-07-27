@@ -11,6 +11,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../../precision_matchers.hpp"
+
 #include <cstddef>
 
 template<class SolverBuilderPolicy>
@@ -96,18 +98,18 @@ void TestAlphaMinusJacobian(SolverBuilderPolicy builder, micm::Index number_of_g
 
   for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    EXPECT_EQ(jacobian[i_cell][0][0], 42.042 - 12.2);
-    EXPECT_EQ(jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
-    EXPECT_EQ(jacobian[i_cell][0][2], -42.3);
-    EXPECT_EQ(jacobian[i_cell][1][0], -0.43);
-    EXPECT_EQ(jacobian[i_cell][1][1], 42.042 - 23.4);
-    EXPECT_EQ(jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
-    EXPECT_EQ(jacobian[i_cell][2][0], -4.74);
-    EXPECT_EQ(jacobian[i_cell][2][2], 42.042 - 6.91);
-    EXPECT_EQ(jacobian[i_cell][3][1], -59.1);
-    EXPECT_EQ(jacobian[i_cell][3][3], 42.042 - 83.4);
-    EXPECT_EQ(jacobian[i_cell][4][0], -78.5);
-    EXPECT_EQ(jacobian[i_cell][4][2], -53.6);
-    EXPECT_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
+    EXPECT_REAL_EQ(jacobian[i_cell][0][0], 42.042 - 12.2);
+    EXPECT_REAL_EQ(jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
+    EXPECT_REAL_EQ(jacobian[i_cell][0][2], -42.3);
+    EXPECT_REAL_EQ(jacobian[i_cell][1][0], -0.43);
+    EXPECT_REAL_EQ(jacobian[i_cell][1][1], 42.042 - 23.4);
+    EXPECT_REAL_EQ(jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
+    EXPECT_REAL_EQ(jacobian[i_cell][2][0], -4.74);
+    EXPECT_REAL_EQ(jacobian[i_cell][2][2], 42.042 - 6.91);
+    EXPECT_REAL_EQ(jacobian[i_cell][3][1], -59.1);
+    EXPECT_REAL_EQ(jacobian[i_cell][3][3], 42.042 - 83.4);
+    EXPECT_REAL_EQ(jacobian[i_cell][4][0], -78.5);
+    EXPECT_REAL_EQ(jacobian[i_cell][4][2], -53.6);
+    EXPECT_REAL_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 }

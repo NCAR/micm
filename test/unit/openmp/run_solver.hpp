@@ -39,8 +39,13 @@ std::vector<micm::Real> run_solver_on_thread_with_own_state(auto& solver, auto& 
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
+      // A solve that advances no time never satisfies the loop condition. Leave the loop rather than
+      // spin forever; the caller's assertions then fail on the unconverged concentrations.
+      if (result.stats_.final_time_ <= 0)
+      {
+        break;
+      }
       elapsed_solve_time = result.stats_.final_time_;
-      ;
     }
   }
 

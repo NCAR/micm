@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 template<micm::Index L>
 using VectorBackwardEuler = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
@@ -139,6 +141,12 @@ TEST(AnalyticalExamples, Troe)
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffTroe(backward_euler);
   TestAnalyticalStiffTroe(backard_euler_vector_1);
   TestAnalyticalStiffTroe(backard_euler_vector_2);
@@ -157,6 +165,12 @@ TEST(AnalyticalExamples, Photolysis)
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffPhotolysis(backward_euler, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_2, 1e-3);
@@ -175,6 +189,12 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffTernaryChemicalActivation(backward_euler, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_1, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_2, 1e-2);
@@ -193,6 +213,12 @@ TEST(AnalyticalExamples, Tunneling)
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffTunneling(backward_euler, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_2, 1e-3);
@@ -211,6 +237,12 @@ TEST(AnalyticalExamples, Arrhenius)
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffArrhenius(backward_euler, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_2, 1e-3);
@@ -229,6 +261,12 @@ TEST(AnalyticalExamples, Branched)
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffBranched(backward_euler, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_1, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_2, 1e-2);

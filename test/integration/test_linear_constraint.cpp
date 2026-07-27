@@ -8,14 +8,18 @@
 #include <micm/constraint/types/linear_constraint.hpp>
 #include <micm/util/types.hpp>
 
+#include "../precision_matchers.hpp"
+
 #include <gtest/gtest.h>
+
+#include <type_traits>
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {
   auto Cl2 = micm::Species("Cl2");
   auto Cl = micm::Species("Cl");
-  Cl2.SetProperty("absolute tolerance", 1.0e-20);
-  Cl.SetProperty("absolute tolerance", 1.0e-20);
+  Cl2.SetProperty("absolute tolerance", micm::Real{ 1.0e-20 });
+  Cl.SetProperty("absolute tolerance", micm::Real{ 1.0e-20 });
 
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -84,7 +88,8 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
                     .Build();
 
   auto state = solver.GetState(1);
-  state.SetRelativeTolerance(1.0e-8);
+  // 1e-8 is below float epsilon -- see the same override in terminator.hpp.
+  state.SetRelativeTolerance(micm::Real{ std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-5 });
 
   // Robertson rates
   state.SetCustomRateParameter("robertson_r1", 0.04);
@@ -118,7 +123,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
     }
 
     // 1. Mass conservation enforced by DAE constraint
-    EXPECT_NEAR(state[A] + state[B] + state[C], sum_initial_conc, 1e-10);
+    EXPECT_REAL_CLOSE(state[A] + state[B] + state[C], sum_initial_conc, 1e-10);
 
     time_step *= 10.0;
   }

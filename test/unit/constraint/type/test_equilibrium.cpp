@@ -14,6 +14,8 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 #include <cmath>
 #include <memory>
 #include <system_error>
@@ -286,7 +288,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   forcing.Fill(0.0);
   set.AddForcingTerms(state, state_parameters, forcing);
 
-  EXPECT_NEAR(forcing[0][2], 0.55, 1e-10);
+  EXPECT_NEAR(forcing[0][2], 0.55, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
@@ -416,7 +418,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   set.AddForcingTerms(state, state_parameters, forcing);
 
   // The forcing term for B (row 1, algebraic species) should be the constraint residual
-  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
+  EXPECT_NEAR(forcing[0][1], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)

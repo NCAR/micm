@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+#include "../../precision_matchers.hpp"
+
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<micm::Real, OrderingPolicy> TestZeroMatrix()
 {
@@ -2111,9 +2113,9 @@ void TestIntegerVectorSparse()
 
   func(matrix, int_vec);
 
-  EXPECT_DOUBLE_EQ(matrix[0][0][1], 7.5);
-  EXPECT_DOUBLE_EQ(matrix[1][0][1], 15.0);
-  EXPECT_DOUBLE_EQ(matrix[2][0][1], 22.5);
+  EXPECT_REAL_EQ(matrix[0][0][1], 7.5);
+  EXPECT_REAL_EQ(matrix[1][0][1], 15.0);
+  EXPECT_REAL_EQ(matrix[2][0][1], 22.5);
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>

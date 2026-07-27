@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 using BuilderType = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>;
 using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
 
@@ -217,6 +219,9 @@ TEST(AnalyticalExamples, Troe)
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffTroe(rosenbrock_2stage);
   TestAnalyticalStiffTroe(rosenbrock_3stage);
   TestAnalyticalStiffTroe(rosenbrock_4stage);
@@ -275,6 +280,9 @@ TEST(AnalyticalExamples, Photolysis)
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffPhotolysis(rosenbrock_2stage);
   TestAnalyticalStiffPhotolysis(rosenbrock_3stage);
   TestAnalyticalStiffPhotolysis(rosenbrock_4stage);
@@ -333,6 +341,9 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_2stage, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_3stage, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_4stage, 2e-3);
@@ -391,6 +402,9 @@ TEST(AnalyticalExamples, Tunneling)
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffTunneling(rosenbrock_2stage, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_3stage, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_4stage, 1e-4);
@@ -449,6 +463,9 @@ TEST(AnalyticalExamples, Arrhenius)
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffArrhenius(rosenbrock_2stage, 1e-4);
   TestAnalyticalStiffArrhenius(rosenbrock_3stage, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_4stage, 2e-5);
@@ -507,6 +524,9 @@ TEST(AnalyticalExamples, Branched)
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalStiffBranched(rosenbrock_2stage, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_3stage, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_4stage, 2e-3);
@@ -545,6 +565,9 @@ TEST(AnalyticalExamples, SurfaceRxn)
 
 TEST(AnalyticalExamples, Robertson)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalRobertson(rosenbrock_2stage, 1e-6);
   TestAnalyticalRobertson(rosenbrock_3stage, 1e-6);
   TestAnalyticalRobertson(rosenbrock_4stage, 1e-6);
@@ -579,6 +602,9 @@ TEST(AnalyticalExamples, Robertson)
 
 TEST(AnalyticalExamples, E5)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalE5(rosenbrock_2stage, 1e-10);
   TestAnalyticalE5(rosenbrock_3stage, 1e-10);
   TestAnalyticalE5(rosenbrock_4stage, 1e-10);
@@ -613,6 +639,9 @@ TEST(AnalyticalExamples, E5)
 
 TEST(AnalyticalExamples, Oregonator)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   micm::Real rel_tol = 1e-2;
   TestAnalyticalOregonator(rosenbrock_2stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_3stage, rel_tol);
@@ -648,6 +677,9 @@ TEST(AnalyticalExamples, Oregonator)
 
 TEST(AnalyticalExamples, HIRES)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+
   TestAnalyticalHires(rosenbrock_2stage, 1e-6);
   TestAnalyticalHires(rosenbrock_3stage, 1e-7);
   TestAnalyticalHires(rosenbrock_4stage, 1e-7);

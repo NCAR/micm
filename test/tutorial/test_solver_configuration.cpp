@@ -2,6 +2,7 @@
 #include <micm/util/types.hpp>
 
 #include <chrono>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 
@@ -64,7 +65,14 @@ void TestSolverType(auto& solver)
       total_stats.decompositions_ += result.stats_.decompositions_;
       total_stats.solves_ += result.stats_.solves_;
 
-      elapsed_solve_time += result.stats_.final_time_;;
+      // A solve that advances no time never satisfies the loop condition, so bail out rather than
+      // spin forever on a system the solver cannot integrate
+      if (result.stats_.final_time_ <= 0)
+      {
+        std::cerr << "Solver made no progress: " << SolverStateToString(result.state_) << std::endl;
+        std::exit(EXIT_FAILURE);
+      }
+      elapsed_solve_time += result.stats_.final_time_;
     }
 
     state.PrintState(time_step * (i + 1));

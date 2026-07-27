@@ -251,7 +251,10 @@ void TestExtremeValueInitialization(micm::Index number_of_blocks, micm::Real ini
 
   CheckCopyToHost<SparseMatrixPolicy>(ALU);
 
-  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-8;
+  // The float branch must stay above float machine epsilon (~6e-8): the reconstruction
+  // compares against exact structural zeros, so a sub-epsilon absolute bound can never hold.
+  // 1.0e-4 matches the sibling TestRandomMatrix case, which already passes in single precision.
+  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-4;
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, ALU, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, tol); });
 }

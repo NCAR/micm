@@ -12,6 +12,8 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <type_traits>
+
 #include <micm/util/types.hpp>
 
 #include <algorithm>
@@ -35,7 +37,9 @@ namespace micm
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::set<std::pair<Index, Index>> nonzero_jacobian_elements_{};
-    Real relative_tolerance_{ 1e-06 };
+    // Default relative tolerance is looser in single precision: 1e-6 is ~8x float epsilon (1.2e-7),
+    // which leaves the adaptive solver almost no headroom to drive the error norm below 1.
+    Real relative_tolerance_{ static_cast<Real>(std::is_same_v<Real, double> ? 1e-06 : 1e-05) };
     std::vector<Real> absolute_tolerance_{};
     std::vector<Real> mass_matrix_diagonal_{};
   };

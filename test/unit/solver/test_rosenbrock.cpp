@@ -13,6 +13,8 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 #include <iomanip>
 
 // In this Test, the elements in the same array are different;
@@ -52,7 +54,7 @@ void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
 
-  if (relative_error > 1.e-11)
+  if (relative_error > ((std::is_same_v<micm::Real, double>) ? 1.e-11 : 1.e-4))
   {
     std::cout << "computed_error: " << std::setprecision(12) << computed_error << std::endl;
     std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
@@ -120,7 +122,7 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
   expected_error = std::max<micm::Real>(expected_error, 1.0e-10);
 
   const micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
-  EXPECT_NEAR(computed_error, expected_error, 1e-12);
+  EXPECT_NEAR(computed_error, expected_error, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-4);
 }
 
 using StandardBuilder = micm::CpuSolverBuilder<
@@ -154,8 +156,10 @@ TEST(RosenbrockSolver, CanSetTolerances)
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
 
-  foo.SetProperty("absolute tolerance", 1.0e-07);
-  bar.SetProperty("absolute tolerance", 1.0e-08);
+  // Property setters are typed on micm::Real; a bare double literal would be an unsupported type in a
+  // single-precision (Real=float) build and throw "Species: ...". Store the tolerances as micm::Real.
+  foo.SetProperty("absolute tolerance", micm::Real{ 1.0e-07 });
+  bar.SetProperty("absolute tolerance", micm::Real{ 1.0e-08 });
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ foo, bar } };
 
@@ -176,8 +180,8 @@ TEST(RosenbrockSolver, CanSetTolerances)
     auto state = solver.GetState(number_of_grid_cells);
     auto absolute_tolerances = state.absolute_tolerance_;
     EXPECT_EQ(absolute_tolerances.size(), 2);
-    EXPECT_EQ(absolute_tolerances[0], 1.0e-07);
-    EXPECT_EQ(absolute_tolerances[1], 1.0e-08);
+    EXPECT_REAL_EQ(absolute_tolerances[0], 1.0e-07);
+    EXPECT_REAL_EQ(absolute_tolerances[1], 1.0e-08);
   }
 }
 

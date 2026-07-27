@@ -57,7 +57,13 @@ std::vector<Real> run_solver_on_thread_with_own_state(auto& solver, auto& state)
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.stats_.final_time_;;
+      // A solve that advances no time never satisfies the loop condition. Leave the loop rather than
+      // spin forever; the caller sees the unconverged concentrations.
+      if (result.stats_.final_time_ <= 0)
+      {
+        break;
+      }
+      elapsed_solve_time = result.stats_.final_time_;
     }
   }
 

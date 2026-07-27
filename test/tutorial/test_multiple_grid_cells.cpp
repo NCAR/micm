@@ -88,7 +88,14 @@ int main()
     {
       solver.UpdateStateParameters(state);
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time += result.stats_.final_time_;;
+      // A solve that advances no time never satisfies the loop condition, so bail out rather than
+      // spin forever on a system the solver cannot integrate
+      if (result.stats_.final_time_ <= 0)
+      {
+        std::cerr << "Solver made no progress: " << SolverStateToString(result.state_) << std::endl;
+        return 1;
+      }
+      elapsed_solve_time += result.stats_.final_time_;
     }
     state.PrintState(time_step * (i + 1));
   }

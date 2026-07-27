@@ -121,7 +121,22 @@ namespace micm
         if (n_convergence_failures >= time_step_reductions.size())
         {
           present_time += H;
+          // Distinguish a genuine blow-up from a merely unconverged step, so callers are not handed
+          // non-finite concentrations under a "success" status. Only reached once the solver has
+          // already exhausted its step-size reductions, so this scan costs nothing in the happy path.
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
+          for (const auto& y : Yn1.AsVector())
+          {
+            if (std::isnan(y))
+            {
+              result.state_ = SolverState::NaNDetected;
+              break;
+            }
+            if (std::isinf(y))
+            {
+              result.state_ = SolverState::InfDetected;
+            }
+          }
           break;
         }
 
@@ -171,6 +186,13 @@ namespace micm
     const Index n_vars = abs_tol.size();
     for (Index i = 0; i < n_elem; ++i)
     {
+      // A non-finite residual is never converged. Without this check an infinite residual escapes the
+      // test below, because the relative bound rel_tol * |Yn1| is itself infinite and inf > inf is
+      // false -- a blown-up solve would then be reported as SolverState::Converged.
+      if (!std::isfinite(*residual_iter))
+      {
+        return false;
+      }
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
           std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
       {
@@ -203,6 +225,11 @@ namespace micm
     // evaluate the rows that fit exactly into the vectorizable dimension (L)
     for (Index i = 0; i < whole_blocks; ++i)
     {
+      // See the scalar overload: a non-finite residual must not be allowed to pass the test below.
+      if (!std::isfinite(*residual_iter))
+      {
+        return false;
+      }
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
           std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
       {
@@ -220,6 +247,10 @@ namespace micm
         const Index offset = y * L;
         for (Index i = offset; i < offset + remaining_rows; ++i)
         {
+          if (!std::isfinite(residual_iter[i]))
+          {
+            return false;
+          }
           if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
               std::abs(residual_iter[i]) > rel_tol * std::abs(Yn1_iter[i]))
           {
