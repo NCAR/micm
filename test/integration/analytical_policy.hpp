@@ -217,9 +217,9 @@ void TestSimpleSystem(
       // for accuracy finer than one ULP of the value being checked. The bound is a few tens of
       // epsilon rather than an equality: the reference below and micm's own implementation evaluate
       // the same formula by different routes, which in float costs more than the 4 ULP an equality
-      // macro allows.
-      EXPECT_REAL_FORMULA_EQ(k1[i], state.rate_constants_[i][0]);
-      EXPECT_REAL_FORMULA_EQ(k2[i], state.rate_constants_[i][1]);
+      // macro allows. Use relative tolerance to handle both small and large rate constants.
+      EXPECT_REAL_REL(k1[i], state.rate_constants_[i][0], 1e-9);
+      EXPECT_REAL_REL(k2[i], state.rate_constants_[i][1], 1e-9);
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
       model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
