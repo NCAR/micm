@@ -46,9 +46,8 @@ namespace micm
     /// for each iteration of the outer (i) loop
     std::vector<std::pair<Index, Index>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
-    /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    /// does not support easy retrieval of memory address using data() function.
-    std::vector<char> do_aik_;
+    /// triangular matrix; False otherwise.
+    std::vector<Bool> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
     std::vector<Index> aik_;
@@ -60,9 +59,8 @@ namespace micm
     /// when L[i][j] and U[j][k] are both non-zero.
     std::vector<std::pair<Index, Index>> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
-    /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    /// does not suppor easy retrieval of memory address using data() function.
-    std::vector<char> do_aki_;
+    /// triangular matrix; False otherwise.
+    std::vector<Bool> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when A[k][i] is non-zero.
     std::vector<Index> aki_;

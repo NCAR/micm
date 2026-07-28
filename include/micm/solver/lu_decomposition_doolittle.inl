@@ -57,7 +57,7 @@ namespace micm
     // non-zeros: U[i][k] fills iff A[i][k] != 0, k == i, or some j<i has L[i][j] and
     // U[j][k]; L[k][i] fills iff A[k][i] != 0 or some j<i has L[k][j] and U[j][i].
     std::vector<std::vector<Index>> Ucol(n);  // Ucol[i] = rows j<i where U[j][i] != 0, ascending
-    std::vector<char> seen(n, 0);
+    std::vector<Bool> seen(n, 0);
     std::vector<Index> touched;
     auto mark = [&](Index k)
     {

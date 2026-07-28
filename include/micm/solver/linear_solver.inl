@@ -50,7 +50,7 @@ namespace micm
       row_deg[v] = output_neighbors[v].size();
       col_deg[v] = incoming_neighbors[v].size();
     }
-    std::vector<char> alive(order, 1);
+    std::vector<Bool> alive(order, 1);
     std::vector<Index> perm;
     perm.reserve(order);
     for (Index step = 0; step < order; ++step)

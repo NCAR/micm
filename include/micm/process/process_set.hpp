@@ -10,7 +10,6 @@
 #include <micm/util/types.hpp>
 
 #include <algorithm>
-#include <cstdint>
 #include <unordered_map>
 #include <vector>
 
@@ -43,7 +42,7 @@ namespace micm
     std::vector<Index> jacobian_product_ids_;
     std::vector<Real> jacobian_yields_;
     std::vector<Index> jacobian_flat_ids_;
-    std::vector<uint8_t> is_algebraic_variable_;  // uint8_t instead of bool for CUDA compatibility
+    std::vector<Bool> is_algebraic_variable_;
     std::unordered_map<std::string, Index> variable_map_;
 
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;

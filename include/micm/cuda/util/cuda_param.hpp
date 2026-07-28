@@ -5,7 +5,6 @@
 #include <micm/util/types.hpp>
 
 #include <cstddef>
-#include <cstdint>
 #include <utility>
 
 // To make the NormalizedError function works properly on GPU,
@@ -36,7 +35,7 @@ struct ProcessSetParam
   micm::Index* jacobian_product_ids_ = nullptr;
   micm::Real* jacobian_yields_ = nullptr;
   micm::Index* jacobian_flat_ids_ = nullptr;
-  uint8_t* is_algebraic_variable_ = nullptr;
+  micm::Bool* is_algebraic_variable_ = nullptr;
   micm::Index number_of_reactants_size_;
   micm::Index reactant_ids_size_;
   micm::Index number_of_products_size_;

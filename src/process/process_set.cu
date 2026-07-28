@@ -22,7 +22,7 @@ namespace micm::cuda
     const Index* const __restrict__ d_number_of_products = devstruct.number_of_products_;
     const Index* __restrict__ d_product_ids = devstruct.product_ids_;
     const Real* __restrict__ d_yields = devstruct.yields_;
-    const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
+    const Bool* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
     const Index number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
     const Real* __restrict__ d_rate_constants = rate_constants_param.d_data_;
     const Real* __restrict__ d_state_variables = state_variables_param.d_data_;
@@ -89,7 +89,7 @@ namespace micm::cuda
     const Index* __restrict__ d_product_ids = devstruct.jacobian_product_ids_;
     const Real* __restrict__ d_yields = devstruct.jacobian_yields_;
     const Index* __restrict__ d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
-    const uint8_t* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
+    const Bool* __restrict__ d_is_algebraic_variable = devstruct.is_algebraic_variable_;
     const Index number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
     const Index number_of_process_infos = devstruct.jacobian_process_info_size_;
     const Real* __restrict__ d_rate_constants = rate_constants_param.d_data_;
@@ -159,7 +159,7 @@ namespace micm::cuda
     Index number_of_products_bytes = sizeof(Index) * hoststruct.number_of_products_size_;
     Index product_ids_bytes = sizeof(Index) * hoststruct.product_ids_size_;
     Index yields_bytes = sizeof(Real) * hoststruct.yields_size_;
-    Index algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
+    Index algebraic_variable_bytes = sizeof(Bool) * hoststruct.algebraic_variable_size_;
 
     /// Create a struct whose members contain the addresses in the device memory.
     ProcessSetParam devstruct;
@@ -299,7 +299,7 @@ namespace micm::cuda
 
   void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct)
   {
-    Index algebraic_variable_bytes = sizeof(uint8_t) * hoststruct.algebraic_variable_size_;
+    Index algebraic_variable_bytes = sizeof(Bool) * hoststruct.algebraic_variable_size_;
 
     auto* cuda_stream_id = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
 

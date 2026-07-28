@@ -17,4 +17,9 @@ namespace micm
 
   using Index = std::size_t;
 
+  // Boolean stored as a single byte.  Used in place of bool wherever a contiguous array of flags is
+  // needed: std::vector<bool> is a bit-packed specialization, so it offers no data() pointer to hand
+  // to a CUDA memcpy or to index from device code.
+  using Bool = std::uint8_t;
+
 }  // namespace micm
