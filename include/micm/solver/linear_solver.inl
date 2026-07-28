@@ -123,20 +123,20 @@ namespace micm
     return perm;
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value)
-      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>(
+      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(m); })
+            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy>(m); })
   {
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
       const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp)
@@ -146,8 +146,7 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    auto lu =
-        lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
+    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value, true);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     for (Index i = 0; i < lower_matrix.NumRows(); ++i)
@@ -182,22 +181,22 @@ namespace micm
     }
   };
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Factor(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
-      LMatrixPolicy& lower_matrix,
-      UMatrixPolicy& upper_matrix) const
+      SparseMatrixPolicy& lower_matrix,
+      SparseMatrixPolicy& upper_matrix) const
   {
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<class MatrixPolicy>
     requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy& x,
-      const LMatrixPolicy& lower_matrix,
-      const UMatrixPolicy& upper_matrix) const
+      const SparseMatrixPolicy& lower_matrix,
+      const SparseMatrixPolicy& upper_matrix) const
   {
     for (Index i_cell = 0; i_cell < x.NumRows(); ++i_cell)
     {
@@ -245,13 +244,13 @@ namespace micm
     }
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<class MatrixPolicy>
     requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy& x,
-      const LMatrixPolicy& lower_matrix,
-      const UMatrixPolicy& upper_matrix) const
+      const SparseMatrixPolicy& lower_matrix,
+      const SparseMatrixPolicy& upper_matrix) const
   {
     constexpr Index n_cells = MatrixPolicy::GroupVectorSize();
     // Loop over groups of blocks

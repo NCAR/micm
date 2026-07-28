@@ -12,8 +12,6 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <type_traits>
-
 #include <micm/util/types.hpp>
 
 #include <algorithm>
@@ -22,6 +20,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -47,9 +46,7 @@ namespace micm
   template<
       class DenseMatrixPolicy = StandardDenseMatrix,
       class SparseMatrixPolicy = StandardSparseMatrix,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+      class LuDecompositionPolicy = LuDecomposition>
   struct State
   {
     /// Type of the DenseMatrixPolicy
@@ -76,8 +73,8 @@ namespace micm
     std::unordered_map<std::string, Index> variable_map_;
     std::unordered_map<std::string, Index> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
-    LMatrixPolicy lower_matrix_;
-    UMatrixPolicy upper_matrix_;
+    SparseMatrixPolicy lower_matrix_;
+    SparseMatrixPolicy upper_matrix_;
     Index state_size_;
     Index constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
