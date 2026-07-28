@@ -68,7 +68,9 @@ TEST(ConstraintInitialization, ConsistentICsUnchanged)
   // step-size-too-small guard on the first iteration. Start with a larger step in
   // float mode; double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
@@ -103,7 +105,9 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   // step-size-too-small guard on the first iteration. Start with a larger step in
   // float mode; double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
@@ -147,7 +151,9 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   // step-size-too-small guard on the first iteration. Start with a larger step in
   // float mode; double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 
@@ -194,7 +200,9 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
   // step-size-too-small guard on the first iteration. Start with a larger step in
   // float mode; double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -223,7 +231,9 @@ TEST(ConstraintInitialization, MultiCellSystems)
   // step-size-too-small guard on the first iteration. Start with a larger step in
   // float mode; double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(3);  // 3 grid cells
 
@@ -278,7 +288,9 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   // step-size-too-small guard on the first iteration. Start with a larger step in
   // float mode; double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = SimpleConstrainedSystem::Build(StandardBuilder(options));
   auto state = solver.GetState(1);
 

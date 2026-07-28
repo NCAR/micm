@@ -713,7 +713,9 @@ namespace
     // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
     // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
     if constexpr (!std::is_same_v<micm::Real, double>)
+    {
       options.constraint_init_tolerance_ = 1.0e-5;
+    }
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
@@ -767,7 +769,9 @@ namespace
     // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
     // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
     if constexpr (!std::is_same_v<micm::Real, double>)
+    {
       options.constraint_init_tolerance_ = 1.0e-5;
+    }
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
@@ -884,7 +888,9 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
   // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.constraint_init_tolerance_ = 1.0e-5;
+  }
   auto builtin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                             .SetSystem(micm::System(gas_phase))
                             .SetReactions({ rxn_ab })
@@ -1020,7 +1026,9 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
   // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     dae_options.constraint_init_tolerance_ = 1.0e-5;
+  }
   auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
                         .SetSystem(system)
                         .SetReactions({ rxn_ab })
@@ -1438,7 +1446,9 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
   // ~epsilon for O(1) species), so InitializeConstraints reports ConstraintInitializationFailed.
   // Relax the initialization tolerance above the float residual floor; double keeps the 1e-10 default.
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.constraint_init_tolerance_ = 1.0e-5;
+  }
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(gas_phase))
                     .SetReactions({ rxn_ab })

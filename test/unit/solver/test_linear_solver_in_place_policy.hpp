@@ -150,7 +150,9 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   // many significant digits for the reconstruction check to hold. Skipped in single precision (for
   // both CPU and GPU callers); reconstruction accuracy is verified in the double-precision build.
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     GTEST_SKIP() << "Ill-conditioned random matrices are not solvable to the checked accuracy in single precision.";
+  }
 
   using FloatingPointType = typename MatrixPolicy::value_type;
 
@@ -243,7 +245,9 @@ void TestExtremeInitialValue(micm::Index number_of_blocks, micm::Real initial_va
   // checked reconstruction accuracy. Skipped in single precision (for both CPU and GPU callers);
   // reconstruction accuracy is verified in the double-precision build.
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     GTEST_SKIP() << "Ill-conditioned extreme-value matrices are not solvable to the checked accuracy in single precision.";
+  }
 
   using FloatingPointType = typename MatrixPolicy::value_type;
 

@@ -23,9 +23,13 @@ namespace micm::cuda
     inline cublasStatus_t CublasNrm2(cublasHandle_t handle, int n, const T* x, int incx, T* result)
     {
       if constexpr (std::is_same_v<T, double>)
+      {
         return cublasDnrm2(handle, n, x, incx, result);
+      }
       else
+      {
         return cublasSnrm2(handle, n, x, incx, result);
+      }
     }
   }  // namespace
 

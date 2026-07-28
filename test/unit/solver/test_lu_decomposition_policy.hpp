@@ -112,7 +112,9 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   // Ill-conditioned random lognormal matrices: in single precision the LU reconstruction of small
   // pivots has O(1) relative error, so this check is validated only in the double-precision build.
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     GTEST_SKIP() << "Ill-conditioned random-matrix LU reconstruction is not accurate in single precision.";
+  }
 
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());

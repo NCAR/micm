@@ -232,7 +232,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
   // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -339,7 +341,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
   // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -426,7 +430,9 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
   // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -518,7 +524,9 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
   // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
   if constexpr (!std::is_same_v<micm::Real, double>)
+  {
     options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })

@@ -67,9 +67,13 @@ namespace micm
         int incy)
     {
       if constexpr (std::is_same_v<T, double>)
+      {
         return cublasDaxpy(handle, n, alpha, x, incx, y, incy);
+      }
       else
+      {
         return cublasSaxpy(handle, n, alpha, x, incx, y, incy);
+      }
     }
   }  // namespace cuda
 
