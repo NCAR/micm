@@ -80,12 +80,12 @@ namespace micm::test
 // like the gtest macros it wraps, this is an *equality* check and is not suitable for values
 // legitimately near zero or for reconstruction/backward-error checks whose error exceeds a few ULP
 // -- use EXPECT_REAL_CLOSE or EXPECT_REAL_REL for those.
-#ifdef MICM_USE_DOUBLE
-  #define EXPECT_REAL_EQ(a, b) EXPECT_DOUBLE_EQ((a), (b))
-  #define ASSERT_REAL_EQ(a, b) ASSERT_DOUBLE_EQ((a), (b))
-#else
+#ifdef MICM_USE_SINGLE
   #define EXPECT_REAL_EQ(a, b) EXPECT_FLOAT_EQ((a), (b))
   #define ASSERT_REAL_EQ(a, b) ASSERT_FLOAT_EQ((a), (b))
+#else
+  #define EXPECT_REAL_EQ(a, b) EXPECT_DOUBLE_EQ((a), (b))
+  #define ASSERT_REAL_EQ(a, b) ASSERT_DOUBLE_EQ((a), (b))
 #endif
 
 // |actual - reference| <= abs_tol + (precision floor) * |reference|
@@ -120,8 +120,8 @@ namespace micm::test
 // Use in place of EXPECT_REAL_EQ when the two sides compute the same formula by different routes --
 // a test re-deriving a rate constant against micm's own implementation, for instance. Not for
 // values legitimately near zero.
-#ifdef MICM_USE_DOUBLE
-  #define EXPECT_REAL_FORMULA_EQ(a, b) EXPECT_DOUBLE_EQ((a), (b))
-#else
+#ifdef MICM_USE_SINGLE
   #define EXPECT_REAL_FORMULA_EQ(a, b) EXPECT_NEAR((a), (b), micm::test::FormulaTolerance((double)(b)))
+#else
+  #define EXPECT_REAL_FORMULA_EQ(a, b) EXPECT_DOUBLE_EQ((a), (b))
 #endif

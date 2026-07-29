@@ -13,8 +13,13 @@ set_property(TARGET micm PROPERTY INTERFACE_CXX_STANDARD_REQUIRED YES)
 
 target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
+# Propagate the precision both ways.  include/micm/util/types.hpp switches on MICM_USE_SINGLE so
+# that double precision stays the default for anyone including the headers without this target;
+# MICM_USE_DOUBLE is still defined when the option is ON so consumers can test for either.
 if(MICM_USE_DOUBLE)
   target_compile_definitions(micm INTERFACE MICM_USE_DOUBLE)
+else()
+  target_compile_definitions(micm INTERFACE MICM_USE_SINGLE)
 endif()
 
 target_include_directories(micm

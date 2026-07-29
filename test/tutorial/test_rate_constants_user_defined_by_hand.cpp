@@ -92,18 +92,24 @@ int main(const int argc, const char* argv[])
 
   // to have a stoichiemetric coefficient of more than one for reactants,
   // list the reactant that many times
+  //
+  // The falloff parameters are those measured for OH + NO2 + M -> HNO3 + M (JPL 19-5, Table 2):
+  // k0 = 1.8e-30 (T/300)^-3.0 cm6 molecule-2 s-1 and kinf = 2.8e-11 cm3 molecule-1 s-1. Using
+  // realistic magnitudes matters here -- k0_A_ is a third-order rate constant, so the conversion
+  // to mole-based units squares MOLES_M3_TO_MOLECULES_CM3, and an unphysically large k0 overflows
+  // single precision.
   Process r6 =
       ChemicalReactionBuilder()
           .SetReactants({ e, e })
           .SetProducts({ StoichSpecies(g, 1) })
-          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = static_cast<micm::Real>(1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3),
-                                                     .k0_B_ = 167.0,
-                                                     .k0_C_ = 3.0,
-                                                     .kinf_A_ = 136.0 * MOLES_M3_TO_MOLECULES_CM3,
-                                                     .kinf_B_ = 5.0,
-                                                     .kinf_C_ = 24.0,
-                                                     .Fc_ = 0.9,
-                                                     .N_ = 0.8 })
+          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.8e-30 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
+                                                     .k0_B_ = -3.0,
+                                                     .k0_C_ = 0.0,
+                                                     .kinf_A_ = 2.8e-11 * MOLES_M3_TO_MOLECULES_CM3,
+                                                     .kinf_B_ = 0.0,
+                                                     .kinf_C_ = 0.0,
+                                                     .Fc_ = 0.6,
+                                                     .N_ = 1.0 })
           .SetPhase(gas_phase)
           .Build();
 

@@ -13,9 +13,8 @@
 
 #include <gtest/gtest.h>
 
-#include <type_traits>
-
 #include <iomanip>
+#include <type_traits>
 
 // In this Test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
@@ -79,12 +78,13 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
                                .Build();
 
   std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint(
-      "B_C_eq",
-      C,
-      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
-      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
-      micm::VantHoffParam{ .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      micm::EquilibriumConstraint(
+          "B_C_eq",
+          C,
+          std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
+          std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
+          micm::VantHoffParam{ .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
 
   auto solver = builder.SetSystem(micm::System(gas_phase))
                     .SetReactions({ reaction })
@@ -156,8 +156,6 @@ TEST(RosenbrockSolver, CanSetTolerances)
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
 
-  // Property setters are typed on micm::Real; a bare double literal would be an unsupported type in a
-  // single-precision (Real=float) build and throw "Species: ...". Store the tolerances as micm::Real.
   foo.SetProperty("absolute tolerance", micm::Real{ 1.0e-07 });
   bar.SetProperty("absolute tolerance", micm::Real{ 1.0e-08 });
 
