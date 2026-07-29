@@ -57,14 +57,7 @@ namespace micm
     // alias would leave the untaken (non-dependent) branch fully type-checked, and the
     // double->float argument mismatch would fail to compile.
     template<typename T>
-    inline cublasStatus_t CublasAxpy(
-        cublasHandle_t handle,
-        int n,
-        const T* alpha,
-        const T* x,
-        int incx,
-        T* y,
-        int incy)
+    inline cublasStatus_t CublasAxpy(cublasHandle_t handle, int n, const T* alpha, const T* x, int incx, T* y, int incy)
     {
       if constexpr (std::is_same_v<T, double>)
       {

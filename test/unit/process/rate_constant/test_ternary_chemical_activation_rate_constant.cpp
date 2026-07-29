@@ -23,8 +23,7 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArguments)
   micm::Real k = micm::CalculateTernaryChemicalActivation(ternary_params, conditions.temperature_, conditions.air_density_);
   micm::Real k0 = 1.0;
   micm::Real kinf = 1.0;
-  micm::Real expected =
-      k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(k0 * 42.2 / kinf), 2)));
+  micm::Real expected = k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(k0 * 42.2 / kinf), 2)));
   EXPECT_NEAR(k, expected, TOLERANCE * expected);
 }
 

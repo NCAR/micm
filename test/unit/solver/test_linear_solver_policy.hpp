@@ -161,7 +161,11 @@ void TestDenseMatrix()
   // In FLOAT precision the reconstructed b is only accurate to the backward error of the solve, which scales
   // with the magnitude of the summed terms; keep DOUBLE at its original absolute bound.
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
+      {
         const FloatingPointType tol =
             std::is_same_v<micm::Real, double> ? 1.0e-5 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
@@ -238,7 +242,11 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   // In FLOAT precision the reconstructed b is only accurate to the backward error of the solve, which scales
   // with the magnitude of the summed terms; keep DOUBLE at its original absolute bound.
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
+      {
         const FloatingPointType tol =
             std::is_same_v<micm::Real, double> ? 1.0e-6 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
@@ -326,7 +334,11 @@ void TestExtremeInitialValue(micm::Index number_of_blocks, micm::Real initial_va
   // In FLOAT precision the reconstructed b is only accurate to the backward error of the solve, which scales
   // with the magnitude of the summed terms; keep DOUBLE at its original absolute bound.
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
+      {
         const FloatingPointType tol =
             std::is_same_v<micm::Real, double> ? 2.0e-06 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
@@ -388,9 +400,11 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
   CopyToHostDense<MatrixPolicy>(x);
 
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType) -> void {
-        EXPECT_NEAR(a, b, 1.0e-5);
-      });
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType) -> void
+      { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy>

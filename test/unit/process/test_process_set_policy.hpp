@@ -1,3 +1,5 @@
+#include "../../precision_matchers.hpp"
+
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
@@ -5,8 +7,6 @@
 #include <micm/util/jacobian_verification.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
-
-#include "../../precision_matchers.hpp"
 
 #include <gtest/gtest.h>
 

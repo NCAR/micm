@@ -193,8 +193,7 @@ namespace micm
             {
               const Real coeff = coeffs[i];
 
-              jacobian_values.ForEachBlock(
-                  [coeff](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
+              jacobian_values.ForEachBlock([coeff](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
             }
           },
           temp_state_variables,

@@ -1,5 +1,7 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
+#include "../../precision_matchers.hpp"
+
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/branched_rate_constant.hpp>
@@ -16,8 +18,6 @@
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
-
-#include "../../precision_matchers.hpp"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -298,7 +298,10 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
   ASSERT_EQ(store.surface_.size(), 1u);
 
   EXPECT_REAL_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
-  EXPECT_NEAR(store.surface_[0].mean_free_speed_factor_, 8.0 * constants::GAS_CONSTANT / (M_PI * mw), (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-3);
+  EXPECT_NEAR(
+      store.surface_[0].mean_free_speed_factor_,
+      8.0 * constants::GAS_CONSTANT / (M_PI * mw),
+      (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-3);
   EXPECT_REAL_EQ(store.surface_[0].reaction_probability_, prob);
   EXPECT_EQ(store.surface_[0].custom_param_base_index_, 0u);
 }
@@ -375,7 +378,10 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
   // Pointer should be non-null and function should work
   ASSERT_NE(store.lambda_entries_[0].source_, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
-  EXPECT_NEAR(store.lambda_entries_[0].source_->lambda_function_(cond), 0.3, (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-5);
+  EXPECT_NEAR(
+      store.lambda_entries_[0].source_->lambda_function_(cond),
+      0.3,
+      (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-5);
 }
 
 // ============================================================

@@ -1,8 +1,8 @@
+#include "../../precision_matchers.hpp"
+
 #include <micm/solver/linear_solver.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
-
-#include "../../precision_matchers.hpp"
 
 #include <gtest/gtest.h>
 
@@ -136,7 +136,11 @@ void TestDenseMatrix()
   // In FLOAT precision the reconstructed b is only accurate to the backward error of the solve, which scales
   // with the magnitude of the summed terms; keep DOUBLE at its original absolute bound.
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
+      {
         const FloatingPointType tol =
             std::is_same_v<micm::Real, double> ? 1.0e-5 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
@@ -231,7 +235,11 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   // In FLOAT precision the reconstructed b is only accurate to the backward error of the solve, which scales
   // with the magnitude of the summed terms; keep DOUBLE at its original absolute bound.
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
+      {
         const FloatingPointType tol =
             std::is_same_v<micm::Real, double> ? 1.0e-6 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
@@ -339,7 +347,11 @@ void TestExtremeInitialValue(micm::Index number_of_blocks, micm::Real initial_va
   // In FLOAT precision the reconstructed b is only accurate to the backward error of the solve, which scales
   // with the magnitude of the summed terms; keep DOUBLE at its original absolute bound.
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
+      {
         const FloatingPointType tol =
             std::is_same_v<micm::Real, double> ? 2.0e-06 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
@@ -411,7 +423,11 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
   CheckCopyToHost<MatrixPolicy>(x);
 
   CheckResults<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType) -> void {
+      A,
+      b,
+      x,
+      [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType) -> void
+      {
         // Well-conditioned diagonal solve: reconstruction is accurate to a few ULP, so a
         // precision-aware ULP equality is the right check (the old fixed 1e-5 absolute bound
         // could not scale to large lognormal magnitudes in single precision).

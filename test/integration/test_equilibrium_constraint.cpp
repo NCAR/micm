@@ -380,7 +380,8 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
     ASSERT_EQ(result.state_, SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
 
     // Constraint should hold at each step
-    micm::Real residual = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    micm::Real residual =
+        state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
     EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated at time=" << time;
 
     time += dt;

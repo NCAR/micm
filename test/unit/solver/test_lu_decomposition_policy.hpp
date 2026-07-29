@@ -4,10 +4,10 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <functional>
 #include <iomanip>
 #include <random>
-#include <cmath>
 #include <type_traits>
 
 template<typename T, class SparseMatrixPolicy>

@@ -26,10 +26,10 @@ namespace micm
     Index max_number_of_steps_{ 100 };
 
     Real round_off_{ std::numeric_limits<Real>::epsilon() };  // Unit roundoff (1+round_off)>1
-    Real factor_min_{ 0.2 };                                    // solver step size minimum boundary
-    Real factor_max_{ 6 };                                      // solver step size maximum boundary
-    Real rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
-    Real safety_factor_{ 0.9 };                                 // safety factor in new step size computation
+    Real factor_min_{ 0.2 };                                  // solver step size minimum boundary
+    Real factor_max_{ 6 };                                    // solver step size maximum boundary
+    Real rejection_factor_decrease_{ 0.1 };                   // used to decrease the step after 2 successive rejections
+    Real safety_factor_{ 0.9 };                               // safety factor in new step size computation
 
     Real h_min_{ 0 };        // step size min
     Real h_max_{ 0.5 };      // step size max
@@ -315,8 +315,7 @@ namespace micm
     parameters_.h_start_ = std::max(parameters_.h_min_, DELTA_MIN);
 
     Real present_time = time_start;
-    Real H =
-        std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
+    Real H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
     ChapmanODESolver::SolverResult result{};
     stats_.Reset();
@@ -422,10 +421,10 @@ namespace micm
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         // Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
         Real Hnew = H * std::min(
-                              parameters_.factor_max_,
-                              std::max(
-                                  parameters_.factor_min_,
-                                  parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
+                            parameters_.factor_max_,
+                            std::max(
+                                parameters_.factor_min_,
+                                parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
 
         // Check the error magnitude and adjust step size
         stats_.number_of_steps_ += 1;
@@ -562,9 +561,7 @@ namespace micm
     return force;
   }
 
-  inline std::vector<Real> ChapmanODESolver::FactoredAlphaMinusJac(
-      const std::vector<Real>& dforce_dy,
-      const Real& alpha)
+  inline std::vector<Real> ChapmanODESolver::FactoredAlphaMinusJac(const std::vector<Real>& dforce_dy, const Real& alpha)
   {
     std::vector<Real> jacobian(number_sparse_factor_elements_);
     // multiply jacobian by -1
@@ -663,9 +660,7 @@ namespace micm
     return result;
   }
 
-  inline std::vector<Real> ChapmanODESolver::BacksolveLYEqB(
-      const std::vector<Real>& jacobian,
-      const std::vector<Real>& b)
+  inline std::vector<Real> ChapmanODESolver::BacksolveLYEqB(const std::vector<Real>& jacobian, const std::vector<Real>& b)
   {
     std::vector<Real> y(parameters_.N_, 0);
 
@@ -691,9 +686,7 @@ namespace micm
     return y;
   }
 
-  inline std::vector<Real> ChapmanODESolver::BacksolveUXEqB(
-      const std::vector<Real>& jacobian,
-      const std::vector<Real>& y)
+  inline std::vector<Real> ChapmanODESolver::BacksolveUXEqB(const std::vector<Real>& jacobian, const std::vector<Real>& y)
   {
     std::vector<Real> x(y.size(), 0);
     Real temporary{};

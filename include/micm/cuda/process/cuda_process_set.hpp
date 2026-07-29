@@ -106,8 +106,7 @@ namespace micm
       state.custom_rate_parameters_.CopyToDevice();
 
       // Evaluate parameterized multipliers on CPU and upload in interleaved layout
-      const Real* d_mult_vals =
-          cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
+      const Real* d_mult_vals = cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
 
       // GPU analytic calculation (includes multiplier application)
       auto rc_param = state.rate_constants_.AsDeviceParam();

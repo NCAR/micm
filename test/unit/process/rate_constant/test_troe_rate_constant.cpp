@@ -64,7 +64,7 @@ TEST(TroeRateConstant, AnalyticalTroeExampleAB)
   micm::Real k_0 = 4.0e-18;
   micm::Real k_inf = 1;
   micm::Real k1 = k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) *
-              std::pow(0.6, 1.0 / (1.0 + 1.0 / 1.0 * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
+                  std::pow(0.6, 1.0 / (1.0 + 1.0 / 1.0 * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
 
   EXPECT_EQ(k, k1);
 }
@@ -85,7 +85,7 @@ TEST(TroeRateConstant, AnalyticalTroeExampleBC)
   micm::Real k_0 = 1.2e-12 * std::exp(3.0 / 301.24) * std::pow(301.24 / 300.0, 167.0);
   micm::Real k_inf = 136.0 * std::exp(24.0 / 301.24) * std::pow(301.24 / 300.0, 5.0);
   micm::Real k1 = k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) *
-              std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
+                  std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
 
   auto relative_error = std::abs(k - k1) / std::max(std::abs(k), std::abs(k1));
   constexpr micm::Real max_relative_error = std::is_same_v<micm::Real, double> ? 1.e-14 : 1.e-5;

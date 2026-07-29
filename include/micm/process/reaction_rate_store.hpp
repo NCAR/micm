@@ -377,9 +377,7 @@ namespace micm
             for (const auto& mult : store.parameterized_multipliers_)
             {
               rc.ForEachRow(
-                  [&mult](Real& v, const Conditions& c) { v *= mult.evaluate_(c); },
-                  rc.GetColumnView(mult.rc_index_),
-                  cond);
+                  [&mult](Real& v, const Conditions& c) { v *= mult.evaluate_(c); }, rc.GetColumnView(mult.rc_index_), cond);
             }
           },
           state.rate_constants_,

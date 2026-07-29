@@ -29,10 +29,10 @@ namespace micm
     Index max_number_of_steps_{ 1000 };
 
     Real round_off_{ std::numeric_limits<Real>::epsilon() };  // Unit roundoff (1+round_off)>1
-    Real factor_min_{ 0.2 };                                    // solver step size minimum boundary
-    Real factor_max_{ 6 };                                      // solver step size maximum boundary
-    Real rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
-    Real safety_factor_{ 0.9 };                                 // safety factor in new step size computation
+    Real factor_min_{ 0.2 };                                  // solver step size minimum boundary
+    Real factor_max_{ 6 };                                    // solver step size maximum boundary
+    Real rejection_factor_decrease_{ 0.1 };                   // used to decrease the step after 2 successive rejections
+    Real safety_factor_{ 0.9 };                               // safety factor in new step size computation
 
     Real h_min_{ 0.0 };  // step size min [s] (if zero, the solver will use DEFAULT_H_MIN * time_step)
     Real h_max_{
@@ -41,7 +41,7 @@ namespace micm
     Real h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
 
     Index constraint_init_max_iterations_{ 10 };  // max Newton iterations for constraint initialization
-    Real constraint_init_tolerance_{ 1e-10 };         // convergence tolerance for constraint initialization
+    Real constraint_init_tolerance_{ 1e-10 };     // convergence tolerance for constraint initialization
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)

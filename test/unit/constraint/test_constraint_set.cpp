@@ -41,12 +41,18 @@ TEST(ConstraintSet, ReplaceStateRowsMapsToAlgebraicSpecies)
 
 TEST(ConstraintSet, NonZeroJacobianElements)
 {
-  TestNonZeroJacobianElements<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestNonZeroJacobianElements<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, MultipleConstraints)
 {
-  TestMultipleConstraints<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestMultipleConstraints<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, AddForcingTerms)
@@ -56,27 +62,42 @@ TEST(ConstraintSet, AddForcingTerms)
 
 TEST(ConstraintSet, SubtractJacobianTerms)
 {
-  TestSubtractJacobianTerms<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestSubtractJacobianTerms<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, EmptyConstraintSet)
 {
-  TestEmptyConstraintSet<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestEmptyConstraintSet<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, UnknownSpeciesThrows)
 {
-  TestUnknownSpeciesThrows<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestUnknownSpeciesThrows<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, ThreeDStateOneConstraint)
 {
-  TestThreeDStateOneConstraint<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestThreeDStateOneConstraint<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, FourDStateTwoConstraints)
 {
-  TestFourDStateTwoConstraints<Matrix<micm::Real>, StandardSparseMatrix, ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
+  TestFourDStateTwoConstraints<
+      Matrix<micm::Real>,
+      StandardSparseMatrix,
+      ConstraintSet<Matrix<micm::Real>, StandardSparseMatrix>>();
 }
 
 TEST(ConstraintSet, CoupledConstraintsSharedSpecies)

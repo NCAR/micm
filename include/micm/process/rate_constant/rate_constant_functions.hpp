@@ -49,8 +49,7 @@ namespace micm
   ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
   ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
   template<class FalloffParams>
-  MICM_CONSTEXPR inline Real
-  FalloffKernel(const FalloffParams& p, Real temperature, Real air_density, Real numerator_scale)
+  MICM_CONSTEXPR inline Real FalloffKernel(const FalloffParams& p, Real temperature, Real air_density, Real numerator_scale)
   {
     Real k0 = p.k0_A_ * std::exp(p.k0_C_ / temperature) * std::pow(temperature / 300.0, p.k0_B_);
     Real kinf = p.kinf_A_ * std::exp(p.kinf_C_ / temperature) * std::pow(temperature / 300.0, p.kinf_B_);
@@ -60,8 +59,7 @@ namespace micm
 
   /// @brief Calculate Arrhenius rate constant.
   ///        k = A * exp(C/T) * (T/D)^B * (1 + E*P)
-  MICM_CONSTEXPR inline Real
-  CalculateArrhenius(const ArrheniusRateConstantParameters& p, Real temperature, Real pressure)
+  MICM_CONSTEXPR inline Real CalculateArrhenius(const ArrheniusRateConstantParameters& p, Real temperature, Real pressure)
   {
     return p.A_ * std::exp(p.C_ / temperature) * std::pow(temperature / p.D_, p.B_) * (1.0 + p.E_ * pressure);
   }
@@ -90,8 +88,7 @@ namespace micm
 
   /// @brief Calculate Branched rate constant.
   ///        Requires p.k0_ and p.z_ to be precomputed by ReactionRateConstantStore::BuildFrom.
-  MICM_CONSTEXPR inline Real
-  CalculateBranched(const BranchedRateConstantParameters& p, Real temperature, Real air_density)
+  MICM_CONSTEXPR inline Real CalculateBranched(const BranchedRateConstantParameters& p, Real temperature, Real air_density)
   {
     Real a = p.k0_ * air_density;
     Real b = 0.43 * std::pow(temperature / 298.0, -8.0);

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include "../../precision_matchers.hpp"
+
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
@@ -11,14 +13,11 @@
 
 #include <gtest/gtest.h>
 
-#include "../../precision_matchers.hpp"
-
-#include <type_traits>
-
 #include <cmath>
 #include <memory>
 #include <set>
 #include <system_error>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -262,7 +261,8 @@ void TestSubtractJacobianTerms()
   // Constraint replaces row 2 (AB's row)
   EXPECT_NEAR(jacobian[0][2][0], -0.00066, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, A] -= dG/dA
   EXPECT_NEAR(jacobian[0][2][1], -0.00033, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, B] -= dG/dB
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);       // J[2, AB] -= dG/dAB = -(-1) = 1
+  EXPECT_NEAR(
+      jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, AB] -= dG/dAB = -(-1) = 1
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -519,16 +519,21 @@ void TestFourDStateTwoConstraints()
 
   // Constraint 1 replaces row 1, Constraint 2 replaces row 0
   // Grid cell 0: Both at equilibrium
-  EXPECT_NEAR(forcing[0][1], 0.0, 1e-5);   // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
-  EXPECT_NEAR(forcing[0][0], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 10.0 * 1.0 - 0.33 = 0
+  EXPECT_NEAR(forcing[0][1], 0.0, 1e-5);  // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
+  EXPECT_NEAR(
+      forcing[0][0], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 10.0 * 1.0 - 0.33 = 0
 
   // Grid cell 1: First satisfied, second not
-  EXPECT_NEAR(forcing[1][1], 0.0, 1e-5);      // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
-  EXPECT_NEAR(forcing[1][0], -0.165, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = 0.165 - 0.33 = -0.165
+  EXPECT_NEAR(forcing[1][1], 0.0, 1e-5);  // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
+  EXPECT_NEAR(
+      forcing[1][0],
+      -0.165,
+      (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = 0.165 - 0.33 = -0.165
 
   // Grid cell 2: Neither satisfied
   EXPECT_NEAR(forcing[2][1], -0.00911, 1e-5);  // G1 = K_eq1 * 0.33 - 0.02 = 0.01089 - 0.02 = -0.00911
-  EXPECT_NEAR(forcing[2][0], -0.165, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);   // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = -0.165
+  EXPECT_NEAR(
+      forcing[2][0], -0.165, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = -0.165
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);

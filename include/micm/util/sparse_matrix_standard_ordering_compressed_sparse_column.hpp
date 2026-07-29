@@ -90,8 +90,7 @@ namespace micm
     /// @param value Value to add to the diagonal
     void AddToDiagonal(const Index number_of_blocks, auto& data, auto value) const
     {
-      for (Index block_start = 0; block_start < number_of_blocks * column_ids_.size();
-           block_start += column_ids_.size())
+      for (Index block_start = 0; block_start < number_of_blocks * column_ids_.size(); block_start += column_ids_.size())
       {
         for (const auto& i : diagonal_ids_)
         {

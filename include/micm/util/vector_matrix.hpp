@@ -109,8 +109,8 @@ namespace micm
    private:
    protected:
     std::vector<T> data_;  // Memory alignment depends on std::vector's allocator
-    Index x_dim_;    // number of rows
-    Index y_dim_;    // number of columns
+    Index x_dim_;          // number of rows
+    Index y_dim_;          // number of columns
 
    private:
     friend class Proxy;

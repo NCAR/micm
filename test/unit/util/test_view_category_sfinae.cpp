@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include "../../precision_matchers.hpp"
+
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>
@@ -8,8 +10,6 @@
 #include <micm/util/view_category.hpp>
 
 #include <gtest/gtest.h>
-
-#include "../../precision_matchers.hpp"
 
 #include <array>
 #include <vector>
