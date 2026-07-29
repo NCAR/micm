@@ -11,10 +11,9 @@
 
 #include <gtest/gtest.h>
 
-#include <type_traits>
-
 #include <iomanip>
 #include <iostream>
+#include <type_traits>
 
 template<micm::Index L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;

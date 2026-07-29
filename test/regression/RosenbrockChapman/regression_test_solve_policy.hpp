@@ -16,8 +16,8 @@ void TestSolve(SolverPolicy& solver, micm::Real relative_tolerance = 1.0e-8)
 
   // set conditions
   const std::vector<std::vector<micm::Real>> photo_rates{ { 1.0e-4, 1.0e-5, 1.0e-6 },
-                                                      { 3.2e-4, 7.3e-5, 3.2e-6 },
-                                                      { 5.2e-4, 8.2e-5, 4.6e-6 } };
+                                                          { 3.2e-4, 7.3e-5, 3.2e-6 },
+                                                          { 5.2e-4, 8.2e-5, 4.6e-6 } };
   state.custom_rate_parameters_ = photo_rates;
   state.conditions_[0].temperature_ = 284.19;  // [K]
   state.conditions_[0].pressure_ = 101245.0;   // [Pa]

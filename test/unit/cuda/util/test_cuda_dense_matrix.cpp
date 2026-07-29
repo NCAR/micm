@@ -1,3 +1,4 @@
+#include "../../../precision_matchers.hpp"
 #include "../../util/test_matrix_policy.hpp"
 #include "cuda_matrix_utils.cuh"
 
@@ -6,8 +7,6 @@
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
-
-#include "../../../precision_matchers.hpp"
 
 #include <cmath>
 #include <numeric>

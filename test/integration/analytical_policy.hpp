@@ -188,8 +188,8 @@ void TestSimpleSystem(
     model_concentrations[0][i][idx_B] = 0.0;
     model_concentrations[0][i][idx_C] = 0.0;
     analytical_concentrations[0][i] = { model_concentrations[0][i][idx_A],
-                                       model_concentrations[0][i][idx_B],
-                                       model_concentrations[0][i][idx_C] };
+                                        model_concentrations[0][i][idx_B],
+                                        model_concentrations[0][i][idx_C] };
 
     state.variables_[i][_a] = model_concentrations[0][i][idx_A];
     state.variables_[i][_b] = model_concentrations[0][i][idx_B];
@@ -319,8 +319,8 @@ void TestSimpleStiffSystem(
     model_concentrations[0][i][idx_B] = 0.0;
     model_concentrations[0][i][idx_C] = 0.0;
     analytical_concentrations[0][i] = { model_concentrations[0][i][idx_A],
-                                       model_concentrations[0][i][idx_B],
-                                       model_concentrations[0][i][idx_C] };
+                                        model_concentrations[0][i][idx_B],
+                                        model_concentrations[0][i][idx_C] };
 
     state.variables_[i][_a1] = 0.5 * model_concentrations[0][i][idx_A];
     state.variables_[i][_a2] = 0.5 * model_concentrations[0][i][idx_A];

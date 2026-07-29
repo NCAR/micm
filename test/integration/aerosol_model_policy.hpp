@@ -224,16 +224,21 @@ void TestUpdateMultiCellStateWithStubAerosolModel(BuilderPolicy builder)
   EXPECT_EQ(state[state.variable_map_.find("STUB1.MODE2.CORGE.FO2")->second], (std::vector<micm::Real>{ 1.23, 1.24, 1.25 }));
   EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.QUX")->second], (std::vector<micm::Real>{ 0.42, 0.43, 0.44 }));
   EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE3.CORGE.BAZ")->second], (std::vector<micm::Real>{ 0.33, 0.34, 0.35 }));
-  EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE1.NUMBER")->second], (std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 }));
+  EXPECT_EQ(
+      state[state.variable_map_.find("STUB2.MODE1.NUMBER")->second], (std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 }));
   EXPECT_EQ(state[state.variable_map_.find("STUB2.MODE2.NUMBER")->second], (std::vector<micm::Real>{ 500.0, 501.0, 502.0 }));
 
   // Re-re-verify using species objects where applicable
   EXPECT_EQ(state[micm::Species("FO2")], (std::vector<micm::Real>{ 1.34, 1.35, 1.36 }));
   EXPECT_EQ(state[bar], (std::vector<micm::Real>{ 2.53, 2.54, 2.55 }));
-  EXPECT_EQ(state[aerosol_1.Species(0, phases["QUUX"], micm::Species("BAZ"))], (std::vector<micm::Real>{ 0.75, 0.76, 0.77 }));
-  EXPECT_EQ(state[aerosol_1.Species(1, phases["CORGE"], micm::Species("FO2"))], (std::vector<micm::Real>{ 1.23, 1.24, 1.25 }));
-  EXPECT_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("QUX"))], (std::vector<micm::Real>{ 0.42, 0.43, 0.44 }));
-  EXPECT_EQ(state[aerosol_2.Species(2, phases["CORGE"], micm::Species("BAZ"))], (std::vector<micm::Real>{ 0.33, 0.34, 0.35 }));
+  EXPECT_EQ(
+      state[aerosol_1.Species(0, phases["QUUX"], micm::Species("BAZ"))], (std::vector<micm::Real>{ 0.75, 0.76, 0.77 }));
+  EXPECT_EQ(
+      state[aerosol_1.Species(1, phases["CORGE"], micm::Species("FO2"))], (std::vector<micm::Real>{ 1.23, 1.24, 1.25 }));
+  EXPECT_EQ(
+      state[aerosol_2.Species(2, phases["CORGE"], micm::Species("QUX"))], (std::vector<micm::Real>{ 0.42, 0.43, 0.44 }));
+  EXPECT_EQ(
+      state[aerosol_2.Species(2, phases["CORGE"], micm::Species("BAZ"))], (std::vector<micm::Real>{ 0.33, 0.34, 0.35 }));
   EXPECT_EQ(state[aerosol_2.Number(0)], (std::vector<micm::Real>{ 1000.0, 1001.0, 1002.0 }));
   EXPECT_EQ(state[aerosol_2.Number(1)], (std::vector<micm::Real>{ 500.0, 501.0, 502.0 }));
 }

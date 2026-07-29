@@ -154,8 +154,7 @@ namespace micm
 
     // O(1)-amortized membership on the sorted adjacency rows; bounded by the
     // factorization's own operation count (times a log factor) rather than O(n^3).
-    auto contains = [](const std::vector<Index>& v, Index x)
-    { return std::binary_search(v.begin(), v.end(), x); };
+    auto contains = [](const std::vector<Index>& v, Index x) { return std::binary_search(v.begin(), v.end(), x); };
 
     for (Index i = 0; i < n; ++i)
     {

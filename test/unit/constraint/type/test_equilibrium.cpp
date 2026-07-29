@@ -14,11 +14,10 @@
 
 #include <gtest/gtest.h>
 
-#include <type_traits>
-
 #include <cmath>
 #include <memory>
 #include <system_error>
+#include <type_traits>
 #include <vector>
 
 using namespace micm;

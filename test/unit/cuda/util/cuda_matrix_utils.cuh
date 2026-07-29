@@ -10,9 +10,6 @@ namespace micm::cuda
       Index elem_id,
       Index grid_id,
       const Index cuda_matrix_vector_length);
-  void DenseMatrixAddOneElementDriver(
-      CudaMatrixParam& param,
-      Index row_id,
-      Index col_id,
-      const Index cuda_matrix_vector_length);
+  void
+  DenseMatrixAddOneElementDriver(CudaMatrixParam& param, Index row_id, Index col_id, const Index cuda_matrix_vector_length);
 }  // namespace micm::cuda

@@ -45,8 +45,10 @@ using StandardRosenbrockMozart = micm::CpuSolverBuilder<
     micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
     micm::LuDecompositionMozart>;
 
-using StandardStateTypeMozart = micm::
-    State<micm::Matrix<micm::Real>, micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>, micm::LuDecompositionMozart>;
+using StandardStateTypeMozart = micm::State<
+    micm::Matrix<micm::Real>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
+    micm::LuDecompositionMozart>;
 
 template<micm::Index L>
 using VectorRosenbrockMozart = micm::CpuSolverBuilder<

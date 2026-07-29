@@ -42,8 +42,8 @@ void TestAnalyticalSurfaceRxn(
 
   // particle number concentration [# m-3]
   micm::Real number_conc = 6.0 /
-                       (M_PI * std::pow(mode_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(mode_GSD) * std::log(mode_GSD))) *
-                       (conc_stuff / DENSITY_stuff + conc_more_stuff / DENSITY_more_stuff);
+                           (M_PI * std::pow(mode_GMD, 3.0) * std::exp(9.0 / 2.0 * std::log(mode_GSD) * std::log(mode_GSD))) *
+                           (conc_stuff / DENSITY_stuff + conc_more_stuff / DENSITY_more_stuff);
 
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", MW_foo } });
   micm::Species bar("bar");

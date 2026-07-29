@@ -55,13 +55,11 @@ namespace micm
       CHECK_CUDA_ERROR(
           micm::cuda::MallocVector<Real>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_),
           "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          micm::cuda::MallocArray<Real>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocArray<Real>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
       CHECK_CUDA_ERROR(
           micm::cuda::MallocArray<Real>(errors_param_.errors_output_, errors_param_.errors_size_), "cudaMalloc");
       CHECK_CUDA_ERROR(
-          micm::cuda::MallocArray<Index>(
-              jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
+          micm::cuda::MallocArray<Index>(jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
           "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<Real>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
 

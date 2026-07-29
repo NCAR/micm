@@ -1,14 +1,14 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include "../precision_matchers.hpp"
+
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
 #include <micm/util/types.hpp>
-
-#include "../precision_matchers.hpp"
 
 #include <gtest/gtest.h>
 

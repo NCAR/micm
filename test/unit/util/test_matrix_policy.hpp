@@ -568,7 +568,8 @@ MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
             m.GetConstColumnView(1),
             m.GetConstColumnView(2),
             tmp);
-        m.ForEachRow([&](micm::Real& c, const micm::Real& d, const micm::Real& t) { c = d * t; }, m.GetColumnView(2), v, tmp);
+        m.ForEachRow(
+            [&](micm::Real& c, const micm::Real& d, const micm::Real& t) { c = d * t; }, m.GetColumnView(2), v, tmp);
       },
       matrix,
       vec);  // pass matrix so the type and dimensions are known by the function
@@ -665,7 +666,8 @@ std::tuple<MatrixPolicy<micm::Real>, std::vector<micm::Real>> TestMatrixVectorDi
       [](auto&& m, auto&& v)
       {
         auto tmp = m.GetRowVariable();
-        m.ForEachRow([&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
+        m.ForEachRow(
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
         m.ForEachRow([&](const micm::Real& t, micm::Real& c) { c = t * 3.0; }, tmp, m.GetColumnView(1));
       },
       matrix_create,
@@ -701,7 +703,8 @@ void TestMismatchedRowsAtInvocation()
   std::vector<micm::Real> vec_create(3);
 
   auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
+      [](auto&& m, auto&& v)
+      { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
       matrix_create,
       vec_create);
 
@@ -726,8 +729,10 @@ void TestMultipleMatricesMismatchedRowsAtInvocation()
   MatrixPolicy<micm::Real> matrixB_create{ 3, 3, 0.0 };
 
   auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB)
-      { mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, mB.GetConstColumnView(0), mA.GetColumnView(0)); },
+      [](auto&& mA, auto&& mB) {
+        mA.ForEachRow(
+            [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, mB.GetConstColumnView(0), mA.GetColumnView(0));
+      },
       matrixA_create,
       matrixB_create);
 
@@ -886,13 +891,16 @@ MatrixPolicy<micm::Real> TestMultipleTemporaries()
             tmp2);
 
         // col2 = tmp1 + tmp2 (product + sum)
-        m.ForEachRow([&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 + t2; }, tmp1, tmp2, m.GetColumnView(2));
+        m.ForEachRow(
+            [&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 + t2; }, tmp1, tmp2, m.GetColumnView(2));
 
         // col3 = tmp1 - tmp2 (product - sum)
-        m.ForEachRow([&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 - t2; }, tmp1, tmp2, m.GetColumnView(3));
+        m.ForEachRow(
+            [&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 - t2; }, tmp1, tmp2, m.GetColumnView(3));
 
         // col4 = tmp1 * tmp2
-        m.ForEachRow([&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 * t2; }, tmp1, tmp2, m.GetColumnView(4));
+        m.ForEachRow(
+            [&](const micm::Real& t1, const micm::Real& t2, micm::Real& c) { c = t1 * t2; }, tmp1, tmp2, m.GetColumnView(4));
       },
       matrix);
 
@@ -1112,7 +1120,8 @@ void TestVectorTooSmall()
       [](auto&& m, auto&& v)
       {
         auto tmp = m.GetRowVariable();
-        m.ForEachRow([&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
+        m.ForEachRow(
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
       },
       matrix,
       vec_too_small);
@@ -1133,7 +1142,8 @@ void TestVectorTooLarge()
       [](auto&& m, auto&& v)
       {
         auto tmp = m.GetRowVariable();
-        m.ForEachRow([&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
+        m.ForEachRow(
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
       },
       matrix,
       vec_too_large);
@@ -1202,8 +1212,10 @@ void TestMultipleVectorsDifferentSizes()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v1, auto&& v2)
-      { m.ForEachRow([&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetColumnView(0)); },
+      [](auto&& m, auto&& v1, auto&& v2) {
+        m.ForEachRow(
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetColumnView(0));
+      },
       matrix,
       vec1,
       vec2);
@@ -1232,7 +1244,8 @@ MatrixPolicy<micm::Real> TestMultipleVectorsSameSize()
       [](auto&& m, auto&& v1, auto&& v2)
       {
         // col0 = v1 + v2
-        m.ForEachRow([&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetColumnView(0));
+        m.ForEachRow(
+            [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetColumnView(0));
       },
       matrix,
       vec1,
@@ -1402,8 +1415,10 @@ std::tuple<MatrixPolicy<micm::Real>, std::vector<micm::Real>> TestMutableVector(
       [](auto&& m, auto&& v)
       {
         // Write to vector from matrix
-        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 3.0; }, m.GetConstColumnView(0),
-                     v);  // non-const vector
+        m.ForEachRow(
+            [&](const micm::Real& a, micm::Real& b) { b = a * 3.0; },
+            m.GetConstColumnView(0),
+            v);  // non-const vector
       },
       matrix,
       vec);
@@ -1427,7 +1442,8 @@ MatrixPolicy<micm::Real> TestFunctionReusabilityWithVectors()
 
   // Create function once
   auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 10.0; }, v, m.GetColumnView(0)); },
+      [](auto&& m, auto&& v)
+      { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 10.0; }, v, m.GetColumnView(0)); },
       matrix,
       vec1);
 
@@ -1519,7 +1535,10 @@ MatrixPolicy<micm::Real> TestMixedVectorColumnViewRowVariable()
 
         // col2 = tmp + vector
         m.ForEachRow(
-            [&](const micm::Real& t, const micm::Real& v_elem, micm::Real& result) { result = t + v_elem; }, tmp, v, m.GetColumnView(2));
+            [&](const micm::Real& t, const micm::Real& v_elem, micm::Real& result) { result = t + v_elem; },
+            tmp,
+            v,
+            m.GetColumnView(2));
       },
       matrix,
       vec);
@@ -1567,7 +1586,8 @@ void TestFunctionWithConstSignature()
 
   // Create function
   auto func_auto = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
+      [](auto&& m, auto&& v)
+      { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
       matrix,
       vec);
 

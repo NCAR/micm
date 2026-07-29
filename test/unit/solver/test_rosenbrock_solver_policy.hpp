@@ -1,3 +1,5 @@
+#include "../../precision_matchers.hpp"
+
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
@@ -10,8 +12,6 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
-
-#include "../../precision_matchers.hpp"
 
 #include <cstddef>
 

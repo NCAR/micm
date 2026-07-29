@@ -259,8 +259,7 @@ namespace micm
   };
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  inline std::set<std::pair<Index, Index>>
-  ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::NonZeroJacobianElements() const
+  inline std::set<std::pair<Index, Index>> ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::NonZeroJacobianElements() const
   {
     std::set<std::pair<Index, Index>> ids;
     auto react_id = reactant_ids_.begin();
@@ -327,8 +326,7 @@ namespace micm
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(
-      const std::set<Index>& variable_ids)
+  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(const std::set<Index>& variable_ids)
   {
     std::fill(is_algebraic_variable_.begin(), is_algebraic_variable_.end(), false);
     for (const auto variable_id : variable_ids)

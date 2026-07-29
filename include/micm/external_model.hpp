@@ -271,8 +271,9 @@ namespace micm
       requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelProcessSet>)
     {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
-      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, Index>& species_map)
-          -> std::set<std::pair<Index, Index>> { return shared_model->NonZeroJacobianElements(species_map); };
+      non_zero_jacobian_elements_func_ =
+          [shared_model](const std::unordered_map<std::string, Index>& species_map) -> std::set<std::pair<Index, Index>>
+      { return shared_model->NonZeroJacobianElements(species_map); };
       species_used_func_ = [shared_model]() -> std::set<std::string> { return shared_model->SpeciesUsed(); };
       update_state_parameters_function_ =
           [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
@@ -377,8 +378,8 @@ namespace micm
       { return shared_model->ConstraintAlgebraicVariableNames(); };
       species_dependencies_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintSpeciesDependencies(); };
-      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, Index>& species_map)
-          -> std::set<std::pair<Index, Index>>
+      non_zero_jacobian_elements_func_ =
+          [shared_model](const std::unordered_map<std::string, Index>& species_map) -> std::set<std::pair<Index, Index>>
       { return shared_model->NonZeroConstraintJacobianElements(species_map); };
       state_parameter_names_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintStateParameterNames(); };

@@ -135,10 +135,10 @@ namespace micm
     using GroupView = typename OrderingPolicy::template GroupView<SparseMatrix>;
 
    protected:
-    Index number_of_blocks_;  // Number of block sub-matrices in the overall matrix
-    Index block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
+    Index number_of_blocks_;                       // Number of block sub-matrices in the overall matrix
+    Index block_size_;                             // Size of each block sub-matrix (number of rows or columns per block)
     Index number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
-    std::vector<T> data_;                                // Value of each non-zero matrix element
+    std::vector<T> data_;                          // Value of each non-zero matrix element
 
    private:
     friend class SparseMatrixBuilder<T, OrderingPolicy>;

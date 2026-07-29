@@ -203,8 +203,7 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map)
-          const
+      SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map) const
   {
     tolerances = std::vector<Real>(species_map.size(), 1e-3);
     for (const auto& phase_species : system_.gas_phase_.phase_species_)

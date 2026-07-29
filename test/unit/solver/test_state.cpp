@@ -354,9 +354,9 @@ TEST(State, SetConcentrations)
                      num_grid_cells };
 
   std::unordered_map<std::string, std::vector<micm::Real>> concentrations = { { "bar", { 0.2, 0.22, 0.222 } },
-                                                                          { "baz", { 0.3, 0.33, 0.333 } },
-                                                                          { "foo", { 0.9, 0.99, 0.999 } },
-                                                                          { "quz", { 0.4, 0.44, 0.444 } } };
+                                                                              { "baz", { 0.3, 0.33, 0.333 } },
+                                                                              { "foo", { 0.9, 0.99, 0.999 } },
+                                                                              { "quz", { 0.4, 0.44, 0.444 } } };
 
   state.SetConcentrations(concentrations);
 
@@ -394,9 +394,13 @@ TEST(State, SetStateWithSquareBracketOperator)
   state[micm::Species{ "quz" }] = 24.2;
 
   EXPECT_NEAR(
-      state.variables_[0][state.variable_map_["baz"]], 35.2, std::abs(35.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+      state.variables_[0][state.variable_map_["baz"]],
+      35.2,
+      std::abs(35.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
   EXPECT_NEAR(
-      state.variables_[0][state.variable_map_["quz"]], 24.2, std::abs(24.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
+      state.variables_[0][state.variable_map_["quz"]],
+      24.2,
+      std::abs(24.2) * 1e1 * std::numeric_limits<micm::Real>::epsilon());
 
   // make const copy and confirm that operator[] works for const state as well
   const auto& const_state = state;
@@ -512,13 +516,13 @@ TEST(State, SetCustomRateParameters)
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<micm::Real>> custom_params = { { "O3", { 0.3, 0.33, 0.333 } },
-                                                                         { "O1", { 0.1, 0.11, 0.111 } },
-                                                                         { "O2", { 0.5, 0.55, 0.555 } },
-                                                                         { "BBB", { 0.7, 0.77, 0.777 } },
-                                                                         { "AAA", { 0.5, 0.55, 0.555 } } };
+                                                                             { "O1", { 0.1, 0.11, 0.111 } },
+                                                                             { "O2", { 0.5, 0.55, 0.555 } },
+                                                                             { "BBB", { 0.7, 0.77, 0.777 } },
+                                                                             { "AAA", { 0.5, 0.55, 0.555 } } };
 
   std::vector<micm::Real> custom_params_in_order{ 0.1,  0.5,  0.3,   0.5,   0.7,   0.11,  0.55, 0.33,
-                                              0.55, 0.77, 0.111, 0.555, 0.333, 0.555, 0.777 };
+                                                  0.55, 0.77, 0.111, 0.555, 0.333, 0.555, 0.777 };
 
   state.SetCustomRateParameters(custom_params);
 
@@ -563,8 +567,8 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
                      num_grid_cells };
 
   std::vector<std::vector<micm::Real>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 },
-                                                  { 0.1, 0.2, 0.3, 0.4, 0.5 },
-                                                  { 0.1, 0.2, 0.3, 0.4, 0.5 } };
+                                                      { 0.1, 0.2, 0.3, 0.4, 0.5 },
+                                                      { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   state.UnsafelySetCustomRateParameters(parameters);
   for (micm::Index i = 0; i < num_grid_cells; i++)

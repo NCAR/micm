@@ -1,8 +1,8 @@
+#include "../../precision_matchers.hpp"
+
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/types.hpp>
-
-#include "../../precision_matchers.hpp"
 
 #include <gtest/gtest.h>
 
