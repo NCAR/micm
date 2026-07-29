@@ -4,6 +4,7 @@
 
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
 #include <algorithm>
@@ -30,20 +31,20 @@ namespace micm
   /// @brief Type trait to extract GroupVectorSize (L) from matrix types at compile-time
   /// Default: L=1 for types without GroupVectorSize
   template<typename T>
-  struct GroupVectorSize : std::integral_constant<std::size_t, 1>
+  struct GroupVectorSize : std::integral_constant<Index, 1>
   {
   };
 
   /// Specialization for types with static GroupVectorSize method
   template<typename T>
     requires requires { T::GroupVectorSize(); }
-  struct GroupVectorSize<T> : std::integral_constant<std::size_t, T::GroupVectorSize()>
+  struct GroupVectorSize<T> : std::integral_constant<Index, T::GroupVectorSize()>
   {
   };
 
   /// Helper variable template
   template<typename T>
-  inline constexpr std::size_t GROUP_VECTOR_SIZE_V = GroupVectorSize<T>::value;
+  inline constexpr Index GROUP_VECTOR_SIZE_V = GroupVectorSize<T>::value;
 
   template<typename T>
   concept SparseMatrixConcept = requires(T t) {
@@ -58,7 +59,7 @@ namespace micm
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
   class SparseMatrix;
 
-  using StandardSparseMatrix = SparseMatrix<double, SparseMatrixStandardOrdering>;
+  using StandardSparseMatrix = SparseMatrix<Real, SparseMatrixStandardOrdering>;
 
   /// @brief A sparse block-diagonal 2D matrix class with contiguous memory
   ///
@@ -66,7 +67,7 @@ namespace micm
   ///
   /// The template parameters are the type of the matrix elements and a class that
   /// defines the sizing and ordering of the data elements
-  template<class T = double, class OrderingPolicy>
+  template<class T = Real, class OrderingPolicy>
   class SparseMatrix : public OrderingPolicy
   {
    public:
@@ -79,9 +80,9 @@ namespace micm
     {
       friend class SparseMatrix;
       const SparseMatrix* matrix_;
-      std::size_t elem_position_;  // The nth non-zero element position (0-based)
+      Index elem_position_;  // The nth non-zero element position (0-based)
 
-      explicit ConstBlockView(const SparseMatrix* matrix, std::size_t elem_position)
+      explicit ConstBlockView(const SparseMatrix* matrix, Index elem_position)
           : matrix_(matrix),
             elem_position_(elem_position)
       {
@@ -89,7 +90,7 @@ namespace micm
 
      public:
       using category = SparseMatrixBlockViewTag;
-      std::size_t ElementPosition() const
+      Index ElementPosition() const
       {
         return elem_position_;
       }
@@ -104,9 +105,9 @@ namespace micm
     {
       friend class SparseMatrix;
       SparseMatrix* matrix_;
-      std::size_t elem_position_;  // The nth non-zero element position (0-based)
+      Index elem_position_;  // The nth non-zero element position (0-based)
 
-      explicit BlockView(SparseMatrix* matrix, std::size_t elem_position)
+      explicit BlockView(SparseMatrix* matrix, Index elem_position)
           : matrix_(matrix),
             elem_position_(elem_position)
       {
@@ -114,7 +115,7 @@ namespace micm
 
      public:
       using category = SparseMatrixBlockViewTag;
-      std::size_t ElementPosition() const
+      Index ElementPosition() const
       {
         return elem_position_;
       }
@@ -134,9 +135,9 @@ namespace micm
     using GroupView = typename OrderingPolicy::template GroupView<SparseMatrix>;
 
    protected:
-    std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
-    std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
-    std::size_t number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
+    Index number_of_blocks_;  // Number of block sub-matrices in the overall matrix
+    Index block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
+    Index number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
     std::vector<T> data_;                                // Value of each non-zero matrix element
 
    private:
@@ -151,23 +152,23 @@ namespace micm
     class Proxy
     {
       SparseMatrix& matrix_;
-      std::size_t block_id_;
-      std::size_t row_id_;
+      Index block_id_;
+      Index row_id_;
 
      public:
-      Proxy(SparseMatrix& matrix, std::size_t block_id, std::size_t row_id)
+      Proxy(SparseMatrix& matrix, Index block_id, Index row_id)
           : matrix_(matrix),
             block_id_(block_id),
             row_id_(row_id)
       {
       }
 
-      std::size_t Size() const
+      Index Size() const
       {
         return matrix_.block_size_;
       }
 
-      T& operator[](std::size_t y)
+      T& operator[](Index y)
       {
         return matrix_.data_[matrix_.VectorIndex(block_id_, row_id_, y)];
       }
@@ -176,23 +177,23 @@ namespace micm
     class ConstProxy
     {
       const SparseMatrix& matrix_;
-      std::size_t block_id_;
-      std::size_t row_id_;
+      Index block_id_;
+      Index row_id_;
 
      public:
-      ConstProxy(const SparseMatrix& matrix, std::size_t block_id, std::size_t row_id)
+      ConstProxy(const SparseMatrix& matrix, Index block_id, Index row_id)
           : matrix_(matrix),
             block_id_(block_id),
             row_id_(row_id)
       {
       }
 
-      std::size_t Size() const
+      Index Size() const
       {
         return matrix_.block_size_;
       }
 
-      const T& operator[](std::size_t y) const
+      const T& operator[](Index y) const
       {
         return matrix_.data_[matrix_.VectorIndex(block_id_, row_id_, y)];
       }
@@ -201,21 +202,21 @@ namespace micm
     class ProxyRow
     {
       SparseMatrix& matrix_;
-      std::size_t block_id_;
+      Index block_id_;
 
      public:
-      ProxyRow(SparseMatrix& matrix, std::size_t block_id)
+      ProxyRow(SparseMatrix& matrix, Index block_id)
           : matrix_(matrix),
             block_id_(block_id)
       {
       }
 
-      std::size_t Size() const
+      Index Size() const
       {
         return matrix_.block_size_;
       }
 
-      Proxy operator[](std::size_t x)
+      Proxy operator[](Index x)
       {
         return Proxy(matrix_, block_id_, x);
       }
@@ -224,28 +225,28 @@ namespace micm
     class ConstProxyRow
     {
       const SparseMatrix& matrix_;
-      std::size_t block_id_;
+      Index block_id_;
 
      public:
-      ConstProxyRow(const SparseMatrix& matrix, std::size_t block_id)
+      ConstProxyRow(const SparseMatrix& matrix, Index block_id)
           : matrix_(matrix),
             block_id_(block_id)
       {
       }
 
-      std::size_t Size() const
+      Index Size() const
       {
         return matrix_.block_size_;
       }
 
-      ConstProxy operator[](std::size_t x) const
+      ConstProxy operator[](Index x) const
       {
         return ConstProxy(matrix_, block_id_, x);
       }
     };
 
    public:
-    static SparseMatrixBuilder<T, OrderingPolicy> Create(std::size_t block_size)
+    static SparseMatrixBuilder<T, OrderingPolicy> Create(Index block_size)
     {
       return SparseMatrixBuilder<T, OrderingPolicy>{ block_size };
     }
@@ -280,7 +281,7 @@ namespace micm
       return *this;
     }
 
-    std::vector<std::size_t> DiagonalIndices(const std::size_t block_id) const
+    std::vector<Index> DiagonalIndices(const Index block_id) const
     {
       return OrderingPolicy::DiagonalIndices(number_of_blocks_, block_id);
     }
@@ -300,12 +301,12 @@ namespace micm
       return data_;
     }
 
-    std::size_t VectorIndex(std::size_t block, std::size_t row, std::size_t column) const
+    Index VectorIndex(Index block, Index row, Index column) const
     {
       return OrderingPolicy::VectorIndex(number_of_blocks_, block, row, column);
     }
 
-    std::size_t VectorIndex(std::size_t row, std::size_t column) const
+    Index VectorIndex(Index row, Index column) const
     {
       if (number_of_blocks_ != 1)
       {
@@ -317,22 +318,22 @@ namespace micm
       return VectorIndex(0, row, column);
     }
 
-    std::size_t NumberOfBlocks() const
+    Index NumberOfBlocks() const
     {
       return number_of_blocks_;
     }
 
-    std::size_t NumRows() const
+    Index NumRows() const
     {
       return block_size_;
     }
 
-    std::size_t NumColumns() const
+    Index NumColumns() const
     {
       return block_size_;
     }
 
-    std::size_t FlatBlockSize() const
+    Index FlatBlockSize() const
     {
       return number_of_non_zero_elements_per_block_;
     }
@@ -344,12 +345,12 @@ namespace micm
       std::fill(data_.begin(), data_.end(), val);
     }
 
-    ConstProxyRow operator[](std::size_t b) const
+    ConstProxyRow operator[](Index b) const
     {
       return ConstProxyRow(*this, b);
     }
 
-    ProxyRow operator[](std::size_t b)
+    ProxyRow operator[](Index b)
     {
       return ProxyRow(*this, b);
     }
@@ -362,12 +363,12 @@ namespace micm
 
     friend std::ostream& operator<<(std::ostream& os, const SparseMatrix& matrix)
     {
-      for (std::size_t i = 0; i < matrix.number_of_blocks_; ++i)
+      for (Index i = 0; i < matrix.number_of_blocks_; ++i)
       {
         os << "Block " << i << std::endl;
-        for (std::size_t j = 0; j < matrix.block_size_; ++j)
+        for (Index j = 0; j < matrix.block_size_; ++j)
         {
-          for (std::size_t k = 0; k < matrix.block_size_ - 1; ++k)
+          for (Index k = 0; k < matrix.block_size_ - 1; ++k)
           {
             if (matrix.IsZero(j, k))
             {
@@ -396,12 +397,12 @@ namespace micm
     /// @param os Output stream to print to, defaults to std::cout
     void PrintNonZeroElements(std::ostream& os) const
     {
-      for (std::size_t i = 0; i < number_of_blocks_; ++i)
+      for (Index i = 0; i < number_of_blocks_; ++i)
       {
         os << "Block " << i << std::endl;
-        for (std::size_t j = 0; j < block_size_; ++j)
+        for (Index j = 0; j < block_size_; ++j)
         {
-          for (std::size_t k = 0; k < block_size_; ++k)
+          for (Index k = 0; k < block_size_; ++k)
           {
             if (!this->IsZero(j, k))
             {
@@ -415,9 +416,9 @@ namespace micm
     /// @brief Create a const block view for accessing the nth non-zero element
     /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
     /// @return A ConstBlockView descriptor
-    ConstBlockView GetConstBlockView(std::size_t vector_index) const
+    ConstBlockView GetConstBlockView(Index vector_index) const
     {
-      std::size_t elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
+      Index elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
       return ConstBlockView(this, elem_position);
     }
 
@@ -425,7 +426,7 @@ namespace micm
     /// @param row The row index of the block element
     /// @param col The column index of the block element
     /// @return A ConstBlockView descriptor
-    ConstBlockView GetConstBlockView(std::size_t row, std::size_t col) const
+    ConstBlockView GetConstBlockView(Index row, Index col) const
     {
       if (row >= block_size_ || col >= block_size_)
       {
@@ -442,16 +443,16 @@ namespace micm
             MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
             "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
       }
-      std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
+      Index vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
       return ConstBlockView(this, vector_index);
     }
 
     /// @brief Create a mutable block view for accessing the nth non-zero element
     /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
     /// @return A BlockView descriptor
-    BlockView GetBlockView(std::size_t vector_index)
+    BlockView GetBlockView(Index vector_index)
     {
-      std::size_t elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
+      Index elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
       return BlockView(this, elem_position);
     }
 
@@ -459,7 +460,7 @@ namespace micm
     /// @param row The row index of the block element
     /// @param col The column index of the block element
     /// @return A BlockView descriptor
-    BlockView GetBlockView(std::size_t row, std::size_t col)
+    BlockView GetBlockView(Index row, Index col)
     {
       if (row >= block_size_ || col >= block_size_)
       {
@@ -476,7 +477,7 @@ namespace micm
             MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
             "Cannot create view for zero block element (" + std::to_string(row) + "," + std::to_string(col) + ")");
       }
-      std::size_t vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
+      Index vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
       return BlockView(this, vector_index);
     }
 
@@ -495,7 +496,7 @@ namespace micm
     template<typename Func, typename... Args>
     void ForEachBlock(Func&& func, Args&&... args)
     {
-      for (std::size_t block = 0; block < number_of_blocks_; ++block)
+      for (Index block = 0; block < number_of_blocks_; ++block)
       {
         func(GetBlockElement(block, args)...);
       }
@@ -529,10 +530,10 @@ namespace micm
     {
       // Validate that all matrices have compatible ordering (same L value)
       // Get L from this sparse matrix's ordering policy
-      constexpr std::size_t expected_L = OrderingPolicy::GroupVectorSize();
+      constexpr Index expected_L = OrderingPolicy::GroupVectorSize();
 
       // Check each argument: matrices must have compatible L, vectors are skipped
-      std::size_t index = 0;
+      Index index = 0;
       (
           [&](auto& arg)
           {
@@ -542,7 +543,7 @@ namespace micm
             if constexpr (!VectorLike<ArgType>)
             {
               // Get the L value for this matrix using the type trait
-              constexpr std::size_t matrix_L = GROUP_VECTOR_SIZE_V<std::decay_t<decltype(arg)>>;
+              constexpr Index matrix_L = GROUP_VECTOR_SIZE_V<std::decay_t<decltype(arg)>>;
 
               if (matrix_L != expected_L)
               {
@@ -571,9 +572,9 @@ namespace micm
         // For sparse matrices: NumberOfBlocks()
         // For dense matrices: NumRows() (blocks correspond to rows)
         // For vectors: size() (should match block count)
-        std::size_t num_blocks = 0;
+        Index num_blocks = 0;
         bool found_first = false;
-        std::size_t idx = 0;
+        Index idx = 0;
 
         (
             [&](auto& arg)
@@ -600,7 +601,7 @@ namespace micm
               else
               {
                 // Matrix - validate block count
-                std::size_t arg_blocks;
+                Index arg_blocks;
                 constexpr bool is_sparse_matrix = SparseMatrixConcept<ArgType>;
 
                 if constexpr (is_sparse_matrix)
@@ -634,11 +635,11 @@ namespace micm
         // Get the group vector size from the OrderingPolicy (compile-time constant)
         // For standard ordering: L = 1
         // For vector ordering: L > 1
-        constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
+        constexpr Index L = OrderingPolicy::GroupVectorSize();
 
         // Iterate over groups, processing L blocks at a time
-        std::size_t num_groups = (num_blocks + L - 1) / L;  // Ceiling division
-        for (std::size_t group = 0; group < num_groups; ++group)
+        Index num_groups = (num_blocks + L - 1) / L;  // Ceiling division
+        for (Index group = 0; group < num_groups; ++group)
         {
           // For matrices: use ConstGroupView if const, otherwise GroupView
           // For vectors: forward them directly
@@ -673,12 +674,12 @@ namespace micm
     /// @brief Get an element reference for a block (BlockView)
     template<SparseMatrixBlockView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(Index block, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
-      constexpr std::size_t L = OrderingPolicy::GroupVectorSize();
-      std::size_t group = block / L;
-      std::size_t block_in_group = block % L;
+      constexpr Index L = OrderingPolicy::GroupVectorSize();
+      Index group = block / L;
+      Index block_in_group = block % L;
 
       // Delegate to the OrderingPolicy's GroupView::GetBlockElement
       if constexpr (std::is_const_v<std::remove_pointer_t<decltype(source_matrix)>>)
@@ -696,7 +697,7 @@ namespace micm
     /// @brief Get an element reference for a block (BlockVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(Index block, Arg&& arg)
     {
       return arg.Get();
     }
@@ -704,7 +705,7 @@ namespace micm
     /// @brief Get an element reference for a block (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetBlockElement(std::size_t block, Arg&& arg)
+    decltype(auto) GetBlockElement(Index block, Arg&& arg)
     {
       return arg[block];
     }
@@ -713,16 +714,16 @@ namespace micm
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
   class SparseMatrixBuilder
   {
-    std::size_t number_of_blocks_{ 1 };
-    std::size_t block_size_;
-    std::set<std::pair<std::size_t, std::size_t>> non_zero_elements_{};
+    Index number_of_blocks_{ 1 };
+    Index block_size_;
+    std::set<std::pair<Index, Index>> non_zero_elements_{};
     T initial_value_{};
     friend class SparseMatrix<T, OrderingPolicy>;
 
    public:
     SparseMatrixBuilder() = delete;
 
-    SparseMatrixBuilder(std::size_t block_size)
+    SparseMatrixBuilder(Index block_size)
         : block_size_(block_size)
     {
     }
@@ -732,13 +733,13 @@ namespace micm
       return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
-    SparseMatrixBuilder& SetNumberOfBlocks(std::size_t n)
+    SparseMatrixBuilder& SetNumberOfBlocks(Index n)
     {
       number_of_blocks_ = n;
       return *this;
     }
 
-    SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
+    SparseMatrixBuilder& WithElement(Index x, Index y)
     {
       if (x >= block_size_ || y >= block_size_)
       {
@@ -754,7 +755,7 @@ namespace micm
       return *this;
     }
 
-    std::size_t NumberOfElements() const
+    Index NumberOfElements() const
     {
       return non_zero_elements_.size() * number_of_blocks_;
     }

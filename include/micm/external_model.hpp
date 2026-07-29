@@ -155,6 +155,7 @@
 #pragma once
 
 #include <micm/system/conditions.hpp>
+#include <micm/util/types.hpp>
 
 #include <cstddef>
 #include <functional>
@@ -180,7 +181,7 @@ namespace micm
   struct ExternalModelSystem
   {
     /// @brief Type-erased function returning the state size (number of variables, number of parameters)
-    std::function<std::tuple<std::size_t, std::size_t>()> state_size_func_;
+    std::function<std::tuple<Index, Index>()> state_size_func_;
 
     /// @brief Type-erased function returning the set of state variable names
     std::function<std::set<std::string>()> variable_names_func_;
@@ -203,7 +204,7 @@ namespace micm
       requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelSystem>)
     {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
-      state_size_func_ = [shared_model]() -> std::tuple<std::size_t, std::size_t> { return shared_model->StateSize(); };
+      state_size_func_ = [shared_model]() -> std::tuple<Index, Index> { return shared_model->StateSize(); };
       variable_names_func_ = [shared_model]() -> std::set<std::string> { return shared_model->StateVariableNames(); };
       parameter_names_func_ = [shared_model]() -> std::set<std::string> { return shared_model->StateParameterNames(); };
     }
@@ -230,7 +231,7 @@ namespace micm
   struct ExternalModelProcessSet
   {
     /// @brief Type-erased function returning non-zero Jacobian element positions
-    std::function<std::set<std::pair<std::size_t, std::size_t>>(const std::unordered_map<std::string, std::size_t>&)>
+    std::function<std::set<std::pair<Index, Index>>(const std::unordered_map<std::string, Index>&)>
         non_zero_jacobian_elements_func_;
 
     /// @brief Type-erased function returning the set of species used by the model's processes
@@ -239,21 +240,21 @@ namespace micm
     /// @brief Type-erased function factory for state parameter updates
     /// Returns a function that updates state parameters based on environmental conditions
     std::function<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices)>
+        const std::unordered_map<std::string, Index>& state_parameter_indices)>
         update_state_parameters_function_;
 
     /// @brief Type-erased function factory for forcing term calculation
     /// Returns a function that computes forcing terms (tendencies) for the model's processes
     std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices)>
+        const std::unordered_map<std::string, Index>& state_parameter_indices,
+        const std::unordered_map<std::string, Index>& state_variable_indices)>
         get_forcing_function_;
 
     /// @brief Type-erased function factory for Jacobian calculation
     /// Returns a function that computes Jacobian contributions for the model's processes
     std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const std::unordered_map<std::string, Index>& state_parameter_indices,
+        const std::unordered_map<std::string, Index>& state_variable_indices,
         const SparseMatrixPolicy& jacobian)>
         get_jacobian_function_;
 
@@ -270,21 +271,21 @@ namespace micm
       requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelProcessSet>)
     {
       auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
-      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
-          -> std::set<std::pair<std::size_t, std::size_t>> { return shared_model->NonZeroJacobianElements(species_map); };
+      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, Index>& species_map)
+          -> std::set<std::pair<Index, Index>> { return shared_model->NonZeroJacobianElements(species_map); };
       species_used_func_ = [shared_model]() -> std::set<std::string> { return shared_model->SpeciesUsed(); };
       update_state_parameters_function_ =
-          [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices)
+          [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
           -> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
       { return shared_model->template UpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
       get_forcing_function_ = [shared_model](
-                                  const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-                                  const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+                                  const std::unordered_map<std::string, Index>& state_parameter_indices,
+                                  const std::unordered_map<std::string, Index>& state_variable_indices)
           -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
       { return shared_model->template ForcingFunction<DenseMatrixPolicy>(state_parameter_indices, state_variable_indices); };
       get_jacobian_function_ = [shared_model](
-                                   const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-                                   const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
+                                   const std::unordered_map<std::string, Index>& state_variable_indices,
                                    const SparseMatrixPolicy& jacobian)
           -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
       {
@@ -324,7 +325,7 @@ namespace micm
     std::function<std::set<std::string>()> species_dependencies_func_;
 
     /// @brief Type-erased function returning non-zero constraint Jacobian element positions
-    std::function<std::set<std::pair<std::size_t, std::size_t>>(const std::unordered_map<std::string, std::size_t>&)>
+    std::function<std::set<std::pair<Index, Index>>(const std::unordered_map<std::string, Index>&)>
         non_zero_jacobian_elements_func_;
 
     /// @brief Type-erased function returning constraint state parameter names
@@ -333,21 +334,21 @@ namespace micm
     /// @brief Type-erased function factory for constraint state parameter updates
     /// Returns a function that updates constraint parameters based on environmental conditions
     std::function<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices)>
+        const std::unordered_map<std::string, Index>& state_parameter_indices)>
         update_state_parameters_function_;
 
     /// @brief Type-erased function factory for constraint residual computation
     /// Returns a function that computes G(y) for the constraint rows
     std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices)>
+        const std::unordered_map<std::string, Index>& state_parameter_indices,
+        const std::unordered_map<std::string, Index>& state_variable_indices)>
         get_residual_function_;
 
     /// @brief Type-erased function factory for constraint Jacobian computation
     /// Returns a function that computes ∂G/∂y for the constraint rows
     std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+        const std::unordered_map<std::string, Index>& state_parameter_indices,
+        const std::unordered_map<std::string, Index>& state_variable_indices,
         const SparseMatrixPolicy& jacobian)>
         get_jacobian_function_;
 
@@ -359,8 +360,8 @@ namespace micm
     /// Returns a function that diagnoses constraint parameters from current state variables
     /// at the beginning of each Solve() call
     std::function<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-        const std::unordered_map<std::string, std::size_t>& state_variable_indices)>
+        const std::unordered_map<std::string, Index>& state_parameter_indices,
+        const std::unordered_map<std::string, Index>& state_variable_indices)>
         get_initialize_constraint_parameters_function_;
 
     /// @brief Constructs a type-erased wrapper from an external model instance
@@ -376,26 +377,26 @@ namespace micm
       { return shared_model->ConstraintAlgebraicVariableNames(); };
       species_dependencies_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintSpeciesDependencies(); };
-      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, std::size_t>& species_map)
-          -> std::set<std::pair<std::size_t, std::size_t>>
+      non_zero_jacobian_elements_func_ = [shared_model](const std::unordered_map<std::string, Index>& species_map)
+          -> std::set<std::pair<Index, Index>>
       { return shared_model->NonZeroConstraintJacobianElements(species_map); };
       state_parameter_names_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintStateParameterNames(); };
       update_state_parameters_function_ =
-          [shared_model](const std::unordered_map<std::string, std::size_t>& state_parameter_indices)
+          [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
           -> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
       { return shared_model->template ConstraintUpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
       get_residual_function_ = [shared_model](
-                                   const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-                                   const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
+                                   const std::unordered_map<std::string, Index>& state_variable_indices)
           -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
       {
         return shared_model->template ConstraintResidualFunction<DenseMatrixPolicy>(
             state_parameter_indices, state_variable_indices);
       };
       get_jacobian_function_ = [shared_model](
-                                   const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-                                   const std::unordered_map<std::string, std::size_t>& state_variable_indices,
+                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
+                                   const std::unordered_map<std::string, Index>& state_variable_indices,
                                    const SparseMatrixPolicy& jacobian)
           -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
       {
@@ -410,8 +411,8 @@ namespace micm
         { return shared_model->InitializeConstraintParameterNames(); };
         get_initialize_constraint_parameters_function_ =
             [shared_model](
-                const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-                const std::unordered_map<std::string, std::size_t>& state_variable_indices)
+                const std::unordered_map<std::string, Index>& state_parameter_indices,
+                const std::unordered_map<std::string, Index>& state_variable_indices)
             -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
         {
           return shared_model->template InitializeConstraintParametersFunction<DenseMatrixPolicy>(
@@ -421,8 +422,8 @@ namespace micm
       else
       {
         initialize_constraint_parameter_names_func_ = []() -> std::set<std::string> { return {}; };
-        get_initialize_constraint_parameters_function_ = [](const std::unordered_map<std::string, std::size_t>&,
-                                                            const std::unordered_map<std::string, std::size_t>&)
+        get_initialize_constraint_parameters_function_ = [](const std::unordered_map<std::string, Index>&,
+                                                            const std::unordered_map<std::string, Index>&)
             -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
         { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
       }
@@ -436,7 +437,7 @@ namespace micm
   /// to the solver when passed to `AddExternalModel()`.
   template<typename T>
   concept HasState = requires(const T& m) {
-    { m.StateSize() } -> std::same_as<std::tuple<std::size_t, std::size_t>>;
+    { m.StateSize() } -> std::same_as<std::tuple<Index, Index>>;
     { m.StateVariableNames() } -> std::same_as<std::set<std::string>>;
     { m.StateParameterNames() } -> std::same_as<std::set<std::string>>;
   };
@@ -446,9 +447,9 @@ namespace micm
   /// A model satisfies `HasProcesses` if it provides `SpeciesUsed()` and
   /// `NonZeroJacobianElements()`.
   template<typename T>
-  concept HasProcesses = requires(const T& m, const std::unordered_map<std::string, std::size_t>& map) {
+  concept HasProcesses = requires(const T& m, const std::unordered_map<std::string, Index>& map) {
     { m.SpeciesUsed() } -> std::same_as<std::set<std::string>>;
-    { m.NonZeroJacobianElements(map) } -> std::same_as<std::set<std::pair<std::size_t, std::size_t>>>;
+    { m.NonZeroJacobianElements(map) } -> std::same_as<std::set<std::pair<Index, Index>>>;
   };
 
   /// @brief Concept to detect whether an external model provides constraint methods

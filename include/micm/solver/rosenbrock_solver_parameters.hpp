@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -22,31 +24,31 @@ namespace micm
     template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
     using SolverType = RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
 
-    std::size_t stages_{};
-    std::size_t upper_limit_tolerance_{};
-    std::size_t max_number_of_steps_{ 1000 };
+    Index stages_{};
+    Index upper_limit_tolerance_{};
+    Index max_number_of_steps_{ 1000 };
 
-    double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
-    double factor_min_{ 0.2 };                                    // solver step size minimum boundary
-    double factor_max_{ 6 };                                      // solver step size maximum boundary
-    double rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
-    double safety_factor_{ 0.9 };                                 // safety factor in new step size computation
+    Real round_off_{ std::numeric_limits<Real>::epsilon() };  // Unit roundoff (1+round_off)>1
+    Real factor_min_{ 0.2 };                                    // solver step size minimum boundary
+    Real factor_max_{ 6 };                                      // solver step size maximum boundary
+    Real rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
+    Real safety_factor_{ 0.9 };                                 // safety factor in new step size computation
 
-    double h_min_{ 0.0 };  // step size min [s] (if zero, the solver will use DEFAULT_H_MIN * time_step)
-    double h_max_{
+    Real h_min_{ 0.0 };  // step size min [s] (if zero, the solver will use DEFAULT_H_MIN * time_step)
+    Real h_max_{
       0.0
     };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
-    double h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
+    Real h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
 
-    std::size_t constraint_init_max_iterations_{ 10 };  // max Newton iterations for constraint initialization
-    double constraint_init_tolerance_{ 1e-10 };         // convergence tolerance for constraint initialization
+    Index constraint_init_max_iterations_{ 10 };  // max Newton iterations for constraint initialization
+    Real constraint_init_tolerance_{ 1e-10 };         // convergence tolerance for constraint initialization
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
     std::array<bool, 6>
         new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
 
-    double estimator_of_local_order_{};  // the minumum between the main and the embedded scheme orders plus one
+    Real estimator_of_local_order_{};  // the minumum between the main and the embedded scheme orders plus one
 
     //  The coefficient matrices A and C are strictly lower triangular.
     //  The lower triangular (subdiagonal) elements are stored in row-wise order:
@@ -54,15 +56,15 @@ namespace micm
     //  The general mapping formula is:
     //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
     //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-    std::array<double, 15> a_{};  // coefficient matrix a
-    std::array<double, 15> c_{};  // coefficient matrix c
-    std::array<double, 6> m_{};   // coefficients for new step evaluation
-    std::array<double, 6> e_{};   // error estimation coefficients
+    std::array<Real, 15> a_{};  // coefficient matrix a
+    std::array<Real, 15> c_{};  // coefficient matrix c
+    std::array<Real, 6> m_{};   // coefficients for new step evaluation
+    std::array<Real, 6> e_{};   // error estimation coefficients
 
     // Y_stage_i ~ Y( T + H*Alpha_i )
-    std::array<double, 6> alpha_{};
+    std::array<Real, 6> alpha_{};
     // Gamma_i = \sum_j  gamma_{i,j}
-    std::array<double, 6> gamma_{};
+    std::array<Real, 6> gamma_{};
 
     // Print RosenbrockSolverParameters to console
     void Print() const;
@@ -109,37 +111,37 @@ namespace micm
     std::cout << std::endl;
     std::cout << "estimator_of_local_order: " << estimator_of_local_order_ << std::endl;
     std::cout << "a: ";
-    for (double val : a_)
+    for (Real val : a_)
     {
       std::cout << val << " ";
     }
     std::cout << std::endl;
     std::cout << "c: ";
-    for (double val : c_)
+    for (Real val : c_)
     {
       std::cout << val << " ";
     }
     std::cout << std::endl;
     std::cout << "m: ";
-    for (double val : m_)
+    for (Real val : m_)
     {
       std::cout << val << " ";
     }
     std::cout << std::endl;
     std::cout << "e: ";
-    for (double val : e_)
+    for (Real val : e_)
     {
       std::cout << val << " ";
     }
     std::cout << std::endl;
     std::cout << "alpha: ";
-    for (double val : alpha_)
+    for (Real val : alpha_)
     {
       std::cout << val << " ";
     }
     std::cout << std::endl;
     std::cout << "gamma: ";
-    for (double val : gamma_)
+    for (Real val : gamma_)
     {
       std::cout << val << " ";
     }
@@ -152,7 +154,7 @@ namespace micm
     // an L-stable method, 2 stages, order 2
 
     RosenbrockSolverParameters parameters;
-    double g = 1.0 + 1.0 / std::numbers::sqrt2;
+    Real g = 1.0 + 1.0 / std::numbers::sqrt2;
 
     parameters.stages_ = 2;
 

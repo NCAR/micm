@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -10,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-double CalculateAirDensityMolM3(double pressure, double temperature)
+micm::Real CalculateAirDensityMolM3(micm::Real pressure, micm::Real temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
@@ -18,14 +19,14 @@ double CalculateAirDensityMolM3(double pressure, double temperature)
 void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
-    const std::vector<std::vector<double>>& data,
-    const std::vector<double>& times)
+    const std::vector<std::vector<micm::Real>>& data,
+    const std::vector<micm::Real>& times)
 {
   std::ofstream file(filename);
   if (file.is_open())
   {
     // Write column headers
-    for (size_t i = 0; i < header.size(); ++i)
+    for (micm::Index i = 0; i < header.size(); ++i)
     {
       file << header[i];
       if (i < header.size() - 1)
@@ -36,10 +37,10 @@ void WriteCsv(
     file << "\n";
 
     // Write data rows
-    for (size_t i = 0; i < data.size(); ++i)
+    for (micm::Index i = 0; i < data.size(); ++i)
     {
       file << times[i] << ",";
-      for (size_t j = 0; j < data[i].size(); ++j)
+      for (micm::Index j = 0; j < data[i].size(); ++j)
       {
         file << data[i][j];
         if (j < data[i].size() - 1)
@@ -57,13 +58,13 @@ void WriteCsv(
   }
 }
 
-std::pair<std::vector<std::string>, std::vector<std::vector<double>>> ReadCsv(const std::string& filename)
+std::pair<std::vector<std::string>, std::vector<std::vector<micm::Real>>> ReadCsv(const std::string& filename)
 {
   std::ifstream file(filename);
   if (file.is_open())
   {
     std::vector<std::string> header;
-    std::vector<std::vector<double>> data;
+    std::vector<std::vector<micm::Real>> data;
 
     // Read column headers
     std::string line;
@@ -82,7 +83,7 @@ std::pair<std::vector<std::string>, std::vector<std::vector<double>>> ReadCsv(co
     {
       std::istringstream ss(line);
       std::string item;
-      std::vector<double> row;
+      std::vector<micm::Real> row;
       while (std::getline(ss, item, ','))
       {
         row.push_back(std::stod(item));
@@ -120,7 +121,7 @@ void TestFlowTube(
   auto apinene = micm::Species("a-pinene");
   auto o3 = micm::Species("O3");
 
-  double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * 6.02214076e23;
+  constexpr micm::Real MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * 6.02214076e23;
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ soa1, soa2, apinene, o3 } };
 
@@ -146,9 +147,9 @@ void TestFlowTube(
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
   auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
-  size_t N = 3600;
+  micm::Index N = 3600;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(4));
+  std::vector<std::vector<micm::Real>> model_concentrations(N + 1, std::vector<micm::Real>(4));
 
   auto state = solver.GetState();
 
@@ -170,15 +171,15 @@ void TestFlowTube(
 
   model_concentrations[0] = state.variables_[0];
 
-  std::vector<double> times;
+  std::vector<micm::Real> times;
   times.push_back(0);
-  double time_step = 1;
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  micm::Real time_step = 1;
+  for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time * time_step;
+    micm::Real solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
     // Model results
-    double actual_solve = 0;
+    micm::Real actual_solve = 0;
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
@@ -200,9 +201,9 @@ void TestFlowTube(
   // data_out contains times in the first column and values in the rest
   // hence the minus one
   EXPECT_EQ(model_concentrations[0].size(), data_out[0].size() - 1);
-  for (size_t i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
-    for (size_t j = 0; j < model_concentrations[i].size(); ++j)
+    for (micm::Index j = 0; j < model_concentrations[i].size(); ++j)
     {
       EXPECT_NEAR(model_concentrations[i][j], data_out[i][j + 1], 1e-10)
           << "Arrays differ at index (" << i << ", " << j << ") with value " << model_concentrations[i][j]

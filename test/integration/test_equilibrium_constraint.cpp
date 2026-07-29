@@ -6,10 +6,13 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <limits>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -17,7 +20,7 @@
 using namespace micm;
 
 /// @brief Helper function to compute temperature-dependent equilibrium constant using Van't Hoff equation
-double ComputeEquilibriumConstant(double K_HLC_ref, double delta_H, double T)
+micm::Real ComputeEquilibriumConstant(micm::Real K_HLC_ref, micm::Real delta_H, micm::Real T)
 {
   return K_HLC_ref * std::exp((delta_H / constants::GAS_CONSTANT) * (1.0 / T - 1.0 / 298.15));
 }
@@ -32,7 +35,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
 
-  double k = 0.1;
+  micm::Real k = 0.1;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
@@ -41,7 +44,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
                     .Build();
 
   // C is an algebraic variable (not in any kinetic reaction)
-  double K_eq = 0.034;
+  micm::Real K_eq = 0.034;
   std::vector<Constraint> constraints;
   constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
@@ -77,10 +80,10 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   EXPECT_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);  // C is algebraic
 
   // Verify state can be initialized
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
-  std::size_t B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index A_idx = state.variable_map_.at("A");
+  micm::Index B_idx = state.variable_map_.at("B");
+  micm::Index C_idx = state.variable_map_.at("C");
+  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.1;
@@ -91,8 +94,12 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   // Verify UpdateStateParameters works
   solver.UpdateStateParameters(state);
 
-  double expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 300.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
+  micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 300.0);
+  // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][B_C_eq_idx],
+      expected_K_eq,
+      std::abs(expected_K_eq) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 }
 
 /// @brief Verifies that multiple constraints can be added via SetConstraints and the solver
@@ -123,10 +130,10 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
                      .Build();
 
   // Two equilibrium constraints
-  double K_eq1 = 0.034;  // CO2-like equilibrium
-  double K_eq2 = 0.012;  // Different gas equilibrium
-  double delta_H1 = -2400.0;
-  double delta_H2 = -2000.0;
+  micm::Real K_eq1 = 0.034;  // CO2-like equilibrium
+  micm::Real K_eq2 = 0.012;  // Different gas equilibrium
+  micm::Real delta_H1 = -2400.0;
+  micm::Real delta_H2 = -2000.0;
 
   std::vector<Constraint> constraints;
   constraints.emplace_back(EquilibriumConstraint(
@@ -172,17 +179,21 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   state.variables_[0][state.variable_map_.at("E")] = 0.05;
   state.variables_[0][state.variable_map_.at("F")] = K_eq2 * 0.05;  // F should satisfy F = K_eq2 * E
 
-  double current_temp = 310.0;
+  micm::Real current_temp = 310.0;
   state.conditions_[0].temperature_ = current_temp;
   state.conditions_[0].pressure_ = 101325.0;
 
   solver.UpdateStateParameters(state);
 
   // Verify temperature-dependent K_eq values are calculated correctly
-  double expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, delta_H1, current_temp);
-  double expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, delta_H2, current_temp);
+  micm::Real expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, delta_H1, current_temp);
+  micm::Real expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, delta_H2, current_temp);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq1, 1e-10);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")], expected_K_eq2, 1e-10);
+  // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")],
+      expected_K_eq2,
+      std::abs(expected_K_eq2) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 }
 
 /// @brief Test DAE solving - actually calls Solve() with algebraic constraints
@@ -196,7 +207,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
 
   // Simple reaction: A -> B with rate k
-  double k = 1.0;
+  micm::Real k = 1.0;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
@@ -206,8 +217,8 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   // This couples B (ODE variable) to C (algebraic variable)
-  double K_eq = 2.0;
-  double delta_H = -2400.0;
+  micm::Real K_eq = 2.0;
+  micm::Real delta_H = -2400.0;
   std::vector<Constraint> constraints;
   constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
@@ -217,6 +228,13 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -226,10 +244,10 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   auto state = solver.GetState(1);
 
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
-  std::size_t B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index A_idx = state.variable_map_.at("A");
+  micm::Index B_idx = state.variable_map_.at("B");
+  micm::Index C_idx = state.variable_map_.at("C");
+  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
 
   // Initial conditions: A=1, B=0, C=0
   state.variables_[0][A_idx] = 1.0;
@@ -240,14 +258,18 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
 
   // Verify UpdateStateParameters calculates K_eq correctly before time integration
   solver.UpdateStateParameters(state);
-  double expected_K_eq = ComputeEquilibriumConstant(K_eq, delta_H, 270.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq, 1e-10);
+  micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, delta_H, 270.0);
+  // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][B_C_eq_idx],
+      expected_K_eq,
+      std::abs(expected_K_eq) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 
   // Solve with smaller time steps
-  double dt = 0.001;
-  double total_time = 0.1;
-  double time = 0.0;
-  int steps = 0;
+  micm::Real dt = 0.001;
+  micm::Real total_time = 0.1;
+  micm::Real time = 0.0;
+  micm::Index steps = 0;
 
   while (time < total_time)
   {
@@ -264,7 +286,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     }
 
     // Verify constraint is maintained by the solver
-    double constraint_residual =
+    micm::Real constraint_residual =
         state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
     EXPECT_NEAR(constraint_residual, 0.0, 1.0e-6)
         << "Constraint not satisfied at step " << steps << ": K_eq*B - C = " << constraint_residual;
@@ -274,15 +296,15 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   }
 
   // Verify constraint is satisfied: C = K_eq * B
-  double expected_C = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx];
-  double final_residual =
+  micm::Real expected_C = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx];
+  micm::Real final_residual =
       state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
 
   EXPECT_NEAR(state.variables_[0][C_idx], expected_C, 1.0e-6);
   EXPECT_NEAR(final_residual, 0.0, 1.0e-6);
 
   // Verify mass conservation: A + B should be conserved (approximately)
-  double total = state.variables_[0][A_idx] + state.variables_[0][B_idx];
+  micm::Real total = state.variables_[0][A_idx] + state.variables_[0][B_idx];
   EXPECT_NEAR(total, 1.0, 0.01);
 }
 
@@ -296,7 +318,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
 
   // Simple reaction: A -> B with rate k
-  double k = 1.0;
+  micm::Real k = 1.0;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
@@ -305,7 +327,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
                     .Build();
 
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
-  double K_eq = 2.0;
+  micm::Real K_eq = 2.0;
   std::vector<Constraint> constraints;
   constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
@@ -315,6 +337,13 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -324,10 +353,10 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
 
   auto state = solver.GetState(1);
 
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
-  std::size_t B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index A_idx = state.variable_map_.at("A");
+  micm::Index B_idx = state.variable_map_.at("B");
+  micm::Index C_idx = state.variable_map_.at("C");
+  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.0;
@@ -337,12 +366,12 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
 
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
-  double expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 400.0);
+  micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 400.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq, 1e-10);
 
-  double dt = 0.001;
-  double total_time = 0.1;
-  double time = 0.0;
+  micm::Real dt = 0.001;
+  micm::Real total_time = 0.1;
+  micm::Real time = 0.0;
 
   while (time < total_time)
   {
@@ -351,7 +380,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
     ASSERT_EQ(result.state_, SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
 
     // Constraint should hold at each step
-    double residual = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
+    micm::Real residual = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
     EXPECT_NEAR(residual, 0.0, 1.0e-6) << "Constraint violated at time=" << time;
 
     time += dt;
@@ -372,7 +401,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C, D } };
 
-  double k = 1.0;
+  micm::Real k = 1.0;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
@@ -380,8 +409,8 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
                     .SetPhase(gas_phase)
                     .Build();
 
-  double K_eq1 = 3.0;
-  double K_eq2 = 5.0;
+  micm::Real K_eq1 = 3.0;
+  micm::Real K_eq2 = 5.0;
   std::vector<Constraint> constraints;
   constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
@@ -397,6 +426,13 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
       VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -406,12 +442,12 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   auto state = solver.GetState(1);
 
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
-  std::size_t D_idx = state.variable_map_.at("D");
-  std::size_t B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
-  std::size_t B_D_eq_idx = state.custom_rate_parameter_map_.at("B_D_eq");
+  micm::Index A_idx = state.variable_map_.at("A");
+  micm::Index B_idx = state.variable_map_.at("B");
+  micm::Index C_idx = state.variable_map_.at("C");
+  micm::Index D_idx = state.variable_map_.at("D");
+  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index B_D_eq_idx = state.custom_rate_parameter_map_.at("B_D_eq");
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.0;
@@ -422,14 +458,14 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   // Verify UpdateStateParameters calculates K_eq correctly for both constraints
   solver.UpdateStateParameters(state);
-  double expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, -2400.0, 300.0);
-  double expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, -2400.0, 300.0);
+  micm::Real expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, -2400.0, 300.0);
+  micm::Real expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, -2400.0, 300.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq1, 1e-10);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_D_eq_idx], expected_K_eq2, 1e-10);
 
-  double dt = 0.001;
-  double total_time = 0.1;
-  double time = 0.0;
+  micm::Real dt = 0.001;
+  micm::Real total_time = 0.1;
+  micm::Real time = 0.0;
 
   while (time < total_time)
   {
@@ -437,9 +473,9 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
 
-    double residual1 =
+    micm::Real residual1 =
         state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
-    double residual2 =
+    micm::Real residual2 =
         state.custom_rate_parameters_[0][B_D_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][D_idx];
     EXPECT_NEAR(residual1, 0.0, 1.0e-6) << "Constraint 1 violated at time=" << time;
     EXPECT_NEAR(residual2, 0.0, 1.0e-6) << "Constraint 2 violated at time=" << time;
@@ -465,7 +501,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
 
   // Reaction: C -> A (to produce A for the equilibrium)
-  double k = 0.5;
+  micm::Real k = 0.5;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ C })
                     .SetProducts({ { A, 1 } })
@@ -474,7 +510,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
                     .Build();
 
   // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
-  double K_eq = 10.0;
+  micm::Real K_eq = 10.0;
   std::vector<Constraint> constraints;
   constraints.emplace_back(EquilibriumConstraint(
       "A2_B_eq",
@@ -484,6 +520,13 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
+  // once simulated time is O(1) (the step falls below the float ULP); start with an absolute step
+  // above unit round-off. Double mode keeps the original default (h_start_ == 0.0).
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    options.h_start_ = 1.0e-6;
+  }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
@@ -493,10 +536,10 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
   auto state = solver.GetState(1);
 
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
-  std::size_t A2_B_eq_idx = state.custom_rate_parameter_map_.at("A2_B_eq");
+  micm::Index A_idx = state.variable_map_.at("A");
+  micm::Index B_idx = state.variable_map_.at("B");
+  micm::Index C_idx = state.variable_map_.at("C");
+  micm::Index A2_B_eq_idx = state.custom_rate_parameter_map_.at("A2_B_eq");
 
   // Start with some A so the constraint has something to work with
   state.variables_[0][A_idx] = 0.1;
@@ -507,12 +550,12 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
-  double expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 298.0);
+  micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 298.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][A2_B_eq_idx], expected_K_eq, 1e-10);
 
-  double dt = 0.001;
-  double total_time = 0.05;
-  double time = 0.0;
+  micm::Real dt = 0.001;
+  micm::Real total_time = 0.05;
+  micm::Real time = 0.0;
 
   while (time < total_time)
   {
@@ -521,9 +564,9 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
     ASSERT_EQ(result.state_, SolverState::Converged) << "NonUnit stoich did not converge at time=" << time;
 
     // Constraint: K_eq * [A]^2 - [B] = 0
-    double A_val = state.variables_[0][A_idx];
-    double B_val = state.variables_[0][B_idx];
-    double residual = state.custom_rate_parameters_[0][A2_B_eq_idx] * A_val * A_val - B_val;
+    micm::Real A_val = state.variables_[0][A_idx];
+    micm::Real B_val = state.variables_[0][B_idx];
+    micm::Real residual = state.custom_rate_parameters_[0][A2_B_eq_idx] * A_val * A_val - B_val;
     EXPECT_NEAR(residual, 0.0, 1.0e-5) << "Constraint violated at time=" << time;
 
     time += dt;

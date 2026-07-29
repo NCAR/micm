@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <chrono>
 #include <iomanip>
@@ -7,32 +8,32 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void Solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
+void Solve(auto& solver, auto& state, micm::Index number_of_grid_cells)
 {
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
-  state.SetCustomRateParameter("r1", std::vector<double>(3, k1));
-  state.SetCustomRateParameter("r2", std::vector<double>(3, k2));
-  state.SetCustomRateParameter("r3", std::vector<double>(3, k3));
+  micm::Real k1 = 0.04;
+  micm::Real k2 = 3e7;
+  micm::Real k3 = 1e4;
+  state.SetCustomRateParameter("r1", std::vector<micm::Real>(3, k1));
+  state.SetCustomRateParameter("r2", std::vector<micm::Real>(3, k2));
+  state.SetCustomRateParameter("r3", std::vector<micm::Real>(3, k3));
 
-  double temperature = 272.5;  // [K]
-  double pressure = 101253.3;  // [Pa]
-  double air_density = 1e6;    // [mol m-3]
+  micm::Real temperature = 272.5;  // [K]
+  micm::Real pressure = 101253.3;  // [Pa]
+  micm::Real air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (micm::Index cell = 0; cell < number_of_grid_cells; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
     state.conditions_[cell].air_density_ = air_density;
   }
 
-  double time_step = 100;  // s
+  micm::Real time_step = 100;  // s
 
   SolverState solver_state = SolverState::Converged;
-  for (int i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
+  for (micm::Index i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
   {
-    double elapsed_solve_time = 0;
+    micm::Real elapsed_solve_time = 0;
     solver.UpdateStateParameters(state);
     while (elapsed_solve_time < time_step && solver_state != SolverState::Converged)
     {
@@ -79,7 +80,7 @@ int main()
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
-  const std::size_t number_of_grid_cells = 3;
+  const micm::Index number_of_grid_cells = 3;
 
   auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetSystem(system).SetReactions(reactions).Build();
 
@@ -98,8 +99,8 @@ int main()
 
   auto vectorized_solver = CpuSolverBuilder<
                                RosenbrockSolverParameters,
-                               VectorMatrix<double, 3>,
-                               SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
+                               VectorMatrix<micm::Real, 3>,
+                               SparseMatrix<micm::Real, SparseMatrixVectorOrdering<3>>>(params)
                                .SetSystem(system)
                                .SetReactions(reactions)
                                .Build();
@@ -120,7 +121,7 @@ int main()
   Solve(solver, state, number_of_grid_cells);
   Solve(vectorized_solver, vectorized_state, number_of_grid_cells);
 
-  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
+  for (micm::Index cell = 0; cell < number_of_grid_cells; ++cell)
   {
     std::cout << "Cell " << cell << std::endl;
     std::cout << std::setw(10) << "Species" << std::setw(20) << "Regular" << std::setw(20) << "Vectorized" << std::endl;

@@ -12,6 +12,7 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -20,16 +21,16 @@ namespace micm
   /// @tparam L Vector size
   ///
   /// GPU solvers only work with vector-ordered matrices
-  template<class SolverParametersPolicy, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  template<class SolverParametersPolicy, Index L = MICM_DEFAULT_VECTOR_SIZE>
   using CudaSolverBuilderInPlace = SolverBuilder<
       SolverParametersPolicy,
-      CudaDenseMatrix<double, L>,
-      CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
-      CudaProcessSet<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>,
+      CudaDenseMatrix<Real, L>,
+      CudaSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
+      CudaProcessSet<CudaDenseMatrix<Real, L>, CudaSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>,
       CudaLuDecompositionMozartInPlace,
-      CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecompositionMozartInPlace>,
+      CudaLinearSolverInPlace<CudaSparseMatrix<Real, SparseMatrixVectorOrdering<L>>, CudaLuDecompositionMozartInPlace>,
       CudaState<
-          CudaDenseMatrix<double, L>,
-          CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+          CudaDenseMatrix<Real, L>,
+          CudaSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
           CudaLuDecompositionMozartInPlace>>;
 }  // namespace micm

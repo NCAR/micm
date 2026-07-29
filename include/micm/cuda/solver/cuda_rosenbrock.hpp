@@ -9,6 +9,7 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -68,7 +69,7 @@ namespace micm
     /// @param jacobian_diagonal_elements Diagonal elements of the Jacobian matrix, not used
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
+    void AlphaMinusJacobian(auto& state, const Real& alpha) const
       requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param =
@@ -83,7 +84,7 @@ namespace micm
     /// @param errors The computed errors
     /// @return The scaled norm of the errors
     template<class DenseMatrixPolicy>
-    double NormalizedError(
+    Real NormalizedError(
         const DenseMatrixPolicy& y_old,
         const DenseMatrixPolicy& y_new,
         const DenseMatrixPolicy& errors,

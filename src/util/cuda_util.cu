@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm::cuda
 {
@@ -87,7 +88,7 @@ namespace micm::cuda
   }
 
   // Get the CUDA stream given a stream ID
-  cudaStream_t& CudaStreamSingleton::GetCudaStream(std::size_t stream_id)
+  cudaStream_t& CudaStreamSingleton::GetCudaStream(Index stream_id)
   {
     std::lock_guard<std::mutex> lock(mutex_);
     if (auto search = cuda_streams_map_.find(stream_id); search == cuda_streams_map_.end())

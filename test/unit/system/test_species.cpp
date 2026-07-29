@@ -1,6 +1,10 @@
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
+
+#include <limits>
+#include <type_traits>
 
 TEST(Species, StringConstructor)
 {
@@ -18,16 +22,16 @@ TEST(Species, StringAndVectorConstructor)
 
   EXPECT_EQ(species.name_, "thing");
   EXPECT_EQ(species.properties_double_.size(), 2);
-  EXPECT_EQ(species.GetProperty<double>("name [units]"), 1.0);
-  EXPECT_EQ(species.GetProperty<double>("name2 [units2]"), 2.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name [units]"), 1.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name2 [units2]"), 2.0);
 }
 
 TEST(Species, GetProperty)
 {
   micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
 
-  EXPECT_EQ(species.GetProperty<double>("name [units]"), 1.0);
-  EXPECT_EQ(species.GetProperty<double>("name2 [units2]"), 2.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name [units]"), 1.0);
+  EXPECT_EQ(species.GetProperty<micm::Real>("name2 [units2]"), 2.0);
   EXPECT_THROW(
       {
         try
@@ -45,7 +49,7 @@ TEST(Species, GetProperty)
       {
         try
         {
-          species.GetProperty<double>("not there");
+          species.GetProperty<micm::Real>("not there");
         }
         catch (micm::MicmException& e)
         {
@@ -101,7 +105,9 @@ TEST(Species, SetThirdBody)
   species.SetThirdBody();
   EXPECT_EQ(species.name_, "M");
   EXPECT_TRUE(species.IsParameterized());
-  EXPECT_EQ(species.parameterize_({ .air_density_ = 42.4 }), 42.4);
+  // parameterize_ returns micm::Real, so 42.4 is only exact in double mode
+  const double tol = std::is_same_v<micm::Real, double> ? 0.0 : 42.4 * 10 * std::numeric_limits<micm::Real>::epsilon();
+  EXPECT_NEAR(species.parameterize_({ .air_density_ = 42.4 }), 42.4, tol);
 }
 
 TEST(Species, CopyConstructor)
@@ -116,8 +122,8 @@ TEST(Species, CopyConstructor)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
@@ -134,13 +140,15 @@ TEST(Species, CopyConstructor)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_TRUE(species2.IsParameterized());
-    EXPECT_EQ(species.parameterize_({}), 15.4);
+    // parameterize_ returns micm::Real, so 15.4 is only exact in double mode
+    const double tol = std::is_same_v<micm::Real, double> ? 0.0 : 15.4 * 10 * std::numeric_limits<micm::Real>::epsilon();
+    EXPECT_NEAR(species.parameterize_({}), 15.4, tol);
   }
 }
 
@@ -156,8 +164,8 @@ TEST(Species, CopyAssignment)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
@@ -174,12 +182,14 @@ TEST(Species, CopyAssignment)
 
     EXPECT_EQ(species2.name_, "thing");
     EXPECT_EQ(species2.properties_double_.size(), 2);
-    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
-    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<micm::Real>("name2 [units2]"), 2.0);
     EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
     EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
     EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_TRUE(species2.IsParameterized());
-    EXPECT_EQ(species.parameterize_({}), 15.4);
+    // parameterize_ returns micm::Real, so 15.4 is only exact in double mode
+    const double tol = std::is_same_v<micm::Real, double> ? 0.0 : 15.4 * 10 * std::numeric_limits<micm::Real>::epsilon();
+    EXPECT_NEAR(species.parameterize_({}), 15.4, tol);
   }
 }

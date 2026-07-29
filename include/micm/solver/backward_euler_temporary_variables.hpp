@@ -4,6 +4,7 @@
 #pragma once
 
 #include <micm/solver/temporary_variables.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -26,7 +27,7 @@ namespace micm
       return std::make_unique<BackwardEulerTemporaryVariables>(*this);
     }
 
-    BackwardEulerTemporaryVariables(const auto& state_parameters, const std::size_t number_of_grid_cells)
+    BackwardEulerTemporaryVariables(const auto& state_parameters, const Index number_of_grid_cells)
         : Yn_(number_of_grid_cells, state_parameters.number_of_species_),
           forcing_(number_of_grid_cells, state_parameters.number_of_species_)
     {

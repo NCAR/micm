@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <concepts>
 #include <type_traits>
 
@@ -110,9 +112,9 @@ namespace micm
   /// @brief Vector-like type (has operator[] and size())
   /// Excludes Matrix types, view types, and proxy types to avoid ambiguity
   template<typename T>
-  concept VectorLike = requires(T t, std::size_t i) {
+  concept VectorLike = requires(T t, Index i) {
     { t[i] };  // Can index with []
-    { t.size() } -> std::convertible_to<std::size_t>;
+    { t.size() } -> std::convertible_to<Index>;
   } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> && !requires(T t) {
     t.NumRows();
     t.NumColumns();

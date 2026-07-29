@@ -6,6 +6,7 @@
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -47,7 +48,7 @@ TEST(BackwardEuler, CanCallSolve)
                 .SetSystem(the_system)
                 .SetReactions(reactions)
                 .Build();
-  double time_step = 1.0;
+  micm::Real time_step = 1.0;
 
   auto state = be.GetState(1);
   state.SetAbsoluteTolerances({ 1e-6, 1e-6, 1e-6 });
@@ -74,8 +75,8 @@ void CheckIsConverged()
   DenseMatrixPolicy Yn1{ 4, 3, 0.0 };
 
   parameters.small_ = 1e-6;
-  double relative_tolerance = 1e-3;
-  std::vector<double> absolute_tolerance = { 1e-6, 1e-6, 1e-6 };
+  micm::Real relative_tolerance = 1e-3;
+  std::vector<micm::Real> absolute_tolerance = { 1e-6, 1e-6, 1e-6 };
 
   ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   residual[0][1] = 1e-5;
@@ -94,10 +95,10 @@ void CheckIsConverged()
 
 TEST(BackwardEuler, IsConverged)
 {
-  CheckIsConverged<micm::Matrix<double>>();
-  CheckIsConverged<micm::VectorMatrix<double, 1>>();
-  CheckIsConverged<micm::VectorMatrix<double, 2>>();
-  CheckIsConverged<micm::VectorMatrix<double, 3>>();
-  CheckIsConverged<micm::VectorMatrix<double, 4>>();
-  CheckIsConverged<micm::VectorMatrix<double, 5>>();
+  CheckIsConverged<micm::Matrix<micm::Real>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 1>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 2>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 3>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 4>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 5>>();
 }

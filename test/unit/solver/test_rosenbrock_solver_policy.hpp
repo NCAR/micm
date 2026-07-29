@@ -6,9 +6,12 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
+
+#include "../../precision_matchers.hpp"
 
 #include <cstddef>
 
@@ -57,7 +60,7 @@ SolverBuilderPolicy GetSolver(SolverBuilderPolicy builder)
 }
 
 template<class SolverBuilderPolicy>
-void TestAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
+void TestAlphaMinusJacobian(SolverBuilderPolicy builder, micm::Index number_of_grid_cells)
 {
   builder = GetSolver(builder);
   auto solver = builder.Build();
@@ -72,7 +75,7 @@ void TestAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
 
   // Generate a negative Jacobian matrix
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     jacobian[i_cell][0][0] = -12.2;
     jacobian[i_cell][0][1] = -24.3 * (i_cell + 2);
@@ -93,20 +96,20 @@ void TestAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
   solver.solver_.template AlphaMinusJacobian<decltype(state.jacobian_)>(state, 42.042);
   CheckCopyToHost<decltype(state.jacobian_)>(state.jacobian_);
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    EXPECT_EQ(jacobian[i_cell][0][0], 42.042 - 12.2);
-    EXPECT_EQ(jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
-    EXPECT_EQ(jacobian[i_cell][0][2], -42.3);
-    EXPECT_EQ(jacobian[i_cell][1][0], -0.43);
-    EXPECT_EQ(jacobian[i_cell][1][1], 42.042 - 23.4);
-    EXPECT_EQ(jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
-    EXPECT_EQ(jacobian[i_cell][2][0], -4.74);
-    EXPECT_EQ(jacobian[i_cell][2][2], 42.042 - 6.91);
-    EXPECT_EQ(jacobian[i_cell][3][1], -59.1);
-    EXPECT_EQ(jacobian[i_cell][3][3], 42.042 - 83.4);
-    EXPECT_EQ(jacobian[i_cell][4][0], -78.5);
-    EXPECT_EQ(jacobian[i_cell][4][2], -53.6);
-    EXPECT_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
+    EXPECT_REAL_EQ(jacobian[i_cell][0][0], 42.042 - 12.2);
+    EXPECT_REAL_EQ(jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
+    EXPECT_REAL_EQ(jacobian[i_cell][0][2], -42.3);
+    EXPECT_REAL_EQ(jacobian[i_cell][1][0], -0.43);
+    EXPECT_REAL_EQ(jacobian[i_cell][1][1], 42.042 - 23.4);
+    EXPECT_REAL_EQ(jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
+    EXPECT_REAL_EQ(jacobian[i_cell][2][0], -4.74);
+    EXPECT_REAL_EQ(jacobian[i_cell][2][2], 42.042 - 6.91);
+    EXPECT_REAL_EQ(jacobian[i_cell][3][1], -59.1);
+    EXPECT_REAL_EQ(jacobian[i_cell][3][3], 42.042 - 83.4);
+    EXPECT_REAL_EQ(jacobian[i_cell][4][0], -78.5);
+    EXPECT_REAL_EQ(jacobian[i_cell][4][2], -53.6);
+    EXPECT_REAL_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 }
