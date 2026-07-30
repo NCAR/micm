@@ -5,13 +5,16 @@
 #include "../analytical_surface_rxn_policy.hpp"
 
 #include <micm/GPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-template<std::size_t L>
+#include <type_traits>
+
+template<micm::Index L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
-constexpr std::size_t L = 3;
+constexpr micm::Index L = 3;
 using builderType = GpuBuilder<L>;
 
 auto two = builderType(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
@@ -43,6 +46,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Troe)
 
 TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffTroe(two, 1e-5, copy_to_device, copy_to_host);
   TestAnalyticalStiffTroe(three, 1e-5, copy_to_device, copy_to_host);
   TestAnalyticalStiffTroe(four, 1e-5, copy_to_device, copy_to_host);
@@ -61,6 +69,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
 
 TEST(AnalyticalExamplesCudaRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffPhotolysis(two, 2e-5, copy_to_device, copy_to_host);
   TestAnalyticalStiffPhotolysis(three, 2e-5, copy_to_device, copy_to_host);
   TestAnalyticalStiffPhotolysis(four, 2e-5, copy_to_device, copy_to_host);
@@ -79,6 +92,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffTernaryChemicalActivation(two, 2e-3, copy_to_device, copy_to_host);
   TestAnalyticalStiffTernaryChemicalActivation(three, 2e-3, copy_to_device, copy_to_host);
   TestAnalyticalStiffTernaryChemicalActivation(four, 2e-3, copy_to_device, copy_to_host);
@@ -97,6 +115,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 
 TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffTunneling(two, 1e-4, copy_to_device, copy_to_host);
   TestAnalyticalStiffTunneling(three, 1e-4, copy_to_device, copy_to_host);
   TestAnalyticalStiffTunneling(four, 1e-4, copy_to_device, copy_to_host);
@@ -115,6 +138,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
 
 TEST(AnalyticalExamplesCudaRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffArrhenius(two, 1e-4, copy_to_device, copy_to_host);
   TestAnalyticalStiffArrhenius(three, 2e-5, copy_to_device, copy_to_host);
   TestAnalyticalStiffArrhenius(four, 2e-5, copy_to_device, copy_to_host);
@@ -133,6 +161,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Branched)
 
 TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffBranched(two, 2e-3, copy_to_device, copy_to_host);
   TestAnalyticalStiffBranched(three, 2e-3, copy_to_device, copy_to_host);
   TestAnalyticalStiffBranched(four, 2e-3, copy_to_device, copy_to_host);
@@ -151,6 +184,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
 
 TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalRobertson(two_1_cell, 1e-6, copy_to_device, copy_to_host);
   TestAnalyticalRobertson(three_1_cell, 1e-6, copy_to_device, copy_to_host);
   TestAnalyticalRobertson(four_1_cell, 1e-6, copy_to_device, copy_to_host);
@@ -160,6 +198,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
 
 TEST(AnalyticalExamplesCudaRosenbrock, E5)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalE5(two_1_cell, 1e-10, copy_to_device, copy_to_host);
   TestAnalyticalE5(three_1_cell, 1e-10, copy_to_device, copy_to_host);
   TestAnalyticalE5(four_1_cell, 1e-10, copy_to_device, copy_to_host);
@@ -169,6 +212,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, E5)
 
 TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalOregonator(two_1_cell, 1e-2, copy_to_device, copy_to_host);
   TestAnalyticalOregonator(three_1_cell, 1e-2, copy_to_device, copy_to_host);
   TestAnalyticalOregonator(four_1_cell, 1e-2, copy_to_device, copy_to_host);
@@ -178,6 +226,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
 {
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalHires(two_1_cell, 1e-6, copy_to_device, copy_to_host);
   TestAnalyticalHires(three_1_cell, 1e-7, copy_to_device, copy_to_host);
   TestAnalyticalHires(four_1_cell, 1e-7, copy_to_device, copy_to_host);

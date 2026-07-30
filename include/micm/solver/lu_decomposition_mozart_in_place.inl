@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
 
@@ -26,16 +28,16 @@ namespace micm
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline void LuDecompositionMozartInPlace::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
-    std::size_t n = matrix.NumRows();
+    Index n = matrix.NumRows();
     auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
-    for (std::size_t i = 0; i < n; ++i)
+    for (Index i = 0; i < n; ++i)
     {
       if (ALU.IsZero(i, i))
       {
         throw std::runtime_error("Diagonal element is zero in LU decomposition");
       }
-      std::tuple<std::size_t, std::size_t, std::size_t> aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
-      for (std::size_t j = i + 1; j < n; ++j)
+      std::tuple<Index, Index, Index> aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
+      for (Index j = i + 1; j < n; ++j)
       {
         if (ALU.IsZero(j, i))
         {
@@ -44,20 +46,20 @@ namespace micm
         aji_.push_back(ALU.VectorIndex(0, j, i));
         ++(std::get<1>(aii_nji_nki));
       }
-      for (std::size_t k = i + 1; k < n; ++k)
+      for (Index k = i + 1; k < n; ++k)
       {
         if (ALU.IsZero(i, k))
         {
           continue;
         }
-        std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
-        for (std::size_t j = i + 1; j < n; ++j)
+        std::pair<Index, Index> aik_njk(ALU.VectorIndex(0, i, k), 0);
+        for (Index j = i + 1; j < n; ++j)
         {
           if (ALU.IsZero(j, i))
           {
             continue;
           }
-          std::pair<std::size_t, std::size_t> ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
+          std::pair<Index, Index> ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
           ajk_aji_.push_back(ajk_aji);
           ++(std::get<1>(aik_njk));
         }
@@ -75,11 +77,11 @@ namespace micm
       typename SparseMatrixPolicy::value_type initial_value,
       bool indexing_only)
   {
-    std::size_t n = A.NumRows();
-    std::set<std::pair<std::size_t, std::size_t>> ALU_ids;
-    for (std::size_t i = 0; i < n; ++i)
+    Index n = A.NumRows();
+    std::set<std::pair<Index, Index>> ALU_ids;
+    for (Index i = 0; i < n; ++i)
     {
-      for (std::size_t j = 0; j < n; ++j)
+      for (Index j = 0; j < n; ++j)
       {
         if (!A.IsZero(i, j))
         {
@@ -87,20 +89,20 @@ namespace micm
         }
       }
     }
-    for (std::size_t i = 0; i < n; ++i)
+    for (Index i = 0; i < n; ++i)
     {
-      for (std::size_t j = i + 1; j < n; ++j)
+      for (Index j = i + 1; j < n; ++j)
       {
         if (ALU_ids.contains(std::make_pair(j, i)))
         {
           ALU_ids.insert(std::make_pair(j, i));
         }
       }
-      for (std::size_t k = i + 1; k < n; ++k)
+      for (Index k = i + 1; k < n; ++k)
       {
         if (ALU_ids.contains(std::make_pair(i, k)))
         {
-          for (std::size_t j = i + 1; j < n; ++j)
+          for (Index j = i + 1; j < n; ++j)
           {
             if (ALU_ids.contains(std::make_pair(j, i)))
             {
@@ -132,16 +134,16 @@ namespace micm
         for (const auto& aii_nji_nki : aii_nji_nki_)
         {
           alu_view.ForEachBlock(
-            [](double& aii_inv, const double& aii)
+            [](Real& aii_inv, const Real& aii)
             {
               aii_inv = 1.0 / aii;
             },
             Aii_inverse,
             alu_view.GetConstBlockView(std::get<0>(aii_nji_nki)));
-          for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
+          for (Index ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
           {
             alu_view.ForEachBlock(
-              [](double& aji, const double& aii_inv)
+              [](Real& aji, const Real& aii_inv)
               {
                 aji *= aii_inv;
               },
@@ -149,13 +151,13 @@ namespace micm
               Aii_inverse);
             ++aji;
           }
-          for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
+          for (Index ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
           {
             auto aik_view = alu_view.GetBlockView(std::get<0>(*aik_njk));
-            for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
+            for (Index ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
             {
               alu_view.ForEachBlock(
-                [](double& ajk, const double& aji, const double& aik)
+                [](Real& ajk, const Real& aji, const Real& aik)
                 {
                   ajk -= aji * aik;
                 },
@@ -169,5 +171,5 @@ namespace micm
         }
       },
       ALU)(ALU);
-  } 
+  }
 }  // namespace micm

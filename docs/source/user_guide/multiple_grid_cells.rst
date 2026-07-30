@@ -93,7 +93,7 @@ Now we are ready to run the simulation.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 70-92
+  :lines: 70-99
 
 
 And these are the results.

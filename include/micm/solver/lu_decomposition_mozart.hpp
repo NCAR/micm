@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -55,32 +56,32 @@ namespace micm
    protected:
     /// Index in L.data_ for all diagonal elements, and number of iterations of the middle (j) loops
     /// used to set the initial value for the L and U matrices
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> lii_nuji_nlji_;
+    std::vector<std::tuple<Index, Index, Index>> lii_nuji_nlji_;
     /// Index in U.data_ and A.data_ for U[j][i] and A[j][i] for each iteration of the inner (j) loop
     /// used to set the initial value for the U matrix
-    std::vector<std::pair<std::size_t, std::size_t>> uji_aji_;
+    std::vector<std::pair<Index, Index>> uji_aji_;
     /// Index in L.data_ and A.data_ for L[j][i] and A[j][i] for each iteration of the inner (j) loop
     /// used to set the initial value for the L matrix
-    std::vector<std::pair<std::size_t, std::size_t>> lji_aji_;
+    std::vector<std::pair<Index, Index>> lji_aji_;
     /// Index in U.data_ for each non-zero element in U that is zero in A
-    std::vector<std::size_t> fill_uji_;
+    std::vector<Index> fill_uji_;
     /// Index in L.data_ for each non-zero element in L that is zero in A
-    std::vector<std::size_t> fill_lji_;
+    std::vector<Index> fill_lji_;
     /// Index in U.data_ for U[i][i] and the number of elements in the middle (j) and (k) loops
     /// for each iteration of the outer (i) loop
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> uii_nj_nk_;
+    std::vector<std::tuple<Index, Index, Index>> uii_nj_nk_;
     /// Index in L.data_ for L[j][i] for each iteration of the middle (j) loop
     /// for the lower triangular matrix
-    std::vector<std::size_t> lji_;
+    std::vector<Index> lji_;
     /// Number of elements in the inner (j) loops for each iteration of the middle (k) loop for the
     /// upper and lower triangular matrices, and the index in U.data_ for U[j][k] for each iteration
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> nujk_nljk_uik_;
+    std::vector<std::tuple<Index, Index, Index>> nujk_nljk_uik_;
     /// Index in U.data_ for U[j][k] and in L.data_ for L[j][i]
     /// for each iteration of the inner (j) loop for the upper triangular matrix
-    std::vector<std::pair<std::size_t, std::size_t>> ujk_lji_;
+    std::vector<std::pair<Index, Index>> ujk_lji_;
     /// Index in L.data_ for L[j][k] and in L.data_ for L[j][i]
     /// for each iteration of the inner (j) loop for the lower triangular matrix
-    std::vector<std::pair<std::size_t, std::size_t>> ljk_lji_;
+    std::vector<std::pair<Index, Index>> ljk_lji_;
 
    public:
     /// @brief default constructor

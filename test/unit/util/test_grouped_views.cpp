@@ -54,14 +54,14 @@ TEST(GroupedView, CategoryTagsAreDistinct)
   // The grouped concepts must not accidentally match the raw view concepts
   // and vice-versa; if they did, both overloads would be viable and dispatch
   // would be ambiguous.
-  using GCV = Matrix<double>::GroupView::GroupedColumnView;
+  using GCV = Matrix<micm::Real>::GroupView::GroupedColumnView;
   static_assert(GroupedDenseMatrixColumnView<GCV>);
   static_assert(!DenseMatrixColumnView<GCV>);
   static_assert(!SparseMatrixBlockView<GCV>);
   static_assert(!GroupedSparseMatrixBlockView<GCV>);
   static_assert(!VectorLike<GCV>);
 
-  using GBV = SparseMatrix<double>::GroupView::GroupedBlockView;
+  using GBV = SparseMatrix<micm::Real>::GroupView::GroupedBlockView;
   static_assert(GroupedSparseMatrixBlockView<GBV>);
   static_assert(!SparseMatrixBlockView<GBV>);
   static_assert(!DenseMatrixColumnView<GBV>);
@@ -76,18 +76,18 @@ TEST(GroupedView, CategoryTagsAreDistinct)
 
 TEST(GroupedView, MatrixColumnViewRoundTrip)
 {
-  Matrix<double> matrix{ 3, 4, 0.0 };
+  Matrix<micm::Real> matrix{ 3, 4, 0.0 };
   // Set distinct values so aliasing bugs would show up immediately.
-  for (std::size_t r = 0; r < 3; ++r)
+  for (micm::Index r = 0; r < 3; ++r)
   {
-    for (std::size_t c = 0; c < 4; ++c)
+    for (micm::Index c = 0; c < 4; ++c)
     {
-      matrix[r][c] = static_cast<double>(10 * r + c);
+      matrix[r][c] = static_cast<micm::Real>(10 * r + c);
     }
   }
 
   // Row 1 of the matrix acts as the "group".
-  Matrix<double>::GroupView row_view(matrix, 1);
+  Matrix<micm::Real>::GroupView row_view(matrix, 1);
   auto col2_mut = row_view.GetColumnView(2);
   auto col2_const = row_view.GetConstColumnView(2);
   auto col3_const = row_view.GetConstColumnView(3);
@@ -103,7 +103,7 @@ TEST(GroupedView, MatrixColumnViewRoundTrip)
 
   // Write via ForEachRow: col2 = col3 * 2  ==> row 1 only.
   row_view.ForEachRow(
-      [](double& a, const double& b) { a = b * 2.0; }, col2_mut, col3_const);
+      [](micm::Real& a, const micm::Real& b) { a = b * 2.0; }, col2_mut, col3_const);
   EXPECT_EQ(matrix[1][2], 26.0);
   EXPECT_EQ(matrix[0][2], 2.0);   // unchanged (still 2 from init)
   EXPECT_EQ(matrix[2][2], 22.0);  // unchanged (still 22 from init)
@@ -117,17 +117,17 @@ TEST(GroupedView, MatrixColumnViewRoundTrip)
 TEST(GroupedView, VectorMatrixColumnViewContiguousBlock)
 {
   // Two full L=4 groups of rows, 3 columns.
-  VectorMatrix<double, 4> matrix{ 8, 3, 0.0 };
-  for (std::size_t r = 0; r < 8; ++r)
+  VectorMatrix<micm::Real, 4> matrix{ 8, 3, 0.0 };
+  for (micm::Index r = 0; r < 8; ++r)
   {
-    for (std::size_t c = 0; c < 3; ++c)
+    for (micm::Index c = 0; c < 3; ++c)
     {
-      matrix[r][c] = static_cast<double>(100 + 10 * r + c);
+      matrix[r][c] = static_cast<micm::Real>(100 + 10 * r + c);
     }
   }
 
   // Group 1 spans rows 4..7.
-  VectorMatrix<double, 4>::GroupView group1(matrix, 1);
+  VectorMatrix<micm::Real, 4>::GroupView group1(matrix, 1);
   auto col1_mut = group1.GetColumnView(1);
   auto col2_const = group1.GetConstColumnView(2);
 
@@ -135,22 +135,22 @@ TEST(GroupedView, VectorMatrixColumnViewContiguousBlock)
   static_assert(GroupedDenseMatrixColumnView<decltype(col2_const)>);
 
   // base_ points at row 4 for the requested column; base_[i] is row 4+i.
-  for (std::size_t i = 0; i < 4; ++i)
+  for (micm::Index i = 0; i < 4; ++i)
   {
-    EXPECT_EQ(col1_mut.base_[i], static_cast<double>(100 + 10 * (4 + i) + 1));
-    EXPECT_EQ(col2_const.base_[i], static_cast<double>(100 + 10 * (4 + i) + 2));
+    EXPECT_EQ(col1_mut.base_[i], static_cast<micm::Real>(100 + 10 * (4 + i) + 1));
+    EXPECT_EQ(col2_const.base_[i], static_cast<micm::Real>(100 + 10 * (4 + i) + 2));
   }
 
   // ForEachRow scales col1 by 2 over the group; other groups untouched.
-  group1.ForEachRow([](double& a, const double& b) { a = b * 2.0; }, col1_mut, col2_const);
-  for (std::size_t r = 4; r < 8; ++r)
+  group1.ForEachRow([](micm::Real& a, const micm::Real& b) { a = b * 2.0; }, col1_mut, col2_const);
+  for (micm::Index r = 4; r < 8; ++r)
   {
-    EXPECT_EQ(matrix[r][1], 2.0 * static_cast<double>(100 + 10 * r + 2));
+    EXPECT_EQ(matrix[r][1], 2.0 * static_cast<micm::Real>(100 + 10 * r + 2));
   }
   // Rows outside the group are still what we initialised.
-  for (std::size_t r = 0; r < 4; ++r)
+  for (micm::Index r = 0; r < 4; ++r)
   {
-    EXPECT_EQ(matrix[r][1], static_cast<double>(100 + 10 * r + 1));
+    EXPECT_EQ(matrix[r][1], static_cast<micm::Real>(100 + 10 * r + 1));
   }
 }
 
@@ -160,22 +160,22 @@ TEST(GroupedView, VectorMatrixColumnViewContiguousBlock)
 // fallback path were being taken for a grouped view) the two would diverge.
 // ---------------------------------------------------------------------------
 
-template<template<class, std::size_t> class VMPolicy, std::size_t L>
+template<template<class, micm::Index> class VMPolicy, micm::Index L>
 void RunDenseGroupedVsRawEquivalence()
 {
-  using M = VMPolicy<double, L>;
-  const std::size_t rows = 3 * L;
-  const std::size_t cols = 4;
+  using M = VMPolicy<micm::Real, L>;
+  const micm::Index rows = 3 * L;
+  const micm::Index cols = 4;
   M raw{ rows, cols, 0.0 };
   M grouped{ rows, cols, 0.0 };
 
   // Fill both matrices identically.
-  for (std::size_t r = 0; r < rows; ++r)
+  for (micm::Index r = 0; r < rows; ++r)
   {
-    for (std::size_t c = 0; c < cols; ++c)
+    for (micm::Index c = 0; c < cols; ++c)
     {
-      raw[r][c] = static_cast<double>(r * 10 + c);
-      grouped[r][c] = static_cast<double>(r * 10 + c);
+      raw[r][c] = static_cast<micm::Real>(r * 10 + c);
+      grouped[r][c] = static_cast<micm::Real>(r * 10 + c);
     }
   }
 
@@ -184,7 +184,7 @@ void RunDenseGroupedVsRawEquivalence()
       [](auto&& m)
       {
         m.ForEachRow(
-            [](const double& a, double& out) { out = a * 3.0 + 1.0; },
+            [](const micm::Real& a, micm::Real& out) { out = a * 3.0 + 1.0; },
             m.GetConstColumnView(0),
             m.GetColumnView(3));
       },
@@ -193,14 +193,14 @@ void RunDenseGroupedVsRawEquivalence()
 
   // "raw" path: same math, but read from the matrix directly. Any dispatch
   // bug in the grouped overloads would cause the two matrices to diverge.
-  for (std::size_t r = 0; r < rows; ++r)
+  for (micm::Index r = 0; r < rows; ++r)
   {
     raw[r][3] = raw[r][0] * 3.0 + 1.0;
   }
 
-  for (std::size_t r = 0; r < rows; ++r)
+  for (micm::Index r = 0; r < rows; ++r)
   {
-    for (std::size_t c = 0; c < cols; ++c)
+    for (micm::Index c = 0; c < cols; ++c)
     {
       EXPECT_EQ(raw[r][c], grouped[r][c]) << "row=" << r << " col=" << c << " L=" << L;
     }
@@ -227,36 +227,36 @@ TEST(GroupedView, DenseGroupedMatchesRawL8)
 // Plain Matrix (L=1) as a separate template specialization path.
 TEST(GroupedView, PlainMatrixGroupedRoundTrip)
 {
-  Matrix<double> raw{ 4, 3, 0.0 };
-  Matrix<double> grouped{ 4, 3, 0.0 };
-  for (std::size_t r = 0; r < 4; ++r)
+  Matrix<micm::Real> raw{ 4, 3, 0.0 };
+  Matrix<micm::Real> grouped{ 4, 3, 0.0 };
+  for (micm::Index r = 0; r < 4; ++r)
   {
-    for (std::size_t c = 0; c < 3; ++c)
+    for (micm::Index c = 0; c < 3; ++c)
     {
-      raw[r][c] = static_cast<double>(r + c * 5);
-      grouped[r][c] = static_cast<double>(r + c * 5);
+      raw[r][c] = static_cast<micm::Real>(r + c * 5);
+      grouped[r][c] = static_cast<micm::Real>(r + c * 5);
     }
   }
 
-  auto func = Matrix<double>::Function(
+  auto func = Matrix<micm::Real>::Function(
       [](auto&& m)
       {
         m.ForEachRow(
-            [](const double& a, const double& b, double& out) { out = a - b; },
+            [](const micm::Real& a, const micm::Real& b, micm::Real& out) { out = a - b; },
             m.GetConstColumnView(0),
             m.GetConstColumnView(1),
             m.GetColumnView(2));
       },
       grouped);
   func(grouped);
-  for (std::size_t r = 0; r < 4; ++r)
+  for (micm::Index r = 0; r < 4; ++r)
   {
     raw[r][2] = raw[r][0] - raw[r][1];
   }
 
-  for (std::size_t r = 0; r < 4; ++r)
+  for (micm::Index r = 0; r < 4; ++r)
   {
-    for (std::size_t c = 0; c < 3; ++c)
+    for (micm::Index c = 0; c < 3; ++c)
     {
       EXPECT_EQ(raw[r][c], grouped[r][c]) << "row=" << r << " col=" << c;
     }
@@ -270,8 +270,8 @@ TEST(GroupedView, PlainMatrixGroupedRoundTrip)
 TEST(GroupedView, SparseStandardBlockViewRoundTrip)
 {
   auto builder =
-      SparseMatrix<double>::Create(3).WithElement(0, 1).WithElement(1, 2).WithElement(2, 2).SetNumberOfBlocks(2);
-  SparseMatrix<double> matrix{ builder };
+      SparseMatrix<micm::Real>::Create(3).WithElement(0, 1).WithElement(1, 2).WithElement(2, 2).SetNumberOfBlocks(2);
+  SparseMatrix<micm::Real> matrix{ builder };
   matrix[0][0][1] = 1.0;
   matrix[0][1][2] = 2.0;
   matrix[0][2][2] = 3.0;
@@ -280,7 +280,7 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
   matrix[1][2][2] = 30.0;
 
   // Group 1 = block 1 for standard ordering (L=1).
-  SparseMatrix<double>::GroupView group1(matrix, 1);
+  SparseMatrix<micm::Real>::GroupView group1(matrix, 1);
   auto v01_mut = group1.GetBlockView(matrix.VectorIndex(0, 0, 1));
   auto v12_const = group1.GetConstBlockView(matrix.VectorIndex(0, 1, 2));
   static_assert(GroupedSparseMatrixBlockView<decltype(v01_mut)>);
@@ -292,7 +292,7 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
   EXPECT_EQ(v12_const.group_base_[v12_const.block_offset_], 20.0);
 
   group1.ForEachBlock(
-      [](double& a, const double& b) { a = b + 5.0; }, v01_mut, v12_const);
+      [](micm::Real& a, const micm::Real& b) { a = b + 5.0; }, v01_mut, v12_const);
   EXPECT_EQ(matrix[1][0][1], 25.0);
   EXPECT_EQ(matrix[0][0][1], 1.0);  // untouched
 }
@@ -304,11 +304,11 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
 
 TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
 {
-  using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
+  using SM = SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
   auto builder = SM::Create(3).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(8);
   SM matrix{ builder };
   // Fill each block's non-zeros with a distinct pattern.
-  for (std::size_t b = 0; b < 8; ++b)
+  for (micm::Index b = 0; b < 8; ++b)
   {
     matrix[b][0][1] = 100.0 + b;
     matrix[b][1][2] = 200.0 + b;
@@ -322,7 +322,7 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
   static_assert(GroupedSparseMatrixBlockView<decltype(v12)>);
 
   // group_base_ + block_offset_ + i lands on the (block_in_group = i) block.
-  for (std::size_t i = 0; i < 4; ++i)
+  for (micm::Index i = 0; i < 4; ++i)
   {
     EXPECT_EQ(v01.group_base_[v01.block_offset_ + i], 100.0 + (4 + i));
     EXPECT_EQ(v12.group_base_[v12.block_offset_ + i], 200.0 + (4 + i));
@@ -330,12 +330,12 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
 
   // ForEachBlock touches only the L=4 blocks of the group.
   group1.ForEachBlock(
-      [](double& a, const double& b) { a = a + b; }, v01, v12);
-  for (std::size_t b = 4; b < 8; ++b)
+      [](micm::Real& a, const micm::Real& b) { a = a + b; }, v01, v12);
+  for (micm::Index b = 4; b < 8; ++b)
   {
     EXPECT_EQ(matrix[b][0][1], (100.0 + b) + (200.0 + b));
   }
-  for (std::size_t b = 0; b < 4; ++b)
+  for (micm::Index b = 0; b < 4; ++b)
   {
     EXPECT_EQ(matrix[b][0][1], 100.0 + b);  // other group untouched
   }
@@ -350,26 +350,26 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
 
 // Forward declaration; body appears further down (needs the same
 // SparseMatrix<...>::VectorIndex mapping the live matrix uses).
-template<std::size_t L>
-static std::size_t SparseRefIndexA();
+template<micm::Index L>
+static micm::Index SparseRefIndexA();
 
-template<std::size_t L>
+template<micm::Index L>
 void RunSparseVectorMixedGroupedEquivalence()
 {
-  using Sparse = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<L>>;
-  using Dense = VectorMatrix<double, L>;
+  using Sparse = SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<L>>;
+  using Dense = VectorMatrix<micm::Real, L>;
 
-  const std::size_t blocks = 2 * L;
+  const micm::Index blocks = 2 * L;
   auto builder = Sparse::Create(3).WithElement(0, 1).SetNumberOfBlocks(blocks);
   Sparse sparse_ref{ builder };
   Sparse sparse{ builder };
   Dense dense_ref{ blocks, 3, 0.0 };
   Dense dense{ blocks, 3, 0.0 };
-  for (std::size_t b = 0; b < blocks; ++b)
+  for (micm::Index b = 0; b < blocks; ++b)
   {
     sparse_ref[b][0][1] = 1.0 + b;
     sparse[b][0][1] = 1.0 + b;
-    for (std::size_t c = 0; c < 3; ++c)
+    for (micm::Index c = 0; c < 3; ++c)
     {
       dense_ref[b][c] = 10.0 + b + c;
       dense[b][c] = 10.0 + b + c;
@@ -386,7 +386,7 @@ void RunSparseVectorMixedGroupedEquivalence()
         // return grouped views. The sparse GetBlockElement dispatches on the
         // *grouped* tags for both.
         sm.ForEachBlock(
-            [](double& out, const double& a, const double& b) { out = a + b; },
+            [](micm::Real& out, const micm::Real& a, const micm::Real& b) { out = a + b; },
             dm.GetColumnView(0),
             dm.GetConstColumnView(1),
             sm.GetConstBlockView(SparseRefIndexA<L>()));
@@ -396,14 +396,14 @@ void RunSparseVectorMixedGroupedEquivalence()
   func(sparse, dense);
 
   // Reference: same math done by hand.
-  for (std::size_t b = 0; b < blocks; ++b)
+  for (micm::Index b = 0; b < blocks; ++b)
   {
     dense_ref[b][0] = dense_ref[b][1] + sparse_ref[b][0][1];
   }
 
-  for (std::size_t b = 0; b < blocks; ++b)
+  for (micm::Index b = 0; b < blocks; ++b)
   {
-    for (std::size_t c = 0; c < 3; ++c)
+    for (micm::Index c = 0; c < 3; ++c)
     {
       EXPECT_EQ(dense[b][c], dense_ref[b][c]) << "b=" << b << " c=" << c << " L=" << L;
     }
@@ -413,11 +413,11 @@ void RunSparseVectorMixedGroupedEquivalence()
 // Helper: fetch the sparse (0,1) vector index for the given L. We use a lambda
 // to construct a throwaway matrix and read its VectorIndex mapping so we don't
 // depend on internal ordering-policy details in the test.
-template<std::size_t L>
-static std::size_t SparseRefIndexA()
+template<micm::Index L>
+static micm::Index SparseRefIndexA()
 {
-  using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<L>>;
-  static const std::size_t idx = []
+  using SM = SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<L>>;
+  static const micm::Index idx = []
   {
     auto b = SM::Create(3).WithElement(0, 1).SetNumberOfBlocks(2 * L);
     SM m{ b };
@@ -454,12 +454,12 @@ TEST(GroupedView, MixedSparseAndDenseGroupedL8)
 
 TEST(GroupedView, SparseVectorRowColOverloadStillFunctional)
 {
-  using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
+  using SM = SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
   auto builder = SM::Create(3).WithElement(0, 1).SetNumberOfBlocks(8);
   SM matrix{ builder };
-  for (std::size_t b = 0; b < 8; ++b)
+  for (micm::Index b = 0; b < 8; ++b)
   {
-    matrix[b][0][1] = static_cast<double>(b + 1);
+    matrix[b][0][1] = static_cast<micm::Real>(b + 1);
   }
 
   SM::ConstGroupView group1(matrix, 1);
@@ -469,8 +469,8 @@ TEST(GroupedView, SparseVectorRowColOverloadStillFunctional)
   static_assert(SparseMatrixBlockView<decltype(raw)>);
   static_assert(!GroupedSparseMatrixBlockView<decltype(raw)>);
 
-  double accumulator = 0.0;
-  group1.ForEachBlock([&accumulator](const double& v) { accumulator += v; }, raw);
+  micm::Real accumulator = 0.0;
+  group1.ForEachBlock([&accumulator](const micm::Real& v) { accumulator += v; }, raw);
   // Group 1 covers blocks 4..7, values 5..8. Sum = 5+6+7+8 = 26.
   EXPECT_DOUBLE_EQ(accumulator, 26.0);
 }
@@ -482,35 +482,35 @@ TEST(GroupedView, SparseVectorRowColOverloadStillFunctional)
 
 TEST(GroupedView, ConstGroupViewProducesGroupedViews)
 {
-  using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
+  using SM = SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
   auto builder = SM::Create(3).WithElement(0, 1).SetNumberOfBlocks(4);
   SM matrix{ builder };
-  for (std::size_t b = 0; b < 4; ++b)
+  for (micm::Index b = 0; b < 4; ++b)
   {
-    matrix[b][0][1] = static_cast<double>(b + 1);
+    matrix[b][0][1] = static_cast<micm::Real>(b + 1);
   }
 
   const SM& cmatrix = matrix;
   SM::ConstGroupView cgv(cmatrix, 0);
   auto v = cgv.GetConstBlockView(matrix.VectorIndex(0, 0, 1));
   static_assert(GroupedSparseMatrixBlockView<decltype(v)>);
-  for (std::size_t i = 0; i < 4; ++i)
+  for (micm::Index i = 0; i < 4; ++i)
   {
-    EXPECT_EQ(v.group_base_[v.block_offset_ + i], static_cast<double>(i + 1));
+    EXPECT_EQ(v.group_base_[v.block_offset_ + i], static_cast<micm::Real>(i + 1));
   }
 
-  VectorMatrix<double, 4> dense{ 4, 2, 0.0 };
-  for (std::size_t b = 0; b < 4; ++b)
+  VectorMatrix<micm::Real, 4> dense{ 4, 2, 0.0 };
+  for (micm::Index b = 0; b < 4; ++b)
   {
-    dense[b][1] = static_cast<double>(100 + b);
+    dense[b][1] = static_cast<micm::Real>(100 + b);
   }
-  const VectorMatrix<double, 4>& cdense = dense;
-  VectorMatrix<double, 4>::ConstGroupView dcgv(cdense, 0);
+  const VectorMatrix<micm::Real, 4>& cdense = dense;
+  VectorMatrix<micm::Real, 4>::ConstGroupView dcgv(cdense, 0);
   auto dv = dcgv.GetConstColumnView(1);
   static_assert(GroupedDenseMatrixColumnView<decltype(dv)>);
-  for (std::size_t i = 0; i < 4; ++i)
+  for (micm::Index i = 0; i < 4; ++i)
   {
-    EXPECT_EQ(dv.base_[i], static_cast<double>(100 + i));
+    EXPECT_EQ(dv.base_[i], static_cast<micm::Real>(100 + i));
   }
 }
 
@@ -523,36 +523,36 @@ TEST(GroupedView, ConstGroupViewProducesGroupedViews)
 // ---------------------------------------------------------------------------
 namespace
 {
-  template<class SM, std::size_t L>
+  template<class SM, micm::Index L>
   void RunSparseFillCopyTest()
   {
     // Two non-zero positions per block; a full group and one partial group.
     auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(L + 1);
     SM matrix{ builder };
-    for (std::size_t b = 0; b < L + 1; ++b)
+    for (micm::Index b = 0; b < L + 1; ++b)
     {
-      matrix[b][0][1] = static_cast<double>(b + 1);
-      matrix[b][2][0] = static_cast<double>(100 + b);
+      matrix[b][0][1] = static_cast<micm::Real>(b + 1);
+      matrix[b][2][0] = static_cast<micm::Real>(100 + b);
     }
 
     // Fill on the full group: only [0][1] cells change, [2][0] cells untouched.
     {
       typename SM::GroupView gv(matrix, 0);
       gv.Fill(gv.GetBlockView(matrix.VectorIndex(0, 0, 1)), 42.0);
-      for (std::size_t b = 0; b < L; ++b)
+      for (micm::Index b = 0; b < L; ++b)
       {
         EXPECT_DOUBLE_EQ(matrix[b][0][1], 42.0);
-        EXPECT_DOUBLE_EQ(matrix[b][2][0], static_cast<double>(100 + b));
+        EXPECT_DOUBLE_EQ(matrix[b][2][0], static_cast<micm::Real>(100 + b));
       }
       // Partial group is unaffected.
-      EXPECT_DOUBLE_EQ(matrix[L][0][1], static_cast<double>(L + 1));
+      EXPECT_DOUBLE_EQ(matrix[L][0][1], static_cast<micm::Real>(L + 1));
     }
 
     // Copy on the full group: [2][0] <- [0][1].
     {
       typename SM::GroupView gv(matrix, 0);
       gv.Copy(gv.GetBlockView(matrix.VectorIndex(0, 2, 0)), gv.GetConstBlockView(matrix.VectorIndex(0, 0, 1)));
-      for (std::size_t b = 0; b < L; ++b)
+      for (micm::Index b = 0; b < L; ++b)
       {
         EXPECT_DOUBLE_EQ(matrix[b][2][0], 42.0);
         EXPECT_DOUBLE_EQ(matrix[b][0][1], 42.0);
@@ -564,7 +564,7 @@ namespace
     // padding cells past num_blocks_in_group are also written but never
     // observable through the matrix interface.
     {
-      const std::size_t last_group = matrix.NumberOfBlocks() / L;
+      const micm::Index last_group = matrix.NumberOfBlocks() / L;
       typename SM::GroupView gv(matrix, last_group);
       gv.Fill(gv.GetBlockView(matrix.VectorIndex(0, 0, 1)), -7.0);
       EXPECT_DOUBLE_EQ(matrix[L][0][1], -7.0);
@@ -574,14 +574,14 @@ namespace
 
 TEST(GroupedView, FillAndCopySparseStandardCSR)
 {
-  using SM = SparseMatrix<double, SparseMatrixStandardOrderingCompressedSparseRow>;
+  using SM = SparseMatrix<micm::Real, SparseMatrixStandardOrderingCompressedSparseRow>;
   // Standard ordering: L=1 (one "group" per block).
   auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(2);
   SM matrix{ builder };
-  for (std::size_t b = 0; b < 2; ++b)
+  for (micm::Index b = 0; b < 2; ++b)
   {
-    matrix[b][0][1] = static_cast<double>(b + 1);
-    matrix[b][2][0] = static_cast<double>(100 + b);
+    matrix[b][0][1] = static_cast<micm::Real>(b + 1);
+    matrix[b][2][0] = static_cast<micm::Real>(100 + b);
   }
 
   SM::GroupView gv0(matrix, 0);
@@ -596,13 +596,13 @@ TEST(GroupedView, FillAndCopySparseStandardCSR)
 
 TEST(GroupedView, FillAndCopySparseStandardCSC)
 {
-  using SM = SparseMatrix<double, SparseMatrixStandardOrderingCompressedSparseColumn>;
+  using SM = SparseMatrix<micm::Real, SparseMatrixStandardOrderingCompressedSparseColumn>;
   auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(2);
   SM matrix{ builder };
-  for (std::size_t b = 0; b < 2; ++b)
+  for (micm::Index b = 0; b < 2; ++b)
   {
-    matrix[b][0][1] = static_cast<double>(b + 1);
-    matrix[b][2][0] = static_cast<double>(100 + b);
+    matrix[b][0][1] = static_cast<micm::Real>(b + 1);
+    matrix[b][2][0] = static_cast<micm::Real>(100 + b);
   }
 
   SM::GroupView gv1(matrix, 1);
@@ -617,51 +617,51 @@ TEST(GroupedView, FillAndCopySparseStandardCSC)
 
 TEST(GroupedView, FillAndCopySparseVectorCSR_L4)
 {
-  RunSparseFillCopyTest<SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>, 4>();
+  RunSparseFillCopyTest<SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<4>>, 4>();
 }
 
 TEST(GroupedView, FillAndCopySparseVectorCSC_L4)
 {
-  RunSparseFillCopyTest<SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseColumn<4>>, 4>();
+  RunSparseFillCopyTest<SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseColumn<4>>, 4>();
 }
 
 TEST(GroupedView, FillAndCopySparseVectorCSR_L8)
 {
-  RunSparseFillCopyTest<SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<8>>, 8>();
+  RunSparseFillCopyTest<SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<8>>, 8>();
 }
 
 // Fill/Copy on a mutable GroupView must accept a GroupedConstBlockView from a
 // separate ConstGroupView on the same underlying storage as the Copy source.
 TEST(GroupedView, FillCopyCrossGroupViewSources)
 {
-  using SM = SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
+  using SM = SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<4>>;
   auto builder = SM::Create(2).WithElement(0, 1).SetNumberOfBlocks(4);
   SM src{ builder };
   SM dst{ builder };
-  for (std::size_t b = 0; b < 4; ++b)
+  for (micm::Index b = 0; b < 4; ++b)
   {
-    src[b][0][1] = static_cast<double>(b + 1);
+    src[b][0][1] = static_cast<micm::Real>(b + 1);
     dst[b][0][1] = 0.0;
   }
 
   SM::GroupView dgv(dst, 0);
   SM::ConstGroupView sgv(src, 0);
   dgv.Copy(dgv.GetBlockView(dst.VectorIndex(0, 0, 1)), sgv.GetConstBlockView(src.VectorIndex(0, 0, 1)));
-  for (std::size_t b = 0; b < 4; ++b)
+  for (micm::Index b = 0; b < 4; ++b)
   {
-    EXPECT_DOUBLE_EQ(dst[b][0][1], static_cast<double>(b + 1));
+    EXPECT_DOUBLE_EQ(dst[b][0][1], static_cast<micm::Real>(b + 1));
   }
 
   // Fill result matches the equivalent ForEachBlock lambda.
   SM ref{ builder };
-  for (std::size_t b = 0; b < 4; ++b)
+  for (micm::Index b = 0; b < 4; ++b)
   {
     ref[b][0][1] = 999.0;
   }
   SM::GroupView rgv(ref, 0);
-  rgv.ForEachBlock([](double& x) { x = 55.5; }, rgv.GetBlockView(ref.VectorIndex(0, 0, 1)));
+  rgv.ForEachBlock([](micm::Real& x) { x = 55.5; }, rgv.GetBlockView(ref.VectorIndex(0, 0, 1)));
   dgv.Fill(dgv.GetBlockView(dst.VectorIndex(0, 0, 1)), 55.5);
-  for (std::size_t b = 0; b < 4; ++b)
+  for (micm::Index b = 0; b < 4; ++b)
   {
     EXPECT_DOUBLE_EQ(dst[b][0][1], ref[b][0][1]);
   }

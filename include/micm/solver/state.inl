@@ -1,25 +1,27 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator double() const
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator Real() const
   {
     if (state_.variables_.NumRows() != 1)
     {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
-          "Cannot convert multi-gridcell State variable to single double value");
+          "Cannot convert multi-gridcell State variable to single Real value");
     }
     return state_.variables_[0][index_];
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator=(double value)
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator=(Real value)
   {
     if (state_.variables_.NumRows() != 1)
     {
@@ -35,7 +37,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy&
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator=(
-      const std::vector<double>& values)
+      const std::vector<Real>& values)
   {
     if (values.size() != state_.number_of_grid_cells_)
     {
@@ -44,7 +46,7 @@ namespace micm
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Number of values does not match number of grid cells in State");
     }
-    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    for (Index i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       state_.variables_[i][index_] = values[i];
     }
@@ -66,7 +68,7 @@ namespace micm
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Number of grid cells does not match between State variables");
     }
-    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    for (Index i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       state_.variables_[i][index_] = other.state_.variables_[i][other.index_];
     }
@@ -75,7 +77,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator+=(double value)
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator+=(Real value)
   {
     if (state_.number_of_grid_cells_ != 1)
     {
@@ -90,7 +92,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator-=(double value)
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator-=(Real value)
   {
     if (state_.number_of_grid_cells_ != 1)
     {
@@ -105,7 +107,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator*=(double value)
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator*=(Real value)
   {
     if (state_.number_of_grid_cells_ != 1)
     {
@@ -120,7 +122,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy&
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator/=(double value)
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator/=(Real value)
   {
     if (state_.number_of_grid_cells_ != 1)
     {
@@ -134,8 +136,8 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator[](
-      std::size_t grid_cell_index)
+  inline Real& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator[](
+      Index grid_cell_index)
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
     {
@@ -145,8 +147,8 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator[](
-      std::size_t grid_cell_index) const
+  inline const Real& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator[](
+      Index grid_cell_index) const
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
     {
@@ -156,21 +158,21 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::ConstVariableProxy::operator double() const
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::ConstVariableProxy::operator Real() const
   {
     if (state_.variables_.NumRows() != 1)
     {
       throw MicmException(
           MICM_ERROR_CATEGORY_STATE,
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
-          "Cannot convert multi-gridcell State variable to single double value");
+          "Cannot convert multi-gridcell State variable to single Real value");
     }
     return state_.variables_[0][index_];
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline const double& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::ConstVariableProxy::operator[](
-      std::size_t grid_cell_index) const
+  inline const Real& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::ConstVariableProxy::operator[](
+      Index grid_cell_index) const
   {
     if (grid_cell_index >= state_.number_of_grid_cells_)
     {
@@ -181,13 +183,13 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy::operator==(
-      const std::vector<double>& other) const
+      const std::vector<Real>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
     {
       return false;
     }
-    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    for (Index i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       if (state_.variables_[i][index_] != other[i])
       {
@@ -199,13 +201,13 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline bool State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::ConstVariableProxy::operator==(
-      const std::vector<double>& other) const
+      const std::vector<Real>& other) const
   {
     if (other.size() != state_.number_of_grid_cells_)
     {
       return false;
     }
-    for (std::size_t i = 0; i < state_.number_of_grid_cells_; ++i)
+    for (Index i = 0; i < state_.number_of_grid_cells_; ++i)
     {
       if (state_.variables_[i][index_] != other[i])
       {
@@ -241,7 +243,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::State(
       const StateParameters& parameters,
-      const std::size_t number_of_grid_cells)
+      const Index number_of_grid_cells)
       : conditions_(number_of_grid_cells),
         variables_(number_of_grid_cells, parameters.variable_names_.size(), 0.0),
         custom_rate_parameters_(number_of_grid_cells, parameters.custom_rate_parameter_labels_.size(), 0.0),
@@ -260,7 +262,7 @@ namespace micm
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
   {
-    std::size_t index = 0;
+    Index index = 0;
     for (auto& name : variable_names_)
     {
       variable_map_[name] = index++;
@@ -282,7 +284,7 @@ namespace micm
     else
     {
       // Default: all ODE variables (diagonal = 1.0)
-      for (std::size_t i = 0; i < state_size_; i++)
+      for (Index i = 0; i < state_size_; i++)
       {
         upper_left_identity_diagonal_.push_back(1.0);
       }
@@ -310,7 +312,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::VariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](std::size_t index)
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](Index index)
   {
     if (index >= state_size_)
     {
@@ -321,7 +323,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline typename State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::ConstVariableProxy
-  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](std::size_t index) const
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator[](Index index) const
   {
     if (index >= state_size_)
     {
@@ -370,9 +372,9 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentrations(
-      const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
+      const std::unordered_map<std::string, std::vector<Real>>& species_to_concentration)
   {
-    const std::size_t num_grid_cells = conditions_.size();
+    const Index num_grid_cells = conditions_.size();
     for (const auto& pair : species_to_concentration)
     {
       SetConcentration({ pair.first }, pair.second);
@@ -382,7 +384,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const Species& species,
-      double concentration)
+      Real concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -402,7 +404,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const Species& species,
-      const std::vector<double>& concentration)
+      const std::vector<Real>& concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -416,8 +418,8 @@ namespace micm
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
     }
-    std::size_t i_species = variable_map_[species.name_];
-    for (std::size_t i = 0; i < variables_.NumRows(); ++i)
+    Index i_species = variable_map_[species.name_];
+    for (Index i = 0; i < variables_.NumRows(); ++i)
     {
       variables_[i][i_species] = concentration[i];
     }
@@ -426,7 +428,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const std::string& element,
-      double concentration)
+      Real concentration)
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
@@ -446,7 +448,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
       const std::string& element,
-      const std::vector<double>& concentration)
+      const std::vector<Real>& concentration)
   {
     auto var = variable_map_.find(element);
     if (var == variable_map_.end())
@@ -460,8 +462,8 @@ namespace micm
           MICM_STATE_ERROR_CODE_INVALID_CONCENTRATION_COUNT_MULTIGRID,
           "Concentration vector size does not match the number of grid cells");
     }
-    std::size_t i_species = variable_map_[element];
-    for (std::size_t i = 0; i < variables_.NumRows(); ++i)
+    Index i_species = variable_map_[element];
+    for (Index i = 0; i < variables_.NumRows(); ++i)
     {
       variables_[i][i_species] = concentration[i];
     }
@@ -469,7 +471,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::UnsafelySetCustomRateParameters(
-      const std::vector<std::vector<double>>& parameters)
+      const std::vector<std::vector<Real>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
     {
@@ -487,7 +489,7 @@ namespace micm
           "Custom rate parameter count does not match the number of rate constants");
     }
 
-    for (size_t i = 0; i < number_of_grid_cells_; ++i)
+    for (Index i = 0; i < number_of_grid_cells_; ++i)
     {
       custom_rate_parameters_[i] = parameters[i];
     }
@@ -495,7 +497,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameters(
-      const std::unordered_map<std::string, std::vector<double>>& parameters)
+      const std::unordered_map<std::string, std::vector<Real>>& parameters)
   {
     for (const auto& pair : parameters)
     {
@@ -506,7 +508,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameter(
       const std::string& label,
-      double value)
+      Real value)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -526,7 +528,7 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameter(
       const std::string& label,
-      const std::vector<double>& values)
+      const std::vector<Real>& values)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -540,7 +542,7 @@ namespace micm
           MICM_STATE_ERROR_CODE_INVALID_CUSTOM_RATE_PARAM_COUNT_MULTIGRID,
           "Custom rate parameter vector size does not match the number of grid cells");
     }
-    for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
+    for (Index i = 0; i < custom_rate_parameters_.NumRows(); ++i)
     {
       custom_rate_parameters_[i][param->second] = values[i];
     }
@@ -548,14 +550,14 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetRelativeTolerance(
-      double relativeTolerance)
+      Real relativeTolerance)
   {
     this->relative_tolerance_ = relativeTolerance;
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(
-      const std::vector<double>& absoluteTolerance)
+      const std::vector<Real>& absoluteTolerance)
   {
     this->absolute_tolerance_ = absoluteTolerance;
   }
@@ -582,7 +584,7 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::PrintState(double time)
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::PrintState(Real time)
   {
     std::ios oldState(nullptr);
     oldState.copyfmt(std::cout);
@@ -592,7 +594,7 @@ namespace micm
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
-    for (size_t i = 0; i < variables_.NumRows(); ++i)
+    for (Index i = 0; i < variables_.NumRows(); ++i)
     {
       std::cout << std::setw(6) << time << ",";
 
@@ -608,7 +610,7 @@ namespace micm
         {
           std::cout << ",";
         }
-        std::size_t index = variable_map_.at(species);
+        Index index = variable_map_.at(species);
         std::cout << std::scientific << std::setw(width) << std::setprecision(2) << variables_[i][index];
         first = false;
       }

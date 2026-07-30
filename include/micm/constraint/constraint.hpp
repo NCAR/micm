@@ -5,6 +5,7 @@
 #include <micm/constraint/constraint_info.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/types.hpp>
 
 #include <concepts>
 #include <cstddef>
@@ -67,7 +68,7 @@ namespace micm
 
     /// @brief Get the number of species this constraint depends on
     /// @return Number of dependent species
-    std::size_t NumberOfDependencies() const
+    Index NumberOfDependencies() const
     {
       return std::visit([](const auto& c) { return c.species_dependencies_.size(); }, constraint_);
     }

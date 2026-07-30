@@ -1,5 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
+
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -26,10 +29,10 @@ namespace micm
         lu_decomp_(create_lu_decomp(matrix))
   {
     auto lu = lu_decomp_.template GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
-    for (std::size_t i = 0; i < lu.NumRows(); ++i)
+    for (Index i = 0; i < lu.NumRows(); ++i)
     {
-      std::size_t nLij = 0;
-      for (std::size_t j = 0; j < i; ++j)
+      Index nLij = 0;
+      for (Index j = 0; j < i; ++j)
       {
         if (lu.IsZero(i, j))
         {
@@ -40,10 +43,10 @@ namespace micm
       }
       nLij_.push_back(nLij);
     }
-    for (std::size_t i = lu.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
+    for (Index i = lu.NumRows() - 1; i != static_cast<Index>(-1); --i)
     {
-      std::size_t nUij = 0;
-      for (std::size_t j = i + 1; j < lu.NumColumns(); ++j)
+      Index nUij = 0;
+      for (Index j = i + 1; j < lu.NumColumns(); ++j)
       {
         if (lu.IsZero(i, j))
         {
@@ -75,14 +78,14 @@ namespace micm
         // b values passed in as x; overwrites b with y values
         {
           auto Lij_yj = Lij_yj_.begin();
-          std::size_t i = 0;
+          Index i = 0;
           for (const auto& nLij : nLij_)
           {
             auto x_col_i = x_view.GetColumnView(i);
-            for (std::size_t k = 0; k < nLij; ++k)
+            for (Index k = 0; k < nLij; ++k)
             {
               lu_view.ForEachBlock(
-                [](double& yi, const double& Lij, const double& yj)
+                [](Real& yi, const Real& Lij, const Real& yj)
                 {
                   yi -= Lij * yj;
                 },
@@ -98,15 +101,15 @@ namespace micm
         // overwrites y values with x values
         {
           auto Uij_xj = Uij_xj_.begin();
-          std::size_t i = nUij_Uii_.size();
+          Index i = nUij_Uii_.size();
           for (const auto& nUij_Uii : nUij_Uii_)
           {
             --i;
             auto x_col_i = x_view.GetColumnView(i);
-            for (std::size_t k = 0; k < nUij_Uii.first; ++k)
+            for (Index k = 0; k < nUij_Uii.first; ++k)
             {
               lu_view.ForEachBlock(
-                [](double& xi, const double& Uij, const double& xj)
+                [](Real& xi, const Real& Uij, const Real& xj)
                 {
                   xi -= Uij * xj;
                 },
@@ -116,7 +119,7 @@ namespace micm
               ++Uij_xj;
             }
             lu_view.ForEachBlock(
-              [](double& xi, const double& Uii)
+              [](Real& xi, const Real& Uii)
               {
                 xi /= Uii;
               },

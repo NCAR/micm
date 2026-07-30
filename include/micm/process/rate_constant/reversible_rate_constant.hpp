@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   struct ReversibleRateConstantParameters
   {
     /// @brief Pre-exponential factor [(mol m−3)^(−(𝑛−1)) s−1]
-    double A_{ 1 };
+    Real A_{ 1 };
     /// @brief Activation threshold [K]
-    double C_{ 0 };
+    Real C_{ 0 };
     /// @brief Reverse rate constant [s−1], indicating how fast the species
     ///        leaves the condensed phase to return to the gas phase
-    double k_r_{ 0 };
+    Real k_r_{ 0 };
   };
 }  // namespace micm

@@ -28,10 +28,12 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <type_traits>
 #include <vector>
 
 using namespace micm;
@@ -40,11 +42,11 @@ namespace
 {
   struct SolveResult
   {
-    double A_gas_final_;
-    double P_final_;
-    double min_A_gas_;
-    uint64_t accepted_;
-    uint64_t rejected_;
+    micm::Real A_gas_final_;
+    micm::Real P_final_;
+    micm::Real min_A_gas_;
+    micm::Index accepted_;
+    micm::Index rejected_;
   };
 
   /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (A_gas)
@@ -52,7 +54,7 @@ namespace
   /// @param k Rate constant for B_aq -> P reaction
   /// @param K1 Equilibrium constant for A_gas <-> A_aq
   /// @param K2 Equilibrium constant for A_aq <-> B_aq
-  SolveResult RunCascadeSystem(double balance_atol, double k, double K1, double K2)
+  SolveResult RunCascadeSystem(micm::Real balance_atol, micm::Real k, micm::Real K1, micm::Real K2)
   {
     auto A_gas = Species("A_gas");
     auto A_aq = Species("A_aq");
@@ -61,7 +63,7 @@ namespace
 
     Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A_gas, A_aq, B_aq, P } };
 
-    double C_total = 1.0e-6;
+    micm::Real C_total = 1.0e-6;
 
     Process rxn = ChemicalReactionBuilder()
                       .SetReactants({ B_aq })
@@ -96,26 +98,36 @@ namespace
                       .Build();
 
     auto state = solver.GetState(1);
-    state.SetRelativeTolerance(1.0e-6);
+    // Float precision cannot support a 1e-6 relative tolerance (~8x float epsilon);
+    // the ultra-stiff case underflows the step size. Keep double mode unchanged.
+    constexpr micm::Real rel_tol = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-4;
+    state.SetRelativeTolerance(rel_tol);
 
     auto& vm = state.variable_map_;
-    std::size_t gi = vm.at("A_gas");
-    std::size_t ai = vm.at("A_aq");
-    std::size_t bi = vm.at("B_aq");
-    std::size_t pi = vm.at("P");
+    micm::Index gi = vm.at("A_gas");
+    micm::Index ai = vm.at("A_aq");
+    micm::Index bi = vm.at("B_aq");
+    micm::Index pi = vm.at("P");
 
     // balance_atol for A_gas (algebraic balance variable under test),
     // moderate atol for equilibrium algebraic variables (A_aq, B_aq),
     // tight atol for the only differential variable (P)
-    std::vector<double> atols(4, 1.0e-12);
+    std::vector<micm::Real> atols(4, 1.0e-12);
     atols[gi] = balance_atol;
     atols[ai] = 1.0e-8;
     atols[bi] = 1.0e-8;
+    // P's atol sets the internal step size near P=0 (dP/dt is large in the
+    // ultra-stiff case). A 1e-12 atol demands a step below the float unit
+    // roundoff, so the step size underflows and the solver reports
+    // StepSizeTooSmall. Relax P's atol for float (still the tightest of any
+    // variable) while keeping double mode at its original 1e-12.
+    constexpr micm::Real p_atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-9;
+    atols[pi] = p_atol;
     state.SetAbsoluteTolerances(atols);
 
     // Initial: equilibrium satisfied, P = 0
-    double denom = 1.0 + K1 + K1 * K2;
-    double Ag0 = C_total / denom;
+    micm::Real denom = 1.0 + K1 + K1 * K2;
+    micm::Real Ag0 = C_total / denom;
     state.variables_[0][gi] = Ag0;
     state.variables_[0][ai] = K1 * Ag0;
     state.variables_[0][bi] = K2 * K1 * Ag0;
@@ -125,11 +137,11 @@ namespace
 
     solver.UpdateStateParameters(state);
 
-    double dt = 30.0;
-    double advanced = 0.0;
-    double min_a_gas = 1e99;
-    uint64_t total_accepted = 0;
-    uint64_t total_rejected = 0;
+    micm::Real dt = 30.0;
+    micm::Real advanced = 0.0;
+    micm::Real min_a_gas = 1e99;
+    micm::Index total_accepted = 0;
+    micm::Index total_rejected = 0;
 
     while (advanced < dt)
     {

@@ -1,20 +1,25 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include "../precision_matchers.hpp"
+
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
+
+#include <type_traits>
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {
   auto Cl2 = micm::Species("Cl2");
   auto Cl = micm::Species("Cl");
-  Cl2.SetProperty("absolute tolerance", 1.0e-20);
-  Cl.SetProperty("absolute tolerance", 1.0e-20);
+  Cl2.SetProperty("absolute tolerance", micm::Real{ 1.0e-20 });
+  Cl.SetProperty("absolute tolerance", micm::Real{ 1.0e-20 });
 
   auto A = micm::Species("A");
   auto B = micm::Species("B");
@@ -63,7 +68,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   // Constraint: A + B + C = 1
   // ---------------------------------------------------------------------------
 
-  double sum_initial_conc = 1.0;
+  micm::Real sum_initial_conc = 1.0;
 
   std::vector<micm::Constraint> constraints;
   constraints.emplace_back(
@@ -83,7 +88,8 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
                     .Build();
 
   auto state = solver.GetState(1);
-  state.SetRelativeTolerance(1.0e-8);
+  // 1e-8 is below float epsilon -- see the same override in terminator.hpp.
+  state.SetRelativeTolerance(micm::Real{ std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-5 });
 
   // Robertson rates
   state.SetCustomRateParameter("robertson_r1", 0.04);
@@ -103,12 +109,12 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   solver.UpdateStateParameters(state);
 
-  constexpr size_t N = 12;
-  double time_step = 1.0;
+  constexpr micm::Index N = 12;
+  micm::Real time_step = 1.0;
 
-  for (size_t i = 0; i < N; ++i)
+  for (micm::Index i = 0; i < N; ++i)
   {
-    double advanced = 0.0;
+    micm::Real advanced = 0.0;
 
     while (advanced < time_step)
     {
@@ -117,7 +123,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
     }
 
     // 1. Mass conservation enforced by DAE constraint
-    EXPECT_NEAR(state[A] + state[B] + state[C], sum_initial_conc, 1e-10);
+    EXPECT_REAL_CLOSE(state[A] + state[B] + state[C], sum_initial_conc, 1e-10);
 
     time_step *= 10.0;
   }

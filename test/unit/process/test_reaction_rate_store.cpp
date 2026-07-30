@@ -1,5 +1,7 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
+#include "../../precision_matchers.hpp"
+
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/process/rate_constant/branched_rate_constant.hpp>
@@ -13,6 +15,7 @@
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -103,7 +106,7 @@ namespace
 TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
 {
   Species a("a"), b("b"), c("c", { { "molecular weight [kg mol-1]", 0.025 } });
-  double c_diff = 1.0e-5;
+  micm::Real c_diff = 1.0e-5;
   PhaseSpecies gas_c(c, c_diff);
   Phase gas{ "gas", { PhaseSpecies(a), PhaseSpecies(b), gas_c } };
 
@@ -193,10 +196,10 @@ TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
 
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.arrhenius_.size(), 1u);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].A_, 2.15e-4);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].B_, 1.2);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].C_, 110.0);
-  EXPECT_DOUBLE_EQ(store.arrhenius_[0].D_, 300.0);
+  EXPECT_REAL_EQ(store.arrhenius_[0].A_, 2.15e-4);
+  EXPECT_REAL_EQ(store.arrhenius_[0].B_, 1.2);
+  EXPECT_REAL_EQ(store.arrhenius_[0].C_, 110.0);
+  EXPECT_REAL_EQ(store.arrhenius_[0].D_, 300.0);
 }
 
 // ============================================================
@@ -222,15 +225,15 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
   ASSERT_EQ(store.branched_.size(), 1u);
 
   // k0_ = 2e-22 * N_A * 1e-6 * exp(n)
-  double expected_k0 = 2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(3.0);
+  micm::Real expected_k0 = 2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(3.0);
   EXPECT_NEAR(store.branched_[0].k0_, expected_k0, 1.0e-10 * expected_k0);
 
   // z_ = A_val * (1 - a0) / a0
-  double air_ref = 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6;
-  double a_val = expected_k0 * air_ref;
-  double b_val = 0.43 * std::pow(293.0 / 298.0, -8.0);
-  double A_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
-  double expected_z = A_val * (1.0 - 0.5) / 0.5;
+  micm::Real air_ref = 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6;
+  micm::Real a_val = expected_k0 * air_ref;
+  micm::Real b_val = 0.43 * std::pow(293.0 / 298.0, -8.0);
+  micm::Real A_val = a_val / (1.0 + a_val / b_val) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_val / b_val), 2.0)));
+  micm::Real expected_z = A_val * (1.0 - 0.5) / 0.5;
   EXPECT_NEAR(store.branched_[0].z_, expected_z, 1.0e-10 * std::abs(expected_z));
 }
 
@@ -262,10 +265,10 @@ TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
   ASSERT_EQ(store.user_defined_.size(), 2u);
 
   EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
-  EXPECT_DOUBLE_EQ(store.user_defined_[0].scaling_factor_, 2.0);
+  EXPECT_REAL_EQ(store.user_defined_[0].scaling_factor_, 2.0);
 
   EXPECT_EQ(store.user_defined_[1].custom_param_index_, 1u);
-  EXPECT_DOUBLE_EQ(store.user_defined_[1].scaling_factor_, 0.5);
+  EXPECT_REAL_EQ(store.user_defined_[1].scaling_factor_, 0.5);
 }
 
 // ============================================================
@@ -274,9 +277,9 @@ TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
 
 TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
 {
-  double mw = 0.025;
-  double diff_coeff = 2.3e2;
-  double prob = 0.74;
+  micm::Real mw = 0.025;
+  micm::Real diff_coeff = 2.3e2;
+  micm::Real prob = 0.74;
 
   Species c("c", { { "molecular weight [kg mol-1]", mw } });
   Species b("b");
@@ -294,16 +297,19 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
   auto store = ReactionRateConstantStore::BuildFrom(procs);
   ASSERT_EQ(store.surface_.size(), 1u);
 
-  EXPECT_DOUBLE_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
-  EXPECT_NEAR(store.surface_[0].mean_free_speed_factor_, 8.0 * constants::GAS_CONSTANT / (M_PI * mw), 1.0e-14);
-  EXPECT_DOUBLE_EQ(store.surface_[0].reaction_probability_, prob);
+  EXPECT_REAL_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
+  EXPECT_NEAR(
+      store.surface_[0].mean_free_speed_factor_,
+      8.0 * constants::GAS_CONSTANT / (M_PI * mw),
+      (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-3);
+  EXPECT_REAL_EQ(store.surface_[0].reaction_probability_, prob);
   EXPECT_EQ(store.surface_[0].custom_param_base_index_, 0u);
 }
 
 TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
 {
-  double mw = 0.025;
-  double diff_coeff = 1.0e-5;
+  micm::Real mw = 0.025;
+  micm::Real diff_coeff = 1.0e-5;
 
   Species a("a"), b("b"), c("c", { { "molecular weight [kg mol-1]", mw } });
   PhaseSpecies gas_c(c, diff_coeff);
@@ -372,7 +378,10 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
   // Pointer should be non-null and function should work
   ASSERT_NE(store.lambda_entries_[0].source_, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
-  EXPECT_NEAR(store.lambda_entries_[0].source_->lambda_function_(cond), 0.3, 1.0e-14);
+  EXPECT_NEAR(
+      store.lambda_entries_[0].source_->lambda_function_(cond),
+      0.3,
+      (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-5);
 }
 
 // ============================================================
@@ -460,7 +469,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
   auto store = ReactionRateConstantStore::BuildFrom(procs);
 
   // Total = lambdaOffset() + lambda_entries_.size() = number of chemical reactions
-  std::size_t n_rxn = procs.size();
+  micm::Index n_rxn = procs.size();
 
   EXPECT_EQ(store.LambdaOffset() + store.lambda_entries_.size(), n_rxn);
 }

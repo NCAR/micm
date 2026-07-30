@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -36,15 +37,15 @@ namespace micm
     /// Index in A.data_ for all diagonal elements, the number of iterations of the inner (j) loop
     /// for each (i) used to set A[j][i], and the number of iterations of the middle (k) loop for
     /// each (i) used to set A[j][k]
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> aii_nji_nki_;
+    std::vector<std::tuple<Index, Index, Index>> aii_nji_nki_;
     /// Index in A.data_ for A[j][i] for each iteration of the inner (j) loop
     /// used to set the value of A[j][i]
-    std::vector<std::size_t> aji_;
+    std::vector<Index> aji_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop,
     /// and the number of iterations of the inner (j) loop for each (k) used to set A[j][k]
-    std::vector<std::pair<std::size_t, std::size_t>> aik_njk_;
+    std::vector<std::pair<Index, Index>> aik_njk_;
     /// Index in A.data_ for A[j][k] and A[j][i] for each iteration of the inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> ajk_aji_;
+    std::vector<std::pair<Index, Index>> ajk_aji_;
 
    public:
     /// @brief default constructor

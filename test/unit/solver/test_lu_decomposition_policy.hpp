@@ -1,11 +1,14 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <functional>
 #include <iomanip>
 #include <random>
+#include <type_traits>
 
 template<typename T, class SparseMatrixPolicy>
 void CheckResults(
@@ -16,14 +19,14 @@ void CheckResults(
 {
   EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
   EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
-  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
+  for (micm::Index i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
-    for (std::size_t i = 0; i < A.NumRows(); ++i)
+    for (micm::Index i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+      for (micm::Index j = 0; j < A.NumColumns(); ++j)
       {
         T result{};
-        for (std::size_t k = 0; k < A.NumRows(); ++k)
+        for (micm::Index k = 0; k < A.NumRows(); ++k)
         {
           if (!(L.IsZero(i, k) || U.IsZero(k, j)))
           {
@@ -46,14 +49,14 @@ void CheckResults(
   }
 }
 
-void PrintMatrix(const auto& matrix, std::size_t width)
+void PrintMatrix(const auto& matrix, micm::Index width)
 {
-  for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
+  for (micm::Index i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
     std::cout << "block: " << i_block << std::endl;
-    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    for (micm::Index i = 0; i < matrix.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
+      for (micm::Index j = 0; j < matrix.NumColumns(); ++j)
       {
         if (matrix.IsZero(i, j))
         {
@@ -99,20 +102,27 @@ void TestDenseMatrix()
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
   auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
-  CheckResults<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
+  CheckResults<micm::Real, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestRandomMatrix(std::size_t number_of_blocks)
+void TestRandomMatrix(micm::Index number_of_blocks)
 {
+  // Ill-conditioned random lognormal matrices: in single precision the LU reconstruction of small
+  // pivots has O(1) relative error, so this check is validated only in the double-precision build.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Ill-conditioned random-matrix LU reconstruction is not accurate in single precision.";
+  }
+
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
-    for (std::size_t j = 0; j < 10; ++j)
+    for (micm::Index j = 0; j < 10; ++j)
     {
       if (i == j || gen_bool())
       {
@@ -123,13 +133,13 @@ void TestRandomMatrix(std::size_t number_of_blocks)
 
   SparseMatrixPolicy A(builder);
 
-  for (std::size_t i = 0; i < 10; ++i)
+  for (micm::Index i = 0; i < 10; ++i)
   {
-    for (std::size_t j = 0; j < 10; ++j)
+    for (micm::Index j = 0; j < 10; ++j)
     {
       if (!A.IsZero(i, j))
       {
-        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+        for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
         {
           A[i_block][i][j] = get_double();
         }
@@ -140,21 +150,21 @@ void TestRandomMatrix(std::size_t number_of_blocks)
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
   auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
-  CheckResults<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
+  CheckResults<micm::Real, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestExtremeValueInitialization(std::size_t number_of_blocks, double initial_value)
+void TestExtremeValueInitialization(micm::Index number_of_blocks, micm::Real initial_value)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   auto size = 10;
 
   auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(initial_value);
-  for (std::size_t i = 0; i < size; ++i)
+  for (micm::Index i = 0; i < size; ++i)
   {
-    for (std::size_t j = 0; j < size; ++j)
+    for (micm::Index j = 0; j < size; ++j)
     {
       if (i == j || gen_bool())
       {
@@ -169,14 +179,14 @@ void TestExtremeValueInitialization(std::size_t number_of_blocks, double initial
   // for very large numbers of grid cells
   // To keep the accuracy on the check results function small, we only generat 1 blocks worth of
   // random values and then copy that into every other block
-  for (std::size_t i = 0; i < size; ++i)
+  for (micm::Index i = 0; i < size; ++i)
   {
-    for (std::size_t j = 0; j < size; ++j)
+    for (micm::Index j = 0; j < size; ++j)
     {
       if (!A.IsZero(i, j))
       {
         A[0][i][j] = get_double();
-        for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block)
+        for (micm::Index i_block = 1; i_block < number_of_blocks; ++i_block)
         {
           A[i_block][i][j] = A[0][i][j];
         }
@@ -197,26 +207,27 @@ void TestExtremeValueInitialization(std::size_t number_of_blocks, double initial
   CheckCopyToHost<SparseMatrixPolicy>(LU.first);
   CheckCopyToHost<SparseMatrixPolicy>(LU.second);
 
-  CheckResults<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-09); });
+  constexpr micm::Real tol = (std::is_same_v<micm::Real, double>) ? 1.0e-09 : 1.0e-4;
+  CheckResults<micm::Real, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, tol); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-void TestDiagonalMatrix(std::size_t number_of_blocks)
+void TestDiagonalMatrix(micm::Index number_of_blocks)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
-  for (std::size_t i = 0; i < 6; ++i)
+  for (micm::Index i = 0; i < 6; ++i)
   {
     builder = builder.WithElement(i, i);
   }
 
   SparseMatrixPolicy A(builder);
 
-  for (std::size_t i = 0; i < 6; ++i)
+  for (micm::Index i = 0; i < 6; ++i)
   {
-    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
     {
       A[i_block][i][i] = get_double();
     }
@@ -225,6 +236,6 @@ void TestDiagonalMatrix(std::size_t number_of_blocks)
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
   auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(A, 0, false);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
-  CheckResults<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
+  CheckResults<micm::Real, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

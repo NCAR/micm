@@ -1,74 +1,78 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 
+#include <micm/util/types.hpp>
+
 #include <gtest/gtest.h>
 
-template<std::size_t L>
+#include <type_traits>
+
+template<micm::Index L>
 using VectorBackwardEuler = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
-template<std::size_t L>
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
+template<micm::Index L>
 using VectorStateType = typename VectorBackwardEuler<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeDoolittle = typename VectorBackwardEulerDoolittle<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
     micm::LuDecompositionDoolittle>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeDoolittleCSC = typename VectorBackwardEulerDolittleCSC<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeMozart = typename VectorBackwardEulerMozart<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
     micm::LuDecompositionMozart>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeMozartCSC = typename VectorBackwardEulerMozartCSC<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittleInPlace>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeDoolittleInPlace = typename VectorBackwardEulerDoolittleInPlace<L>::StatePolicyType;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionMozartInPlace>;
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorBackwardEulerMozartInPlace<L>::StatePolicyType;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
@@ -137,6 +141,14 @@ TEST(AnalyticalExamples, Troe)
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffTroe(backward_euler);
   TestAnalyticalStiffTroe(backard_euler_vector_1);
   TestAnalyticalStiffTroe(backard_euler_vector_2);
@@ -155,6 +167,14 @@ TEST(AnalyticalExamples, Photolysis)
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffPhotolysis(backward_euler, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_2, 1e-3);
@@ -173,6 +193,14 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffTernaryChemicalActivation(backward_euler, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_1, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_2, 1e-2);
@@ -191,6 +219,14 @@ TEST(AnalyticalExamples, Tunneling)
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffTunneling(backward_euler, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_2, 1e-3);
@@ -209,6 +245,14 @@ TEST(AnalyticalExamples, Arrhenius)
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffArrhenius(backward_euler, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_2, 1e-3);
@@ -227,6 +271,14 @@ TEST(AnalyticalExamples, Branched)
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
+  // The fast equilibrium in these systems (k ~ 4e10 against h = 1) makes the 2x2 block of the
+  // backward-Euler matrix exactly singular in single precision: (1+k3)(1+k4) and k3*k4 round to
+  // the same float, so the pivot is 0 and the solve returns inf.
+  if constexpr (!std::is_same_v<micm::Real, double>)
+  {
+    GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
+  }
+
   TestAnalyticalStiffBranched(backward_euler, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_1, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_2, 1e-2);

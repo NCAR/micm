@@ -1,5 +1,6 @@
 #include "test_matrix_policy.hpp"
 
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -17,30 +18,30 @@ TEST(VectorMatrix, SmallVectorMatrix)
 {
   auto matrix = TestSmallMatrix<Group2MatrixAlias>();
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 2);
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
-  EXPECT_EQ(data[1 + 2 * 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 + 2 * 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(VectorMatrix, SmallConstVectorMatrix)
 {
   auto matrix = TestSmallConstMatrix<Group4MatrixAlias>();
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 1);
   EXPECT_EQ(matrix.GroupVectorSize(), 4);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 + 4 * 4], 102.3);
-  EXPECT_EQ(data[1 + 4 * 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[2 + 4 * 4], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 + 4 * 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(VectorMatrix, InitializeVectorMatrix)

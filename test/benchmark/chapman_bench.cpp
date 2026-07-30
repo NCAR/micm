@@ -112,12 +112,12 @@ namespace
   }
 
   template<class Solver>
-  void InitState(typename Solver::StatePolicyType& state, std::size_t num_cells)
+  void InitState(typename Solver::StatePolicyType& state, micm::Index num_cells)
   {
     // Initial concentrations: matches the integration test's cell 0 for consistency.
-    std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-    std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
-    for (std::size_t c = 0; c < num_cells; ++c)
+    std::vector<micm::Real> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
+    std::vector<micm::Real> photo_rates{ 0.1, 0.2, 0.3 };
+    for (micm::Index c = 0; c < num_cells; ++c)
     {
       state.variables_[c] = concentrations;
       state.custom_rate_parameters_[c] = photo_rates;
@@ -127,7 +127,7 @@ namespace
   }
 
   template<class Solver>
-  double RunBench(Solver& solver, std::size_t num_cells, std::size_t num_steps, double dt)
+  double RunBench(Solver& solver, micm::Index num_cells, micm::Index num_steps, micm::Real dt)
   {
     auto state = solver.GetState(num_cells);
     InitState<Solver>(state, num_cells);
@@ -142,7 +142,7 @@ namespace
     CALLGRIND_START_INSTRUMENTATION;
     CALLGRIND_TOGGLE_COLLECT;
     auto t0 = std::chrono::steady_clock::now();
-    for (std::size_t s = 0; s < num_steps; ++s)
+    for (micm::Index s = 0; s < num_steps; ++s)
     {
       [[maybe_unused]] auto r = solver.Solve(dt, state);
     }
@@ -155,9 +155,9 @@ namespace
 
 int main(int argc, char** argv)
 {
-  std::size_t num_cells = (argc > 1) ? std::stoul(argv[1]) : 10000;
-  std::size_t num_steps = (argc > 2) ? std::stoul(argv[2]) : 100;
-  double dt = (argc > 3) ? std::stod(argv[3]) : 30.0;
+  micm::Index num_cells = (argc > 1) ? std::stoul(argv[1]) : 10000;
+  micm::Index num_steps = (argc > 2) ? std::stoul(argv[2]) : 100;
+  micm::Real dt = (argc > 3) ? static_cast<micm::Real>(std::stod(argv[3])) : static_cast<micm::Real>(30.0);
   std::string kind = (argc > 4) ? argv[4] : "standard";
 
   double elapsed_ms = 0.0;
@@ -173,40 +173,40 @@ int main(int argc, char** argv)
   {
     auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<double, 1>,
-                                     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>>(options));
+                                     micm::VectorMatrix<micm::Real, 1>,
+                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
   else if (kind == "vector2")
   {
     auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<double, 2>,
-                                     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>>(options));
+                                     micm::VectorMatrix<micm::Real, 2>,
+                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<2>>>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
   else if (kind == "vector4")
   {
     auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<double, 4>,
-                                     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>>(options));
+                                     micm::VectorMatrix<micm::Real, 4>,
+                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
   else if (kind == "vector8")
   {
     auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<double, 8>,
-                                     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<8>>>(options));
+                                     micm::VectorMatrix<micm::Real, 8>,
+                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<8>>>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
   else if (kind == "vector128")
   {
     auto solver = BuildChapmanSolver(SOLVER_BUILDER<
                                      micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<double, 128>,
-                                     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<128>>>(options));
+                                     micm::VectorMatrix<micm::Real, 128>,
+                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<128>>>(options));
     elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
   }
   else

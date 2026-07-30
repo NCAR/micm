@@ -43,14 +43,14 @@ camp-data:
         Fc: 0.9
         N: 1.2
       - type: "TROE"
-        k0_A: 1.2e4
-        k0_B: 167.0
-        k0_C: 3.0
-        kinf_A: 136.0
-        kinf_B: 5.0
-        kinf_C: 24.0
-        Fc: 0.9
-        N: 0.8
+        k0_A: 1.8e-30
+        k0_B: -3.0
+        k0_C: 0.0
+        kinf_A: 2.8e-11
+        kinf_B: 0.0
+        kinf_C: 0.0
+        Fc: 0.6
+        N: 1.0
         reactants:
           E:
             qty: 2

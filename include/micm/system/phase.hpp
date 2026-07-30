@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <optional>
@@ -18,33 +19,33 @@ namespace micm
   {
    public:
     Species species_;
-    std::optional<double> diffusion_coefficient_;
-    std::optional<double> density_;
+    std::optional<Real> diffusion_coefficient_;
+    std::optional<Real> density_;
 
     PhaseSpecies(const Species& species)
         : species_(species)
     {
     }
 
-    PhaseSpecies(const Species& species, double diffusion_coefficient)
+    PhaseSpecies(const Species& species, Real diffusion_coefficient)
         : species_(species),
           diffusion_coefficient_(diffusion_coefficient)
     {
     }
 
-    PhaseSpecies(const Species& species, double diffusion_coefficient, double density)
+    PhaseSpecies(const Species& species, Real diffusion_coefficient, Real density)
         : species_(species),
           diffusion_coefficient_(diffusion_coefficient),
           density_(density)
     {
     }
 
-    void SetDiffusionCoefficient(double diffusion_coefficient)
+    void SetDiffusionCoefficient(Real diffusion_coefficient)
     {
       diffusion_coefficient_ = diffusion_coefficient;
     }
 
-    void SetDensity(double density)
+    void SetDensity(Real density)
     {
       density_ = density;
     }
@@ -75,7 +76,7 @@ namespace micm
     }
 
     /// @brief Returns the number of non-parameterized species
-    std::size_t StateSize() const
+    Index StateSize() const
     {
       return std::count_if(
           phase_species_.begin(),

@@ -1,11 +1,13 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::Solve(
-      double time_step,
+      Real time_step,
       auto& state,
       const BackwardEulerSolverParameters& parameters) const
   {
@@ -23,13 +25,13 @@ namespace micm
 
     SolverResult result;
 
-    std::size_t max_iter = parameters.max_number_of_steps_;
+    Index max_iter = parameters.max_number_of_steps_;
     const auto time_step_reductions = parameters.time_step_reductions_;
 
-    double H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
-    double present_time = 0.0;
-    std::size_t n_successful_integrations = 0;
-    std::size_t n_convergence_failures = 0;
+    Real H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
+    Real present_time = 0.0;
+    Index n_successful_integrations = 0;
+    Index n_convergence_failures = 0;
 
     auto derived_class_temporary_variables =
         static_cast<BackwardEulerTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
@@ -44,7 +46,7 @@ namespace micm
     {
       result.state_ = SolverState::Running;
       bool converged = false;
-      std::size_t iterations = 0;
+      Index iterations = 0;
 
       do
       {
@@ -82,7 +84,7 @@ namespace micm
         // forcing_blk in camchem
         // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
-        forcing.ForEach([&](double& f, const double& yn1, const double& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
+        forcing.ForEach([&](Real& f, const Real& yn1, const Real& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
@@ -99,7 +101,7 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max(0.0, yn1 + f); }, forcing);
+        Yn1.ForEach([&](Real& yn1, const Real& f) { yn1 = std::max<Real>(0.0, yn1 + f); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
@@ -119,7 +121,22 @@ namespace micm
         if (n_convergence_failures >= time_step_reductions.size())
         {
           present_time += H;
+          // Distinguish a genuine blow-up from a merely unconverged step, so callers are not handed
+          // non-finite concentrations under a "success" status. Only reached once the solver has
+          // already exhausted its step-size reductions, so this scan costs nothing in the happy path.
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
+          for (const auto& y : Yn1.AsVector())
+          {
+            if (std::isnan(y))
+            {
+              result.state_ = SolverState::NaNDetected;
+              break;
+            }
+            if (std::isinf(y))
+            {
+              result.state_ = SolverState::InfDetected;
+            }
+          }
           break;
         }
 
@@ -153,23 +170,31 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
   inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
-    const BackwardEulerSolverParameters& parameters,
-    const DenseMatrixPolicy& residual,
-    const DenseMatrixPolicy& Yn1,
-    const std::vector<double>& absolute_tolerance,
-    double relative_tolerance)
+      const BackwardEulerSolverParameters& parameters,
+      const DenseMatrixPolicy& residual,
+      const DenseMatrixPolicy& Yn1,
+      const std::vector<Real>& absolute_tolerance,
+      Real relative_tolerance)
   {
-    const std::size_t n_vars = absolute_tolerance.size();
+    const Index n_vars = absolute_tolerance.size();
     bool retval = true;
     DenseMatrixPolicy::Function(
       [&](const auto&& residual_view, const auto&& Yn1_view)
       {
-        for (std::size_t i_var = 0; i_var < n_vars; ++i_var)
+        for (Index i_var = 0; i_var < n_vars; ++i_var)
         {
-          const double var_abs_tol = absolute_tolerance[i_var];
+          const Real var_abs_tol = absolute_tolerance[i_var];
           residual_view.ForEachRow(
-            [&](const double& residual, const double& Yn1)
+            [&](const Real& residual, const Real& Yn1)
             {
+              // A non-finite residual is never converged. Without this check an infinite residual escapes
+              // the test below, because the relative bound rel_tol * |Yn1| is itself infinite and
+              // inf > inf is false -- a blown-up solve would then be reported as SolverState::Converged.
+              if (!std::isfinite(residual))
+              {
+                retval = false;
+                return;
+              }
               if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
                   std::abs(residual) > relative_tolerance * std::abs(Yn1))
               {
@@ -178,9 +203,14 @@ namespace micm
             },
             residual_view.GetConstColumnView(i_var),
             Yn1_view.GetConstColumnView(i_var));
-          if (!retval) { return; }
+          if (!retval)
+          {
+            return;
+          }
         }
-      }, residual, Yn1)(residual, Yn1);
+      },
+      residual,
+      Yn1)(residual, Yn1);
     return retval;
   }
 }  // namespace micm

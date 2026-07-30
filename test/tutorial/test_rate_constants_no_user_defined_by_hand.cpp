@@ -1,4 +1,5 @@
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -9,7 +10,7 @@ using namespace micm;
 
 // Conversion factor from moles m-3 to molecules cm-3 for consistency
 // with the configuraion file
-constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
+constexpr Real MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
 
 int main(const int argc, const char* argv[])
 {
@@ -17,7 +18,7 @@ int main(const int argc, const char* argv[])
   auto b = Species("B");
   auto c = Species(
       "C",
-      std::map<std::string, double>{ { "molecular weight [kg mol-1]", 0.025 }});
+      std::map<std::string, Real>{ { "molecular weight [kg mol-1]", 0.025 }});
   auto d = Species("D");
   auto e = Species("E");
   auto f = Species("F");
@@ -35,8 +36,8 @@ int main(const int argc, const char* argv[])
     return 1; // Failure
   }
 
-  double c_diffusion_coefficient = 2.3e2;
-  size_t surface_c_index = std::distance(phase_species_list.begin(), it);
+  Real c_diffusion_coefficient = 2.3e2;
+  Index surface_c_index = std::distance(phase_species_list.begin(), it);
   phase_species_list[surface_c_index].SetDiffusionCoefficient(c_diffusion_coefficient);
 
   Process r1 = ChemicalReactionBuilder()
@@ -91,18 +92,24 @@ int main(const int argc, const char* argv[])
 
   // to have a stoichiemetric coefficient of more than one for reactants,
   // list the reactant that many times
+  //
+  // The falloff parameters are those measured for OH + NO2 + M -> HNO3 + M (JPL 19-5, Table 2):
+  // k0 = 1.8e-30 (T/300)^-3.0 cm6 molecule-2 s-1 and kinf = 2.8e-11 cm3 molecule-1 s-1. Using
+  // realistic magnitudes matters here -- k0_A_ is a third-order rate constant, so the conversion
+  // to mole-based units squares MOLES_M3_TO_MOLECULES_CM3, and an unphysically large k0 overflows
+  // single precision.
   Process r6 =
       ChemicalReactionBuilder()
           .SetReactants({ e, e })
           .SetProducts({ StoichSpecies(g, 1) })
-          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
-                                                     .k0_B_ = 167.0,
-                                                     .k0_C_ = 3.0,
-                                                     .kinf_A_ = 136.0 * MOLES_M3_TO_MOLECULES_CM3,
-                                                     .kinf_B_ = 5.0,
-                                                     .kinf_C_ = 24.0,
-                                                     .Fc_ = 0.9,
-                                                     .N_ = 0.8 })
+          .SetRateConstant(TroeRateConstantParameters{ .k0_A_ = 1.8e-30 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
+                                                     .k0_B_ = -3.0,
+                                                     .k0_C_ = 0.0,
+                                                     .kinf_A_ = 2.8e-11 * MOLES_M3_TO_MOLECULES_CM3,
+                                                     .kinf_B_ = 0.0,
+                                                     .kinf_C_ = 0.0,
+                                                     .Fc_ = 0.6,
+                                                     .N_ = 1.0 })
           .SetPhase(gas_phase)
           .Build();
 
@@ -139,25 +146,32 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("C.particle number concentration [# m-3]", 2.5e6);
 
   // choose a timestep and print the initial state
-  double time_step = 500;  // s
+  Real time_step = 500;  // s
 
   state.PrintHeader();
   state.PrintState(0);
 
   // solve for ten iterations
-  for (int i = 0; i < 10; ++i)
+  for (Index i = 0; i < 10; ++i)
   {
     // Depending on how stiff the system is
     // the solver integration step may not be able to solve for the full time step
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
-    double elapsed_solve_time = 0;
+    Real elapsed_solve_time = 0;
     solver.UpdateStateParameters(state);
 
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time += result.stats_.final_time_;;
+      // A solve that advances no time never satisfies the loop condition, so bail out rather than
+      // spin forever on a system the solver cannot integrate
+      if (result.stats_.final_time_ <= 0)
+      {
+        std::cerr << "Solver made no progress: " << SolverStateToString(result.state_) << std::endl;
+        return 1;
+      }
+      elapsed_solve_time += result.stats_.final_time_;
     }
 
     state.PrintState(time_step * (i + 1));
