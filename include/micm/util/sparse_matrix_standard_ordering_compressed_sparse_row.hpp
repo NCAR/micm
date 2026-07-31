@@ -282,7 +282,9 @@ namespace micm
         if constexpr (requires(Index i) { storage[i]; })
         {
           storage[0] = value;
-        } else {
+        }
+        else
+        {
           storage = value;
         }
       }
@@ -296,7 +298,9 @@ namespace micm
         if constexpr (requires(Index i) { storage[i]; })
         {
           storage[0] = src.group_base_[src.block_offset_];
-        } else {
+        }
+        else
+        {
           storage = src.group_base_[src.block_offset_];
         }
       }
@@ -509,7 +513,9 @@ namespace micm
         if constexpr (requires(Index i) { storage[i]; })
         {
           storage[0] = value;
-        } else {
+        }
+        else
+        {
           storage = value;
         }
       }
@@ -523,7 +529,9 @@ namespace micm
         if constexpr (requires(Index i) { storage[i]; })
         {
           storage[0] = src.group_base_[src.block_offset_];
-        } else {
+        }
+        else
+        {
           storage = src.group_base_[src.block_offset_];
         }
       }

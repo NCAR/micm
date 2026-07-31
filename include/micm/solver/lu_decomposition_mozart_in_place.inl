@@ -125,51 +125,40 @@ namespace micm
   inline void LuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
     SparseMatrixPolicy::Function(
-      [this](auto&& alu_view)
-      {
-        auto aji = aji_.begin();
-        auto aik_njk = aik_njk_.begin();
-        auto ajk_aji = ajk_aji_.begin();
-        auto Aii_inverse = alu_view.GetBlockVariable();
-        for (const auto& aii_nji_nki : aii_nji_nki_)
+        [this](auto&& alu_view)
         {
-          alu_view.ForEachBlock(
-            [](Real& aii_inv, const Real& aii)
-            {
-              aii_inv = 1.0 / aii;
-            },
-            Aii_inverse,
-            alu_view.GetConstBlockView(std::get<0>(aii_nji_nki)));
-          for (Index ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
+          auto aji = aji_.begin();
+          auto aik_njk = aik_njk_.begin();
+          auto ajk_aji = ajk_aji_.begin();
+          auto Aii_inverse = alu_view.GetBlockVariable();
+          for (const auto& aii_nji_nki : aii_nji_nki_)
           {
             alu_view.ForEachBlock(
-              [](Real& aji, const Real& aii_inv)
-              {
-                aji *= aii_inv;
-              },
-              alu_view.GetBlockView(*aji),
-              Aii_inverse);
-            ++aji;
-          }
-          for (Index ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
-          {
-            auto aik_view = alu_view.GetBlockView(std::get<0>(*aik_njk));
-            for (Index ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
+                [](Real& aii_inv, const Real& aii) { aii_inv = 1.0 / aii; },
+                Aii_inverse,
+                alu_view.GetConstBlockView(std::get<0>(aii_nji_nki)));
+            for (Index ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
             {
               alu_view.ForEachBlock(
-                [](Real& ajk, const Real& aji, const Real& aik)
-                {
-                  ajk -= aji * aik;
-                },
-                alu_view.GetBlockView(ajk_aji->first),
-                alu_view.GetConstBlockView(ajk_aji->second),
-                aik_view);
-              ++ajk_aji;
+                  [](Real& aji, const Real& aii_inv) { aji *= aii_inv; }, alu_view.GetBlockView(*aji), Aii_inverse);
+              ++aji;
             }
-            ++aik_njk;
+            for (Index ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
+            {
+              auto aik_view = alu_view.GetBlockView(std::get<0>(*aik_njk));
+              for (Index ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
+              {
+                alu_view.ForEachBlock(
+                    [](Real& ajk, const Real& aji, const Real& aik) { ajk -= aji * aik; },
+                    alu_view.GetBlockView(ajk_aji->first),
+                    alu_view.GetConstBlockView(ajk_aji->second),
+                    aik_view);
+                ++ajk_aji;
+              }
+              ++aik_njk;
+            }
           }
-        }
-      },
-      ALU)(ALU);
+        },
+        ALU)(ALU);
   }
 }  // namespace micm

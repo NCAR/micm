@@ -210,22 +210,14 @@ namespace micm
               for (Index k = 0; k < nLij_Lii.first; ++k)
               {
                 lower_view.ForEachBlock(
-                    [](Real& yi, const Real& Lij, const Real& yj)
-                    {
-                      yi -= Lij * yj;
-                    },
+                    [](Real& yi, const Real& Lij, const Real& yj) { yi -= Lij * yj; },
                     x_col_i,
                     lower_view.GetConstBlockView((*Lij_yj).first),
                     x_view.GetConstColumnView((*Lij_yj).second));
                 ++Lij_yj;
               }
               lower_view.ForEachBlock(
-                  [](Real& yi, const Real& Lii)
-                  {
-                    yi /= Lii;
-                  },
-                  x_col_i,
-                  lower_view.GetConstBlockView(nLij_Lii.second));
+                  [](Real& yi, const Real& Lii) { yi /= Lii; }, x_col_i, lower_view.GetConstBlockView(nLij_Lii.second));
               ++i;
             }
           }
@@ -241,22 +233,14 @@ namespace micm
               for (Index k = 0; k < nUij_Uii.first; ++k)
               {
                 upper_view.ForEachBlock(
-                    [](Real& xi, const Real& Uij, const Real& xj)
-                    {
-                      xi -= Uij * xj;
-                    },
+                    [](Real& xi, const Real& Uij, const Real& xj) { xi -= Uij * xj; },
                     x_col_i,
                     upper_view.GetConstBlockView((*Uij_xj).first),
                     x_view.GetConstColumnView((*Uij_xj).second));
                 ++Uij_xj;
               }
               upper_view.ForEachBlock(
-                  [](Real& xi, const Real& Uii)
-                  {
-                    xi /= Uii;
-                  },
-                  x_col_i,
-                  upper_view.GetConstBlockView(nUij_Uii.second));
+                  [](Real& xi, const Real& Uii) { xi /= Uii; }, x_col_i, upper_view.GetConstBlockView(nUij_Uii.second));
             }
           }
         },

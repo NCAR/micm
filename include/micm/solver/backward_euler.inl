@@ -179,38 +179,38 @@ namespace micm
     const Index n_vars = absolute_tolerance.size();
     bool retval = true;
     DenseMatrixPolicy::Function(
-      [&](const auto&& residual_view, const auto&& Yn1_view)
-      {
-        for (Index i_var = 0; i_var < n_vars; ++i_var)
+        [&](const auto&& residual_view, const auto&& Yn1_view)
         {
-          const Real var_abs_tol = absolute_tolerance[i_var];
-          residual_view.ForEachRow(
-            [&](const Real& residual, const Real& Yn1)
-            {
-              // A non-finite residual is never converged. Without this check an infinite residual escapes
-              // the test below, because the relative bound rel_tol * |Yn1| is itself infinite and
-              // inf > inf is false -- a blown-up solve would then be reported as SolverState::Converged.
-              if (!std::isfinite(residual))
-              {
-                retval = false;
-                return;
-              }
-              if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
-                  std::abs(residual) > relative_tolerance * std::abs(Yn1))
-              {
-                retval = false;
-              }
-            },
-            residual_view.GetConstColumnView(i_var),
-            Yn1_view.GetConstColumnView(i_var));
-          if (!retval)
+          for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
-            return;
+            const Real var_abs_tol = absolute_tolerance[i_var];
+            residual_view.ForEachRow(
+                [&](const Real& residual, const Real& Yn1)
+                {
+                  // A non-finite residual is never converged. Without this check an infinite residual escapes
+                  // the test below, because the relative bound rel_tol * |Yn1| is itself infinite and
+                  // inf > inf is false -- a blown-up solve would then be reported as SolverState::Converged.
+                  if (!std::isfinite(residual))
+                  {
+                    retval = false;
+                    return;
+                  }
+                  if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
+                      std::abs(residual) > relative_tolerance * std::abs(Yn1))
+                  {
+                    retval = false;
+                  }
+                },
+                residual_view.GetConstColumnView(i_var),
+                Yn1_view.GetConstColumnView(i_var));
+            if (!retval)
+            {
+              return;
+            }
           }
-        }
-      },
-      residual,
-      Yn1)(residual, Yn1);
+        },
+        residual,
+        Yn1)(residual, Yn1);
     return retval;
   }
 }  // namespace micm

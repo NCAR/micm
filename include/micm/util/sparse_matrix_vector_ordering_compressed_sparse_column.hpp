@@ -219,8 +219,7 @@ namespace micm
       decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
-        return source_matrix->AsVector()
-            [(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
+        return source_matrix->AsVector()[(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
       }
 
       /// @brief Get element from GroupedColumnView (fast path)
@@ -485,8 +484,7 @@ namespace micm
       {
         auto* source_matrix = arg.GetMatrix();
         // See ConstGroupView::GetBlockElement for the reasoning.
-        return source_matrix->AsVector()
-            [(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
+        return source_matrix->AsVector()[(group_ * source_matrix->NumColumns() + arg.ColumnIndex()) * L + block_in_group];
       }
 
       /// @brief Get element from GroupedColumnView

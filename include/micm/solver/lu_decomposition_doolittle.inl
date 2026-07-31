@@ -251,80 +251,72 @@ namespace micm
   inline void LuDecompositionDoolittle::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     SparseMatrixPolicy::Function(
-      [this](const auto&& A_view, auto&& lower_view, auto&& upper_view)
-      {
-        auto do_aik = do_aik_.begin();
-        auto aik = aik_.begin();
-        auto uik_nkj = uik_nkj_.begin();
-        auto lij_ujk = lij_ujk_.begin();
-        auto do_aki = do_aki_.begin();
-        auto aki = aki_.begin();
-        auto lki_nkj = lki_nkj_.begin();
-        auto lkj_uji = lkj_uji_.begin();
-        auto uii = uii_.begin();
-        for (const auto& niLU : niLU_)
+        [this](const auto&& A_view, auto&& lower_view, auto&& upper_view)
         {
-          // Upper triangular matrix
-          for(Index iU = 0; iU < niLU.second; ++iU)
+          auto do_aik = do_aik_.begin();
+          auto aik = aik_.begin();
+          auto uik_nkj = uik_nkj_.begin();
+          auto lij_ujk = lij_ujk_.begin();
+          auto do_aki = do_aki_.begin();
+          auto aki = aki_.begin();
+          auto lki_nkj = lki_nkj_.begin();
+          auto lkj_uji = lkj_uji_.begin();
+          auto uii = uii_.begin();
+          for (const auto& niLU : niLU_)
           {
-            auto uik_view = upper_view.GetBlockView(uik_nkj->first);
-            if (*(do_aik++))
+            // Upper triangular matrix
+            for (Index iU = 0; iU < niLU.second; ++iU)
             {
-              upper_view.Copy(uik_view, A_view.GetConstBlockView(*(aik++)));
-            }
-            else
-            {
-              upper_view.Fill(uik_view, 0.0);
-            }
-            for (Index ikj = 0; ikj < uik_nkj->second; ++ikj)
-            {
-              upper_view.ForEachBlock(
-                [](Real& uik, const Real& lij, const Real& ujk)
-                {
-                  uik -= lij * ujk;
-                },
-                uik_view,
-                lower_view.GetConstBlockView(lij_ujk->first),
-                upper_view.GetConstBlockView(lij_ujk->second));
-              ++lij_ujk;
-            }
-            ++uik_nkj;
-          }
-          // Lower triangular matrix
-          lower_view.Fill(lower_view.GetBlockView((lki_nkj++)->first), 1.0);
-          for (Index iL = 0; iL < niLU.first; ++iL)
-          {
-            auto lki_view = lower_view.GetBlockView(lki_nkj->first);
-            if (*(do_aki++))
-            {
-              lower_view.Copy(lki_view, A_view.GetConstBlockView(*(aki++)));
-            }
-            else
-            {
-              lower_view.Fill(lki_view, 0.0);
-            }
-            for (Index ikj = 0; ikj < lki_nkj->second; ++ikj)
-            {
-              lower_view.ForEachBlock(
-                [](Real& lki, const Real& lkj, const Real& uji)
-                {
-                  lki -= lkj * uji;
-                },
-                lki_view,
-                lower_view.GetConstBlockView(lkj_uji->first),
-                upper_view.GetConstBlockView(lkj_uji->second));
-              ++lkj_uji;
-            }
-            lower_view.ForEachBlock(
-              [](Real& lki, const Real& uii)
+              auto uik_view = upper_view.GetBlockView(uik_nkj->first);
+              if (*(do_aik++))
               {
-                lki /= uii;
-              },
-              lki_view,
-              upper_view.GetConstBlockView(*(uii++)));
-            ++lki_nkj;
+                upper_view.Copy(uik_view, A_view.GetConstBlockView(*(aik++)));
+              }
+              else
+              {
+                upper_view.Fill(uik_view, 0.0);
+              }
+              for (Index ikj = 0; ikj < uik_nkj->second; ++ikj)
+              {
+                upper_view.ForEachBlock(
+                    [](Real& uik, const Real& lij, const Real& ujk) { uik -= lij * ujk; },
+                    uik_view,
+                    lower_view.GetConstBlockView(lij_ujk->first),
+                    upper_view.GetConstBlockView(lij_ujk->second));
+                ++lij_ujk;
+              }
+              ++uik_nkj;
+            }
+            // Lower triangular matrix
+            lower_view.Fill(lower_view.GetBlockView((lki_nkj++)->first), 1.0);
+            for (Index iL = 0; iL < niLU.first; ++iL)
+            {
+              auto lki_view = lower_view.GetBlockView(lki_nkj->first);
+              if (*(do_aki++))
+              {
+                lower_view.Copy(lki_view, A_view.GetConstBlockView(*(aki++)));
+              }
+              else
+              {
+                lower_view.Fill(lki_view, 0.0);
+              }
+              for (Index ikj = 0; ikj < lki_nkj->second; ++ikj)
+              {
+                lower_view.ForEachBlock(
+                    [](Real& lki, const Real& lkj, const Real& uji) { lki -= lkj * uji; },
+                    lki_view,
+                    lower_view.GetConstBlockView(lkj_uji->first),
+                    upper_view.GetConstBlockView(lkj_uji->second));
+                ++lkj_uji;
+              }
+              lower_view.ForEachBlock(
+                  [](Real& lki, const Real& uii) { lki /= uii; }, lki_view, upper_view.GetConstBlockView(*(uii++)));
+              ++lki_nkj;
+            }
           }
-        }
-      }, A, L, U)(A, L, U);
+        },
+        A,
+        L,
+        U)(A, L, U);
   }
 }  // namespace micm

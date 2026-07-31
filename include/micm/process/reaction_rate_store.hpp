@@ -252,21 +252,19 @@ namespace micm
 
       using DenseMatrixPolicy = typename StatePolicy::DenseMatrixPolicyType;
       DenseMatrixPolicy::Function(
-        [&store](auto&& rc_view, const auto& conditions)
-        {
-          for (const auto& entry : store.lambda_entries_)
+          [&store](auto&& rc_view, const auto& conditions)
           {
-            rc_view.ForEachRow(
-              [&entry](Real& rate_constant, const Conditions& conditions)
-              {
-                rate_constant = entry.source_->lambda_function_(conditions);
-              },
-              rc_view.GetColumnView(entry.rc_index_),
-              conditions);
-          }
-        },
-        state.rate_constants_,
-        state.conditions_) (state.rate_constants_, state.conditions_);
+            for (const auto& entry : store.lambda_entries_)
+            {
+              rc_view.ForEachRow(
+                  [&entry](Real& rate_constant, const Conditions& conditions)
+                  { rate_constant = entry.source_->lambda_function_(conditions); },
+                  rc_view.GetColumnView(entry.rc_index_),
+                  conditions);
+            }
+          },
+          state.rate_constants_,
+          state.conditions_)(state.rate_constants_, state.conditions_);
     }
 
     /// @brief Calculate all analytic rate constants into state.rate_constants_.

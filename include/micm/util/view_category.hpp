@@ -139,14 +139,15 @@ namespace micm
   /// @brief Vector-like type (has operator[] and size())
   /// Excludes Matrix types, view types, and proxy types to avoid ambiguity
   template<typename T>
-  concept VectorLike = requires(T t, Index i) {
-    { t[i] };  // Can index with []
-    { t.size() } -> std::convertible_to<Index>;
-  } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> &&
-                       !GroupedDenseMatrixColumnView<T> && !GroupedSparseMatrixBlockView<T> && !requires(T t) {
-                         t.NumRows();
-                         t.NumColumns();
-                       };  // Exclude matrix types
+  concept VectorLike =
+      requires(T t, Index i) {
+        { t[i] };  // Can index with []
+        { t.size() } -> std::convertible_to<Index>;
+      } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> &&
+      !GroupedDenseMatrixColumnView<T> && !GroupedSparseMatrixBlockView<T> && !requires(T t) {
+        t.NumRows();
+        t.NumColumns();
+      };  // Exclude matrix types
 
   // ============================================================================
   // Concepts for Grouping Strategies
