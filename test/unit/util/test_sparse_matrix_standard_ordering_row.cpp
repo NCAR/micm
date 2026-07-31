@@ -303,3 +303,12 @@ TEST(SparseCompressedRowMatrix, IntegerVectorSparse)
 {
   TestIntegerVectorSparse<micm::SparseMatrix, StandardOrdering>();
 }
+TEST(SparseCompressedRowMatrix, TestFill)
+{
+  TestFill<micm::SparseMatrix, StandardOrdering>();
+}
+
+TEST(SparseCompressedRowMatrix, TestCopy)
+{
+  TestCopy<micm::SparseMatrix, StandardOrdering, micm::Matrix<micm::Real>>();
+}

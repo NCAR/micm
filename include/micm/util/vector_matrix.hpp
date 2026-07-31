@@ -492,14 +492,7 @@ namespace micm
     /// @return A ConstColumnView descriptor
     ConstColumnView GetConstColumnView(Index column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ConstColumnView(this, column_index);
     }
 
@@ -508,14 +501,7 @@ namespace micm
     /// @return A ColumnView descriptor
     ColumnView GetColumnView(Index column_index)
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
     }
 
@@ -602,6 +588,20 @@ namespace micm
     /// @brief ConstGroupView provides a const view of a single group of L rows for iteration
     class ConstGroupView
     {
+     public:
+      /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
+      ///
+      /// Carries a precomputed base_ pointer into this ConstGroupView's slice of the
+      /// underlying storage. For VectorMatrix, `base_` points at the first row of the
+      /// group's L-row block for `column_index`, so element access is
+      /// `arg.base_[row_in_group]` (contiguous) instead of recomputing
+      /// `(group * y_dim + column) * L + row_in_group` per element.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       const VectorMatrix& matrix_;
       Index group_;
@@ -617,12 +617,32 @@ namespace micm
         return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
       }
 
-      /// @brief Get a const element reference for a specific row in this group (RowVariable)
+      /// @brief Get a const element reference for a specific row in this group (GroupedColumnView)
+      /// Fast path: `base_` already points at row 0 of this group's L-row block.
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
+      {
+        return arg.base_[row_in_group];
+      }
+
+      /// @brief Get a const element reference for a specific row in this group (BlockVariable).
+      ///        BlockVariable::Get() flavor depends on the source policy:
+      ///          - Dense RowVariable is `std::array<T, L>` for all L (including L=1).
+      ///          - Sparse L>1 BlockVariable is `std::array<T, L>`.
+      ///          - Sparse L=1 BlockVariable is a scalar T.
+      ///        Dispatch on whether the returned storage is subscriptable rather
+      ///        than on L, so both flavors work for either L.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
-        return arg.Get()[row_in_group];
+        if constexpr (requires(Index i) { arg.Get()[i]; })
+        {
+          return arg.Get()[row_in_group];
+        } else {
+          return arg.Get();
+        }
       }
 
       /// @brief Get a const element reference for a specific row in this group (Vector-like)
@@ -653,9 +673,12 @@ namespace micm
       {
       }
 
-      auto GetConstColumnView(Index column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this ConstGroupView's group.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
       RowVariable GetRowVariable() const
@@ -664,10 +687,124 @@ namespace micm
         return RowVariable();
       }
 
+      /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      ///        Handles both flavors of `BlockVariable::Get()`:
+      ///          - Array-like (dense RowVariable, and sparse L>1 BlockVariable):
+      ///            `Get()` returns `std::array<T, L>&`, so we index it.
+      ///          - Scalar (sparse L=1 BlockVariable): `Get()` returns `T&`, so we
+      ///            assign directly. Only meaningful when this GroupView's L=1.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::fill_n(storage.data(), L, value);
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = value;
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = value;
+        }
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      ///        See Fill above for the two `Get()` flavors this dispatches over.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::copy_n(src.base_, L, storage.data());
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = src.base_[i];
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = src.base_[0];
+        }
+      }
+
+      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
+      ///        Respects `num_rows_in_group_` so the last (partial) group doesn't
+      ///        write past the vector's real size (VectorLike has NumRows() entries,
+      ///        not padded).
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = value;
+        }
+      }
+
+      /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
+      ///        Respects `num_rows_in_group_` so the last group doesn't write past
+      ///        the vector's real size.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = src.base_[i];
+        }
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
-        // Tight loop over L rows in this group for vectorization
+        // VectorMatrix storage is padded to ceil(x_dim/L)*L cells, so it is always safe to
+        // process L rows per group for matrix args. VectorLike args (e.g. std::vector<T>),
+        // however, have exactly N elements and would OOB past the vector's real size, so
+        // we fall back to the runtime bound whenever any arg is VectorLike.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
+        {
+          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
+          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
@@ -687,6 +824,21 @@ namespace micm
     /// @brief GroupView provides a view of a single group of L rows for iteration
     class GroupView
     {
+     public:
+      /// @brief Enriched mutable column view returned by GetColumnView on a GroupView.
+      ///        See ConstGroupView::GroupedConstColumnView for rationale.
+      struct GroupedColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        T* base_;
+      };
+      /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       VectorMatrix& matrix_;
       Index group_;
@@ -702,12 +854,28 @@ namespace micm
         return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
       }
 
-      /// @brief Get an element reference for a specific row in this group (RowVariable)
+      /// @brief Get an element reference for a specific row in this group (GroupedColumnView)
+      /// Fast path: `base_` already points at row 0 of this group's L-row block.
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      {
+        return arg.base_[row_in_group];
+      }
+
+      /// @brief Get an element reference for a specific row in this group (BlockVariable).
+      ///        See ConstGroupView::GetRowElement above for the subscriptable-vs-scalar
+      ///        dispatch rationale.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
       {
-        return arg.Get()[row_in_group];
+        if constexpr (requires(Index i) { arg.Get()[i]; })
+        {
+          return arg.Get()[row_in_group];
+        } else {
+          return arg.Get();
+        }
       }
 
       /// @brief Get an element reference for a specific row in this group (Vector-like)
@@ -738,14 +906,20 @@ namespace micm
       {
       }
 
-      auto GetConstColumnView(Index column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
-      auto GetColumnView(Index column_index)
+      /// @brief Returns a grouped mutable column view whose element base_ pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedColumnView GetColumnView(Index column_index)
       {
-        return matrix_.GetColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
       RowVariable GetRowVariable()
@@ -754,10 +928,169 @@ namespace micm
         return RowVariable();
       }
 
+      [[gnu::always_inline]]
+      void Fill(GroupedColumnView view, T value)
+      {
+        if constexpr (L >= 16)
+        {
+          std::fill_n(view.base_, L, value);
+        }
+        else
+        {
+          T* dst = view.base_;
+          for (Index i = 0; i < L; ++i)
+          {
+            dst[i] = value;
+          }
+        }
+      }
+
+      template<GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst_view, Src&& src_view)
+      {
+        if constexpr (L >= 16)
+        {
+          std::copy_n(src_view.base_, L, dst_view.base_);
+        }
+        else
+        {
+          T* dst = dst_view.base_;
+          const T* src = src_view.base_;
+          for (Index i = 0; i < L; ++i)
+          {
+            dst[i] = src[i];
+          }
+        }
+      }
+
+      /// @brief Copy a per-row vector into dst column within this group.
+      ///        `src` has one entry per real row of the matrix (size == NumRows()),
+      ///        so we must respect `num_rows_in_group_` on the last (partial) group
+      ///        to avoid reading past the vector's end. Padding cells of `dst` are
+      ///        left untouched (they're scratch storage).
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst_view, Src&& src)
+      {
+        T* dst = dst_view.base_;
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          dst[i] = src[start + i];
+        }
+      }
+
+      /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      ///        See ConstGroupView::Fill(Dst&&, T) for the array-vs-scalar
+      ///        dispatch rationale.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value)
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::fill_n(storage.data(), L, value);
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = value;
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = value;
+        }
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      ///        See ConstGroupView::Copy(Dst&&, Src&&) for the array-vs-scalar
+      ///        dispatch rationale.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src)
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::copy_n(src.base_, L, storage.data());
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = src.base_[i];
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = src.base_[0];
+        }
+      }
+
+      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
+      ///        See ConstGroupView::Fill(Vec&, T) for details.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value)
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = value;
+        }
+      }
+
+      /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
+      ///        See ConstGroupView::Copy(Vec&, Src&&) for details.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src)
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = src.base_[i];
+        }
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args)
       {
-        // Tight loop over L rows in this group for vectorization
+        // See ConstGroupView::ForEachRow for rationale.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
+        {
+          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        See ConstGroupView::ForEachRowStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args)
+      {
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
@@ -969,12 +1302,19 @@ namespace micm
       return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
     }
 
-    /// @brief Get an element reference for a row (RowVariable)
+    /// @brief Get an element reference for a row (BlockVariable).
+    ///        See GroupView::GetRowElement above for the subscriptable-vs-scalar
+    ///        dispatch rationale.
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(Index /*row*/, Index /*group*/, Index row_in_group, Arg&& arg)
     {
-      return arg.Get()[row_in_group];
+      if constexpr (requires(Index i) { arg.Get()[i]; })
+      {
+        return arg.Get()[row_in_group];
+      } else {
+        return arg.Get();
+      }
     }
 
     /// @brief Get an element reference for a row (Vector-like)
@@ -995,12 +1335,19 @@ namespace micm
       return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
     }
 
-    /// @brief Get a const element reference for a row (RowVariable) - const version
+    /// @brief Get a const element reference for a row (BlockVariable) - const version.
+    ///        See GroupView::GetRowElement above for the subscriptable-vs-scalar
+    ///        dispatch rationale.
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(Index /*row*/, Index /*group*/, Index row_in_group, Arg&& arg) const
     {
-      return arg.Get()[row_in_group];
+      if constexpr (requires(Index i) { arg.Get()[i]; })
+      {
+        return arg.Get()[row_in_group];
+      } else {
+        return arg.Get();
+      }
     }
 
     /// @brief Get a const element reference for a row (Vector-like) - const version

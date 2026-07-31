@@ -18,14 +18,6 @@
 namespace micm
 {
 
-  /// Concept for vectorizable matrices
-  template<typename T>
-  concept VectorizableDense = requires(T t) {
-    t.GroupSize();
-    t.GroupVectorSize();
-    t.NumberOfGroups();
-  };
-
   /// @brief A 2D array class with contiguous memory
   template<class T = Real>
   class Matrix
@@ -436,15 +428,7 @@ namespace micm
     /// @return A ConstColumnView descriptor
     ConstColumnView GetConstColumnView(Index column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ConstColumnView(this, column_index);
     }
 
@@ -453,14 +437,7 @@ namespace micm
     /// @return A ColumnView descriptor
     ColumnView GetColumnView(Index column_index)
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
     }
 
@@ -509,6 +486,20 @@ namespace micm
     /// @brief ConstGroupView provides a const view of a single row (group of size 1) for iteration
     class ConstGroupView
     {
+     public:
+      /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
+      ///
+      /// Carries a precomputed base_ pointer into the group's slice of the underlying
+      /// storage. For standard-ordered matrices, `base_` points at the single element that
+      /// row_ intersects with column_index_. Element access via GetRowElement is then
+      /// `arg.base_[0]`, avoiding the `row_ * y_dim_ + column_index` recomputation the raw
+      /// Matrix::ConstColumnView requires.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       const Matrix& matrix_;
       Index row_;
@@ -520,6 +511,14 @@ namespace micm
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+      }
+
+      /// @brief Get a const element reference for the current row in this group (GroupedColumnView)
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Arg&& arg) const
+      {
+        return arg.base_[0];
       }
 
       /// @brief Get a const element reference for the current row in this group (RowVariable)
@@ -545,9 +544,12 @@ namespace micm
       {
       }
 
-      auto GetConstColumnView(Index column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this ConstGroupView's row.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
       }
 
       RowVariable GetRowVariable() const
@@ -556,10 +558,52 @@ namespace micm
         return RowVariable();
       }
 
+      /// @brief Assign value to the caller-owned row-variable temp.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        dst.Get() = value;
+      }
+
+      /// @brief Assign value to `vec[row_]` of an external vector.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        vec[row_] = value;
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        dst.Get() = src.base_[0];
+      }
+
+      /// @brief Copy src column into `vec[row_]` of an external vector.
+      ///        Inverse of Copy(GroupedColumnView, VectorLike).
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        vec[row_] = src.base_[0];
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
         // For Matrix with L=1, just process the single row (no loop needed)
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        For standard-ordered matrices, there is no padding, so this is
+      ///        identical to ForEachRow.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
         func(GetRowElement(std::forward<Args>(args))...);
       }
 
@@ -576,6 +620,21 @@ namespace micm
     /// @brief GroupView provides a view of a single row (group of size 1) for iteration
     class GroupView
     {
+     public:
+      /// @brief Enriched mutable column view returned by GetColumnView on a GroupView.
+      ///        See ConstGroupView::GroupedConstColumnView for rationale.
+      struct GroupedColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        T* base_;
+      };
+      /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       Matrix& matrix_;
       Index row_;
@@ -587,6 +646,14 @@ namespace micm
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+      }
+
+      /// @brief Get an element reference for the current row in this group (GroupedColumnView)
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Arg&& arg)
+      {
+        return arg.base_[0];
       }
 
       /// @brief Get an element reference for the current row in this group (RowVariable)
@@ -612,14 +679,20 @@ namespace micm
       {
       }
 
-      auto GetConstColumnView(Index column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this GroupView's row.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
       }
 
-      auto GetColumnView(Index column_index)
+      /// @brief Returns a grouped mutable column view whose element base_ pointer is
+      ///        precomputed for this GroupView's row.
+      GroupedColumnView GetColumnView(Index column_index)
       {
-        return matrix_.GetColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
       }
 
       RowVariable GetRowVariable()
@@ -628,10 +701,74 @@ namespace micm
         return RowVariable();
       }
 
+      /// @brief Assign value to the (single) cell of the column within this group.
+      [[gnu::always_inline]]
+      void Fill(GroupedColumnView view, T value)
+      {
+        view.base_[0] = value;
+      }
+
+      /// @brief Copy src column into dst column within this group.
+      template<GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst, Src&& src)
+      {
+        dst.base_[0] = src.base_[0];
+      }
+
+      /// @brief Copy a per-row vector into dst column within this group.
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst, Src&& src)
+      {
+        dst.base_[0] = src[row_];
+      }
+
+      /// @brief Assign value to the caller-owned row-variable temp.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value)
+      {
+        dst.Get() = value;
+      }
+
+      /// @brief Assign value to `vec[row_]` of an external vector.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value)
+      {
+        vec[row_] = value;
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src)
+      {
+        dst.Get() = src.base_[0];
+      }
+
+      /// @brief Copy src column into `vec[row_]` of an external vector.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src)
+      {
+        vec[row_] = src.base_[0];
+      }
+
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args)
       {
         // For Matrix with L=1, just process the single row (no loop needed)
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        For standard-ordered matrices there is no padding, so this is identical
+      ///        to ForEachRow. See ConstGroupView::ForEachRowStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args)
+      {
         func(GetRowElement(std::forward<Args>(args))...);
       }
 

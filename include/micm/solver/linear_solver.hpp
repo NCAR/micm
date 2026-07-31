@@ -22,11 +22,12 @@ namespace micm
     { t.Solve(std::declval<DenseMatrixPolicy&>(), std::declval<SparseMatrixPolicy>()) } -> std::same_as<void>;
   };
   static_assert(
-      LinearSolverInPlaceConcept<LinearSolverInPlace<StandardSparseMatrix>, StandardDenseMatrix, StandardSparseMatrix>,
+      LinearSolverInPlaceConcept<LinearSolverInPlace<StandardDenseMatrix, StandardSparseMatrix>, StandardDenseMatrix, StandardSparseMatrix>,
       "LinearSolverInPlace does not meet the LinearSolverInPlaceConcept requirements");
   static_assert(
       LinearSolverInPlaceConcept<
           LinearSolverInPlace<
+              VectorMatrix<Real, 1>,
               SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
               LuDecompositionMozartInPlace>,
           VectorMatrix<Real, 1>,
@@ -42,7 +43,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:
@@ -101,11 +102,6 @@ namespace micm
     void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix) const;
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
-    template<class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const;
-    template<class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const;
   };
 

@@ -153,7 +153,7 @@ void TestDenseMatrix()
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Solve(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -234,7 +234,7 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Solve(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -326,7 +326,7 @@ void TestExtremeInitialValue(micm::Index number_of_blocks, micm::Real initial_va
   CopyToHostDense<SparseMatrixPolicy>(lower_matrix);
   CopyToHostDense<SparseMatrixPolicy>(upper_matrix);
 
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Solve(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -394,7 +394,7 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Solve(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);

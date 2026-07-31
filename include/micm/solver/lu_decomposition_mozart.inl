@@ -194,176 +194,96 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     const Index n = A.NumRows();
-
-    // Loop over blocks
-    for (Index i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
-    {
-      auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
-      auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
-      auto U_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
-      auto uji_aji = uji_aji_.begin();
-      auto lji_aji = lji_aji_.begin();
-      auto uii_nj_nk = uii_nj_nk_.begin();
-      auto lji = lji_.begin();
-      auto nujk_nljk_uik = nujk_nljk_uik_.begin();
-      auto ujk_lji = ujk_lji_.begin();
-      auto ljk_lji = ljk_lji_.begin();
-
-      for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
+    SparseMatrixPolicy::Function(
+      [this, n](const auto&& A_view, auto&& lower_view, auto&& upper_view)
       {
-        for (Index i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
+        auto uji_aji = uji_aji_.begin();
+        auto lji_aji = lji_aji_.begin();
+        auto uii_nj_nk = uii_nj_nk_.begin();
+        auto lji = lji_.begin();
+        auto nujk_nljk_uik = nujk_nljk_uik_.begin();
+        auto ujk_lji = ujk_lji_.begin();
+        auto ljk_lji = ljk_lji_.begin();
+        auto Uii_inverse = A_view.GetBlockVariable();
+        for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
         {
-          U_vector[uji_aji->first] = A_vector[uji_aji->second];
-          ++uji_aji;
-        }
-        L_vector[std::get<0>(lii_nuji_nlji)] = 1.0;
-        for (Index i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
-        {
-          L_vector[lji_aji->first] = A_vector[lji_aji->second];
-          ++lji_aji;
-        }
-      }
-      for (const auto& fill_uji : fill_uji_)
-      {
-        U_vector[fill_uji] = 0;
-      }
-      for (const auto& fill_lji : fill_lji_)
-      {
-        L_vector[fill_lji] = 0;
-      }
-      for (Index i = 0; i < n; ++i)
-      {
-        auto Uii_inverse = 1.0 / U_vector[std::get<0>(*uii_nj_nk)];
-        for (Index ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
-        {
-          L_vector[*lji] = L_vector[*lji] * Uii_inverse;
-          ++lji;
-        }
-        for (Index ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
-        {
-          const Index uik = std::get<2>(*nujk_nljk_uik);
-          for (Index ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
+          for (Index i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
           {
-            U_vector[ujk_lji->first] -= L_vector[ujk_lji->second] * U_vector[uik];
-            ++ujk_lji;
+            upper_view.Copy(
+              upper_view.GetBlockView(uji_aji->first),
+              A_view.GetConstBlockView(uji_aji->second));
+            ++uji_aji;
           }
-          for (Index ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+          lower_view.Fill(lower_view.GetBlockView(std::get<0>(lii_nuji_nlji)), 1.0);
+          for (Index i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
           {
-            L_vector[ljk_lji->first] -= L_vector[ljk_lji->second] * U_vector[uik];
-            ++ljk_lji;
+            lower_view.Copy(
+              lower_view.GetBlockView(lji_aji->first),
+              A_view.GetConstBlockView(lji_aji->second));
+            ++lji_aji;
           }
-          ++nujk_nljk_uik;
         }
-        ++uii_nj_nk;
-      }
-    }
-  }
-
-  template<class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy>)
-  inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
-  {
-    const Index n = A.NumRows();
-    const Index A_BlockSize = A.NumberOfBlocks();
-    constexpr Index A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const Index A_GroupSizeOfFlatBlockSize = A.GroupSize();
-    const Index L_GroupSizeOfFlatBlockSize = L.GroupSize();
-    const Index U_GroupSizeOfFlatBlockSize = U.GroupSize();
-    Real Uii_inverse[A_GroupVectorSize];
-
-    // Loop over groups of blocks
-    for (Index i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
-    {
-      auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
-      auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
-      auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
-      auto uji_aji = uji_aji_.begin();
-      auto lji_aji = lji_aji_.begin();
-      auto uii_nj_nk = uii_nj_nk_.begin();
-      auto lji = lji_.begin();
-      auto nujk_nljk_uik = nujk_nljk_uik_.begin();
-      auto ujk_lji = ujk_lji_.begin();
-      auto ljk_lji = ljk_lji_.begin();
-      const Index n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
-      {
-        for (Index i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
+        for (const auto& fill_uji : fill_uji_)
         {
-          for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            U_vector[uji_aji->first + i_cell] = A_vector[uji_aji->second + i_cell];
-          }
-          ++uji_aji;
+          upper_view.Fill(upper_view.GetBlockView(fill_uji), 0.0);
         }
-        for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
+        for (const auto& fill_lji : fill_lji_)
         {
-          L_vector[std::get<0>(lii_nuji_nlji) + i_cell] = 1.0;
+          lower_view.Fill(lower_view.GetBlockView(fill_lji), 0.0);
         }
-        for (Index i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
+        for (Index i = 0; i < n; ++i)
         {
-          for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            L_vector[lji_aji->first + i_cell] = A_vector[lji_aji->second + i_cell];
-          }
-          ++lji_aji;
-        }
-      }
-      for (const auto& fill_uji : fill_uji_)
-      {
-        for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-        {
-          U_vector[fill_uji + i_cell] = 0;
-        }
-      }
-      for (const auto& fill_lji : fill_lji_)
-      {
-        for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-        {
-          L_vector[fill_lji + i_cell] = 0;
-        }
-      }
-      for (Index i = 0; i < n; ++i)
-      {
-        for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-        {
-          Uii_inverse[i_cell] = 1.0 / U_vector[std::get<0>(*uii_nj_nk) + i_cell];
-        }
-        for (Index ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
-        {
-          for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            L_vector[*lji + i_cell] = L_vector[*lji + i_cell] * Uii_inverse[i_cell];
-          }
-          ++lji;
-        }
-        for (Index ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
-        {
-          const Index uik = std::get<2>(*nujk_nljk_uik);
-          for (Index ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
-          {
-            for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
+          upper_view.ForEachBlock(
+            [](Real& uii_inv, const Real& uii)
             {
-              U_vector[ujk_lji->first + i_cell] -= L_vector[ujk_lji->second + i_cell] * U_vector[uik + i_cell];
-            }
-            ++ujk_lji;
-          }
-          for (Index ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+              uii_inv = 1.0 / uii;
+            },
+            Uii_inverse,
+            upper_view.GetConstBlockView(std::get<0>(*uii_nj_nk)));
+          for (Index ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
           {
-            for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-            {
-              L_vector[ljk_lji->first + i_cell] -= L_vector[ljk_lji->second + i_cell] * U_vector[uik + i_cell];
-            }
-            ++ljk_lji;
+            lower_view.ForEachBlock(
+              [](Real& lji, const Real& uii_inv)
+              {
+                lji *= uii_inv;
+              },
+              lower_view.GetBlockView(*(lji++)),
+              Uii_inverse);
           }
-          ++nujk_nljk_uik;
+          for (Index ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
+          {
+            auto uik_view = upper_view.GetConstBlockView(std::get<2>(*nujk_nljk_uik));
+            for (Index ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
+            {
+              upper_view.ForEachBlock(
+                [](Real& ujk, const Real& lji, const Real& uik)
+                {
+                  ujk -= lji * uik;
+                },
+                upper_view.GetBlockView(ujk_lji->first),
+                lower_view.GetConstBlockView(ujk_lji->second),
+                uik_view);
+              ++ujk_lji;
+            }
+            for (Index ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+            {
+              lower_view.ForEachBlock(
+                [](Real& ljk, const Real& lji, const Real& uik)
+                {
+                  ljk -= lji * uik;
+                },
+                lower_view.GetBlockView(ljk_lji->first),
+                lower_view.GetConstBlockView(ljk_lji->second),
+                uik_view);
+              ++ljk_lji;
+            }
+            ++nujk_nljk_uik;
+          }
+          ++uii_nj_nk;
         }
-        ++uii_nj_nk;
-      }
-    }
+      }, A, L, U)(A, L, U);
   }
-
 }  // namespace micm

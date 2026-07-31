@@ -123,11 +123,11 @@ namespace micm
     return perm;
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value)
-      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
+      : LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
@@ -135,8 +135,8 @@ namespace micm
   {
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
       const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp)
@@ -181,8 +181,8 @@ namespace micm
     }
   };
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
       SparseMatrixPolicy& lower_matrix,
       SparseMatrixPolicy& upper_matrix) const
@@ -190,128 +190,78 @@ namespace micm
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  template<class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy& x,
       const SparseMatrixPolicy& lower_matrix,
       const SparseMatrixPolicy& upper_matrix) const
   {
-    for (Index i_cell = 0; i_cell < x.NumRows(); ++i_cell)
-    {
-      auto x_cell = x[i_cell];
-      const Index lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
-      const Index upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
-      auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
-
-      // Forward Substitution
-      {
-        auto y_elem = y_cell.begin();
-        auto Lij_yj = Lij_yj_.begin();
-        for (const auto& nLij_Lii : nLij_Lii_)
+    SparseMatrixPolicy::Function(
+        [this](auto&& x_view, auto&& lower_view, auto&& upper_view)
         {
-          for (Index i = 0; i < nLij_Lii.first; ++i)
+          // Forward Substitution
+          // b values passed in as x; overwrites b values with y values
           {
-            *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
-            ++Lij_yj;
-          }
-          *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
-        }
-      }
-
-      // Backward Substitution
-      {
-        auto x_elem = std::next(x_cell.end(), -1);
-        auto Uij_xj = Uij_xj_.begin();
-        for (const auto& nUij_Uii : nUij_Uii_)
-        {
-          // x_elem starts out as y_elem from the previous loop
-          for (Index i = 0; i < nUij_Uii.first; ++i)
-          {
-            *x_elem -= upper_matrix.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
-            ++Uij_xj;
-          }
-
-          *(x_elem) /= upper_matrix.AsVector()[upper_grid_offset + nUij_Uii.second];
-          // don't iterate before the beginning of the vector
-          if (x_elem != x_cell.begin())
-          {
-            --x_elem;
-          }
-        }
-      }
-    }
-  }
-
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  template<class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
-      MatrixPolicy& x,
-      const SparseMatrixPolicy& lower_matrix,
-      const SparseMatrixPolicy& upper_matrix) const
-  {
-    constexpr Index n_cells = MatrixPolicy::GroupVectorSize();
-    // Loop over groups of blocks
-    for (Index i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
-    {
-      auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto L_group = std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
-      auto U_group = std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
-      // Forward Substitution
-      {
-        auto y_elem = x_group;
-        auto Lij_yj = Lij_yj_.begin();
-        for (const auto& nLij_Lii : nLij_Lii_)
-        {
-          for (Index i = 0; i < nLij_Lii.first; ++i)
-          {
-            const Index Lij_yj_first = (*Lij_yj).first;
-            const Index Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
-            for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
+            auto Lij_yj = Lij_yj_.begin();
+            Index i = 0;
+            for (const auto& nLij_Lii : nLij_Lii_)
             {
-              y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
+              auto x_col_i = x_view.GetColumnView(i);
+              for (Index k = 0; k < nLij_Lii.first; ++k)
+              {
+                lower_view.ForEachBlock(
+                    [](Real& yi, const Real& Lij, const Real& yj)
+                    {
+                      yi -= Lij * yj;
+                    },
+                    x_col_i,
+                    lower_view.GetConstBlockView((*Lij_yj).first),
+                    x_view.GetConstColumnView((*Lij_yj).second));
+                ++Lij_yj;
+              }
+              lower_view.ForEachBlock(
+                  [](Real& yi, const Real& Lii)
+                  {
+                    yi /= Lii;
+                  },
+                  x_col_i,
+                  lower_view.GetConstBlockView(nLij_Lii.second));
+              ++i;
             }
-            ++Lij_yj;
           }
-          const Index nLij_Lii_second = nLij_Lii.second;
-          for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
+          // Backward Substitution
+          // overwrites y values with x values
           {
-            y_elem[i_cell] /= L_group[nLij_Lii_second + i_cell];
-          }
-          y_elem += n_cells;
-        }
-      }
-
-      // Backward Substitution
-      {
-        auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
-        auto Uij_xj = Uij_xj_.begin();
-        for (const auto& nUij_Uii : nUij_Uii_)
-        {
-          // x_elem starts out as y_elem from the previous loop
-          for (Index i = 0; i < nUij_Uii.first; ++i)
-          {
-            const Index Uij_xj_first = (*Uij_xj).first;
-            const Index Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
-            for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
+            auto Uij_xj = Uij_xj_.begin();
+            Index i = nUij_Uii_.size();
+            for (const auto& nUij_Uii : nUij_Uii_)
             {
-              x_elem[i_cell] -= U_group[Uij_xj_first + i_cell] * x_group[Uij_xj_second_times_n_cells + i_cell];
+              --i;
+              auto x_col_i = x_view.GetColumnView(i);
+              for (Index k = 0; k < nUij_Uii.first; ++k)
+              {
+                upper_view.ForEachBlock(
+                    [](Real& xi, const Real& Uij, const Real& xj)
+                    {
+                      xi -= Uij * xj;
+                    },
+                    x_col_i,
+                    upper_view.GetConstBlockView((*Uij_xj).first),
+                    x_view.GetConstColumnView((*Uij_xj).second));
+                ++Uij_xj;
+              }
+              upper_view.ForEachBlock(
+                  [](Real& xi, const Real& Uii)
+                  {
+                    xi /= Uii;
+                  },
+                  x_col_i,
+                  upper_view.GetConstBlockView(nUij_Uii.second));
             }
-            ++Uij_xj;
           }
-          const Index nUij_Uii_second = nUij_Uii.second;
-          for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            x_elem[i_cell] /= U_group[nUij_Uii_second + i_cell];
-          }
-
-          // don't iterate before the beginning of the vector
-          const Index x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
-          x_elem -= std::min(n_cells, x_elem_distance);
-        }
-      }
-    }
+        },
+        x,
+        lower_matrix,
+        upper_matrix)(x, lower_matrix, upper_matrix);
   }
 }  // namespace micm

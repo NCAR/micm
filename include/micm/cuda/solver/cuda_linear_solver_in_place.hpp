@@ -10,8 +10,8 @@
 
 namespace micm
 {
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace>
-  class CudaLinearSolverInPlace : public LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace>
+  class CudaLinearSolverInPlace : public LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
     /// This is an instance of struct "LinearSolverInPlaceParam" that holds
@@ -26,14 +26,14 @@ namespace micm
     // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
     // member devstruct_ untouched, so swapping it out of `other` afterward is safe.
     CudaLinearSolverInPlace(CudaLinearSolverInPlace&& other) noexcept
-        : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
+        : LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
 
     CudaLinearSolverInPlace& operator=(CudaLinearSolverInPlace&& other) noexcept
     {
-      LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
+      LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
@@ -46,7 +46,7 @@ namespace micm
     ///   See line 17 of "linear_solver_in_place.inl" for more details about how
     ///   this lamda function works;
     CudaLinearSolverInPlace(const SparseMatrixPolicy& matrix, typename SparseMatrixPolicy::value_type initial_value)
-        : CudaLinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(
+        : CudaLinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
               [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
@@ -55,7 +55,7 @@ namespace micm
         const SparseMatrixPolicy& matrix,
         typename SparseMatrixPolicy::value_type initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>&& create_lu_decomp)
-        : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
+        : LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
     {
       LinearSolverInPlaceParam hoststruct;
 
@@ -85,11 +85,9 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    template<class MatrixPolicy>
-      requires(
-          CudaMatrix<SparseMatrixPolicy> && CudaMatrix<MatrixPolicy> && VectorizableDense<MatrixPolicy> &&
-          VectorizableSparse<SparseMatrixPolicy>)
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& ALU) const
+      requires(
+        CudaMatrix<SparseMatrixPolicy> && CudaMatrix<MatrixPolicy>)
     {
       auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
       micm::cuda::SolveKernelDriver(x_param, ALU.AsDeviceParam(), this->devstruct_);

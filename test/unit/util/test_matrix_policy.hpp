@@ -825,8 +825,10 @@ void TestMismatchedColumnDimensions()
       },
       matrix);
 
-  // Should throw when invoking the function because column 5 doesn't exist
-  EXPECT_ANY_THROW(func(matrix));
+  // Should fail assert when invoking the function because column 5 doesn't exist
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix), "");
+#endif
 }
 
 template<template<class> class MatrixPolicy>
@@ -1595,4 +1597,154 @@ void TestFunctionWithConstSignature()
   std::function<void(MatrixPolicy<micm::Real>&, const std::vector<micm::Real>&)> func_std = func_auto;
 
   func_std(matrix, vec);
+}
+
+template<template<class> class MatrixPolicy>
+void TestFill()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+
+  // Fill a matrix column with a scalar value.
+  {
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m){ m.Fill(m.GetColumnView(1), 3.2); },
+      matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][0], 0.0);
+    EXPECT_EQ(matrix[0][1], 3.2);
+    EXPECT_EQ(matrix[1][0], 0.0);
+    EXPECT_EQ(matrix[1][1], 3.2);
+    EXPECT_EQ(matrix[2][0], 0.0);
+    EXPECT_EQ(matrix[2][1], 3.2);
+  }
+
+  // Fill a caller-owned std::vector with a scalar value.
+  {
+    std::vector<double> vec(3);
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m, auto&& v){ m.Fill(v, 3.2); },
+      matrix,
+      vec);
+
+    func(matrix, vec);
+
+    EXPECT_EQ(vec[0], 3.2);
+    EXPECT_EQ(vec[1], 3.2);
+    EXPECT_EQ(vec[2], 3.2);
+  }
+
+  // Fill a caller-owned row-variable temp with a scalar value.
+  {
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m)
+      {
+        auto tmp = m.GetRowVariable();
+        m.Fill(tmp, 9.9);
+        // Broadcast the temp into column 0 so we can observe it from outside.
+        m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(0), tmp);
+      },
+      matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][0], 9.9);
+    EXPECT_EQ(matrix[1][0], 9.9);
+    EXPECT_EQ(matrix[2][0], 9.9);
+  }
+}
+
+template<template<class> class MatrixPolicy>
+void TestCopy()
+{
+  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  std::vector<double> vec{ 3.2, 4.2, 1.3 };
+
+  // Copy a std::vector into a matrix column.
+  {
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m, auto&& v){ m.Copy(m.GetColumnView(1), v); },
+      matrix,
+      vec);
+
+    func(matrix, vec);
+
+    EXPECT_EQ(matrix[0][0], 0.0);
+    EXPECT_EQ(matrix[0][1], 3.2);
+    EXPECT_EQ(matrix[1][0], 0.0);
+    EXPECT_EQ(matrix[1][1], 4.2);
+    EXPECT_EQ(matrix[2][0], 0.0);
+    EXPECT_EQ(matrix[2][1], 1.3);
+  }
+
+  // Copy a const matrix column into a std::vector.
+  {
+    std::vector<double> vec2(3);
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m, auto&& v){ m.Copy(v, m.GetConstColumnView(1)); },
+      matrix,
+      vec2);
+
+    func(matrix, vec2);
+
+    EXPECT_EQ(vec2[0], 3.2);
+    EXPECT_EQ(vec2[1], 4.2);
+    EXPECT_EQ(vec2[2], 1.3);
+  }
+
+  // Copy one matrix column into another (mutable-to-mutable).
+  {
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m){ m.Copy(m.GetColumnView(0), m.GetColumnView(1)); },
+      matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][0], 3.2);
+    EXPECT_EQ(matrix[0][1], 3.2);
+    EXPECT_EQ(matrix[1][0], 4.2);
+    EXPECT_EQ(matrix[1][1], 4.2);
+    EXPECT_EQ(matrix[2][0], 1.3);
+    EXPECT_EQ(matrix[2][1], 1.3);
+  }
+
+  // Copy one matrix column into another (const-to-mutable via GetConstColumnView).
+  {
+    // Reset column 0 so we can observe the copy.
+    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    {
+      matrix[i][0] = 0.0;
+    }
+    
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m){ m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); },
+      matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][0], 3.2);
+    EXPECT_EQ(matrix[1][0], 4.2);
+    EXPECT_EQ(matrix[2][0], 1.3);
+  }
+
+  // Round-trip: matrix column -> row-variable temp -> matrix column.
+  {
+    auto func = MatrixPolicy<double>::Function(
+      [](auto&& m)
+      {
+        auto tmp = m.GetRowVariable();
+        m.Copy(tmp, m.GetConstColumnView(1));
+        // Zero column 1 first so the copy-back is observable.
+        m.Fill(m.GetColumnView(1), 0.0);
+        m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(1), tmp);
+      },
+      matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][1], 3.2);
+    EXPECT_EQ(matrix[1][1], 4.2);
+    EXPECT_EQ(matrix[2][1], 1.3);
+  }
 }

@@ -107,21 +107,14 @@ namespace micm
     /// @param state Current state containing rate constants and other relevant data
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
-    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
-      requires(!VectorizableDense<DenseMatrixPolicy>);
-    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
-      requires(VectorizableDense<DenseMatrixPolicy>);
+    void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const;
 
     /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param state Current state containing rate constants and other relevant data
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
-        const
-      requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>);
-    void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
-        const
-      requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
+        const;
 
     /// @brief Extracts all species involved in the given processes
     /// @param processes A list of Process objects, each with reactants and products
@@ -357,53 +350,70 @@ namespace micm
       const auto& state,
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
-    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
-    // loop over grid cells
-    for (Index i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
-    {
-      auto cell_rate_constants = state.rate_constants_[i_cell];
-      auto cell_state = state_variables[i_cell];
-      auto cell_forcing = forcing[i_cell];
-      auto react_id = reactant_ids_.begin();
-      auto prod_id = product_ids_.begin();
-      auto yield = yields_.begin();
-
-      for (Index i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+    const Index n_rxn = number_of_reactants_.size();
+    DenseMatrixPolicy::Function(
+      [this, n_rxn](auto&& forcing_view, const auto&& state_view, const auto&& rc_view)
       {
-        Real rate = cell_rate_constants[i_rxn];
-
-        // Caculate the reaction rate with the rate constant and concentrations
-        // of each reactant
-        for (Index i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        auto react_id = reactant_ids_.begin();
+        auto prod_id = product_ids_.begin();
+        auto yield = yields_.begin();
+        auto rate = forcing_view.GetRowVariable();
+        for (Index i_rxn = 0; i_rxn < n_rxn; ++i_rxn)
         {
-          rate *= cell_state[react_id[i_react]];
-        }
-
-        // Subtract the rate from reactant species
-        for (Index i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-        {
-          const Index row_id = react_id[i_react];
-          if (!is_algebraic_variable_[row_id])
+          // Calculate the rate as the rate constant times the product of all reactant concentrations
+          rc_view.Copy(rate, rc_view.GetConstColumnView(i_rxn));
+          for (Index i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-            cell_forcing[row_id] -= rate;
+            state_view.ForEachRow(
+              [](Real& rate, const Real& reactant)
+              {
+                rate *= reactant;
+              },
+              rate,
+              state_view.GetConstColumnView(react_id[i_react]));
           }
-        }
-        // Add the rate (scaled by yield) to product species
-        for (Index i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
-        {
-          const Index row_id = prod_id[i_prod];
-          if (!is_algebraic_variable_[row_id])
+          // Subtract the rate from reactant forcings
+          for (Index i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-            cell_forcing[row_id] += yield[i_prod] * rate;
+            const Index row_id = react_id[i_react];
+            if (!is_algebraic_variable_[row_id])
+            {
+              forcing_view.ForEachRow(
+                [](Real& forcing, const Real& rate)
+                {
+                  forcing -= rate;
+                },
+                forcing_view.GetColumnView(row_id),
+                rate);
+            }
           }
+          // Add the rate (scaled by yield) to the product forcings
+          for (Index i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+          {
+            const Index row_id = prod_id[i_prod];
+            if (!is_algebraic_variable_[row_id])
+            {
+              const Real prod_yield = yield[i_prod];
+              forcing_view.ForEachRow(
+                [&prod_yield](Real& forcing, const Real& rate)
+                {
+                  forcing += prod_yield * rate;
+                },
+                forcing_view.GetColumnView(row_id),
+                rate);
+            }
+          }
+          // Update iterators based on how many reactants/products each reaction has
+          react_id += number_of_reactants_[i_rxn];
+          prod_id += number_of_products_[i_rxn];
+          yield += number_of_products_[i_rxn];
         }
-        // Update iterators based on how many reactants/products each reaction has
-        react_id += number_of_reactants_[i_rxn];
-        prod_id += number_of_products_[i_rxn];
-        yield += number_of_products_[i_rxn];
-      }
-    }
+      },
+      forcing,
+      state_variables,
+      state.rate_constants_
+    )(forcing, state_variables, state.rate_constants_);
 
     // Add forcing contributions from external models
     for (const auto& add_forcing_function : external_forcing_functions_)
@@ -412,148 +422,87 @@ namespace micm
     }
   };
 
-  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
-      const auto& state,
-      const DenseMatrixPolicy& state_variables,
-      DenseMatrixPolicy& forcing) const
-    requires(VectorizableDense<DenseMatrixPolicy>)
-  {
-    const auto& v_rate_constants = state.rate_constants_.AsVector();
-    const auto& v_state_variables = state_variables.AsVector();
-    auto& v_forcing = forcing.AsVector();
-    constexpr Index L = DenseMatrixPolicy::GroupVectorSize();
-    auto v_rate_constants_begin = v_rate_constants.begin();
-    // loop over all rows
-    for (Index i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
-    {
-      auto react_id = reactant_ids_.begin();
-      auto prod_id = product_ids_.begin();
-      auto yield = yields_.begin();
-      const Index offset_rc = i_group * state.rate_constants_.GroupSize();
-      const Index offset_state = i_group * state_variables.GroupSize();
-      const Index offset_forcing = i_group * forcing.GroupSize();
-      std::vector<Real> rate(L, 0);
-      const Index number_of_reactions = number_of_reactants_.size();
-      for (Index i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
-      {
-        const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
-        rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-        const Index number_of_reactants = number_of_reactants_[i_rxn];
-        for (Index i_react = 0; i_react < number_of_reactants; ++i_react)
-        {
-          Index idx_state_variables = offset_state + react_id[i_react] * L;
-          auto rate_it = rate.begin();
-          auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
-          for (Index i_cell = 0; i_cell < L; ++i_cell)
-          {
-            *(rate_it++) *= *(v_state_variables_it++);
-          }
-        }
-        for (Index i_react = 0; i_react < number_of_reactants; ++i_react)
-        {
-          const Index row_id = react_id[i_react];
-          if (!is_algebraic_variable_[row_id])
-          {
-            auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
-            auto rate_it = rate.begin();
-            for (Index i_cell = 0; i_cell < L; ++i_cell)
-            {
-              *(v_forcing_it++) -= *(rate_it++);
-            }
-          }
-        }
-        const Index number_of_products = number_of_products_[i_rxn];
-        for (Index i_prod = 0; i_prod < number_of_products; ++i_prod)
-        {
-          const Index row_id = prod_id[i_prod];
-          if (!is_algebraic_variable_[row_id])
-          {
-            auto v_forcing_it = v_forcing.begin() + offset_forcing + row_id * L;
-            auto rate_it = rate.begin();
-            auto yield_value = yield[i_prod];
-            for (Index i_cell = 0; i_cell < L; ++i_cell)
-            {
-              *(v_forcing_it++) += yield_value * *(rate_it++);
-            }
-          }
-        }
-        react_id += number_of_reactants_[i_rxn];
-        prod_id += number_of_products_[i_rxn];
-        yield += number_of_products_[i_rxn];
-      }
-    }
 
-    // Add forcing contributions from external models
-    for (const auto& add_forcing_function : external_forcing_functions_)
-    {
-      add_forcing_function(state.custom_rate_parameters_, state_variables, forcing);
-    }
-  }
-
-  // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SubtractJacobianTerms(
       const auto& state,
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
-    requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
   {
-    auto cell_jacobian = jacobian.AsVector().begin();
-
-    // loop over grid cells
-    for (Index i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
-    {
-      auto cell_rate_constants = state.rate_constants_[i_cell];
-      auto cell_state = state_variables[i_cell];
-
-      auto react_id = jacobian_reactant_ids_.begin();
-      auto prod_id = jacobian_product_ids_.begin();
-      auto yield = jacobian_yields_.begin();
-      auto flat_id = jacobian_flat_ids_.begin();
-
-      // loop over process-dependent variable pairs
-      for (const auto& process_info : jacobian_process_info_)
+    const Index n_rxn = number_of_reactants_.size();
+    SparseMatrixPolicy::Function(
+      [this, n_rxn](auto&& jacobian_view, const auto&& state_view, const auto&& rc_view)
       {
-        Real d_rate_d_ind = cell_rate_constants[process_info.process_id_];
-        for (Index i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
+        auto react_id = jacobian_reactant_ids_.begin();
+        auto prod_id = jacobian_product_ids_.begin();
+        auto yield = jacobian_yields_.begin();
+        auto flat_id = jacobian_flat_ids_.begin();
+        auto d_rate_d_ind = jacobian_view.GetBlockVariable();
+        // loop over process-dependent variable pairs
+        for (const auto& process_info : jacobian_process_info_)
         {
-          d_rate_d_ind *= cell_state[react_id[i_react]];
-        }
-
-        for (Index i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
-        {
-          const Index row_id = react_id[i_dep];
-          if (!is_algebraic_variable_[row_id])
+          rc_view.Copy(d_rate_d_ind, rc_view.GetConstColumnView(process_info.process_id_));
+          for (Index i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
           {
-            cell_jacobian[*flat_id] += d_rate_d_ind;
+            state_view.ForEachRow(
+              [](Real& dr_di, const Real& reactant)
+              {
+                dr_di *= reactant;
+              },
+              d_rate_d_ind,
+              state_view.GetConstColumnView(react_id[i_react]));
+          }
+          for (Index i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
+          {
+            const Index row_id = react_id[i_dep];
+            if (!is_algebraic_variable_[row_id])
+            {
+              jacobian_view.ForEachBlock(
+                [](Real& jacobian, const Real& dr_di)
+                {
+                  jacobian += dr_di;
+                },
+                jacobian_view.GetBlockView(*flat_id),
+                d_rate_d_ind);
+            }
+            ++flat_id;
+          }
+          if (!is_algebraic_variable_[process_info.independent_id_])
+          {
+            jacobian_view.ForEachBlock(
+              [](Real& jacobian, const Real& dr_di)
+              {
+                jacobian += dr_di;
+              },
+              jacobian_view.GetBlockView(*flat_id),
+              d_rate_d_ind);
           }
           ++flat_id;
-        }
-
-        if (!is_algebraic_variable_[process_info.independent_id_])
-        {
-          cell_jacobian[*flat_id] += d_rate_d_ind;
-        }
-        ++flat_id;
-
-        for (Index i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
-        {
-          const Index row_id = prod_id[i_dep];
-          if (!is_algebraic_variable_[row_id])
+          for (Index i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
           {
-            cell_jacobian[*flat_id] -= yield[i_dep] * d_rate_d_ind;
+            const Index row_id = prod_id[i_dep];
+            if (!is_algebraic_variable_[row_id])
+            {
+              const Real prod_yield = yield[i_dep];
+              jacobian_view.ForEachBlock(
+                [prod_yield](Real& jacobian, const Real& dr_di)
+                {
+                  jacobian -= prod_yield * dr_di;
+                },
+                jacobian_view.GetBlockView(*flat_id),
+                d_rate_d_ind);
+            }
+            ++flat_id;
           }
-          ++flat_id;
+          react_id += process_info.number_of_dependent_reactants_;
+          prod_id += process_info.number_of_products_;
+          yield += process_info.number_of_products_;
         }
-
-        react_id += process_info.number_of_dependent_reactants_;
-        prod_id += process_info.number_of_products_;
-        yield += process_info.number_of_products_;
-      }
-      // increment cell_jacobian after each grid cell
-      cell_jacobian += jacobian.FlatBlockSize();
-    }
+      },
+      jacobian,
+      state_variables,
+      state.rate_constants_
+    )(jacobian, state_variables, state.rate_constants_);
 
     // Add Jacobian contributions from external models
     for (const auto& add_jacobian_function : external_jacobian_functions_)
@@ -562,98 +511,6 @@ namespace micm
     }
   }
 
-  // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SubtractJacobianTerms(
-      const auto& state,
-      const DenseMatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
-    requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-  {
-    const auto& v_rate_constants = state.rate_constants_.AsVector();
-    const auto& v_state_variables = state_variables.AsVector();
-    auto& v_jacobian = jacobian.AsVector();
-    constexpr Index L = DenseMatrixPolicy::GroupVectorSize();
-    std::vector<Real> d_rate_d_ind(L, 0);
-    auto v_rate_constants_begin = v_rate_constants.begin();
-    // loop over all rows
-    for (Index i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
-    {
-      auto react_id = jacobian_reactant_ids_.begin();
-      auto prod_id = jacobian_product_ids_.begin();
-      auto yield = jacobian_yields_.begin();
-      const Index offset_rc = i_group * state.rate_constants_.GroupSize();
-      const Index offset_state = i_group * state_variables.GroupSize();
-      const Index offset_jacobian = i_group * jacobian.GroupSize();
-      auto flat_id = jacobian_flat_ids_.begin();
-
-      for (const auto& process_info : jacobian_process_info_)
-      {
-        auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (process_info.process_id_ * L);
-        d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-        for (Index i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
-        {
-          const Index idx_state_variables = offset_state + (react_id[i_react] * L);
-          auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
-          auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
-          for (Index i_cell = 0; i_cell < L; ++i_cell)
-          {
-            *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
-          }
-        }
-        for (Index i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
-        {
-          const Index row_id = react_id[i_dep];
-          if (!is_algebraic_variable_[row_id])
-          {
-            auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
-            auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
-            for (Index i_cell = 0; i_cell < L; ++i_cell)
-            {
-              *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
-            }
-          }
-          ++flat_id;
-        }
-
-        if (!is_algebraic_variable_[process_info.independent_id_])
-        {
-          auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
-          auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
-          for (Index i_cell = 0; i_cell < L; ++i_cell)
-          {
-            *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
-          }
-        }
-        ++flat_id;
-
-        for (Index i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
-        {
-          const Index row_id = prod_id[i_dep];
-          if (!is_algebraic_variable_[row_id])
-          {
-            auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
-            auto yield_value = yield[i_dep];
-            auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
-            for (Index i_cell = 0; i_cell < L; ++i_cell)
-            {
-              *(v_jacobian_it++) -= yield_value * *(v_d_rate_d_ind_it++);
-            }
-          }
-          ++flat_id;
-        }
-        react_id += process_info.number_of_dependent_reactants_;
-        prod_id += process_info.number_of_products_;
-        yield += process_info.number_of_products_;
-      }
-    }
-
-    // Add Jacobian contributions from external models
-    for (const auto& add_jacobian_function : external_jacobian_functions_)
-    {
-      add_jacobian_function(state.custom_rate_parameters_, state_variables, jacobian);
-    }
-  }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   inline std::set<std::string> ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SpeciesUsed(

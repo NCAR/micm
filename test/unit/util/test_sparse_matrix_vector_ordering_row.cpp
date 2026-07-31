@@ -428,3 +428,19 @@ TEST(SparseVectorCompressedRowMatrix, GetBlockViewByVectorIndex)
   TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
   TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
+
+TEST(SparseVectorCompressedRowMatrix, TestFill)
+{
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}
+
+TEST(SparseVectorCompressedRowMatrix, TestCopy)
+{
+  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>, micm::VectorMatrix<micm::Real, 1>>();
+  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, micm::VectorMatrix<micm::Real, 2>>();
+  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>, micm::VectorMatrix<micm::Real, 3>>();
+  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, micm::VectorMatrix<micm::Real, 4>>();
+}

@@ -96,11 +96,7 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const Real& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy>);
-    template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const Real& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy>);
+    void AlphaMinusJacobian(auto& state, const Real& alpha) const;
 
     /// @brief Perform the LU decomposition of the matrix
     /// @param alpha The alpha value
@@ -119,15 +115,7 @@ namespace micm
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
-        auto& state) const
-      requires(!VectorizableDense<DenseMatrixPolicy>);
-    template<class DenseMatrixPolicy>
-    Real NormalizedError(
-        const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& Ynew,
-        const DenseMatrixPolicy& errors,
-        auto& state) const
-      requires(VectorizableDense<DenseMatrixPolicy>);
+        auto& state) const;
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>

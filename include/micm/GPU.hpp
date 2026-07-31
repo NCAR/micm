@@ -33,7 +33,7 @@ namespace micm
 
   using CudaRosenbrockVectorType = typename CudaRosenbrockSolverParameters::template SolverType<
       CudaProcessSet<CudaDenseMatrixVector, CudaSparseMatrixVector>,
-      CudaLinearSolverInPlace<CudaSparseMatrixVector>,
+      CudaLinearSolverInPlace<CudaDenseMatrixVector, CudaSparseMatrixVector>,
       ConstraintSet<CudaDenseMatrixVector, CudaSparseMatrixVector>>;
   using CudaRosenbrock = Solver<CudaRosenbrockVectorType, GpuState>;
 

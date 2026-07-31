@@ -85,10 +85,7 @@ namespace micm
     ///        All elements of L and U that are zero in A should be set to zero before calling this function.
     /// @param ALU Sparse matrix to decompose (will be overwritten with L and U matrices)
     template<class SparseMatrixPolicy>
-      requires(!VectorizableSparse<SparseMatrixPolicy>)
-    void Decompose(SparseMatrixPolicy& ALU) const;
-    template<class SparseMatrixPolicy>
-      requires(VectorizableSparse<SparseMatrixPolicy>)
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     void Decompose(SparseMatrixPolicy& ALU) const;
 
    protected:

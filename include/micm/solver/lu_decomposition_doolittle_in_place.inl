@@ -133,108 +133,62 @@ namespace micm
     return SparseMatrixPolicy(ALU_builder, indexing_only);
   }
 
-  template<class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy>)
-  inline void LuDecompositionDoolittleInPlace::Decompose(SparseMatrixPolicy& ALU) const
-  {
-    const Index n = ALU.NumRows();
-
-    // Loop over blocks
-    for (Index i_block = 0; i_block < ALU.NumberOfBlocks(); ++i_block)
-    {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_block * ALU.FlatBlockSize());
-      auto aik_njk = aik_njk_.begin();
-      auto aij_ajk = aij_ajk_.begin();
-      auto aki_nji = aki_nji_.begin();
-      auto akj_aji = akj_aji_.begin();
-
-      for (const auto& nik_nki_aii : nik_nki_aii_)
-      {
-        for (Index ik = 0; ik < std::get<0>(nik_nki_aii); ++ik)
-        {
-          for (Index jk = 0; jk < aik_njk->second; ++jk)
-          {
-            ALU_vector[aik_njk->first] -= ALU_vector[aij_ajk->first] * ALU_vector[aij_ajk->second];
-            ++aij_ajk;
-          }
-          ++aik_njk;
-        }
-        for (Index ki = 0; ki < std::get<1>(nik_nki_aii); ++ki)
-        {
-          for (Index ji = 0; ji < aki_nji->second; ++ji)
-          {
-            ALU_vector[aki_nji->first] -= ALU_vector[akj_aji->first] * ALU_vector[akj_aji->second];
-            ++akj_aji;
-          }
-          ALU_vector[aki_nji->first] /= ALU_vector[std::get<2>(nik_nki_aii)];
-          ++aki_nji;
-        }
-      }
-    }
-  }
 
   template<class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy>)
   inline void LuDecompositionDoolittleInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    const Index n = ALU.NumRows();
-    const Index ALU_BlockSize = ALU.NumberOfBlocks();
-    constexpr Index ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const Index ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
-
-    // Loop over groups of blocks
-    for (Index i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
-    {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
-      const Index n_cells = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
-      auto aik_njk = aik_njk_.begin();
-      auto aij_ajk = aij_ajk_.begin();
-      auto aki_nji = aki_nji_.begin();
-      auto akj_aji = akj_aji_.begin();
-      for (const auto& nik_nki_aii : nik_nki_aii_)
+    SparseMatrixPolicy::Function(
+      [this](auto&& alu_view)
       {
-        const Index ik_limit = std::get<0>(nik_nki_aii);
-        for (Index ik = 0; ik < ik_limit; ++ik)
+        auto aik_njk = aik_njk_.begin();
+        auto aij_ajk = aij_ajk_.begin();
+        auto aki_nji = aki_nji_.begin();
+        auto akj_aji = akj_aji_.begin();
+        for (const auto& nik_nki_aii : nik_nki_aii_)
         {
-          const Index jk_limit = aik_njk->second;
-          for (Index jk = 0; jk < jk_limit; ++jk)
+          for (Index ik = 0; ik < std::get<0>(nik_nki_aii); ++ik)
           {
-            auto ALU_vector_aik_njk_it = ALU_vector + aik_njk->first;
-            auto ALU_vector_aij_ajk_first_it = ALU_vector + aij_ajk->first;
-            auto ALU_vector_aij_ajk_second_it = ALU_vector + aij_ajk->second;
-            for (Index i = 0; i < n_cells; ++i)
+            auto aik_view = alu_view.GetBlockView(aik_njk->first);
+            for (Index jk = 0; jk < aik_njk->second; ++jk)
             {
-              *(ALU_vector_aik_njk_it++) -= *(ALU_vector_aij_ajk_first_it++) * *(ALU_vector_aij_ajk_second_it++);
+              alu_view.ForEachBlock(
+                [](Real& aik, const Real& aij, const Real& ajk)
+                {
+                  aik -= aij * ajk;
+                },
+                aik_view,
+                alu_view.GetConstBlockView(aij_ajk->first),
+                alu_view.GetConstBlockView(aij_ajk->second));
+              ++aij_ajk;
             }
-            ++aij_ajk;
+            ++aik_njk;
           }
-          ++aik_njk;
-        }
-        const Index ki_limit = std::get<1>(nik_nki_aii);
-        for (Index ki = 0; ki < ki_limit; ++ki)
-        {
-          const Index ji_limit = aki_nji->second;
-          for (Index ji = 0; ji < ji_limit; ++ji)
+          for (Index ki = 0; ki < std::get<1>(nik_nki_aii); ++ki)
           {
-            auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
-            auto ALU_vector_akj_aji_first_it = ALU_vector + akj_aji->first;
-            auto ALU_vector_akj_aji_second_it = ALU_vector + akj_aji->second;
-            for (Index i = 0; i < n_cells; ++i)
+            auto aki_view = alu_view.GetBlockView(aki_nji->first);
+            for (Index ji = 0; ji < aki_nji->second; ++ji)
             {
-              *(ALU_vector_aki_nji_it++) -= *(ALU_vector_akj_aji_first_it++) * *(ALU_vector_akj_aji_second_it++);
+              alu_view.ForEachBlock(
+                [](Real& aki, const Real& akj, const Real& aji)
+                {
+                  aki -= akj * aji;
+                },
+                aki_view,
+                alu_view.GetConstBlockView(akj_aji->first),
+                alu_view.GetConstBlockView(akj_aji->second));
+              ++akj_aji;
             }
-            ++akj_aji;
+            alu_view.ForEachBlock(
+              [](Real& aki, const Real& aii)
+              {
+                aki /= aii;
+              },
+              aki_view,
+              alu_view.GetConstBlockView(std::get<2>(nik_nki_aii)));
+            ++aki_nji;
           }
-          auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
-          auto ALU_vector_nik_nki_aii_it = ALU_vector + std::get<2>(nik_nki_aii);
-          for (Index i = 0; i < n_cells; ++i)
-          {
-            *(ALU_vector_aki_nji_it++) /= *(ALU_vector_nik_nki_aii_it++);
-          }
-          ++aki_nji;
         }
-      }
-    }
+      },
+      ALU)(ALU);
   }
-
 }  // namespace micm

@@ -300,43 +300,24 @@ namespace micm
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
       auto& state,
       const Real& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
     // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
     // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
-    for (Index i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
-    {
-      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
-      Index i_diag = 0;
-      for (const auto& i_elem : state.jacobian_diagonal_elements_)
+    SparseMatrixPolicy::Function(
+      [alpha, &state](auto&& jacobian_view)
       {
-        jacobian_vector[i_elem] += alpha * state.upper_left_identity_diagonal_[i_diag++];
-      }
-    }
-  }
-
-  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class SparseMatrixPolicy>
-  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
-      auto& state,
-      const Real& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy>)
-  {
-    constexpr Index n_cells = SparseMatrixPolicy::GroupVectorSize();
-    // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
-    for (Index i_group = 0; i_group < state.jacobian_.NumberOfGroups(state.jacobian_.NumberOfBlocks()); ++i_group)
-    {
-      auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_group * state.jacobian_.GroupSize());
-      Index i_diag = 0;
-      for (const auto& i_elem : state.jacobian_diagonal_elements_)
-      {
-        const Real diagonal_scale = state.upper_left_identity_diagonal_[i_diag++];
-        for (Index i_cell = 0; i_cell < n_cells; ++i_cell)
+        Index i_diag = 0;
+        for (const auto& i_elem : state.jacobian_diagonal_elements_)
         {
-          jacobian_vector[i_elem + i_cell] += alpha * diagonal_scale;
+          const Real scaled_alpha = alpha * state.upper_left_identity_diagonal_[i_diag++];
+          jacobian_view.ForEachBlock(
+            [scaled_alpha](Real& diag) {
+              diag += scaled_alpha;
+            },
+            jacobian_view.GetBlockView(i_elem));
         }
-      }
-    }
+      },
+      state.jacobian_)(state.jacobian_);
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
@@ -368,66 +349,36 @@ namespace micm
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors,
       auto& state) const
-    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
     const auto& atol = state.absolute_tolerance_;
     const auto& rtol = state.relative_tolerance_;
-    const Index n_vars = atol.size();
+    const Index n_vars = Y.NumColumns();
+    const Index n_cells = Y.NumRows();
 
-    Real ymax = 0;
-    Real errors_over_scale = 0;
     Real error = 0;
 
-    for (Index i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-    {
-      for (Index i_var = 0; i_var < Y.NumColumns(); ++i_var)
+    DenseMatrixPolicy::Function(
+      [&](const auto&& y_view, const auto&& ynew_view, const auto&& errors_view)
       {
-        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-        error += errors_over_scale * errors_over_scale;
-      }
-    }
-
-    Real error_min = 1.0e-10;
-    const Index N = std::max<Index>(1, Y.NumRows() * Y.NumColumns());
-
-    return std::max(std::sqrt(error / N), error_min);
-  }
-
-  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class DenseMatrixPolicy>
-  inline Real AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
-      const DenseMatrixPolicy& Y,
-      const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors,
-      auto& state) const
-    requires(VectorizableDense<DenseMatrixPolicy>)
-  {
-    // Solving Ordinary Differential Equations II, page 123
-    // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-
-    const auto& atol = state.absolute_tolerance_;
-    const auto& rtol = state.relative_tolerance_;
-    const Index n_vars = atol.size();
-
-    Real ymax = 0;
-    Real errors_over_scale = 0;
-    Real error = 0;
-
-    for (Index i_cell = 0; i_cell < Y.NumRows(); ++i_cell)
-    {
-      for (Index i_var = 0; i_var < Y.NumColumns(); ++i_var)
-      {
-        ymax = std::max(std::abs(Y[i_cell][i_var]), std::abs(Ynew[i_cell][i_var]));
-        errors_over_scale = errors[i_cell][i_var] / (atol[i_var % n_vars] + rtol * ymax);
-        error += errors_over_scale * errors_over_scale;
-      }
-    }
-
-    Real error_min = 1.0e-10;
+        for (Index i_var = 0; i_var < n_vars; ++i_var)
+        {
+          // skip padding rows so their possibly non-zero values
+          // do not end up in the normalized error.
+          y_view.ForEachRowStrict(
+            [&](const Real& y, const Real& ynew, const Real& var_error)
+            {
+              Real ymax = std::max(std::abs(y), std::abs(ynew));
+              Real errors_over_scale = var_error / (atol[i_var % n_vars] + rtol * ymax);
+              error += errors_over_scale * errors_over_scale;
+            },
+            y_view.GetConstColumnView(i_var),
+            ynew_view.GetConstColumnView(i_var),
+            errors_view.GetConstColumnView(i_var));
+        }
+      }, Y, Ynew, errors)(Y, Ynew, errors);
+    constexpr Real error_min = 1.0e-10;
     const Index N = std::max<Index>(1, Y.NumRows() * Y.NumColumns());
 
     return std::max(std::sqrt(error / N), error_min);

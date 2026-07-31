@@ -17,73 +17,19 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestZeroMatrix()
   MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
-
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][0][4] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[1][0][0] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][3][0] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][1][1] = 2.0; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(0, 0);, "zero element access");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(6, 0);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 3);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(6, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 0);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(1, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 3);, "out of range");
+  EXPECT_DEATH(matrix[0][0][4] = 2.0;, "out of range");
+  EXPECT_DEATH(matrix[1][0][0] = 2.0;, "out of range");
+  EXPECT_DEATH(matrix[0][3][0] = 2.0;, "out of range");
+  EXPECT_DEATH(matrix[0][1][1] = 2.0;, "zero element access");
+#endif
   return matrix;
 }
 
@@ -97,49 +43,15 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestConstZeroMatrix()
   const MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
-
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(0, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(0, 0);, "zero element access");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(6, 0);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 3);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(6, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 0);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(1, 3);, "out of range");
+  EXPECT_DEATH(bool isZero = matrix.IsZero(6, 3);, "out of range");
+#endif
   return matrix;
 }
 
@@ -180,61 +92,17 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 0);
   matrix[0][2][1] = 45;
   EXPECT_EQ(matrix[0][2][1], 45);
-
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[1][0][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][3][3] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(4, 2);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 5);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 0, 2);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(2, 2);, "zero element access");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(0, 2);, "zero element access");
+  EXPECT_DEATH(matrix[0][0][4] = 2;, "out of range");
+  EXPECT_DEATH(matrix[1][0][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][5][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][3][3] = 2;, "zero element access");
+#endif
   return matrix;
 }
 
@@ -273,37 +141,13 @@ MatrixPolicy<int, OrderingPolicy> TestConstSingleBlockMatrix()
   EXPECT_EQ(matrix.IsZero(3, 3), true);
 
   EXPECT_EQ(matrix[0][2][1], 45);
-
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(4, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 5); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(2, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(4, 2);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 5);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 0, 2);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(2, 2);, "zero element access");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(0, 2);, "zero element access");
+#endif
   return matrix;
 }
 
@@ -351,67 +195,25 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestMultiBlockMatrix()
   diagonal_ids = matrix.DiagonalIndices(2);
   EXPECT_EQ(diagonal_ids.size(), 1);
   EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(2, 1, 1));
-
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(0, 4, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(2, 1, 5); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(54, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(1, 2, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { micm::Index elem = matrix.VectorIndex(2, 0, 2); } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(0, 4, 2);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(2, 1, 5);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(54, 0, 2);, "out of range");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(1, 2, 2);, "zero element access");
+  EXPECT_DEATH(micm::Index elem = matrix.VectorIndex(2, 0, 2);, "zero element access");
+#endif
   EXPECT_THROW(
       try { micm::Index elem = matrix.VectorIndex(0, 1); } catch (micm::MicmException& e) {
         EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_MISSING_BLOCK_INDEX);
         throw;
       },
       micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[53][0][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE);
-        throw;
-      },
-      micm::MicmException);
-  EXPECT_THROW(
-      try { matrix[0][3][3] = 2; } catch (micm::MicmException& e) {
-        EXPECT_EQ(e.code_, MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS);
-        throw;
-      },
-      micm::MicmException);
+#ifndef NDEBUG
+  EXPECT_DEATH(matrix[0][0][4] = 2;, "out of range");
+  EXPECT_DEATH(matrix[53][0][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][5][0] = 2;, "out of range");
+  EXPECT_DEATH(matrix[0][3][3] = 2;, "zero element access");
+#endif
   return matrix;
 }
 
@@ -780,8 +582,10 @@ void TestMismatchedElementDimensions()
       },
       matrix);
 
-  // Should throw when invoking the function because element (3,3) doesn't exist
-  EXPECT_ANY_THROW(func(matrix));
+  // Should fail when invoking the function because element (3,3) doesn't exist
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix),"");
+#endif
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
@@ -827,8 +631,10 @@ void TestWrongMatrixDimensions()
       5);  // Different number of blocks!
   MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder3 };
 
-  // Should throw because number of blocks doesn't match (5 vs 3)
-  EXPECT_ANY_THROW(func(matrix3));
+  // Should fail because number of blocks doesn't match (5 vs 3)
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix3), "");
+#endif
 }
 
 /// @brief Test: Multiple sparse matrices with DIFFERENT block counts from creation (should work)
@@ -1061,10 +867,12 @@ void TestWrongStructureAtInvocation()
       matrix3);
 
   // Should work with different block count but same structure
-  EXPECT_NO_THROW(func(matrix5_same));
+  func(matrix5_same);
 
-  // Should throw with different element structure
-  EXPECT_ANY_THROW(func(matrix5_diff));
+  // Should fail assertion in debug mode with different element structure
+#ifndef NDEBUG
+  EXPECT_DEATH(func(matrix5_diff),"");
+#endif
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
@@ -2247,4 +2055,270 @@ SparseMatrixPolicy<micm::Real, OrderingPolicy> TestGetBlockViewByVectorIndex()
   EXPECT_EQ(sparse[2][2][2], 52.0);  // element (2,2) = 2 + 50
 
   return sparse;
+}
+
+
+/// @brief Fill: sparse block with value, VectorLike with value, BlockVariable temp with value.
+///
+/// Note: the grouped `Fill(GroupedBlockView, T)` overload takes the 1-arg
+/// vector-index form of `GetBlockView`. The 2-arg `(row, col)` form returns a
+/// raw `BlockView` and is intended for `ForEachBlock`-style dispatch.
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>
+void TestFill()
+{
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .WithElement(2, 0)
+                     .SetNumberOfBlocks(3)
+                     .InitialValue(0.0);
+  SparseMatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
+
+  const micm::Index idx_01 = matrix.VectorIndex(0, 0, 1);
+  const micm::Index idx_20 = matrix.VectorIndex(0, 2, 0);
+
+  // Fill a sparse-matrix block element with a scalar value across all blocks.
+  {
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01](auto&& m) { m.Fill(m.GetBlockView(idx_01), 3.2); }, matrix);
+
+    func(matrix);
+
+    for (micm::Index b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
+      EXPECT_EQ(matrix[b][0][1], 3.2);
+      EXPECT_EQ(matrix[b][2][0], 0.0);  // Untouched
+    }
+  }
+
+  // Fill a caller-owned std::vector (one entry per block) with a scalar value.
+  {
+    std::vector<micm::Real> vec(matrix.NumberOfBlocks());
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [](auto&& m, auto&& v) { m.Fill(v, 3.2); }, matrix, vec);
+
+    func(matrix, vec);
+
+    for (micm::Real b : vec)
+    {
+      EXPECT_EQ(b, 3.2);
+    }
+  }
+
+  // Fill a caller-owned block-variable temp with a scalar value, then broadcast
+  // to an unrelated sparse element so we can observe the temp from outside.
+  {
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_20](auto&& m)
+        {
+          auto tmp = m.GetBlockVariable();
+          m.Fill(tmp, 9.9);
+          m.ForEachBlock([](micm::Real& d, const micm::Real& t) { d = t; }, m.GetBlockView(idx_20), tmp);
+        },
+        matrix);
+
+    func(matrix);
+
+    for (micm::Index b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
+      EXPECT_EQ(matrix[b][2][0], 9.9);
+    }
+  }
+}
+
+/// @brief Copy: sparse<->sparse (mut/const), sparse<->VectorLike,
+///        sparse<->BlockVariable, and cross-type sparse<->dense (via ForEachBlock).
+///
+/// @tparam DenseMatrixType Concrete dense matrix type used in the cross-type
+///         cross-check cases. Callers must supply a type with the same
+///         GroupVectorSize (L) as `OrderingPolicy` so that Function() will
+///         accept both together (Standard sparse: `micm::Matrix<micm::Real>`;
+///         Vector sparse<L>: `micm::VectorMatrix<micm::Real, L>`).
+template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy, class DenseMatrixType>
+void TestCopy()
+{
+  auto builder = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
+                     .WithElement(0, 1)
+                     .WithElement(2, 0)
+                     .SetNumberOfBlocks(3)
+                     .InitialValue(0.0);
+
+  // Helper: build a fresh matrix with distinct per-block values in (0,1).
+  auto make_matrix = [&]()
+  {
+    SparseMatrixPolicy<micm::Real, OrderingPolicy> m{ builder };
+    m[0][0][1] = 3.2;
+    m[1][0][1] = 4.2;
+    m[2][0][1] = 1.3;
+    return m;
+  };
+
+  const micm::Index idx_01 = make_matrix().VectorIndex(0, 0, 1);
+  const micm::Index idx_20 = make_matrix().VectorIndex(0, 2, 0);
+
+  // std::vector -> sparse block.
+  {
+    auto matrix = make_matrix();
+    for (micm::Index b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
+      matrix[b][0][1] = 0.0;
+    }
+
+    std::vector<micm::Real> vec{ 10.0, 20.0, 30.0 };
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01](auto&& m, auto&& v) { m.Copy(m.GetBlockView(idx_01), v); }, matrix, vec);
+
+    func(matrix, vec);
+
+    EXPECT_EQ(matrix[0][0][1], 10.0);
+    EXPECT_EQ(matrix[1][0][1], 20.0);
+    EXPECT_EQ(matrix[2][0][1], 30.0);
+    EXPECT_EQ(matrix[0][2][0], 0.0);  // Untouched
+  }
+
+  // const sparse block -> std::vector.
+  {
+    auto matrix = make_matrix();
+    std::vector<micm::Real> vec(matrix.NumberOfBlocks(), -1.0);
+
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01](auto&& m, auto&& v) { m.Copy(v, m.GetConstBlockView(idx_01)); }, matrix, vec);
+
+    func(matrix, vec);
+
+    EXPECT_EQ(vec[0], 3.2);
+    EXPECT_EQ(vec[1], 4.2);
+    EXPECT_EQ(vec[2], 1.3);
+  }
+
+  // One sparse block into another (mutable-to-mutable).
+  {
+    auto matrix = make_matrix();
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01, idx_20](auto&& m) { m.Copy(m.GetBlockView(idx_20), m.GetBlockView(idx_01)); }, matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][2][0], 3.2);
+    EXPECT_EQ(matrix[1][2][0], 4.2);
+    EXPECT_EQ(matrix[2][2][0], 1.3);
+    EXPECT_EQ(matrix[0][0][1], 3.2);  // src unchanged
+  }
+
+  // One sparse block into another (const-to-mutable).
+  {
+    auto matrix = make_matrix();
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01, idx_20](auto&& m) { m.Copy(m.GetBlockView(idx_20), m.GetConstBlockView(idx_01)); }, matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][2][0], 3.2);
+    EXPECT_EQ(matrix[1][2][0], 4.2);
+    EXPECT_EQ(matrix[2][2][0], 1.3);
+  }
+
+  // Round-trip: sparse block -> BlockVariable temp -> sparse block.
+  {
+    auto matrix = make_matrix();
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01](auto&& m)
+        {
+          auto tmp = m.GetBlockVariable();
+          m.Copy(tmp, m.GetConstBlockView(idx_01));
+          m.Fill(m.GetBlockView(idx_01), 0.0);
+          m.ForEachBlock([](micm::Real& c, const micm::Real& t) { c = t; }, m.GetBlockView(idx_01), tmp);
+        },
+        matrix);
+
+    func(matrix);
+
+    EXPECT_EQ(matrix[0][0][1], 3.2);
+    EXPECT_EQ(matrix[1][0][1], 4.2);
+    EXPECT_EQ(matrix[2][0][1], 1.3);
+  }
+
+  // Cross-type: dense column -> sparse block, driven from the sparse-view side
+  // via ForEachBlock. No dedicated Copy overload for this pairing; ForEachBlock
+  // dispatches per-element via GetBlockElement / GetRowElement overloads.
+  {
+    auto matrix = make_matrix();
+    for (micm::Index b = 0; b < matrix.NumberOfBlocks(); ++b)
+    {
+      matrix[b][2][0] = 0.0;
+    }
+
+    DenseMatrixType dense{ matrix.NumberOfBlocks(), 2, 0.0 };
+    for (micm::Index b = 0; b < dense.NumRows(); ++b)
+    {
+      dense[b][1] = static_cast<micm::Real>(b + 1) * 100.0;
+    }
+
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_20](auto&& m, auto&& d)
+        {
+          m.ForEachBlock(
+              [](micm::Real& sparse_elem, const micm::Real& dense_elem) { sparse_elem = dense_elem; },
+              m.GetBlockView(idx_20),
+              d.GetConstColumnView(1));
+        },
+        matrix, dense);
+
+    func(matrix, dense);
+
+    EXPECT_EQ(matrix[0][2][0], 100.0);
+    EXPECT_EQ(matrix[1][2][0], 200.0);
+    EXPECT_EQ(matrix[2][2][0], 300.0);
+  }
+
+  // Cross-type: sparse block -> dense column via a caller-owned std::vector
+  // scratch. There is no direct sparse-block-to-dense-column overload; go
+  // sparse -> vector (via Copy), then use the vector as a source in a dense
+  // ForEachRow call.
+  {
+    auto matrix = make_matrix();
+    DenseMatrixType dense{ matrix.NumberOfBlocks(), 2, 0.0 };
+    std::vector<micm::Real> scratch(matrix.NumberOfBlocks(), 0.0);
+
+    auto sparse_to_scratch = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [idx_01](auto&& m, auto&& v) { m.Copy(v, m.GetConstBlockView(idx_01)); }, matrix, scratch);
+
+    auto scratch_to_dense = DenseMatrixType::Function(
+        [](auto&& d, auto&& v)
+        {
+          d.ForEachRow([](micm::Real& dense_elem, const micm::Real& scratch_elem) { dense_elem = scratch_elem; },
+                       d.GetColumnView(0), v);
+        },
+        dense, scratch);
+
+    sparse_to_scratch(matrix, scratch);
+    scratch_to_dense(dense, scratch);
+
+    EXPECT_EQ(dense[0][0], 3.2);
+    EXPECT_EQ(dense[1][0], 4.2);
+    EXPECT_EQ(dense[2][0], 1.3);
+  }
+
+  // Cross-matrix: two sparse matrices (matching block counts, different sparsity).
+  {
+    auto src = make_matrix();
+    auto builder2 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
+                        .WithElement(1, 2)
+                        .SetNumberOfBlocks(3)
+                        .InitialValue(0.0);
+    SparseMatrixPolicy<micm::Real, OrderingPolicy> dst{ builder2 };
+
+    const micm::Index dst_idx_12 = dst.VectorIndex(0, 1, 2);
+    const micm::Index src_idx_01 = src.VectorIndex(0, 0, 1);
+
+    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
+        [dst_idx_12, src_idx_01](auto&& d, auto&& s)
+        { d.Copy(d.GetBlockView(dst_idx_12), s.GetConstBlockView(src_idx_01)); },
+        dst, src);
+
+    func(dst, src);
+
+    EXPECT_EQ(dst[0][1][2], 3.2);
+    EXPECT_EQ(dst[1][1][2], 4.2);
+    EXPECT_EQ(dst[2][1][2], 1.3);
+  }
 }

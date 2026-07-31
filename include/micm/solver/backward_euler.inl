@@ -175,90 +175,42 @@ namespace micm
       const DenseMatrixPolicy& Yn1,
       const std::vector<Real>& absolute_tolerance,
       Real relative_tolerance)
-    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
-    Real small = parameters.small_;
-    Real rel_tol = relative_tolerance;
-    const auto& abs_tol = absolute_tolerance;
-    auto residual_iter = residual.AsVector().begin();
-    auto Yn1_iter = Yn1.AsVector().begin();
-    const Index n_elem = residual.NumRows() * residual.NumColumns();
-    const Index n_vars = abs_tol.size();
-    for (Index i = 0; i < n_elem; ++i)
-    {
-      // A non-finite residual is never converged. Without this check an infinite residual escapes the
-      // test below, because the relative bound rel_tol * |Yn1| is itself infinite and inf > inf is
-      // false -- a blown-up solve would then be reported as SolverState::Converged.
-      if (!std::isfinite(*residual_iter))
+    const Index n_vars = absolute_tolerance.size();
+    bool retval = true;
+    DenseMatrixPolicy::Function(
+      [&](const auto&& residual_view, const auto&& Yn1_view)
       {
-        return false;
-      }
-      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
-      {
-        return false;
-      }
-      ++residual_iter, ++Yn1_iter;
-    }
-    return true;
-  }
-
-  template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
-  template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
-      const BackwardEulerSolverParameters& parameters,
-      const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1,
-      const std::vector<Real>& absolute_tolerance,
-      Real relative_tolerance)
-    requires(VectorizableDense<DenseMatrixPolicy>)
-  {
-    Real small = parameters.small_;
-    Real rel_tol = relative_tolerance;
-    const auto& abs_tol = absolute_tolerance;
-    auto residual_iter = residual.AsVector().begin();
-    auto Yn1_iter = Yn1.AsVector().begin();
-    const Index n_elem = residual.NumRows() * residual.NumColumns();
-    constexpr Index L = DenseMatrixPolicy::GroupVectorSize();
-    const Index n_vars = abs_tol.size();
-    const Index whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
-    // evaluate the rows that fit exactly into the vectorizable dimension (L)
-    for (Index i = 0; i < whole_blocks; ++i)
-    {
-      // See the scalar overload: a non-finite residual must not be allowed to pass the test below.
-      if (!std::isfinite(*residual_iter))
-      {
-        return false;
-      }
-      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
-      {
-        return false;
-      }
-      ++residual_iter, ++Yn1_iter;
-    }
-
-    // evaluate the remaining rows
-    const Index remaining_rows = residual.NumRows() % L;
-    if (remaining_rows > 0)
-    {
-      for (Index y = 0; y < residual.NumColumns(); ++y)
-      {
-        const Index offset = y * L;
-        for (Index i = offset; i < offset + remaining_rows; ++i)
+        for (Index i_var = 0; i_var < n_vars; ++i_var)
         {
-          if (!std::isfinite(residual_iter[i]))
+          const Real var_abs_tol = absolute_tolerance[i_var];
+          residual_view.ForEachRow(
+            [&](const Real& residual, const Real& Yn1)
+            {
+              // A non-finite residual is never converged. Without this check an infinite residual escapes
+              // the test below, because the relative bound rel_tol * |Yn1| is itself infinite and
+              // inf > inf is false -- a blown-up solve would then be reported as SolverState::Converged.
+              if (!std::isfinite(residual))
+              {
+                retval = false;
+                return;
+              }
+              if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
+                  std::abs(residual) > relative_tolerance * std::abs(Yn1))
+              {
+                retval = false;
+              }
+            },
+            residual_view.GetConstColumnView(i_var),
+            Yn1_view.GetConstColumnView(i_var));
+          if (!retval)
           {
-            return false;
-          }
-          if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
-              std::abs(residual_iter[i]) > rel_tol * std::abs(Yn1_iter[i]))
-          {
-            return false;
+            return;
           }
         }
-      }
-    }
-    return true;
+      },
+      residual,
+      Yn1)(residual, Yn1);
+    return retval;
   }
 }  // namespace micm
