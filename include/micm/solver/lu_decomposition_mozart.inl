@@ -198,92 +198,77 @@ namespace micm
   {
     const Index n = A.NumRows();
     SparseMatrixPolicy::Function(
-      [this, n](const auto&& A_view, auto&& lower_view, auto&& upper_view)
-      {
-        auto uji_aji = uji_aji_.begin();
-        auto lji_aji = lji_aji_.begin();
-        auto uii_nj_nk = uii_nj_nk_.begin();
-        auto lji = lji_.begin();
-        auto nujk_nljk_uik = nujk_nljk_uik_.begin();
-        auto ujk_lji = ujk_lji_.begin();
-        auto ljk_lji = ljk_lji_.begin();
-        auto Uii_inverse = A_view.GetBlockVariable();
-        for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
+        [this, n](const auto&& A_view, auto&& lower_view, auto&& upper_view)
         {
-          for (Index i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
+          auto uji_aji = uji_aji_.begin();
+          auto lji_aji = lji_aji_.begin();
+          auto uii_nj_nk = uii_nj_nk_.begin();
+          auto lji = lji_.begin();
+          auto nujk_nljk_uik = nujk_nljk_uik_.begin();
+          auto ujk_lji = ujk_lji_.begin();
+          auto ljk_lji = ljk_lji_.begin();
+          auto Uii_inverse = A_view.GetBlockVariable();
+          for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
           {
-            upper_view.Copy(
-              upper_view.GetBlockView(uji_aji->first),
-              A_view.GetConstBlockView(uji_aji->second));
-            ++uji_aji;
-          }
-          lower_view.Fill(lower_view.GetBlockView(std::get<0>(lii_nuji_nlji)), 1.0);
-          for (Index i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
-          {
-            lower_view.Copy(
-              lower_view.GetBlockView(lji_aji->first),
-              A_view.GetConstBlockView(lji_aji->second));
-            ++lji_aji;
-          }
-        }
-        for (const auto& fill_uji : fill_uji_)
-        {
-          upper_view.Fill(upper_view.GetBlockView(fill_uji), 0.0);
-        }
-        for (const auto& fill_lji : fill_lji_)
-        {
-          lower_view.Fill(lower_view.GetBlockView(fill_lji), 0.0);
-        }
-        for (Index i = 0; i < n; ++i)
-        {
-          upper_view.ForEachBlock(
-            [](Real& uii_inv, const Real& uii)
+            for (Index i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
             {
-              uii_inv = 1.0 / uii;
-            },
-            Uii_inverse,
-            upper_view.GetConstBlockView(std::get<0>(*uii_nj_nk)));
-          for (Index ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
-          {
-            lower_view.ForEachBlock(
-              [](Real& lji, const Real& uii_inv)
-              {
-                lji *= uii_inv;
-              },
-              lower_view.GetBlockView(*(lji++)),
-              Uii_inverse);
-          }
-          for (Index ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
-          {
-            auto uik_view = upper_view.GetConstBlockView(std::get<2>(*nujk_nljk_uik));
-            for (Index ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
-            {
-              upper_view.ForEachBlock(
-                [](Real& ujk, const Real& lji, const Real& uik)
-                {
-                  ujk -= lji * uik;
-                },
-                upper_view.GetBlockView(ujk_lji->first),
-                lower_view.GetConstBlockView(ujk_lji->second),
-                uik_view);
-              ++ujk_lji;
+              upper_view.Copy(upper_view.GetBlockView(uji_aji->first), A_view.GetConstBlockView(uji_aji->second));
+              ++uji_aji;
             }
-            for (Index ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+            lower_view.Fill(lower_view.GetBlockView(std::get<0>(lii_nuji_nlji)), 1.0);
+            for (Index i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
+            {
+              lower_view.Copy(lower_view.GetBlockView(lji_aji->first), A_view.GetConstBlockView(lji_aji->second));
+              ++lji_aji;
+            }
+          }
+          for (const auto& fill_uji : fill_uji_)
+          {
+            upper_view.Fill(upper_view.GetBlockView(fill_uji), 0.0);
+          }
+          for (const auto& fill_lji : fill_lji_)
+          {
+            lower_view.Fill(lower_view.GetBlockView(fill_lji), 0.0);
+          }
+          for (Index i = 0; i < n; ++i)
+          {
+            upper_view.ForEachBlock(
+                [](Real& uii_inv, const Real& uii) { uii_inv = 1.0 / uii; },
+                Uii_inverse,
+                upper_view.GetConstBlockView(std::get<0>(*uii_nj_nk)));
+            for (Index ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
             {
               lower_view.ForEachBlock(
-                [](Real& ljk, const Real& lji, const Real& uik)
-                {
-                  ljk -= lji * uik;
-                },
-                lower_view.GetBlockView(ljk_lji->first),
-                lower_view.GetConstBlockView(ljk_lji->second),
-                uik_view);
-              ++ljk_lji;
+                  [](Real& lji, const Real& uii_inv) { lji *= uii_inv; }, lower_view.GetBlockView(*(lji++)), Uii_inverse);
             }
-            ++nujk_nljk_uik;
+            for (Index ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
+            {
+              auto uik_view = upper_view.GetConstBlockView(std::get<2>(*nujk_nljk_uik));
+              for (Index ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
+              {
+                upper_view.ForEachBlock(
+                    [](Real& ujk, const Real& lji, const Real& uik) { ujk -= lji * uik; },
+                    upper_view.GetBlockView(ujk_lji->first),
+                    lower_view.GetConstBlockView(ujk_lji->second),
+                    uik_view);
+                ++ujk_lji;
+              }
+              for (Index ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+              {
+                lower_view.ForEachBlock(
+                    [](Real& ljk, const Real& lji, const Real& uik) { ljk -= lji * uik; },
+                    lower_view.GetBlockView(ljk_lji->first),
+                    lower_view.GetConstBlockView(ljk_lji->second),
+                    uik_view);
+                ++ljk_lji;
+              }
+              ++nujk_nljk_uik;
+            }
+            ++uii_nj_nk;
           }
-          ++uii_nj_nk;
-        }
-      }, A, L, U)(A, L, U);
+        },
+        A,
+        L,
+        U)(A, L, U);
   }
 }  // namespace micm

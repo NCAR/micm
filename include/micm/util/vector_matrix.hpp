@@ -640,7 +640,9 @@ namespace micm
         if constexpr (requires(Index i) { arg.Get()[i]; })
         {
           return arg.Get()[row_in_group];
-        } else {
+        }
+        else
+        {
           return arg.Get();
         }
       }
@@ -873,7 +875,9 @@ namespace micm
         if constexpr (requires(Index i) { arg.Get()[i]; })
         {
           return arg.Get()[row_in_group];
-        } else {
+        }
+        else
+        {
           return arg.Get();
         }
       }
@@ -1312,7 +1316,9 @@ namespace micm
       if constexpr (requires(Index i) { arg.Get()[i]; })
       {
         return arg.Get()[row_in_group];
-      } else {
+      }
+      else
+      {
         return arg.Get();
       }
     }
@@ -1345,7 +1351,9 @@ namespace micm
       if constexpr (requires(Index i) { arg.Get()[i]; })
       {
         return arg.Get()[row_in_group];
-      } else {
+      }
+      else
+      {
         return arg.Get();
       }
     }

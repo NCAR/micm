@@ -55,7 +55,10 @@ namespace micm
         const SparseMatrixPolicy& matrix,
         typename SparseMatrixPolicy::value_type initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>&& create_lu_decomp)
-        : LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
+        : LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(
+              matrix,
+              initial_value,
+              create_lu_decomp)
     {
       LinearSolverInPlaceParam hoststruct;
 
@@ -86,8 +89,7 @@ namespace micm
     };
 
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& ALU) const
-      requires(
-        CudaMatrix<SparseMatrixPolicy> && CudaMatrix<MatrixPolicy>)
+      requires(CudaMatrix<SparseMatrixPolicy> && CudaMatrix<MatrixPolicy>)
     {
       auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
       micm::cuda::SolveKernelDriver(x_param, ALU.AsDeviceParam(), this->devstruct_);

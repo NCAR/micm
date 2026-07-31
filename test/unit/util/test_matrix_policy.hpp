@@ -1606,9 +1606,7 @@ void TestFill()
 
   // Fill a matrix column with a scalar value.
   {
-    auto func = MatrixPolicy<double>::Function(
-      [](auto&& m){ m.Fill(m.GetColumnView(1), 3.2); },
-      matrix);
+    auto func = MatrixPolicy<double>::Function([](auto&& m) { m.Fill(m.GetColumnView(1), 3.2); }, matrix);
 
     func(matrix);
 
@@ -1623,10 +1621,7 @@ void TestFill()
   // Fill a caller-owned std::vector with a scalar value.
   {
     std::vector<double> vec(3);
-    auto func = MatrixPolicy<double>::Function(
-      [](auto&& m, auto&& v){ m.Fill(v, 3.2); },
-      matrix,
-      vec);
+    auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Fill(v, 3.2); }, matrix, vec);
 
     func(matrix, vec);
 
@@ -1638,14 +1633,14 @@ void TestFill()
   // Fill a caller-owned row-variable temp with a scalar value.
   {
     auto func = MatrixPolicy<double>::Function(
-      [](auto&& m)
-      {
-        auto tmp = m.GetRowVariable();
-        m.Fill(tmp, 9.9);
-        // Broadcast the temp into column 0 so we can observe it from outside.
-        m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(0), tmp);
-      },
-      matrix);
+        [](auto&& m)
+        {
+          auto tmp = m.GetRowVariable();
+          m.Fill(tmp, 9.9);
+          // Broadcast the temp into column 0 so we can observe it from outside.
+          m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(0), tmp);
+        },
+        matrix);
 
     func(matrix);
 
@@ -1663,10 +1658,7 @@ void TestCopy()
 
   // Copy a std::vector into a matrix column.
   {
-    auto func = MatrixPolicy<double>::Function(
-      [](auto&& m, auto&& v){ m.Copy(m.GetColumnView(1), v); },
-      matrix,
-      vec);
+    auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Copy(m.GetColumnView(1), v); }, matrix, vec);
 
     func(matrix, vec);
 
@@ -1681,10 +1673,7 @@ void TestCopy()
   // Copy a const matrix column into a std::vector.
   {
     std::vector<double> vec2(3);
-    auto func = MatrixPolicy<double>::Function(
-      [](auto&& m, auto&& v){ m.Copy(v, m.GetConstColumnView(1)); },
-      matrix,
-      vec2);
+    auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Copy(v, m.GetConstColumnView(1)); }, matrix, vec2);
 
     func(matrix, vec2);
 
@@ -1695,9 +1684,7 @@ void TestCopy()
 
   // Copy one matrix column into another (mutable-to-mutable).
   {
-    auto func = MatrixPolicy<double>::Function(
-      [](auto&& m){ m.Copy(m.GetColumnView(0), m.GetColumnView(1)); },
-      matrix);
+    auto func = MatrixPolicy<double>::Function([](auto&& m) { m.Copy(m.GetColumnView(0), m.GetColumnView(1)); }, matrix);
 
     func(matrix);
 
@@ -1716,10 +1703,9 @@ void TestCopy()
     {
       matrix[i][0] = 0.0;
     }
-    
-    auto func = MatrixPolicy<double>::Function(
-      [](auto&& m){ m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); },
-      matrix);
+
+    auto func =
+        MatrixPolicy<double>::Function([](auto&& m) { m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); }, matrix);
 
     func(matrix);
 
@@ -1731,15 +1717,15 @@ void TestCopy()
   // Round-trip: matrix column -> row-variable temp -> matrix column.
   {
     auto func = MatrixPolicy<double>::Function(
-      [](auto&& m)
-      {
-        auto tmp = m.GetRowVariable();
-        m.Copy(tmp, m.GetConstColumnView(1));
-        // Zero column 1 first so the copy-back is observable.
-        m.Fill(m.GetColumnView(1), 0.0);
-        m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(1), tmp);
-      },
-      matrix);
+        [](auto&& m)
+        {
+          auto tmp = m.GetRowVariable();
+          m.Copy(tmp, m.GetConstColumnView(1));
+          // Zero column 1 first so the copy-back is observable.
+          m.Fill(m.GetColumnView(1), 0.0);
+          m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(1), tmp);
+        },
+        matrix);
 
     func(matrix);
 

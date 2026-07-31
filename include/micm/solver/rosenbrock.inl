@@ -304,20 +304,17 @@ namespace micm
     // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
     // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
     SparseMatrixPolicy::Function(
-      [alpha, &state](auto&& jacobian_view)
-      {
-        Index i_diag = 0;
-        for (const auto& i_elem : state.jacobian_diagonal_elements_)
+        [alpha, &state](auto&& jacobian_view)
         {
-          const Real scaled_alpha = alpha * state.upper_left_identity_diagonal_[i_diag++];
-          jacobian_view.ForEachBlock(
-            [scaled_alpha](Real& diag) {
-              diag += scaled_alpha;
-            },
-            jacobian_view.GetBlockView(i_elem));
-        }
-      },
-      state.jacobian_)(state.jacobian_);
+          Index i_diag = 0;
+          for (const auto& i_elem : state.jacobian_diagonal_elements_)
+          {
+            const Real scaled_alpha = alpha * state.upper_left_identity_diagonal_[i_diag++];
+            jacobian_view.ForEachBlock(
+                [scaled_alpha](Real& diag) { diag += scaled_alpha; }, jacobian_view.GetBlockView(i_elem));
+          }
+        },
+        state.jacobian_)(state.jacobian_);
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
@@ -360,24 +357,27 @@ namespace micm
     Real error = 0;
 
     DenseMatrixPolicy::Function(
-      [&](const auto&& y_view, const auto&& ynew_view, const auto&& errors_view)
-      {
-        for (Index i_var = 0; i_var < n_vars; ++i_var)
+        [&](const auto&& y_view, const auto&& ynew_view, const auto&& errors_view)
         {
-          // skip padding rows so their possibly non-zero values
-          // do not end up in the normalized error.
-          y_view.ForEachRowStrict(
-            [&](const Real& y, const Real& ynew, const Real& var_error)
-            {
-              Real ymax = std::max(std::abs(y), std::abs(ynew));
-              Real errors_over_scale = var_error / (atol[i_var % n_vars] + rtol * ymax);
-              error += errors_over_scale * errors_over_scale;
-            },
-            y_view.GetConstColumnView(i_var),
-            ynew_view.GetConstColumnView(i_var),
-            errors_view.GetConstColumnView(i_var));
-        }
-      }, Y, Ynew, errors)(Y, Ynew, errors);
+          for (Index i_var = 0; i_var < n_vars; ++i_var)
+          {
+            // skip padding rows so their possibly non-zero values
+            // do not end up in the normalized error.
+            y_view.ForEachRowStrict(
+                [&](const Real& y, const Real& ynew, const Real& var_error)
+                {
+                  Real ymax = std::max(std::abs(y), std::abs(ynew));
+                  Real errors_over_scale = var_error / (atol[i_var % n_vars] + rtol * ymax);
+                  error += errors_over_scale * errors_over_scale;
+                },
+                y_view.GetConstColumnView(i_var),
+                ynew_view.GetConstColumnView(i_var),
+                errors_view.GetConstColumnView(i_var));
+          }
+        },
+        Y,
+        Ynew,
+        errors)(Y, Ynew, errors);
     constexpr Real error_min = 1.0e-10;
     const Index N = std::max<Index>(1, Y.NumRows() * Y.NumColumns());
 

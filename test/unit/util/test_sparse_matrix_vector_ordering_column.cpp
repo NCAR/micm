@@ -439,8 +439,20 @@ TEST(SparseVectorCompressedColumnMatrix, TestFill)
 
 TEST(SparseVectorCompressedColumnMatrix, TestCopy)
 {
-  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>, micm::VectorMatrix<micm::Real, 1>>();
-  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>, micm::VectorMatrix<micm::Real, 2>>();
-  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>, micm::VectorMatrix<micm::Real, 3>>();
-  TestCopy<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>, micm::VectorMatrix<micm::Real, 4>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>,
+      micm::VectorMatrix<micm::Real, 1>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>,
+      micm::VectorMatrix<micm::Real, 2>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>,
+      micm::VectorMatrix<micm::Real, 3>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>,
+      micm::VectorMatrix<micm::Real, 4>>();
 }

@@ -102,8 +102,7 @@ TEST(GroupedView, MatrixColumnViewRoundTrip)
   EXPECT_EQ(*col3_const.base_, 13.0);
 
   // Write via ForEachRow: col2 = col3 * 2  ==> row 1 only.
-  row_view.ForEachRow(
-      [](micm::Real& a, const micm::Real& b) { a = b * 2.0; }, col2_mut, col3_const);
+  row_view.ForEachRow([](micm::Real& a, const micm::Real& b) { a = b * 2.0; }, col2_mut, col3_const);
   EXPECT_EQ(matrix[1][2], 26.0);
   EXPECT_EQ(matrix[0][2], 2.0);   // unchanged (still 2 from init)
   EXPECT_EQ(matrix[2][2], 22.0);  // unchanged (still 22 from init)
@@ -184,9 +183,7 @@ void RunDenseGroupedVsRawEquivalence()
       [](auto&& m)
       {
         m.ForEachRow(
-            [](const micm::Real& a, micm::Real& out) { out = a * 3.0 + 1.0; },
-            m.GetConstColumnView(0),
-            m.GetColumnView(3));
+            [](const micm::Real& a, micm::Real& out) { out = a * 3.0 + 1.0; }, m.GetConstColumnView(0), m.GetColumnView(3));
       },
       grouped);
   grouped_func(grouped);
@@ -291,8 +288,7 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
   EXPECT_EQ(v01_mut.group_base_[v01_mut.block_offset_], 10.0);
   EXPECT_EQ(v12_const.group_base_[v12_const.block_offset_], 20.0);
 
-  group1.ForEachBlock(
-      [](micm::Real& a, const micm::Real& b) { a = b + 5.0; }, v01_mut, v12_const);
+  group1.ForEachBlock([](micm::Real& a, const micm::Real& b) { a = b + 5.0; }, v01_mut, v12_const);
   EXPECT_EQ(matrix[1][0][1], 25.0);
   EXPECT_EQ(matrix[0][0][1], 1.0);  // untouched
 }
@@ -329,8 +325,7 @@ TEST(GroupedView, SparseVectorBlockViewContiguousBlock)
   }
 
   // ForEachBlock touches only the L=4 blocks of the group.
-  group1.ForEachBlock(
-      [](micm::Real& a, const micm::Real& b) { a = a + b; }, v01, v12);
+  group1.ForEachBlock([](micm::Real& a, const micm::Real& b) { a = a + b; }, v01, v12);
   for (micm::Index b = 4; b < 8; ++b)
   {
     EXPECT_EQ(matrix[b][0][1], (100.0 + b) + (200.0 + b));

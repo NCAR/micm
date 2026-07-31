@@ -22,7 +22,10 @@ namespace micm
     { t.Solve(std::declval<DenseMatrixPolicy&>(), std::declval<SparseMatrixPolicy>()) } -> std::same_as<void>;
   };
   static_assert(
-      LinearSolverInPlaceConcept<LinearSolverInPlace<StandardDenseMatrix, StandardSparseMatrix>, StandardDenseMatrix, StandardSparseMatrix>,
+      LinearSolverInPlaceConcept<
+          LinearSolverInPlace<StandardDenseMatrix, StandardSparseMatrix>,
+          StandardDenseMatrix,
+          StandardSparseMatrix>,
       "LinearSolverInPlace does not meet the LinearSolverInPlaceConcept requirements");
   static_assert(
       LinearSolverInPlaceConcept<

@@ -584,7 +584,7 @@ void TestMismatchedElementDimensions()
 
   // Should fail when invoking the function because element (3,3) doesn't exist
 #ifndef NDEBUG
-  EXPECT_DEATH(func(matrix),"");
+  EXPECT_DEATH(func(matrix), "");
 #endif
 }
 
@@ -871,7 +871,7 @@ void TestWrongStructureAtInvocation()
 
   // Should fail assertion in debug mode with different element structure
 #ifndef NDEBUG
-  EXPECT_DEATH(func(matrix5_diff),"");
+  EXPECT_DEATH(func(matrix5_diff), "");
 #endif
 }
 
@@ -2057,7 +2057,6 @@ SparseMatrixPolicy<micm::Real, OrderingPolicy> TestGetBlockViewByVectorIndex()
   return sparse;
 }
 
-
 /// @brief Fill: sparse block with value, VectorLike with value, BlockVariable temp with value.
 ///
 /// Note: the grouped `Fill(GroupedBlockView, T)` overload takes the 1-arg
@@ -2093,8 +2092,8 @@ void TestFill()
   // Fill a caller-owned std::vector (one entry per block) with a scalar value.
   {
     std::vector<micm::Real> vec(matrix.NumberOfBlocks());
-    auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
-        [](auto&& m, auto&& v) { m.Fill(v, 3.2); }, matrix, vec);
+    auto func =
+        SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function([](auto&& m, auto&& v) { m.Fill(v, 3.2); }, matrix, vec);
 
     func(matrix, vec);
 
@@ -2261,7 +2260,8 @@ void TestCopy()
               m.GetBlockView(idx_20),
               d.GetConstColumnView(1));
         },
-        matrix, dense);
+        matrix,
+        dense);
 
     func(matrix, dense);
 
@@ -2285,10 +2285,13 @@ void TestCopy()
     auto scratch_to_dense = DenseMatrixType::Function(
         [](auto&& d, auto&& v)
         {
-          d.ForEachRow([](micm::Real& dense_elem, const micm::Real& scratch_elem) { dense_elem = scratch_elem; },
-                       d.GetColumnView(0), v);
+          d.ForEachRow(
+              [](micm::Real& dense_elem, const micm::Real& scratch_elem) { dense_elem = scratch_elem; },
+              d.GetColumnView(0),
+              v);
         },
-        dense, scratch);
+        dense,
+        scratch);
 
     sparse_to_scratch(matrix, scratch);
     scratch_to_dense(dense, scratch);
@@ -2301,10 +2304,8 @@ void TestCopy()
   // Cross-matrix: two sparse matrices (matching block counts, different sparsity).
   {
     auto src = make_matrix();
-    auto builder2 = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3)
-                        .WithElement(1, 2)
-                        .SetNumberOfBlocks(3)
-                        .InitialValue(0.0);
+    auto builder2 =
+        SparseMatrixPolicy<micm::Real, OrderingPolicy>::Create(3).WithElement(1, 2).SetNumberOfBlocks(3).InitialValue(0.0);
     SparseMatrixPolicy<micm::Real, OrderingPolicy> dst{ builder2 };
 
     const micm::Index dst_idx_12 = dst.VectorIndex(0, 1, 2);
@@ -2313,7 +2314,8 @@ void TestCopy()
     auto func = SparseMatrixPolicy<micm::Real, OrderingPolicy>::Function(
         [dst_idx_12, src_idx_01](auto&& d, auto&& s)
         { d.Copy(d.GetBlockView(dst_idx_12), s.GetConstBlockView(src_idx_01)); },
-        dst, src);
+        dst,
+        src);
 
     func(dst, src);
 
