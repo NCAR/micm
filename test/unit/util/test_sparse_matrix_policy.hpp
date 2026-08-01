@@ -225,6 +225,7 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestSetScalar()
   MatrixPolicy<micm::Real, OrderingPolicy> matrix{ builder };
 
   matrix = 2.0;
+  matrix.CopyToHost();
 
   for (auto& elem : matrix.AsVector())
   {
@@ -256,7 +257,9 @@ MatrixPolicy<int, OrderingPolicy> TestAddToDiagonal()
   matrix[1][1][1] = 3;
   matrix[2][1][1] = 5;
 
+  matrix.CopyToDevice();
   matrix.AddToDiagonal(7);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][1][1], 8);
   EXPECT_EQ(matrix[1][1][1], 10);
@@ -298,7 +301,9 @@ void TestPrintNonZero()
   matrix[1][1][1] = 4;
   matrix[2][1][1] = 6;
 
+  matrix.CopyToDevice();
   matrix.AddToDiagonal(5);
+  matrix.CopyToHost();
 
   std::stringstream ss;
   matrix.PrintNonZeroElements(ss);
@@ -348,7 +353,9 @@ MatrixPolicy<int, OrderingPolicy> TestPrint()
   matrix[1][1][1] = 3;
   matrix[2][1][1] = 5;
 
+  matrix.CopyToDevice();
   matrix.AddToDiagonal(7);
+  matrix.CopyToHost();
 
   std::stringstream ss, endline;
   ss << matrix;
@@ -382,6 +389,7 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestArrayFunction()
 
   // set some values, with unique values in different blocks
   matrix = 1.0;
+  matrix.CopyToHost();
   matrix[0][0][0] = 1.0;
   matrix[1][1][1] = 2.0;
   matrix[2][2][2] = 3.0;
@@ -404,7 +412,9 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestArrayFunction()
       },
       matrix);  // pass matrix so the type and dimensions are known by the function
 
+  matrix.CopyToDevice();
   func(matrix);
+  matrix.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrix[0][2][3], 2.0 * (1.0 + 1.0 + 1.0 + 1.0));  // 8.0
@@ -427,6 +437,7 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestArrayFunction()
   MatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder };
   matrix2 = -1.0;
   func(matrix2);
+  matrix2.CopyToHost();
   EXPECT_EQ(matrix2[0][2][3], 2.0 * (-1.0 + -1.0 + -1.0 + -1.0));  // -8.0
   EXPECT_EQ(matrix2[1][2][3], 2.0 * (-1.0 + -1.0 + -1.0 + -1.0));  // -8.0
   EXPECT_EQ(matrix2[2][2][3], 2.0 * (-1.0 + -1.0 + -1.0 + -1.0));  // -8.0
@@ -505,7 +516,10 @@ std::tuple<MatrixPolicy<micm::Real, OrderingPolicy>, MatrixPolicy<micm::Real, Or
       matrixA,
       matrixB);
 
+  matrixA.CopyToDevice();
+  matrixB.CopyToDevice();
   func(matrixA, matrixB);
+  matrixA.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrixA[0][1][2], 10 + 0);   // 10
@@ -696,7 +710,10 @@ TestMultipleSparseMatricesDifferentBlocksFromCreation()
   }
 
   // Should work with different block count
+  matrixA_4blocks.CopyToDevice();
+  matrixB_4blocks.CopyToDevice();
   EXPECT_NO_THROW(func(matrixA_4blocks, matrixB_4blocks));
+  matrixA_4blocks.CopyToHost();
 
   // Verify results for first 4 blocks
   EXPECT_EQ(matrixA_4blocks[0][2][3], 1 + 10 + 100);  // 111
@@ -745,7 +762,9 @@ TestSparseMatrixVectorDifferentBlocksFromCreation()
   }
 
   // Should work with different block/vector size
+  matrix5.CopyToDevice();
   EXPECT_NO_THROW(func(matrix5, vec5));
+  matrix5.CopyToHost();
 
   // Verify results
   EXPECT_EQ(matrix5[0][1][2], 1 + 10);  // 11
@@ -944,7 +963,9 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestMultipleTemporaries()
       },
       matrix);
 
+  matrix.CopyToDevice();
   func(matrix);
+  matrix.CopyToHost();
 
   // Verify results
   // Block 0: (0,1)=1, (1,2)=10, product=10, sum=11
@@ -1007,7 +1028,9 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestBlockViewReuse()
       },
       matrix);
 
+  matrix.CopyToDevice();
   func(matrix);
+  matrix.CopyToHost();
 
   // Block 0: (0,1)=1, (1,2)=2, (2,3)=3, (3,3)=6
   EXPECT_EQ(matrix[0][1][2], 2.0);
@@ -1064,7 +1087,9 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestFunctionReusability()
     matrix1[block][2][2] = static_cast<micm::Real>(block + 2);
   }
 
+  matrix1.CopyToDevice();
   func(matrix1);
+  matrix1.CopyToHost();
   EXPECT_EQ(matrix1[0][2][2], 2.0 * (0 + 1 + 2));  // 6
   EXPECT_EQ(matrix1[1][2][2], 2.0 * (1 + 2 + 3));  // 12
 
@@ -1072,18 +1097,22 @@ MatrixPolicy<micm::Real, OrderingPolicy> TestFunctionReusability()
   MatrixPolicy<micm::Real, OrderingPolicy> matrix2{ builder };
   matrix2 = 5.0;
   func(matrix2);
+  matrix2.CopyToHost();
   EXPECT_EQ(matrix2[0][2][2], 2.0 * (5 + 5 + 5));  // 30
   EXPECT_EQ(matrix2[1][2][2], 2.0 * (5 + 5 + 5));  // 30
 
   // Apply to third matrix with different values
   MatrixPolicy<micm::Real, OrderingPolicy> matrix3{ builder };
   matrix3 = 0.0;
+  matrix3.CopyToHost();
   for (micm::Index block = 0; block < 2; ++block)
   {
     matrix3[block][0][0] = static_cast<micm::Real>(block * 10);
   }
 
+  matrix3.CopyToDevice();
   func(matrix3);
+  matrix3.CopyToHost();
   EXPECT_EQ(matrix3[0][2][2], 2.0 * (0 + 0 + 0));   // 0
   EXPECT_EQ(matrix3[1][2][2], 2.0 * (10 + 0 + 0));  // 20
 
@@ -1162,7 +1191,11 @@ TestTwoSparseMatricesDifferentStructure()
       matrixA,
       matrixB);
 
+  matrixA.CopyToDevice();
+  matrixB.CopyToDevice();
   func(matrixA, matrixB);
+  matrixA.CopyToHost();
+  matrixB.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrixA[0][2][2], 1 + 2 + 10);   // 13
@@ -1545,7 +1578,9 @@ SparseMatrixPolicy<micm::Real, OrderingPolicy> TestVectorInSparseMatrixFunction(
       matrix,
       vec);
 
+  matrix.CopyToDevice();
   func(matrix, vec);
+  matrix.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrix[0][0][1], 10.0);  // vec[0] * 2
@@ -1696,6 +1731,7 @@ void TestMultipleVectorsSameSize()
       vec2);
 
   func(matrix, vec1, vec2);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0][1], 5.0);  // 1 + 4
   EXPECT_EQ(matrix[1][0][1], 7.0);  // 2 + 5
@@ -1730,7 +1766,9 @@ void TestMultipleSparseMatricesOneVector()
       matrix2,
       vec);
 
+  matrix1.CopyToDevice();
   func(matrix1, matrix2, vec);
+  matrix2.CopyToHost();
 
   EXPECT_EQ(matrix2[0][0][1], 11.0);  // 1 + 10
   EXPECT_EQ(matrix2[1][0][1], 22.0);  // 2 + 20
@@ -1798,6 +1836,7 @@ SparseMatrixPolicy<micm::Real, OrderingPolicy> TestConstVectorSparse()
       vec);
 
   func(matrix, vec);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0][1], 15.0);
   EXPECT_EQ(matrix[1][0][1], 30.0);
@@ -1852,11 +1891,13 @@ void TestFunctionReusabilityWithVectorsSparse()
       vec1);
 
   func(matrix1, vec1);
+  matrix1.CopyToHost();
   EXPECT_EQ(matrix1[0][0][1], 2.0);
   EXPECT_EQ(matrix1[1][0][1], 4.0);
   EXPECT_EQ(matrix1[2][0][1], 6.0);
 
   func(matrix2, vec2);
+  matrix2.CopyToHost();
   EXPECT_EQ(matrix2[0][0][1], 20.0);
   EXPECT_EQ(matrix2[1][0][1], 40.0);
   EXPECT_EQ(matrix2[2][0][1], 60.0);
@@ -1896,6 +1937,7 @@ void TestArraySupportSparse()
       arr);
 
   func(matrix, arr);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0][1], 1.0);
   EXPECT_EQ(matrix[1][0][1], 2.0);
@@ -1936,7 +1978,9 @@ void TestMixedVectorBlockViewBlockVariable()
       matrix,
       vec);
 
+  matrix.CopyToDevice();
   func(matrix, vec);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][2][3], 206.0);  // (1 + 2 + 100) * 2
   EXPECT_EQ(matrix[1][2][3], 410.0);  // (1 + 2 + 200) * 2
@@ -1960,6 +2004,7 @@ void TestIntegerVectorSparse()
       int_vec);
 
   func(matrix, int_vec);
+  matrix.CopyToHost();
 
   EXPECT_REAL_EQ(matrix[0][0][1], 7.5);
   EXPECT_REAL_EQ(matrix[1][0][1], 15.0);
@@ -2033,6 +2078,7 @@ SparseMatrixPolicy<micm::Real, OrderingPolicy> TestGetBlockViewByVectorIndex()
       block_values);
 
   set_func(sparse, block_values);
+  sparse.CopyToHost();
 
   // Verify that the correct values were set in the correct positions
   EXPECT_EQ(sparse[0][0][0], 0.0);   // element (0,0) = 0 + 0
