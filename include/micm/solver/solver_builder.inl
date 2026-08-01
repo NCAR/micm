@@ -252,6 +252,7 @@ namespace micm
     constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {
       m.CopyToDevice();
       m.CopyToHost();
+      m.AsDeviceParam();
     };
     if constexpr (is_cuda_policy)
     {

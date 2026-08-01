@@ -343,6 +343,17 @@ namespace micm
       std::fill(data_.begin(), data_.end(), val);
     }
 
+    /// @brief No-op host-to-device sync hook.
+    ///
+    /// GPU-backed matrix policies (e.g. KokkosDenseMatrix, CudaDenseMatrix)
+    /// override this to copy host data to a device mirror. Defined here as a
+    /// no-op so shared MatrixPolicy tests and solver code can call it
+    /// unconditionally regardless of which matrix policy is in use.
+    void CopyToDevice() {}
+
+    /// @brief No-op device-to-host sync hook. See CopyToDevice().
+    void CopyToHost() {}
+
     ConstProxy operator[](Index x) const
     {
       return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);

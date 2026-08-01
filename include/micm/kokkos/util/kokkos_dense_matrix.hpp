@@ -5,18 +5,10 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <Kokkos_Core.hpp>
-#include <type_traits>
 #include <vector>
 
 namespace micm
 {
-  /// Concept for Kokkos Matrix
-  template<typename MatrixType>
-  concept KokkosMatrix = requires(MatrixType t) {
-    { t.CopyToDevice() } -> std::same_as<void>;
-    { t.CopyToHost() } -> std::same_as<void>;
-  };
-
   /// @brief Provides a Kokkos implementation to the VectorMatrix functionality.
   ///
   /// Inherits from VectorMatrix (the MICM host-side data layout) and maintains
