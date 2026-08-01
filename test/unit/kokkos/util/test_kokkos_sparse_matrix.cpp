@@ -18,336 +18,336 @@ using KokkosOrdering4 = micm::SparseMatrixVectorOrderingCompressedSparseRow<4>;
 // Core matrix tests
 TEST(KokkosSparseMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering2>();
 }
 
 TEST(KokkosSparseMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testConstZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestConstZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestConstZeroMatrix<micm::KokkosSparseMatrix, KokkosOrdering3>();
 }
 
 TEST(KokkosSparseMatrix, SetScalar)
 {
-  testSetScalar<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testSetScalar<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestSetScalar<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestSetScalar<micm::KokkosSparseMatrix, KokkosOrdering3>();
 }
 
 TEST(KokkosSparseMatrix, AddToDiagonal)
 {
-  testAddToDiagonal<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testAddToDiagonal<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testAddToDiagonal<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestAddToDiagonal<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestAddToDiagonal<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestAddToDiagonal<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, SingleBlockMatrix)
 {
-  testSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, ConstSingleBlockMatrix)
 {
-  testConstSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testConstSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestConstSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestConstSingleBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering2>();
 }
 
 TEST(KokkosSparseMatrix, MultiBlockMatrix)
 {
-  testMultiBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMultiBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMultiBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultiBlockMatrix<micm::KokkosSparseMatrix, KokkosOrdering2>();
 }
 
 TEST(KokkosSparseMatrix, Print)
 {
-  testPrint<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testPrint<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testPrint<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testPrint<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestPrint<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestPrint<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestPrint<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestPrint<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, PrintNonZero)
 {
-  testPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 // BlockFunction infrastructure tests
 TEST(KokkosSparseMatrix, ArrayFunction)
 {
-  testArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, MultiMatrixArrayFunction)
 {
-  testMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMultiMatrixArrayFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, MultipleTemporaries)
 {
-  testMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMultipleTemporaries<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, BlockViewReuse)
 {
-  testBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestBlockViewReuse<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, FunctionReusability)
 {
-  testFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestFunctionReusability<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, TwoSparseMatricesDifferentStructure)
 {
-  testTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 // Sparse + Dense/Vector matrix interaction tests
 TEST(KokkosSparseMatrix, SparseAndDenseMatrixFunction)
 {
-  testSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, micm::Matrix>();
+  TestSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, micm::Matrix>();
 }
 
 TEST(KokkosSparseMatrix, SparseAndVectorMatrixFunction)
 {
-  testSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, 1>();
-  testSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2, 2>();
-  testSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3, 3>();
-  testSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4, 4>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, 1>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2, 2>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3, 3>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4, 4>();
 }
 
 // Ordering compatibility tests
 TEST(KokkosSparseMatrix, IncompatibleOrdering)
 {
-  testIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, micm::Matrix>();
-  testIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, micm::Matrix>();
-  testIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering4, micm::Matrix>();
+  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, micm::Matrix>();
+  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, micm::Matrix>();
+  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering4, micm::Matrix>();
 }
 
 TEST(KokkosSparseMatrix, IncompatibleVectorOrdering)
 {
-  testIncompatibleVectorOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, 1>();
-  testIncompatibleVectorOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, 3>();
-  testIncompatibleVectorOrdering<micm::KokkosSparseMatrix, KokkosOrdering4, 2>();
+  TestIncompatibleVectorOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, 1>();
+  TestIncompatibleVectorOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, 3>();
+  TestIncompatibleVectorOrdering<micm::KokkosSparseMatrix, KokkosOrdering4, 2>();
 }
 
 TEST(KokkosSparseMatrix, IncompatibleSparseOrdering)
 {
-  testIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering1, KokkosOrdering2>();
-  testIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, KokkosOrdering3>();
-  testIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, KokkosOrdering4>();
+  TestIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering1, KokkosOrdering2>();
+  TestIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, KokkosOrdering3>();
+  TestIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, KokkosOrdering4>();
 }
 
 // Block dimension mismatch tests
 TEST(KokkosSparseMatrix, MismatchedBlockDimensions)
 {
-  testMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMismatchedBlockDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, MismatchedElementDimensions)
 {
-  testMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, WrongMatrixDimensions)
 {
-  testWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, ConstSparseMatrixFunction)
 {
-  testConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, EmptySparseMatrixFunction)
 {
-  testEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestEmptySparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 // Different blocks from creation tests
 TEST(KokkosSparseMatrix, MultipleSparseMatricesDifferentBlocksFromCreation)
 {
-  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMultipleSparseMatricesDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, SparseMatrixVectorDifferentBlocksFromCreation)
 {
-  testSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestSparseMatrixVectorDifferentBlocksFromCreation<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 // Mismatched blocks at invocation tests
 TEST(KokkosSparseMatrix, MismatchedBlocksAtInvocation)
 {
-  testMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
 {
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, WrongStructureAtInvocation)
 {
-  testWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 // Vector support tests
 TEST(KokkosSparseMatrix, VectorInSparseMatrixFunction)
 {
-  testVectorInSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestVectorInSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, VectorTooSmall)
 {
-  testVectorTooSmall<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestVectorTooSmall<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, VectorTooLarge)
 {
-  testVectorTooLarge<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestVectorTooLarge<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, EmptyVectorNonEmptySparseMatrix)
 {
-  testEmptyVectorNonEmptySparseMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestEmptyVectorNonEmptySparseMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, NonEmptyVectorEmptySparseMatrix)
 {
-  testNonEmptyVectorEmptySparseMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestNonEmptyVectorEmptySparseMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, EmptyVectorEmptySparseMatrix)
 {
-  testEmptyVectorEmptySparseMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestEmptyVectorEmptySparseMatrix<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MultipleVectorsDifferentSizes)
 {
-  testMultipleVectorsDifferentSizes<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleVectorsDifferentSizes<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MultipleVectorsSameSize)
 {
-  testMultipleVectorsSameSize<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleVectorsSameSize<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MultipleSparseMatricesOneVector)
 {
-  testMultipleSparseMatricesOneVector<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleSparseMatricesOneVector<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MultipleSparseMatricesDifferentBlocksVector)
 {
-  testMultipleSparseMatricesDifferentBlocksVector<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMultipleSparseMatricesDifferentBlocksVector<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, VectorSizeMatchesOneSparseMatrixOnly)
 {
-  testVectorSizeMatchesOneSparseMatrixOnly<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestVectorSizeMatchesOneSparseMatrixOnly<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, ConstVectorSparse)
 {
-  testConstVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestConstVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MutableVectorSparse)
 {
-  testMutableVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMutableVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, FunctionReusabilityWithVectorsSparse)
 {
-  testFunctionReusabilityWithVectorsSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestFunctionReusabilityWithVectorsSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, FunctionInvocationWithWrongSizedVectorSparse)
 {
-  testFunctionInvocationWithWrongSizedVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestFunctionInvocationWithWrongSizedVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, ArraySupportSparse)
 {
-  testArraySupportSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestArraySupportSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MixedVectorBlockViewBlockVariable)
 {
-  testMixedVectorBlockViewBlockVariable<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestMixedVectorBlockViewBlockVariable<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, IntegerVectorSparse)
 {
-  testIntegerVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestIntegerVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, FunctionWithConstSignatureSparse)
 {
-  testFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 TEST(KokkosSparseMatrix, GetBlockViewByVectorIndex)
 {
-  testGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  testGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  testGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  testGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering4>();
+  TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering1>();
+  TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering2>();
+  TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering3>();
+  TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 int main(int argc, char* argv[])
