@@ -18,22 +18,25 @@ namespace micm
     LuDecomposeMozartInPlaceParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLuDecompositionMozartInPlace(){};
+    CudaLuDecompositionMozartInPlace() = default;
 
     CudaLuDecompositionMozartInPlace(const CudaLuDecompositionMozartInPlace&) = delete;
     CudaLuDecompositionMozartInPlace& operator=(const CudaLuDecompositionMozartInPlace&) = delete;
-    CudaLuDecompositionMozartInPlace(CudaLuDecompositionMozartInPlace&& other)
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member devstruct_ untouched, so swapping it out of `other` afterward is safe.
+    CudaLuDecompositionMozartInPlace(CudaLuDecompositionMozartInPlace&& other) noexcept
         : LuDecompositionMozartInPlace(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
 
-    CudaLuDecompositionMozartInPlace& operator=(CudaLuDecompositionMozartInPlace&& other)
+    CudaLuDecompositionMozartInPlace& operator=(CudaLuDecompositionMozartInPlace&& other) noexcept
     {
       LuDecompositionMozartInPlace::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
+    // NOLINTEND(bugprone-use-after-move)
 
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and
@@ -88,12 +91,12 @@ namespace micm
     /// @brief This is the function to perform an LU decomposition on a given A matrix on the GPU
     /// @param ALU Sparse matrix to decompose (will be overwritten with L and U matrices)
     template<class SparseMatrixPolicy>
-      requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+      requires(CudaMatrix<SparseMatrixPolicy>)
     void Decompose(SparseMatrixPolicy& ALU) const;
   };
 
   template<class SparseMatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    requires(CudaMatrix<SparseMatrixPolicy>)
   void CudaLuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
     auto ALU_param = ALU.AsDeviceParam();

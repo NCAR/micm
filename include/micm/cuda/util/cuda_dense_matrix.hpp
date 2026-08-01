@@ -5,6 +5,7 @@
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/error.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <cublas_v2.h>
@@ -36,7 +37,7 @@ namespace micm
    * has been allocated correctly. A check is done before doing the copy
    * to make sure that both matrices have the same size.
    *
-   * CUDA functionality requires T to be of type double, otherwise this
+   * CUDA functionality requires T to be of type Real, otherwise this
    * behaves similarily to VectorMatrix.
    */
 
@@ -48,7 +49,28 @@ namespace micm
     { t.AsDeviceParam() } -> std::same_as<CudaMatrixParam>;
   };
 
-  template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  namespace cuda
+  {
+    // Precision-dispatching wrapper around cuBLAS axpy. Templating on the value type is
+    // required so that if constexpr actually discards the untaken branch: the cuBLAS
+    // arguments must depend on the template parameter. A guard on the fixed micm::Real
+    // alias would leave the untaken (non-dependent) branch fully type-checked, and the
+    // double->float argument mismatch would fail to compile.
+    template<typename T>
+    inline cublasStatus_t CublasAxpy(cublasHandle_t handle, int n, const T* alpha, const T* x, int incx, T* y, int incy)
+    {
+      if constexpr (std::is_same_v<T, double>)
+      {
+        return cublasDaxpy(handle, n, alpha, x, incx, y, incy);
+      }
+      else
+      {
+        return cublasSaxpy(handle, n, alpha, x, incx, y, incy);
+      }
+    }
+  }  // namespace cuda
+
+  template<class T, Index L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaDenseMatrix : public VectorMatrix<T, L>
   {
    public:
@@ -73,7 +95,7 @@ namespace micm
       }
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
+    CudaDenseMatrix(Index x_dim, Index y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       this->param_.number_of_elements_ = this->data_.size();
@@ -85,7 +107,7 @@ namespace micm
       }
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
+    CudaDenseMatrix(Index x_dim, Index y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       this->param_.number_of_elements_ = this->data_.size();
@@ -126,15 +148,22 @@ namespace micm
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member param_ untouched, so swapping it out of `other` afterward is safe.
     CudaDenseMatrix(CudaDenseMatrix&& other) noexcept
-        : VectorMatrix<T, L>(other)
+        : VectorMatrix<T, L>(std::move(other))
     {
       this->param_.d_data_ = nullptr;
       std::swap(this->param_, other.param_);
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
     {
+      if (this == &other)
+      {
+        return *this;
+      }
       VectorMatrix<T, L>::operator=(other);
       if (this->param_.number_of_elements_ != other.param_.number_of_elements_)
       {
@@ -182,13 +211,13 @@ namespace micm
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
     /// @param x The input VectorMatrix
     /// @return 0 if successful, otherwise an error code
-    void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x)
+    void Axpy(const Real alpha, const CudaDenseMatrix<T, L>& x)
     {
       const int incx = 1;  // increment for the elements of x
       const int incy = 1;  // increment for the elements of y
-      static_assert(std::is_same_v<T, double>);
+      static_assert(std::is_same_v<T, Real>);
       CHECK_CUBLAS_ERROR(
-          cublasDaxpy(
+          micm::cuda::CublasAxpy(
               micm::cuda::GetCublasHandle(),
               x.param_.number_of_elements_,
               &alpha,
@@ -196,14 +225,14 @@ namespace micm
               incx,
               this->param_.d_data_,
               incy),
-          "CUBLAS Daxpy operation failed...");
+          "CUBLAS Axpy operation failed...");
     }
 
     /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant
     /// @param x The scalar constant to compare against
     void Max(const T x)
     {
-      static_assert(std::is_same_v<T, double>);
+      static_assert(std::is_same_v<T, Real>);
       CHECK_CUDA_ERROR(micm::cuda::MatrixMax(this->param_, x), "CudaMatrixMax");
     }
 
@@ -211,7 +240,7 @@ namespace micm
     /// @param x The scalar constant to compare against
     void Min(const T x)
     {
-      static_assert(std::is_same_v<T, double>);
+      static_assert(std::is_same_v<T, Real>);
       CHECK_CUDA_ERROR(micm::cuda::MatrixMin(this->param_, x), "CudaMatrixMin");
     }
 

@@ -5,6 +5,7 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <cmath>
 #include <functional>
@@ -15,7 +16,7 @@ namespace micm
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
   /// The L and U matrices are decomposed in-place over the original A matrix.
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace>
   class LinearSolverInPlace
   {
    protected:
@@ -32,20 +33,20 @@ namespace micm
     // x_i = 1 / U_ii * [ y_i - sum( j = i+1...N ){ U_ij * x_j } ] i = N-1...1
 
     // Number of non-zero elements (excluding the diagonal) for each row in L
-    std::vector<std::size_t> nLij_;
+    std::vector<Index> nLij_;
     // Indices of non-zero combinations of L_ij and y_j
-    std::vector<std::pair<std::size_t, std::size_t>> Lij_yj_;
+    std::vector<std::pair<Index, Index>> Lij_yj_;
     // Number of non-zero elements (exluding the diagonal) and the index of the diagonal
     // element for each row in U (in reverse order)
-    std::vector<std::pair<std::size_t, std::size_t>> nUij_Uii_;
+    std::vector<std::pair<Index, Index>> nUij_Uii_;
     // Indices of non-zero combinations of U_ij and x_j
-    std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
+    std::vector<std::pair<Index, Index>> Uij_xj_;
 
     LuDecompositionPolicy lu_decomp_;
 
    public:
     /// @brief default constructor
-    LinearSolverInPlace(){};
+    LinearSolverInPlace() = default;
 
     LinearSolverInPlace(const LinearSolverInPlace&) = delete;
     LinearSolverInPlace& operator=(const LinearSolverInPlace&) = delete;
@@ -75,11 +76,6 @@ namespace micm
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     /// @param x The solution vector
     /// @param LU The LU decomposition of the matrix as a square sparse matrix
-    template<class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
-    template<class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
   };
 

@@ -1,5 +1,8 @@
+#include "../../precision_matchers.hpp"
+
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -16,11 +19,11 @@ TEST(PhaseSpecies, ConstructsWithoutDiffusionCoefficient)
 TEST(PhaseSpecies, ConstructsWithDiffusionCoefficient)
 {
   Species CO2("CO2");
-  double diff_coeff = 1.23e-5;
+  micm::Real diff_coeff = 1.23e-5;
   PhaseSpecies gas_CO2(CO2, diff_coeff);
   EXPECT_EQ(gas_CO2.species_.name_, "CO2");
   ASSERT_TRUE(gas_CO2.diffusion_coefficient_.has_value());
-  EXPECT_DOUBLE_EQ(gas_CO2.diffusion_coefficient_.value(), diff_coeff);
+  EXPECT_REAL_EQ(gas_CO2.diffusion_coefficient_.value(), diff_coeff);
 }
 
 TEST(PhaseSpecies, SetDiffusionCoefficient)
@@ -29,10 +32,10 @@ TEST(PhaseSpecies, SetDiffusionCoefficient)
   PhaseSpecies gas_CO2(CO2);
   EXPECT_FALSE(gas_CO2.diffusion_coefficient_.has_value());
 
-  double diff_coeff = 2.5e-6;
+  micm::Real diff_coeff = 2.5e-6;
   gas_CO2.SetDiffusionCoefficient(diff_coeff);
   ASSERT_TRUE(gas_CO2.diffusion_coefficient_.has_value());
-  EXPECT_DOUBLE_EQ(gas_CO2.diffusion_coefficient_.value(), diff_coeff);
+  EXPECT_REAL_EQ(gas_CO2.diffusion_coefficient_.value(), diff_coeff);
 }
 
 TEST(Phase, Constructor)

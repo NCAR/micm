@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -43,38 +44,36 @@ namespace micm
    protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
-    std::vector<std::pair<std::size_t, std::size_t>> niLU_;
+    std::vector<std::pair<Index, Index>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
-    /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    /// does not support easy retrieval of memory address using data() function.
-    std::vector<char> do_aik_;
+    /// triangular matrix; False otherwise.
+    std::vector<Bool> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
-    std::vector<std::size_t> aik_;
+    std::vector<Index> aik_;
     /// Index in U.data_ for U[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when U[i][k] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> uik_nkj_;
+    std::vector<std::pair<Index, Index>> uik_nkj_;
     /// Index in L.data_ for L[i][j], and in U.data_ for U[j][k] in the upper inner (j) loop
     /// when L[i][j] and U[j][k] are both non-zero.
-    std::vector<std::pair<std::size_t, std::size_t>> lij_ujk_;
+    std::vector<std::pair<Index, Index>> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
-    /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    /// does not suppor easy retrieval of memory address using data() function.
-    std::vector<char> do_aki_;
+    /// triangular matrix; False otherwise.
+    std::vector<Bool> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when A[k][i] is non-zero.
-    std::vector<std::size_t> aki_;
+    std::vector<Index> aki_;
     /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
-    std::vector<std::pair<std::size_t, std::size_t>> lki_nkj_;
+    std::vector<std::pair<Index, Index>> lki_nkj_;
     /// Index in L.data_ for L[k][j], and in U.data_ for U[j][i] in the lower inner (j) loop
     /// when L[k][j] and U[j][i] are both non-zero.
-    std::vector<std::pair<std::size_t, std::size_t>> lkj_uji_;
+    std::vector<std::pair<Index, Index>> lkj_uji_;
     /// Index in U.data_ for U[i][i] for each interation in the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero
-    std::vector<std::size_t> uii_;
+    std::vector<Index> uii_;
 
    public:
     /// @brief default constructor
@@ -88,7 +87,7 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
     LuDecompositionDoolittle(const SparseMatrixPolicy& matrix);
 
@@ -96,16 +95,16 @@ namespace micm
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static LuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
-    static std::pair<LMatrixPolicy, UMatrixPolicy> GetLUMatrices(
+    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
         bool indexing_only = false);
@@ -115,16 +114,40 @@ namespace micm
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
     template<class SparseMatrixPolicy>
-      requires(!VectorizableSparse<SparseMatrixPolicy>)
-    void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
-    template<class SparseMatrixPolicy>
-      requires(VectorizableSparse<SparseMatrixPolicy>)
     void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
 
    protected:
+    /// @brief Sparse LU fill pattern of A together with the row/column adjacency
+    /// needed to build the decomposition index arrays without scanning the dense
+    /// (i, k, j) grid. Shared by GetLUMatrices (which only needs the id sets) and
+    /// Initialize (which also walks the adjacency).
+    struct FillPattern
+    {
+      /// Sorted non-zero positions of the L and U factors (used to build the matrices)
+      std::set<std::pair<Index, Index>> L_ids_, U_ids_;
+      /// Non-zero structure of the input matrix A: Arow_[r] = sorted columns,
+      /// Acol_[c] = sorted rows
+      std::vector<std::vector<Index>> Arow_, Acol_;
+      /// Lrow_[i] = sorted columns j < i where L[i][j] != 0
+      std::vector<std::vector<Index>> Lrow_;
+      /// Urow_[i] = sorted columns k >= i where U[i][k] != 0
+      std::vector<std::vector<Index>> Urow_;
+      /// Lcol_[i] = sorted rows k > i where L[k][i] != 0
+      std::vector<std::vector<Index>> Lcol_;
+    };
+
+    /// @brief Compute the sparse LU fill pattern of A in time proportional to the
+    /// number of non-zeros in the factors (plus an O(n^2) scan of the sparse input A),
+    /// rather than the O(n^3) dense triple loop.
+    /// @param A Sparse matrix that will be decomposed
+    /// @return Fill pattern and adjacency of A, L and U
+    template<class SparseMatrixPolicy>
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    static FillPattern ComputeFillPattern(const SparseMatrixPolicy& A);
+
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
     void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };

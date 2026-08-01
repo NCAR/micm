@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include "../../precision_matchers.hpp"
+
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -14,6 +17,7 @@
 #include <memory>
 #include <set>
 #include <system_error>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -26,14 +30,14 @@ void TestConstruction()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -46,14 +50,14 @@ void TestReplaceStateRowsMapsToAlgebraicSpecies()
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -74,14 +78,14 @@ void TestNonZeroJacobianElements()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -105,20 +109,20 @@ void TestMultipleConstraints()
   auto C = Species("C");
   auto D = Species("D");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "C_D_eq",
       D,
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(D, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = {
+  std::unordered_map<std::string, micm::Index> variable_map = {
     { "A", 0 }, { "B", 1 }, { "AB", 2 }, { "C", 3 }, { "D", 4 }
   };
 
@@ -147,23 +151,23 @@ void TestAddForcingTerms()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
-  std::size_t num_species = 3;
+  micm::Index num_species = 3;
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   // Build sparse Jacobian for SetConstraintFunctions
   auto non_zero_elements = set.NonZeroJacobianElements();
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -174,7 +178,7 @@ void TestAddForcingTerms()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 2 grid cells
@@ -204,16 +208,16 @@ void TestSubtractJacobianTerms()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
-  std::size_t num_species = 3;
+  micm::Index num_species = 3;
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -223,7 +227,7 @@ void TestSubtractJacobianTerms()
   // Build a 3x3 sparse Jacobian (constraint replaces AB's row)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);  // Diagonals
   }
@@ -236,7 +240,7 @@ void TestSubtractJacobianTerms()
 
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 1 grid cell
@@ -255,9 +259,10 @@ void TestSubtractJacobianTerms()
 
   // Jacobian subtracts these values (matching ProcessSet convention)
   // Constraint replaces row 2 (AB's row)
-  EXPECT_NEAR(jacobian[0][2][0], -0.00066, 1e-10);  // J[2, A] -= dG/dA
-  EXPECT_NEAR(jacobian[0][2][1], -0.00033, 1e-10);  // J[2, B] -= dG/dB
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-10);       // J[2, AB] -= dG/dAB = -(-1) = 1
+  EXPECT_NEAR(jacobian[0][2][0], -0.00066, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, A] -= dG/dA
+  EXPECT_NEAR(jacobian[0][2][1], -0.00033, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, B] -= dG/dB
+  EXPECT_NEAR(
+      jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // J[2, AB] -= dG/dAB = -(-1) = 1
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -283,10 +288,10 @@ void TestEmptyConstraintSet()
   set.AddForcingTerms(state, state_parameters, forcing);
 
   // Forcing should be unchanged
-  EXPECT_DOUBLE_EQ(forcing[0][0], 1.0);
-  EXPECT_DOUBLE_EQ(forcing[0][1], 1.0);
-  EXPECT_DOUBLE_EQ(forcing[0][2], 1.0);
-  EXPECT_DOUBLE_EQ(forcing[0][3], 1.0);
+  EXPECT_REAL_EQ(forcing[0][0], 1.0);
+  EXPECT_REAL_EQ(forcing[0][1], 1.0);
+  EXPECT_REAL_EQ(forcing[0][2], 1.0);
+  EXPECT_REAL_EQ(forcing[0][3], 1.0);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
@@ -297,14 +302,14 @@ void TestUnknownSpeciesThrows()
   auto Y = Species("Y");
   auto XY = Species("XY");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "invalid",
       XY,
       std::vector<StoichSpecies>{ StoichSpecies(X, 1.0), StoichSpecies(Y, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(XY, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
   EXPECT_THROW((ConstraintSetPolicy(std::move(constraints), variable_map)), micm::MicmException);
 }
@@ -313,21 +318,21 @@ void TestUnknownSpeciesThrows()
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestThreeDStateOneConstraint()
 {
-  const double K_eq = 3.3e-2;
-  const std::size_t num_species = 3;
+  const micm::Real K_eq = 3.3e-2;
+  const micm::Index num_species = 3;
 
   // Create constraint: X <-> Y with K_eq = 3.3e-2
   auto X = Species("X");
   auto Y = Species("Y");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "X_Y_eq",
       Y,
       std::vector<StoichSpecies>{ StoichSpecies(X, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(Y, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -346,7 +351,7 @@ void TestThreeDStateOneConstraint()
                      .SetNumberOfBlocks(2)  // Test with 2 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -358,7 +363,7 @@ void TestThreeDStateOneConstraint()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "X_Y_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "X_Y_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 2 grid cells
@@ -382,9 +387,9 @@ void TestThreeDStateOneConstraint()
 
   // Constraint replaces row 1 (Y's row)
   // Grid cell 0: G = K_eq * [X] - [Y] = 3.3e-2 * 10.0 - 0.2 = 0.33 - 0.2 = 0.13
-  EXPECT_NEAR(forcing[0][1], 0.13, 1e-10);
+  EXPECT_NEAR(forcing[0][1], 0.13, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
   // Grid cell 1: G = 3.3e-2 * 10.0 - 0.33 = 0.0 (at equilibrium)
-  EXPECT_NEAR(forcing[1][1], 0.0, 1e-10);
+  EXPECT_NEAR(forcing[1][1], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
@@ -395,24 +400,24 @@ void TestThreeDStateOneConstraint()
   // Jacobian subtracts at row 1:
 
   // Grid cell 0
-  EXPECT_NEAR(jacobian[0][1][0], -K_eq, 1e-10);  // dG/dX
-  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);    // dG/dY (subtracted -1)
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // dG/dX
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);    // dG/dY (subtracted -1)
   // Grid cell 1
-  EXPECT_NEAR(jacobian[1][1][0], -K_eq, 1e-10);
-  EXPECT_NEAR(jacobian[1][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][0], -K_eq, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Z row should be unaffected
-  EXPECT_NEAR(jacobian[0][2][2], 0.0, 1e-10);
-  EXPECT_NEAR(jacobian[1][2][2], 0.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][2][2], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][2][2], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 /// @brief Test 4D state (4 species) with 2 constraints
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestFourDStateTwoConstraints()
 {
-  const double K_eq1 = 3.3e-2;
-  const double K_eq2 = 3.3e-2;
-  const std::size_t num_species = 4;
+  const micm::Real K_eq1 = 3.3e-2;
+  const micm::Real K_eq2 = 3.3e-2;
+  const micm::Index num_species = 4;
 
   // Create two constraints
   std::vector<Constraint> constraints;
@@ -422,7 +427,7 @@ void TestFourDStateTwoConstraints()
   auto B = Species("B");
   auto C = Species("C");
   auto D = Species("D");
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
@@ -430,14 +435,14 @@ void TestFourDStateTwoConstraints()
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   // Constraint 2: C + D <-> A with K_eq2 = 3.3e-2, algebraic species = A (row 0)
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "CD_A_eq",
       A,
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0), StoichSpecies(D, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -463,7 +468,7 @@ void TestFourDStateTwoConstraints()
                      .SetNumberOfBlocks(3)  // Test with 3 grid cells
                      .InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -475,7 +480,7 @@ void TestFourDStateTwoConstraints()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 }, { "CD_A_eq", 1 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "CD_A_eq", 1 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State with 3 grid cells
@@ -504,7 +509,7 @@ void TestFourDStateTwoConstraints()
 
   // State parameters: K_eq for each constraint (3 cells, 2 parameters)
   DenseMatrixPolicy state_parameters(3, 2);
-  for (std::size_t i = 0; i < 3; ++i)
+  for (micm::Index i = 0; i < 3; ++i)
   {
     state_parameters[i][0] = 3.3e-2;  // K_eq1 for A_B_eq
     state_parameters[i][1] = 3.3e-2;  // K_eq2 for CD_A_eq
@@ -514,16 +519,21 @@ void TestFourDStateTwoConstraints()
 
   // Constraint 1 replaces row 1, Constraint 2 replaces row 0
   // Grid cell 0: Both at equilibrium
-  EXPECT_NEAR(forcing[0][1], 0.0, 1e-5);   // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
-  EXPECT_NEAR(forcing[0][0], 0.0, 1e-10);  // G2 = K_eq2 * 10.0 * 1.0 - 0.33 = 0
+  EXPECT_NEAR(forcing[0][1], 0.0, 1e-5);  // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
+  EXPECT_NEAR(
+      forcing[0][0], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 10.0 * 1.0 - 0.33 = 0
 
   // Grid cell 1: First satisfied, second not
-  EXPECT_NEAR(forcing[1][1], 0.0, 1e-5);      // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
-  EXPECT_NEAR(forcing[1][0], -0.165, 1e-10);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = 0.165 - 0.33 = -0.165
+  EXPECT_NEAR(forcing[1][1], 0.0, 1e-5);  // G1 = K_eq1 * 0.33 - 0.01089 ≈ 0
+  EXPECT_NEAR(
+      forcing[1][0],
+      -0.165,
+      (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = 0.165 - 0.33 = -0.165
 
   // Grid cell 2: Neither satisfied
   EXPECT_NEAR(forcing[2][1], -0.00911, 1e-5);  // G1 = K_eq1 * 0.33 - 0.02 = 0.01089 - 0.02 = -0.00911
-  EXPECT_NEAR(forcing[2][0], -0.165, 1e-10);   // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = -0.165
+  EXPECT_NEAR(
+      forcing[2][0], -0.165, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 = K_eq2 * 5.0 * 1.0 - 0.33 = -0.165
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
@@ -532,34 +542,34 @@ void TestFourDStateTwoConstraints()
   // Constraint 2 at row 0: dG2/dC = K_eq2*[D], dG2/dD = K_eq2*[C], dG2/dA = -1
 
   // Grid cell 0:
-  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[0][0][2], -K_eq2 * state[0][3], 1e-10);
-  EXPECT_NEAR(jacobian[0][0][3], -K_eq2 * state[0][2], 1e-10);
-  EXPECT_NEAR(jacobian[0][0][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][0][2], -K_eq2 * state[0][3], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][0][3], -K_eq2 * state[0][2], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][0][0], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Grid cell 1:
-  EXPECT_NEAR(jacobian[1][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[1][1][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[1][0][2], -K_eq2 * state[1][3], 1e-10);
-  EXPECT_NEAR(jacobian[1][0][3], -K_eq2 * state[1][2], 1e-10);
-  EXPECT_NEAR(jacobian[1][0][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[1][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][0][2], -K_eq2 * state[1][3], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][0][3], -K_eq2 * state[1][2], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[1][0][0], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Grid cell 2:
-  EXPECT_NEAR(jacobian[2][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[2][1][1], 1.0, 1e-10);
-  EXPECT_NEAR(jacobian[2][0][2], -K_eq2 * state[2][3], 1e-10);
-  EXPECT_NEAR(jacobian[2][0][3], -K_eq2 * state[2][2], 1e-10);
-  EXPECT_NEAR(jacobian[2][0][0], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[2][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][0][2], -K_eq2 * state[2][3], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][0][3], -K_eq2 * state[2][2], (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[2][0][0], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 /// @brief Test coupled constraints where constraints share species
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestCoupledConstraintsSharedSpecies()
 {
-  const double K_eq1 = 3.3e-2;
-  const double K_eq2 = 3.3e-2;
-  const std::size_t num_species = 3;
+  const micm::Real K_eq1 = 3.3e-2;
+  const micm::Real K_eq2 = 3.3e-2;
+  const micm::Index num_species = 3;
 
   std::vector<Constraint> constraints;
 
@@ -567,21 +577,21 @@ void TestCoupledConstraintsSharedSpecies()
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_C_eq",
       C,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
@@ -603,7 +613,7 @@ void TestCoupledConstraintsSharedSpecies()
   // Build Jacobian (3x3)
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -615,7 +625,7 @@ void TestCoupledConstraintsSharedSpecies()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 }, { "A_C_eq", 1 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "A_C_eq", 1 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   // State at dual equilibrium: [B]/[A] = 3.3e-2, [C]/[A] = 3.3e-2
@@ -635,45 +645,45 @@ void TestCoupledConstraintsSharedSpecies()
   set.AddForcingTerms(state, state_parameters, forcing);
 
   // Both constraints should be satisfied
-  EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);  // G1 at row 1
-  EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);  // G2 at row 2
+  EXPECT_NEAR(forcing[0][1], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G1 at row 1
+  EXPECT_NEAR(forcing[0][2], 0.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);  // G2 at row 2
 
   // Test Jacobian terms
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Constraint 1 at row 1: dG1/dA = K_eq1 = 3.3e-2, dG1/dB = -1
-  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, 1e-10);
-  EXPECT_NEAR(jacobian[0][1][1], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][1][0], -K_eq1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][1][1], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 
   // Constraint 2 at row 2: dG2/dA = K_eq2 = 3.3e-2, dG2/dC = -1
-  EXPECT_NEAR(jacobian[0][2][0], -K_eq2, 1e-10);
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-10);
+  EXPECT_NEAR(jacobian[0][2][0], -K_eq2, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ConstraintSetPolicy>
 void TestVectorizedMatricesRespectGridCellIndexing()
 {
-  const std::size_t num_species = 3;
+  const micm::Index num_species = 3;
 
   auto A = Species("A");
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint> constraints;
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "A_B_eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
       VantHoffParam{ .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  std::unordered_map<std::string, std::size_t> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
+  std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
   auto non_zero_elements = set.NonZeroJacobianElements();
 
   // Constraint replaces AB's row (index 2), Jacobian is 3x3
   auto builder = SparseMatrixPolicy::Create(num_species).SetNumberOfBlocks(3).InitialValue(0.0);
-  for (std::size_t i = 0; i < num_species; ++i)
+  for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
   }
@@ -685,7 +695,7 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, std::size_t> state_parameter_indices = { { "A_B_eq", 0 } };
+  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
 
   DenseMatrixPolicy state(3, num_species, 0.0);
@@ -702,22 +712,22 @@ void TestVectorizedMatricesRespectGridCellIndexing()
 
   // Constraint residual replaces row 2 (AB)
   // K_eq = 3.3e-2
-  EXPECT_NEAR(forcing[0][2], 3.3e-2 * 0.01 * 0.02 - 0.05, 1e-9);
-  EXPECT_NEAR(forcing[1][2], 3.3e-2 * 0.03 * 0.01 - 0.2, 1e-9);
-  EXPECT_NEAR(forcing[2][2], 3.3e-2 * 0.001 * 0.002 - 0.004, 1e-9);
+  EXPECT_NEAR(forcing[0][2], 3.3e-2 * 0.01 * 0.02 - 0.05, (std::is_same_v<micm::Real, double>) ? 1e-9 : 1e-5);
+  EXPECT_NEAR(forcing[1][2], 3.3e-2 * 0.03 * 0.01 - 0.2, (std::is_same_v<micm::Real, double>) ? 1e-9 : 1e-5);
+  EXPECT_NEAR(forcing[2][2], 3.3e-2 * 0.001 * 0.002 - 0.004, (std::is_same_v<micm::Real, double>) ? 1e-9 : 1e-5);
 
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
 
   // Jacobian entries at row 2 (AB's row, replaced by constraint)
-  EXPECT_NEAR(jacobian[0][2][0], -(3.3e-2 * 0.02), 1e-12);
-  EXPECT_NEAR(jacobian[0][2][1], -(3.3e-2 * 0.01), 1e-12);
-  EXPECT_NEAR(jacobian[0][2][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[0][2][0], -(3.3e-2 * 0.02), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[0][2][1], -(3.3e-2 * 0.01), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[0][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
 
-  EXPECT_NEAR(jacobian[1][2][0], -(3.3e-2 * 0.01), 1e-12);
-  EXPECT_NEAR(jacobian[1][2][1], -(3.3e-2 * 0.03), 1e-12);
-  EXPECT_NEAR(jacobian[1][2][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[1][2][0], -(3.3e-2 * 0.01), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[1][2][1], -(3.3e-2 * 0.03), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[1][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
 
-  EXPECT_NEAR(jacobian[2][2][0], -(3.3e-2 * 0.002), 1e-12);
-  EXPECT_NEAR(jacobian[2][2][1], -(3.3e-2 * 0.001), 1e-12);
-  EXPECT_NEAR(jacobian[2][2][2], 1.0, 1e-12);
+  EXPECT_NEAR(jacobian[2][2][0], -(3.3e-2 * 0.002), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[2][2][1], -(3.3e-2 * 0.001), (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
+  EXPECT_NEAR(jacobian[2][2][2], 1.0, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-5);
 }

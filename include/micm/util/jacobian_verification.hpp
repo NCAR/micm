@@ -3,11 +3,14 @@
 
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
 #include <string>
+#include <type_traits>
 
 namespace micm
 {
@@ -16,13 +19,13 @@ namespace micm
   struct JacobianComparisonResult
   {
     bool passed_{ true };
-    double max_abs_error_{ 0.0 };
-    double max_rel_error_{ 0.0 };
-    std::size_t worst_block_{ 0 };
-    std::size_t worst_row_{ 0 };
-    std::size_t worst_col_{ 0 };
-    double worst_analytical_{ 0.0 };
-    double worst_fd_{ 0.0 };
+    Real max_abs_error_{ 0.0 };
+    Real max_rel_error_{ 0.0 };
+    Index worst_block_{ 0 };
+    Index worst_row_{ 0 };
+    Index worst_col_{ 0 };
+    Real worst_analytical_{ 0.0 };
+    Real worst_fd_{ 0.0 };
   };
 
   /// Compute a dense finite-difference Jacobian approximation using central differences.
@@ -41,10 +44,12 @@ namespace micm
   DenseMatrixPolicy FiniteDifferenceJacobian(
       ForcingFunc forcing_func,
       const DenseMatrixPolicy& base_variables,
-      std::size_t num_species,
-      double perturbation = 1.0e-8)
+      Index num_species,
+      // The optimal finite-difference step scales with the working precision: a double-tuned step
+      // (1e-8) is smaller than a float ULP for O(1) variables, which collapses the difference to zero.
+      Real perturbation = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-8) : static_cast<Real>(1.0e-3))
   {
-    const std::size_t num_blocks = base_variables.NumRows();
+    const Index num_blocks = base_variables.NumRows();
     DenseMatrixPolicy result(num_blocks, num_species * num_species, 0.0);
 
     // Workspace matrices
@@ -54,16 +59,16 @@ namespace micm
     DenseMatrixPolicy forcing_minus(num_blocks, num_species, 0.0);
     DenseMatrixPolicy forcing_base(num_blocks, num_species, 0.0);
 
-    for (std::size_t col = 0; col < num_species; ++col)
+    for (Index col = 0; col < num_species; ++col)
     {
       // Set up perturbed states
       vars_plus.Copy(base_variables);
       vars_minus.Copy(base_variables);
 
-      for (std::size_t block = 0; block < num_blocks; ++block)
+      for (Index block = 0; block < num_blocks; ++block)
       {
-        double x_j = base_variables[block][col];
-        double h = perturbation * std::max(1.0, std::abs(x_j));
+        Real x_j = base_variables[block][col];
+        Real h = perturbation * std::max<Real>(1.0, std::abs(x_j));
         vars_plus[block][col] = x_j + h;
         vars_minus[block][col] = x_j - h;
       }
@@ -74,18 +79,18 @@ namespace micm
       forcing_func(vars_plus, forcing_plus);
       forcing_func(vars_minus, forcing_minus);
 
-      for (std::size_t block = 0; block < num_blocks; ++block)
+      for (Index block = 0; block < num_blocks; ++block)
       {
-        double x_j = base_variables[block][col];
-        double h = perturbation * std::max(1.0, std::abs(x_j));
+        Real x_j = base_variables[block][col];
+        Real h = perturbation * std::max<Real>(1.0, std::abs(x_j));
 
         // Check if the negative perturbation would go below zero
         bool use_central = (x_j - h >= 0.0);
 
         if (use_central)
         {
-          double two_h = 2.0 * h;
-          for (std::size_t row = 0; row < num_species; ++row)
+          Real two_h = 2.0 * h;
+          for (Index row = 0; row < num_species; ++row)
           {
             result[block][row * num_species + col] = (forcing_plus[block][row] - forcing_minus[block][row]) / two_h;
           }
@@ -95,7 +100,7 @@ namespace micm
           // Forward difference: need f(x) as well
           forcing_base.Fill(0.0);
           forcing_func(base_variables, forcing_base);
-          for (std::size_t row = 0; row < num_species; ++row)
+          for (Index row = 0; row < num_species; ++row)
           {
             result[block][row * num_species + col] = (forcing_plus[block][row] - forcing_base[block][row]) / h;
           }
@@ -116,18 +121,20 @@ namespace micm
   JacobianComparisonResult CompareJacobianToFiniteDifference(
       const SparseMatrixPolicy& analytical_jacobian,
       const DenseMatrixPolicy& fd_jacobian,
-      std::size_t num_species,
-      double atol = 1.0e-7,
-      double rtol = 1.0e-7)
+      Index num_species,
+      // Finite-difference roundoff grows with the working precision, so the default agreement
+      // tolerance is relaxed for float; callers may still pass a tighter value explicitly.
+      Real atol = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-7) : static_cast<Real>(1.0e-2),
+      Real rtol = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-7) : static_cast<Real>(1.0e-2))
   {
     JacobianComparisonResult result;
-    const std::size_t num_blocks = analytical_jacobian.NumberOfBlocks();
+    const Index num_blocks = analytical_jacobian.NumberOfBlocks();
 
-    for (std::size_t block = 0; block < num_blocks; ++block)
+    for (Index block = 0; block < num_blocks; ++block)
     {
-      for (std::size_t row = 0; row < num_species; ++row)
+      for (Index row = 0; row < num_species; ++row)
       {
-        for (std::size_t col = 0; col < num_species; ++col)
+        for (Index col = 0; col < num_species; ++col)
         {
           if (analytical_jacobian.IsZero(row, col))
           {
@@ -135,12 +142,12 @@ namespace micm
           }
 
           // Analytical stores -(df/dx); negate to get +df/dx
-          double analytical_val = -analytical_jacobian[block][row][col];
-          double fd_val = fd_jacobian[block][row * num_species + col];
+          Real analytical_val = -analytical_jacobian[block][row][col];
+          Real fd_val = fd_jacobian[block][row * num_species + col];
 
-          double abs_error = std::abs(analytical_val - fd_val);
-          double scale = std::max(std::abs(analytical_val), std::abs(fd_val));
-          double rel_error = (scale > 0.0) ? abs_error / scale : 0.0;
+          Real abs_error = std::abs(analytical_val - fd_val);
+          Real scale = std::max(std::abs(analytical_val), std::abs(fd_val));
+          Real rel_error = (scale > 0.0) ? abs_error / scale : 0.0;
 
           if (abs_error > result.max_abs_error_)
           {
@@ -156,7 +163,7 @@ namespace micm
             result.max_rel_error_ = rel_error;
           }
 
-          double tolerance = atol + rtol * scale;
+          Real tolerance = atol + rtol * scale;
           if (abs_error > tolerance)
           {
             result.passed_ = false;
@@ -176,24 +183,26 @@ namespace micm
   JacobianComparisonResult CheckJacobianSparsityCompleteness(
       const SparseMatrixPolicy& analytical_jacobian,
       const DenseMatrixPolicy& fd_jacobian,
-      std::size_t num_species,
-      double threshold = 1.0e-6)
+      Index num_species,
+      // The threshold must sit above finite-difference roundoff on a genuinely-zero entry, which is
+      // far larger in float; otherwise a true zero is misreported as an undeclared dependency.
+      Real threshold = std::is_same_v<Real, double> ? static_cast<Real>(1.0e-6) : static_cast<Real>(1.0e-2))
   {
     JacobianComparisonResult result;
-    const std::size_t num_blocks = analytical_jacobian.NumberOfBlocks();
+    const Index num_blocks = analytical_jacobian.NumberOfBlocks();
 
-    for (std::size_t block = 0; block < num_blocks; ++block)
+    for (Index block = 0; block < num_blocks; ++block)
     {
-      for (std::size_t row = 0; row < num_species; ++row)
+      for (Index row = 0; row < num_species; ++row)
       {
-        for (std::size_t col = 0; col < num_species; ++col)
+        for (Index col = 0; col < num_species; ++col)
         {
           if (!analytical_jacobian.IsZero(row, col))
           {
             continue;
           }
 
-          double fd_val = std::abs(fd_jacobian[block][row * num_species + col]);
+          Real fd_val = std::abs(fd_jacobian[block][row * num_species + col]);
           if (fd_val > threshold)
           {
             result.passed_ = false;

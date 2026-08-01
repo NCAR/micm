@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   template<
@@ -29,9 +31,10 @@ namespace micm
     // Include species referenced by constraints (dependencies and algebraic targets)
     for (const auto& constraint : constraints_)
     {
-      for (const auto& dep : constraint.SpeciesDependencies()) {
+      for (const auto& dep : constraint.SpeciesDependencies())
+      {
         used_species.insert(dep);
-}
+      }
       used_species.insert(constraint.AlgebraicSpecies());
     }
     // Include species referenced by external model constraints
@@ -52,12 +55,13 @@ namespace micm
         used_species.begin(),
         used_species.end(),
         std::inserter(unused_species, unused_species.begin()));
-    if (unused_species.size() > 0)
+    if (!unused_species.empty())
     {
       std::string err_msg = "Unused species in chemical system:";
-      for (const auto& species : unused_species) {
+      for (const auto& species : unused_species)
+      {
         err_msg += " '" + species + "'";
-}
+      }
       err_msg += ".";
       throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_UNUSED_SPECIES, err_msg);
     }
@@ -71,7 +75,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, Index> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -80,13 +84,14 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetSpeciesMap() const
   {
-    std::unordered_map<std::string, std::size_t> species_map;
-    std::size_t index = 0;
+    std::unordered_map<std::string, Index> species_map;
+    Index index = 0;
 
     auto all_names = this->MergedUniqueNames();
-    for (auto& name : all_names) {
+    for (auto& name : all_names)
+    {
       species_map[name] = index++;
-}
+    }
 
     if (reorder_state_)
     {
@@ -97,15 +102,17 @@ namespace micm
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
       const auto n = this->MergedStateSize();
       Matrix unsorted_jac_non_zeros(n, n, 0);
-      for (auto& elem : unsorted_jac_elements) {
+      for (auto& elem : unsorted_jac_elements)
+      {
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
-}
+      }
       auto reorder_map = DiagonalMarkowitzReorder<Matrix>(unsorted_jac_non_zeros);
 
       index = 0;
-      for (std::size_t i = 0; i < all_names.size(); ++i) {
+      for (Index i = 0; i < all_names.size(); ++i)
+      {
         species_map[all_names[reorder_map[i]]] = index++;
-}
+      }
     }
 
     return species_map;
@@ -119,7 +126,7 @@ namespace micm
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
-  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
+  inline std::unordered_map<std::string, Index> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
@@ -128,24 +135,27 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::GetCustomParameterMap() const
   {
-    std::unordered_map<std::string, std::size_t> params{};
+    std::unordered_map<std::string, Index> params{};
     std::vector<std::string> duplicates;
 
     auto add_param = [&params, &duplicates](const std::string& label, const std::string& source)
     {
       auto [it, added] = params.emplace(label, params.size());
-      if (!added) {
+      if (!added)
+      {
         duplicates.push_back(label + " (from " + source + ")");
-}
+      }
     };
 
     // Include custom parameter labels from chemical reactions
     for (const auto& reaction : reactions_)
     {
       const auto& process = reaction.process_;
-      if (const auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process.rate_constant_)) {
+      if (const auto* ud = std::get_if<UserDefinedRateConstantParameters>(&process.rate_constant_))
+      {
         add_param(ud->label_, "reaction");
-      } else if (const auto* surf = std::get_if<SurfaceRateConstantParameters>(&process.rate_constant_))
+      }
+      else if (const auto* surf = std::get_if<SurfaceRateConstantParameters>(&process.rate_constant_))
       {
         add_param(surf->label_ + ".effective radius [m]", "reaction");
         add_param(surf->label_ + ".particle number concentration [# m-3]", "reaction");
@@ -156,18 +166,20 @@ namespace micm
     for (const auto& sys : external_systems_)
     {
       auto param_names = sys.parameter_names_func_();
-      for (const auto& label : param_names) {
+      for (const auto& label : param_names)
+      {
         add_param(label, "external_model");
-}
+      }
     }
 
     if (!duplicates.empty())
     {
       std::ostringstream oss;
       oss << "Duplicate parameter labels detected:\n";
-      for (const auto& d : duplicates) {
+      for (const auto& d : duplicates)
+      {
         oss << "  - " << d << "\n";
-}
+      }
 
       throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, oss.str());
     }
@@ -191,16 +203,15 @@ namespace micm
       LuDecompositionPolicy,
       LinearSolverPolicy,
       StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
-          const
+      SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map) const
   {
-    tolerances = std::vector<double>(species_map.size(), 1e-3);
+    tolerances = std::vector<Real>(species_map.size(), 1e-3);
     for (const auto& phase_species : system_.gas_phase_.phase_species_)
     {
       const auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
       {
-        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
+        tolerances[species_map.at(species.name_)] = species.template GetProperty<Real>("absolute tolerance");
       }
     }
   }
@@ -228,7 +239,7 @@ namespace micm
           MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
     }
 
-    std::size_t number_of_species = this->MergedStateSize();
+    Index number_of_species = this->MergedStateSize();
     if (number_of_species == 0)
     {
       throw MicmException(
@@ -270,27 +281,46 @@ namespace micm
                 [](const auto& v) -> int
                 {
                   using T = std::decay_t<decltype(v)>;
-                  if constexpr (std::is_same_v<T, ArrheniusRateConstantParameters>) {
+                  if constexpr (std::is_same_v<T, ArrheniusRateConstantParameters>)
+                  {
                     return 0;
-                  } else if constexpr (std::is_same_v<T, TroeRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, TroeRateConstantParameters>)
+                  {
                     return 1;
-                  } else if constexpr (std::is_same_v<T, TernaryChemicalActivationRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, TernaryChemicalActivationRateConstantParameters>)
+                  {
                     return 2;
-                  } else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
+                  {
                     return 3;
-                  } else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
+                  {
                     return 4;
-                  } else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
+                  {
                     return 5;
-                  } else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
+                  {
                     return 6;
-                  } else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
+                  {
                     return 7;
-                  } else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>) {
+                  }
+                  else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
+                  {
                     return 8;
-                  } else {
+                  }
+                  else
+                  {
                     return 9;  // LambdaRateConstantParameters
-}
+                  }
                 },
                 p.process_.rate_constant_);
           };
@@ -313,8 +343,8 @@ namespace micm
     ConstraintSetPolicy constraint_set;
 
     // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
-    std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
-    std::set<std::size_t> algebraic_variable_ids;
+    std::vector<Real> mass_matrix_diagonal(number_of_species, 1.0);
+    std::set<Index> algebraic_variable_ids;
 
     if (!constraints_.empty())
     {
@@ -336,9 +366,10 @@ namespace micm
 
       algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
       rates.SetAlgebraicVariableIds(algebraic_variable_ids);
-      for (const auto variable_id : algebraic_variable_ids) {
+      for (const auto variable_id : algebraic_variable_ids)
+      {
         mass_matrix_diagonal[variable_id] = 0.0;
-}
+      }
 
       // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
       for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
@@ -426,9 +457,10 @@ namespace micm
         auto ext_process_elements = process_set.non_zero_jacobian_elements_func_(species_map);
         for (const auto& elem : ext_process_elements)
         {
-          if (algebraic_variable_ids.count(elem.first) > 0) {
+          if (algebraic_variable_ids.count(elem.first) > 0)
+          {
             nonzero_elements.insert(elem);
-}
+          }
         }
       }
     }
@@ -443,21 +475,24 @@ namespace micm
     }
 
     std::vector<std::string> variable_names{ number_of_species };
-    for (auto& species_pair : species_map) {
+    for (auto& species_pair : species_map)
+    {
       variable_names[species_pair.second] = species_pair.first;
-}
+    }
 
     // Build the params map after the constraint set is created,
     // since it adds its parameters to the map.
     std::vector<std::string> labels{ params_map.size() };
-    for (auto& param_pair : params_map) {
+    for (auto& param_pair : params_map)
+    {
       labels[param_pair.second] = param_pair.first;
-}
+    }
 
     rates.SetJacobianFlatIds(jacobian);
     rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
     // Compile external process set update functions now that params_map is finalized
+    update_state_param_funcs.reserve(external_process_sets_.size());
     for (const auto& process_set : external_process_sets_)
     {
       update_state_param_funcs.push_back(process_set.update_state_parameters_function_(params_map));

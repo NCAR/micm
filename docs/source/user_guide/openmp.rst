@@ -42,14 +42,14 @@ and run the rosenbrock solver.
 
 .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
   :language: cpp
-  :lines: 26-63
+  :lines: 26-69
 
 The main function simply creates the mechansim, sets the number of threads, and then sets up an OpenMP blcok
 with three threads. The function defined above is called on each thread.
 
 .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
   :language: cpp
-  :lines: 65-110
+  :lines: 71-116
 
 Running this program should give an output similar to this:
 

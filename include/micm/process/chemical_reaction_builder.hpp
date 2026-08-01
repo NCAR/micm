@@ -55,7 +55,10 @@ namespace micm
     /// @return Reference to the builder
     ChemicalReactionBuilder& SetPhase(const Phase& phase)
     {
-      phase_ = phase;
+      // Store only the phase NAME, not a copy of all of the phase's species. A
+      // reaction needs to know which phase it is. Actually, this isn't required, and this
+      // will be removed in #1025
+      phase_ = Phase(phase.name_, {});
       return *this;
     }
 

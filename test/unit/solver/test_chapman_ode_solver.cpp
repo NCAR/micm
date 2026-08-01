@@ -1,11 +1,13 @@
 #include "../../regression/RosenbrockChapman/chapman_ode_solver.hpp"
 
+#include <micm/util/types.hpp>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
 #include <random>
 
-static const double ABSOLUTE_TOLERANCE = 1e-4;
+static const micm::Real ABSOLUTE_TOLERANCE = 1e-4;
 
 void TestDefaultConstructor(micm::ChapmanODESolver& solver)
 {
@@ -19,7 +21,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, DefaultConstructor)
 
 void TestLinSolve(micm::ChapmanODESolver& solver)
 {
-  std::vector<double> jacobian(23, 1), b(9, 0.5);
+  std::vector<micm::Real> jacobian(23, 1), b(9, 0.5);
   auto solved = solver.LinSolve(b, jacobian);
 
   EXPECT_EQ(solved[0], 0.5);
@@ -73,9 +75,9 @@ TEST(ChapmanMechanismHardCodedAndGeneral, SpeciesNames)
 
 void TestSimpleForce(micm::ChapmanODESolver& solver)
 {
-  std::vector<double> rate_constants(9, 1);
-  std::vector<double> number_densities(9, 1);
-  double number_density_air{};
+  std::vector<micm::Real> rate_constants(9, 1);
+  std::vector<micm::Real> number_densities(9, 1);
+  micm::Real number_density_air{};
 
   auto forcing = solver.Force(rate_constants, number_densities, number_density_air);
 
@@ -98,9 +100,9 @@ TEST(ChapmanMechanismHardCodedAndGeneral, simple_force)
 
 void TestSmallerForce(micm::ChapmanODESolver& solver)
 {
-  std::vector<double> rate_constants(9, 3e-8);
-  std::vector<double> number_densities(9, 5e-6);
-  double number_density_air{ 6e-14 };
+  std::vector<micm::Real> rate_constants(9, 3e-8);
+  std::vector<micm::Real> number_densities(9, 5e-6);
+  micm::Real number_density_air{ 6e-14 };
 
   auto forcing = solver.Force(rate_constants, number_densities, number_density_air);
 
@@ -124,8 +126,8 @@ TEST(ChapmanMechanismHardCodedAndGeneral, smaller_force)
 
 void TestFactoredAlphaMinusJac(micm::ChapmanODESolver& solver)
 {
-  std::vector<double> dforce_dy(23, 1);
-  double alpha{ 2 };
+  std::vector<micm::Real> dforce_dy(23, 1);
+  micm::Real alpha{ 2 };
 
   auto jacobian = solver.FactoredAlphaMinusJac(dforce_dy, alpha);
 
@@ -163,8 +165,8 @@ TEST(ChapmanMechanismHardCodedAndGeneral, factored_alpha_minus_jac)
 
 void TestDforceDyTimesVector(micm::ChapmanODESolver& solver)
 {
-  std::vector<double> dforce_dy(23, 1);
-  std::vector<double> vector(23, 0.5);
+  std::vector<micm::Real> dforce_dy(23, 1);
+  std::vector<micm::Real> vector(23, 0.5);
 
   auto product = solver.DforceDyTimesVector(dforce_dy, vector);
 
@@ -202,7 +204,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, dforce_dy_times_vector)
 
 void TestSolve(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<double>> state = solver.GetState();
+  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -211,8 +213,8 @@ void TestSolve(micm::ChapmanODESolver& solver)
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
-  double time_start = 0;
-  double time_end = 1;
+  micm::Real time_start = 0;
+  micm::Real time_end = 1;
 
   solver.UpdateState(state);
 
@@ -236,7 +238,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 
 void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<double>> state = solver.GetState();
+  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -245,8 +247,8 @@ void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
-  double time_start = 0;
-  double time_end = 1;
+  micm::Real time_start = 0;
+  micm::Real time_end = 1;
 
   for (auto& elem : state.variables_[0])
   {
@@ -274,7 +276,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 
 void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<double>> state = solver.GetState();
+  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -283,8 +285,8 @@ void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
-  double time_start = 0;
-  double time_end = 1;
+  micm::Real time_start = 0;
+  micm::Real time_end = 1;
 
   for (auto& elem : state.variables_[0])
   {
@@ -312,15 +314,15 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 
 void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<double>> state = solver.GetState();
+  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   state.conditions_[0].air_density_ = 2.7e19;
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
-  double time_start = 0;
-  double time_end = 1;
+  micm::Real time_start = 0;
+  micm::Real time_end = 1;
 
   std::default_random_engine generator;
   std::uniform_real_distribution<float> distribution(0.0, 1.0);

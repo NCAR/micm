@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
 #include <algorithm>
@@ -28,7 +29,7 @@ namespace micm
   ///
   /// The template arguments are the type of the matrix elements and the size of the number
   /// of rows per group.
-  template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  template<class T, Index L = MICM_DEFAULT_VECTOR_SIZE>
   class VectorMatrix
   {
    public:
@@ -41,9 +42,9 @@ namespace micm
     {
       friend class VectorMatrix;
       const VectorMatrix* matrix_;
-      std::size_t column_index_;
+      Index column_index_;
 
-      explicit ConstColumnView(const VectorMatrix* matrix, std::size_t column_index)
+      explicit ConstColumnView(const VectorMatrix* matrix, Index column_index)
           : matrix_(matrix),
             column_index_(column_index)
       {
@@ -51,7 +52,7 @@ namespace micm
 
      public:
       using category = DenseMatrixColumnViewTag;
-      std::size_t ColumnIndex() const
+      Index ColumnIndex() const
       {
         return column_index_;
       }
@@ -66,9 +67,9 @@ namespace micm
     {
       friend class VectorMatrix;
       VectorMatrix* matrix_;
-      std::size_t column_index_;
+      Index column_index_;
 
-      explicit ColumnView(VectorMatrix* matrix, std::size_t column_index)
+      explicit ColumnView(VectorMatrix* matrix, Index column_index)
           : matrix_(matrix),
             column_index_(column_index)
       {
@@ -76,7 +77,7 @@ namespace micm
 
      public:
       using category = DenseMatrixColumnViewTag;
-      std::size_t ColumnIndex() const
+      Index ColumnIndex() const
       {
         return column_index_;
       }
@@ -108,8 +109,8 @@ namespace micm
    private:
    protected:
     std::vector<T> data_;  // Memory alignment depends on std::vector's allocator
-    std::size_t x_dim_;    // number of rows
-    std::size_t y_dim_;    // number of columns
+    Index x_dim_;          // number of rows
+    Index y_dim_;          // number of columns
 
    private:
     friend class Proxy;
@@ -122,12 +123,12 @@ namespace micm
     class Proxy
     {
       VectorMatrix& matrix_;
-      std::size_t group_index_;
-      std::size_t row_index_;
-      std::size_t y_dim_;
+      Index group_index_;
+      Index row_index_;
+      Index y_dim_;
 
      public:
-      Proxy(VectorMatrix& matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
+      Proxy(VectorMatrix& matrix, Index group_index, Index row_index, Index y_dim)
           : matrix_(matrix),
             group_index_(group_index),
             row_index_(row_index),
@@ -151,7 +152,7 @@ namespace micm
             {
               *iter = elem;
               // don't iterate past the end of the vector
-              std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+              Index remaining_elements = std::distance(iter, matrix_.data_.end());
               iter += std::min(L, remaining_elements);
             });
         return *this;
@@ -165,18 +166,18 @@ namespace micm
         {
           elem = *iter;
           // don't iterate past the end of the vector
-          std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+          Index remaining_elements = std::distance(iter, matrix_.data_.end());
           iter += std::min(L, remaining_elements);
         }
         return vec;
       }
 
-      std::size_t Size() const
+      Index Size() const
       {
         return y_dim_;
       }
 
-      T& operator[](std::size_t y)
+      T& operator[](Index y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
       }
@@ -185,12 +186,12 @@ namespace micm
     class ConstProxy
     {
       const VectorMatrix& matrix_;
-      std::size_t group_index_;
-      std::size_t row_index_;
-      std::size_t y_dim_;
+      Index group_index_;
+      Index row_index_;
+      Index y_dim_;
 
      public:
-      ConstProxy(const VectorMatrix& matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
+      ConstProxy(const VectorMatrix& matrix, Index group_index, Index row_index, Index y_dim)
           : matrix_(matrix),
             group_index_(group_index),
             row_index_(row_index),
@@ -210,12 +211,12 @@ namespace micm
         return vec;
       }
 
-      std::size_t Size() const
+      Index Size() const
       {
         return y_dim_;
       }
 
-      const T& operator[](std::size_t y) const
+      const T& operator[](Index y) const
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
       }
@@ -229,14 +230,14 @@ namespace micm
     {
     }
 
-    VectorMatrix(std::size_t x_dim, std::size_t y_dim)
+    VectorMatrix(Index x_dim, Index y_dim)
         : x_dim_(x_dim),
           y_dim_(y_dim),
           data_(std::ceil(x_dim / (double)L) * L * y_dim)
     {
     }
 
-    VectorMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
+    VectorMatrix(Index x_dim, Index y_dim, T initial_value)
         : x_dim_(x_dim),
           y_dim_(y_dim),
           data_(std::ceil(x_dim / (double)L) * L * y_dim, initial_value)
@@ -245,18 +246,18 @@ namespace micm
 
     VectorMatrix(const std::vector<std::vector<T>>& other)
         : x_dim_(other.size()),
-          y_dim_(other.size() == 0 ? 0 : other[0].size()),
+          y_dim_(other.empty() ? 0 : other[0].size()),
           data_(
               [&]() -> std::vector<T>
               {
-                std::size_t x_dim = other.size();
+                Index x_dim = other.size();
                 if (x_dim == 0)
                 {
                   return std::vector<T>(0);
                 }
-                std::size_t y_dim = other[0].size();
+                Index y_dim = other[0].size();
                 std::vector<T> data(std::ceil(x_dim / (double)L) * L * y_dim);
-                std::size_t i_row = 0;
+                Index i_row = 0;
                 for (auto& other_row : other)
                 {
                   if (other_row.size() != y_dim)
@@ -270,7 +271,7 @@ namespace micm
                   {
                     *iter = elem;
                     // don't iterate past the end of the vector
-                    std::size_t remaining_elements = std::distance(iter, data.end());
+                    Index remaining_elements = std::distance(iter, data.end());
                     iter += std::min(L, remaining_elements);
                   }
                   ++i_row;
@@ -280,12 +281,12 @@ namespace micm
     {
     }
 
-    std::size_t NumRows() const
+    Index NumRows() const
     {
       return x_dim_;
     }
 
-    std::size_t NumColumns() const
+    Index NumColumns() const
     {
       return y_dim_;
     }
@@ -294,7 +295,7 @@ namespace micm
     ///        adjacent rows for the same column
     /// @return The number of elements in the underlying vector between
     ///         adjacent rows for the same column
-    std::size_t RowStride() const
+    Index RowStride() const
     {
       return 1;
     }
@@ -303,31 +304,31 @@ namespace micm
     ///        adjacent columns for the same row
     /// @return The number of elements in the underlying vector between
     ///         adjacent columns for the same row
-    std::size_t ColumnStride() const
+    Index ColumnStride() const
     {
       return L;
     }
 
-    std::size_t NumberOfGroups() const
+    Index NumberOfGroups() const
     {
       return std::ceil(x_dim_ / (double)L);
     }
 
-    std::size_t GroupSize() const
+    Index GroupSize() const
     {
       return L * y_dim_;
     }
 
-    static constexpr std::size_t GroupVectorSize()
+    static constexpr Index GroupVectorSize()
     {
       return L;
     }
 
     void Print() const
     {
-      for (std::size_t i = 0; i < x_dim_; ++i)
+      for (Index i = 0; i < x_dim_; ++i)
       {
-        for (std::size_t j = 0; j < y_dim_; ++j)
+        for (Index j = 0; j < y_dim_; ++j)
         {
           std::cout << (*this)[i][j] << " ";
         }
@@ -342,12 +343,12 @@ namespace micm
       std::fill(data_.begin(), data_.end(), val);
     }
 
-    ConstProxy operator[](std::size_t x) const
+    ConstProxy operator[](Index x) const
     {
       return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
-    Proxy operator[](std::size_t x)
+    Proxy operator[](Index x)
     {
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
@@ -362,19 +363,19 @@ namespace micm
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
     /// @param x The input VectorMatrix
-    void Axpy(const double& alpha, const VectorMatrix& x)
+    void Axpy(const Real& alpha, const VectorMatrix& x)
     {
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
-      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
-      for (std::size_t i = 0; i < n; ++i)
+      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (Index i = 0; i < n; ++i)
       {
         *(y_iter++) += alpha * (*(x_iter++));
       }
-      const std::size_t l = x_dim_ % L;
-      for (std::size_t i = 0; i < y_dim_; ++i)
+      const Index l = x_dim_ % L;
+      for (Index i = 0; i < y_dim_; ++i)
       {
-        for (std::size_t j = 0; j < l; ++j)
+        for (Index j = 0; j < l; ++j)
         {
           y_iter[(i * L) + j] += alpha * x_iter[(i * L) + j];
         }
@@ -405,15 +406,15 @@ namespace micm
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
-      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
-      for (std::size_t i = 0; i < n; ++i)
+      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (Index i = 0; i < n; ++i)
       {
         f(*(this_iter++), *(a_iter++));
       }
-      const std::size_t l = x_dim_ % L;
-      for (std::size_t y = 0; y < y_dim_; ++y)
+      const Index l = x_dim_ % L;
+      for (Index y = 0; y < y_dim_; ++y)
       {
-        for (std::size_t x = 0; x < l; ++x)
+        for (Index x = 0; x < l; ++x)
         {
           f(this_iter[(y * L) + x], a_iter[(y * L) + x]);
         }
@@ -425,17 +426,17 @@ namespace micm
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
-      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
-      for (std::size_t i = 0; i < n; ++i)
+      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (Index i = 0; i < n; ++i)
       {
         f(*(this_iter++), *(a_iter++), *(b_iter++));
       }
-      const std::size_t l = x_dim_ % L;
+      const Index l = x_dim_ % L;
       if (l > 0)
       {
-        for (std::size_t y = 0; y < y_dim_; ++y)
+        for (Index y = 0; y < y_dim_; ++y)
         {
-          for (std::size_t x = 0; x < l; ++x)
+          for (Index x = 0; x < l; ++x)
           {
             f(this_iter[(y * L) + x], a_iter[(y * L) + x], b_iter[(y * L) + x]);
           }
@@ -465,9 +466,9 @@ namespace micm
     // Print the VectorMatrix to the output stream
     friend std::ostream& operator<<(std::ostream& os, const VectorMatrix& matrix)
     {
-      for (std::size_t i = 0; i < matrix.x_dim_; ++i)
+      for (Index i = 0; i < matrix.x_dim_; ++i)
       {
-        for (std::size_t j = 0; j < matrix.y_dim_ - 1; ++j)
+        for (Index j = 0; j < matrix.y_dim_ - 1; ++j)
         {
           os << matrix[i][j] << ',';
         }
@@ -489,32 +490,18 @@ namespace micm
     /// @brief Create a const column view for accessing a column
     /// @param column_index The index of the column
     /// @return A ConstColumnView descriptor
-    ConstColumnView GetConstColumnView(std::size_t column_index) const
+    ConstColumnView GetConstColumnView(Index column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ConstColumnView(this, column_index);
     }
 
     /// @brief Create a mutable column view for accessing a column
     /// @param column_index The index of the column
     /// @return A ColumnView descriptor
-    ColumnView GetColumnView(std::size_t column_index)
+    ColumnView GetColumnView(Index column_index)
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
     }
 
@@ -543,24 +530,24 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args)
     {
       // Process complete groups of L rows
-      std::size_t num_groups = std::floor(x_dim_ / (double)L);
-      for (std::size_t group = 0; group < num_groups; ++group)
+      Index num_groups = std::floor(x_dim_ / (double)L);
+      for (Index group = 0; group < num_groups; ++group)
       {
-        for (std::size_t row_in_group = 0; row_in_group < L; ++row_in_group)
+        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
-          std::size_t row = group * L + row_in_group;
+          Index row = group * L + row_in_group;
           func(GetRowElement(row, group, row_in_group, args)...);
         }
       }
 
       // Process remaining rows (if x_dim_ is not a multiple of L)
-      std::size_t remaining = x_dim_ % L;
+      Index remaining = x_dim_ % L;
       if (remaining > 0)
       {
-        std::size_t last_group = num_groups;
-        for (std::size_t row_in_group = 0; row_in_group < remaining; ++row_in_group)
+        Index last_group = num_groups;
+        for (Index row_in_group = 0; row_in_group < remaining; ++row_in_group)
         {
-          std::size_t row = last_group * L + row_in_group;
+          Index row = last_group * L + row_in_group;
           func(GetRowElement(row, last_group, row_in_group, args)...);
         }
       }
@@ -575,24 +562,24 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args) const
     {
       // Process complete groups of L rows
-      std::size_t num_groups = std::floor(x_dim_ / (double)L);
-      for (std::size_t group = 0; group < num_groups; ++group)
+      Index num_groups = std::floor(x_dim_ / (double)L);
+      for (Index group = 0; group < num_groups; ++group)
       {
-        for (std::size_t row_in_group = 0; row_in_group < L; ++row_in_group)
+        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
-          std::size_t row = group * L + row_in_group;
+          Index row = group * L + row_in_group;
           func(GetRowElement(row, group, row_in_group, args)...);
         }
       }
 
       // Process remaining rows (if x_dim_ is not a multiple of L)
-      std::size_t remaining = x_dim_ % L;
+      Index remaining = x_dim_ % L;
       if (remaining > 0)
       {
-        std::size_t last_group = num_groups;
-        for (std::size_t row_in_group = 0; row_in_group < remaining; ++row_in_group)
+        Index last_group = num_groups;
+        for (Index row_in_group = 0; row_in_group < remaining; ++row_in_group)
         {
-          std::size_t row = last_group * L + row_in_group;
+          Index row = last_group * L + row_in_group;
           func(GetRowElement(row, last_group, row_in_group, args)...);
         }
       }
@@ -601,60 +588,99 @@ namespace micm
     /// @brief ConstGroupView provides a const view of a single group of L rows for iteration
     class ConstGroupView
     {
+     public:
+      /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
+      ///
+      /// Carries a precomputed base_ pointer into this ConstGroupView's slice of the
+      /// underlying storage. For VectorMatrix, `base_` points at the first row of the
+      /// group's L-row block for `column_index`, so element access is
+      /// `arg.base_[row_in_group]` (contiguous) instead of recomputing
+      /// `(group * y_dim + column) * L + row_in_group` per element.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       const VectorMatrix& matrix_;
-      std::size_t group_;
-      std::size_t num_rows_in_group_;  // May be < L for the last group
+      Index group_;
+      Index num_rows_in_group_;  // May be < L for the last group
 
       /// @brief Get a const element reference for a specific row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
         return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
       }
 
-      /// @brief Get a const element reference for a specific row in this group (RowVariable)
+      /// @brief Get a const element reference for a specific row in this group (GroupedColumnView)
+      /// Fast path: `base_` already points at row 0 of this group's L-row block.
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
+      {
+        return arg.base_[row_in_group];
+      }
+
+      /// @brief Get a const element reference for a specific row in this group (BlockVariable).
+      ///        BlockVariable::Get() flavor depends on the source policy:
+      ///          - Dense RowVariable is `std::array<T, L>` for all L (including L=1).
+      ///          - Sparse L>1 BlockVariable is `std::array<T, L>`.
+      ///          - Sparse L=1 BlockVariable is a scalar T.
+      ///        Dispatch on whether the returned storage is subscriptable rather
+      ///        than on L, so both flavors work for either L.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
-        return arg.Get()[row_in_group];
+        if constexpr (requires(Index i) { arg.Get()[i]; })
+        {
+          return arg.Get()[row_in_group];
+        }
+        else
+        {
+          return arg.Get();
+        }
       }
 
       /// @brief Get a const element reference for a specific row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg) const
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg[group_ * L + row_in_group];
       }
 
      public:
       /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
-      ConstGroupView(const VectorMatrix& matrix, std::size_t group)
+      ConstGroupView(const VectorMatrix& matrix, Index group)
           : matrix_(matrix),
             group_(group)
       {
         // Calculate how many rows are in this group (typically L, except possibly the last group)
         // Optimized: avoid calling NumberOfGroups() which does division+ceil
-        std::size_t start_row = group * L;
+        Index start_row = group * L;
         num_rows_in_group_ = std::min(L, matrix.x_dim_ - start_row);
       }
 
       /// @brief Constructor with explicit num_rows_in_group
-      ConstGroupView(const VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
+      ConstGroupView(const VectorMatrix& matrix, Index group, Index num_rows_in_group)
           : matrix_(matrix),
             group_(group),
             num_rows_in_group_(num_rows_in_group)
       {
       }
 
-      auto GetConstColumnView(std::size_t column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this ConstGroupView's group.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
       RowVariable GetRowVariable() const
@@ -663,21 +689,135 @@ namespace micm
         return RowVariable();
       }
 
-      template<typename Func, typename... Args>
-      void ForEachRow(Func&& func, Args&&... args) const
+      /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      ///        Handles both flavors of `BlockVariable::Get()`:
+      ///          - Array-like (dense RowVariable, and sparse L>1 BlockVariable):
+      ///            `Get()` returns `std::array<T, L>&`, so we index it.
+      ///          - Scalar (sparse L=1 BlockVariable): `Get()` returns `T&`, so we
+      ///            assign directly. Only meaningful when this GroupView's L=1.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
       {
-        // Tight loop over L rows in this group for vectorization
-        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);
+          if constexpr (L >= 16)
+          {
+            std::fill_n(storage.data(), L, value);
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = value;
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = value;
         }
       }
 
-      std::size_t NumRows() const
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      ///        See Fill above for the two `Get()` flavors this dispatches over.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::copy_n(src.base_, L, storage.data());
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = src.base_[i];
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = src.base_[0];
+        }
+      }
+
+      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
+      ///        Respects `num_rows_in_group_` so the last (partial) group doesn't
+      ///        write past the vector's real size (VectorLike has NumRows() entries,
+      ///        not padded).
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = value;
+        }
+      }
+
+      /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
+      ///        Respects `num_rows_in_group_` so the last group doesn't write past
+      ///        the vector's real size.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = src.base_[i];
+        }
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachRow(Func&& func, Args&&... args) const
+      {
+        // VectorMatrix storage is padded to ceil(x_dim/L)*L cells, so it is always safe to
+        // process L rows per group for matrix args. VectorLike args (e.g. std::vector<T>),
+        // however, have exactly N elements and would OOB past the vector's real size, so
+        // we fall back to the runtime bound whenever any arg is VectorLike.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
+        {
+          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
+          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
+        for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      Index NumRows() const
       {
         return matrix_.NumRows();
       }
-      std::size_t NumColumns() const
+      Index NumColumns() const
       {
         return matrix_.NumColumns();
       }
@@ -686,65 +826,104 @@ namespace micm
     /// @brief GroupView provides a view of a single group of L rows for iteration
     class GroupView
     {
+     public:
+      /// @brief Enriched mutable column view returned by GetColumnView on a GroupView.
+      ///        See ConstGroupView::GroupedConstColumnView for rationale.
+      struct GroupedColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        T* base_;
+      };
+      /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       VectorMatrix& matrix_;
-      std::size_t group_;
-      std::size_t num_rows_in_group_;  // May be < L for the last group
+      Index group_;
+      Index num_rows_in_group_;  // May be < L for the last group
 
       /// @brief Get an element reference for a specific row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
       {
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
         return source_matrix->data_[(group_ * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
       }
 
-      /// @brief Get an element reference for a specific row in this group (RowVariable)
+      /// @brief Get an element reference for a specific row in this group (GroupedColumnView)
+      /// Fast path: `base_` already points at row 0 of this group's L-row block.
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      {
+        return arg.base_[row_in_group];
+      }
+
+      /// @brief Get an element reference for a specific row in this group (BlockVariable).
+      ///        See ConstGroupView::GetRowElement above for the subscriptable-vs-scalar
+      ///        dispatch rationale.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
       {
-        return arg.Get()[row_in_group];
+        if constexpr (requires(Index i) { arg.Get()[i]; })
+        {
+          return arg.Get()[row_in_group];
+        }
+        else
+        {
+          return arg.Get();
+        }
       }
 
       /// @brief Get an element reference for a specific row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(std::size_t row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
       {
         return arg[group_ * L + row_in_group];
       }
 
      public:
       /// @brief Constructor that calculates num_rows_in_group from matrix dimensions
-      GroupView(VectorMatrix& matrix, std::size_t group)
+      GroupView(VectorMatrix& matrix, Index group)
           : matrix_(matrix),
             group_(group)
       {
         // Calculate how many rows are in this group (typically L, except possibly the last group)
         // Optimized: avoid calling NumberOfGroups() which does division+ceil
-        std::size_t start_row = group * L;
+        Index start_row = group * L;
         num_rows_in_group_ = std::min(L, matrix.x_dim_ - start_row);
       }
 
       /// @brief Constructor with explicit num_rows_in_group
-      GroupView(VectorMatrix& matrix, std::size_t group, std::size_t num_rows_in_group)
+      GroupView(VectorMatrix& matrix, Index group, Index num_rows_in_group)
           : matrix_(matrix),
             group_(group),
             num_rows_in_group_(num_rows_in_group)
       {
       }
 
-      auto GetConstColumnView(std::size_t column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
-      auto GetColumnView(std::size_t column_index)
+      /// @brief Returns a grouped mutable column view whose element base_ pointer is
+      ///        precomputed for this GroupView's group.
+      GroupedColumnView GetColumnView(Index column_index)
       {
-        return matrix_.GetColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
       RowVariable GetRowVariable()
@@ -753,21 +932,180 @@ namespace micm
         return RowVariable();
       }
 
-      template<typename Func, typename... Args>
-      void ForEachRow(Func&& func, Args&&... args)
+      [[gnu::always_inline]]
+      void Fill(GroupedColumnView view, T value)
       {
-        // Tight loop over L rows in this group for vectorization
-        for (std::size_t row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        if constexpr (L >= 16)
         {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);
+          std::fill_n(view.base_, L, value);
+        }
+        else
+        {
+          T* dst = view.base_;
+          for (Index i = 0; i < L; ++i)
+          {
+            dst[i] = value;
+          }
         }
       }
 
-      std::size_t NumRows() const
+      template<GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst_view, Src&& src_view)
+      {
+        if constexpr (L >= 16)
+        {
+          std::copy_n(src_view.base_, L, dst_view.base_);
+        }
+        else
+        {
+          T* dst = dst_view.base_;
+          const T* src = src_view.base_;
+          for (Index i = 0; i < L; ++i)
+          {
+            dst[i] = src[i];
+          }
+        }
+      }
+
+      /// @brief Copy a per-row vector into dst column within this group.
+      ///        `src` has one entry per real row of the matrix (size == NumRows()),
+      ///        so we must respect `num_rows_in_group_` on the last (partial) group
+      ///        to avoid reading past the vector's end. Padding cells of `dst` are
+      ///        left untouched (they're scratch storage).
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst_view, Src&& src)
+      {
+        T* dst = dst_view.base_;
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          dst[i] = src[start + i];
+        }
+      }
+
+      /// @brief Assign value to every cell of the caller-owned row-variable temp.
+      ///        See ConstGroupView::Fill(Dst&&, T) for the array-vs-scalar
+      ///        dispatch rationale.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value)
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::fill_n(storage.data(), L, value);
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = value;
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = value;
+        }
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      ///        See ConstGroupView::Copy(Dst&&, Src&&) for the array-vs-scalar
+      ///        dispatch rationale.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src)
+      {
+        auto& storage = dst.Get();
+        if constexpr (requires { storage[Index{ 0 }]; })
+        {
+          if constexpr (L >= 16)
+          {
+            std::copy_n(src.base_, L, storage.data());
+          }
+          else
+          {
+            for (Index i = 0; i < L; ++i)
+            {
+              storage[i] = src.base_[i];
+            }
+          }
+        }
+        else
+        {
+          static_assert(L == 1, "Scalar BlockVariable::Get() only reachable when L=1");
+          storage = src.base_[0];
+        }
+      }
+
+      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
+      ///        See ConstGroupView::Fill(Vec&, T) for details.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value)
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = value;
+        }
+      }
+
+      /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
+      ///        See ConstGroupView::Copy(Vec&, Src&&) for details.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src)
+      {
+        const Index start = group_ * L;
+        for (Index i = 0; i < num_rows_in_group_; ++i)
+        {
+          vec[start + i] = src.base_[i];
+        }
+      }
+
+      template<typename Func, typename... Args>
+      void ForEachRow(Func&& func, Args&&... args)
+      {
+        // See ConstGroupView::ForEachRow for rationale.
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
+        {
+          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+      }
+
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        See ConstGroupView::ForEachRowStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args)
+      {
+        for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      Index NumRows() const
       {
         return matrix_.NumRows();
       }
-      std::size_t NumColumns() const
+      Index NumColumns() const
       {
         return matrix_.NumColumns();
       }
@@ -803,8 +1141,8 @@ namespace micm
       // Row counts can differ between args at creation, but must match at invocation
       auto populate_cols = [](auto&... args_inner)
       {
-        std::vector<std::size_t> cols(sizeof...(args_inner));
-        std::size_t idx = 0;
+        std::vector<Index> cols(sizeof...(args_inner));
+        Index idx = 0;
         (
             [&](auto& arg)
             {
@@ -823,15 +1161,15 @@ namespace micm
         return cols;
       };
 
-      std::vector<std::size_t> num_cols = populate_cols(args...);
+      std::vector<Index> num_cols = populate_cols(args...);
 
       // Store in variable to ensure fold expression completes before lambda construction
       auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable
       {
         // Validate dimensions and determine row count in a single pass
-        std::size_t num_rows = 0;
+        Index num_rows = 0;
         bool found_first = false;
-        std::size_t idx = 0;
+        Index idx = 0;
 
         (
             [&](auto& arg)
@@ -893,8 +1231,8 @@ namespace micm
             ...);
 
         // Iterate over groups, processing L rows at a time
-        std::size_t num_complete_groups = std::floor(num_rows / (double)L);
-        for (std::size_t group = 0; group < num_complete_groups; ++group)
+        Index num_complete_groups = std::floor(num_rows / (double)L);
+        for (Index group = 0; group < num_complete_groups; ++group)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
           // For vectors, just pass them through
@@ -924,7 +1262,7 @@ namespace micm
         }
 
         // Process remaining rows (if num_rows is not a multiple of L)
-        std::size_t remaining = num_rows % L;
+        Index remaining = num_rows % L;
         if (remaining > 0)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
@@ -961,25 +1299,34 @@ namespace micm
     /// @brief Get an element reference for a row (ColumnView)
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
       return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
     }
 
-    /// @brief Get an element reference for a row (RowVariable)
+    /// @brief Get an element reference for a row (BlockVariable).
+    ///        See GroupView::GetRowElement above for the subscriptable-vs-scalar
+    ///        dispatch rationale.
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(Index /*row*/, Index /*group*/, Index row_in_group, Arg&& arg)
     {
-      return arg.Get()[row_in_group];
+      if constexpr (requires(Index i) { arg.Get()[i]; })
+      {
+        return arg.Get()[row_in_group];
+      }
+      else
+      {
+        return arg.Get();
+      }
     }
 
     /// @brief Get an element reference for a row (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg)
+    decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg)
     {
       return arg[row];
     }
@@ -987,25 +1334,34 @@ namespace micm
     /// @brief Get a const element reference for a row (ColumnView) - const version
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg) const
     {
       auto* source_matrix = arg.GetMatrix();
       // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
       return source_matrix->data_[(group * source_matrix->y_dim_ + arg.ColumnIndex()) * L + row_in_group];
     }
 
-    /// @brief Get a const element reference for a row (RowVariable) - const version
+    /// @brief Get a const element reference for a row (BlockVariable) - const version.
+    ///        See GroupView::GetRowElement above for the subscriptable-vs-scalar
+    ///        dispatch rationale.
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(Index /*row*/, Index /*group*/, Index row_in_group, Arg&& arg) const
     {
-      return arg.Get()[row_in_group];
+      if constexpr (requires(Index i) { arg.Get()[i]; })
+      {
+        return arg.Get()[row_in_group];
+      }
+      else
+      {
+        return arg.Get();
+      }
     }
 
     /// @brief Get a const element reference for a row (Vector-like) - const version
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, std::size_t group, std::size_t row_in_group, Arg&& arg) const
+    decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg) const
     {
       return arg[row];
     }
@@ -1016,7 +1372,7 @@ namespace micm
   // ============================================================================
 
   /// @brief VectorMatrix uses simple grouping when L==1, tiered grouping when L>1
-  template<typename T, std::size_t L>
+  template<typename T, Index L>
   struct GroupingStrategy<VectorMatrix<T, L>>
   {
     using type = std::conditional_t<L == 1, SimpleGroupingTag, TieredGroupingTag>;

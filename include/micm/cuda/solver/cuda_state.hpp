@@ -6,6 +6,7 @@
 #include <micm/solver/state.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -33,7 +34,7 @@ namespace micm
     /// @brief Constructor which takes the state dimension information as input
     /// @param parameters State dimension information
     /// @param number_of_grid_cells Number of grid cells
-    CudaState(const StateParameters& parameters, const std::size_t number_of_grid_cells)
+    CudaState(const StateParameters& parameters, const Index number_of_grid_cells)
         : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(parameters, number_of_grid_cells)
     {
       auto& atol = this->absolute_tolerance_;
@@ -43,7 +44,7 @@ namespace micm
 
       // If cuda vector length does not divide number of grid cells evenly,
       // we need to allocate GPU memory including the paddings for NormalizedError calculation.
-      std::size_t cuda_rosenbrock_vector_length = DenseMatrixPolicy::GroupVectorSize();
+      Index cuda_rosenbrock_vector_length = DenseMatrixPolicy::GroupVectorSize();
       errors_param_.errors_size_ = parameters.number_of_species_ *
                                    ceil(static_cast<double>(number_of_grid_cells) / cuda_rosenbrock_vector_length) *
                                    cuda_rosenbrock_vector_length;
@@ -52,30 +53,30 @@ namespace micm
       jacobian_diagonal_elements_param_.size_ = diagonal_indices.size();
 
       CHECK_CUDA_ERROR(
-          micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_),
+          micm::cuda::MallocVector<Real>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_),
           "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocArray<Real>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
       CHECK_CUDA_ERROR(
-          micm::cuda::MallocArray<double>(errors_param_.errors_input_, errors_param_.errors_size_), "cudaMalloc");
+          micm::cuda::MallocArray<Real>(errors_param_.errors_output_, errors_param_.errors_size_), "cudaMalloc");
       CHECK_CUDA_ERROR(
-          micm::cuda::MallocArray<double>(errors_param_.errors_output_, errors_param_.errors_size_), "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          micm::cuda::MallocArray<std::size_t>(
-              jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
+          micm::cuda::MallocArray<Index>(jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
           "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<Real>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
 
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
               jacobian_diagonal_elements_param_.data_,
               diagonal_indices.data(),
-              sizeof(std::size_t) * diagonal_indices.size(),
+              sizeof(Index) * diagonal_indices.size(),
               cudaMemcpyHostToDevice,
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
     };
 
     /// @brief Move constructor
-    CudaState(CudaState&& other)
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // *_param_ members untouched, so copying/resetting them on `other` afterward is safe.
+    CudaState(CudaState&& other) noexcept
         : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
       absolute_tolerance_param_ = other.absolute_tolerance_param_;
@@ -87,7 +88,7 @@ namespace micm
     }
 
     /// @brief Move assignment operator
-    CudaState& operator=(CudaState&& other)
+    CudaState& operator=(CudaState&& other) noexcept
     {
       if (this != &other)
       {
@@ -101,12 +102,13 @@ namespace micm
       }
       return *this;
     }
+    // NOLINTEND(bugprone-use-after-move)
 
-    void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance) override
+    void SetAbsoluteTolerances(const std::vector<Real>& absoluteTolerance) override
     {
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absoluteTolerance);
       CHECK_CUDA_ERROR(
-          micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
+          micm::cuda::CopyToDevice<Real>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
     }
 
     /// @brief Copy input variables to the device.
@@ -114,14 +116,14 @@ namespace micm
     ///        Rate constants are NOT copied here; they are computed directly on the
     ///        GPU by Solver::UpdateStateParameters (via CudaProcessSet::GpuCalculateRateConstants).
     void SyncInputsToDevice()
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+      requires(CudaMatrix<DenseMatrixPolicy>)
     {
       this->variables_.CopyToDevice();
     }
 
     /// @brief Copy output variables to the host
     void SyncOutputsToHost()
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+      requires(CudaMatrix<DenseMatrixPolicy>)
     {
       this->variables_.CopyToHost();
       // our tests require we check the rate constants

@@ -1,6 +1,7 @@
 #include "test_matrix_policy.hpp"
 
 #include <micm/util/matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -8,24 +9,24 @@ TEST(Matrix, SmallMatrix)
 {
   auto matrix = TestSmallMatrix<micm::Matrix>();
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[3 * 5 - 1], 102.3);
-  EXPECT_EQ(data[1 * 5 + 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[3 * 5 - 1], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 * 5 + 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(Matrix, SmallConstMatrix)
 {
   auto matrix = TestSmallConstMatrix<micm::Matrix>();
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[3 * 5 - 1], 102.3);
-  EXPECT_EQ(data[1 * 5 + 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[3 * 5 - 1], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 * 5 + 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(Matrix, InitializeMatrix)
@@ -298,4 +299,14 @@ TEST(Matrix, IntegerVector)
 TEST(Matrix, FunctionWithConstSignature)
 {
   TestFunctionWithConstSignature<micm::Matrix>();
+}
+
+TEST(Matrix, TestFill)
+{
+  TestFill<micm::Matrix>();
+}
+
+TEST(Matrix, TestCopy)
+{
+  TestCopy<micm::Matrix>();
 }

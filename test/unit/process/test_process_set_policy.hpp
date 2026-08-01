@@ -1,16 +1,20 @@
+#include "../../precision_matchers.hpp"
+
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/jacobian_verification.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <random>
+#include <type_traits>
 
 using namespace micm;
-using index_pair = std::pair<std::size_t, std::size_t>;
+using index_pair = std::pair<micm::Index, micm::Index>;
 
 void ComparePair(const index_pair& a, const index_pair& b)
 {
@@ -101,17 +105,21 @@ void TestProcessSet()
 
   CheckCopyToHost<DenseMatrixPolicy>(forcing);
 
-  EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
-  EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
-  EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
-  EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2 * 80.0 * 0.72 + 140.0 * 80.0 * 0.72 * 1.3);
-  EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3 - 40.0 * 70.0 * 0.72 * 0.3);  // baz
-  EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3 - 140.0 * 80.0 * 0.72 * 1.3);
-  EXPECT_DOUBLE_EQ(
+  EXPECT_REAL_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
+  EXPECT_REAL_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
+  EXPECT_REAL_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
+  // forcing[1][1] telescopes two large opposing terms (~-8.3e3 and ~+1.0e4) down to ~3.3e3; in
+  // single precision the intermediate rounding is ~6 ULP of the result, exceeding EXPECT_REAL_EQ's
+  // 4-ULP bound, so use a small relative tolerance here (double stays effectively exact).
+  const double forcing_1_1 = 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2 * 80.0 * 0.72 + 140.0 * 80.0 * 0.72 * 1.3;
+  EXPECT_NEAR(forcing[1][1], forcing_1_1, forcing_1_1 * (std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-5));
+  EXPECT_REAL_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3 - 40.0 * 70.0 * 0.72 * 0.3);  // baz
+  EXPECT_REAL_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3 - 140.0 * 80.0 * 0.72 * 1.3);
+  EXPECT_REAL_EQ(
       forcing[0][3], 1000.0 + 20.0 * 70.0 * 0.72 * 0.2 * 1.4 - 30.0 * 0.4 + 40.0 * 70.0 * 0.72 * 2.5 * 0.3);  // quz
-  EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 80.0 * 0.72 * 1.2 * 1.4 - 130.0 * 1.4 + 140.0 * 80.0 * 0.72 * 2.5 * 1.3);
-  EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);  // quuz
-  EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+  EXPECT_REAL_EQ(forcing[1][3], 1000.0 + 120.0 * 80.0 * 0.72 * 1.2 * 1.4 - 130.0 * 1.4 + 140.0 * 80.0 * 0.72 * 2.5 * 1.3);
+  EXPECT_REAL_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);  // quuz
+  EXPECT_REAL_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   // ---- foo  bar  baz  quz  quuz
@@ -150,36 +158,36 @@ void TestProcessSet()
 
   CheckCopyToHost<SparseMatrixPolicy>(jacobian);
 
-  EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][0][1], 100.0 - 120.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][0][2], 100.0 + 10.0 * 0.1);  // foo -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][0][2], 100.0 + 110.0 * 1.1);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][0], 100.0 - 10.0 * 0.3);  // bar -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][1][0], 100.0 - 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][1], 100.0 + 20.0 * 70.0 * 0.72);  // bar -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][1][1], 100.0 + 120.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1 - 40.0 * 70.0 * 0.72);  // bar -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1 - 140.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][2][0], 100.0 + 10.0 * 0.3);  // baz -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][2][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1 + 40.0 * 70.0 * 0.72);  // baz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1 + 140.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0 * 70.0 * 0.72);  // quz -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][2], 100.0 - 2.5 * 40.0 * 70.0 * 0.72);  // quz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][3][2], 100.0 - 2.5 * 140.0 * 80.0 * 0.72);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][3], 100.0 + 30.0);  // quz -> quz
-  EXPECT_DOUBLE_EQ(jacobian[1][3][3], 100.0 + 130.0);
-  EXPECT_DOUBLE_EQ(jacobian[0][4][0], 100.0 - 2.4 * 10.0 * 0.3);  // quuz -> foo
-  EXPECT_DOUBLE_EQ(jacobian[1][4][0], 100.0 - 2.4 * 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][4][2], 100.0 - 2.4 * 10.0 * 0.1);  // quuz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
+  EXPECT_REAL_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
+  EXPECT_REAL_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
+  EXPECT_REAL_EQ(jacobian[1][0][1], 100.0 - 120.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][0][2], 100.0 + 10.0 * 0.1);  // foo -> baz
+  EXPECT_REAL_EQ(jacobian[1][0][2], 100.0 + 110.0 * 1.1);
+  EXPECT_REAL_EQ(jacobian[0][1][0], 100.0 - 10.0 * 0.3);  // bar -> foo
+  EXPECT_REAL_EQ(jacobian[1][1][0], 100.0 - 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][1][1], 100.0 + 20.0 * 70.0 * 0.72);  // bar -> bar
+  EXPECT_REAL_EQ(jacobian[1][1][1], 100.0 + 120.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1 - 40.0 * 70.0 * 0.72);  // bar -> baz
+  EXPECT_REAL_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1 - 140.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][2][0], 100.0 + 10.0 * 0.3);  // baz -> foo
+  EXPECT_REAL_EQ(jacobian[1][2][0], 100.0 + 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1 + 40.0 * 70.0 * 0.72);  // baz -> baz
+  EXPECT_REAL_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1 + 140.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0 * 70.0 * 0.72);  // quz -> bar
+  EXPECT_REAL_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][3][2], 100.0 - 2.5 * 40.0 * 70.0 * 0.72);  // quz -> baz
+  EXPECT_REAL_EQ(jacobian[1][3][2], 100.0 - 2.5 * 140.0 * 80.0 * 0.72);
+  EXPECT_REAL_EQ(jacobian[0][3][3], 100.0 + 30.0);  // quz -> quz
+  EXPECT_REAL_EQ(jacobian[1][3][3], 100.0 + 130.0);
+  EXPECT_REAL_EQ(jacobian[0][4][0], 100.0 - 2.4 * 10.0 * 0.3);  // quuz -> foo
+  EXPECT_REAL_EQ(jacobian[1][4][0], 100.0 - 2.4 * 110.0 * 1.3);
+  EXPECT_REAL_EQ(jacobian[0][4][2], 100.0 - 2.4 * 10.0 * 0.1);  // quuz -> baz
+  EXPECT_REAL_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
-void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void TestRandomSystem(micm::Index n_cells, micm::Index n_reactions, micm::Index n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -190,9 +198,9 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   std::vector<std::string> species_names{};
   phase_species.reserve(n_species);
   species_names.reserve(n_species);
-  for (std::size_t i = 0; i < n_species; ++i)
+  for (micm::Index i = 0; i < n_species; ++i)
   {
-    phase_species.emplace_back(PhaseSpecies(Species(std::to_string(i))));
+    phase_species.emplace_back(Species(std::to_string(i)));
     species_names.emplace_back(std::to_string(i));
   }
   Phase gas_phase{ "gas", phase_species };
@@ -204,17 +212,19 @@ void TestRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
                                                       },
                                                       n_cells };
   std::vector<Process> processes{};
-  for (std::size_t i = 0; i < n_reactions; ++i)
+  for (micm::Index i = 0; i < n_reactions; ++i)
   {
     auto n_react = get_n_react();
     std::vector<Species> reactants{};
-    for (std::size_t i_react = 0; i_react < n_react; ++i_react)
+    reactants.reserve(n_react);
+    for (micm::Index i_react = 0; i_react < n_react; ++i_react)
     {
-      reactants.push_back({ std::to_string(get_species_id()) });
+      reactants.emplace_back(std::to_string(get_species_id()));
     }
     auto n_product = get_n_product();
     std::vector<StoichSpecies> products{};
-    for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
+    products.reserve(n_product);
+    for (micm::Index i_prod = 0; i_prod < n_product; ++i_prod)
     {
       products.push_back(StoichSpecies(std::to_string(get_species_id()), 1.2));
     }
@@ -283,7 +293,7 @@ void TestAlgebraicMasking()
   //       focuses on algebraic masking without building the full solver.
   //       The algebraic variables are set arbitrarily for testing purposes only.
   // Mark species B (index 1) and D (index 3) as algebraic variables
-  std::set<std::size_t> algebraic_ids{ 1, 3 };
+  std::set<micm::Index> algebraic_ids{ 1, 3 };
   process_set.SetAlgebraicVariableIds(algebraic_ids);
 
   // Initialize state variables
@@ -315,20 +325,20 @@ void TestAlgebraicMasking()
     // Cell 1: rate = 20.0 * 5.0 * 6.0 = 600.0
 
     // Species A (index 0) is NOT algebraic: should be updated (loses reactant)
-    EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 600.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][0], 1000.0 - 20.0);   // Cell 0
+    EXPECT_REAL_EQ(forcing[1][0], 1000.0 - 600.0);  // Cell 1
 
     // Species B (index 1) IS algebraic: should remain unchanged
-    EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][1], 1000.0);  // Cell 0
+    EXPECT_REAL_EQ(forcing[1][1], 1000.0);  // Cell 1
 
     // Species C (index 2) is NOT algebraic: should be updated (gains product)
-    EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 + 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 + 600.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][2], 1000.0 + 20.0);   // Cell 0
+    EXPECT_REAL_EQ(forcing[1][2], 1000.0 + 600.0);  // Cell 1
 
     // Species D (index 3) IS algebraic: should remain unchanged
-    EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0);  // Cell 1
+    EXPECT_REAL_EQ(forcing[0][3], 1000.0);  // Cell 0
+    EXPECT_REAL_EQ(forcing[1][3], 1000.0);  // Cell 1
   }
 
   // Test SubtractJacobianTerms with algebraic masking
@@ -357,35 +367,35 @@ void TestAlgebraicMasking()
 
     // Row A (index 0, NOT algebraic) should be updated
     // A->A: +d_rate/d_A (diagonal, reactant)
-    EXPECT_DOUBLE_EQ(jacobian[0][0][0], 500.0 + 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][0][0], 500.0 + 120.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][0][0], 500.0 + 20.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][0][0], 500.0 + 120.0);  // Cell 1
 
     // A->B: +d_rate/d_B (off-diagonal, reactant)
-    EXPECT_DOUBLE_EQ(jacobian[0][0][1], 500.0 + 10.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][0][1], 500.0 + 100.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][0][1], 500.0 + 10.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][0][1], 500.0 + 100.0);  // Cell 1
 
     // Row B (index 1, IS algebraic) should remain unchanged at 500.0
     // B->A and B->B should not be updated
-    EXPECT_DOUBLE_EQ(jacobian[0][1][0], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][1][0], 500.0);  // Cell 1
-    EXPECT_DOUBLE_EQ(jacobian[0][1][1], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][1][1], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][1][0], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][1][0], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][1][1], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][1][1], 500.0);  // Cell 1
 
     // Row C (index 2, NOT algebraic) should be updated (product)
     // C->A: -d_rate/d_A (product contribution)
-    EXPECT_DOUBLE_EQ(jacobian[0][2][0], 500.0 - 20.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][2][0], 500.0 - 120.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][2][0], 500.0 - 20.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][2][0], 500.0 - 120.0);  // Cell 1
 
     // C->B: -d_rate/d_B (product contribution)
-    EXPECT_DOUBLE_EQ(jacobian[0][2][1], 500.0 - 10.0);   // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][2][1], 500.0 - 100.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][2][1], 500.0 - 10.0);   // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][2][1], 500.0 - 100.0);  // Cell 1
 
     // Row D (index 3, IS algebraic) should remain unchanged at 500.0
     // D->A and D->B should not be updated
-    EXPECT_DOUBLE_EQ(jacobian[0][3][0], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][3][0], 500.0);  // Cell 1
-    EXPECT_DOUBLE_EQ(jacobian[0][3][1], 500.0);  // Cell 0
-    EXPECT_DOUBLE_EQ(jacobian[1][3][1], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][3][0], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][3][0], 500.0);  // Cell 1
+    EXPECT_REAL_EQ(jacobian[0][3][1], 500.0);  // Cell 0
+    EXPECT_REAL_EQ(jacobian[1][3][1], 500.0);  // Cell 1
   }
 }
 
@@ -401,7 +411,7 @@ void TestProcessSetFiniteDifferenceJacobian()
   auto C = Species("C");
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
-  const std::size_t num_species = 3;
+  const micm::Index num_species = 3;
 
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       StateParameters{ .number_of_rate_constants_ = 2, .variable_names_{ "A", "B", "C" } }, 2);

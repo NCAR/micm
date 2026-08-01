@@ -3,9 +3,11 @@
 #pragma once
 
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <optional>
+#include <utility>
 #include <vector>
 
 namespace micm
@@ -17,22 +19,35 @@ namespace micm
   {
    public:
     Species species_;
-    std::optional<double> diffusion_coefficient_;
+    std::optional<Real> diffusion_coefficient_;
+    std::optional<Real> density_;
 
     PhaseSpecies(const Species& species)
         : species_(species)
     {
     }
 
-    PhaseSpecies(const Species& species, double diffusion_coefficient)
+    PhaseSpecies(const Species& species, Real diffusion_coefficient)
         : species_(species),
           diffusion_coefficient_(diffusion_coefficient)
     {
     }
 
-    void SetDiffusionCoefficient(double diffusion_coefficient)
+    PhaseSpecies(const Species& species, Real diffusion_coefficient, Real density)
+        : species_(species),
+          diffusion_coefficient_(diffusion_coefficient),
+          density_(density)
+    {
+    }
+
+    void SetDiffusionCoefficient(Real diffusion_coefficient)
     {
       diffusion_coefficient_ = diffusion_coefficient;
+    }
+
+    void SetDensity(Real density)
+    {
+      density_ = density;
     }
   };
 
@@ -54,14 +69,14 @@ namespace micm
     Phase& operator=(Phase&&) noexcept = default;
 
     /// @brief Create a phase with a name and a set of species
-    Phase(const std::string& name, const std::vector<PhaseSpecies>& phase_species)
-        : name_(name),
+    Phase(std::string name, const std::vector<PhaseSpecies>& phase_species)
+        : name_(std::move(name)),
           phase_species_(phase_species)
     {
     }
 
     /// @brief Returns the number of non-parameterized species
-    std::size_t StateSize() const
+    Index StateSize() const
     {
       return std::count_if(
           phase_species_.begin(),

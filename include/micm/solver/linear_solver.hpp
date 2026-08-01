@@ -7,6 +7,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <cmath>
 #include <functional>
@@ -21,31 +22,31 @@ namespace micm
     { t.Solve(std::declval<DenseMatrixPolicy&>(), std::declval<SparseMatrixPolicy>()) } -> std::same_as<void>;
   };
   static_assert(
-      LinearSolverInPlaceConcept<LinearSolverInPlace<StandardSparseMatrix>, StandardDenseMatrix, StandardSparseMatrix>,
+      LinearSolverInPlaceConcept<
+          LinearSolverInPlace<StandardDenseMatrix, StandardSparseMatrix>,
+          StandardDenseMatrix,
+          StandardSparseMatrix>,
       "LinearSolverInPlace does not meet the LinearSolverInPlaceConcept requirements");
   static_assert(
       LinearSolverInPlaceConcept<
           LinearSolverInPlace<
-              SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
+              VectorMatrix<Real, 1>,
+              SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
               LuDecompositionMozartInPlace>,
-          VectorMatrix<double, 1>,
-          SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
+          VectorMatrix<Real, 1>,
+          SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LinearSolverInPlace for vector matrices does not meet the LinearSolverInPlaceConcept requirements");
 
   /// @brief Reorders a set of state variables using Diagonal Markowitz algorithm
   /// @param matrix Original matrix non-zero elements
   /// @result Reordered mapping vector (reordered[i] = original[map[i]])
   template<template<class> class MatrixPolicy>
-  std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix);
+  std::vector<Index> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix);
 
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<
-      class SparseMatrixPolicy,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:
@@ -63,20 +64,20 @@ namespace micm
 
     // Number of non-zero elements (excluding the diagonal) and the index of the diagonal
     // element for each row in L
-    std::vector<std::pair<std::size_t, std::size_t>> nLij_Lii_;
+    std::vector<std::pair<Index, Index>> nLij_Lii_;
     // Indices of non-zero combinations of L_ij and y_j
-    std::vector<std::pair<std::size_t, std::size_t>> Lij_yj_;
+    std::vector<std::pair<Index, Index>> Lij_yj_;
     // Number of non-zero elements (exluding the diagonal) and the index of the diagonal
     // element for each row in U (in reverse order)
-    std::vector<std::pair<std::size_t, std::size_t>> nUij_Uii_;
+    std::vector<std::pair<Index, Index>> nUij_Uii_;
     // Indices of non-zero combinations of U_ij and x_j
-    std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
+    std::vector<std::pair<Index, Index>> Uij_xj_;
 
     LuDecompositionPolicy lu_decomp_;
 
    public:
     /// @brief default constructor
-    LinearSolver(){};
+    LinearSolver() = default;
 
     LinearSolver(const LinearSolver&) = delete;
     LinearSolver& operator=(const LinearSolver&) = delete;
@@ -101,15 +102,10 @@ namespace micm
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
-    void Factor(const SparseMatrixPolicy& matrix, LMatrixPolicy& lower_matrix, UMatrixPolicy& upper_matrix) const;
+    void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix) const;
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
-    template<class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const;
-    template<class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const;
+    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const;
   };
 
 }  // namespace micm

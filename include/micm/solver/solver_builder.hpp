@@ -18,6 +18,7 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <memory>
@@ -168,9 +169,9 @@ namespace micm
 
    protected:
     /// @brief Returns the total state size: gas phase + all external model state variables
-    std::size_t MergedStateSize() const
+    Index MergedStateSize() const
     {
-      std::size_t n = system_.StateSize();
+      Index n = system_.StateSize();
       for (const auto& m : external_systems_)
       {
         n += std::get<0>(m.state_size_func_());
@@ -197,7 +198,7 @@ namespace micm
 
     /// @brief Gets a map of species to their index
     /// @return The species map
-    std::unordered_map<std::string, std::size_t> GetSpeciesMap() const;
+    std::unordered_map<std::string, Index> GetSpeciesMap() const;
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
@@ -206,14 +207,13 @@ namespace micm
     ///        collecting parameters from reactions, external models, and constraints.
     /// @throws MicmException if duplicate parameter labels are found.
     /// @return An unordered_map mapping each unique parameter label to its index.
-    std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
+    std::unordered_map<std::string, Index> GetCustomParameterMap() const;
 
     /// @brief Sets the absolute tolerances per species
     /// @param parameters
     /// @param species_map
-    void SetAbsoluteTolerances(
-        std::vector<double>& tolerances,
-        const std::unordered_map<std::string, std::size_t>& species_map) const;
+    void SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map)
+        const;
   };
 
   /// @brief Builder of CPU-based general solvers
@@ -221,23 +221,19 @@ namespace micm
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam LuDecompositionPolicy Policy for the LU decomposition
-  /// @tparam LMatrixPolicy Policy for the Lower matrix
-  /// @tparam UMatrixPolicy Policy for the Upper matrix
   template<
       class SolverParametersPolicy,
-      class DenseMatrixPolicy = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+      class DenseMatrixPolicy = Matrix<Real>,
+      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
+      class LuDecompositionPolicy = LuDecomposition>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
+      LinearSolver<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
   /// @brief Builder of CPU-based general solvers with in-place LU decomposition
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
@@ -246,8 +242,8 @@ namespace micm
   /// @tparam LuDecompositionPolicy Policy for the LU decomposition
   template<
       class SolverParametersPolicy,
-      class DenseMatrix = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
+      class DenseMatrix = Matrix<Real>,
+      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
       class LuDecompositionPolicy = LuDecompositionInPlace>
   using CpuSolverBuilderInPlace = SolverBuilder<
       SolverParametersPolicy,
@@ -255,7 +251,7 @@ namespace micm
       SparseMatrixPolicy,
       ProcessSet<DenseMatrix, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>,
+      LinearSolverInPlace<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>,
       State<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
 }  // namespace micm

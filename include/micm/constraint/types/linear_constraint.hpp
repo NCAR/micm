@@ -5,11 +5,13 @@
 #include <micm/constraint/constraint_info.hpp>
 #include <micm/system/stoich_species.hpp>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/types.hpp>
 
 #include <cstddef>
 #include <functional>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace micm
@@ -34,12 +36,11 @@ namespace micm
     std::vector<StoichSpecies> terms_;
 
     /// @brief The constant value the linear sum should equal
-    double constant_;
+    Real constant_;
 
     /// @brief Parameter set (unused for this class, always empty).
     std::vector<std::string> parameters_;
 
-   public:
     /// @brief Default constructor
     LinearConstraint() = default;
 
@@ -51,11 +52,11 @@ namespace micm
     /// @param terms Vector of StoichSpecies (species, coefficient) in the linear sum
     /// @param constant The value that sum(coeff[i] * [species[i]]) should equal
     LinearConstraint(
-        const std::string& name,
+        std::string name,
         const Species& algebraic_species,
         const std::vector<StoichSpecies>& terms,
-        double constant)
-        : name_(name),
+        Real constant)
+        : name_(std::move(name)),
           algebraic_species_(algebraic_species),
           terms_(terms),
           constant_(constant)
@@ -105,15 +106,15 @@ namespace micm
       DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
 
       // Copy data to avoid issues when ConstraintSet is moved
-      std::vector<double> coeffs;
-      std::vector<std::size_t> species_indices;
-      for (std::size_t i = 0; i < this->terms_.size(); ++i)
+      std::vector<Real> coeffs;
+      std::vector<Index> species_indices;
+      for (Index i = 0; i < this->terms_.size(); ++i)
       {
         coeffs.push_back(this->terms_[i].coefficient_);
         species_indices.push_back(info.state_indices_[i]);
       }
-      double constant = this->constant_;
-      std::size_t row_idx = info.row_index_;
+      Real constant = this->constant_;
+      Index row_idx = info.row_index_;
 
       return DenseMatrixPolicy::Function(
           [coeffs, species_indices, constant, row_idx](auto&& state, auto&& params, auto&& force)
@@ -122,22 +123,22 @@ namespace micm
             auto linear_sum = force.GetRowVariable();
 
             // Initialize linear_sum to 0.0 before accumulation
-            state.ForEachRow([](double& sum) { sum = 0.0; }, linear_sum);
+            state.ForEachRow([](Real& sum) { sum = 0.0; }, linear_sum);
 
-            for (std::size_t i = 0; i < coeffs.size(); ++i)
+            for (Index i = 0; i < coeffs.size(); ++i)
             {
-              const double coeff = coeffs[i];
-              const std::size_t species_idx = species_indices[i];
+              const Real coeff = coeffs[i];
+              const Index species_idx = species_indices[i];
 
               state.ForEachRow(
-                  [coeff](const double& conc, double& sum) { sum += coeff * conc; },
+                  [coeff](const Real& conc, Real& sum) { sum += coeff * conc; },
                   state.GetConstColumnView(species_idx),
                   linear_sum);
             }
 
             // Forcing term = sum(coeff[i] * [species[i]]) - constant
             state.ForEachRow(
-                [constant](const double& sum_val, double& forcing_term) { forcing_term = sum_val - constant; },
+                [constant](const Real& sum_val, Real& forcing_term) { forcing_term = sum_val - constant; },
                 linear_sum,
                 force.GetColumnView(row_idx));
           },
@@ -168,18 +169,19 @@ namespace micm
 
       // Pre-compute flat IDs and store them in a vector
       // This avoids iterator issues when the lambda is called multiple times
-      std::vector<std::size_t> flat_ids;
+      std::vector<Index> flat_ids;
       flat_ids.reserve(this->terms_.size());
-      for (std::size_t i = 0; i < this->terms_.size(); ++i)
+      for (Index i = 0; i < this->terms_.size(); ++i)
       {
         flat_ids.push_back(*jacobian_flat_ids++);
       }
 
       // Copy data to avoid issues when ConstraintSet is moved
-      std::vector<double> coeffs;
-      for (std::size_t i = 0; i < this->terms_.size(); ++i)
+      std::vector<Real> coeffs;
+      coeffs.reserve(this->terms_.size());
+      for (const auto& term : this->terms_)
       {
-        coeffs.push_back(this->terms_[i].coefficient_);
+        coeffs.push_back(term.coefficient_);
       }
 
       return SparseMatrixPolicy::Function(
@@ -187,12 +189,11 @@ namespace micm
           {
             // For linear constraints, dG/d[species[i]] = coeff[i]
             // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
-            for (std::size_t i = 0; i < coeffs.size(); ++i)
+            for (Index i = 0; i < coeffs.size(); ++i)
             {
-              const double coeff = coeffs[i];
+              const Real coeff = coeffs[i];
 
-              jacobian_values.ForEachBlock(
-                  [coeff](double& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
+              jacobian_values.ForEachBlock([coeff](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
             }
           },
           temp_state_variables,

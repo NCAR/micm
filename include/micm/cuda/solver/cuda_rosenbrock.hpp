@@ -9,6 +9,7 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -28,21 +29,21 @@ namespace micm
 
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
-    CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
+    CudaRosenbrockSolver(CudaRosenbrockSolver&& other) noexcept
         : AbstractRosenbrockSolver<
               RatesPolicy,
               LinearSolverPolicy,
               ConstraintSetPolicy,
               CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>>(std::move(other)){};
 
-    CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
+    CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other) noexcept
     {
       RosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::operator=(std::move(other));
       return *this;
     };
 
     /// @brief Default constructor
-    CudaRosenbrockSolver(){};
+    CudaRosenbrockSolver() = default;
 
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
     /// @param linear_solver Linear solver
@@ -60,7 +61,7 @@ namespace micm
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaRosenbrockSolver"
-    ~CudaRosenbrockSolver(){};
+    ~CudaRosenbrockSolver() = default;
 
     /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy
@@ -68,8 +69,8 @@ namespace micm
     /// @param jacobian_diagonal_elements Diagonal elements of the Jacobian matrix, not used
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
-      requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    void AlphaMinusJacobian(auto& state, const Real& alpha) const
+      requires(CudaMatrix<SparseMatrixPolicy>)
     {
       auto jacobian_param =
           state.jacobian_.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
@@ -83,12 +84,12 @@ namespace micm
     /// @param errors The computed errors
     /// @return The scaled norm of the errors
     template<class DenseMatrixPolicy>
-    double NormalizedError(
+    Real NormalizedError(
         const DenseMatrixPolicy& y_old,
         const DenseMatrixPolicy& y_new,
         const DenseMatrixPolicy& errors,
         auto& state) const
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
+      requires(CudaMatrix<DenseMatrixPolicy>)
     {
       return micm::cuda::NormalizedErrorDriver(
           y_old.AsDeviceParam(),

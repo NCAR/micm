@@ -8,40 +8,41 @@
 #include <micm/System.hpp>
 #include <micm/Util.hpp>
 #include <micm/external_model.hpp>
+#include <micm/util/types.hpp>
 #include <micm/version.hpp>
 
 namespace micm
 {
-  using DenseMatrixVector = VectorMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
-  using SparseMatrixVector = SparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+  using DenseMatrixVector = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
+  using SparseMatrixVector = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  using DenseMatrixStandard = Matrix<double>;
-  using SparseMatrixStandard = SparseMatrix<double, SparseMatrixStandardOrdering>;
+  using DenseMatrixStandard = Matrix<Real>;
+  using SparseMatrixStandard = SparseMatrix<Real, SparseMatrixStandardOrdering>;
 
   using VectorState = State<DenseMatrixVector, SparseMatrixVector>;
   using StandardState = State<DenseMatrixStandard, SparseMatrixStandard>;
 
   using RosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<
       ProcessSet<DenseMatrixVector, SparseMatrixVector>,
-      LinearSolver<SparseMatrixVector, LuDecomposition>,
+      LinearSolver<DenseMatrixVector, SparseMatrixVector, LuDecomposition>,
       ConstraintSet<DenseMatrixVector, SparseMatrixVector>>;
   using Rosenbrock = Solver<RosenbrockVectorType, State<DenseMatrixVector, SparseMatrixVector>>;
 
   using RosenbrockStandardType = typename RosenbrockSolverParameters::template SolverType<
       ProcessSet<DenseMatrixStandard, SparseMatrixStandard>,
-      LinearSolver<SparseMatrixStandard, LuDecomposition>,
+      LinearSolver<DenseMatrixStandard, SparseMatrixStandard, LuDecomposition>,
       ConstraintSet<DenseMatrixStandard, SparseMatrixStandard>>;
   using RosenbrockStandard = Solver<RosenbrockStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 
   using BackwardEulerVectorType = typename BackwardEulerSolverParameters::template SolverType<
       ProcessSet<DenseMatrixVector, SparseMatrixVector>,
-      LinearSolver<SparseMatrixVector, LuDecomposition>,
+      LinearSolver<DenseMatrixVector, SparseMatrixVector, LuDecomposition>,
       ConstraintSet<DenseMatrixVector, SparseMatrixVector>>;
   using BackwardEuler = Solver<BackwardEulerVectorType, State<DenseMatrixVector, SparseMatrixVector>>;
 
   using BackwardEulerStandardType = typename BackwardEulerSolverParameters::template SolverType<
       ProcessSet<DenseMatrixStandard, SparseMatrixStandard>,
-      LinearSolver<SparseMatrixStandard, LuDecomposition>,
+      LinearSolver<DenseMatrixStandard, SparseMatrixStandard, LuDecomposition>,
       ConstraintSet<DenseMatrixStandard, SparseMatrixStandard>>;
   using BackwardEulerStandard = Solver<BackwardEulerStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 

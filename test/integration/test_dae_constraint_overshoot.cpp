@@ -22,11 +22,18 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <cmath>
 #include <string>
+#include <type_traits>
+
+// Float precision cannot satisfy a 1.0e-12 absolute error floor (stage-algebra roundoff at
+// float precision exceeds it, shrinking the step size until the solver gives up), so relax
+// the absolute tolerance in float mode only; double mode keeps the original strictness.
+constexpr micm::Real kAbsTol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-10;
 
 using namespace micm;
 
@@ -43,7 +50,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   // Fast reaction: A -> B with a large rate constant
   // This is analogous to SO2 oxidation producing SO4: fast enough that the
   // solver wants to take large steps.
-  double k = 1.0e4;
+  micm::Real k = 1.0e4;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A })
                     .SetProducts({ { B, 1 } })
@@ -55,13 +62,13 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   // C is the explicitly set algebraic variable.
   // In the continuous system, C >= 0 always because A,B cannot exceed C_total
   // together. But the discrete solver can overshoot.
-  double C_total = 1.0e-6;
+  micm::Real C_total = 1.0e-6;
 
   std::vector<Constraint> constraints;
-  constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+  constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -70,11 +77,11 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
-  state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(3, kAbsTol));
 
-  std::size_t A_idx = state.variable_map_.at("A");
-  std::size_t B_idx = state.variable_map_.at("B");
-  std::size_t C_idx = state.variable_map_.at("C");
+  micm::Index A_idx = state.variable_map_.at("A");
+  micm::Index B_idx = state.variable_map_.at("B");
+  micm::Index C_idx = state.variable_map_.at("C");
 
   // Initial conditions: most of the budget in A, a small amount in C, none in B.
   // The fast A->B reaction will rapidly convert A to B. The algebraic variable
@@ -89,8 +96,8 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
 
   // Integrate for 30 seconds with a large external time step.
   // The solver picks its own internal steps based on error control.
-  double dt = 30.0;
-  double advanced = 0.0;
+  micm::Real dt = 30.0;
+  micm::Real advanced = 0.0;
 
   while (advanced < dt)
   {
@@ -99,7 +106,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
     advanced += result.stats_.final_time_;
 
     // Check conservation
-    double sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
+    micm::Real sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
     EXPECT_NEAR(sum, C_total, 1.0e-12) << "Conservation violated at t=" << advanced;
 
     // The key assertion: C (the algebraic balance variable) must not go negative.
@@ -136,7 +143,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A_gas, A_aq, P } };
 
   // Fast reaction: A_aq -> P
-  double k = 1.0e3;
+  micm::Real k = 1.0e3;
   Process rxn = ChemicalReactionBuilder()
                     .SetReactants({ A_aq })
                     .SetProducts({ { P, 1 } })
@@ -144,13 +151,13 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
                     .SetPhase(gas_phase)
                     .Build();
 
-  double C_total = 1.0e-6;
-  double K_eq = 10.0;
+  micm::Real C_total = 1.0e-6;
+  micm::Real K_eq = 10.0;
 
   std::vector<Constraint> constraints;
 
   // Equilibrium: K_eq * A_gas = A_aq  (A_aq is the explicitly set algebraic species)
-  constraints.push_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint(
       "gas_aq_eq",
       A_aq,
       std::vector<StoichSpecies>{ { A_gas, 1.0 } },
@@ -158,11 +165,11 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
   // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
-  constraints.push_back(
+  constraints.emplace_back(
       LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(std::move(options))
+  auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -172,22 +179,22 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1.0e-6);
 
-  std::size_t A_gas_idx = state.variable_map_.at("A_gas");
-  std::size_t A_aq_idx = state.variable_map_.at("A_aq");
-  std::size_t P_idx = state.variable_map_.at("P");
+  micm::Index A_gas_idx = state.variable_map_.at("A_gas");
+  micm::Index A_aq_idx = state.variable_map_.at("A_aq");
+  micm::Index P_idx = state.variable_map_.at("P");
 
   // Use reasonable absolute tolerances:
   // - Differential variable (P): tight tolerance for accuracy
   // - Algebraic variables (A_gas, A_aq): moderate tolerance to allow legitimate step changes
   //   while still detecting overshoot via the step-change error estimate
-  std::vector<double> atols(3, 1.0e-12);
+  std::vector<micm::Real> atols(3, 1.0e-12);
   atols[A_gas_idx] = 1.0e-8;
   atols[A_aq_idx] = 1.0e-8;
   state.SetAbsoluteTolerances(atols);
 
   // Initial: most sulfur in gas phase, equilibrium satisfied, no product yet
-  double A_gas_init = C_total / (1.0 + K_eq);  // ~ 9.09e-8
-  double A_aq_init = K_eq * A_gas_init;        // ~ 9.09e-7
+  micm::Real A_gas_init = C_total / (1.0 + K_eq);  // ~ 9.09e-8
+  micm::Real A_aq_init = K_eq * A_gas_init;        // ~ 9.09e-7
   state.variables_[0][A_gas_idx] = A_gas_init;
   state.variables_[0][A_aq_idx] = A_aq_init;
   state.variables_[0][P_idx] = 0.0;
@@ -196,8 +203,8 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
 
   solver.UpdateStateParameters(state);
 
-  double dt = 30.0;
-  double advanced = 0.0;
+  micm::Real dt = 30.0;
+  micm::Real advanced = 0.0;
 
   while (advanced < dt)
   {
@@ -205,7 +212,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
     ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge at t=" << advanced;
     advanced += result.stats_.final_time_;
 
-    double sum = state.variables_[0][A_gas_idx] + state.variables_[0][A_aq_idx] + state.variables_[0][P_idx];
+    micm::Real sum = state.variables_[0][A_gas_idx] + state.variables_[0][A_aq_idx] + state.variables_[0][P_idx];
     EXPECT_NEAR(sum, C_total, 1.0e-12) << "Conservation violated at t=" << advanced;
 
     // A_gas must not go negative
@@ -252,9 +259,9 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
                       .SetPhase(gas_phase)
                       .Build();
 
-    constexpr double C_total = 1.0e-6;
+    constexpr micm::Real C_total = 1.0e-6;
     std::vector<Constraint> constraints;
-    constraints.push_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+    constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(gas_phase))
@@ -265,11 +272,11 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
 
     auto state = solver.GetState(1);
     state.SetRelativeTolerance(1.0e-6);
-    state.SetAbsoluteTolerances(std::vector<double>(3, 1.0e-12));
+    state.SetAbsoluteTolerances(std::vector<micm::Real>(3, kAbsTol));
 
-    const std::size_t A_idx = state.variable_map_.at("A");
-    const std::size_t B_idx = state.variable_map_.at("B");
-    const std::size_t C_idx = state.variable_map_.at("C");
+    const micm::Index A_idx = state.variable_map_.at("A");
+    const micm::Index B_idx = state.variable_map_.at("B");
+    const micm::Index C_idx = state.variable_map_.at("C");
 
     state.variables_[0][A_idx] = 0.9e-6;
     state.variables_[0][B_idx] = 0.0;
@@ -279,15 +286,15 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
 
     solver.UpdateStateParameters(state);
 
-    double advanced = 0.0;
-    constexpr double dt = 30.0;
+    micm::Real advanced = 0.0;
+    constexpr micm::Real dt = 30.0;
     while (advanced < dt)
     {
       auto result = solver.Solve(dt - advanced, state);
       ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge for " << name << " at t=" << advanced;
       advanced += result.stats_.final_time_;
 
-      const double sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
+      const micm::Real sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
       EXPECT_NEAR(sum, C_total, 1.0e-12);
       EXPECT_GE(state.variables_[0][C_idx], -1.0e-18)
           << "Algebraic variable C went negative for " << name << ": " << state.variables_[0][C_idx];
