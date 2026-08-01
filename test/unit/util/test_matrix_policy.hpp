@@ -262,7 +262,10 @@ MatrixPolicy<micm::Real> TestAxpy()
     }
   }
 
+  matrix.CopyToDevice();
+  other.CopyToDevice();
   matrix.Axpy(alpha, other);
+  matrix.CopyToHost();
 
   for (micm::Index i = 0; i < num_rows; ++i)
   {
@@ -298,9 +301,12 @@ MatrixPolicy<micm::Real> TestForEach()
     }
   }
 
+  matrix.CopyToDevice();
+  other.CopyToDevice();
   matrix.ForEach([&](micm::Real& a, const micm::Real& b) { result += a + b; }, other);
   EXPECT_NEAR(sum, result, 1.0e-5);
   result = 0.0;
+  other2.CopyToDevice();
   matrix.ForEach([&](micm::Real& a, const micm::Real& b, const micm::Real& c) { result += a + b - c; }, other, other2);
   EXPECT_NEAR(sum2, result, 1.0e-5);
 
@@ -313,6 +319,7 @@ MatrixPolicy<micm::Real> TestSetScalar()
   MatrixPolicy<micm::Real> matrix{ 2, 3, 0.0 };
 
   matrix = 2.0;
+  matrix.CopyToHost();
 
   for (auto& elem : matrix.AsVector())
   {
@@ -328,6 +335,7 @@ MatrixPolicy<micm::Real> TestMax()
   MatrixPolicy<micm::Real> matrix{ 2, 3, 0.0 };
 
   matrix.Max(2.0);
+  matrix.CopyToHost();
 
   for (auto& elem : matrix.AsVector())
   {
@@ -335,8 +343,11 @@ MatrixPolicy<micm::Real> TestMax()
   }
 
   matrix = 1.0;
+  matrix.CopyToHost();
   matrix[1][1] = 3.0;
+  matrix.CopyToDevice();
   matrix.Max(2.0);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 2.0);
   EXPECT_EQ(matrix[0][1], 2.0);
@@ -354,6 +365,7 @@ MatrixPolicy<micm::Real> TestMin()
   MatrixPolicy<micm::Real> matrix{ 2, 3, 0.0 };
 
   matrix.Min(2.0);
+  matrix.CopyToHost();
 
   for (auto& elem : matrix.AsVector())
   {
@@ -361,8 +373,11 @@ MatrixPolicy<micm::Real> TestMin()
   }
 
   matrix = 1.0;
+  matrix.CopyToHost();
   matrix[1][1] = 3.0;
+  matrix.CopyToDevice();
   matrix.Min(2.0);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 1.0);
   EXPECT_EQ(matrix[0][1], 1.0);
@@ -425,7 +440,9 @@ MatrixPolicy<micm::Real> TestArrayFunction()
       },
       matrix);  // pass matrix so the type and dimensions are known by the function
 
+  matrix.CopyToDevice();
   func(matrix);  // apply the function to the matrix
+  matrix.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrix[0][2], 4.0 * (-2 + 8 + 18));  // 96
@@ -447,7 +464,9 @@ MatrixPolicy<micm::Real> TestArrayFunction()
   // Use the function with a different matrix with the same number of columns, but different number of rows,
   // to test that it works with different sizes
   MatrixPolicy<micm::Real> matrix2{ 3, 3, -1.0 };
+  matrix2.CopyToDevice();
   func(matrix2);
+  matrix2.CopyToHost();
   EXPECT_EQ(matrix2[0][2], 4.0 * (-1 + -1 + -1));  // -12
   EXPECT_EQ(matrix2[1][2], 4.0 * (-1 + -1 + -1));  // -12
   EXPECT_EQ(matrix2[2][2], 4.0 * (-1 + -1 + -1));  // -12
@@ -511,7 +530,11 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixAr
       matrixA,
       matrixB);
 
+  matrixA.CopyToDevice();
+  matrixB.CopyToDevice();
   func(matrixA, matrixB);
+  matrixA.CopyToHost();
+  matrixB.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrixA[0][1], 0 + 0);  // 0
@@ -574,7 +597,9 @@ MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
       matrix,
       vec);  // pass matrix so the type and dimensions are known by the function
 
+  matrix.CopyToDevice();
   func(matrix, vec);  // apply the function to the matrix
+  matrix.CopyToHost();
 
   // Check results
   EXPECT_EQ(matrix[0][2], 100.0 * (-2 + 8 + 18));  // 2400
@@ -629,7 +654,10 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
   }
 
   // Should work - column counts match, row counts match each other
+  matrixA.CopyToDevice();
+  matrixB.CopyToDevice();
   func(matrixA, matrixB);
+  matrixA.CopyToHost();
 
   EXPECT_EQ(matrixA[0][1], (1.0 + 0.0) * 2.0);   // 2
   EXPECT_EQ(matrixA[1][1], (2.0 + 10.0) * 2.0);  // 24
@@ -646,7 +674,10 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
   matrixB2[0][2] = 5.0;
   matrixB2[1][2] = 15.0;
 
+  matrixA2.CopyToDevice();
+  matrixB2.CopyToDevice();
   func(matrixA2, matrixB2);
+  matrixA2.CopyToHost();
 
   EXPECT_EQ(matrixA2[0][1], (10.0 + 5.0) * 2.0);   // 30
   EXPECT_EQ(matrixA2[1][1], (20.0 + 15.0) * 2.0);  // 70
@@ -684,7 +715,9 @@ std::tuple<MatrixPolicy<micm::Real>, std::vector<micm::Real>> TestMatrixVectorDi
   }
 
   // Should work - columns match, row counts match each other
+  matrix.CopyToDevice();
   func(matrix, vec);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][1], (1.0 + 0.0) * 3.0);   // 3
   EXPECT_EQ(matrix[1][1], (2.0 + 10.0) * 3.0);  // 36
@@ -906,7 +939,9 @@ MatrixPolicy<micm::Real> TestMultipleTemporaries()
       },
       matrix);
 
+  matrix.CopyToDevice();
   func(matrix);
+  matrix.CopyToHost();
 
   // Verify results
   // Row 0: col0=1, col1=10, product=10, sum=11
@@ -958,7 +993,9 @@ MatrixPolicy<micm::Real> TestColumnViewReuse()
       },
       matrix);
 
+  matrix.CopyToDevice();
   func(matrix);
+  matrix.CopyToHost();
 
   // Row 0: col0=1, col1=2, col2=3, col3=6
   EXPECT_EQ(matrix[0][1], 2.0);
@@ -1007,13 +1044,17 @@ MatrixPolicy<micm::Real> TestFunctionReusability()
     }
   }
 
+  matrix1.CopyToDevice();
   func(matrix1);
+  matrix1.CopyToHost();
   EXPECT_EQ(matrix1[0][2], 2.0 * (0 + 1 + 2));  // 6
   EXPECT_EQ(matrix1[1][2], 2.0 * (1 + 2 + 3));  // 12
 
   // Apply to second matrix with same dimensions
   MatrixPolicy<micm::Real> matrix2{ 2, 3, 5.0 };
+  matrix2.CopyToDevice();
   func(matrix2);
+  matrix2.CopyToHost();
   EXPECT_EQ(matrix2[0][2], 2.0 * (5 + 5 + 5));  // 30
   EXPECT_EQ(matrix2[1][2], 2.0 * (5 + 5 + 5));  // 30
 
@@ -1024,7 +1065,9 @@ MatrixPolicy<micm::Real> TestFunctionReusability()
     matrix3[i][0] = static_cast<micm::Real>(i * 10);
   }
 
+  matrix3.CopyToDevice();
   func(matrix3);
+  matrix3.CopyToHost();
   EXPECT_EQ(matrix3[0][2], 2.0 * (0 + 0 + 0));   // 0
   EXPECT_EQ(matrix3[1][2], 2.0 * (10 + 0 + 0));  // 20
 
@@ -1067,6 +1110,7 @@ void TestConstMatrixFunction()
       const_matrix);
 
   // Should work fine with const matrix
+  matrix.CopyToDevice();
   EXPECT_NO_THROW(read_func(const_matrix));
 
   // Verify original matrix unchanged
@@ -1254,6 +1298,7 @@ MatrixPolicy<micm::Real> TestMultipleVectorsSameSize()
       vec2);
 
   func(matrix, vec1, vec2);
+  matrix.CopyToHost();
 
   // Verify results
   EXPECT_EQ(matrix[0][0], 1.0 + 10.0);  // 11
@@ -1302,7 +1347,11 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultipleMatri
       matrixB,
       vec);
 
+  matrixA.CopyToDevice();
+  matrixB.CopyToDevice();
   func(matrixA, matrixB, vec);
+  matrixA.CopyToHost();
+  matrixB.CopyToHost();
 
   // Verify results
   EXPECT_EQ(matrixA[0][1], 1.0 + 0.0);  // 1
@@ -1393,6 +1442,7 @@ MatrixPolicy<micm::Real> TestConstVector()
       const_vec);
 
   func(matrix, const_vec);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 20.0);
   EXPECT_EQ(matrix[1][0], 40.0);
@@ -1425,6 +1475,7 @@ std::tuple<MatrixPolicy<micm::Real>, std::vector<micm::Real>> TestMutableVector(
       matrix,
       vec);
 
+  matrix.CopyToDevice();
   func(matrix, vec);
 
   // Vector should be modified
@@ -1451,6 +1502,7 @@ MatrixPolicy<micm::Real> TestFunctionReusabilityWithVectors()
 
   // Apply with first vector
   func(matrix, vec1);
+  matrix.CopyToHost();
   EXPECT_EQ(matrix[0][0], 10.0);
   EXPECT_EQ(matrix[1][0], 20.0);
   EXPECT_EQ(matrix[2][0], 30.0);
@@ -1458,6 +1510,7 @@ MatrixPolicy<micm::Real> TestFunctionReusabilityWithVectors()
   // Apply with second vector (same size)
   std::vector<micm::Real> vec2 = { 5.0, 6.0, 7.0 };
   func(matrix, vec2);
+  matrix.CopyToHost();
   EXPECT_EQ(matrix[0][0], 50.0);
   EXPECT_EQ(matrix[1][0], 60.0);
   EXPECT_EQ(matrix[2][0], 70.0);
@@ -1500,6 +1553,7 @@ MatrixPolicy<micm::Real> TestArraySupport()
       arr);
 
   func(matrix, arr);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 50.0);
   EXPECT_EQ(matrix[1][0], 100.0);
@@ -1545,7 +1599,9 @@ MatrixPolicy<micm::Real> TestMixedVectorColumnViewRowVariable()
       matrix,
       vec);
 
+  matrix.CopyToDevice();
   func(matrix, vec);
+  matrix.CopyToHost();
 
   // Row 0: col0=1, col1=10, vec=100, result=(1+10)+100=111
   EXPECT_EQ(matrix[0][2], 111.0);
@@ -1572,6 +1628,7 @@ MatrixPolicy<int> TestIntegerVector()
       vec);
 
   func(matrix, vec);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 20);
   EXPECT_EQ(matrix[1][0], 40);
@@ -1609,6 +1666,7 @@ void TestFill()
     auto func = MatrixPolicy<double>::Function([](auto&& m) { m.Fill(m.GetColumnView(1), 3.2); }, matrix);
 
     func(matrix);
+    matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 0.0);
     EXPECT_EQ(matrix[0][1], 3.2);
@@ -1643,6 +1701,7 @@ void TestFill()
         matrix);
 
     func(matrix);
+    matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 9.9);
     EXPECT_EQ(matrix[1][0], 9.9);
@@ -1661,6 +1720,7 @@ void TestCopy()
     auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Copy(m.GetColumnView(1), v); }, matrix, vec);
 
     func(matrix, vec);
+    matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 0.0);
     EXPECT_EQ(matrix[0][1], 3.2);
@@ -1687,6 +1747,7 @@ void TestCopy()
     auto func = MatrixPolicy<double>::Function([](auto&& m) { m.Copy(m.GetColumnView(0), m.GetColumnView(1)); }, matrix);
 
     func(matrix);
+    matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 3.2);
     EXPECT_EQ(matrix[0][1], 3.2);
@@ -1708,6 +1769,7 @@ void TestCopy()
         MatrixPolicy<double>::Function([](auto&& m) { m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); }, matrix);
 
     func(matrix);
+    matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 3.2);
     EXPECT_EQ(matrix[1][0], 4.2);
@@ -1728,6 +1790,7 @@ void TestCopy()
         matrix);
 
     func(matrix);
+    matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][1], 3.2);
     EXPECT_EQ(matrix[1][1], 4.2);
