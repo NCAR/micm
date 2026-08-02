@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
@@ -30,6 +31,8 @@ namespace micm
     using HostViewType = typename ViewType::host_mirror_type;
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
+    template<class VecT>
+    using VectorType = KokkosPaddedVector<VecT, OrderingPolicy::GroupVectorSize()>;
 
    private:
     /// Number of blocks grouped into a team for on-device iteration.
@@ -85,16 +88,14 @@ namespace micm
     /// KokkosSparseMatrix arguments are reduced to their (trivially copyable) View +
     /// non-zero-element count. KokkosDenseMatrix arguments (e.g. the state variables a
     /// Jacobian depends on) are reduced the same way as in KokkosDenseMatrix::MakeHandle,
-    /// so the two matrix types can be mixed in the same Function() call. VectorLike
-    /// arguments are forwarded unchanged, with the same read-only caveat described in
-    /// KokkosDenseMatrix::MakeHandle.
+    /// so the two matrix types can be mixed in the same Function() call.
     template<typename Arg>
     static auto MakeHandle(Arg&& arg)
     {
       using ArgType = std::remove_reference_t<Arg>;
-      if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+      if constexpr (KokkosVectorLike<std::remove_cvref_t<ArgType>>)
       {
-        return std::forward<Arg>(arg);
+        return arg.GetView();
       }
       else if constexpr (SparseMatrixConcept<std::remove_cvref_t<ArgType>>)
       {
@@ -122,9 +123,8 @@ namespace micm
     }
 
     /// @brief Construct the appropriate GroupView/ConstGroupView (or the matching
-    ///        KokkosDenseMatrix group view, or forward a VectorLike argument
-    ///        unchanged) for one handle produced by MakeHandle(). Runs on-device
-    ///        (called from within a KOKKOS_LAMBDA).
+    ///        KokkosDenseMatrix group view) for one handle produced by MakeHandle().
+    ///        Runs on-device (called from within a KOKKOS_LAMBDA).
     template<typename Handle>
     KOKKOS_INLINE_FUNCTION static decltype(auto) BuildGroupView(
         Handle&& handle,
@@ -149,9 +149,8 @@ namespace micm
       {
         return typename KokkosDenseMatrix<T, L>::ConstGroupView(handle.view, group, handle.y_dim, count, team);
       }
-      else
+      else if (KokkosVectorLike<HandleType>)
       {
-        // VectorLike: forward through as-is (see MakeHandle() note)
         return std::forward<Handle>(handle);
       }
     }
@@ -196,6 +195,16 @@ namespace micm
     ViewType GetView() const
     {
       return view_;
+    }
+
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size (excluding padding)
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType<VecT>(n, init);
     }
 
     /// @brief Set every element on the device to a given value
@@ -404,7 +413,7 @@ namespace micm
         }
       }
 
-      template<VectorLike Arg>
+      template<KokkosVectorLike Arg>
       KOKKOS_INLINE_FUNCTION decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         if constexpr (L > 1)
@@ -485,7 +494,7 @@ namespace micm
       }
 
       /// @brief Assign value to vec elements.
-      template<VectorLike Vec>
+      template<KokkosVectorLike Vec>
       KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
@@ -495,7 +504,7 @@ namespace micm
       }
 
       /// @brief Copy a sparse-block value into vec.
-      template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
+      template<KokkosVectorLike Vec, GroupedSparseMatrixBlockView Src>
       KOKKOS_INLINE_FUNCTION void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
@@ -574,7 +583,7 @@ namespace micm
         }
       }
 
-      template<VectorLike Arg>
+      template<KokkosVectorLike Arg>
       KOKKOS_INLINE_FUNCTION decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         if constexpr (L > 1)
@@ -651,7 +660,7 @@ namespace micm
       }
 
       /// @brief Copy src into dst_view.
-      template<VectorLike Src>
+      template<KokkosVectorLike Src>
       KOKKOS_INLINE_FUNCTION void Copy(GroupedBlockView dst_view, Src&& src) const
       {
         T* dst = dst_view.group_base_ + dst_view.block_offset_;
@@ -695,7 +704,7 @@ namespace micm
       }
 
       /// @brief Assign value to every element of vec.
-      template<VectorLike Vec>
+      template<KokkosVectorLike Vec>
       KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
@@ -705,7 +714,7 @@ namespace micm
       }
 
       /// @brief Copy src into vec.
-      template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
+      template<KokkosVectorLike Vec, GroupedSparseMatrixBlockView Src>
       KOKKOS_INLINE_FUNCTION void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
@@ -748,7 +757,7 @@ namespace micm
           [&](auto& arg)
           {
             using ArgType = std::remove_cvref_t<decltype(arg)>;
-            if constexpr (!VectorLike<ArgType>)
+            if constexpr (!KokkosVectorLike<ArgType>)
             {
               constexpr Index arg_L = GROUP_VECTOR_SIZE_V<ArgType>;
               if (arg_L != expected_L)
@@ -775,7 +784,7 @@ namespace micm
             {
               using ArgType = std::remove_cvref_t<decltype(arg)>;
 
-              if constexpr (VectorLike<ArgType>)
+              if constexpr (KokkosVectorLike<ArgType>)
               {
                 if (!found_first)
                 {
@@ -877,7 +886,7 @@ namespace micm
       return arg.Get();
     }
 
-    template<VectorLike Arg>
+    template<KokkosVectorLike Arg>
     KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
         ViewType,
         Index,

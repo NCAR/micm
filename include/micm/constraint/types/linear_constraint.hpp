@@ -79,11 +79,11 @@ namespace micm
     }
 
     template<typename DenseMatrixPolicy>
-    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
+    std::function<void(const typename DenseMatrixPolicy::template VectorType<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
         const ConstraintInfo& info) const
     {
       // Linear constraints have no temperature-dependent parameters
-      return [](const std::vector<Conditions>&, DenseMatrixPolicy&)
+      return [](const typename DenseMatrixPolicy::template VectorType<Conditions>&, DenseMatrixPolicy&)
       {
         // No-op: linear constraints don't have runtime parameters to update
       };

@@ -48,7 +48,7 @@ namespace micm
     std::set<Index> algebraic_variable_ids_;
 
     /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
+    std::vector<std::function<void(const typename DenseMatrixPolicy::template VectorType<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
 
     /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
     std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
@@ -73,7 +73,7 @@ namespace micm
         external_constraint_jacobian_functions_;
 
     /// @brief Pre-compiled external constraint parameter update functions
-    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>>
+    std::vector<std::function<void(const typename DenseMatrixPolicy::template VectorType<Conditions>&, DenseMatrixPolicy&)>>
         external_constraint_param_functions_;
 
     /// @brief Pre-compiled external constraint parameter initialization functions

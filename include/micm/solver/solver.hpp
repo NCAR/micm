@@ -29,7 +29,7 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
+    std::vector<std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
     ReactionRateConstantStore store_;
     std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
@@ -58,7 +58,7 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+        const std::vector<std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>&
             update_state_parameters_functions)
         : solver_(std::move(solver)),
           state_parameters_(std::move(state_parameters)),
@@ -80,7 +80,7 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+        const std::vector<std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>&
             update_state_parameters_functions,
         const std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>&
             initialize_constraint_parameters_functions)

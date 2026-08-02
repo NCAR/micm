@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/kokkos/util/kokkos_padded_vector.hpp>
+#include <micm/kokkos/util/kokkos_view_category.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/reducers.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -61,6 +63,8 @@ namespace micm
     using HostViewType = typename ViewType::host_mirror_type;
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
+    template<class VecT>
+    using VectorType = KokkosPaddedVector<VecT, L>;
 
    private:
     /// Device-side (or unified) view — the Kokkos mirror of VectorMatrix::data_
@@ -90,22 +94,14 @@ namespace micm
     /// @brief Build a device-safe handle for one Function()/ForEachRow() argument.
     ///
     /// Kokkos matrix arguments are reduced to their (trivially copyable) View + column
-    /// count. VectorLike arguments (e.g. a host std::vector) are forwarded unchanged --
-    /// this only works correctly on host-accessible backends (Serial, OpenMP), and even
-    /// there, only for read-only usage: KOKKOS_LAMBDA captures everything by value
-    /// (`[=]`), and per the C++ standard, capturing a *reference*-typed local by value
-    /// copies the *referenced object*, so writes into a VectorLike argument inside the
-    /// kernel are NOT observable by the caller afterward. This is a known limitation,
-    /// deferred to a follow-up that replaces VectorLike arguments with a typed
-    /// device-aware vector view (see the plan's "Solver lambdas on GPU / VectorLike
-    /// args" design note).
+    /// count.
     template<typename Arg>
     static auto MakeHandle(Arg&& arg)
     {
       using ArgType = std::remove_reference_t<Arg>;
-      if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+      if constexpr (KokkosVectorLike<std::remove_cvref_t<ArgType>>)
       {
-        return std::forward<Arg>(arg);
+        return arg.GetView();
       }
       else if constexpr (std::is_const_v<ArgType>)
       {
@@ -117,9 +113,8 @@ namespace micm
       }
     }
 
-    /// @brief Construct the appropriate GroupView/ConstGroupView (or forward a
-    ///        VectorLike argument unchanged) for one handle produced by
-    ///        MakeHandle(). Runs on-device (called from within a KOKKOS_LAMBDA).
+    /// @brief Construct the appropriate GroupView/ConstGroupView 
+    ///        Runs on-device (called from within a KOKKOS_LAMBDA).
     template<typename Handle>
     KOKKOS_INLINE_FUNCTION static decltype(auto) BuildGroupView(
         Handle&& handle,
@@ -138,7 +133,6 @@ namespace micm
       }
       else
       {
-        // VectorLike: forward through as-is (see MakeHandle() note)
         return std::forward<Handle>(handle);
       }
     }
@@ -172,24 +166,19 @@ namespace micm
     /// @brief Copy host data (MICM's data_) to the device view
     void CopyToDevice()
     {
-      if (view_.extent(0) != this->data_.size())
-      {
-        view_ = ViewType("dense_matrix", this->data_.size());
-      }
       auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
           this->data_.data(), this->data_.size());
       Kokkos::deep_copy(view_, h_view);
     }
 
     /// @brief Copy device view data back to host (MICM's data_)
+    ///
+    /// TODO: Move host view to class member
     void CopyToHost()
     {
-      if (view_.extent(0) != 0)
-      {
-        auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
-            this->data_.data(), this->data_.size());
-        Kokkos::deep_copy(h_view, view_);
-      }
+      auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+          this->data_.data(), this->data_.size());
+      Kokkos::deep_copy(h_view, view_);
     }
 
     ViewType GetView() const
@@ -197,13 +186,19 @@ namespace micm
       return view_;
     }
 
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size (excluding padding)
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType<VecT>(n, init);
+    }
+
     /// @brief Set every element on the device to a given value
     void Fill(T val)
     {
-      if (view_.extent(0) != this->data_.size())
-      {
-        view_ = ViewType("dense_matrix", this->data_.size());
-      }
       Kokkos::deep_copy(view_, val);
     }
 
@@ -264,20 +259,12 @@ namespace micm
     /// @brief Copy the device data from the other Kokkos dense matrix into this one
     void Copy(const KokkosDenseMatrix& other)
     {
-      if (other.view_.extent(0) != view_.extent(0))
-      {
-        throw std::runtime_error("Both Kokkos dense matrices must have the same size.");
-      }
       Kokkos::deep_copy(view_, other.view_);
     }
 
     /// @brief Swap the device data from the other Kokkos dense matrix into this one.
     void Swap(KokkosDenseMatrix& other)
     {
-      if (other.view_.extent(0) != view_.extent(0))
-      {
-        throw std::runtime_error("Both Kokkos dense matrices must have the same size.");
-      }
       std::swap(view_, other.view_);
       this->data_.swap(other.data_);
     }
@@ -377,7 +364,7 @@ namespace micm
         return arg.Get()[row_in_group];
       }
 
-      template<VectorLike Arg>
+      template<KokkosVectorLike Arg>
       KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg[group_ * L + row_in_group];
@@ -423,7 +410,7 @@ namespace micm
       }
 
       /// @brief Assign value to every element in the vector.
-      template<VectorLike Vec>
+      template<KokkosVectorLike Vec>
       KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
@@ -433,7 +420,7 @@ namespace micm
       }
 
       /// @brief Copy src into vec.
-      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      template<KokkosVectorLike Vec, GroupedDenseMatrixColumnView Src>
       KOKKOS_INLINE_FUNCTION void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
@@ -538,7 +525,7 @@ namespace micm
         return arg.Get()[row_in_group];
       }
 
-      template<VectorLike Arg>
+      template<KokkosVectorLike Arg>
       KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg[group_ * L + row_in_group];
@@ -589,7 +576,7 @@ namespace micm
       }
 
       /// @brief Copy src into dst_view.
-      template<VectorLike Src>
+      template<KokkosVectorLike Src>
       KOKKOS_INLINE_FUNCTION void Copy(GroupedColumnView dst_view, Src&& src) const
       {
         T* dst = dst_view.base_;
@@ -618,7 +605,7 @@ namespace micm
       }
 
       /// @brief Assign value to all vec elements.
-      template<VectorLike Vec>
+      template<KokkosVectorLike Vec>
       KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
@@ -628,7 +615,7 @@ namespace micm
       }
 
       /// @brief Copy src into vec.
-      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      template<KokkosVectorLike Vec, GroupedDenseMatrixColumnView Src>
       KOKKOS_INLINE_FUNCTION void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
@@ -702,7 +689,7 @@ namespace micm
             [&](auto& arg)
             {
               using ArgType = std::remove_cvref_t<decltype(arg)>;
-              if constexpr (VectorLike<ArgType>)
+              if constexpr (KokkosVectorLike<ArgType>)
               {
                 cols[idx] = 0;
               }
@@ -729,7 +716,7 @@ namespace micm
             {
               using ArgType = std::remove_cvref_t<decltype(arg)>;
 
-              if constexpr (VectorLike<ArgType>)
+              if constexpr (KokkosVectorLike<ArgType>)
               {
                 if (!found_first)
                 {
@@ -781,8 +768,8 @@ namespace micm
         Index remaining = num_rows % L;
 
         // Reduce each argument to a device-safe handle (Kokkos::View + column count for
-        // matrices; forwarded as-is for VectorLike) *before* entering device code, then
-        // hand the handles to a templated lambda so the pack stays a set of plain,
+        // matrices; KokkosPaddedVector::DeviceView for vectors) *before* entering device
+        // code, then hand the handles to a templated lambda so the pack stays a set of plain,
         // individually-typed parameters rather than a (device-unfriendly) std::tuple.
         //
         // Always dispatch via Kokkos::TeamPolicy (never a bare RangePolicy), even when
@@ -901,7 +888,7 @@ namespace micm
       return arg.Get()[row % L];
     }
 
-    template<VectorLike Arg>
+    template<KokkosVectorLike Arg>
     KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(ViewType, Index, Index row, Arg&& arg)
     {
       return arg[row];

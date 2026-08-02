@@ -399,22 +399,13 @@ TEST(KokkosDenseMatrix, ConstVector)
   TestConstVector<Group4KokkosMatrixAlias>();
 }
 
-// KokkosDenseMatrix::Function()/ForEachRow() capture VectorLike (e.g. std::vector)
-// arguments by value into a KOKKOS_LAMBDA ([=]). Per the C++ standard, capturing a
-// reference-typed local by value copies the *referenced object*, and Kokkos invokes
-// functors through a `const Functor&`, so the captured copy is read-only -- writes
-// into a VectorLike argument are not observable by the caller. Reading from a
-// VectorLike argument still works (see ConstVector/VectorInMatrixFunction/etc. above),
-// but tests that write into one are disabled until the planned follow-up replaces
-// VectorLike arguments with a typed, device-aware vector view (see the Kokkos matrix
-// plan's "Solver lambdas on GPU / VectorLike args" design note).
-// TEST(KokkosDenseMatrix, MutableVector)
-// {
-//   TestMutableVector<Group1KokkosMatrixAlias>();
-//   TestMutableVector<Group2KokkosMatrixAlias>();
-//   TestMutableVector<Group3KokkosMatrixAlias>();
-//   TestMutableVector<Group4KokkosMatrixAlias>();
-// }
+TEST(KokkosDenseMatrix, MutableVector)
+{
+  TestMutableVector<Group1KokkosMatrixAlias>();
+  TestMutableVector<Group2KokkosMatrixAlias>();
+  TestMutableVector<Group3KokkosMatrixAlias>();
+  TestMutableVector<Group4KokkosMatrixAlias>();
+}
 
 TEST(KokkosDenseMatrix, FunctionReusabilityWithVectors)
 {
@@ -430,14 +421,6 @@ TEST(KokkosDenseMatrix, FunctionInvocationWithWrongSizedVector)
   TestFunctionInvocationWithWrongSizedVector<Group2KokkosMatrixAlias>();
   TestFunctionInvocationWithWrongSizedVector<Group3KokkosMatrixAlias>();
   TestFunctionInvocationWithWrongSizedVector<Group4KokkosMatrixAlias>();
-}
-
-TEST(KokkosDenseMatrix, ArraySupport)
-{
-  TestArraySupport<Group1KokkosMatrixAlias>();
-  TestArraySupport<Group2KokkosMatrixAlias>();
-  TestArraySupport<Group3KokkosMatrixAlias>();
-  TestArraySupport<Group4KokkosMatrixAlias>();
 }
 
 TEST(KokkosDenseMatrix, MixedVectorColumnViewRowVariable)
@@ -464,27 +447,21 @@ TEST(KokkosDenseMatrix, FunctionWithConstSignature)
   TestFunctionWithConstSignature<Group4KokkosMatrixAlias>();
 }
 
-// Disabled: TestFill() includes a sub-block that fills a caller-owned std::vector via
-// m.Fill(v, value) -- a write into a VectorLike argument. See the note above
-// MutableVector for why this doesn't work yet.
-// TEST(KokkosDenseMatrix, TestFill)
-// {
-//   TestFill<Group1KokkosMatrixAlias>();
-//   TestFill<Group2KokkosMatrixAlias>();
-//   TestFill<Group3KokkosMatrixAlias>();
-//   TestFill<Group4KokkosMatrixAlias>();
-// }
+TEST(KokkosDenseMatrix, TestFill)
+{
+  TestFill<Group1KokkosMatrixAlias>();
+  TestFill<Group2KokkosMatrixAlias>();
+  TestFill<Group3KokkosMatrixAlias>();
+  TestFill<Group4KokkosMatrixAlias>();
+}
 
-// Disabled: TestCopy() includes sub-blocks that copy into a caller-owned std::vector
-// via m.Copy(v, ...) -- a write into a VectorLike argument. See the note above
-// MutableVector for why this doesn't work yet.
-// TEST(KokkosDenseMatrix, TestCopy)
-// {
-//   TestCopy<Group1KokkosMatrixAlias>();
-//   TestCopy<Group2KokkosMatrixAlias>();
-//   TestCopy<Group3KokkosMatrixAlias>();
-//   TestCopy<Group4KokkosMatrixAlias>();
-// }
+TEST(KokkosDenseMatrix, TestCopy)
+{
+  TestCopy<Group1KokkosMatrixAlias>();
+  TestCopy<Group2KokkosMatrixAlias>();
+  TestCopy<Group3KokkosMatrixAlias>();
+  TestCopy<Group4KokkosMatrixAlias>();
+}
 
 TEST(KokkosDenseMatrix, ReduceSum)
 {

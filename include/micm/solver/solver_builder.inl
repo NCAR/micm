@@ -338,7 +338,7 @@ namespace micm
 
     // Create vector of functions to update external model state parameters
     // (compiled after all params are added to params_map — see below)
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
+    std::vector<std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
 
     // Build constraint set
     ConstraintSetPolicy constraint_set;

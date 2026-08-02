@@ -167,13 +167,13 @@ namespace micm
     /// @param info Constraint information including state parameter indices
     /// @return Function object that takes (conditions, state_param) and writes K_eq(T) to state_param[K_eq_idx]
     template<typename DenseMatrixPolicy>
-    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
+    std::function<void(const typename DenseMatrixPolicy::template VectorType<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
         const ConstraintInfo& info) const
     {
       Index K_eq_idx = info.state_param_indices_[0];  // equilibrium constant index
 
       return [K_eq_idx, eq_func = equilibrium_constant_function_](
-                 const std::vector<Conditions>& conditions, DenseMatrixPolicy& state_param)
+                 const typename DenseMatrixPolicy::template VectorType<Conditions>& conditions, DenseMatrixPolicy& state_param)
       {
         // For each grid cell, compute K_eq at current temperature
         state_param.ForEachRow(

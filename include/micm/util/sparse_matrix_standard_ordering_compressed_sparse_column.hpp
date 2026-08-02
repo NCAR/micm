@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/padded_vector.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -137,6 +138,9 @@ namespace micm
     }
 
    public:
+    template<class VecT>
+    using VectorType = PaddedVector<VecT,1>;
+
     /// @brief A block-local temporary variable with its own storage
     /// For standard ordering: single value
     template<typename T>
@@ -596,6 +600,17 @@ namespace micm
     {
       return number_of_blocks;
     }
+
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType<VecT>(n, init);
+    }
+
 
    private:
     /// @brief Returns the column ids of each non-zero element in a block

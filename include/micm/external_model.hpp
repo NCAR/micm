@@ -42,7 +42,7 @@
 ///     pairs of indices are for dependent and independent variables, respectively. This allows MICM to efficiently allocate
 ///     and populate the system Jacobian matrix as a sparse matrix that only stores non-zero elements.
 ///
-/// - `template<typename DenseMatrixPolicy> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
+/// - `template<typename DenseMatrixPolicy> std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
 /// UpdateStateParametersFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices) const`
 ///   - Returns a function that updates state parameters (e.g., temperature-dependent rate constants) before each solve
 ///
@@ -86,7 +86,7 @@
 ///     equilibrium constants). These are added to the global parameter map and updated before each
 ///     solve step. Return an empty set if constraints have no parameters.
 ///
-/// - `template<typename DenseMatrixPolicy> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
+/// - `template<typename DenseMatrixPolicy> std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
 ///   ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, std::size_t>&
 ///   state_parameter_indices) const`
 ///   - Returns a function that updates constraint parameters (e.g., temperature-dependent K_eq)
@@ -239,7 +239,7 @@ namespace micm
 
     /// @brief Type-erased function factory for state parameter updates
     /// Returns a function that updates state parameters based on environmental conditions
-    std::function<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>(
+    std::function<std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>(
         const std::unordered_map<std::string, Index>& state_parameter_indices)>
         update_state_parameters_function_;
 
@@ -277,7 +277,7 @@ namespace micm
       species_used_func_ = [shared_model]() -> std::set<std::string> { return shared_model->SpeciesUsed(); };
       update_state_parameters_function_ =
           [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
-          -> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
+          -> std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
       { return shared_model->template UpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
       get_forcing_function_ = [shared_model](
                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
@@ -334,7 +334,7 @@ namespace micm
 
     /// @brief Type-erased function factory for constraint state parameter updates
     /// Returns a function that updates constraint parameters based on environmental conditions
-    std::function<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>(
+    std::function<std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>(
         const std::unordered_map<std::string, Index>& state_parameter_indices)>
         update_state_parameters_function_;
 
@@ -385,7 +385,7 @@ namespace micm
       { return shared_model->ConstraintStateParameterNames(); };
       update_state_parameters_function_ =
           [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
-          -> std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>
+          -> std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
       { return shared_model->template ConstraintUpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
       get_residual_function_ = [shared_model](
                                    const std::unordered_map<std::string, Index>& state_parameter_indices,

@@ -281,11 +281,6 @@ TEST(Matrix, FunctionInvocationWithWrongSizedVector)
   TestFunctionInvocationWithWrongSizedVector<micm::Matrix>();
 }
 
-TEST(Matrix, ArraySupport)
-{
-  TestArraySupport<micm::Matrix>();
-}
-
 TEST(Matrix, MixedVectorColumnViewRowVariable)
 {
   TestMixedVectorColumnViewRowVariable<micm::Matrix>();

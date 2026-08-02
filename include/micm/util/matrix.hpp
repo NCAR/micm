@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/padded_vector.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -26,6 +27,8 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = Matrix<int>;
     using value_type = T;
+    template<class VecT>
+    using VectorType = PaddedVector<VecT,1>;
 
     /// @brief A lightweight descriptor for a const column in a matrix
     class ConstColumnView
@@ -297,10 +300,20 @@ namespace micm
     /// override this to copy host data to a device mirror. Defined here as a
     /// no-op so shared MatrixPolicy tests and solver code can call it
     /// unconditionally regardless of which matrix policy is in use.
-    void CopyToDevice() {}
+    void CopyToDevice() const {}
 
     /// @brief No-op device-to-host sync hook. See CopyToDevice().
-    void CopyToHost() {}
+    void CopyToHost() const {}
+
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType(n, init);
+    }
 
     ConstProxy operator[](Index x) const
     {

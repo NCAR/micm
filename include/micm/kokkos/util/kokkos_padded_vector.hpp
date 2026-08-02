@@ -1,0 +1,141 @@
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+#pragma once
+
+#include <micm/util/types.hpp>
+#include <micm/util/view_category.hpp>
+
+#include <Kokkos_Core.hpp>
+#include <initializer_list>
+#include <vector>
+
+namespace micm
+{
+  template<class T, Index L>
+  class KokkosPaddedVector
+  {
+    mutable std::vector<T> data_;    // host data
+    mutable Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> host_view_;
+    mutable Kokkos::View<T*> device_view_;  // device data
+    Index size_;
+
+   public:
+    using value_type = T;
+    using category = PaddedVectorTag;
+
+    struct DeviceView
+    {
+        Kokkos::View<T*> view_;
+
+        KOKKOS_INLINE_FUNCTION T& operator[](Index i) const
+        {
+            return view_(i);
+        }
+
+        KOKKOS_INLINE_FUNCTION Index size() const
+        {
+            return view_.extent(0);
+        }
+
+        // So the KokkosVectorLike concept accepts a DeviceView also
+        KOKKOS_INLINE_FUNCTION DeviceView& GetView() const
+        {
+            return *this;
+        }
+    };
+
+    static constexpr Index GroupVectorSize()
+    {
+        return L;
+    }
+
+    KokkosPaddedVector()
+        : size_(0)
+    {
+    }
+
+    KokkosPaddedVector(Index n, T init = T{})
+        : data_((((n + L - 1) / L) * L), init),
+        host_view_(this->data_.data(), this->data_.size()),
+        device_view_("padded_vector", this->data_.size()),
+        size_(n)
+    {
+    }
+
+    KokkosPaddedVector(std::initializer_list<T> init)
+        : data_(((init.size() + L - 1) / L) * L, T{}),
+        host_view_(this->data_.data(), this->data_.size()),
+        device_view_("padded_vector", this->data_.size()),
+        size_(init.size())
+    {
+        std::copy(init.begin(), init.end(), data_.begin());
+    }
+
+    Index size() const
+    {
+        return size_;
+    }
+
+    Index PaddedSize() const
+    {
+        return data_.size();
+    }
+
+    T& operator[](Index i)
+    {
+        return data_[i];
+    }
+
+    const T& operator[](Index i) const
+    {
+        return data_[i];
+    }
+
+    auto begin()
+    {
+        return data_.begin();
+    }
+
+    auto end()
+    {
+        return data_.begin() + size_;
+    }
+
+    auto begin() const
+    {
+        return data_.begin();
+    }
+
+    auto end() const
+    {
+        return data_.begin() + size_;
+    }
+
+    T* data()
+    {
+        return data_.data();
+    }
+
+    const T* data() const
+    {
+        return data_.data();
+    }
+
+    /// @brief Copy host data to the device view
+    void CopyToDevice() const
+    {
+        Kokkos::deep_copy(device_view_, host_view_);
+    }
+
+    /// @brief Copy device data to the host vector
+    void CopyToHost() const
+    {
+        Kokkos::deep_copy(host_view_, device_view_);
+    }
+
+    KOKKOS_INLINE_FUNCTION DeviceView GetView() const
+    {
+        return { device_view_ };
+    }
+  };
+}

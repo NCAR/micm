@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/padded_vector.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -147,6 +148,9 @@ namespace micm
     }
 
    public:
+    template<class VecT>
+    using VectorType = PaddedVector<VecT, L>;
+
     /// @brief A block-local temporary variable with its own storage
     /// For vector ordering: array of L values when L>1, single value when L=1
     template<typename T>
@@ -265,7 +269,7 @@ namespace micm
       }
 
       /// @brief Get element from Vector-like (tiered grouping L>1)
-      template<VectorLike Arg>
+      template<PaddedVectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
@@ -274,7 +278,7 @@ namespace micm
       }
 
       /// @brief Get element from Vector-like (simple grouping L==1)
-      template<VectorLike Arg>
+      template<PaddedVectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
@@ -350,26 +354,25 @@ namespace micm
         }
       }
 
-      /// @brief Assign value to `vec[group_*L .. group_*L + num_blocks_in_group_)`.
-      ///        Respects num_blocks_in_group_ to avoid OOB on the last partial group.
-      template<VectorLike Vec>
+      /// @brief Assign value to `vec`.
+      template<PaddedVectorLike Vec>
       [[gnu::always_inline]]
       void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_blocks_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = value;
         }
       }
 
-      /// @brief Copy a sparse-block into `vec[group_*L .. group_*L + num_blocks_in_group_)`.
-      template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
+      /// @brief Copy a sparse-block into `vec`.
+      template<PaddedVectorLike Vec, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_blocks_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = src.group_base_[src.block_offset_ + i];
         }
@@ -382,23 +385,9 @@ namespace micm
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args) const
       {
-        // VectorLike args (e.g. std::vector<T>), have exactly N elements and would OOB
-        // past the vector's real size if we include padded blocks.
-        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
-        if constexpr (has_vector_arg)
+        for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
         {
-          for (Index block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
-          {
-            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
-        }
-        else
-        {
-          // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
-          for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
-          {
-            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -530,7 +519,7 @@ namespace micm
       }
 
       /// @brief Get element from Vector-like (tiered grouping L>1)
-      template<VectorLike Arg>
+      template<PaddedVectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
@@ -539,7 +528,7 @@ namespace micm
       }
 
       /// @brief Get element from Vector-like (simple grouping L==1)
-      template<VectorLike Arg>
+      template<PaddedVectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
       decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
@@ -632,14 +621,13 @@ namespace micm
       }
 
       /// @brief Copy `src[group_*L + i]` from a caller-owned vector into dst block.
-      ///        Respects num_blocks_in_group_; padding cells of dst are left untouched.
-      template<VectorLike Src>
+      template<PaddedVectorLike Src>
       [[gnu::always_inline]]
       void Copy(GroupedBlockView dst_view, Src&& src)
       {
         T* dst = dst_view.group_base_ + dst_view.block_offset_;
         const Index start = group_ * L;
-        for (Index i = 0; i < num_blocks_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           dst[i] = src[start + i];
         }
@@ -686,51 +674,36 @@ namespace micm
       }
 
       /// @brief Assign value to `vec[group_*L .. group_*L + num_blocks_in_group_)`.
-      template<VectorLike Vec>
+      template<PaddedVectorLike Vec>
       [[gnu::always_inline]]
       void Fill(Vec& vec, T value)
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_blocks_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = value;
         }
       }
 
-      /// @brief Copy a sparse-block into `vec[group_*L .. group_*L + num_blocks_in_group_)`.
-      template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
+      /// @brief Copy a sparse-block into `vec`.
+      template<PaddedVectorLike Vec, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src)
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_blocks_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = src.group_base_[src.block_offset_ + i];
         }
       }
 
       /// @brief Execute a function for every block in the matrix
-      ///        Vector-ordered matrix storage is padded to ceil(N/L)*L cells.
-      ///        This function should only be used whent it is safe to operate on
-      ///        padded blocks. Use ForEachBlockStrict when it is not safe to do so.
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args)
       {
-        // See ConstGroupView::ForEachBlock for rationale.
-        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
-        if constexpr (has_vector_arg)
+        for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
         {
-          for (Index block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
-          {
-            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
-        }
-        else
-        {
-          for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
-          {
-            func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
+          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -781,6 +754,16 @@ namespace micm
     Index NumberOfGroups(Index number_of_blocks) const
     {
       return std::ceil((double)number_of_blocks / (double)L);
+    }
+
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size (excluding padding)
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType<VecT>(n, init);
     }
 
    private:

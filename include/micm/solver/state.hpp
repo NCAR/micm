@@ -63,7 +63,7 @@ namespace micm
     /// @brief The reaction rates, may vary in time
     DenseMatrixPolicy rate_constants_;
     /// @brief Atmospheric conditions, varies in time
-    std::vector<Conditions> conditions_;
+    typename DenseMatrixPolicy::template VectorType<Conditions> conditions_;
     /// @brief The block matrix with an upper left identity, zeros elsewhere
     std::vector<Real> upper_left_identity_diagonal_;
     /// @brief The jacobian structure, varies for each solve

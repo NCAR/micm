@@ -58,10 +58,10 @@ class EquilibriumConstraintModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   /// Residual: G = K_eq * [reactant] - [product]
@@ -162,10 +162,10 @@ class ConservativeEquilibriumConstraintModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
@@ -268,10 +268,10 @@ class MassConservationModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
@@ -1350,14 +1350,14 @@ class TemperatureDependentEquilibriumModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
       const std::unordered_map<std::string, micm::Index>& param_indices) const
   {
     auto i_K = param_indices.at(param_name_);
     micm::Real K_ref = K_eq_ref_;
     micm::Real dH_R = delta_H_over_R_;
     micm::Real T_ref = T_ref_;
-    return [=](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& params)
+    return [=](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions, DenseMatrixPolicy& params)
     {
       for (micm::Index i = 0; i < conditions.size(); ++i)
       {

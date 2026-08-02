@@ -211,7 +211,7 @@ namespace micm
     ///        Layout: [group * n_mults * L + mult * L + lane]
     /// @return Device pointer to multiplier values, or nullptr if there are no multipliers.
     const Real*
-    UploadMultiplierValues(const ReactionRateConstantStore& cpu_store, const std::vector<Conditions>& conditions, Index L)
+    UploadMultiplierValues(const ReactionRateConstantStore& cpu_store, const auto& conditions, Index L)
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())

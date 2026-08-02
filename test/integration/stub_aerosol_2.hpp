@@ -129,7 +129,7 @@ class AnotherStubAerosolModel
 
   // We have parameters for this stub model, one of which we will update based on temperature
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
       const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
   {
     // Create a function that updates the BAZ-to-QUX rate constant based on temperature for each grid cell
@@ -138,10 +138,10 @@ class AnotherStubAerosolModel
     if (baz_to_qux_param_it == state_parameter_indices.end())
     {
       // If the parameter is missing, return a no-op updater to avoid undefined behavior.
-      return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+      return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
     }
     micm::Index baz_to_qux_param_index = baz_to_qux_param_it->second;
-    return [baz_to_qux_param_index](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
+    return [baz_to_qux_param_index](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
     {
       for (micm::Index cell = 0; cell < conditions.size(); ++cell)
       {

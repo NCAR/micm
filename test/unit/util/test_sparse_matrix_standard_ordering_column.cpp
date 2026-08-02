@@ -281,11 +281,6 @@ TEST(SparseCompressedColumnMatrix, FunctionInvocationWithWrongSizedVectorSparse)
   TestFunctionInvocationWithWrongSizedVectorSparse<micm::SparseMatrix, StandardOrdering>();
 }
 
-TEST(SparseCompressedColumnMatrix, ArraySupportSparse)
-{
-  TestArraySupportSparse<micm::SparseMatrix, StandardOrdering>();
-}
-
 TEST(SparseCompressedColumnMatrix, MixedVectorBlockViewBlockVariable)
 {
   TestMixedVectorBlockViewBlockVariable<micm::SparseMatrix, StandardOrdering>();

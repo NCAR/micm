@@ -3,6 +3,7 @@
 
 #include "../../util/test_sparse_matrix_policy.hpp"
 
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
@@ -14,6 +15,16 @@ using KokkosOrdering1 = micm::SparseMatrixVectorOrderingCompressedSparseRow<1>;
 using KokkosOrdering2 = micm::SparseMatrixVectorOrderingCompressedSparseRow<2>;
 using KokkosOrdering3 = micm::SparseMatrixVectorOrderingCompressedSparseRow<3>;
 using KokkosOrdering4 = micm::SparseMatrixVectorOrderingCompressedSparseRow<4>;
+
+template<class T>
+using KokkosDense1 = micm::KokkosDenseMatrix<T,1>;
+template<class T>
+using KokkosDense2 = micm::KokkosDenseMatrix<T,2>;
+template<class T>
+using KokkosDense3 = micm::KokkosDenseMatrix<T,3>;
+template<class T>
+using KokkosDense4 = micm::KokkosDenseMatrix<T,4>;
+
 
 // Core matrix tests
 TEST(KokkosSparseMatrix, ZeroMatrix)
@@ -124,32 +135,28 @@ TEST(KokkosSparseMatrix, TwoSparseMatricesDifferentStructure)
   TestTwoSparseMatricesDifferentStructure<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
-// SparseAndDenseMatrixFunction and SparseAndVectorMatrixFunction are disabled for
-// Kokkos: they mix KokkosSparseMatrix with a *host* micm::Matrix/micm::VectorMatrix
-// (not KokkosDenseMatrix). KokkosSparseMatrix::Function()'s dense-mixing support
-// (MakeHandle/BuildGroupView) only targets KokkosDenseMatrix, matching how real
-// solver code pairs same-backend dense/sparse policies -- it never mixes a Kokkos
-// sparse matrix with a host dense matrix. Not re-enabled; this generality is out of
-// scope for the Kokkos backend.
-// TEST(KokkosSparseMatrix, SparseAndDenseMatrixFunction)
-// {
-//   TestSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, micm::Matrix>();
-// }
+TEST(KokkosSparseMatrix, SparseAndDenseMatrixFunction)
+{
+  TestSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, KokkosDense1>();
+  TestSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2, KokkosDense2>();
+  TestSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3, KokkosDense3>();
+  TestSparseAndDenseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4, KokkosDense4>();
+}
 
-// TEST(KokkosSparseMatrix, SparseAndVectorMatrixFunction)
-// {
-//   TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, 1>();
-//   TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2, 2>();
-//   TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3, 3>();
-//   TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4, 4>();
-// }
+TEST(KokkosSparseMatrix, SparseAndVectorMatrixFunction)
+{
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1, KokkosDense1, 1>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering2, KokkosDense2, 2>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering3, KokkosDense3, 3>();
+  TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4, KokkosDense4, 4>();
+}
 
 // Ordering compatibility tests
 TEST(KokkosSparseMatrix, IncompatibleOrdering)
 {
-  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, micm::Matrix>();
-  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, micm::Matrix>();
-  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering4, micm::Matrix>();
+  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, KokkosDense1>();
+  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, KokkosDense4>();
+  TestIncompatibleOrdering<micm::KokkosSparseMatrix, KokkosOrdering4, KokkosDense2>();
 }
 
 TEST(KokkosSparseMatrix, IncompatibleVectorOrdering)
@@ -310,17 +317,10 @@ TEST(KokkosSparseMatrix, ConstVectorSparse)
   TestConstVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
-// TestMutableVectorSparse is disabled for Kokkos: it writes into a VectorLike
-// (std::vector) argument via a mutable reference inside Function()/ForEachBlock().
-// KOKKOS_LAMBDA expands to a non-mutable [=] capture, so the VectorLike argument
-// is captured as a const copy and the write won't compile. Making VectorLike
-// arguments writable on-device is deferred to the typed vector-view follow-up
-// (see the plan's "Solver lambdas on GPU / VectorLike args" note) -- do not
-// re-enable this without that work landing first.
-// TEST(KokkosSparseMatrix, MutableVectorSparse)
-// {
-//   TestMutableVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
-// }
+TEST(KokkosSparseMatrix, MutableVectorSparse)
+{
+  TestMutableVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
+}
 
 TEST(KokkosSparseMatrix, FunctionReusabilityWithVectorsSparse)
 {
@@ -330,11 +330,6 @@ TEST(KokkosSparseMatrix, FunctionReusabilityWithVectorsSparse)
 TEST(KokkosSparseMatrix, FunctionInvocationWithWrongSizedVectorSparse)
 {
   TestFunctionInvocationWithWrongSizedVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
-}
-
-TEST(KokkosSparseMatrix, ArraySupportSparse)
-{
-  TestArraySupportSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
 TEST(KokkosSparseMatrix, MixedVectorBlockViewBlockVariable)

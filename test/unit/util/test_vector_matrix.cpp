@@ -384,14 +384,6 @@ TEST(VectorMatrix, FunctionInvocationWithWrongSizedVector)
   TestFunctionInvocationWithWrongSizedVector<Group4MatrixAlias>();
 }
 
-TEST(VectorMatrix, ArraySupport)
-{
-  TestArraySupport<Group1MatrixAlias>();
-  TestArraySupport<Group2MatrixAlias>();
-  TestArraySupport<Group3MatrixAlias>();
-  TestArraySupport<Group4MatrixAlias>();
-}
-
 TEST(VectorMatrix, MixedVectorColumnViewRowVariable)
 {
   TestMixedVectorColumnViewRowVariable<Group1MatrixAlias>();
