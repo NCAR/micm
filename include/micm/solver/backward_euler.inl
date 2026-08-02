@@ -1,6 +1,7 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/reducers.hpp>
 #include <micm/util/types.hpp>
 
 namespace micm
@@ -177,6 +178,8 @@ namespace micm
       Real relative_tolerance)
   {
     const Index n_vars = absolute_tolerance.size();
+    const Real small = parameters.small_;
+    const Real rel_tol = relative_tolerance;
     bool retval = true;
     DenseMatrixPolicy::Function(
         [&](const auto&& residual_view, const auto&& Yn1_view)
@@ -184,21 +187,22 @@ namespace micm
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
             const Real var_abs_tol = absolute_tolerance[i_var];
-            residual_view.ForEachRow(
-                [&](const Real& residual, const Real& Yn1)
+            residual_view.ReduceStrict(
+                LAnd{ retval },
+                [=](const Real& residual, const Real& Yn1, bool& acc)
                 {
                   // A non-finite residual is never converged. Without this check an infinite residual escapes
                   // the test below, because the relative bound rel_tol * |Yn1| is itself infinite and
                   // inf > inf is false -- a blown-up solve would then be reported as SolverState::Converged.
                   if (!std::isfinite(residual))
                   {
-                    retval = false;
+                    acc = false;
                     return;
                   }
-                  if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
-                      std::abs(residual) > relative_tolerance * std::abs(Yn1))
+                  if (std::abs(residual) > small && std::abs(residual) > var_abs_tol &&
+                      std::abs(residual) > rel_tol * std::abs(Yn1))
                   {
-                    retval = false;
+                    acc = false;
                   }
                 },
                 residual_view.GetConstColumnView(i_var),

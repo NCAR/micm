@@ -486,6 +486,46 @@ TEST(KokkosDenseMatrix, FunctionWithConstSignature)
 //   TestCopy<Group4KokkosMatrixAlias>();
 // }
 
+TEST(KokkosDenseMatrix, ReduceSum)
+{
+  TestReduceSum<Group1KokkosMatrixAlias>();
+  TestReduceSum<Group2KokkosMatrixAlias>();
+  TestReduceSum<Group3KokkosMatrixAlias>();
+  TestReduceSum<Group4KokkosMatrixAlias>();
+}
+
+TEST(KokkosDenseMatrix, ReduceMax)
+{
+  TestReduceMax<Group1KokkosMatrixAlias>();
+  TestReduceMax<Group2KokkosMatrixAlias>();
+  TestReduceMax<Group3KokkosMatrixAlias>();
+  TestReduceMax<Group4KokkosMatrixAlias>();
+}
+
+TEST(KokkosDenseMatrix, ReduceLOr)
+{
+  TestReduceLOr<Group1KokkosMatrixAlias>();
+  TestReduceLOr<Group2KokkosMatrixAlias>();
+  TestReduceLOr<Group3KokkosMatrixAlias>();
+  TestReduceLOr<Group4KokkosMatrixAlias>();
+}
+
+TEST(KokkosDenseMatrix, ReduceLAnd)
+{
+  TestReduceLAnd<Group1KokkosMatrixAlias>();
+  TestReduceLAnd<Group2KokkosMatrixAlias>();
+  TestReduceLAnd<Group3KokkosMatrixAlias>();
+  TestReduceLAnd<Group4KokkosMatrixAlias>();
+}
+
+TEST(KokkosDenseMatrix, ReduceStrict)
+{
+  TestReduceStrict<Group1KokkosMatrixAlias>();
+  TestReduceStrict<Group2KokkosMatrixAlias>();
+  TestReduceStrict<Group3KokkosMatrixAlias>();
+  TestReduceStrict<Group4KokkosMatrixAlias>();
+}
+
 int main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest(&argc, argv);

@@ -1,9 +1,11 @@
 // Tests of common matrix functions
+#include <micm/util/reducers.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <array>
+#include <cmath>
 #include <vector>
 
 template<template<class> class MatrixPolicy>
@@ -1796,4 +1798,221 @@ void TestCopy()
     EXPECT_EQ(matrix[1][1], 4.2);
     EXPECT_EQ(matrix[2][1], 1.3);
   }
+}
+
+/// @brief Reduce (Sum): sum of x² across every element of the matrix, driven through
+///        Function()'s GroupView. Verifies that non-strict Reduce (which touches
+///        any trailing padding cells for L>1) still produces the correct result
+///        because padding cells were initialized to the reducer's identity (0).
+template<template<class> class MatrixPolicy>
+void TestReduceSum()
+{
+  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
+  matrix.CopyToHost();
+  matrix[0][0] = 1.0;
+  matrix[0][1] = 2.0;
+  matrix[1][0] = 3.0;
+  matrix[1][1] = 4.0;
+  matrix[2][0] = 5.0;
+  matrix[2][1] = 6.0;
+  matrix.CopyToDevice();
+
+  micm::Real total = 0.0;
+  auto func = MatrixPolicy<micm::Real>::Function(
+      [&total](auto&& view)
+      {
+        view.Reduce(
+            micm::Sum<micm::Real>{ total },
+            [](const micm::Real& a, micm::Real& acc) { acc += a * a; },
+            view.GetConstColumnView(0));
+        view.Reduce(
+            micm::Sum<micm::Real>{ total },
+            [](const micm::Real& a, micm::Real& acc) { acc += a * a; },
+            view.GetConstColumnView(1));
+      },
+      matrix);
+  func(matrix);
+
+  // 1 + 4 + 9 + 16 + 25 + 36 = 91
+  EXPECT_EQ(total, 91.0);
+}
+
+/// @brief Reduce (Max): max element across every column of the matrix.
+template<template<class> class MatrixPolicy>
+void TestReduceMax()
+{
+  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
+  matrix.CopyToHost();
+  matrix[0][0] = 1.0;
+  matrix[0][1] = 8.0;
+  matrix[1][0] = 5.0;
+  matrix[1][1] = 2.0;
+  matrix[2][0] = 3.0;
+  matrix[2][1] = 4.0;
+  matrix.CopyToDevice();
+
+  micm::Real max_val = std::numeric_limits<micm::Real>::lowest();
+  auto func = MatrixPolicy<micm::Real>::Function(
+      [&max_val](auto&& view)
+      {
+        view.Reduce(
+            micm::Max<micm::Real>{ max_val },
+            [](const micm::Real& a, micm::Real& acc)
+            {
+              if (a > acc)
+                acc = a;
+            },
+            view.GetConstColumnView(0));
+        view.Reduce(
+            micm::Max<micm::Real>{ max_val },
+            [](const micm::Real& a, micm::Real& acc)
+            {
+              if (a > acc)
+                acc = a;
+            },
+            view.GetConstColumnView(1));
+      },
+      matrix);
+  func(matrix);
+
+  EXPECT_EQ(max_val, 8.0);
+}
+
+/// @brief Reduce (LOr): true iff any element is greater than a threshold.
+template<template<class> class MatrixPolicy>
+void TestReduceLOr()
+{
+  // Case 1: no element exceeds the threshold -> LOr result stays false.
+  {
+    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    matrix.CopyToDevice();
+
+    bool any_large = false;
+    auto func = MatrixPolicy<micm::Real>::Function(
+        [&any_large](auto&& view)
+        {
+          view.Reduce(
+              micm::LOr{ any_large },
+              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              view.GetConstColumnView(0));
+          view.Reduce(
+              micm::LOr{ any_large },
+              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              view.GetConstColumnView(1));
+        },
+        matrix);
+    func(matrix);
+
+    EXPECT_FALSE(any_large);
+  }
+
+  // Case 2: one element exceeds the threshold -> LOr result becomes true.
+  {
+    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    matrix.CopyToHost();
+    matrix[2][1] = 42.0;
+    matrix.CopyToDevice();
+
+    bool any_large = false;
+    auto func = MatrixPolicy<micm::Real>::Function(
+        [&any_large](auto&& view)
+        {
+          view.Reduce(
+              micm::LOr{ any_large },
+              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              view.GetConstColumnView(0));
+          view.Reduce(
+              micm::LOr{ any_large },
+              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              view.GetConstColumnView(1));
+        },
+        matrix);
+    func(matrix);
+
+    EXPECT_TRUE(any_large);
+  }
+}
+
+/// @brief Reduce (LAnd): true if every element satisfies a predicate.
+///        The predicate `std::isfinite(x)` also holds for the (zero-initialized)
+///        padding cells that a non-strict Reduce may touch on L>1 policies, so
+///        this can use Reduce (not ReduceStrict).
+template<template<class> class MatrixPolicy>
+void TestReduceLAnd()
+{
+  // Case 1: all elements finite -> LAnd result stays true.
+  {
+    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    matrix.CopyToDevice();
+
+    bool all_finite = true;
+    auto func = MatrixPolicy<micm::Real>::Function(
+        [&all_finite](auto&& view)
+        {
+          view.Reduce(
+              micm::LAnd{ all_finite },
+              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              view.GetConstColumnView(0));
+          view.Reduce(
+              micm::LAnd{ all_finite },
+              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              view.GetConstColumnView(1));
+        },
+        matrix);
+    func(matrix);
+
+    EXPECT_TRUE(all_finite);
+  }
+
+  // Case 2: one element non-finite -> LAnd result becomes false.
+  {
+    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    matrix.CopyToHost();
+    matrix[1][0] = std::numeric_limits<micm::Real>::quiet_NaN();
+    matrix.CopyToDevice();
+
+    bool all_finite = true;
+    auto func = MatrixPolicy<micm::Real>::Function(
+        [&all_finite](auto&& view)
+        {
+          view.Reduce(
+              micm::LAnd{ all_finite },
+              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              view.GetConstColumnView(0));
+          view.Reduce(
+              micm::LAnd{ all_finite },
+              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              view.GetConstColumnView(1));
+        },
+        matrix);
+    func(matrix);
+
+    EXPECT_FALSE(all_finite);
+  }
+}
+
+/// @brief ReduceStrict: verify the strict variant only visits real (non-padding)
+///        rows even when L doesn't evenly divide the row count.
+template<template<class> class MatrixPolicy>
+void TestReduceStrict()
+{
+  // 3 rows, but for L > 1 policies the tail group has < L real rows plus padding.
+  // ReduceStrict with a counter-like lambda should visit exactly NumRows() real
+  // rows -- never any padding rows.
+  MatrixPolicy<micm::Real> matrix{ 3, 1, 0.0 };
+  matrix.CopyToDevice();
+
+  micm::Real count = 0.0;
+  auto func = MatrixPolicy<micm::Real>::Function(
+      [&count](auto&& view)
+      {
+        view.ReduceStrict(
+            micm::Sum<micm::Real>{ count },
+            [](const micm::Real&, micm::Real& acc) { acc += 1.0; },
+            view.GetConstColumnView(0));
+      },
+      matrix);
+  func(matrix);
+
+  EXPECT_EQ(count, 3.0);
 }

@@ -618,6 +618,25 @@ namespace micm
         func(GetRowElement(std::forward<Args>(args))...);
       }
 
+      /// @brief Apply a reduction to the single row in this group. The user's
+      ///        function receives its column-view/row-variable arguments plus a
+      ///        trailing reference to `reducer.reference()` as an accumulator.
+      ///        For standard Matrix (L=1) this is just one function call.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      ///        For standard Matrix (L=1) there is no padding, so this is
+      ///        identical to Reduce.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+      }
+
       Index NumRows() const
       {
         return matrix_.NumRows();
@@ -781,6 +800,22 @@ namespace micm
       void ForEachRowStrict(Func&& func, Args&&... args)
       {
         func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      /// @brief Apply a reduction to the single row in this group. See
+      ///        ConstGroupView::Reduce for details.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args)
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows. For
+      ///        standard Matrix (L=1) this is identical to Reduce.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args)
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
       }
 
       Index NumRows() const

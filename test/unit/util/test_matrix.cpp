@@ -310,3 +310,28 @@ TEST(Matrix, TestCopy)
 {
   TestCopy<micm::Matrix>();
 }
+
+TEST(Matrix, ReduceSum)
+{
+  TestReduceSum<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceMax)
+{
+  TestReduceMax<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceLOr)
+{
+  TestReduceLOr<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceLAnd)
+{
+  TestReduceLAnd<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceStrict)
+{
+  TestReduceStrict<micm::Matrix>();
+}

@@ -824,6 +824,44 @@ namespace micm
         }
       }
 
+      /// @brief Apply a reduction to each row in this group. The user's function
+      ///        receives its column-view/row-variable arguments plus a trailing
+      ///        reference to `reducer.reference()` as an accumulator, and
+      ///        accumulates into it (e.g. `acc += x*x` for a sum, `acc = std::max(acc, x)`
+      ///        for a max). Matches ForEachRow's group-iteration shape -- may touch
+      ///        trailing padding rows when all args are matrix-derived.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        auto& acc = reducer.reference();
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
+        {
+          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        auto& acc = reducer.reference();
+        for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
       Index NumRows() const
       {
         return matrix_.NumRows();
@@ -1109,6 +1147,40 @@ namespace micm
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      /// @brief Apply a reduction to each row in this group. See
+      ///        ConstGroupView::Reduce for details.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args)
+      {
+        auto& acc = reducer.reference();
+        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
+        if constexpr (has_vector_arg)
+        {
+          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+        else
+        {
+          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+          {
+            func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+          }
+        }
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args)
+      {
+        auto& acc = reducer.reference();
+        for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
         }
       }
 

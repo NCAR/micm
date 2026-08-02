@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/kokkos/util/kokkos_views.hpp>
+#include <micm/util/reducers.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <Kokkos_Core.hpp>
@@ -10,6 +11,38 @@
 
 namespace micm
 {
+  namespace detail
+  {
+    /// @brief Maps a micm reducer type (Sum/Max/LOr/LAnd) to the matching Kokkos
+    ///        reducer type used to actually drive Kokkos::parallel_reduce.
+    template<typename Reducer>
+    struct ToKokkosReducer;
+
+    template<typename T>
+    struct ToKokkosReducer<micm::Sum<T>>
+    {
+      using type = Kokkos::Sum<T>;
+    };
+
+    template<typename T>
+    struct ToKokkosReducer<micm::Max<T>>
+    {
+      using type = Kokkos::Max<T>;
+    };
+
+    template<>
+    struct ToKokkosReducer<micm::LOr>
+    {
+      using type = Kokkos::LOr<bool>;
+    };
+
+    template<>
+    struct ToKokkosReducer<micm::LAnd>
+    {
+      using type = Kokkos::LAnd<bool>;
+    };
+  }  // namespace detail
+
   /// @brief Provides a Kokkos implementation to the VectorMatrix functionality.
   ///
   /// Inherits from VectorMatrix (the MICM host-side data layout) and maintains
@@ -428,6 +461,48 @@ namespace micm
             [&](const Index row_in_group) { func(GetRowElement(row_in_group, args)...); });
         team_.team_barrier();
       }
+
+      /// @brief Apply a reduction to each row in this group, on-device via team
+      ///        parallelism. The user's function receives its column-view /
+      ///        row-variable arguments plus a trailing reference to a per-thread
+      ///        accumulator, and accumulates into it (e.g. `acc += x*x`,
+      ///        `acc = std::max(acc, x)`). The micm reducer type (Sum/Max/LOr/LAnd)
+      ///        is translated to the matching Kokkos reducer, which handles the
+      ///        inter-thread join and writes the final result back to
+      ///        `reducer.reference()`.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
+        using AccT = typename KokkosReducer::value_type;
+        // Kokkos::parallel_reduce writes into the reducer's destination scalar
+        // per call, overwriting whatever was there. To make repeated Reduce() calls
+        // accumulate into the caller's `reducer.reference()` -- matching the host
+        // Matrix/VectorMatrix semantics -- reduce into a per-team scratch and then
+        // join into the caller's destination from a single team member.
+        AccT local = Reducer::identity();
+        Kokkos::parallel_reduce(
+            Kokkos::TeamThreadRange(team_, L),
+            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
+            KokkosReducer(local));
+        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+        team_.team_barrier();
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
+        using AccT = typename KokkosReducer::value_type;
+        AccT local = Reducer::identity();
+        Kokkos::parallel_reduce(
+            Kokkos::TeamThreadRange(team_, num_rows_in_group_),
+            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
+            KokkosReducer(local));
+        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+        team_.team_barrier();
+      }
     };
 
     /// @brief GroupView provides a team-parallel view of a single group of L rows for
@@ -579,6 +654,37 @@ namespace micm
         Kokkos::parallel_for(
             Kokkos::TeamThreadRange(team_, num_rows_in_group_),
             [&](const Index row_in_group) { func(GetRowElement(row_in_group, args)...); });
+        team_.team_barrier();
+      }
+
+      /// @brief Apply a reduction to each row in this group, on-device via team
+      ///        parallelism. See ConstGroupView::Reduce for details.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
+        using AccT = typename KokkosReducer::value_type;
+        AccT local = Reducer::identity();
+        Kokkos::parallel_reduce(
+            Kokkos::TeamThreadRange(team_, L),
+            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
+            KokkosReducer(local));
+        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+        team_.team_barrier();
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
+        using AccT = typename KokkosReducer::value_type;
+        AccT local = Reducer::identity();
+        Kokkos::parallel_reduce(
+            Kokkos::TeamThreadRange(team_, num_rows_in_group_),
+            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
+            KokkosReducer(local));
+        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
         team_.team_barrier();
       }
     };

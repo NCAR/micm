@@ -431,3 +431,43 @@ TEST(VectorMatrix, TestCopy)
   TestCopy<Group3MatrixAlias>();
   TestCopy<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, ReduceSum)
+{
+  TestReduceSum<Group1MatrixAlias>();
+  TestReduceSum<Group2MatrixAlias>();
+  TestReduceSum<Group3MatrixAlias>();
+  TestReduceSum<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceMax)
+{
+  TestReduceMax<Group1MatrixAlias>();
+  TestReduceMax<Group2MatrixAlias>();
+  TestReduceMax<Group3MatrixAlias>();
+  TestReduceMax<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceLOr)
+{
+  TestReduceLOr<Group1MatrixAlias>();
+  TestReduceLOr<Group2MatrixAlias>();
+  TestReduceLOr<Group3MatrixAlias>();
+  TestReduceLOr<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceLAnd)
+{
+  TestReduceLAnd<Group1MatrixAlias>();
+  TestReduceLAnd<Group2MatrixAlias>();
+  TestReduceLAnd<Group3MatrixAlias>();
+  TestReduceLAnd<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceStrict)
+{
+  TestReduceStrict<Group1MatrixAlias>();
+  TestReduceStrict<Group2MatrixAlias>();
+  TestReduceStrict<Group3MatrixAlias>();
+  TestReduceStrict<Group4MatrixAlias>();
+}

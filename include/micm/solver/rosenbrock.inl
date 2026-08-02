@@ -1,6 +1,7 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/reducers.hpp>
 #include <micm/util/types.hpp>
 
 namespace micm
@@ -363,12 +364,13 @@ namespace micm
           {
             // skip padding rows so their possibly non-zero values
             // do not end up in the normalized error.
-            y_view.ForEachRowStrict(
-                [&](const Real& y, const Real& ynew, const Real& var_error)
+            y_view.ReduceStrict(
+                Sum<Real>{ error },
+                [&](const Real& y, const Real& ynew, const Real& var_error, Real& acc)
                 {
                   Real ymax = std::max(std::abs(y), std::abs(ynew));
                   Real errors_over_scale = var_error / (atol[i_var % n_vars] + rtol * ymax);
-                  error += errors_over_scale * errors_over_scale;
+                  acc += errors_over_scale * errors_over_scale;
                 },
                 y_view.GetConstColumnView(i_var),
                 ynew_view.GetConstColumnView(i_var),
@@ -413,24 +415,35 @@ namespace micm
           {
             if (diagonal[i_var] == 0.0)
             {
-              delta_view.ForEachRow(
-                  [&](const Real& val)
+              auto col_view = delta_view.GetConstColumnView(i_var);
+              delta_view.Reduce(
+                LOr{ nan_detected },
+                [](const Real& val, bool& acc)
+                {
+                  acc = acc || std::isnan(val);
+                },
+                col_view);
+
+              delta_view.Reduce(
+                LOr{ inf_detected },
+                [](const Real& val, bool& acc)
+                {
+                  acc = acc || std::isinf(val);
+                },
+                col_view);
+
+              // exclude padded cells incase they are non-zero
+              delta_view.ReduceStrict(
+                Max<Real>{ max_residual },
+                [](const Real& val, Real& acc)
+                {
+                  Real abs_val = std::abs(val);
+                  if (!std::isnan(abs_val) && !std::isinf(abs_val))
                   {
-                    Real abs_val = std::abs(val);
-                    if (std::isnan(abs_val))
-                    {
-                      nan_detected = true;
-                    }
-                    else if (std::isinf(abs_val))
-                    {
-                      inf_detected = true;
-                    }
-                    else
-                    {
-                      max_residual = std::max(max_residual, abs_val);
-                    }
-                  },
-                  delta_view.GetConstColumnView(i_var));
+                    acc = std::max(acc, abs_val);
+                  }
+                },
+                col_view);
             }
           }
         },
@@ -443,18 +456,25 @@ namespace micm
           {
             if (diagonal[i_var] == 0.0)
             {
+              auto d_col_view = delta_view.GetConstColumnView(i_var);
+              y_view.Reduce(
+                LOr{ nan_detected },
+                [](const Real& d_val, bool& acc)
+                {
+                  acc = acc || std::isnan(d_val);
+                },
+                d_col_view);
+              y_view.Reduce(
+                LOr{ inf_detected },
+                [](const Real& d_val, bool& acc)
+                {
+                  acc = acc || std::isinf(d_val);
+                },
+                d_col_view);
               y_view.ForEachRow(
                   [&](Real& y_val, const Real& d_val)
                   {
-                    if (std::isnan(d_val))
-                    {
-                      nan_detected = true;
-                    }
-                    else if (std::isinf(d_val))
-                    {
-                      inf_detected = true;
-                    }
-                    else
+                    if (!std::isnan(d_val) && !std::isinf(d_val))
                     {
                       y_val += d_val;
                     }
