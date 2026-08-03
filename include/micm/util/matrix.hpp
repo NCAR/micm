@@ -312,7 +312,7 @@ namespace micm
     template<class VecT>
     VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
     {
-      return VectorType(n, init);
+      return VectorType<VecT>(n, init);
     }
 
     ConstProxy operator[](Index x) const
