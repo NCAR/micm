@@ -40,3 +40,74 @@ jobs:
         run: |
           cd build
           ctest --rerun-failed --output-on-failure . --verbose -j 10
+
+      - name: Profile PR timing (for benchmark action)
+        run: |
+          pr/scripts/bench_chapman.sh pr/build \
+            | python3 pr/scripts/to_benchmark_json.py --unit ms --value-type float \
+            > cuda_timing.json
+
+      - name: Profile PR instructions (for benchmark action)
+        run: |
+          pr/scripts/profile_chapman.sh pr/build 2000 5 \
+            | python3 pr/scripts/to_benchmark_json.py --unit instructions --value-type int \
+            > cuda_instructions.json
+
+      - name: Comment benchmark timing comparison on PR
+        if: github.event_name == 'pull_request'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing
+          tool: customSmallerIsBetter
+          output-file-path: cuda_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 120%   # comment turns into a warning at +20%
+          fail-on-alert: false    # just warn of possible regression
+
+      - name: Comment benchmark instruction comparison on PR
+        if: github.event_name == 'pull_request'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: cuda_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 105%   # comment turns into a warning at +5%
+          fail-on-alert: false    # just warn of possible regression
+
+      - name: Store instruction-count results
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: cuda_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/instructions
+
+      - name: Store timing results
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Wall-Clock Timing
+          tool: customSmallerIsBetter
+          output-file-path: cuda_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/timing
+
+
+      - name: Upload profile outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chapman-profile
+          path: |
+            base.txt
+            pr.txt
+

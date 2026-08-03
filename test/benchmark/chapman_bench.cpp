@@ -3,12 +3,18 @@
 // test/integration/test_chapman_integration.cpp, but scaled to many grid cells
 // so per-Solve() work dominates over per-call overhead.
 //
-// Usage: chapman_bench [num_cells] [num_steps] [dt_seconds] [matrix_kind]
-//   matrix_kind: "standard" (default) or "vector1|2|4|8|128"
+// Usage: chapman_bench [num_cells] [num_steps] [dt_seconds] [backend] [matrix] [lu_type] [lu_algorithm]
+//   backend: "cpu" (default) or "gpu"
+//   matrix: "standard" (default) or "vector1|2|4|8|128"
+//   lu_type: "in-place" (default) or "separate"
+//   lu_algorithm: "mozart" (default) or "doolittle"
+//
+//   Note that "gpu" backend must use "mozart"/"in-place" LU and "vector1|2|4|8|128" matrix
 //
 // Prints a single line with configuration and elapsed wall time (ms).
 
 #include <micm/CPU.hpp>
+#include <micm/GPU.hpp>
 
 #include <chrono>
 #include <cstdlib>
@@ -36,8 +42,6 @@
   #define CALLGRIND_TOGGLE_COLLECT        do {} while (0)
   #define CALLGRIND_ZERO_STATS            do {} while (0)
 #endif
-
-#define SOLVER_BUILDER micm::CpuSolverBuilder
 
 namespace
 {
@@ -151,6 +155,27 @@ namespace
     CALLGRIND_STOP_INSTRUMENTATION;
     return std::chrono::duration<double, std::milli>(t1 - t0).count();
   }
+
+  using StandardDense = micm::Matrix<micm::Real>;
+  template<micm::Index L>
+  using VectorDense = micm::VectorMatrix<micm::Real, L>;
+  using StandardSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+  template<micm::Index L>
+  using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
+
+  using DooLU = micm::LuDecompositionDoolittle;
+  using DooLUInPlace = micm::LuDecompositionDoolittleInPlace;
+  using MozLU = micm::LuDecompositionMozart;
+  using MozLUInPlace = micm::LuDecompositionMozartInPlace;
+
+  template<class DM, class SM, class LU>
+  using CpuRosen = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DM, SM, LU>;
+  template<class DM, class SM, class LU>
+  using CpuRosenInPlace = micm::CpuSolverBuilderInPlace<micm::RosenbrockSolverParameters, DM, SM, LU>;
+#ifdef MICM_USE_CUDA
+  template<micm::Index L>
+  using CudaRosen = micm::CudaSolverBuilderInPlace<micm::RosenbrockSolverParameters, L>;
+#endif
 }  // namespace
 
 int main(int argc, char** argv)
@@ -158,65 +183,235 @@ int main(int argc, char** argv)
   micm::Index num_cells = (argc > 1) ? std::stoul(argv[1]) : 10000;
   micm::Index num_steps = (argc > 2) ? std::stoul(argv[2]) : 100;
   micm::Real dt = (argc > 3) ? static_cast<micm::Real>(std::stod(argv[3])) : static_cast<micm::Real>(30.0);
-  std::string kind = (argc > 4) ? argv[4] : "standard";
+  std::string backend = (argc > 4) ? argv[4] : "cpu"; // "cpu", "gpu"
+  std::string matrix_type = (argc > 5) ? argv[5] : "standard"; // "standard", "vector1", "vector2", "vector4", "vector8", "vector128"
+  std::string lu_matrix_type = (argc > 6) ? argv[6] : "in-place"; // "in-place", "separate"
+  std::string lu_type = (argc > 7) ? argv[7] : "mozart"; // "mozart", "doolittle"
 
-  double elapsed_ms = 0.0;
+  double elapsed_ms = -1.0;
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-  if (kind == "standard")
+  if (backend == "cpu")
   {
-    auto solver =
-        BuildChapmanSolver(SOLVER_BUILDER<micm::RosenbrockSolverParameters>(options));
-    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    if (matrix_type == "standard")
+    {
+      if (lu_matrix_type == "in-place")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<StandardDense, StandardSparse, MozLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<StandardDense, StandardSparse, DooLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+      else if (lu_matrix_type == "separate")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<StandardDense, StandardSparse, MozLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<StandardDense, StandardSparse, DooLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+    }
+    else if (matrix_type == "vector1")
+    {
+      if (lu_matrix_type == "in-place")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<1>, VectorSparse<1>, MozLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<1>, VectorSparse<1>, DooLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+      else if (lu_matrix_type == "separate")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<1>, VectorSparse<1>, MozLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<1>, VectorSparse<1>, DooLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+    }
+    else if (matrix_type == "vector2")
+    {
+      if (lu_matrix_type == "in-place")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<2>, VectorSparse<2>, MozLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<2>, VectorSparse<2>, DooLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+      else if (lu_matrix_type == "separate")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<2>, VectorSparse<2>, MozLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<2>, VectorSparse<2>, DooLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+    }
+    else if (matrix_type == "vector4")
+    {
+      if (lu_matrix_type == "in-place")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<4>, VectorSparse<4>, MozLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<4>, VectorSparse<4>, DooLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+      else if (lu_matrix_type == "separate")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<4>, VectorSparse<4>, MozLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<4>, VectorSparse<4>, DooLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+    }
+    else if (matrix_type == "vector8")
+    {
+      if (lu_matrix_type == "in-place")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<8>, VectorSparse<8>, MozLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<8>, VectorSparse<8>, DooLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+      else if (lu_matrix_type == "separate")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<8>, VectorSparse<8>, MozLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<8>, VectorSparse<8>, DooLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+    }
+    else if (matrix_type == "vector128")
+    {
+      if (lu_matrix_type == "in-place")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<128>, VectorSparse<128>, MozLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<128>, VectorSparse<128>, DooLUInPlace>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+      else if (lu_matrix_type == "separate")
+      {
+        if (lu_type == "mozart")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<128>, VectorSparse<128>, MozLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+        else if (lu_type == "doolittle")
+        {
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<128>, VectorSparse<128>, DooLU>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+        }
+      }
+    }
   }
-  else if (kind == "vector1")
+#ifdef MICM_USE_CUDA
+  else if (backend == "gpu" && lu_matrix_type == "in-place" && lu_type == "mozart")
   {
-    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
-                                     micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<micm::Real, 1>,
-                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>>(options));
-    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    if (matrix_type == "vector1")
+    {
+          auto solver = BuildChapmanSolver(CudaRosen<1>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    }
+    else if (matrix_type == "vector1")
+    {
+          auto solver = BuildChapmanSolver(CudaRosen<1>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    }
+    else if (matrix_type == "vector2")
+    {
+          auto solver = BuildChapmanSolver(CudaRosen<2>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    }
+    else if (matrix_type == "vector4")
+    {
+          auto solver = BuildChapmanSolver(CudaRosen<4>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    }
+    else if (matrix_type == "vector8")
+    {
+          auto solver = BuildChapmanSolver(CudaRosen<8>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    }
+    else if (matrix_type == "vector128")
+    {
+          auto solver = BuildChapmanSolver(CudaRosen<128>(options));
+          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+    }
   }
-  else if (kind == "vector2")
+#endif
+  if (elapsed_ms < 0.0)
   {
-    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
-                                     micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<micm::Real, 2>,
-                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<2>>>(options));
-    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
-  }
-  else if (kind == "vector4")
-  {
-    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
-                                     micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<micm::Real, 4>,
-                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>>(options));
-    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
-  }
-  else if (kind == "vector8")
-  {
-    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
-                                     micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<micm::Real, 8>,
-                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<8>>>(options));
-    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
-  }
-  else if (kind == "vector128")
-  {
-    auto solver = BuildChapmanSolver(SOLVER_BUILDER<
-                                     micm::RosenbrockSolverParameters,
-                                     micm::VectorMatrix<micm::Real, 128>,
-                                     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<128>>>(options));
-    elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
-  }
-  else
-  {
-    std::cerr << "Unknown matrix kind: " << kind
-              << " (expected standard|vector1|vector2|vector4|vector8|vector128)\n";
+    std::cout << "Invalid option combination: backend='" << backend << "'; matrix_type='" << matrix_type
+            << "'; lu_matrix_type='" << lu_matrix_type << "'; lu_type='" << lu_type << "'";
     return 1;
   }
 
-  std::cout << "kind=" << kind << " cells=" << num_cells << " steps=" << num_steps
+  std::cout << "backend=" << backend << " matrix_type=" << matrix_type << " lu=" << lu_type << "/"
+            << lu_matrix_type << " cells=" << num_cells << " steps=" << num_steps
             << " dt=" << dt << " elapsed_ms=" << elapsed_ms
             << " ms_per_step=" << elapsed_ms / static_cast<double>(num_steps) << "\n";
   return 0;

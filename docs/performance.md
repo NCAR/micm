@@ -44,6 +44,7 @@ scripts/bench_chapman.sh build 10000 30 vector4  # just vector4
 Sample output:
 
 ```
+backend = cpu; LU = mozart / in-place
 kind         best_ms
 standard      676.85
 vector1       676.51

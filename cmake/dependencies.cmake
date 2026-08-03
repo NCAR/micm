@@ -112,6 +112,7 @@ endif()
 # GPU Support
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+  target_compile_definitions(micm INTERFACE MICM_USE_CUDA)
   string(TOLOWER ${MICM_GPU_TYPE} MICM_GPU_TYPE_LOWER)
   # Data center GPUs
   set(cuda_arch_map_a100 80)
