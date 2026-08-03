@@ -14,8 +14,10 @@
 // Prints a single line with configuration and elapsed wall time (ms).
 
 #include <micm/CPU.hpp>
+#ifdef MICM_USE_CUDA
 #include <micm/GPU.hpp>
-
+#include <micm/cuda/util/cuda_util.cuh>
+#endif
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
@@ -402,17 +404,18 @@ int main(int argc, char** argv)
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
     }
   }
+  micm::cuda::CudaStreamSingleton::GetInstance().CleanUp();
 #endif
   if (elapsed_ms < 0.0)
   {
     std::cout << "Invalid option combination: backend='" << backend << "'; matrix_type='" << matrix_type
-            << "'; lu_matrix_type='" << lu_matrix_type << "'; lu_type='" << lu_type << "'";
+            << "'; lu_matrix_type='" << lu_matrix_type << "'; lu_type='" << lu_type << "'" << std::endl;
     return 1;
   }
 
   std::cout << "backend=" << backend << " matrix_type=" << matrix_type << " lu=" << lu_type << "/"
             << lu_matrix_type << " cells=" << num_cells << " steps=" << num_steps
             << " dt=" << dt << " elapsed_ms=" << elapsed_ms
-            << " ms_per_step=" << elapsed_ms / static_cast<double>(num_steps) << "\n";
+            << " ms_per_step=" << elapsed_ms / static_cast<double>(num_steps) << std::endl;
   return 0;
 }

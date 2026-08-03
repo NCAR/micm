@@ -16,3 +16,7 @@ target_link_libraries(chapman_bench PRIVATE musica::micm)
 target_compile_options(chapman_bench PRIVATE -g)
 set_target_properties(chapman_bench PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+  target_link_libraries(chapman_bench PRIVATE micm_cuda)
+endif()
