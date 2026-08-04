@@ -43,6 +43,78 @@ namespace micm
     {
       using type = Kokkos::LAnd<bool>;
     };
+
+    // ----------------------------------------------------------------
+    // Device-compatible tuple for KOKKOS_LAMBDA-safe variadic dispatch
+    // ----------------------------------------------------------------
+    // EBO-based heterogeneous tuple: no STL runtime dependencies,
+    // works inside KOKKOS_FUNCTION contexts.
+    // Used to bundle Function()/ForEachRow()/ForEachBlock() argument packs
+    // into a single capturable object, avoiding NVHPC restrictions on
+    // (a) extended lambdas inside generic lambdas and (b) pack element capture.
+
+    template<std::size_t I, typename T>
+    struct DTupleElem
+    {
+      T val;
+    };
+
+    template<typename Seq, typename... Ts>
+    struct DTupleBase;
+
+    template<std::size_t... Is, typename... Ts>
+    struct DTupleBase<std::index_sequence<Is...>, Ts...> : DTupleElem<Is, Ts>...
+    {
+      KOKKOS_DEFAULTED_FUNCTION DTupleBase() = default;
+      template<typename... Us>
+      KOKKOS_INLINE_FUNCTION explicit DTupleBase(Us&&... us) : DTupleElem<Is, Ts>{ std::forward<Us>(us) }...
+      {
+      }
+    };
+
+    template<typename... Ts>
+    struct DeviceTuple : DTupleBase<std::index_sequence_for<Ts...>, Ts...>
+    {
+      using Base = DTupleBase<std::index_sequence_for<Ts...>, Ts...>;
+      using Base::Base;
+      static constexpr std::size_t N = sizeof...(Ts);
+    };
+
+    /// @brief TypeAt: get the I-th type from a pack without std::tuple_element
+    template<std::size_t I, typename T, typename...>
+    struct TypeAtHelper
+    {
+      using type = T;
+    };
+    template<std::size_t I, typename T, typename... Rest>
+    struct TypeAt : TypeAt<I - 1, Rest...>
+    {
+    };
+    template<typename T, typename... Rest>
+    struct TypeAt<0, T, Rest...> : TypeAtHelper<0, T>
+    {
+    };
+
+    template<std::size_t I, typename... Ts>
+    KOKKOS_INLINE_FUNCTION auto& dt_get(DeviceTuple<Ts...>& t) noexcept
+    {
+      using T = typename TypeAt<I, Ts...>::type;
+      return static_cast<DTupleElem<I, T>&>(t).val;
+    }
+
+    template<std::size_t I, typename... Ts>
+    KOKKOS_INLINE_FUNCTION const auto& dt_get(const DeviceTuple<Ts...>& t) noexcept
+    {
+      using T = typename TypeAt<I, Ts...>::type;
+      return static_cast<const DTupleElem<I, T>&>(t).val;
+    }
+
+    template<typename... Ts>
+    KOKKOS_INLINE_FUNCTION DeviceTuple<std::decay_t<Ts>...> make_device_tuple(Ts&&... ts)
+    {
+      return DeviceTuple<std::decay_t<Ts>...>(std::forward<Ts>(ts)...);
+    }
+
   }  // namespace detail
 
   /// @brief Provides a Kokkos implementation to the VectorMatrix functionality.
@@ -70,14 +142,21 @@ namespace micm
     /// Device-side (or unified) view — the Kokkos mirror of VectorMatrix::data_
     ViewType view_;
 
+   public:
+    // -----------------------------------------------------------------------
+    // CUDA-visible implementation types
+    // Public so they can appear in __global__ kernel template arguments, which
+    // CUDA forbids for private/protected nested types.  These are internal
+    // implementation details and are not part of the stable user-facing API.
+    // -----------------------------------------------------------------------
+
     /// @brief Device-safe handle for a mutable KokkosDenseMatrix argument to
     ///        Function()/ForEachRow().
     ///
     /// Only the flat Kokkos::View and column count are captured -- both are trivially
     /// copyable -- so this handle (rather than the matrix object itself, which owns a
     /// non-trivially-copyable host std::vector) is what gets captured by value into a
-    /// device lambda. Private to KokkosDenseMatrix -- only ever used internally by
-    /// MakeHandle()/BuildGroupView() below.
+    /// device lambda.  Only ever used internally by MakeHandle()/BuildGroupView() below.
     struct DenseMatrixHandle
     {
       Kokkos::View<T*> view;
@@ -91,6 +170,7 @@ namespace micm
       Index y_dim;
     };
 
+   private:
     /// @brief Build a device-safe handle for one Function()/ForEachRow() argument.
     ///
     /// Kokkos matrix arguments are reduced to their (trivially copyable) View + column
@@ -136,6 +216,126 @@ namespace micm
         return std::forward<Handle>(handle);
       }
     }
+
+   public:
+    /// @brief Kokkos functor for dispatching Function() over complete groups.
+    ///        Avoids NVHPC restrictions on extended lambdas inside generic lambdas
+    ///        and parameter-pack capture in device lambdas.
+    template<typename Func, typename HandlesTuple>
+    struct FunctionMainFunctor
+    {
+      Func func_;
+      HandlesTuple handles_;
+
+      template<std::size_t... Is>
+      KOKKOS_INLINE_FUNCTION void dispatch(Index group, const TeamMember& team, std::index_sequence<Is...>) const
+      {
+        func_(BuildGroupView(detail::dt_get<Is>(handles_), group, L, team)...);
+      }
+
+      KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
+      {
+        dispatch(static_cast<Index>(team.league_rank()), team, std::make_index_sequence<HandlesTuple::N>{});
+      }
+    };
+
+    /// @brief Kokkos functor for dispatching Function() over the tail group.
+    template<typename Func, typename HandlesTuple>
+    struct FunctionTailFunctor
+    {
+      Func func_;
+      HandlesTuple handles_;
+      Index num_complete_groups_;
+      Index remaining_;
+
+      template<std::size_t... Is>
+      KOKKOS_INLINE_FUNCTION void dispatch(const TeamMember& team, std::index_sequence<Is...>) const
+      {
+        func_(BuildGroupView(detail::dt_get<Is>(handles_), num_complete_groups_, remaining_, team)...);
+      }
+
+      KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
+      {
+        dispatch(team, std::make_index_sequence<HandlesTuple::N>{});
+      }
+    };
+
+    /// @brief Kokkos functor for dispatching ForEachRow() via RangePolicy (L == 1).
+    template<typename Func, typename ArgsTuple>
+    struct ForEachRowRangeFunctor
+    {
+      Func func_;
+      ViewType view_;
+      Index y_dim_;
+      ArgsTuple args_;
+
+      template<std::size_t... Is>
+      KOKKOS_INLINE_FUNCTION void dispatch(Index row, std::index_sequence<Is...>) const
+      {
+        func_(KokkosDenseMatrix<T, L>::GetTopLevelRowElement(view_, y_dim_, row, detail::dt_get<Is>(args_))...);
+      }
+
+      KOKKOS_INLINE_FUNCTION void operator()(Index row) const
+      {
+        dispatch(row, std::make_index_sequence<ArgsTuple::N>{});
+      }
+    };
+
+    /// @brief Kokkos functor for dispatching ForEachRow() over complete groups via TeamPolicy.
+    template<typename Func, typename ArgsTuple>
+    struct ForEachRowTeamFunctor
+    {
+      Func func_;
+      ViewType view_;
+      Index y_dim_;
+      ArgsTuple args_;
+
+      template<std::size_t... Is>
+      KOKKOS_INLINE_FUNCTION void dispatch(const TeamMember& team, Index group, std::index_sequence<Is...>) const
+      {
+        Kokkos::parallel_for(
+            Kokkos::TeamThreadRange(team, L),
+            [&](const Index row_in_group)
+            {
+              const Index row = group * L + row_in_group;
+              func_(KokkosDenseMatrix<T, L>::GetTopLevelRowElement(view_, y_dim_, row, detail::dt_get<Is>(args_))...);
+            });
+      }
+
+      KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
+      {
+        dispatch(team, static_cast<Index>(team.league_rank()), std::make_index_sequence<ArgsTuple::N>{});
+      }
+    };
+
+    /// @brief Kokkos functor for dispatching ForEachRow() over the tail group via TeamPolicy.
+    template<typename Func, typename ArgsTuple>
+    struct ForEachRowTailFunctor
+    {
+      Func func_;
+      ViewType view_;
+      Index y_dim_;
+      ArgsTuple args_;
+      Index num_complete_groups_;
+      Index remaining_;
+
+      template<std::size_t... Is>
+      KOKKOS_INLINE_FUNCTION void dispatch(const TeamMember& team, std::index_sequence<Is...>) const
+      {
+        Kokkos::parallel_for(
+            Kokkos::TeamThreadRange(team, remaining_),
+            [&](const Index row_in_group)
+            {
+              const Index row = num_complete_groups_ * L + row_in_group;
+              func_(KokkosDenseMatrix<T, L>::GetTopLevelRowElement(view_, y_dim_, row, detail::dt_get<Is>(args_))...);
+            });
+      }
+
+      KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
+      {
+        dispatch(team, std::make_index_sequence<ArgsTuple::N>{});
+      }
+    };
 
    public:
     KokkosDenseMatrix()
@@ -705,7 +905,7 @@ namespace micm
 
       std::vector<Index> num_cols = populate_cols(args...);
 
-      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable
+      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](Args&... invoked_args) mutable
       {
         Index num_rows = 0;
         bool found_first = false;
@@ -767,43 +967,35 @@ namespace micm
         Index num_complete_groups = static_cast<Index>(std::floor(num_rows / (double)L));
         Index remaining = num_rows % L;
 
-        // Reduce each argument to a device-safe handle (Kokkos::View + column count for
-        // matrices; KokkosPaddedVector::DeviceView for vectors) *before* entering device
-        // code, then hand the handles to a templated lambda so the pack stays a set of plain,
-        // individually-typed parameters rather than a (device-unfriendly) std::tuple.
+        // Reduce each argument to a device-safe handle before entering device code,
+        // then bundle the handles into a DeviceTuple and dispatch via named Kokkos functor
+        // structs.  This avoids two NVHPC restrictions on extended (host+device) lambdas:
+        //   (a) they cannot be defined inside a generic lambda, and
+        //   (b) they cannot capture elements of a parameter pack.
         //
         // Always dispatch via Kokkos::TeamPolicy (never a bare RangePolicy), even when
-        // L == 1: GroupView/ConstGroupView require a real TeamMember (their
-        // ForEachRow/Fill/Copy helpers use Kokkos::TeamThreadRange(team_, ...) and
-        // team_.team_barrier()), and Kokkos's TeamMember types are not
-        // default-constructible, so there is no way to hand GroupView a placeholder
-        // "no team" value. For L == 1, num_complete_groups == num_rows and
-        // remaining == 0, so this reduces to one team of size 1 per row -- correct,
-        // if not maximally GPU-efficient (see the plan's team-size note).
-        [&]<typename... Handles>(Handles&&... handles)
+        // L == 1: GroupView/ConstGroupView require a real TeamMember for
+        // TeamThreadRange/team_barrier, and TeamMember is not default-constructible.
+        auto dev_handles = detail::make_device_tuple(MakeHandle(invoked_args)...);
+        using DH = decltype(dev_handles);
+
+        if (num_complete_groups > 0)
         {
-          if (num_complete_groups > 0)
-          {
-            TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
-            Kokkos::parallel_for(
-                "KokkosDenseMatrix::Function",
-                policy,
-                KOKKOS_LAMBDA(const TeamMember& team)
-                {
-                  const Index group = static_cast<Index>(team.league_rank());
-                  func(BuildGroupView(handles, group, L, team)...);
-                });
-          }
-          if (remaining > 0)
-          {
-            TeamPolicyType tail_policy(1, Kokkos::AUTO);
-            Kokkos::parallel_for(
-                "KokkosDenseMatrix::Function(tail)",
-                tail_policy,
-                KOKKOS_LAMBDA(const TeamMember& team)
-                { func(BuildGroupView(handles, num_complete_groups, remaining, team)...); });
-          }
-        }(MakeHandle(invoked_args)...);
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
+          Kokkos::parallel_for(
+              "KokkosDenseMatrix::Function",
+              policy,
+              FunctionMainFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles });
+        }
+        if (remaining > 0)
+        {
+          TeamPolicyType tail_policy(1, Kokkos::AUTO);
+          Kokkos::parallel_for(
+              "KokkosDenseMatrix::Function(tail)",
+              tail_policy,
+              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{
+                  func, dev_handles, num_complete_groups, remaining });
+        }
       };
       return result;
     }
@@ -821,6 +1013,11 @@ namespace micm
       const Index y_dim = this->NumColumns();
       ViewType view = view_;
 
+      // Bundle args into a DeviceTuple so that the Kokkos functor structs below
+      // can capture a single object rather than a parameter pack, satisfying NVHPC.
+      auto args_tuple = detail::make_device_tuple(args...);
+      using AT = decltype(args_tuple);
+
       if constexpr (L == 1)
       {
         if (num_rows > 0)
@@ -828,7 +1025,7 @@ namespace micm
           Kokkos::parallel_for(
               "KokkosDenseMatrix::ForEachRow",
               Kokkos::RangePolicy<>(0, num_rows),
-              KOKKOS_LAMBDA(const Index row) { func(GetTopLevelRowElement(view, y_dim, row, args)...); });
+              ForEachRowRangeFunctor<std::decay_t<Func>, AT>{ func, view, y_dim, args_tuple });
         }
         return;
       }
@@ -842,17 +1039,7 @@ namespace micm
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow",
             policy,
-            KOKKOS_LAMBDA(const TeamMember& team)
-            {
-              const Index group = static_cast<Index>(team.league_rank());
-              Kokkos::parallel_for(
-                  Kokkos::TeamThreadRange(team, L),
-                  [&](const Index row_in_group)
-                  {
-                    const Index row = group * L + row_in_group;
-                    func(GetTopLevelRowElement(view, y_dim, row, args)...);
-                  });
-            });
+            ForEachRowTeamFunctor<std::decay_t<Func>, AT>{ func, view, y_dim, args_tuple });
       }
       if (remaining > 0)
       {
@@ -860,16 +1047,8 @@ namespace micm
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow(tail)",
             tail_policy,
-            KOKKOS_LAMBDA(const TeamMember& team)
-            {
-              Kokkos::parallel_for(
-                  Kokkos::TeamThreadRange(team, remaining),
-                  [&](const Index row_in_group)
-                  {
-                    const Index row = num_complete_groups * L + row_in_group;
-                    func(GetTopLevelRowElement(view, y_dim, row, args)...);
-                  });
-            });
+            ForEachRowTailFunctor<std::decay_t<Func>, AT>{
+                func, view, y_dim, args_tuple, num_complete_groups, remaining });
       }
     }
 

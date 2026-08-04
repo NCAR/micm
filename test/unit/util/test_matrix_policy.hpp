@@ -284,12 +284,9 @@ MatrixPolicy<micm::Real> TestAxpy()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestForEach()
 {
-  MatrixPolicy<micm::Real> matrix{ 4, 3, 100.0 };
-  MatrixPolicy<micm::Real> other{ 4, 3, 200.0 };
-  MatrixPolicy<micm::Real> other2{ 4, 3, 300.0 };
-  micm::Real sum = 0.0;
-  micm::Real sum2 = 0.0;
-  micm::Real result = 0.0;
+  MatrixPolicy<micm::Real> matrix{ 4, 3, 0.0 };
+  MatrixPolicy<micm::Real> other{ 4, 3, 0.0 };
+  MatrixPolicy<micm::Real> other2{ 4, 3, 0.0 };
 
   for (micm::Index i = 0; i < 4; ++i)
   {
@@ -297,20 +294,34 @@ MatrixPolicy<micm::Real> TestForEach()
     {
       matrix[i][j] = i * 10.3 + j * 100.5;
       other[i][j] = i * 1.7 + j * 10.2;
-      sum += i * 10.3 + j * 100.5 + i * 1.7 + j * 10.2;
       other2[i][j] = i * 19.5 + j * 32.2;
-      sum2 += i * 10.3 + j * 100.5 + i * 1.7 + j * 10.2 - i * 19.5 - j * 32.2;
     }
   }
 
   matrix.CopyToDevice();
   other.CopyToDevice();
-  matrix.ForEach([&](micm::Real& a, const micm::Real& b) { result += a + b; }, other);
-  EXPECT_NEAR(sum, result, 1.0e-5);
-  result = 0.0;
+  matrix.ForEach([](micm::Real& a, const micm::Real& b) { a += b; }, other);
+  matrix.CopyToHost();
+  for (micm::Index i = 0; i < 4; ++i)
+    for (micm::Index j = 0; j < 3; ++j)
+      EXPECT_NEAR(matrix[i][j], (i * 10.3 + j * 100.5) + (i * 1.7 + j * 10.2), 1.0e-5);
+
+  // Reset matrix to original values
+  for (micm::Index i = 0; i < 4; ++i)
+    for (micm::Index j = 0; j < 3; ++j)
+      matrix[i][j] = i * 10.3 + j * 100.5;
+
+  matrix.CopyToDevice();
   other2.CopyToDevice();
-  matrix.ForEach([&](micm::Real& a, const micm::Real& b, const micm::Real& c) { result += a + b - c; }, other, other2);
-  EXPECT_NEAR(sum2, result, 1.0e-5);
+  matrix.ForEach(
+      [](micm::Real& a, const micm::Real& b, const micm::Real& c) { a = a + b - c; }, other, other2);
+  matrix.CopyToHost();
+  for (micm::Index i = 0; i < 4; ++i)
+    for (micm::Index j = 0; j < 3; ++j)
+      EXPECT_NEAR(
+          matrix[i][j],
+          (i * 10.3 + j * 100.5) + (i * 1.7 + j * 10.2) - (i * 19.5 + j * 32.2),
+          1.0e-5);
 
   return matrix;
 }
