@@ -13,7 +13,7 @@ target_link_libraries(chapman_bench PRIVATE musica::micm)
 # Keep full optimization but also emit debug info so callgrind_annotate can
 # attribute instruction counts to specific source lines. -g at -O3 has no
 # runtime cost.
-target_compile_options(chapman_bench PRIVATE -g)
+target_compile_options(chapman_bench PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang,NVHPC>:-g>)
 set_target_properties(chapman_bench PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
