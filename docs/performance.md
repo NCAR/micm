@@ -35,11 +35,9 @@ The binary lands at `build/chapman_bench`.
 Good for quick local iteration; **not** for accept/reject decisions because
 wall-clock is affected by CPU load, thermals, and turbo.
 
-```bash
-scripts/bench_chapman.sh                         # defaults: 10000 cells, 30 steps
-scripts/bench_chapman.sh build 20000 50          # 20k cells, 50 steps
-scripts/bench_chapman.sh build 10000 30 vector4  # just vector4
-```
+    scripts/bench_chapman.sh                                         # defaults: 10000 cells, 30 steps
+    scripts/bench_chapman.sh build 20000 50 cpu in-place mozart       # 20k cells, 50 steps
+    scripts/bench_chapman.sh build 10000 30 cpu in-place mozart vector4  # just vector4
 
 Sample output:
 
