@@ -102,12 +102,11 @@ jobs:
           benchmark-data-dir-path: dev/bench/timing
 
 
-      - name: Upload profile outputs
+      - name: Upload benchmark outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: chapman-profile
+          name: chapman-bench
           path: |
-            base.txt
-            pr.txt
-
+            cuda_timing.json
+            cuda_instructions.json
