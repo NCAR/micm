@@ -375,18 +375,13 @@ int main(int argc, char** argv)
   {
     if (matrix_type == "vector1")
     {
-          auto solver = BuildChapmanSolver(CudaRosen<1>(options));
-          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
-    }
-    else if (matrix_type == "vector1")
-    {
-          auto solver = BuildChapmanSolver(CudaRosen<1>(options));
-          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+      auto solver = BuildChapmanSolver(CudaRosen<1>(options));
+      elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
     }
     else if (matrix_type == "vector2")
     {
-          auto solver = BuildChapmanSolver(CudaRosen<2>(options));
-          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+      auto solver = BuildChapmanSolver(CudaRosen<2>(options));
+      elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
     }
     else if (matrix_type == "vector4")
     {
