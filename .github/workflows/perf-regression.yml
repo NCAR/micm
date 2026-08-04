@@ -1,7 +1,7 @@
 name: Performance Regression
 
 # Runs the Chapman micro-benchmark under callgrind on both the PR head and the
-# base branch, and fails if the PR adds instructions to the Rosenbrock Solve()
+# base branch, and warns if the PR adds instructions to the Rosenbrock Solve()
 # function for any matrix ordering (standard, vector1,2,4,8,128).
 #
 # See docs/performance.md for how to reproduce this locally.
