@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
            apt update
-           apt install -y cmake g++
+           apt install -y cmake g++ python3 pip
 
       - name: Run Cmake
         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
@@ -65,6 +65,7 @@ jobs:
           save-data-file: false   # never write to gh-pages from PR context
           alert-threshold: 120%   # comment turns into a warning at +20%
           fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
 
       - name: Comment benchmark instruction comparison on PR
         if: github.event_name == 'pull_request'
@@ -78,6 +79,7 @@ jobs:
           save-data-file: false   # never write to gh-pages from PR context
           alert-threshold: 105%   # comment turns into a warning at +5%
           fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
 
       - name: Store instruction-count results
         if: github.event_name == 'push'

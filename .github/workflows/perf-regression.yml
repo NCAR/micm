@@ -109,6 +109,7 @@ jobs:
           save-data-file: false   # never write to gh-pages from PR context
           alert-threshold: 120%   # comment turns into a warning at +20%
           fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
 
       - name: Comment benchmark instruction comparison on PR
         uses: benchmark-action/github-action-benchmark@v1
@@ -121,6 +122,7 @@ jobs:
           save-data-file: false   # never write to gh-pages from PR context
           alert-threshold: 105%   # comment turns into a warning at +5%
           fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
 
       - name: Upload profile outputs
         if: always()
