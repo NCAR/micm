@@ -41,16 +41,16 @@ jobs:
           cd build
           ctest --rerun-failed --output-on-failure . --verbose -j 10
 
-      - name: Profile PR timing (for benchmark action)
+      - name: Profile timing (for benchmark action)
         run: |
-          pr/scripts/bench_chapman.sh pr/build \
-            | python3 pr/scripts/to_benchmark_json.py --unit ms --value-type float \
+          scripts/bench_chapman.sh build \
+            | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             > cuda_timing.json
 
-      - name: Profile PR instructions (for benchmark action)
+      - name: Profile instructions (for benchmark action)
         run: |
-          pr/scripts/profile_chapman.sh pr/build 2000 5 \
-            | python3 pr/scripts/to_benchmark_json.py --unit instructions --value-type int \
+          scripts/profile_chapman.sh build 2000 5 \
+            | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
             > cuda_instructions.json
 
       - name: Comment benchmark timing comparison on PR
