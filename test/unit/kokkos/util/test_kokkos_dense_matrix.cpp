@@ -173,15 +173,6 @@ TEST(KokkosDenseMatrix, Print)
   TestPrint<Group4KokkosMatrixAlias>();
 }
 
-// The tests below use generic [](auto&&...) outer lambdas passed to Function(),
-// or host-only lambdas passed to ForEach().  Both patterns fail to compile under
-// NVHPC CUDA because generic lambda closure types cannot be __global__ kernel
-// template arguments.  Fixing this requires replacing those lambdas with named
-// structs that have a template KOKKOS_INLINE_FUNCTION operator() -- a tracked
-// future task that also applies to the solver code (linear_solver.inl etc.).
-// All tests below are fully covered by the non-Kokkos serial test targets.
-#ifndef KOKKOS_ENABLE_CUDA
-
 TEST(KokkosDenseMatrix, ForEach)
 {
   TestForEach<Group1KokkosMatrixAlias>();
@@ -189,8 +180,6 @@ TEST(KokkosDenseMatrix, ForEach)
   TestForEach<Group3KokkosMatrixAlias>();
   TestForEach<Group4KokkosMatrixAlias>();
 }
-
-#endif
 
 TEST(KokkosDenseMatrix, ArrayFunction)
 {
@@ -200,8 +189,6 @@ TEST(KokkosDenseMatrix, ArrayFunction)
   TestArrayFunction<Group4KokkosMatrixAlias>();
 }
 
-#ifndef KOKKOS_ENABLE_CUDA
-
 TEST(KokkosDenseMatrix, MultiMatrixArrayFunction)
 {
   TestMultiMatrixArrayFunction<Group1KokkosMatrixAlias>();
@@ -209,8 +196,6 @@ TEST(KokkosDenseMatrix, MultiMatrixArrayFunction)
   TestMultiMatrixArrayFunction<Group3KokkosMatrixAlias>();
   TestMultiMatrixArrayFunction<Group4KokkosMatrixAlias>();
 }
-
-#endif
 
 TEST(KokkosDenseMatrix, MismatchedRowDimensions)
 {

@@ -300,7 +300,7 @@ MatrixPolicy<micm::Real> TestForEach()
 
   matrix.CopyToDevice();
   other.CopyToDevice();
-  matrix.ForEach([](micm::Real& a, const micm::Real& b) { a += b; }, other);
+  matrix.ForEach(MICM_LAMBDA(micm::Real& a, const micm::Real& b) { a += b; }, other);
   matrix.CopyToHost();
   for (micm::Index i = 0; i < 4; ++i)
     for (micm::Index j = 0; j < 3; ++j)
@@ -314,7 +314,7 @@ MatrixPolicy<micm::Real> TestForEach()
   matrix.CopyToDevice();
   other2.CopyToDevice();
   matrix.ForEach(
-      [](micm::Real& a, const micm::Real& b, const micm::Real& c) { a = a + b - c; }, other, other2);
+      MICM_LAMBDA(micm::Real& a, const micm::Real& b, const micm::Real& c) { a = a + b - c; }, other, other2);
   matrix.CopyToHost();
   for (micm::Index i = 0; i < 4; ++i)
     for (micm::Index j = 0; j < 3; ++j)
