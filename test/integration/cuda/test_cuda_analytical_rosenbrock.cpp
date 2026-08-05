@@ -217,11 +217,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalOregonator(two_1_cell, 1e-2, 1, copy_to_device, copy_to_host);
-  TestAnalyticalOregonator(three_1_cell, 1e-2, 1, copy_to_device, copy_to_host);
-  TestAnalyticalOregonator(four_1_cell, 1e-2, 1, copy_to_device, copy_to_host);
-  TestAnalyticalOregonator(four_da_1_cell, 1e-2, 1, copy_to_device, copy_to_host);
-  TestAnalyticalOregonator(six_da_1_cell, 1e-2, 1, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(two_1_cell, 1e-6, 1, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(three_1_cell, 1e-6, 1, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(four_1_cell, 1e-6, 1, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(four_da_1_cell, 1e-6, 1, 1e-9, copy_to_device, copy_to_host);
+  TestAnalyticalOregonator(six_da_1_cell, 1e-6, 1, 1e-9, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
