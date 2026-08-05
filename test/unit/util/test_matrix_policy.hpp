@@ -531,7 +531,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixAr
   // Row 2: 4, 24, 8
 
   auto func = Matrix::Function(
-      [](typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
       {
         // Use an array function to set C = A + B
         // where A is from matrixA, B is from matrixB, C is in matrixA
@@ -1948,7 +1948,11 @@ void TestReduceSum()
 template<template<class> class MatrixPolicy>
 void TestReduceMax()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Scalar = typename Matrix::template ScalarType<micm::Real>;
+  using Max = typename Matrix::template MaxType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
   matrix[0][0] = 1.0;
   matrix[0][1] = 8.0;
   matrix[1][0] = 5.0;
@@ -1957,12 +1961,14 @@ void TestReduceMax()
   matrix[2][1] = 4.0;
   matrix.CopyToDevice();
 
-  micm::Real max_val = std::numeric_limits<micm::Real>::lowest();
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [&max_val](auto&& view)
+  Scalar max_val = std::numeric_limits<micm::Real>::lowest();
+  max_val.CopyToDevice();
+  Max max_val_max{ max_val }; // must construct outside of lambda
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType view)
       {
         view.Reduce(
-            micm::Max<micm::Real>{ max_val },
+            max_val_max,
             [](const micm::Real& a, micm::Real& acc)
             {
               if (a > acc)
@@ -1970,7 +1976,7 @@ void TestReduceMax()
             },
             view.GetConstColumnView(0));
         view.Reduce(
-            micm::Max<micm::Real>{ max_val },
+            max_val_max,
             [](const micm::Real& a, micm::Real& acc)
             {
               if (a > acc)
@@ -1980,6 +1986,7 @@ void TestReduceMax()
       },
       matrix);
   func(matrix);
+  max_val.CopyToHost();
 
   EXPECT_EQ(max_val, 8.0);
 }
@@ -1988,52 +1995,62 @@ void TestReduceMax()
 template<template<class> class MatrixPolicy>
 void TestReduceLOr()
 {
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Scalar = typename Matrix::template ScalarType<bool>;
+  using LOr = typename Matrix::LOrType;
+
   // Case 1: no element exceeds the threshold -> LOr result stays false.
   {
-    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    Matrix matrix{ 3, 2, 1.0 };
     matrix.CopyToDevice();
 
-    bool any_large = false;
-    auto func = MatrixPolicy<micm::Real>::Function(
-        [&any_large](auto&& view)
+    Scalar any_large = false;
+    any_large.CopyToDevice();
+    LOr any_large_lor{ any_large }; // must construct outside of lambda
+    auto func = Matrix::Function(
+        MICM_LAMBDA(typename Matrix::ConstViewType view)
         {
           view.Reduce(
-              micm::LOr{ any_large },
+              any_large_lor,
               [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(0));
           view.Reduce(
-              micm::LOr{ any_large },
+              any_large_lor,
               [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(1));
         },
         matrix);
     func(matrix);
+    any_large.CopyToHost();
 
     EXPECT_FALSE(any_large);
   }
 
   // Case 2: one element exceeds the threshold -> LOr result becomes true.
   {
-    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    Matrix matrix{ 3, 2, 1.0 };
     matrix.CopyToHost();
     matrix[2][1] = 42.0;
     matrix.CopyToDevice();
 
-    bool any_large = false;
-    auto func = MatrixPolicy<micm::Real>::Function(
-        [&any_large](auto&& view)
+    Scalar any_large = false;
+    any_large.CopyToDevice();
+    LOr any_large_lor{ any_large }; // must construct outside of lambda
+    auto func = Matrix::Function(
+        MICM_LAMBDA(typename Matrix::ConstViewType view)
         {
           view.Reduce(
-              micm::LOr{ any_large },
+              any_large_lor,
               [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(0));
           view.Reduce(
-              micm::LOr{ any_large },
+              any_large_lor,
               [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(1));
         },
         matrix);
     func(matrix);
+    any_large.CopyToHost();
 
     EXPECT_TRUE(any_large);
   }
@@ -2046,52 +2063,62 @@ void TestReduceLOr()
 template<template<class> class MatrixPolicy>
 void TestReduceLAnd()
 {
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Scalar = typename Matrix::template ScalarType<bool>;
+  using LAnd = typename Matrix::LAndType;
+
   // Case 1: all elements finite -> LAnd result stays true.
   {
-    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    Matrix matrix{ 3, 2, 1.0 };
     matrix.CopyToDevice();
 
-    bool all_finite = true;
-    auto func = MatrixPolicy<micm::Real>::Function(
-        [&all_finite](auto&& view)
+    Scalar all_finite = true;
+    all_finite.CopyToDevice();
+    LAnd all_finite_land{ all_finite }; // must construct outside of lambda (on host)
+    auto func = Matrix::Function(
+        MICM_LAMBDA(typename Matrix::ConstViewType view)
         {
           view.Reduce(
-              micm::LAnd{ all_finite },
+              all_finite_land,
               [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(0));
           view.Reduce(
-              micm::LAnd{ all_finite },
+              all_finite_land,
               [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(1));
         },
         matrix);
     func(matrix);
+    all_finite.CopyToHost();
 
     EXPECT_TRUE(all_finite);
   }
 
   // Case 2: one element non-finite -> LAnd result becomes false.
   {
-    MatrixPolicy<micm::Real> matrix{ 3, 2, 1.0 };
+    Matrix matrix{ 3, 2, 1.0 };
     matrix.CopyToHost();
     matrix[1][0] = std::numeric_limits<micm::Real>::quiet_NaN();
     matrix.CopyToDevice();
 
-    bool all_finite = true;
-    auto func = MatrixPolicy<micm::Real>::Function(
-        [&all_finite](auto&& view)
+    Scalar all_finite = true;
+    all_finite.CopyToDevice();
+    LAnd all_finite_land{ all_finite }; // must construct outside of lambda (on host)
+    auto func = Matrix::Function(
+        MICM_LAMBDA(typename Matrix::ConstViewType view)
         {
           view.Reduce(
-              micm::LAnd{ all_finite },
+              all_finite_land,
               [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(0));
           view.Reduce(
-              micm::LAnd{ all_finite },
+              all_finite_land,
               [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(1));
         },
         matrix);
     func(matrix);
+    all_finite.CopyToHost();
 
     EXPECT_FALSE(all_finite);
   }
@@ -2102,23 +2129,30 @@ void TestReduceLAnd()
 template<template<class> class MatrixPolicy>
 void TestReduceStrict()
 {
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Scalar = typename Matrix::template ScalarType<micm::Real>;
+  using Sum = typename Matrix::template SumType<micm::Real>;
+
   // 3 rows, but for L > 1 policies the tail group has < L real rows plus padding.
   // ReduceStrict with a counter-like lambda should visit exactly NumRows() real
   // rows -- never any padding rows.
-  MatrixPolicy<micm::Real> matrix{ 3, 1, 0.0 };
+  Matrix matrix{ 3, 1, 0.0 };
   matrix.CopyToDevice();
 
-  micm::Real count = 0.0;
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [&count](auto&& view)
+  Scalar count = 0.0;
+  count.CopyToDevice();
+  Sum count_sum{ count }; // must construct outside of lambda (on host)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType view)
       {
         view.ReduceStrict(
-            micm::Sum<micm::Real>{ count },
+            count_sum,
             [](const micm::Real&, micm::Real& acc) { acc += 1.0; },
             view.GetConstColumnView(0));
       },
       matrix);
   func(matrix);
+  count.CopyToHost();
 
   EXPECT_EQ(count, 3.0);
 }

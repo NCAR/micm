@@ -75,6 +75,12 @@ namespace micm
     {
     }
 
+    template<typename Scalar>
+    explicit Max(const Scalar& scalar)
+        : value_(scalar.host_value())
+    {
+    }
+
     constexpr T& reference() const
     {
       return value_;
@@ -97,6 +103,9 @@ namespace micm
   template<typename T>
   Max(T&) -> Max<T>;
 
+  template<typename Scalar>
+  Max(const Scalar&) -> Max<typename Scalar::value_type>;
+
   /// @brief Logical-OR reduction (`acc = acc || x`).
   struct LOr
   {
@@ -105,6 +114,12 @@ namespace micm
 
     constexpr explicit LOr(bool& value)
         : value_(value)
+    {
+    }
+
+    template<typename Scalar>
+    explicit LOr(const Scalar& scalar)
+        : value_(scalar.host_value())
     {
     }
 
@@ -132,6 +147,12 @@ namespace micm
 
     constexpr explicit LAnd(bool& value)
         : value_(value)
+    {
+    }
+
+    template<typename Scalar>
+    explicit LAnd(const Scalar& scalar)
+        : value_(scalar.host_value())
     {
     }
 

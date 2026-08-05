@@ -148,6 +148,10 @@ namespace micm
     using ScalarType = KokkosScalarView<ScaT>;
     template<class U>
     using SumType = KokkosSum<U>;
+    template<class U>
+    using MaxType = KokkosMax<U>;
+    using LOrType = KokkosLOr;
+    using LAndType = KokkosLAnd;
 
    private:
     /// Device-side (or unified) view — the Kokkos mirror of VectorMatrix::data_
@@ -681,21 +685,10 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        // Kokkos::parallel_reduce writes into the reducer's destination scalar
-        // per call, overwriting whatever was there. To make repeated Reduce() calls
-        // accumulate into the caller's `reducer.reference()` -- matching the host
-        // Matrix/VectorMatrix semantics -- reduce into a per-team scratch and then
-        // join into the caller's destination from a single team member.
-        AccT local = Reducer::identity();
-        Kokkos::parallel_reduce(
-            Kokkos::TeamThreadRange(team_, L),
+        reducer.team_reduce(team_, L,
             [&](const Index row_in_group, AccT& acc) {
-              func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
-            },
-            local);
-        Kokkos::single(Kokkos::PerTeam(team_), [&]() {
-          Kokkos::atomic_add(reducer.device_ptr(), local);
-        });
+                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
+            });
         team_.team_barrier();
       }
 
@@ -704,16 +697,10 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        AccT local = Reducer::identity();
-        Kokkos::parallel_reduce(
-            Kokkos::TeamThreadRange(team_, num_rows_in_group_),
+        reducer.team_reduce(team_, num_rows_in_group_,
             [&](const Index row_in_group, AccT& acc) {
-              func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
-            },
-            local);
-        Kokkos::single(Kokkos::PerTeam(team_), [&]() {
-          Kokkos::atomic_add(reducer.device_ptr(), local);
-        });
+                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
+            });
         team_.team_barrier();
       }
     };

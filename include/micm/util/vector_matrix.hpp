@@ -48,7 +48,11 @@ namespace micm
     template<class ScaT>
     using ScalarType = ScalarView<ScaT>;
     template<class U>
-    using SumType = Sum<U>;
+    using SumType = micm::Sum<U>;
+    template<class U>
+    using MaxType = micm::Max<U>;
+    using LOrType = micm::LOr;
+    using LAndType = micm::LAnd;
 
     /// @brief A lightweight descriptor for a const column in a matrix
     class ConstColumnView
