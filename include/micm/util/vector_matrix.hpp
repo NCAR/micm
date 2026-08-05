@@ -37,6 +37,10 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
+    class GroupView;
+    class ConstGroupView;
+    using ViewType = GroupView;
+    using ConstViewType = ConstGroupView;
     template<class VecT>
     using VectorType = PaddedVector<VecT, L>;
 
@@ -1279,8 +1283,8 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: just forward it
-                  return std::forward<decltype(arg)>(arg);
+                  // Vector: get a lightweight view (View or ConstView)
+                  return std::forward<decltype(arg)>(arg).GetView();
                 }
                 else
                 {
@@ -1310,8 +1314,8 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: just forward it
-                  return std::forward<decltype(arg)>(arg);
+                  // Vector: get a lightweight view (View or ConstView)
+                  return std::forward<decltype(arg)>(arg).GetView();
                 }
                 else
                 {

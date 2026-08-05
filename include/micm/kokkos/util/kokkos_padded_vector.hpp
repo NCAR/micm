@@ -22,6 +22,31 @@ namespace micm
    public:
     using value_type = T;
     using category = PaddedVectorTag;
+    struct DeviceView;
+    struct ConstDeviceView;
+    using ViewType = DeviceView;
+    using ConstViewType = ConstDeviceView;
+
+    struct ConstDeviceView
+    {
+        Kokkos::View<const T*> view_;
+
+        KOKKOS_INLINE_FUNCTION const T& operator[](Index i) const
+        {
+            return view_(i);
+        }
+
+        KOKKOS_INLINE_FUNCTION Index size() const
+        {
+            return view_.extent(0);
+        }
+
+        // So the KokkosVectorLike concept accepts a DeviceView also
+        KOKKOS_INLINE_FUNCTION const ConstDeviceView& GetView() const
+        {
+            return *this;
+        }
+    };
 
     struct DeviceView
     {
@@ -41,6 +66,12 @@ namespace micm
         KOKKOS_INLINE_FUNCTION DeviceView& GetView() const
         {
             return *this;
+        }
+
+        // Implicit conversion to ConstDeviceView (mirrors Kokkos::View<T*> -> View<const T*>)
+        KOKKOS_INLINE_FUNCTION operator ConstDeviceView() const
+        {
+            return { view_ };
         }
     };
 

@@ -5,6 +5,7 @@
 #include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_view_category.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/reducers.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -131,8 +132,12 @@ namespace micm
       return L;
     }
     using value_type = T;
-    using ViewType = Kokkos::View<T*>;
-    using HostViewType = typename ViewType::host_mirror_type;
+    class GroupView;
+    class ConstGroupView;
+    using ViewType = GroupView;
+    using ConstViewType = ConstGroupView;
+    using KokkosViewType = Kokkos::View<T*>;
+    using HostViewType = typename KokkosViewType::host_mirror_type;
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
     template<class VecT>
@@ -140,7 +145,7 @@ namespace micm
 
    private:
     /// Device-side (or unified) view — the Kokkos mirror of VectorMatrix::data_
-    ViewType view_;
+    KokkosViewType view_;
 
    public:
     // -----------------------------------------------------------------------
@@ -265,7 +270,7 @@ namespace micm
     struct ForEachRowRangeFunctor
     {
       Func func_;
-      ViewType view_;
+      KokkosViewType view_;
       Index y_dim_;
       ArgsTuple args_;
 
@@ -286,7 +291,7 @@ namespace micm
     struct ForEachRowTeamFunctor
     {
       Func func_;
-      ViewType view_;
+      KokkosViewType view_;
       Index y_dim_;
       ArgsTuple args_;
 
@@ -313,7 +318,7 @@ namespace micm
     struct ForEachRowTailFunctor
     {
       Func func_;
-      ViewType view_;
+      KokkosViewType view_;
       Index y_dim_;
       ArgsTuple args_;
       Index num_complete_groups_;
@@ -381,7 +386,7 @@ namespace micm
       Kokkos::deep_copy(h_view, view_);
     }
 
-    ViewType GetView() const
+    KokkosViewType GetView() const
     {
       return view_;
     }
@@ -410,8 +415,8 @@ namespace micm
     /// @param x The input KokkosDenseMatrix
     void Axpy(const Real& alpha, const KokkosDenseMatrix& x)
     {
-      ViewType y_view = view_;
-      ViewType x_view = x.view_;
+      KokkosViewType y_view = view_;
+      KokkosViewType x_view = x.view_;
       const Index y_dim = this->NumColumns();
       const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
       Kokkos::parallel_for(
@@ -437,7 +442,7 @@ namespace micm
     /// Touches every stored cell, including any trailing padding cells.
     void Max(const T& x)
     {
-      ViewType y_view = view_;
+      KokkosViewType y_view = view_;
       Kokkos::parallel_for(
           "KokkosDenseMatrix::Max",
           Kokkos::RangePolicy<>(0, y_view.extent(0)),
@@ -449,7 +454,7 @@ namespace micm
     /// Touches every stored cell, including any trailing padding cells.
     void Min(const T& x)
     {
-      ViewType y_view = view_;
+      KokkosViewType y_view = view_;
       Kokkos::parallel_for(
           "KokkosDenseMatrix::Min",
           Kokkos::RangePolicy<>(0, y_view.extent(0)),
@@ -481,8 +486,8 @@ namespace micm
     template<typename Func>
     void ForEach(Func&& f, const KokkosDenseMatrix& a)
     {
-      ViewType y_view = view_;
-      ViewType a_view = a.view_;
+      KokkosViewType y_view = view_;
+      KokkosViewType a_view = a.view_;
       const Index y_dim = this->NumColumns();
       const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
       Kokkos::parallel_for(
@@ -509,9 +514,9 @@ namespace micm
     template<typename Func>
     void ForEach(Func&& f, const KokkosDenseMatrix& a, const KokkosDenseMatrix& b)
     {
-      ViewType y_view = view_;
-      ViewType a_view = a.view_;
-      ViewType b_view = b.view_;
+      KokkosViewType y_view = view_;
+      KokkosViewType a_view = a.view_;
+      KokkosViewType b_view = b.view_;
       const Index y_dim = this->NumColumns();
       const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
       Kokkos::parallel_for(
@@ -701,7 +706,7 @@ namespace micm
       using GroupedConstColumnView = micm::KokkosGroupedConstColumnView<T>;
 
      private:
-      ViewType view_;
+      KokkosViewType view_;
       Index group_;
       Index y_dim_;
       Index num_rows_in_group_;
@@ -733,7 +738,7 @@ namespace micm
 
      public:
       KOKKOS_INLINE_FUNCTION
-      GroupView(ViewType view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
+      GroupView(KokkosViewType view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
           : view_(view),
             group_(group),
             y_dim_(y_dim),
@@ -905,7 +910,7 @@ namespace micm
 
       std::vector<Index> num_cols = populate_cols(args...);
 
-      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](Args&... invoked_args) mutable
+      auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable
       {
         Index num_rows = 0;
         bool found_first = false;
@@ -1011,7 +1016,7 @@ namespace micm
     {
       const Index num_rows = this->NumRows();
       const Index y_dim = this->NumColumns();
-      ViewType view = view_;
+      KokkosViewType view = view_;
 
       // Bundle args into a DeviceTuple so that the Kokkos functor structs below
       // can capture a single object rather than a parameter pack, satisfying NVHPC.
@@ -1056,19 +1061,19 @@ namespace micm
     /// @brief Get an element reference for a row at the (ungrouped) matrix level.
     ///        Used by the matrix-level ForEachRow() override.
     template<DenseMatrixColumnView Arg>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(ViewType, Index, Index row, Arg&& arg)
+    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(KokkosViewType, Index, Index row, Arg&& arg)
     {
       return arg.Data()[(row / L * arg.YDim() + arg.ColumnIndex()) * L + row % L];
     }
 
     template<BlockVariableView Arg>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(ViewType, Index, Index row, Arg&& arg)
+    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(KokkosViewType, Index, Index row, Arg&& arg)
     {
       return arg.Get()[row % L];
     }
 
     template<KokkosVectorLike Arg>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(ViewType, Index, Index row, Arg&& arg)
+    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelRowElement(KokkosViewType, Index, Index row, Arg&& arg)
     {
       return arg[row];
     }

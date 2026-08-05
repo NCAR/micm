@@ -19,7 +19,50 @@ namespace micm
 
    public:
     using value_type = T;
+    struct View;
+    struct ConstView;
+    using ViewType = View;
+    using ConstViewType = ConstView;
     using category = PaddedVectorTag;
+
+    struct ConstView
+    {
+        const T* data_;
+        Index size_;
+        Index padded_size_;
+
+        const T& operator[](Index i) const { return data_[i]; }
+        Index size() const { return size_; }
+        Index PaddedSize() const { return padded_size_; }
+        ConstView GetView() const { return *this; }
+
+        const T* begin() const { return data_; }
+        const T* end() const { return data_ + size_; }
+        const T* data() const { return data_; }
+    };
+
+    struct View
+    {
+        T* data_;
+        Index size_;
+        Index padded_size_;
+
+        T& operator[](Index i) { return data_[i]; }
+        const T& operator[](Index i) const { return data_[i]; }
+        Index size() const { return size_; }
+        Index PaddedSize() const { return padded_size_; }
+        View GetView() const { return *this; }
+
+        T* begin() { return data_; }
+        T* end() { return data_ + size_; }
+        const T* begin() const { return data_; }
+        const T* end() const { return data_ + size_; }
+        T* data() { return data_; }
+        const T* data() const { return data_; }
+
+        // Implicit conversion to ConstView (mirrors DeviceView -> ConstDeviceView)
+        operator ConstView() const { return { data_, size_, padded_size_ }; }
+    };
     
     static constexpr Index GroupVectorSize()
     {
@@ -90,6 +133,9 @@ namespace micm
     {
         return data_.data();
     }
+
+    View GetView() { return { data_.data(), size_, (Index)data_.size() }; }
+    ConstView GetView() const { return { data_.data(), size_, (Index)data_.size() }; }
 
     void CopyToHost() const
     {

@@ -27,8 +27,8 @@ namespace micm
       return OrderingPolicy::GroupVectorSize();
     }
     using value_type = T;
-    using ViewType = Kokkos::View<T*>;
-    using HostViewType = typename ViewType::host_mirror_type;
+    using KokkosViewType = Kokkos::View<T*>;
+    using HostViewType = typename KokkosViewType::host_mirror_type;
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
     template<class VecT>
@@ -39,7 +39,7 @@ namespace micm
     static constexpr Index L = OrderingPolicy::GroupVectorSize();
 
     /// Device-side (or unified) view — the Kokkos mirror of MICM's data_
-    ViewType view_;
+    KokkosViewType view_;
 
    public:
     // -----------------------------------------------------------------------
@@ -210,7 +210,7 @@ namespace micm
     struct ForEachBlockRangeFunctor
     {
       Func func_;
-      ViewType view_;
+      KokkosViewType view_;
       Index flat_block_size_;
       ArgsTuple args_;
 
@@ -232,7 +232,7 @@ namespace micm
     struct ForEachBlockTeamFunctor
     {
       Func func_;
-      ViewType view_;
+      KokkosViewType view_;
       Index flat_block_size_;
       ArgsTuple args_;
 
@@ -260,7 +260,7 @@ namespace micm
     struct ForEachBlockTailFunctor
     {
       Func func_;
-      ViewType view_;
+      KokkosViewType view_;
       Index flat_block_size_;
       ArgsTuple args_;
       Index num_complete_groups_;
@@ -304,7 +304,7 @@ namespace micm
     {
       if (view_.extent(0) != this->data_.size())
       {
-        view_ = ViewType("sparse_matrix", this->data_.size());
+        view_ = KokkosViewType("sparse_matrix", this->data_.size());
       }
       auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
           this->data_.data(), this->data_.size());
@@ -322,7 +322,7 @@ namespace micm
       }
     }
 
-    ViewType GetView() const
+    KokkosViewType GetView() const
     {
       return view_;
     }
@@ -342,7 +342,7 @@ namespace micm
     {
       if (view_.extent(0) != this->data_.size())
       {
-        view_ = ViewType("sparse_matrix", this->data_.size());
+        view_ = KokkosViewType("sparse_matrix", this->data_.size());
       }
       Kokkos::deep_copy(view_, val);
     }
@@ -370,7 +370,7 @@ namespace micm
           diagonal_offsets.data(), diagonal_offsets.size());
       Kokkos::deep_copy(d_offsets, h_offsets);
 
-      ViewType data_view = view_;
+      KokkosViewType data_view = view_;
       const Index group_size = L * this->FlatBlockSize();
       const Index num_groups = (this->NumberOfBlocks() + L - 1) / L;
       const Index num_diagonal_elements = static_cast<Index>(diagonal_offsets.size());
@@ -442,7 +442,7 @@ namespace micm
     {
       const Index num_blocks = this->NumberOfBlocks();
       const Index flat_block_size = this->FlatBlockSize();
-      ViewType view = view_;
+      KokkosViewType view = view_;
 
       // Bundle args into a DeviceTuple (see KokkosDenseMatrix::ForEachRow for rationale).
       auto args_tuple = detail::make_device_tuple(args...);
@@ -660,7 +660,7 @@ namespace micm
       using GroupedConstBlockView = micm::KokkosGroupedConstBlockView<T>;
 
      private:
-      ViewType view_;
+      KokkosViewType view_;
       Index group_;
       Index flat_block_size_;
       Index num_blocks_in_group_;
@@ -714,7 +714,7 @@ namespace micm
      public:
       KOKKOS_INLINE_FUNCTION
       GroupView(
-          ViewType view,
+          KokkosViewType view,
           Index group,
           Index flat_block_size,
           Index num_blocks_in_group,
@@ -980,7 +980,7 @@ namespace micm
     ///        Used by the matrix-level ForEachBlock() override.
     template<SparseMatrixBlockView Arg>
     KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
-        ViewType,
+        KokkosViewType,
         Index,
         Index block,
         Arg&& arg)
@@ -990,7 +990,7 @@ namespace micm
 
     template<BlockVariableView Arg>
     KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
-        ViewType,
+        KokkosViewType,
         Index,
         Index block,
         Arg&& arg)
@@ -1000,7 +1000,7 @@ namespace micm
 
     template<KokkosVectorLike Arg>
     KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
-        ViewType,
+        KokkosViewType,
         Index,
         Index block,
         Arg&& arg)

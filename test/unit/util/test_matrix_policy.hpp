@@ -421,7 +421,9 @@ MatrixPolicy<micm::Real> TestPrint()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestArrayFunction()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, -1.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrix{ 5, 3, -1.0 };
 
   // Set initial values that differ by rows
   for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i)
@@ -439,8 +441,8 @@ MatrixPolicy<micm::Real> TestArrayFunction()
   // Row 3: 1, 11, 21
   // Row 4: 2, 12, 22
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -476,7 +478,7 @@ MatrixPolicy<micm::Real> TestArrayFunction()
 
   // Use the function with a different matrix with the same number of columns, but different number of rows,
   // to test that it works with different sizes
-  MatrixPolicy<micm::Real> matrix2{ 3, 3, -1.0 };
+  Matrix matrix2{ 3, 3, -1.0 };
   matrix2.CopyToDevice();
   func(matrix2);
   matrix2.CopyToHost();
@@ -496,8 +498,9 @@ MatrixPolicy<micm::Real> TestArrayFunction()
 template<template<class> class MatrixPolicy>
 std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixArrayFunction()
 {
-  MatrixPolicy<micm::Real> matrixA{ 3, 2, 1.0 };
-  MatrixPolicy<micm::Real> matrixB{ 3, 3, 2.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  Matrix matrixA{ 3, 2, 1.0 };
+  Matrix matrixB{ 3, 3, 2.0 };
 
   // Set initial values that differ by rows
   for (micm::Index i = 0; i < matrixA.NumRows(); ++i)
@@ -527,8 +530,8 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixAr
   // Row 1: 2, 22, 4
   // Row 2: 4, 24, 8
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB)
+  auto func = Matrix::Function(
+      [](typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
       {
         // Use an array function to set C = A + B
         // where A is from matrixA, B is from matrixB, C is in matrixA
@@ -545,7 +548,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixAr
 
   matrixA.CopyToDevice();
   matrixB.CopyToDevice();
-  func(matrixA, matrixB);
+  func(matrixA, std::as_const(matrixB));
   matrixA.CopyToHost();
   matrixB.CopyToHost();
 
@@ -566,7 +569,9 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixAr
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, -1.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::VectorType<micm::Real>;
+  Matrix matrix{ 5, 3, -1.0 };
 
   // Set initial values that differ by rows
   for (int i = 0; i < static_cast<int>(matrix.NumRows()); ++i)
@@ -585,7 +590,7 @@ MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
   // Row 4: 2, 12, 22
 
   // Create a vector that we will use in the function
-  auto vec = matrix.template CompatibleVector<micm::Real>(matrix.NumRows());
+  Vector vec(matrix.NumRows());
 
   // Set some initial values in the vector
   vec[0] = 100.0;
@@ -594,8 +599,8 @@ MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
   vec[3] = 400.0;
   vec[4] = 500.0;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -639,12 +644,14 @@ MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
 template<template<class> class MatrixPolicy>
 std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDifferentRowsFromCreation()
 {
-  // Create function with 3-row matrices
-  MatrixPolicy<micm::Real> matrixA_create{ 3, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB_create{ 3, 3, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB)
+  // Create function with 3-row matrices
+  Matrix matrixA_create{ 3, 2, 0.0 };
+  Matrix matrixB_create{ 3, 3, 0.0 };
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
       {
         auto tmp = mA.GetRowVariable();
         mA.ForEachRow(
@@ -658,8 +665,8 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
       matrixB_create);
 
   // Now use with 5-row matrices (different from creation)
-  MatrixPolicy<micm::Real> matrixA{ 5, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB{ 5, 3, 0.0 };
+  Matrix matrixA{ 5, 2, 0.0 };
+  Matrix matrixB{ 5, 3, 0.0 };
 
   for (micm::Index i = 0; i < 5; ++i)
   {
@@ -670,7 +677,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
   // Should work - column counts match, row counts match each other
   matrixA.CopyToDevice();
   matrixB.CopyToDevice();
-  func(matrixA, matrixB);
+  func(matrixA, std::as_const(matrixB));
   matrixA.CopyToHost();
 
   EXPECT_EQ(matrixA[0][1], (1.0 + 0.0) * 2.0);   // 2
@@ -680,8 +687,8 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
   EXPECT_EQ(matrixA[4][1], (5.0 + 40.0) * 2.0);  // 90
 
   // Also test with 2-row matrices (fewer rows than creation)
-  MatrixPolicy<micm::Real> matrixA2{ 2, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB2{ 2, 3, 0.0 };
+  Matrix matrixA2{ 2, 2, 0.0 };
+  Matrix matrixB2{ 2, 3, 0.0 };
 
   matrixA2[0][0] = 10.0;
   matrixA2[1][0] = 20.0;
@@ -690,7 +697,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
 
   matrixA2.CopyToDevice();
   matrixB2.CopyToDevice();
-  func(matrixA2, matrixB2);
+  func(matrixA2, std::as_const(matrixB2));
   matrixA2.CopyToHost();
 
   EXPECT_EQ(matrixA2[0][1], (10.0 + 5.0) * 2.0);   // 30
@@ -703,12 +710,14 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
 template<template<class> class MatrixPolicy>
 std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>> TestMatrixVectorDifferentRowsFromCreation()
 {
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::VectorType<micm::Real>;
   // Create function with 3-row matrix and vector
-  MatrixPolicy<micm::Real> matrix_create{ 3, 3, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_create(3);
+  Matrix matrix_create{ 3, 3, 0.0 };
+  Vector vec_create(3);
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -719,8 +728,8 @@ std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template
       vec_create);
 
   // Now use with 5-row matrix and vector (different from creation)
-  MatrixPolicy<micm::Real> matrix{ 5, 3, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(5);
+  Matrix matrix{ 5, 3, 0.0 };
+  Vector vec(5);
 
   for (micm::Index i = 0; i < 5; ++i)
   {
@@ -731,7 +740,7 @@ std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template
   // Should work - columns match, row counts match each other
   matrix.CopyToDevice();
   vec.CopyToDevice();
-  func(matrix, vec);
+  func(matrix, std::as_const(vec));
   matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][1], (1.0 + 0.0) * 3.0);   // 3
@@ -747,37 +756,42 @@ std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template
 template<template<class> class MatrixPolicy>
 void TestMismatchedRowsAtInvocation()
 {
-  MatrixPolicy<micm::Real> matrix_create{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_create(3);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  Matrix matrix_create{ 3, 2, 0.0 };
+  Vector vec_create(3);
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
       matrix_create,
       vec_create);
 
   // Try to invoke with matrix (5 rows) and vector (3 rows) - should fail
-  MatrixPolicy<micm::Real> matrix{ 5, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(3);
+  Matrix matrix{ 5, 2, 0.0 };
+  Vector vec(3);
 
   EXPECT_ANY_THROW(func(matrix, vec));
 
   // Try the other way - matrix (3 rows) and vector (5 rows) - should also fail
-  MatrixPolicy<micm::Real> matrix2{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec2(5);
+  Matrix matrix2{ 3, 2, 0.0 };
+  Vector vec2(5);
 
-  EXPECT_ANY_THROW(func(matrix2, vec2));
+  EXPECT_ANY_THROW(func(matrix2, std::as_const(vec2)));
 }
 
 /// @brief Test: Mismatched row counts between multiple matrices at invocation (should fail)
 template<template<class> class MatrixPolicy>
 void TestMultipleMatricesMismatchedRowsAtInvocation()
 {
-  MatrixPolicy<micm::Real> matrixA_create{ 3, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB_create{ 3, 3, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB) {
+  Matrix matrixA_create{ 3, 2, 0.0 };
+  Matrix matrixB_create{ 3, 3, 0.0 };
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB) {
         mA.ForEachRow(
             [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, mB.GetConstColumnView(0), mA.GetColumnView(0));
       },
@@ -785,21 +799,23 @@ void TestMultipleMatricesMismatchedRowsAtInvocation()
       matrixB_create);
 
   // Try to invoke with matrices having different row counts - should fail
-  MatrixPolicy<micm::Real> matrixA{ 5, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB{ 3, 3, 0.0 };  // Different row count!
+  Matrix matrixA{ 5, 2, 0.0 };
+  Matrix matrixB{ 3, 3, 0.0 };  // Different row count!
 
-  EXPECT_ANY_THROW(func(matrixA, matrixB));
+  EXPECT_ANY_THROW(func(matrixA, std::as_const(matrixB)));
 }
 
 /// @brief Test: Wrong column count at invocation time (should fail)
 template<template<class> class MatrixPolicy>
 void TestWrongColumnCountAtInvocation()
 {
-  // Create function with 3-column matrix
-  MatrixPolicy<micm::Real> matrix_create{ 4, 3, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  // Create function with 3-column matrix
+  Matrix matrix_create{ 4, 3, 0.0 };
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -812,27 +828,29 @@ void TestWrongColumnCountAtInvocation()
       matrix_create);
 
   // Try to invoke with wrong column count - should fail
-  MatrixPolicy<micm::Real> matrix_wrong_cols{ 4, 4, 0.0 };  // 4 columns instead of 3
+  Matrix matrix_wrong_cols{ 4, 4, 0.0 };  // 4 columns instead of 3
   EXPECT_ANY_THROW(func(matrix_wrong_cols));
 
-  MatrixPolicy<micm::Real> matrix_wrong_cols2{ 4, 2, 0.0 };  // 2 columns instead of 3
+  Matrix matrix_wrong_cols2{ 4, 2, 0.0 };  // 2 columns instead of 3
   EXPECT_ANY_THROW(func(matrix_wrong_cols2));
 
   // Should work with different row count but same column count
-  MatrixPolicy<micm::Real> matrix_ok{ 7, 3, 0.0 };  // 7 rows, 3 columns
+  Matrix matrix_ok{ 7, 3, 0.0 };  // 7 rows, 3 columns
   EXPECT_NO_THROW(func(matrix_ok));
 }
 
 template<template<class> class MatrixPolicy>
 void TestMismatchedRowDimensions()
 {
-  MatrixPolicy<micm::Real> matrixA{ 3, 3, 1.0 };
-  MatrixPolicy<micm::Real> matrixB{ 4, 3, 2.0 };  // Different number of rows during creation
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrixA{ 3, 3, 1.0 };
+  Matrix matrixB{ 4, 3, 2.0 };  // Different number of rows during creation
 
   // Should now SUCCEED when creating with different row counts
   // (as long as column counts match, which they do here)
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
       {
         mA.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; },
@@ -844,26 +862,28 @@ void TestMismatchedRowDimensions()
       matrixB);
 
   // Can use the function with matrices of the same row count
-  MatrixPolicy<micm::Real> matrixC{ 5, 3, 0.0 };
-  MatrixPolicy<micm::Real> matrixD{ 5, 3, 1.0 };
+  Matrix matrixC{ 5, 3, 0.0 };
+  Matrix matrixD{ 5, 3, 1.0 };
 
-  EXPECT_NO_THROW(func(matrixC, matrixD));
+  EXPECT_NO_THROW(func(matrixC, std::as_const(matrixD)));
 
   // But should throw if invoked with mismatched row counts
-  MatrixPolicy<micm::Real> matrixE{ 3, 3, 0.0 };
-  MatrixPolicy<micm::Real> matrixF{ 4, 3, 1.0 };  // Different row count!
+  Matrix matrixE{ 3, 3, 0.0 };
+  Matrix matrixF{ 4, 3, 1.0 };  // Different row count!
 
-  EXPECT_ANY_THROW(func(matrixE, matrixF));
+  EXPECT_ANY_THROW(func(matrixE, std::as_const(matrixF)));
 }
 
 template<template<class> class MatrixPolicy>
 void TestMismatchedColumnDimensions()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 4, 1.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrix{ 3, 4, 1.0 };
 
   // Create the function - this should succeed
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         // Try to access a column that doesn't exist
         m.ForEachRow(
@@ -882,12 +902,14 @@ void TestMismatchedColumnDimensions()
 template<template<class> class MatrixPolicy>
 void TestWrongMatrixDimensions()
 {
-  MatrixPolicy<micm::Real> matrix1{ 3, 4, 1.0 };
-  MatrixPolicy<micm::Real> matrix2{ 3, 5, 2.0 };  // Different column count
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrix1{ 3, 4, 1.0 };
+  Matrix matrix2{ 3, 5, 2.0 };  // Different column count
 
   // Create a function that expects 4 columns
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         m.ForEachRow(
             [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
@@ -903,7 +925,7 @@ void TestWrongMatrixDimensions()
   EXPECT_ANY_THROW(func(matrix2));
 
   // But should work with different row count as long as column count matches
-  MatrixPolicy<micm::Real> matrix3{ 7, 4, 1.0 };  // 7 rows, 4 columns
+  Matrix matrix3{ 7, 4, 1.0 };  // 7 rows, 4 columns
   EXPECT_NO_THROW(func(matrix3));
 }
 

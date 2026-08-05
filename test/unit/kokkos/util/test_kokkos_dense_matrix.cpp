@@ -190,6 +190,8 @@ TEST(KokkosDenseMatrix, ForEach)
   TestForEach<Group4KokkosMatrixAlias>();
 }
 
+#endif
+
 TEST(KokkosDenseMatrix, ArrayFunction)
 {
   TestArrayFunction<Group1KokkosMatrixAlias>();
@@ -198,6 +200,8 @@ TEST(KokkosDenseMatrix, ArrayFunction)
   TestArrayFunction<Group4KokkosMatrixAlias>();
 }
 
+#ifndef KOKKOS_ENABLE_CUDA
+
 TEST(KokkosDenseMatrix, MultiMatrixArrayFunction)
 {
   TestMultiMatrixArrayFunction<Group1KokkosMatrixAlias>();
@@ -205,6 +209,8 @@ TEST(KokkosDenseMatrix, MultiMatrixArrayFunction)
   TestMultiMatrixArrayFunction<Group3KokkosMatrixAlias>();
   TestMultiMatrixArrayFunction<Group4KokkosMatrixAlias>();
 }
+
+#endif
 
 TEST(KokkosDenseMatrix, MismatchedRowDimensions)
 {
@@ -229,6 +235,8 @@ TEST(KokkosDenseMatrix, WrongMatrixDimensions)
   TestWrongMatrixDimensions<Group3KokkosMatrixAlias>();
   TestWrongMatrixDimensions<Group4KokkosMatrixAlias>();
 }
+
+#ifndef KOKKOS_ENABLE_CUDA
 
 TEST(KokkosDenseMatrix, MultipleTemporaries)
 {
@@ -269,6 +277,8 @@ TEST(KokkosDenseMatrix, EmptyMatrixFunction)
   TestEmptyMatrixFunction<Group3KokkosMatrixAlias>();
   TestEmptyMatrixFunction<Group4KokkosMatrixAlias>();
 }
+
+#endif
 
 // Flexible row count Tests
 TEST(KokkosDenseMatrix, MultiMatrixDifferentRowsFromCreation)
@@ -319,6 +329,8 @@ TEST(KokkosDenseMatrix, VectorInMatrixFunction)
   TestVectorInMatrixFunction<Group3KokkosMatrixAlias>();
   TestVectorInMatrixFunction<Group4KokkosMatrixAlias>();
 }
+
+#ifndef KOKKOS_ENABLE_CUDA
 
 TEST(KokkosDenseMatrix, VectorTooSmall)
 {
