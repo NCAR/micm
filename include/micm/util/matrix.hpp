@@ -4,6 +4,8 @@
 
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/padded_vector.hpp>
+#include <micm/util/reducers.hpp>
+#include <micm/util/scalar_view.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -33,6 +35,10 @@ namespace micm
     using ConstViewType = ConstGroupView;
     template<class VecT>
     using VectorType = PaddedVector<VecT,1>;
+    template<class ScaT>
+    using ScalarType = ScalarView<T>;
+    template<class U>
+    using SumType = Sum<U>;
 
     /// @brief A lightweight descriptor for a const column in a matrix
     class ConstColumnView
@@ -317,6 +323,15 @@ namespace micm
     VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
     {
       return VectorType<VecT>(n, init);
+    }
+
+    /// @brief Creates a scalar usable with this matrix type in Function lambda captures
+    /// @param init initial value for scalar
+    /// @return scalar usable in Function() lambda captures
+    template<class ScaT>
+    ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
+    {
+      return ScalarType<ScaT>(init);
     }
 
     ConstProxy operator[](Index x) const

@@ -3,6 +3,8 @@
 #pragma once
 
 #include <micm/kokkos/util/kokkos_padded_vector.hpp>
+#include <micm/kokkos/util/kokkos_reducers.hpp>
+#include <micm/kokkos/util/kokkos_scalar_view.hpp>
 #include <micm/kokkos/util/kokkos_view_category.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/types.hpp>
@@ -142,6 +144,10 @@ namespace micm
     using TeamMember = typename TeamPolicyType::member_type;
     template<class VecT>
     using VectorType = KokkosPaddedVector<VecT, L>;
+    template<class ScaT>
+    using ScalarType = KokkosScalarView<ScaT>;
+    template<class U>
+    using SumType = KokkosSum<U>;
 
    private:
     /// Device-side (or unified) view — the Kokkos mirror of VectorMatrix::data_
@@ -399,6 +405,15 @@ namespace micm
     VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
     {
       return VectorType<VecT>(n, init);
+    }
+
+    /// @brief Creates a scalar usable with this matrix type in Function lambda captures
+    /// @param init initial value for scalar
+    /// @return scalar usable in Function() lambda captures
+    template<class ScaT>
+    ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
+    {
+      return ScalarType<ScaT>(init);
     }
 
     /// @brief Set every element on the device to a given value
@@ -665,8 +680,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
-        using AccT = typename KokkosReducer::value_type;
+        using AccT = decltype(Reducer::identity());
         // Kokkos::parallel_reduce writes into the reducer's destination scalar
         // per call, overwriting whatever was there. To make repeated Reduce() calls
         // accumulate into the caller's `reducer.reference()` -- matching the host
@@ -675,9 +689,13 @@ namespace micm
         AccT local = Reducer::identity();
         Kokkos::parallel_reduce(
             Kokkos::TeamThreadRange(team_, L),
-            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
-            KokkosReducer(local));
-        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+            [&](const Index row_in_group, AccT& acc) {
+              func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
+            },
+            local);
+        Kokkos::single(Kokkos::PerTeam(team_), [&]() {
+          Kokkos::atomic_add(reducer.device_ptr(), local);
+        });
         team_.team_barrier();
       }
 
@@ -685,14 +703,17 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
-        using AccT = typename KokkosReducer::value_type;
+        using AccT = decltype(Reducer::identity());
         AccT local = Reducer::identity();
         Kokkos::parallel_reduce(
             Kokkos::TeamThreadRange(team_, num_rows_in_group_),
-            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
-            KokkosReducer(local));
-        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+            [&](const Index row_in_group, AccT& acc) {
+              func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
+            },
+            local);
+        Kokkos::single(Kokkos::PerTeam(team_), [&]() {
+          Kokkos::atomic_add(reducer.device_ptr(), local);
+        });
         team_.team_barrier();
       }
     };

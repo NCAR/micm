@@ -35,6 +35,12 @@ namespace micm
     {
     }
 
+    template<typename Scalar>
+    explicit Sum(const Scalar& scalar)
+        : value_(scalar.host_value())
+    {
+    }
+
     constexpr T& reference() const
     {
       return value_;
@@ -53,6 +59,9 @@ namespace micm
 
   template<typename T>
   Sum(T&) -> Sum<T>;
+
+  template<typename Scalar>
+  Sum(const Scalar&) -> Sum<typename Scalar::value_type>;
 
   /// @brief Max reduction (`acc = max(acc, x)`).
   template<typename T>

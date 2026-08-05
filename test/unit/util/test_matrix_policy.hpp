@@ -1908,8 +1908,11 @@ void TestCopy()
 template<template<class> class MatrixPolicy>
 void TestReduceSum()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  matrix.CopyToHost();
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Scalar = typename Matrix::template ScalarType<micm::Real>;
+  using Sum = typename Matrix::template SumType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
   matrix[0][0] = 1.0;
   matrix[0][1] = 2.0;
   matrix[1][0] = 3.0;
@@ -1918,21 +1921,24 @@ void TestReduceSum()
   matrix[2][1] = 6.0;
   matrix.CopyToDevice();
 
-  micm::Real total = 0.0;
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [&total](auto&& view)
+  Scalar total = 0.0;
+  total.CopyToDevice();
+  Sum total_sum{ total }; // must construct outside of lambda (on host)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType view)
       {
         view.Reduce(
-            micm::Sum<micm::Real>{ total },
+            total_sum,
             [](const micm::Real& a, micm::Real& acc) { acc += a * a; },
             view.GetConstColumnView(0));
         view.Reduce(
-            micm::Sum<micm::Real>{ total },
+            total_sum,
             [](const micm::Real& a, micm::Real& acc) { acc += a * a; },
             view.GetConstColumnView(1));
       },
       matrix);
   func(matrix);
+  total.CopyToHost();
 
   // 1 + 4 + 9 + 16 + 25 + 36 = 91
   EXPECT_EQ(total, 91.0);
@@ -1943,7 +1949,6 @@ template<template<class> class MatrixPolicy>
 void TestReduceMax()
 {
   MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  matrix.CopyToHost();
   matrix[0][0] = 1.0;
   matrix[0][1] = 8.0;
   matrix[1][0] = 5.0;

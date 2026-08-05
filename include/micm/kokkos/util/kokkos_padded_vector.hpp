@@ -164,7 +164,12 @@ namespace micm
         Kokkos::deep_copy(host_view_, device_view_);
     }
 
-    KOKKOS_INLINE_FUNCTION DeviceView GetView() const
+    KOKKOS_INLINE_FUNCTION DeviceView GetView()
+    {
+        return { device_view_ };
+    }
+
+    KOKKOS_INLINE_FUNCTION ConstDeviceView GetView() const
     {
         return { device_view_ };
     }

@@ -10,7 +10,7 @@
 
 namespace micm
 {
-  /// @brief A vector class with padded cells for use in VectorMatrix::Function lambdas
+  /// @brief A vector class with padded cells for use in Matrix::Function lambdas
   template<class T, Index L>
   class PaddedVector
   {

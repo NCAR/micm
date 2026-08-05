@@ -482,8 +482,6 @@ TEST(KokkosDenseMatrix, TestCopy)
   TestCopy<Group4KokkosMatrixAlias>();
 }
 
-#ifndef KOKKOS_ENABLE_CUDA
-
 TEST(KokkosDenseMatrix, ReduceSum)
 {
   TestReduceSum<Group1KokkosMatrixAlias>();
@@ -491,6 +489,8 @@ TEST(KokkosDenseMatrix, ReduceSum)
   TestReduceSum<Group3KokkosMatrixAlias>();
   TestReduceSum<Group4KokkosMatrixAlias>();
 }
+
+#ifndef KOKKOS_ENABLE_CUDA
 
 TEST(KokkosDenseMatrix, ReduceMax)
 {
@@ -524,7 +524,7 @@ TEST(KokkosDenseMatrix, ReduceStrict)
   TestReduceStrict<Group4KokkosMatrixAlias>();
 }
 
-#endif  // !KOKKOS_ENABLE_CUDA
+#endif
 
 int main(int argc, char* argv[])
 {
