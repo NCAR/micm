@@ -1742,11 +1742,14 @@ void TestFunctionWithConstSignature()
 template<template<class> class MatrixPolicy>
 void TestFill()
 {
-  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
 
   // Fill a matrix column with a scalar value.
   {
-    auto func = MatrixPolicy<double>::Function([](auto&& m) { m.Fill(m.GetColumnView(1), 3.2); }, matrix);
+    auto func = Matrix::Function(MICM_LAMBDA(typename Matrix::ViewType m) { m.Fill(m.GetColumnView(1), 3.2); }, matrix);
 
     func(matrix);
     matrix.CopyToHost();
@@ -1761,8 +1764,10 @@ void TestFill()
 
   // Fill a caller-owned typename MatrixPolicy<micm::Real>::template VectorType with a scalar value.
   {
-    typename MatrixPolicy<micm::Real>::template VectorType<double> vec(3);
-    auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Fill(v, 3.2); }, matrix, vec);
+    Vector vec(3);
+    auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v) 
+      { m.Fill(v, 3.2); }, matrix, vec);
 
     func(matrix, vec);
     vec.CopyToHost();
@@ -1774,8 +1779,8 @@ void TestFill()
 
   // Fill a caller-owned row-variable temp with a scalar value.
   {
-    auto func = MatrixPolicy<double>::Function(
-        [](auto&& m)
+    auto func = Matrix::Function(
+        MICM_LAMBDA(typename Matrix::ViewType m)
         {
           auto tmp = m.GetRowVariable();
           m.Fill(tmp, 9.9);
@@ -1796,14 +1801,19 @@ void TestFill()
 template<template<class> class MatrixPolicy>
 void TestCopy()
 {
-  MatrixPolicy<double> matrix{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<double> vec{ 3.2, 4.2, 1.3 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
+  Vector vec{ 3.2, 4.2, 1.3 };
 
   // Copy a typename MatrixPolicy<micm::Real>::template VectorType into a matrix column.
   {
     vec.CopyToDevice();
     matrix.CopyToDevice();
-    auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Copy(m.GetColumnView(1), v); }, matrix, vec);
+    auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
+      { m.Copy(m.GetColumnView(1), v); }, matrix, vec);
 
     func(matrix, vec);
     matrix.CopyToHost();
@@ -1818,9 +1828,11 @@ void TestCopy()
 
   // Copy a const matrix column into a typename MatrixPolicy<micm::Real>::template VectorType.
   {
-    typename MatrixPolicy<micm::Real>::template VectorType<double> vec2(3);
+    Vector vec2(3);
     vec2.CopyToDevice();
-    auto func = MatrixPolicy<double>::Function([](auto&& m, auto&& v) { m.Copy(v, m.GetConstColumnView(1)); }, matrix, vec2);
+    auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v)
+      { m.Copy(v, m.GetConstColumnView(1)); }, matrix, vec2);
 
     func(matrix, vec2);
     vec2.CopyToHost();
@@ -1832,7 +1844,9 @@ void TestCopy()
 
   // Copy one matrix column into another (mutable-to-mutable).
   {
-    auto func = MatrixPolicy<double>::Function([](auto&& m) { m.Copy(m.GetColumnView(0), m.GetColumnView(1)); }, matrix);
+    auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m) 
+      { m.Copy(m.GetColumnView(0), m.GetColumnView(1)); }, matrix);
 
     func(matrix);
     matrix.CopyToHost();
@@ -1853,8 +1867,9 @@ void TestCopy()
       matrix[i][0] = 0.0;
     }
 
-    auto func =
-        MatrixPolicy<double>::Function([](auto&& m) { m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); }, matrix);
+    auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
+      { m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); }, matrix);
 
     func(matrix);
     matrix.CopyToHost();
@@ -1866,8 +1881,8 @@ void TestCopy()
 
   // Round-trip: matrix column -> row-variable temp -> matrix column.
   {
-    auto func = MatrixPolicy<double>::Function(
-        [](auto&& m)
+    auto func = Matrix::Function(
+        MICM_LAMBDA(typename Matrix::ViewType m)
         {
           auto tmp = m.GetRowVariable();
           m.Copy(tmp, m.GetConstColumnView(1));

@@ -464,6 +464,7 @@ TEST(KokkosDenseMatrix, FunctionWithConstSignature)
   TestFunctionWithConstSignature<Group3KokkosMatrixAlias>();
   TestFunctionWithConstSignature<Group4KokkosMatrixAlias>();
 }
+#endif
 
 TEST(KokkosDenseMatrix, TestFill)
 {
@@ -480,6 +481,8 @@ TEST(KokkosDenseMatrix, TestCopy)
   TestCopy<Group3KokkosMatrixAlias>();
   TestCopy<Group4KokkosMatrixAlias>();
 }
+
+#ifndef KOKKOS_ENABLE_CUDA
 
 TEST(KokkosDenseMatrix, ReduceSum)
 {
