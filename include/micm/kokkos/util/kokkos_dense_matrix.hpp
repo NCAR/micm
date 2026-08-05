@@ -747,6 +747,11 @@ namespace micm
       {
       }
 
+      KOKKOS_INLINE_FUNCTION operator ConstGroupView() const
+      {
+        return ConstGroupView(view_, group_, y_dim_, num_rows_in_group_, team_);
+      }
+
       KOKKOS_INLINE_FUNCTION GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
         return { view_.data() + (group_ * y_dim_ + column_index) * L };

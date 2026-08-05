@@ -236,8 +236,6 @@ TEST(KokkosDenseMatrix, WrongMatrixDimensions)
   TestWrongMatrixDimensions<Group4KokkosMatrixAlias>();
 }
 
-#ifndef KOKKOS_ENABLE_CUDA
-
 TEST(KokkosDenseMatrix, MultipleTemporaries)
 {
   TestMultipleTemporaries<Group1KokkosMatrixAlias>();
@@ -277,8 +275,6 @@ TEST(KokkosDenseMatrix, EmptyMatrixFunction)
   TestEmptyMatrixFunction<Group3KokkosMatrixAlias>();
   TestEmptyMatrixFunction<Group4KokkosMatrixAlias>();
 }
-
-#endif
 
 // Flexible row count Tests
 TEST(KokkosDenseMatrix, MultiMatrixDifferentRowsFromCreation)
@@ -329,8 +325,6 @@ TEST(KokkosDenseMatrix, VectorInMatrixFunction)
   TestVectorInMatrixFunction<Group3KokkosMatrixAlias>();
   TestVectorInMatrixFunction<Group4KokkosMatrixAlias>();
 }
-
-#ifndef KOKKOS_ENABLE_CUDA
 
 TEST(KokkosDenseMatrix, VectorTooSmall)
 {
@@ -460,6 +454,9 @@ TEST(KokkosDenseMatrix, IntegerVector)
   TestIntegerVector<Group4KokkosMatrixAlias>();
 }
 
+#ifndef KOKKOS_ENABLE_CUDA
+// This test attemps to wrap the function in std::function which isn't allowed
+// with CUDA
 TEST(KokkosDenseMatrix, FunctionWithConstSignature)
 {
   TestFunctionWithConstSignature<Group1KokkosMatrixAlias>();

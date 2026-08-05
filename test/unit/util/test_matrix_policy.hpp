@@ -932,7 +932,9 @@ void TestWrongMatrixDimensions()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestMultipleTemporaries()
 {
-  MatrixPolicy<micm::Real> matrix{ 4, 5, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrix{ 4, 5, 0.0 };
 
   // Initialize first two columns
   for (micm::Index i = 0; i < matrix.NumRows(); ++i)
@@ -941,8 +943,8 @@ MatrixPolicy<micm::Real> TestMultipleTemporaries()
     matrix[i][1] = static_cast<micm::Real>((i + 1) * 10);
   }
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         // Use TWO temporaries for intermediate calculations
         auto tmp1 = m.GetRowVariable();
@@ -1002,15 +1004,17 @@ MatrixPolicy<micm::Real> TestMultipleTemporaries()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestColumnViewReuse()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 4, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrix{ 3, 4, 0.0 };
 
   for (micm::Index i = 0; i < matrix.NumRows(); ++i)
   {
     matrix[i][0] = static_cast<micm::Real>(i + 1);
   }
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(Matrix::ViewType m)
       {
         // Create column views once
         auto col0 = m.GetConstColumnView(0);
@@ -1055,11 +1059,12 @@ MatrixPolicy<micm::Real> TestColumnViewReuse()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestFunctionReusability()
 {
-  // Create a function once
-  MatrixPolicy<micm::Real> matrix1{ 2, 3, 1.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  Matrix matrix1{ 2, 3, 1.0 };
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -1088,7 +1093,7 @@ MatrixPolicy<micm::Real> TestFunctionReusability()
   EXPECT_EQ(matrix1[1][2], 2.0 * (1 + 2 + 3));  // 12
 
   // Apply to second matrix with same dimensions
-  MatrixPolicy<micm::Real> matrix2{ 2, 3, 5.0 };
+  Matrix matrix2{ 2, 3, 5.0 };
   matrix2.CopyToDevice();
   func(matrix2);
   matrix2.CopyToHost();
@@ -1096,7 +1101,7 @@ MatrixPolicy<micm::Real> TestFunctionReusability()
   EXPECT_EQ(matrix2[1][2], 2.0 * (5 + 5 + 5));  // 30
 
   // Apply to third matrix with different values
-  MatrixPolicy<micm::Real> matrix3{ 2, 3, 0.0 };
+  Matrix matrix3{ 2, 3, 0.0 };
   for (micm::Index i = 0; i < matrix3.NumRows(); ++i)
   {
     matrix3[i][0] = static_cast<micm::Real>(i * 10);
@@ -1114,7 +1119,9 @@ MatrixPolicy<micm::Real> TestFunctionReusability()
 template<template<class> class MatrixPolicy>
 void TestConstMatrixFunction()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 4, 0.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+
+  Matrix matrix{ 3, 4, 0.0 };
 
   // Set initial values
   for (micm::Index i = 0; i < matrix.NumRows(); ++i)
@@ -1126,11 +1133,11 @@ void TestConstMatrixFunction()
   }
 
   // Create a const reference
-  const MatrixPolicy<micm::Real>& const_matrix = matrix;
+  const Matrix& const_matrix = matrix;
 
   // Create a function that only reads from the matrix
-  auto read_func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  auto read_func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType m)
       {
         auto tmp = m.GetRowVariable();
         // Only use GetConstColumnView - should work with const matrices
@@ -1158,11 +1165,13 @@ void TestConstMatrixFunction()
 template<template<class> class MatrixPolicy>
 void TestEmptyMatrixFunction()
 {
-  // Test with 0 rows
-  MatrixPolicy<micm::Real> empty_rows{ 0, 3, 1.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m)
+  // Test with 0 rows
+  Matrix empty_rows{ 0, 3, 1.0 };
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
       {
         // This should never execute
         m.ForEachRow(
@@ -1175,10 +1184,10 @@ void TestEmptyMatrixFunction()
   EXPECT_NO_THROW(func(empty_rows));
 
   // Test with 0 columns (edge case)
-  MatrixPolicy<micm::Real> empty_cols{ 3, 0, 1.0 };
+  Matrix empty_cols{ 3, 0, 1.0 };
 
-  auto func2 = MatrixPolicy<micm::Real>::Function(
-      [](auto&&)
+  auto func2 = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType)
       {
         // Cannot get any column views, so just return
       },
@@ -1195,12 +1204,15 @@ void TestEmptyMatrixFunction()
 template<template<class> class MatrixPolicy>
 void TestVectorTooSmall()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, 1.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_too_small(3);  // Only 3 elements, but matrix has 5 rows
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 5, 3, 1.0 };
+  Vector vec_too_small(3);  // Only 3 elements, but matrix has 5 rows
 
   // Should succeed at creation (row counts can differ at creation)
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ConstViewType v)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -1217,12 +1229,15 @@ void TestVectorTooSmall()
 template<template<class> class MatrixPolicy>
 void TestVectorTooLarge()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, 1.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_too_large(10);  // 10 elements, but matrix has 5 rows
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 5, 3, 1.0 };
+  Vector vec_too_large(10);  // 10 elements, but matrix has 5 rows
 
   // Should succeed at creation (row counts can differ at creation)
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ConstViewType v)
       {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
@@ -1239,12 +1254,15 @@ void TestVectorTooLarge()
 template<template<class> class MatrixPolicy>
 void TestEmptyVectorNonEmptyMatrix()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, 1.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> empty_vec;  // Empty
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 5, 3, 1.0 };
+  Vector empty_vec;  // Empty
 
   // Should succeed at creation
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
       matrix,
       empty_vec);
 
@@ -1256,12 +1274,15 @@ void TestEmptyVectorNonEmptyMatrix()
 template<template<class> class MatrixPolicy>
 void TestNonEmptyVectorEmptyMatrix()
 {
-  MatrixPolicy<micm::Real> matrix{ 0, 3, 1.0 };  // 0 rows
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(5);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 0, 3, 1.0 };  // 0 rows
+  Vector vec(5);
 
   // Should succeed at creation
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
       matrix,
       vec);
 
@@ -1273,12 +1294,15 @@ void TestNonEmptyVectorEmptyMatrix()
 template<template<class> class MatrixPolicy>
 void TestEmptyVectorEmptyMatrix()
 {
-  MatrixPolicy<micm::Real> matrix{ 0, 3, 1.0 };  // 0 rows
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> empty_vec;             // Empty
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 0, 3, 1.0 };  // 0 rows
+  Vector empty_vec;             // Empty
 
   // Should succeed - both are empty, ForEachRow won't iterate
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
       matrix,
       empty_vec);
 
@@ -1289,13 +1313,16 @@ void TestEmptyVectorEmptyMatrix()
 template<template<class> class MatrixPolicy>
 void TestMultipleVectorsDifferentSizes()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, 1.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec1(5);  // Size 5
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec2(3);  // Size 3 - different!
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 5, 3, 1.0 };
+  Vector vec1(5);  // Size 5
+  Vector vec2(3);  // Size 3 - different!
 
   // Should succeed at creation (different row counts allowed at creation)
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v1, auto&& v2) {
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v1, typename Vector::ConstViewType v2) {
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetColumnView(0));
       },
@@ -1311,9 +1338,12 @@ void TestMultipleVectorsDifferentSizes()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestMultipleVectorsSameSize()
 {
-  MatrixPolicy<micm::Real> matrix{ 5, 3, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec1(5);
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec2(5);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 5, 3, 0.0 };
+  Vector vec1(5);
+  Vector vec2(5);
 
   // Initialize vectors
   for (micm::Index i = 0; i < 5; ++i)
@@ -1323,8 +1353,8 @@ MatrixPolicy<micm::Real> TestMultipleVectorsSameSize()
   }
 
   // Should succeed
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v1, auto&& v2)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v1, typename Vector::ConstViewType v2)
       {
         // col0 = v1 + v2
         m.ForEachRow(
@@ -1353,9 +1383,12 @@ MatrixPolicy<micm::Real> TestMultipleVectorsSameSize()
 template<template<class> class MatrixPolicy>
 std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultipleMatricesOneVector()
 {
-  MatrixPolicy<micm::Real> matrixA{ 4, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB{ 4, 3, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(4);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrixA{ 4, 2, 0.0 };
+  Matrix matrixB{ 4, 3, 0.0 };
+  Vector vec(4);
 
   for (micm::Index i = 0; i < 4; ++i)
   {
@@ -1365,8 +1398,8 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultipleMatri
   }
 
   // Should succeed - both matrices have 4 rows, vector has 4 elements
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ViewType mB, typename Vector::ConstViewType v)
       {
         // matrixA col1 = matrixA col0 + vector
         mA.ForEachRow(
@@ -1415,13 +1448,16 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultipleMatri
 template<template<class> class MatrixPolicy>
 void TestMultipleMatricesDifferentRowsVector()
 {
-  MatrixPolicy<micm::Real> matrixA{ 4, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB{ 5, 3, 0.0 };  // Different row count!
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(4);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrixA{ 4, 2, 0.0 };
+  Matrix matrixB{ 5, 3, 0.0 };  // Different row count!
+  Vector vec(4);
 
   // Should succeed at creation (different row counts allowed at creation)
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB, typename Vector::ConstViewType v)
       { mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, mA.GetColumnView(0)); },
       matrixA,
       matrixB,
@@ -1442,13 +1478,16 @@ void TestMultipleMatricesDifferentRowsVector()
 template<template<class> class MatrixPolicy>
 void TestVectorSizeMatchesOneMatrixOnly()
 {
-  MatrixPolicy<micm::Real> matrixA{ 5, 2, 0.0 };
-  MatrixPolicy<micm::Real> matrixB{ 5, 3, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(4);  // Wrong size for both matrices (they have 5 rows)
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrixA{ 5, 2, 0.0 };
+  Matrix matrixB{ 5, 3, 0.0 };
+  Vector vec(4);  // Wrong size for both matrices (they have 5 rows)
 
   // Should succeed at creation (different row counts allowed at creation)
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& mA, auto&& mB, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB, typename Vector::ConstViewType v)
       { mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, mA.GetColumnView(0)); },
       matrixA,
       matrixB,
@@ -1465,12 +1504,15 @@ void TestVectorSizeMatchesOneMatrixOnly()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestConstVector()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_data = { 10.0, 20.0, 30.0 };
-  const typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>& const_vec = vec_data;
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  Matrix matrix{ 3, 2, 0.0 };
+  Vector vec_data = { 10.0, 20.0, 30.0 };
+  const Vector& const_vec = vec_data;
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       {
         // Read from const vector, write to matrix
         m.ForEachRow(
@@ -1496,16 +1538,19 @@ MatrixPolicy<micm::Real> TestConstVector()
 template<template<class> class MatrixPolicy>
 std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>> TestMutableVector()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec = { 5.0, 10.0, 15.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
+  Vector vec = { 5.0, 10.0, 15.0 };
 
   for (micm::Index i = 0; i < 3; ++i)
   {
     matrix[i][0] = static_cast<micm::Real>(i + 1);
   }
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v)
       {
         // Write to vector from matrix
         m.ForEachRow(
@@ -1532,12 +1577,15 @@ std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestFunctionReusabilityWithVectors()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec1 = { 1.0, 2.0, 3.0 };
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
+  Vector vec1 = { 1.0, 2.0, 3.0 };
 
   // Create function once
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 10.0; }, v, m.GetColumnView(0)); },
       matrix,
       vec1);
@@ -1566,13 +1614,16 @@ MatrixPolicy<micm::Real> TestFunctionReusabilityWithVectors()
 template<template<class> class MatrixPolicy>
 void TestFunctionInvocationWithWrongSizedVector()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_correct(3);
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec_wrong(5);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
+  Vector vec_correct(3);
+  Vector vec_wrong(5);
 
   // Create function with correct-sized vector
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
       matrix,
       vec_correct);
 
@@ -1587,8 +1638,11 @@ void TestFunctionInvocationWithWrongSizedVector()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestMixedVectorColumnViewRowVariable()
 {
-  MatrixPolicy<micm::Real> matrix{ 4, 3, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(4);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 4, 3, 0.0 };
+  Vector vec(4);
 
   for (micm::Index i = 0; i < 4; ++i)
   {
@@ -1597,8 +1651,8 @@ MatrixPolicy<micm::Real> TestMixedVectorColumnViewRowVariable()
     vec[i] = static_cast<micm::Real>((i + 1) * 100);
   }
 
-  auto func = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       {
         auto tmp = m.GetRowVariable();
 
@@ -1641,11 +1695,14 @@ MatrixPolicy<micm::Real> TestMixedVectorColumnViewRowVariable()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<int> TestIntegerVector()
 {
-  MatrixPolicy<int> matrix{ 3, 2, 0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<int> vec = { 10, 20, 30 };
+  using Matrix = MatrixPolicy<int>;
+  using Vector = typename Matrix::template VectorType<int>;
 
-  auto func = MatrixPolicy<int>::Function(
-      [](auto&& m, auto&& v) { m.ForEachRow([&](const int& a, int& b) { b = a * 2; }, v, m.GetColumnView(0)); },
+  Matrix matrix{ 3, 2, 0 };
+  Vector vec = { 10, 20, 30 };
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const int& a, int& b) { b = a * 2; }, v, m.GetColumnView(0)); },
       matrix,
       vec);
 
@@ -1663,18 +1720,21 @@ MatrixPolicy<int> TestIntegerVector()
 template<template<class> class MatrixPolicy>
 void TestFunctionWithConstSignature()
 {
-  MatrixPolicy<micm::Real> matrix{ 3, 2, 0.0 };
-  typename MatrixPolicy<micm::Real>::template VectorType<micm::Real> vec(3);
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
+
+  Matrix matrix{ 3, 2, 0.0 };
+  Vector vec(3);
 
   // Create function
-  auto func_auto = MatrixPolicy<micm::Real>::Function(
-      [](auto&& m, auto&& v)
+  auto func_auto = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
       { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
       matrix,
       vec);
 
   // Try to wrap in std::function with const signature
-  std::function<void(MatrixPolicy<micm::Real>&, const typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>&)> func_std = func_auto;
+  std::function<void(Matrix&, const Vector&)> func_std = func_auto;
 
   func_std(matrix, vec);
 }

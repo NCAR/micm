@@ -945,6 +945,11 @@ namespace micm
       {
       }
 
+      operator ConstGroupView() const
+      {
+        return ConstGroupView(matrix_, group_, num_rows_in_group_);
+      }
+
       /// @brief Returns a grouped const column view whose element base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstColumnView GetConstColumnView(Index column_index) const
