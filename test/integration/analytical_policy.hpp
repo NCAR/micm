@@ -1512,10 +1512,20 @@ void TestAnalyticalRobertson(
   }
 }
 
+/// @brief Solves the Oregonator problem and compares the result with the reference solution.
+/// @param builder The solver builder to test
+/// @param relative_tolerance The relative tolerance for the comparison
+/// @param substeps_per_output The number of equal sub-steps to take between two output times.
+///                            Use 1 for a solver that controls the step size itself, such as
+///                            Rosenbrock. A first-order solver, such as backward Euler, needs
+///                            many sub-steps to follow the limit cycle.
+/// @param prepare_for_solve A function that runs before the solve loop
+/// @param postpare_for_solve A function that runs after each output step
 template<class BuilderPolicy>
 void TestAnalyticalOregonator(
     BuilderPolicy builder,
     micm::Real relative_tolerance = 1e-4,
+    micm::Index substeps_per_output = 1,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
@@ -1659,11 +1669,12 @@ void TestAnalyticalOregonator(
   {
     micm::Real solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    // Model results: sub-step at tau/100 so backward Euler tracks the slow oscillation
-    // accurately. One large step (H=30*tau) converges Newton to the wrong attractor;
-    // smaller steps follow the limit cycle with O(H) first-order error.
+    // Model results. A solver that controls its own step size takes the full output interval
+    // in one call. A first-order solver needs sub-steps: one large step (H = 30 * tau) makes
+    // the backward Euler Newton solver converge to the wrong attractor, but small steps follow
+    // the limit cycle with O(H) first-order error.
     micm::Real actual_solve = 0;
-    micm::Real max_substep = tau / 1000.0;
+    micm::Real max_substep = time_step / substeps_per_output;
     while (actual_solve < time_step)
     {
       micm::Real dt = std::min(max_substep, time_step - actual_solve);
@@ -1871,17 +1882,18 @@ void TestAnalyticalHires(
   std::vector<micm::Real> times;
   times.push_back(0);
   micm::Real time_step = 321.8122;
+  micm::Real current_time = 0.0;
   for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    micm::Real solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
+    // The step size grows, so the output time is the running total, not a multiple of the step.
+    current_time += time_step;
+    times.push_back(current_time);
     // Model results
     micm::Real actual_solve = 0;
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
       actual_solve += result.stats_.final_time_;
-      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
