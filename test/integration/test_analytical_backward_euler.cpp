@@ -319,7 +319,7 @@ TEST(AnalyticalExamples, Oregonator)
   // relative error of about 61000. Sub-steps of tau/1000 let backward Euler track the slow
   // manifold with O(H) first-order accuracy. The output interval is 30 * tau, so 30000
   // sub-steps give a step size of tau/1000, and a relative error of about 3e-3.
-  constexpr micm::Index kOregonatorSubsteps = 30000;
+  constexpr micm::Index kOregonatorSubsteps = 18000;
 
   TestAnalyticalOregonator(backward_euler, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backard_euler_vector_1, 5e-3, kOregonatorSubsteps);
