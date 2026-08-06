@@ -1703,11 +1703,8 @@ void TestAnalyticalOregonator(
   // P and Q are only produced. They never react, so their accuracy does not matter here.
   state.SetRelativeTolerance(solver_relative_tolerance);
   micm::Real tolerance_floor = solver_relative_tolerance * 1e-2;
-  state.SetAbsoluteTolerances({ alpha_const * tolerance_floor,
-                                eta_const * tolerance_floor,
-                                rho_const * tolerance_floor,
-                                eta_const,
-                                eta_const });
+  state.SetAbsoluteTolerances(
+      { alpha_const * tolerance_floor, eta_const * tolerance_floor, rho_const * tolerance_floor, eta_const, eta_const });
 
   state.SetCustomRateParameter("r1", k1a_const);
   state.SetCustomRateParameter("r2", k2_const);
