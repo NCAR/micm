@@ -3,6 +3,8 @@
 #pragma once
 
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_reducers.hpp>
+#include <micm/kokkos/util/kokkos_scalar_view.hpp>
 #include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -27,12 +29,24 @@ namespace micm
       return OrderingPolicy::GroupVectorSize();
     }
     using value_type = T;
+    class GroupView;
+    class ConstGroupView;
+    using ViewType = GroupView;
+    using ConstViewType = ConstGroupView;
     using KokkosViewType = Kokkos::View<T*>;
     using HostViewType = typename KokkosViewType::host_mirror_type;
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
     template<class VecT>
     using VectorType = KokkosPaddedVector<VecT, OrderingPolicy::GroupVectorSize()>;
+    template<class ScaT>
+    using ScalarType = KokkosScalarView<ScaT>;
+    template<class U>
+    using SumType = KokkosSum<U>;
+    template<class U>
+    using MaxType = KokkosMax<U>;
+    using LOrType = KokkosLOr;
+    using LAndType = KokkosLAnd;
 
    private:
     /// Number of blocks grouped into a team for on-device iteration.
@@ -337,6 +351,15 @@ namespace micm
       return VectorType<VecT>(n, init);
     }
 
+    /// @brief Creates a scalar usable with this matrix type in Function lambda captures
+    /// @param init Initial value for scalar
+    /// @return scalar usable in Function() lambda captures
+    template<class ScaT>
+    ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
+    {
+      return ScalarType<ScaT>(init);
+    }
+
     /// @brief Set every element on the device to a given value
     void Fill(T val)
     {
@@ -389,47 +412,19 @@ namespace micm
           });
     }
 
-    /// @brief Access the non-zero element at (row, col) in every block, for direct
-    ///        on-device modification via ForEachBlock().
-    KokkosBlockView<T, L> GetBlockView(Index row, Index col)
-    {
-      assert(row < this->NumRows() && col < this->NumColumns() && "block element out of range");
-      assert(!this->IsZero(row, col) && "cannot create view for zero block element");
-      Index vector_index = this->VectorIndexFromRowColumn(row, col);
-      return KokkosBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
-    }
-
-    /// @brief Const variant of GetBlockView(row, col). See GetBlockView for details.
-    KokkosConstBlockView<T, L> GetConstBlockView(Index row, Index col) const
-    {
-      assert(row < this->NumRows() && col < this->NumColumns() && "block element out of range");
-      assert(!this->IsZero(row, col) && "cannot create view for zero block element");
-      Index vector_index = this->VectorIndexFromRowColumn(row, col);
-      return KokkosConstBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
-    }
-
     /// @brief Access the non-zero element at a precomputed flat index (from
     ///        VectorIndex(0, row, col)) in every block, for direct on-device
     ///        modification via ForEachBlock().
-    KokkosBlockView<T, L> GetBlockView(Index vector_index)
+    KOKKOS_INLINE_FUNCTION KokkosBlockView<T, L> GetBlockView(Index vector_index)
     {
-      Index elem_position = this->ElementPositionFromVectorIndex(vector_index);
-      return KokkosBlockView<T, L>(view_.data(), this->FlatBlockSize(), elem_position);
+      return KokkosBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
     }
 
     /// @brief Const variant of GetBlockView(vector_index). See GetBlockView for
     ///        details.
-    KokkosConstBlockView<T, L> GetConstBlockView(Index vector_index) const
+    KOKKOS_INLINE_FUNCTION KokkosConstBlockView<T, L> GetConstBlockView(Index vector_index) const
     {
-      Index elem_position = this->ElementPositionFromVectorIndex(vector_index);
-      return KokkosConstBlockView<T, L>(view_.data(), this->FlatBlockSize(), elem_position);
-    }
-
-    /// @brief Get a block variable with persistent storage for temporary values
-    ///        (e.g. an intermediate result reused across several ForEachBlock() calls)
-    KokkosBlockVariable<T, L> GetBlockVariable() const
-    {
-      return KokkosBlockVariable<T, L>();
+      return KokkosConstBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
     }
 
     /// @brief Apply a function to each block of the matrix.
@@ -564,12 +559,6 @@ namespace micm
         return { view_.data() + group_ * flat_block_size_ * L, vector_index };
       }
 
-      /// @brief Access the non-zero element at (row, col) in this group's blocks.
-      auto GetConstBlockView(Index row, Index col) const
-      {
-        return matrix_->GetConstBlockView(row, col);
-      }
-
       KOKKOS_INLINE_FUNCTION KokkosBlockVariable<T, L> GetBlockVariable() const
       {
         return KokkosBlockVariable<T, L>();
@@ -647,6 +636,37 @@ namespace micm
         Kokkos::parallel_for(
             Kokkos::TeamThreadRange(team_, num_blocks_in_group_),
             [&](const Index block_in_group) { func(GetBlockElement(block_in_group, args)...); });
+        team_.team_barrier();
+      }
+
+      /// @brief Apply a reduction to each row in this group, on-device via team
+      ///        parallelism. The user's function receives its column-view /
+      ///        row-variable arguments plus a trailing reference to a per-thread
+      ///        accumulator, and accumulates into it (e.g. `acc += x*x`,
+      ///        `acc = std::max(acc, x)`). The micm reducer type (Sum/Max/LOr/LAnd)
+      ///        is translated to the matching Kokkos reducer, which handles the
+      ///        inter-thread join and writes the final result back to
+      ///        `reducer.reference()`.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using AccT = decltype(Reducer::identity());
+        reducer.team_reduce(team_, L,
+            [&](const Index block_in_group, AccT& acc) {
+                func(GetBlockElement(block_in_group, std::forward<Args>(args))..., acc);
+            });
+        team_.team_barrier();
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using AccT = decltype(Reducer::identity());
+        reducer.team_reduce(team_, num_blocks_in_group_,
+            [&](const Index block_in_group, AccT& acc) {
+                func(GeBlockElement(block_in_group, std::forward<Args>(args))..., acc);
+            });
         team_.team_barrier();
       }
     };
@@ -729,26 +749,19 @@ namespace micm
       {
       }
 
+      KOKKOS_INLINE_FUNCTION operator ConstGroupView() const
+      {
+        return ConstGroupView(view_, group_, flat_block_size_, num_blocks_in_group_, team_, matrix_);
+      }
+
       KOKKOS_INLINE_FUNCTION GroupedConstBlockView GetConstBlockView(Index vector_index) const
       {
         return { view_.data() + group_ * flat_block_size_ * L, vector_index };
       }
 
-      /// @brief Access the non-zero element at (row, col) in this group's blocks.
-      auto GetConstBlockView(Index row, Index col) const
-      {
-        return matrix_->GetConstBlockView(row, col);
-      }
-
       KOKKOS_INLINE_FUNCTION GroupedBlockView GetBlockView(Index vector_index) const
       {
         return { view_.data() + group_ * flat_block_size_ * L, vector_index };
-      }
-
-      /// @brief Access the non-zero element at (row, col) in this group's blocks.
-      auto GetBlockView(Index row, Index col) const
-      {
-        return matrix_->GetBlockView(row, col);
       }
 
       KOKKOS_INLINE_FUNCTION KokkosBlockVariable<T, L> GetBlockVariable() const
@@ -857,6 +870,37 @@ namespace micm
         Kokkos::parallel_for(
             Kokkos::TeamThreadRange(team_, num_blocks_in_group_),
             [&](const Index block_in_group) { func(GetBlockElement(block_in_group, args)...); });
+        team_.team_barrier();
+      }
+
+      /// @brief Apply a reduction to each row in this group, on-device via team
+      ///        parallelism. The user's function receives its column-view /
+      ///        row-variable arguments plus a trailing reference to a per-thread
+      ///        accumulator, and accumulates into it (e.g. `acc += x*x`,
+      ///        `acc = std::max(acc, x)`). The micm reducer type (Sum/Max/LOr/LAnd)
+      ///        is translated to the matching Kokkos reducer, which handles the
+      ///        inter-thread join and writes the final result back to
+      ///        `reducer.reference()`.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using AccT = decltype(Reducer::identity());
+        reducer.team_reduce(team_, L,
+            [&](const Index block_in_group, AccT& acc) {
+                func(GetBlockElement(block_in_group, std::forward<Args>(args))..., acc);
+            });
+        team_.team_barrier();
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        using AccT = decltype(Reducer::identity());
+        reducer.team_reduce(team_, num_blocks_in_group_,
+            [&](const Index block_in_group, AccT& acc) {
+                func(GeBlockElement(block_in_group, std::forward<Args>(args))..., acc);
+            });
         team_.team_barrier();
       }
     };

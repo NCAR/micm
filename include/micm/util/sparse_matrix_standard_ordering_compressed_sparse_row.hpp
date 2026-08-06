@@ -110,15 +110,6 @@ namespace micm
       return std::distance(row_ids_.begin(), elem);
     }
 
-    /// @brief Extract element position from VectorIndex(0, row, col) result
-    /// @param vector_index_block_zero The result of VectorIndex(0, row, col)
-    /// @return The element position (0 to number_of_non_zero_elements-1)
-    Index ElementPositionFromVectorIndex(Index vector_index_block_zero) const
-    {
-      // For standard ordering: VectorIndex(0, row, col) = elem_position
-      return vector_index_block_zero;
-    }
-
     /// @brief Returns the indices along the diagonal of each block
     /// @param number_of_blocks Number of block sub-matrices in the overall matrix
     /// @param block_id Block index
@@ -263,11 +254,6 @@ namespace micm
       GroupedConstBlockView GetConstBlockView(Index vector_index) const
       {
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize(), vector_index };
-      }
-
-      auto GetConstBlockView(Index row, Index col) const
-      {
-        return matrix_.GetConstBlockView(row, col);
       }
 
       auto GetBlockVariable() const
@@ -455,6 +441,11 @@ namespace micm
       {
       }
 
+      operator ConstGroupView<SparseMatrixType>() const
+      {
+        return ConstGroupView<SparseMatrixType>(matrix_, group_);
+      }
+
       /// @brief Returns a grouped const block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstBlockView GetConstBlockView(Index vector_index) const
@@ -462,21 +453,11 @@ namespace micm
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize(), vector_index };
       }
 
-      auto GetConstBlockView(Index row, Index col) const
-      {
-        return matrix_.GetConstBlockView(row, col);
-      }
-
       /// @brief Returns a grouped mutable block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedBlockView GetBlockView(Index vector_index)
       {
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize(), vector_index };
-      }
-
-      auto GetBlockView(Index row, Index col)
-      {
-        return matrix_.GetBlockView(row, col);
       }
 
       auto GetBlockVariable()

@@ -127,18 +127,6 @@ namespace micm
       return std::distance(row_ids_.begin(), elem) * L;
     }
 
-    /// @brief Extract the block-relative offset from a VectorIndex(0, row, col) result
-    /// @param vector_index_block_zero The result of VectorIndex(0, row, col)
-    /// @return The offset used by GetBlockElement to locate the element within a group.
-    ///
-    /// For vector ordering this is `elem_position * L` (the raw offset within a
-    /// group), NOT `elem_position` (0..number_of_non_zero_elements-1). Returning
-    /// the raw offset lets GetBlockElement skip a `* L` per element access.
-    Index ElementPositionFromVectorIndex(Index vector_index_block_zero) const
-    {
-      return vector_index_block_zero;
-    }
-
     std::vector<Index> DiagonalIndices(const Index number_of_blocks, const Index block_id) const
     {
       std::vector<Index> indices;
@@ -213,7 +201,6 @@ namespace micm
       {
         auto* source_matrix = arg.GetMatrix();
         // arg.ElementPosition() is the raw block-relative offset (elem_position * L);
-        // see ElementPositionFromVectorIndex above.
         Index block_offset_ = arg.ElementPosition();
         Index num_non_zero = source_matrix->FlatBlockSize();
         return source_matrix->AsVector()[group_ * num_non_zero * L + block_offset_ + block_in_group];
@@ -313,11 +300,6 @@ namespace micm
       GroupedConstBlockView GetConstBlockView(Index vector_index) const
       {
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
-      }
-
-      auto GetConstBlockView(Index row, Index col) const
-      {
-        return matrix_.GetConstBlockView(row, col);
       }
 
       auto GetBlockVariable() const
@@ -561,6 +543,11 @@ namespace micm
         num_blocks_in_group_ = std::min(L, total_blocks - start_block);
       }
 
+      operator ConstGroupView<SparseMatrixType>() const
+      {
+        return ConstGroupView<SparseMatrixType>(matrix_, group_);
+      }
+
       /// @brief Returns a grouped const block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstBlockView GetConstBlockView(Index vector_index) const
@@ -568,21 +555,11 @@ namespace micm
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
       }
 
-      auto GetConstBlockView(Index row, Index col) const
-      {
-        return matrix_.GetConstBlockView(row, col);
-      }
-
       /// @brief Returns a grouped mutable block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedBlockView GetBlockView(Index vector_index)
       {
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
-      }
-
-      auto GetBlockView(Index row, Index col)
-      {
-        return matrix_.GetBlockView(row, col);
       }
 
       auto GetBlockVariable()

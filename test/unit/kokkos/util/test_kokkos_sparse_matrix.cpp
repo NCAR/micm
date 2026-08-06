@@ -86,12 +86,6 @@ TEST(KokkosSparseMatrix, PrintNonZero)
   TestPrintNonZero<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
-// These tests call Function() with generic [](auto&&...) lambdas, which NVHPC/CUDA
-// forbids as __global__ kernel template arguments (only extended __host__ __device__
-// lambdas are allowed).  They are fully covered by the corresponding non-Kokkos
-// serial tests; rewriting them to be CUDA-compatible is tracked as a future task.
-#ifndef KOKKOS_ENABLE_CUDA
-
 // BlockFunction infrastructure tests
 TEST(KokkosSparseMatrix, ArrayFunction)
 {
@@ -157,6 +151,11 @@ TEST(KokkosSparseMatrix, SparseAndVectorMatrixFunction)
   TestSparseAndVectorMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering4, KokkosDense4, 4>();
 }
 
+#if 0
+
+// These tests check for exceptions, but incompatible ordering for Kokkos matrix functions
+// is a compile-time check.
+
 // Ordering compatibility tests
 TEST(KokkosSparseMatrix, IncompatibleOrdering)
 {
@@ -178,6 +177,8 @@ TEST(KokkosSparseMatrix, IncompatibleSparseOrdering)
   TestIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering2, KokkosOrdering3>();
   TestIncompatibleSparseOrdering<micm::KokkosSparseMatrix, KokkosOrdering3, KokkosOrdering4>();
 }
+
+#endif
 
 // Block dimension mismatch tests
 TEST(KokkosSparseMatrix, MismatchedBlockDimensions)
@@ -348,6 +349,10 @@ TEST(KokkosSparseMatrix, IntegerVectorSparse)
   TestIntegerVectorSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
 }
 
+#ifndef KOKKOS_ENABLE_CUDA
+// This test attemps to wrap the function in std::function which isn't allowed
+// with CUDA
+
 TEST(KokkosSparseMatrix, FunctionWithConstSignatureSparse)
 {
   TestFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering1>();
@@ -356,6 +361,8 @@ TEST(KokkosSparseMatrix, FunctionWithConstSignatureSparse)
   TestFunctionWithConstSignatureSparse<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
+#endif
+
 TEST(KokkosSparseMatrix, GetBlockViewByVectorIndex)
 {
   TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering1>();
@@ -363,8 +370,6 @@ TEST(KokkosSparseMatrix, GetBlockViewByVectorIndex)
   TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering3>();
   TestGetBlockViewByVectorIndex<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
-
-#endif  // !KOKKOS_ENABLE_CUDA
 
 int main(int argc, char* argv[])
 {

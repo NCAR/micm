@@ -156,7 +156,6 @@ endif()
 # Kokkos
 
 if(MICM_ENABLE_KOKKOS)
-  add_compile_definitions(MICM_ENABLE_KOKKOS)
   FetchContent_Declare(kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
     GIT_TAG 5.1.0

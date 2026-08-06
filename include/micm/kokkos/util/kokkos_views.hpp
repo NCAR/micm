@@ -123,7 +123,7 @@ namespace micm
   template<class T, Index L>
   class KokkosRowVariable
   {
-    Kokkos::Array<T, L> storage_;
+    Kokkos::Array<T, L> storage_;  // TODO look at KokkosBlockVariable below and see if we can use that here
 
    public:
     using category = BlockVariableTag;
