@@ -241,7 +241,7 @@ TEST(RosenbrockSolver, RejectedStepAlphaMatchesInPlaceSolver)
   options.h_start_ = 1.0e3;
   auto run = [&](auto builder)
   {
-    auto solver = GetSolver(builder).Build();
+    auto solver = GetSolver(std::move(builder)).Build();
     auto state = solver.GetState(1);
     state.variables_[0] = { 1.0e12, 1.0e12, 1.0e12, 1.0e12, 1.0e12 };
     state.conditions_[0].temperature_ = 298.15;
