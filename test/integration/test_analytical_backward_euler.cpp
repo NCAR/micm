@@ -314,25 +314,28 @@ TEST(AnalyticalExamples, HIRES)
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  // The oregonator (k2=1.6e9) is an extremely stiff oscillator with a period of ~48s.
-  // One large step (H=30*tau) causes Newton to converge to the wrong attractor, giving
-  // ~61000x relative error. Sub-stepping at tau/1000 (~0.00016s) lets backward Euler track
-  // the slow manifold with O(H) first-order accuracy (~1.2% relative error).
-  TestAnalyticalOregonator(backward_euler, 0.02);
-  TestAnalyticalOregonator(backard_euler_vector_1, 0.02);
-  TestAnalyticalOregonator(backard_euler_vector_2, 0.02);
-  TestAnalyticalOregonator(backard_euler_vector_3, 0.02);
-  TestAnalyticalOregonator(backard_euler_vector_4, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_1, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_2, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_3, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_4, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_1, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_2, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_3, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_4, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_1, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_2, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_3, 0.02);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, 0.02);
+  // The oregonator (k2 = 1.6e9) is an extremely stiff oscillator with a period of about 48 s.
+  // One large step (H = 30 * tau) makes Newton converge to the wrong attractor and gives a
+  // relative error of about 61000. Sub-steps of tau/1000 let backward Euler track the slow
+  // manifold with O(H) first-order accuracy. The output interval is 30 * tau, so 30000
+  // sub-steps give a step size of tau/1000, and a relative error of about 3e-3.
+  constexpr micm::Index kOregonatorSubsteps = 18000;
+
+  TestAnalyticalOregonator(backward_euler, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backard_euler_vector_1, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backard_euler_vector_2, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backard_euler_vector_3, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backard_euler_vector_4, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_1, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_2, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_3, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_4, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_1, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_2, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_3, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_4, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_1, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_2, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_3, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, 5e-3, kOregonatorSubsteps);
 }

@@ -662,7 +662,7 @@ TEST(AnalyticalExamples, Oregonator)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  micm::Real rel_tol = 1e-2;
+  micm::Real rel_tol = 1e-6;
   TestAnalyticalOregonator(rosenbrock_2stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_3stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_4stage, rel_tol);
