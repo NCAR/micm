@@ -330,3 +330,8 @@ TEST(Matrix, ReduceStrict)
 {
   TestReduceStrict<micm::Matrix>();
 }
+
+TEST(Matrix, VectorCapture)
+{
+  TestVectorCapture<micm::Matrix>();
+}

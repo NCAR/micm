@@ -2156,3 +2156,46 @@ void TestReduceStrict()
 
   EXPECT_EQ(count, 3.0);
 }
+
+/// @brief Vector capture: verify that a vector view can be captured and
+///        used in Function() lambdas
+template<template<class> class MatrixPolicy>
+void TestVectorCapture()
+{
+  using Matrix = MatrixPolicy<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Index>;
+
+  Matrix matrix{ 3, 3, 0.0 };
+  matrix.CopyToDevice();
+
+  Vector vec1{ 2, 0, 1 };
+  Vector vec2{ 10, 20, 30 };
+  vec1.CopyToDevice();
+  vec2.CopyToDevice();
+
+  auto vec1_view = vec1.GetView();
+  auto vec2_view = std::as_const(vec2).GetView();
+
+  auto func = Matrix::Function(
+      MICM_LAMBDA(typename Matrix::ViewType m)
+      {
+        for (auto v1 : vec1_view)
+        {
+          m.ForEachRow([=](double& a){ a += vec2_view[v1]; }, m.GetColumnView(0));
+        }
+        m.ForEachRow([=](double& a){ a += vec2_view[vec1_view[1]]; }, m.GetColumnView(1));
+      },
+      matrix);
+  func(matrix);
+  matrix.CopyToHost();
+
+  EXPECT_EQ(matrix[0][0], 60.0);
+  EXPECT_EQ(matrix[0][1], 10.0);
+  EXPECT_EQ(matrix[0][2],  0.0);
+  EXPECT_EQ(matrix[1][0], 60.0);
+  EXPECT_EQ(matrix[1][1], 10.0);
+  EXPECT_EQ(matrix[1][2],  0.0);
+  EXPECT_EQ(matrix[2][0], 60.0);
+  EXPECT_EQ(matrix[2][1], 10.0);
+  EXPECT_EQ(matrix[2][2],  0.0);
+}

@@ -30,6 +30,7 @@ namespace micm
     struct ConstDeviceView
     {
         Kokkos::View<const T*> view_;
+        Index size_;
 
         KOKKOS_INLINE_FUNCTION const T& operator[](Index i) const
         {
@@ -46,11 +47,16 @@ namespace micm
         {
             return *this;
         }
+
+        KOKKOS_INLINE_FUNCTION const T* begin() const { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION const T* end() const { return view_.data() + size_; }
+        KOKKOS_INLINE_FUNCTION const T* data() const { return view_.data(); }
     };
 
     struct DeviceView
     {
         Kokkos::View<T*> view_;
+        Index size_;
 
         KOKKOS_INLINE_FUNCTION T& operator[](Index i) const
         {
@@ -73,6 +79,10 @@ namespace micm
         {
             return { view_ };
         }
+
+        KOKKOS_INLINE_FUNCTION const T* begin() const { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION const T* end() const { return view_.data() + size_; }
+        KOKKOS_INLINE_FUNCTION const T* data() const { return view_.data(); }
     };
 
     static constexpr Index GroupVectorSize()
@@ -166,12 +176,12 @@ namespace micm
 
     KOKKOS_INLINE_FUNCTION DeviceView GetView()
     {
-        return { device_view_ };
+        return { device_view_, size_ };
     }
 
     KOKKOS_INLINE_FUNCTION ConstDeviceView GetView() const
     {
-        return { device_view_ };
+        return { device_view_, size_ };
     }
   };
 }

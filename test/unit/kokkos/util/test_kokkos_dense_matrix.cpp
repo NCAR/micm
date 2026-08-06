@@ -507,6 +507,14 @@ TEST(KokkosDenseMatrix, ReduceStrict)
   TestReduceStrict<Group4KokkosMatrixAlias>();
 }
 
+TEST(KokkosDenseMatrix, VectorCapture)
+{
+  TestVectorCapture<Group1KokkosMatrixAlias>();
+  TestVectorCapture<Group2KokkosMatrixAlias>();
+  TestVectorCapture<Group3KokkosMatrixAlias>();
+  TestVectorCapture<Group4KokkosMatrixAlias>();
+}
+
 int main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest(&argc, argv);

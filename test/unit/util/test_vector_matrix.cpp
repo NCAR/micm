@@ -463,3 +463,11 @@ TEST(VectorMatrix, ReduceStrict)
   TestReduceStrict<Group3MatrixAlias>();
   TestReduceStrict<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, VectorCapture)
+{
+  TestVectorCapture<Group1MatrixAlias>();
+  TestVectorCapture<Group2MatrixAlias>();
+  TestVectorCapture<Group3MatrixAlias>();
+  TestVectorCapture<Group4MatrixAlias>();
+}
