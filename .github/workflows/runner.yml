@@ -66,14 +66,23 @@ jobs:
           python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
             < cuda_instructions.txt > cuda_instructions.json
 
+      # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
+      # ubuntu-latest. The two machines keep separate series and separate directories, so
+      # neither one compares against the other, and the two pushes to gh-pages cannot collide.
+      #
+      # The `name` and `benchmark-data-dir-path` of a comment step must match its store step
+      # exactly. The action keys its history by both. A mismatch produces no comparison and
+      # no comment, and the step still reports success.
+
       - name: Comment benchmark timing comparison on PR
         if: github.event_name == 'pull_request'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing
+          name: Chapman Timing (GPU runner)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: dev/bench/gpu/timing
           comment-always: true    # posts a commit comment visible in the PR timeline
           save-data-file: false   # never write to gh-pages from PR context
           alert-threshold: 120%   # comment turns into a warning at +20%
@@ -84,10 +93,11 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Instruction Counts
+          name: Chapman Instruction Counts (GPU runner)
           tool: customSmallerIsBetter
           output-file-path: cuda_instructions.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: dev/bench/gpu/instructions
           comment-always: true    # posts a commit comment visible in the PR timeline
           save-data-file: false   # never write to gh-pages from PR context
           alert-threshold: 105%   # comment turns into a warning at +5%
@@ -98,23 +108,23 @@ jobs:
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Instruction Counts
+          name: Chapman Instruction Counts (GPU runner)
           tool: customSmallerIsBetter
           output-file-path: cuda_instructions.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          benchmark-data-dir-path: dev/bench/instructions
+          benchmark-data-dir-path: dev/bench/gpu/instructions
 
       - name: Store timing results
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Wall-Clock Timing
+          name: Chapman Timing (GPU runner)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          benchmark-data-dir-path: dev/bench/timing
+          benchmark-data-dir-path: dev/bench/gpu/timing
 
 
       - name: Upload benchmark outputs
