@@ -15,8 +15,8 @@
 
 #include <micm/CPU.hpp>
 #ifdef MICM_USE_CUDA
-#include <micm/GPU.hpp>
-#include <micm/cuda/util/cuda_util.cuh>
+  #include <micm/GPU.hpp>
+  #include <micm/cuda/util/cuda_util.cuh>
 #endif
 #include <chrono>
 #include <cstdlib>
@@ -39,10 +39,22 @@
 #if __has_include(<valgrind/callgrind.h>)
   #include <valgrind/callgrind.h>
 #else
-  #define CALLGRIND_START_INSTRUMENTATION do {} while (0)
-  #define CALLGRIND_STOP_INSTRUMENTATION  do {} while (0)
-  #define CALLGRIND_TOGGLE_COLLECT        do {} while (0)
-  #define CALLGRIND_ZERO_STATS            do {} while (0)
+  #define CALLGRIND_START_INSTRUMENTATION \
+    do                                    \
+    {                                     \
+    } while (0)
+  #define CALLGRIND_STOP_INSTRUMENTATION \
+    do                                   \
+    {                                    \
+    } while (0)
+  #define CALLGRIND_TOGGLE_COLLECT \
+    do                             \
+    {                              \
+    } while (0)
+  #define CALLGRIND_ZERO_STATS \
+    do                         \
+    {                          \
+    } while (0)
 #endif
 
 namespace
@@ -185,10 +197,11 @@ int main(int argc, char** argv)
   micm::Index num_cells = (argc > 1) ? std::stoul(argv[1]) : 10000;
   micm::Index num_steps = (argc > 2) ? std::stoul(argv[2]) : 100;
   micm::Real dt = (argc > 3) ? static_cast<micm::Real>(std::stod(argv[3])) : static_cast<micm::Real>(30.0);
-  std::string backend = (argc > 4) ? argv[4] : "cpu"; // "cpu", "gpu"
-  std::string matrix_type = (argc > 5) ? argv[5] : "standard"; // "standard", "vector1", "vector2", "vector4", "vector8", "vector128"
-  std::string lu_matrix_type = (argc > 6) ? argv[6] : "in-place"; // "in-place", "separate"
-  std::string lu_type = (argc > 7) ? argv[7] : "mozart"; // "mozart", "doolittle"
+  std::string backend = (argc > 4) ? argv[4] : "cpu";  // "cpu", "gpu"
+  std::string matrix_type =
+      (argc > 5) ? argv[5] : "standard";  // "standard", "vector1", "vector2", "vector4", "vector8", "vector128"
+  std::string lu_matrix_type = (argc > 6) ? argv[6] : "in-place";  // "in-place", "separate"
+  std::string lu_type = (argc > 7) ? argv[7] : "mozart";           // "mozart", "doolittle"
 
   double elapsed_ms = -1.0;
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -385,18 +398,18 @@ int main(int argc, char** argv)
     }
     else if (matrix_type == "vector4")
     {
-          auto solver = BuildChapmanSolver(CudaRosen<4>(options));
-          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+      auto solver = BuildChapmanSolver(CudaRosen<4>(options));
+      elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
     }
     else if (matrix_type == "vector8")
     {
-          auto solver = BuildChapmanSolver(CudaRosen<8>(options));
-          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+      auto solver = BuildChapmanSolver(CudaRosen<8>(options));
+      elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
     }
     else if (matrix_type == "vector128")
     {
-          auto solver = BuildChapmanSolver(CudaRosen<128>(options));
-          elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
+      auto solver = BuildChapmanSolver(CudaRosen<128>(options));
+      elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
     }
   }
   micm::cuda::CudaStreamSingleton::GetInstance().CleanUp();
@@ -404,13 +417,12 @@ int main(int argc, char** argv)
   if (elapsed_ms < 0.0)
   {
     std::cout << "Invalid option combination: backend='" << backend << "'; matrix_type='" << matrix_type
-            << "'; lu_matrix_type='" << lu_matrix_type << "'; lu_type='" << lu_type << "'" << std::endl;
+              << "'; lu_matrix_type='" << lu_matrix_type << "'; lu_type='" << lu_type << "'" << std::endl;
     return 1;
   }
 
-  std::cout << "backend=" << backend << " matrix_type=" << matrix_type << " lu=" << lu_type << "/"
-            << lu_matrix_type << " cells=" << num_cells << " steps=" << num_steps
-            << " dt=" << dt << " elapsed_ms=" << elapsed_ms
+  std::cout << "backend=" << backend << " matrix_type=" << matrix_type << " lu=" << lu_type << "/" << lu_matrix_type
+            << " cells=" << num_cells << " steps=" << num_steps << " dt=" << dt << " elapsed_ms=" << elapsed_ms
             << " ms_per_step=" << elapsed_ms / static_cast<double>(num_steps) << std::endl;
   return 0;
 }
