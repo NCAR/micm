@@ -27,9 +27,12 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Install dependencies
+        # valgrind supplies both the callgrind tool and <valgrind/callgrind.h>.
+        # Install it before the build so chapman_bench sees the header and can
+        # scope the instrumentation to the Solve() loop.
         run: |
            apt update
-           apt install -y cmake g++ python3 pip
+           apt install -y cmake g++ python3 pip valgrind
 
       - name: Run Cmake
         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
@@ -47,16 +50,21 @@ jobs:
           ctest --rerun-failed --output-on-failure . --verbose -j 10
 
       - name: Profile timing (for benchmark action)
+        # The script writes to a file first, and the conversion reads that file.
+        # A pipeline would hide a script failure, because this container runs
+        # steps under `sh -e`, which has no pipefail. The step would then write
+        # an empty JSON file, and the benchmark action would fail later with a
+        # misleading message.
         run: |
-          scripts/bench_chapman.sh build \
-            | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
-            > cuda_timing.json
+          scripts/bench_chapman.sh build > cuda_timing.txt
+          python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            < cuda_timing.txt > cuda_timing.json
 
       - name: Profile instructions (for benchmark action)
         run: |
-          scripts/profile_chapman.sh build 2000 5 \
-            | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
-            > cuda_instructions.json
+          scripts/profile_chapman.sh build 2000 5 > cuda_instructions.txt
+          python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
+            < cuda_instructions.txt > cuda_instructions.json
 
       - name: Comment benchmark timing comparison on PR
         if: github.event_name == 'pull_request'
@@ -117,3 +125,5 @@ jobs:
           path: |
             cuda_timing.json
             cuda_instructions.json
+            cuda_timing.txt
+            cuda_instructions.txt
