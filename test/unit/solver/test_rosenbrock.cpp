@@ -238,3 +238,27 @@ TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
   TestNormalizedErrorIncludesAllVariables(
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
+
+TEST(RosenbrockSolver, RejectedStepAlphaMatchesInPlaceSolver)
+{
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  options.h_start_ = 1.0e3;
+  auto run = [&](auto builder)
+  {
+    auto solver = GetSolver(std::move(builder)).Build();
+    auto state = solver.GetState(1);
+    state.variables_[0] = { 1.0e12, 1.0e12, 1.0e12, 1.0e12, 1.0e12 };
+    state.conditions_[0].temperature_ = 298.15;
+    solver.UpdateStateParameters(state);
+    auto result = solver.Solve(options.h_start_, state);
+    EXPECT_EQ(result.state_, micm::SolverState::Converged);
+    EXPECT_GE(result.stats_.number_of_steps_ - result.stats_.accepted_, 2);
+    return result.stats_;
+  };
+
+  const auto standard = run(StandardBuilder(options));
+  const auto in_place = run(micm::CpuSolverBuilderInPlace<micm::RosenbrockSolverParameters>(options));
+  EXPECT_EQ(standard.number_of_steps_, in_place.number_of_steps_);
+  EXPECT_EQ(standard.accepted_, in_place.accepted_);
+  EXPECT_EQ(standard.rejected_, in_place.rejected_);
+}
