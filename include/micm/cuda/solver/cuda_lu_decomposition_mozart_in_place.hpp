@@ -33,7 +33,7 @@ namespace micm
 
     CudaLuDecompositionMozartInPlace& operator=(CudaLuDecompositionMozartInPlace&& other) noexcept
     {
-      LuDecompositionMozartInPlace::operator=(std::move(other));
+      LuDecompositionMozartInPlace<SparseMatrixPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
@@ -44,7 +44,7 @@ namespace micm
     ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
     CudaLuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix)
     {
-      Initialize(matrix, typename SparseMatrixPolicy::value_type());
+      LuDecompositionMozartInPlace<SparseMatrixPolicy>::Initialize(matrix, typename SparseMatrixPolicy::value_type());
 
       /// Passing the class itself as an argument is not support by CUDA;
       /// Thus we generate a host struct first to save the pointers to
@@ -62,7 +62,7 @@ namespace micm
       hoststruct.ajk_aji_size_ = this->ajk_aji_.size();
 
       /// Create the ALU matrix with all the fill-ins for the non-zero values
-      auto ALU = GetLUMatrix(matrix, 0, true);
+      auto ALU = LuDecompositionMozartInPlace<SparseMatrixPolicy>::GetLUMatrix(matrix, 0, true);
       hoststruct.number_of_non_zeros_ = ALU.GroupSize() / SparseMatrixPolicy::GroupVectorSize();
 
       // Copy the data from host struct to device struct
