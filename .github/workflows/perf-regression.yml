@@ -1,0 +1,139 @@
+name: Performance Regression
+
+# Runs the Chapman micro-benchmark under callgrind on both the PR head and the
+# base branch, and warns if the PR adds instructions to the Rosenbrock Solve()
+# function for any matrix ordering (standard, vector1,2,4,8,128).
+#
+# See docs/performance.md for how to reproduce this locally.
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chapman:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CC: gcc
+      CXX: g++
+      CELLS: 2000
+      STEPS: 5
+    steps:
+      - name: Install valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Checkout (for benchmark action git context)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so gh-pages branch is available
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          path: pr
+
+      - name: Checkout base (${{ github.base_ref }})
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Overlay PR's benchmark harness onto base
+        # The PR is the source of truth for the benchmark and scripts - that
+        # way we're measuring the same workload on both revisions, and this
+        # workflow keeps working even before the benchmark existed on main.
+        run: |
+          set -euo pipefail
+          mkdir -p base/test/benchmark base/scripts
+          cp pr/test/benchmark/chapman_bench.cpp base/test/benchmark/
+          cp pr/test/benchmark/CMakeLists.txt   base/test/benchmark/
+          cp pr/scripts/profile_chapman.sh      base/scripts/
+          cp pr/scripts/compare_chapman.py      base/scripts/
+          chmod +x base/scripts/profile_chapman.sh base/scripts/compare_chapman.py
+          if ! grep -q "add_subdirectory(benchmark)" base/test/CMakeLists.txt; then
+            printf '\nadd_subdirectory(benchmark)\n' >> base/test/CMakeLists.txt
+          fi
+
+      - name: Build PR (chapman_bench)
+        run: |
+          cmake -S pr -B pr/build -D CMAKE_BUILD_TYPE=Release
+          cmake --build pr/build --target chapman_bench --parallel
+
+      - name: Build base (chapman_bench)
+        run: |
+          cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release
+          cmake --build base/build --target chapman_bench --parallel
+
+        # Run the benchmarks (timing) for the base and PR branch, just so they
+        # appear in the action logs. Doesn't affect pass/fail
+      - name: Benchmark PR
+        run: pr/scripts/bench_chapman.sh pr/build
+
+      - name: Benchmark base
+        run: pr/scripts/bench_chapman.sh base/build
+
+      - name: Profile PR
+        run: pr/scripts/profile_chapman.sh pr/build "$CELLS" "$STEPS" | tee pr.txt
+
+      - name: Profile base
+        run: pr/scripts/profile_chapman.sh base/build "$CELLS" "$STEPS" | tee base.txt
+
+      - name: Compare instruction counts
+        run: pr/scripts/compare_chapman.py base.txt pr.txt
+        continue-on-error: true
+
+      - name: Profile PR timing (for benchmark action)
+        run: |
+          pr/scripts/bench_chapman.sh pr/build \
+            | python3 pr/scripts/to_benchmark_json.py --unit ms --value-type float \
+            > pr_timing.json
+
+      - name: Profile PR instructions (for benchmark action)
+        run: |
+          pr/scripts/profile_chapman.sh pr/build 2000 5 \
+            | python3 pr/scripts/to_benchmark_json.py --unit instructions --value-type int \
+            > pr_instructions.json
+
+      - name: Comment benchmark timing comparison on PR
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing
+          tool: customSmallerIsBetter
+          output-file-path: pr_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 120%   # comment turns into a warning at +20%
+          fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
+
+      - name: Comment benchmark instruction comparison on PR
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: pr_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 105%   # comment turns into a warning at +5%
+          fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
+
+      - name: Upload profile outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chapman-profile
+          path: |
+            base.txt
+            pr.txt

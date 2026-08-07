@@ -52,7 +52,7 @@ If you would later like to uninstall MICM, you can run
 
 There are multiple options for running micm. You can use our
 solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
-Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
+Please [read our docs](https://micm.readthedocs.io/en/latest/getting_started.html) 
 to learn how to enable these options.
 
 ## Running a MICM Docker container
@@ -89,7 +89,7 @@ The following example solves the fictitious chemical system:
 foo       --k1--> 0.8 bar + 0.2 baz
 foo + bar --k2--> baz
 ```
-The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM documentation](https://ncar.github.io/micm/) for details on the types of reactions available in MICM and how to configure them.
+The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM documentation](https://micm.readthedocs.io/en/latest/) for details on the types of reactions available in MICM and how to configure them.
 
 To solve this system save the following code in a file named `foo_chem.cpp`:
 
@@ -174,6 +174,23 @@ Output:
  4000,   1.11e-01,   1.27e+01,   5.39e+00
  4500,   6.13e-02,   1.28e+01,   5.41e+00
 ```
+# Performance
+
+Every push to `main` records the Chapman mechanism benchmark and publishes the
+history as a chart. Instruction counts come from callgrind and are deterministic,
+so they show a hot-path change even when the wall-clock time is noisy.
+
+| chart | machine |
+| --- | --- |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/gpu/instructions/) | CIRRUS a10 GPU runner |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | CIRRUS a10 GPU runner |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/instructions/) | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/timing/) | `ubuntu-latest` |
+
+Each pull request also gets a commit comment that compares its numbers against
+the latest `main` values. See [docs/performance.md](docs/performance.md) to run
+the benchmark yourself.
+
 # Citation
 
 MICM is part of the MUSICA project and can be cited by reference to the MUSICA vision paper. The BibTeX entry below can be used to generate a citation for this.
@@ -203,12 +220,12 @@ cutting edge science.
   - Anyone interested in scientific collaboration
 which would add new software functionality should read the [MUSICA software development plan](https://github.com/NCAR/musica/blob/main/docs/Software%20Development%20Plan.pdf).
 
-- [Contributor's guide](https://ncar.github.io/micm/contributing/index.html)
+- [Contributor's guide](https://micm.readthedocs.io/en/latest/contributing/index.html)
   - Before submiitting a PR, please thouroughly read this to you understand our expectations. We reserve the right to reject any PR not meeting our guidelines.
 
 
 # Documentation
-Please see the [MICM documentation](https://ncar.github.io/micm/) for detailed
+Please see the [MICM documentation](https://micm.readthedocs.io/en/latest/) for detailed
 installation and usage instructions.
 
 # License
