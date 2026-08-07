@@ -570,7 +570,7 @@ template<template<class> class MatrixPolicy>
 MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
 {
   using Matrix = MatrixPolicy<micm::Real>;
-  using Vector = typename Matrix::VectorType<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
   Matrix matrix{ 5, 3, -1.0 };
 
   // Set initial values that differ by rows
@@ -711,7 +711,7 @@ template<template<class> class MatrixPolicy>
 std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>> TestMatrixVectorDifferentRowsFromCreation()
 {
   using Matrix = MatrixPolicy<micm::Real>;
-  using Vector = typename Matrix::VectorType<micm::Real>;
+  using Vector = typename Matrix::template VectorType<micm::Real>;
   // Create function with 3-row matrix and vector
   Matrix matrix_create{ 3, 3, 0.0 };
   Vector vec_create(3);

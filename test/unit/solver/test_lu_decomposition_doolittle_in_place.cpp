@@ -14,20 +14,26 @@ using Group2SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatr
 using Group3SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<3>>;
 using Group4SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>;
 
+using LUStandard = micm::LuDecompositionDoolittleInPlace<SparseMatrixTest>;
+using LUVector1  = micm::LuDecompositionDoolittleInPlace<Group1SparseVectorMatrix>;
+using LUVector2  = micm::LuDecompositionDoolittleInPlace<Group2SparseVectorMatrix>;
+using LUVector3  = micm::LuDecompositionDoolittleInPlace<Group3SparseVectorMatrix>;
+using LUVector4  = micm::LuDecompositionDoolittleInPlace<Group4SparseVectorMatrix>;
+
 TEST(LuDecompositionDoolittleInPlace, DenseMatrixStandardOrdering)
 {
-  TestDenseMatrix<SparseMatrixTest, micm::LuDecompositionDoolittleInPlace>();
+  TestDenseMatrix<SparseMatrixTest, LUStandard>();
 }
 
 TEST(LuDecompositionDoolittleInPlace, RandomMatrixStandardOrdering)
 {
-  TestRandomMatrix<SparseMatrixTest, micm::LuDecompositionDoolittleInPlace>(1);
-  TestRandomMatrix<SparseMatrixTest, micm::LuDecompositionDoolittleInPlace>(5);
+  TestRandomMatrix<SparseMatrixTest, LUStandard>(1);
+  TestRandomMatrix<SparseMatrixTest, LUStandard>(5);
 }
 
 TEST(LuDecompositionDoolittleInPlace, DiagonalMatrixStandardOrdering)
 {
-  TestDiagonalMatrix<SparseMatrixTest, micm::LuDecompositionDoolittleInPlace>(5);
+  TestDiagonalMatrix<SparseMatrixTest, LUStandard>(5);
 }
 
 TEST(LuDecompositionDoolittleInPlace, AgnosticToInitialValueStandardOrdering)
@@ -35,32 +41,32 @@ TEST(LuDecompositionDoolittleInPlace, AgnosticToInitialValueStandardOrdering)
   micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    TestExtremeValueInitialization<SparseMatrixTest, micm::LuDecompositionDoolittleInPlace>(5, value);
+    TestExtremeValueInitialization<SparseMatrixTest, LUStandard>(5, value);
   }
 }
 
 TEST(LuDecompositionDoolittleInPlace, DenseMatrixVectorOrdering)
 {
-  TestDenseMatrix<Group1SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>();
-  TestDenseMatrix<Group2SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>();
-  TestDenseMatrix<Group3SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>();
-  TestDenseMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>();
+  TestDenseMatrix<Group1SparseVectorMatrix, LUVector1>();
+  TestDenseMatrix<Group2SparseVectorMatrix, LUVector2>();
+  TestDenseMatrix<Group3SparseVectorMatrix, LUVector3>();
+  TestDenseMatrix<Group4SparseVectorMatrix, LUVector4>();
 }
 
 TEST(LuDecompositionDoolittleInPlace, RandomMatrixVectorOrdering)
 {
-  TestRandomMatrix<Group1SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
-  TestRandomMatrix<Group2SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
-  TestRandomMatrix<Group3SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
-  TestRandomMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
+  TestRandomMatrix<Group1SparseVectorMatrix, LUVector1>(5);
+  TestRandomMatrix<Group2SparseVectorMatrix, LUVector2>(5);
+  TestRandomMatrix<Group3SparseVectorMatrix, LUVector3>(5);
+  TestRandomMatrix<Group4SparseVectorMatrix, LUVector4>(5);
 }
 
 TEST(LuDecompositionDoolittleInPlace, DiagonalMatrixVectorOrdering)
 {
-  TestDiagonalMatrix<Group1SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
-  TestDiagonalMatrix<Group2SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
-  TestDiagonalMatrix<Group3SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
-  TestDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5);
+  TestDiagonalMatrix<Group1SparseVectorMatrix, LUVector1>(5);
+  TestDiagonalMatrix<Group2SparseVectorMatrix, LUVector2>(5);
+  TestDiagonalMatrix<Group3SparseVectorMatrix, LUVector3>(5);
+  TestDiagonalMatrix<Group4SparseVectorMatrix, LUVector4>(5);
 }
 
 TEST(LuDecompositionDoolittleInPlace, AgnosticToInitialValueVectorOrdering)
@@ -68,9 +74,9 @@ TEST(LuDecompositionDoolittleInPlace, AgnosticToInitialValueVectorOrdering)
   micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    TestExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5, value);
-    TestExtremeValueInitialization<Group2SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5, value);
-    TestExtremeValueInitialization<Group3SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5, value);
-    TestExtremeValueInitialization<Group4SparseVectorMatrix, micm::LuDecompositionDoolittleInPlace>(5, value);
+    TestExtremeValueInitialization<Group1SparseVectorMatrix, LUVector1>(5, value);
+    TestExtremeValueInitialization<Group2SparseVectorMatrix, LUVector2>(5, value);
+    TestExtremeValueInitialization<Group3SparseVectorMatrix, LUVector3>(5, value);
+    TestExtremeValueInitialization<Group4SparseVectorMatrix, LUVector4>(5, value);
   }
 }

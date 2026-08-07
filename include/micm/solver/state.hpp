@@ -46,7 +46,7 @@ namespace micm
   template<
       class DenseMatrixPolicy = StandardDenseMatrix,
       class SparseMatrixPolicy = StandardSparseMatrix,
-      class LuDecompositionPolicy = LuDecomposition>
+      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   struct State
   {
     /// Type of the DenseMatrixPolicy

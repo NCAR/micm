@@ -294,14 +294,14 @@ namespace micm
     {
       jacobian_ =
           BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, true);
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0, false);
+      auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian_, 0, false);
       jacobian_ = std::move(lu);
     }
     else
     {
       jacobian_ =
           BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, false);
-      auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(jacobian_, 0, false);
+      auto lu = LuDecompositionPolicy::GetLUMatrices(jacobian_, 0, false);
       auto lower_matrix = std::move(lu.first);
       auto upper_matrix = std::move(lu.second);
       lower_matrix_ = lower_matrix;

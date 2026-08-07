@@ -471,7 +471,7 @@ namespace micm
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
+      auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian, 0, true);
       jacobian = std::move(lu);
     }
 

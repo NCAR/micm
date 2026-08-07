@@ -131,7 +131,7 @@ namespace micm
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy>(m); })
+            { return LuDecompositionPolicy::Create(m); })
   {
   }
 
@@ -146,7 +146,7 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value, true);
+    auto lu = lu_decomp_.GetLUMatrices(matrix, initial_value, true);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     for (Index i = 0; i < lower_matrix.NumRows(); ++i)
@@ -187,7 +187,7 @@ namespace micm
       SparseMatrixPolicy& lower_matrix,
       SparseMatrixPolicy& upper_matrix) const
   {
-    lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
+    lu_decomp_.Decompose(matrix, lower_matrix, upper_matrix);
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>

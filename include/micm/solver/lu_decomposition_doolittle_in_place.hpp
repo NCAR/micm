@@ -7,7 +7,7 @@
 
 namespace micm
 {
-
+  
   /// @brief LU decomposer for SparseMatrix following the Doolittle algorithm
   ///
   /// The LU decomposition uses the Doolittle algorithm following the
@@ -32,6 +32,8 @@ namespace micm
   /// necessarily match that of the LU matrices. There can be more nonzero elements in the LU matrices
   /// than in the jacobian. It is expected that the elements of the L and U matrices that are zero in the A matrix
   /// will be set to zero before the combined matrix is passed to the decomposition function.
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
   class LuDecompositionDoolittleInPlace
   {
    protected:
@@ -61,23 +63,17 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     LuDecompositionDoolittleInPlace(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionDoolittleInPlace() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static LuDecompositionDoolittleInPlace Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static SparseMatrixPolicy GetLUMatrix(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
@@ -87,14 +83,11 @@ namespace micm
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    template<class SparseMatrixPolicy>
     void Decompose(SparseMatrixPolicy& ALU) const;
 
    protected:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 

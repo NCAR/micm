@@ -164,6 +164,8 @@ namespace micm::cuda
   template cudaError_t MatrixMin<Real>(CudaMatrixParam& param, Real val);
   template cudaError_t CopyToDevice<Real>(CudaMatrixParam& param, const std::vector<Real>& h_data);
   template cudaError_t CopyToHost<Real>(CudaMatrixParam& param, std::vector<Real>& h_data);
+  template cudaError_t CopyToDevice<int>(CudaMatrixParam& param, const std::vector<int>& h_data);
+  template cudaError_t CopyToHost<int>(CudaMatrixParam& param, std::vector<int>& h_data);
   template cudaError_t CopyToDeviceFromDevice<Real>(
       CudaMatrixParam& vectorMatrixDest,
       const CudaMatrixParam& vectorMatrixSrc);

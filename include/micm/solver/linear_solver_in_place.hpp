@@ -16,7 +16,7 @@ namespace micm
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
   /// The L and U matrices are decomposed in-place over the original A matrix.
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   class LinearSolverInPlace
   {
    protected:

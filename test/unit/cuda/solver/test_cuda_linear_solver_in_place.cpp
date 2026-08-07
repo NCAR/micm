@@ -56,7 +56,7 @@ TEST(CudaLinearSolverInPlace, DenseMatrixVectorOrderingPolicy)
       micm::CudaLinearSolverInPlace<
           Group1130CudaDenseMatrix,
           Group1130CudaSparseMatrix,
-          micm::CudaLuDecompositionMozartInPlace>>();
+          micm::CudaLuDecompositionMozartInPlace<Group1130CudaSparseMatrix>>>();
 }
 
 TEST(CudaLinearSolverInPlace, RandomMatrixVectorOrderingPolicy)

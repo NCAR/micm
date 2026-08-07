@@ -14,20 +14,26 @@ using Group2SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatr
 using Group3SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<3>>;
 using Group4SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>;
 
+using LUStandard = micm::LuDecompositionDoolittle<SparseMatrixTest>;
+using LUVector1  = micm::LuDecompositionDoolittle<Group1SparseVectorMatrix>;
+using LUVector2  = micm::LuDecompositionDoolittle<Group2SparseVectorMatrix>;
+using LUVector3  = micm::LuDecompositionDoolittle<Group3SparseVectorMatrix>;
+using LUVector4  = micm::LuDecompositionDoolittle<Group4SparseVectorMatrix>;
+
 TEST(LuDecompositionDoolittle, DenseMatrixStandardOrdering)
 {
-  TestDenseMatrix<SparseMatrixTest, micm::LuDecompositionDoolittle>();
+  TestDenseMatrix<SparseMatrixTest, LUStandard>();
 }
 
 TEST(LuDecompositionDoolittle, RandomMatrixStandardOrdering)
 {
-  TestRandomMatrix<SparseMatrixTest, micm::LuDecompositionDoolittle>(1);
-  TestRandomMatrix<SparseMatrixTest, micm::LuDecompositionDoolittle>(5);
+  TestRandomMatrix<SparseMatrixTest, LUStandard>(1);
+  TestRandomMatrix<SparseMatrixTest, LUStandard>(5);
 }
 
 TEST(LuDecompositionDoolittle, DiagonalMatrixStandardOrdering)
 {
-  TestDiagonalMatrix<SparseMatrixTest, micm::LuDecompositionDoolittle>(5);
+  TestDiagonalMatrix<SparseMatrixTest, LUStandard>(5);
 }
 
 TEST(LuDecompositionDoolittle, AgnosticToInitialValueStandardOrdering)
@@ -35,32 +41,32 @@ TEST(LuDecompositionDoolittle, AgnosticToInitialValueStandardOrdering)
   micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    TestExtremeValueInitialization<SparseMatrixTest, micm::LuDecompositionDoolittle>(5, value);
+    TestExtremeValueInitialization<SparseMatrixTest, LUStandard>(5, value);
   }
 }
 
 TEST(LuDecompositionDoolittle, DenseMatrixVectorOrdering)
 {
-  TestDenseMatrix<Group1SparseVectorMatrix, micm::LuDecompositionDoolittle>();
-  TestDenseMatrix<Group2SparseVectorMatrix, micm::LuDecompositionDoolittle>();
-  TestDenseMatrix<Group3SparseVectorMatrix, micm::LuDecompositionDoolittle>();
-  TestDenseMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittle>();
+  TestDenseMatrix<Group1SparseVectorMatrix, LUVector1>();
+  TestDenseMatrix<Group2SparseVectorMatrix, LUVector2>();
+  TestDenseMatrix<Group3SparseVectorMatrix, LUVector3>();
+  TestDenseMatrix<Group4SparseVectorMatrix, LUVector4>();
 }
 
 TEST(LuDecompositionDoolittle, RandomMatrixVectorOrdering)
 {
-  TestRandomMatrix<Group1SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
-  TestRandomMatrix<Group2SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
-  TestRandomMatrix<Group3SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
-  TestRandomMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
+  TestRandomMatrix<Group1SparseVectorMatrix, LUVector1>(5);
+  TestRandomMatrix<Group2SparseVectorMatrix, LUVector2>(5);
+  TestRandomMatrix<Group3SparseVectorMatrix, LUVector3>(5);
+  TestRandomMatrix<Group4SparseVectorMatrix, LUVector4>(5);
 }
 
 TEST(LuDecompositionDoolittle, DiagonalMatrixVectorOrdering)
 {
-  TestDiagonalMatrix<Group1SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
-  TestDiagonalMatrix<Group2SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
-  TestDiagonalMatrix<Group3SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
-  TestDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
+  TestDiagonalMatrix<Group1SparseVectorMatrix, LUVector1>(5);
+  TestDiagonalMatrix<Group2SparseVectorMatrix, LUVector2>(5);
+  TestDiagonalMatrix<Group3SparseVectorMatrix, LUVector3>(5);
+  TestDiagonalMatrix<Group4SparseVectorMatrix, LUVector4>(5);
 }
 
 TEST(LuDecompositionDoolittle, AgnosticToInitialValueVectorOrdering)
@@ -68,9 +74,9 @@ TEST(LuDecompositionDoolittle, AgnosticToInitialValueVectorOrdering)
   micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    TestExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecompositionDoolittle>(5, value);
-    TestExtremeValueInitialization<Group2SparseVectorMatrix, micm::LuDecompositionDoolittle>(5, value);
-    TestExtremeValueInitialization<Group3SparseVectorMatrix, micm::LuDecompositionDoolittle>(5, value);
-    TestExtremeValueInitialization<Group4SparseVectorMatrix, micm::LuDecompositionDoolittle>(5, value);
+    TestExtremeValueInitialization<Group1SparseVectorMatrix, LUVector1>(5, value);
+    TestExtremeValueInitialization<Group2SparseVectorMatrix, LUVector2>(5, value);
+    TestExtremeValueInitialization<Group3SparseVectorMatrix, LUVector3>(5, value);
+    TestExtremeValueInitialization<Group4SparseVectorMatrix, LUVector4>(5, value);
   }
 }

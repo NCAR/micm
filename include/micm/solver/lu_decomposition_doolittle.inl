@@ -6,27 +6,29 @@
 namespace micm
 {
 
-  inline LuDecompositionDoolittle::LuDecompositionDoolittle() = default;
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>::LuDecompositionDoolittle() = default;
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittle::LuDecompositionDoolittle(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>::LuDecompositionDoolittle(const SparseMatrixPolicy& matrix)
   {
-    Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    Initialize(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittle LuDecompositionDoolittle::Create(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy> LuDecompositionDoolittle<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
   {
-    LuDecompositionDoolittle lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    LuDecompositionDoolittle<SparseMatrixPolicy> lu_decomp{};
+    lu_decomp.Initialize(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittle::FillPattern LuDecompositionDoolittle::ComputeFillPattern(const SparseMatrixPolicy& A)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>::FillPattern LuDecompositionDoolittle<SparseMatrixPolicy>::ComputeFillPattern(const SparseMatrixPolicy& A)
   {
     Index n = A.NumRows();
     FillPattern fp;
@@ -133,7 +135,7 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionDoolittle::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
+  inline void LuDecompositionDoolittle<SparseMatrixPolicy>::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     Index n = matrix.NumRows();
     FillPattern fp = ComputeFillPattern(matrix);
@@ -225,7 +227,7 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecompositionDoolittle::GetLUMatrices(
+  inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecompositionDoolittle<SparseMatrixPolicy>::GetLUMatrices(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
       bool indexing_only)
@@ -248,7 +250,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  inline void LuDecompositionDoolittle::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline void LuDecompositionDoolittle<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     SparseMatrixPolicy::Function(
         [this](const auto&& A_view, auto&& lower_view, auto&& upper_view)

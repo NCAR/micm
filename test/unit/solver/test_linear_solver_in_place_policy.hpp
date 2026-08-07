@@ -111,7 +111,7 @@ void TestDenseMatrix()
   CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
+  auto alu = micm::LuDecompositionInPlace<SparseMatrixPolicy>::GetLUMatrix(A, 0, false);
   alu.Fill(0);
   for (micm::Index i = 0; i < A.NumRows(); ++i)
   {
@@ -207,7 +207,7 @@ void TestRandomMatrix(micm::Index number_of_blocks)
   CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
+  auto alu = micm::LuDecompositionInPlace<SparseMatrixPolicy>::GetLUMatrix(A, 0, false);
   alu.Fill(0);
   for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
   {
@@ -312,7 +312,7 @@ void TestExtremeInitialValue(micm::Index number_of_blocks, micm::Real initial_va
   CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value, false);
+  auto alu = micm::LuDecompositionInPlace<SparseMatrixPolicy>::GetLUMatrix(A, initial_value, false);
   for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
   {
     for (micm::Index i = 0; i < A.NumRows(); ++i)
@@ -397,7 +397,7 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
   CheckCopyToDevice<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
+  auto alu = micm::LuDecompositionInPlace<SparseMatrixPolicy>::GetLUMatrix(A, 0, false);
   alu.Fill(0);
   for (micm::Index i_block = 0; i_block < number_of_blocks; ++i_block)
   {
@@ -478,11 +478,11 @@ void TestMarkowitzReordering()
   }
   SparseMatrixPolicy reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(orig_jac);
-  auto reordered_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(reordered_jac);
+  auto orig_LU_calc = micm::LuDecompositionInPlace<SparseMatrixPolicy>::Create(orig_jac);
+  auto reordered_LU_calc = micm::LuDecompositionInPlace<SparseMatrixPolicy>::Create(reordered_jac);
 
-  auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0, false);
-  auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0, false);
+  auto orig_LU = orig_LU_calc.GetLUMatrix(orig_jac, 0.0, false);
+  auto reordered_LU = reordered_LU_calc.GetLUMatrix(reordered_jac, 0.0, false);
 
   micm::Index sum_orig = 0;
   micm::Index sum_reordered = 0;

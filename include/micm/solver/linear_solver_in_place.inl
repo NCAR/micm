@@ -13,7 +13,7 @@ namespace micm
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy>(m); })
+            { return LuDecompositionPolicy::Create(m); })
   {
   }
 
@@ -28,7 +28,7 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    auto lu = lu_decomp_.template GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
+    auto lu = lu_decomp_.GetLUMatrix(matrix, initial_value, true);
     for (Index i = 0; i < lu.NumRows(); ++i)
     {
       Index nLij = 0;
@@ -64,7 +64,7 @@ namespace micm
   inline void LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
       SparseMatrixPolicy& matrix) const
   {
-    lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix);
+    lu_decomp_.Decompose(matrix);
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>

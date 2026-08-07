@@ -32,7 +32,7 @@ namespace micm
           LinearSolverInPlace<
               VectorMatrix<Real, 1>,
               SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
-              LuDecompositionMozartInPlace>,
+              LuDecompositionMozartInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>>,
           VectorMatrix<Real, 1>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LinearSolverInPlace for vector matrices does not meet the LinearSolverInPlaceConcept requirements");
@@ -46,7 +46,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   class LinearSolver
   {
    protected:

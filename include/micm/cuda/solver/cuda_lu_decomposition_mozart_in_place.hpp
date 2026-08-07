@@ -10,7 +10,8 @@
 namespace micm
 {
   /// This CudaLuDecompositionMozartInPlace class inherits everything from the base class "LuDecompositionMozartInPlace"
-  class CudaLuDecompositionMozartInPlace : public LuDecompositionMozartInPlace
+  template<class SparseMatrixPolicy>
+  class CudaLuDecompositionMozartInPlace : public LuDecompositionMozartInPlace<SparseMatrixPolicy>
   {
    public:
     /// This is an instance of struct "LuDecomposeMozartInPlaceParam" that holds
@@ -25,7 +26,7 @@ namespace micm
     // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
     // member devstruct_ untouched, so swapping it out of `other` afterward is safe.
     CudaLuDecompositionMozartInPlace(CudaLuDecompositionMozartInPlace&& other) noexcept
-        : LuDecompositionMozartInPlace(std::move(other))
+        : LuDecompositionMozartInPlace<SparseMatrixPolicy>(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
@@ -41,11 +42,9 @@ namespace micm
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and
     ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     CudaLuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix)
     {
-      Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+      Initialize(matrix, typename SparseMatrixPolicy::value_type());
 
       /// Passing the class itself as an argument is not support by CUDA;
       /// Thus we generate a host struct first to save the pointers to
@@ -63,7 +62,7 @@ namespace micm
       hoststruct.ajk_aji_size_ = this->ajk_aji_.size();
 
       /// Create the ALU matrix with all the fill-ins for the non-zero values
-      auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, 0, true);
+      auto ALU = GetLUMatrix(matrix, 0, true);
       hoststruct.number_of_non_zeros_ = ALU.GroupSize() / SparseMatrixPolicy::GroupVectorSize();
 
       // Copy the data from host struct to device struct
@@ -80,8 +79,6 @@ namespace micm
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static CudaLuDecompositionMozartInPlace Create(const SparseMatrixPolicy& matrix)
     {
       CudaLuDecompositionMozartInPlace lu_decomp(matrix);
@@ -90,16 +87,10 @@ namespace micm
 
     /// @brief This is the function to perform an LU decomposition on a given A matrix on the GPU
     /// @param ALU Sparse matrix to decompose (will be overwritten with L and U matrices)
-    template<class SparseMatrixPolicy>
-      requires(CudaMatrix<SparseMatrixPolicy>)
-    void Decompose(SparseMatrixPolicy& ALU) const;
+    void Decompose(SparseMatrixPolicy& ALU) const
+    {
+      auto ALU_param = ALU.AsDeviceParam();
+      micm::cuda::DecomposeKernelDriver(ALU_param, this->devstruct_);
+    }
   };
-
-  template<class SparseMatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy>)
-  void CudaLuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
-  {
-    auto ALU_param = ALU.AsDeviceParam();
-    micm::cuda::DecomposeKernelDriver(ALU_param, this->devstruct_);
-  }
 }  // end of namespace micm

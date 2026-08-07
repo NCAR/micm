@@ -21,25 +21,27 @@ namespace micm
     { t.Decompose(std::declval<SparseMatrixPolicy&>()) };
   };
   static_assert(
-      LuDecompositionInPlaceConcept<LuDecompositionMozartInPlace, StandardSparseMatrix>,
+      LuDecompositionInPlaceConcept<LuDecompositionMozartInPlace<StandardSparseMatrix>, StandardSparseMatrix>,
       "LuDecompositionMozartInPlace does not meet the LuDecompositionInPlaceConcept requirements");
   static_assert(
       LuDecompositionInPlaceConcept<
-          LuDecompositionMozartInPlace,
+          LuDecompositionMozartInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LuDecompositionMozartInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
   static_assert(
-      LuDecompositionInPlaceConcept<LuDecompositionDoolittleInPlace, StandardSparseMatrix>,
+      LuDecompositionInPlaceConcept<LuDecompositionDoolittleInPlace<StandardSparseMatrix>, StandardSparseMatrix>,
       "LuDecompositionDoolittleInPlace does not meet the LuDecompositionInPlaceConcept requirements");
   static_assert(
       LuDecompositionInPlaceConcept<
-          LuDecompositionDoolittleInPlace,
+          LuDecompositionDoolittleInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LuDecompositionDoolittleInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
 
   /// @brief Alias for the default LU decomposition algorithm
-  using LuDecomposition = LuDecompositionDoolittle;
+  template<class SparseMatrixPolicy>
+  using LuDecomposition = LuDecompositionDoolittle<SparseMatrixPolicy>;
 
   /// @brief Alias for the default in-place LU decomposition algorithm
-  using LuDecompositionInPlace = LuDecompositionMozartInPlace;
+  template<class SparseMatrixPolicy>
+  using LuDecompositionInPlace = LuDecompositionMozartInPlace<SparseMatrixPolicy>;
 }  // namespace micm

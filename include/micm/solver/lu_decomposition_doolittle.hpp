@@ -39,6 +39,8 @@ namespace micm
   /// to the LU matrix. This value is implicitly zero when the sparsity pattern differs. The Fill values
   /// here do this implicit assignment
   /// More detail in this issue: https://github.com/NCAR/micm/issues/625
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
   class LuDecompositionDoolittle
   {
    protected:
@@ -87,23 +89,17 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     LuDecompositionDoolittle(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionDoolittle() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static LuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
@@ -113,7 +109,6 @@ namespace micm
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    template<class SparseMatrixPolicy>
     void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
 
    protected:
@@ -141,14 +136,10 @@ namespace micm
     /// rather than the O(n^3) dense triple loop.
     /// @param A Sparse matrix that will be decomposed
     /// @return Fill pattern and adjacency of A, L and U
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static FillPattern ComputeFillPattern(const SparseMatrixPolicy& A);
 
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 

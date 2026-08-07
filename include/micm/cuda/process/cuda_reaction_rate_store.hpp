@@ -255,7 +255,7 @@ namespace micm
 
     /// @brief Upload the current conditions array to device, growing the buffer if needed.
     /// @return Device pointer valid until the next call to UploadConditions.
-    const Conditions* UploadConditions(const std::vector<Conditions>& conditions)
+    const Conditions* UploadConditions(const auto& conditions)
     {
       auto* stream = micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0);
       if (conditions.size() > d_conditions_capacity_)

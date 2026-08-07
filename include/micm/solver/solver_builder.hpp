@@ -225,7 +225,7 @@ namespace micm
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<Real>,
       class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition>
+      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -244,7 +244,7 @@ namespace micm
       class SolverParametersPolicy,
       class DenseMatrix = Matrix<Real>,
       class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecompositionInPlace>
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   using CpuSolverBuilderInPlace = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrix,

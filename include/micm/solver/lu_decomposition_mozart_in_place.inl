@@ -6,30 +6,32 @@
 namespace micm
 {
 
-  inline LuDecompositionMozartInPlace::LuDecompositionMozartInPlace() = default;
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy>::LuDecompositionMozartInPlace() = default;
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionMozartInPlace::LuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy>::LuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix)
   {
-    Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    Initialize(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionMozartInPlace LuDecompositionMozartInPlace::Create(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy> LuDecompositionMozartInPlace<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
   {
-    LuDecompositionMozartInPlace lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    LuDecompositionMozartInPlace<SparseMatrixPolicy> lu_decomp{};
+    lu_decomp.Initialize(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionMozartInPlace::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
+  inline void LuDecompositionMozartInPlace<SparseMatrixPolicy>::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     Index n = matrix.NumRows();
-    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
+    auto ALU = GetLUMatrix(matrix, initial_value, true);
     for (Index i = 0; i < n; ++i)
     {
       if (ALU.IsZero(i, i))
@@ -72,7 +74,7 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline SparseMatrixPolicy LuDecompositionMozartInPlace::GetLUMatrix(
+  inline SparseMatrixPolicy LuDecompositionMozartInPlace<SparseMatrixPolicy>::GetLUMatrix(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
       bool indexing_only)
@@ -122,7 +124,7 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
+  inline void LuDecompositionMozartInPlace<SparseMatrixPolicy>::Decompose(SparseMatrixPolicy& ALU) const
   {
     SparseMatrixPolicy::Function(
         [this](auto&& alu_view)

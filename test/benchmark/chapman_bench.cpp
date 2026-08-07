@@ -165,10 +165,14 @@ namespace
   template<micm::Index L>
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
-  using DooLU = micm::LuDecompositionDoolittle;
-  using DooLUInPlace = micm::LuDecompositionDoolittleInPlace;
-  using MozLU = micm::LuDecompositionMozart;
-  using MozLUInPlace = micm::LuDecompositionMozartInPlace;
+  template<class SparseMatrixPolicy>
+  using DooLU = micm::LuDecompositionDoolittle<SparseMatrixPolicy>;
+  template<class SparseMatrixPolicy>
+  using DooLUInPlace = micm::LuDecompositionDoolittleInPlace<SparseMatrixPolicy>;
+  template<class SparseMatrixPolicy>
+  using MozLU = micm::LuDecompositionMozart<SparseMatrixPolicy>;
+  template<class SparseMatrixPolicy>
+  using MozLUInPlace = micm::LuDecompositionMozartInPlace<SparseMatrixPolicy>;
 
   template<class DM, class SM, class LU>
   using CpuRosen = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DM, SM, LU>;
@@ -201,12 +205,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<StandardDense, StandardSparse, MozLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<StandardDense, StandardSparse, MozLUInPlace<StandardSparse>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<StandardDense, StandardSparse, DooLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<StandardDense, StandardSparse, DooLUInPlace<StandardSparse>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -214,12 +218,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<StandardDense, StandardSparse, MozLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<StandardDense, StandardSparse, MozLU<StandardSparse>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<StandardDense, StandardSparse, DooLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<StandardDense, StandardSparse, DooLU<StandardSparse>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -230,12 +234,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<1>, VectorSparse<1>, MozLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<1>, VectorSparse<1>, MozLUInPlace<VectorSparse<1>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<1>, VectorSparse<1>, DooLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<1>, VectorSparse<1>, DooLUInPlace<VectorSparse<1>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -243,12 +247,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<1>, VectorSparse<1>, MozLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<1>, VectorSparse<1>, MozLU<VectorSparse<1>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<1>, VectorSparse<1>, DooLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<1>, VectorSparse<1>, DooLU<VectorSparse<1>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -259,12 +263,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<2>, VectorSparse<2>, MozLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<2>, VectorSparse<2>, MozLUInPlace<VectorSparse<2>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<2>, VectorSparse<2>, DooLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<2>, VectorSparse<2>, DooLUInPlace<VectorSparse<2>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -272,12 +276,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<2>, VectorSparse<2>, MozLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<2>, VectorSparse<2>, MozLU<VectorSparse<2>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<2>, VectorSparse<2>, DooLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<2>, VectorSparse<2>, DooLU<VectorSparse<2>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -288,12 +292,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<4>, VectorSparse<4>, MozLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<4>, VectorSparse<4>, MozLUInPlace<VectorSparse<4>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<4>, VectorSparse<4>, DooLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<4>, VectorSparse<4>, DooLUInPlace<VectorSparse<4>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -301,12 +305,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<4>, VectorSparse<4>, MozLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<4>, VectorSparse<4>, MozLU<VectorSparse<4>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<4>, VectorSparse<4>, DooLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<4>, VectorSparse<4>, DooLU<VectorSparse<4>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -317,12 +321,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<8>, VectorSparse<8>, MozLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<8>, VectorSparse<8>, MozLUInPlace<VectorSparse<8>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<8>, VectorSparse<8>, DooLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<8>, VectorSparse<8>, DooLUInPlace<VectorSparse<8>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -330,12 +334,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<8>, VectorSparse<8>, MozLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<8>, VectorSparse<8>, MozLU<VectorSparse<8>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<8>, VectorSparse<8>, DooLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<8>, VectorSparse<8>, DooLU<VectorSparse<8>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -346,12 +350,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<128>, VectorSparse<128>, MozLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<128>, VectorSparse<128>, MozLUInPlace<VectorSparse<128>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<128>, VectorSparse<128>, DooLUInPlace>(options));
+          auto solver = BuildChapmanSolver(CpuRosenInPlace<VectorDense<128>, VectorSparse<128>, DooLUInPlace<VectorSparse<128>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
@@ -359,12 +363,12 @@ int main(int argc, char** argv)
       {
         if (lu_type == "mozart")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<128>, VectorSparse<128>, MozLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<128>, VectorSparse<128>, MozLU<VectorSparse<128>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
         else if (lu_type == "doolittle")
         {
-          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<128>, VectorSparse<128>, DooLU>(options));
+          auto solver = BuildChapmanSolver(CpuRosen<VectorDense<128>, VectorSparse<128>, DooLU<VectorSparse<128>>>(options));
           elapsed_ms = RunBench(solver, num_cells, num_steps, dt);
         }
       }
