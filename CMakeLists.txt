@@ -43,6 +43,10 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" S
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
 
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+  set(MICM_USE_CUDA ON)
+  add_compile_definitions(MICM_USE_CUDA)
+endif()
 ################################################################################
 # Dependencies
 

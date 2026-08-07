@@ -1,0 +1,58 @@
+# .github/workflows/benchmark-charts.yml
+name: Benchmark Charts
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so gh-pages branch is available
+          
+      - name: Install valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+
+      - name: Build
+        run: |
+          cmake -S . -B build -D CMAKE_BUILD_TYPE=Release
+          cmake --build build --target chapman_bench --parallel
+
+      - name: Instruction counts (callgrind)
+        run: |
+          scripts/profile_chapman.sh build 2000 5 \
+            | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
+            > bench_instructions.json
+
+      - name: Wall-clock timing
+        run: |
+          scripts/bench_chapman.sh build \
+            | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            > bench_timing.json
+
+      - name: Store instruction-count results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: bench_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/instructions
+
+      - name: Store timing results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Wall-Clock Timing
+          tool: customSmallerIsBetter
+          output-file-path: bench_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/timing

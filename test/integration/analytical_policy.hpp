@@ -1512,10 +1512,23 @@ void TestAnalyticalRobertson(
   }
 }
 
+/// @brief Solves the Oregonator problem and compares the result with the reference solution.
+/// @param builder The solver builder to test
+/// @param relative_tolerance The relative tolerance for the comparison
+/// @param substeps_per_output The number of equal sub-steps to take between two output times.
+///                            Use 1 for a solver that controls the step size itself, such as
+///                            Rosenbrock. A first-order solver, such as backward Euler, needs
+///                            many sub-steps to follow the limit cycle.
+/// @param solver_relative_tolerance The relative tolerance to give the solver. The error of an
+///                                  adaptive solver is proportional to this value.
+/// @param prepare_for_solve A function that runs before the solve loop
+/// @param postpare_for_solve A function that runs after each output step
 template<class BuilderPolicy>
 void TestAnalyticalOregonator(
     BuilderPolicy builder,
-    micm::Real relative_tolerance = 1e-4,
+    micm::Real relative_tolerance = 1e-6,
+    micm::Index substeps_per_output = 1,
+    micm::Real solver_relative_tolerance = 1e-9,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
@@ -1548,6 +1561,35 @@ void TestAnalyticalOregonator(
    *
    * I don't understand the transfomrations. Multiplying the timestep by tau, and the concnetrations by the constants
    * in the paper give very similar values.
+   *
+   * -----------------------------------------------------------------------------------------------------------------
+   *
+   * Here is that transformation. The reference values below are copied from stiff/orego/res_exact_pic in the test set
+   * linked above. The file stiff/orego/equation.f produced them, and it holds the three-variable form that the paper
+   * simplifies to:
+   *
+   *   y1' = s * (y2 + y1 * (1 - q * y1 - y2))
+   *   y2' = (y3 - (1 + y1) * y2) / s
+   *   y3' = w * (y1 - y3)
+   *
+   * with s = 77.27, q = 8.375e-6, w = 0.161, y(0) = (1, 2, 3), and output at x = 30, 60, ..., 360.
+   *
+   * That system and the five reactions are related by
+   *
+   *   X = alpha * y1,  Y = eta * y2,  Z = rho * y3,  t = tau * x
+   *
+   * Substituting into the mass-action equations and matching every term against equation.f gives:
+   *
+   *   tau    = w / k5           alpha = k5 / (s * w * k2)
+   *   k1 * A = k5 / (s * w)     eta   = s * k5 / (w * k2)
+   *   k3 * B = s * k5 / w       rho   = k5 * k5 / (w * w * k2)
+   *   k4     = s * s * q * k2 / 2
+   *
+   * k2 and k5 stay free, so this test keeps the values k2 = 1.6e9 and k5 = 1 listed above. The other three follow from
+   * s, q, and w. They differ by less than 0.03 percent from the values listed above, because Hairer and Wanner rounded
+   * s and w when they wrote equation.f. Using the listed values instead makes this test compare against the solution of
+   * a slightly different problem, which is why the values were only ever "very similar". That limits the agreement to
+   * about 1e-2 no matter how accurate the solver is.
    */
 
   auto X = micm::Species("X");
@@ -1596,7 +1638,26 @@ void TestAnalyticalOregonator(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
-  micm::Real tau = 0.1610;
+  // The parameters of equation.f in the Hairer test set
+  constexpr micm::Real s_const = 77.27;
+  constexpr micm::Real q_const = 8.375e-6;
+  constexpr micm::Real w_const = 0.161;
+
+  // The two rate constants that s, q, and w leave free, at the Field and Noyes values
+  constexpr micm::Real k2_const = 1.6e9;
+  constexpr micm::Real k5_const = 1.0;
+
+  // The three rate constants that s, q, and w fix
+  constexpr micm::Real k1a_const = k5_const / (s_const * w_const);
+  constexpr micm::Real k3b_const = s_const * k5_const / w_const;
+  constexpr micm::Real k4_const = s_const * s_const * q_const * k2_const / 2.0;
+
+  // The scale of each dimensionless variable, and of the dimensionless time
+  constexpr micm::Real alpha_const = k5_const / (s_const * w_const * k2_const);
+  constexpr micm::Real eta_const = s_const * k5_const / (w_const * k2_const);
+  constexpr micm::Real rho_const = k5_const * k5_const / (w_const * w_const * k2_const);
+  constexpr micm::Real tau = w_const / k5_const;
+
   micm::Real time_step = 30 * tau;
   micm::Index N = 12;
 
@@ -1609,9 +1670,6 @@ void TestAnalyticalOregonator(
   // X = alpha
   // Y = eta
   // Z = rho
-  micm::Real alpha_const = 5.025e-11;
-  micm::Real eta_const = 3e-7;
-  micm::Real rho_const = 2.412e-8;
   model_concentrations[0] = { 1 * alpha_const, 2 * eta_const, 3 * rho_const, 0, 0 };
 
   // ignore P and Q, the last two zeros
@@ -1640,14 +1698,19 @@ void TestAnalyticalOregonator(
 
   auto state = solver.GetState(1);
 
-  state.SetRelativeTolerance(1e-6);
-  state.SetAbsoluteTolerances(std::vector<micm::Real>(5, state.relative_tolerance_ * 1e-6));
+  // X, Y, and Z have very different scales, so each one needs its own absolute tolerance.
+  // A single absolute tolerance for all of them limits the accuracy of the smallest, X.
+  // P and Q are only produced. They never react, so their accuracy does not matter here.
+  state.SetRelativeTolerance(solver_relative_tolerance);
+  micm::Real tolerance_floor = solver_relative_tolerance * 1e-2;
+  state.SetAbsoluteTolerances(
+      { alpha_const * tolerance_floor, eta_const * tolerance_floor, rho_const * tolerance_floor, eta_const, eta_const });
 
-  state.SetCustomRateParameter("r1", 1.34 * 0.06);
-  state.SetCustomRateParameter("r2", 1.6e9);
-  state.SetCustomRateParameter("r3", 8e3 * 0.06);
-  state.SetCustomRateParameter("r4", 4e7);
-  state.SetCustomRateParameter("r5", 1);
+  state.SetCustomRateParameter("r1", k1a_const);
+  state.SetCustomRateParameter("r2", k2_const);
+  state.SetCustomRateParameter("r3", k3b_const);
+  state.SetCustomRateParameter("r4", k4_const);
+  state.SetCustomRateParameter("r5", k5_const);
 
   state.variables_[0] = model_concentrations[0];
   solver.UpdateStateParameters(state);
@@ -1659,11 +1722,12 @@ void TestAnalyticalOregonator(
   {
     micm::Real solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    // Model results: sub-step at tau/100 so backward Euler tracks the slow oscillation
-    // accurately. One large step (H=30*tau) converges Newton to the wrong attractor;
-    // smaller steps follow the limit cycle with O(H) first-order error.
+    // Model results. A solver that controls its own step size takes the full output interval
+    // in one call. A first-order solver needs sub-steps: one large step (H = 30 * tau) makes
+    // the backward Euler Newton solver converge to the wrong attractor, but small steps follow
+    // the limit cycle with O(H) first-order error.
     micm::Real actual_solve = 0;
-    micm::Real max_substep = tau / 1000.0;
+    micm::Real max_substep = time_step / substeps_per_output;
     while (actual_solve < time_step)
     {
       micm::Real dt = std::min(max_substep, time_step - actual_solve);
@@ -1690,30 +1754,17 @@ void TestAnalyticalOregonator(
   micm::Index _y = map.at("Y");
   micm::Index _z = map.at("Z");
 
-  // X, Y, Z span very different orders of magnitude (alpha ~5e-11, eta ~3e-7, rho ~2.4e-8),
-  // so a single absolute tolerance cannot meaningfully cover all three. Use per-species absolute
-  // floors (the initial scale of each species) with a relative tolerance as the primary check.
+  // Every reference value is at least the scale of its own species, so a plain relative
+  // comparison is meaningful for all three. No absolute floor is needed.
+  const micm::Index indices[3] = { _x, _y, _z };
+  const char* names[3] = { "X", "Y", "Z" };
   for (micm::Index i = 1; i < model_concentrations.size(); ++i)
   {
-    micm::Real rel_error_val, abs_error_val;
-
-    rel_error_val = RelativeError(model_concentrations[i][_x], analytical_concentrations[i][0]);
-    abs_error_val = std::abs(model_concentrations[i][_x] - analytical_concentrations[i][0]);
-    EXPECT_TRUE(abs_error_val < alpha_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val << " and absolute error "
-        << abs_error_val;
-
-    rel_error_val = RelativeError(model_concentrations[i][_y], analytical_concentrations[i][1]);
-    abs_error_val = std::abs(model_concentrations[i][_y] - analytical_concentrations[i][1]);
-    EXPECT_TRUE(abs_error_val < eta_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val << " and absolute error "
-        << abs_error_val;
-
-    rel_error_val = RelativeError(model_concentrations[i][_z], analytical_concentrations[i][2]);
-    abs_error_val = std::abs(model_concentrations[i][_z] - analytical_concentrations[i][2]);
-    EXPECT_TRUE(abs_error_val < rho_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val << " and absolute error "
-        << abs_error_val;
+    for (micm::Index j = 0; j < 3; ++j)
+    {
+      micm::Real rel_error = RelativeError(model_concentrations[i][indices[j]], analytical_concentrations[i][j]);
+      EXPECT_LT(rel_error, relative_tolerance) << "Arrays differ at index (" << i << ", " << names[j] << ")";
+    }
   }
 }
 
@@ -1871,17 +1922,18 @@ void TestAnalyticalHires(
   std::vector<micm::Real> times;
   times.push_back(0);
   micm::Real time_step = 321.8122;
+  micm::Real current_time = 0.0;
   for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    micm::Real solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
+    // The step size grows, so the output time is the running total, not a multiple of the step.
+    current_time += time_step;
+    times.push_back(current_time);
     // Model results
     micm::Real actual_solve = 0;
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
       actual_solve += result.stats_.final_time_;
-      ;
     }
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];

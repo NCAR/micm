@@ -100,9 +100,9 @@ exclude_patterns = []
 # -- Link to Intersphinx Mappings ---
 
 intersphinx_mapping = {
-    'musica': ('https://ncar.github.io/musica/', None),
-    'mc': ('https://ncar.github.io/MechanismConfiguration/', None),
-    'mb': ('https://ncar.github.io/music-box/', None)
+    'musica': ('https://musica.readthedocs.io/en/latest/', None),
+    'mc': ('https://mechanismconfiguration.readthedocs.io/en/latest/', None),
+    'mb': ('https://music-box.readthedocs.io/en/latest/', None)
 }
 
 # -- Options for HTML output -------------------------------------------------

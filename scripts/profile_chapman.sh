@@ -19,13 +19,16 @@
 # change is visible even at small counts.
 #
 # Usage:
-#   scripts/profile_chapman.sh [BUILD_DIR] [CELLS] [STEPS] [KIND...]
+#   scripts/profile_chapman.sh [BUILD_DIR] [CELLS] [STEPS] [BACKEND] [LU_TYPE] [LU_ALGORITHM] [MATRIX]
 #
 # Defaults:
-#   BUILD_DIR = build
-#   CELLS     = 2000
-#   STEPS     = 5
-#   KINDS     = standard vector1 vector2 vector4 vector8 vector128
+#   BUILD_DIR    = build
+#   CELLS        = 2000
+#   STEPS        = 5
+#   BACKEND      = cpu (other option: gpu)
+#   LU_TYPE      = in-place (other option: separate)
+#   LU_ALGORITHM = mozart (other option: doolittle)
+#   MATRIX       = standard vector1 vector2 vector4 vector8 vector128
 #
 # Requires: chapman_bench built inside BUILD_DIR, and valgrind on PATH.
 # For the tightest scoping the benchmark should also see <valgrind/callgrind.h>
@@ -39,7 +42,10 @@ set -euo pipefail
 build="${1:-build}"
 cells="${2:-2000}"
 steps="${3:-5}"
-shift $(( $# > 3 ? 3 : $# )) || true
+backend="${4:-cpu}"
+lu_type="${5:-in-place}"
+lu_algorithm="${6:-mozart}"
+shift $(( $# > 6 ? 6 : $# )) || true
 kinds=("$@")
 if [[ ${#kinds[@]} -eq 0 ]]; then
   kinds=(standard vector1 vector2 vector4 vector8 vector128)
@@ -60,6 +66,7 @@ fi
 out="${OUT:-/tmp}"
 mkdir -p "$out"
 
+echo "backend = $backend; LU = $lu_algorithm / $lu_type"
 printf '%-9s %20s\n' "kind" "instructions"
 for kind in "${kinds[@]}"; do
   cg="${out}/cg_${kind}.out"
@@ -68,7 +75,7 @@ for kind in "${kinds[@]}"; do
   #     don't count until CALLGRIND_TOGGLE_COLLECT runs.
   valgrind --tool=callgrind --callgrind-out-file="$cg" \
       --instr-atstart=no --collect-atstart=no \
-      "$bin" "$cells" "$steps" 30.0 "$kind" >/dev/null 2>&1
+      "$bin" "$cells" "$steps" 30.0 "$backend" "$kind" "$lu_type" "$lu_algorithm" >/dev/null 2>&1
   # PROGRAM TOTALS line from callgrind_annotate: deterministic instruction count.
   # NB: grep -m1 exits early on match, which SIGPIPEs callgrind_annotate; that's
   # fine under pipefail because we redirect stderr and the count is captured
