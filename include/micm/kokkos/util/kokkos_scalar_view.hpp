@@ -69,7 +69,7 @@ namespace micm
 
     KOKKOS_INLINE_FUNCTION operator T() const { return data_; }
 
-    KOKKOS_INLINE_FUNCTION Kokkos::View<T*> GetDeviceView() const { return device_view_; }
+    constexpr KOKKOS_INLINE_FUNCTION Kokkos::View<T*> GetDeviceView() const { return device_view_; }
 
     void CopyToHost() const
     {

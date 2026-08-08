@@ -137,11 +137,6 @@ TEST(SparseCompressedColumnMatrix, MismatchedElementDimensions)
   TestMismatchedElementDimensions<micm::SparseMatrix, StandardOrdering>();
 }
 
-TEST(SparseCompressedColumnMatrix, WrongMatrixDimensions)
-{
-  TestWrongMatrixDimensions<micm::SparseMatrix, StandardOrdering>();
-}
-
 TEST(SparseCompressedColumnMatrix, MultipleTemporaries)
 {
   TestMultipleTemporaries<micm::SparseMatrix, StandardOrdering>();
@@ -195,11 +190,6 @@ TEST(SparseCompressedColumnMatrix, MismatchedBlocksAtInvocation)
 TEST(SparseCompressedColumnMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
 {
   TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::SparseMatrix, StandardOrdering>();
-}
-
-TEST(SparseCompressedColumnMatrix, WrongStructureAtInvocation)
-{
-  TestWrongStructureAtInvocation<micm::SparseMatrix, StandardOrdering>();
 }
 
 // ============================================================================

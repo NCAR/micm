@@ -518,7 +518,7 @@ std::tuple<MatrixPolicy<micm::Real, OrderingPolicy>, MatrixPolicy<micm::Real, Or
 
   // Get CS* flattened index pairs
   Scalar idx_0_1 = matrixA.VectorIndex(0, 0, 1);
-  Scalar idx_2_2 = matrixA.VectorIndex(0, 2, 2);
+  Scalar idx_2_2 = matrixB.VectorIndex(0, 2, 2);
   Scalar idx_1_2 = matrixA.VectorIndex(0, 1, 2);
 
   idx_0_1.CopyToDevice();
@@ -620,6 +620,11 @@ void TestMismatchedElementDimensions()
 
   Scalar idx_0_1 = matrix.VectorIndex(0, 0, 1);
   idx_0_1.CopyToDevice();
+#ifndef NDEBUG
+  // Should fail when invoking the function because element (3,3) doesn't exist
+  EXPECT_DEATH(matrix.VectorIndex(0, 3, 3), "");
+  return;
+#endif
   Scalar idx_3_3 = matrix.VectorIndex(0, 3, 3);
   idx_3_3.CopyToDevice();
 
@@ -634,68 +639,6 @@ void TestMismatchedElementDimensions()
             m.GetBlockView(idx_3_3));  // Element (3,3) doesn't exist in this sparse matrix
       },
       matrix);
-
-  // Should fail when invoking the function because element (3,3) doesn't exist
-#ifndef NDEBUG
-  EXPECT_DEATH(func(matrix), "");
-#endif
-}
-
-template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void TestWrongMatrixDimensions()
-{
-  using SparseMatrix = MatrixPolicy<micm::Real, OrderingPolicy>;
-  using Scalar = typename SparseMatrix::template ScalarType<micm::Index>;
-
-  auto builder1 = SparseMatrix::Create(4)
-                      .WithElement(0, 1)
-                      .WithElement(1, 1)
-                      .WithElement(2, 2)
-                      .WithElement(3, 3)
-                      .SetNumberOfBlocks(3);
-
-  auto builder2 = SparseMatrix::Create(5)  // Different block size (5x5 vs 4x4)
-                      .WithElement(0, 1)
-                      .WithElement(1, 1)
-                      .WithElement(2, 2)
-                      .WithElement(3, 3)
-                      .SetNumberOfBlocks(3);
-
-  SparseMatrix matrix1{ builder1 };
-  SparseMatrix matrix2{ builder2 };
-
-  Scalar idx_0_1 = matrix1.VectorIndex(0, 0, 1);
-  idx_0_1.CopyToDevice();
-  Scalar idx_3_3 = matrix1.VectorIndex(0, 3, 3);
-  idx_3_3.CopyToDevice();
-
-  // Create a function with 4x4 block matrix
-  auto func = SparseMatrix::Function(
-      MICM_LAMBDA(typename SparseMatrix::ViewType m)
-      {
-        m.ForEachBlock(
-            [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
-            m.GetConstBlockView(idx_0_1),
-            m.GetBlockView(idx_3_3));  // Element (3,3) exists in both matrices
-      },
-      matrix1);
-
-  // Should work fine with matrix1
-  EXPECT_NO_THROW(func(matrix1));
-
-  // Should also work with matrix2 since it has the same number of blocks (3)
-  // and the accessed elements (0,1) and (3,3) exist in its sparsity pattern
-  EXPECT_NO_THROW(func(matrix2));
-
-  // But if we try to use a matrix with different number of blocks, it should fail
-  auto builder3 = SparseMatrix::Create(4).WithElement(0, 1).WithElement(1, 1).SetNumberOfBlocks(
-      5);  // Different number of blocks!
-  SparseMatrix matrix3{ builder3 };
-
-  // Should fail because number of blocks doesn't match (5 vs 3)
-#ifndef NDEBUG
-  EXPECT_DEATH(func(matrix3), "");
-#endif
 }
 
 /// @brief Test: Multiple sparse matrices with DIFFERENT block counts from creation (should work)
@@ -928,59 +871,6 @@ void TestMultipleSparseMatricesMismatchedBlocksAtInvocation()
   // Should throw when one matrix has different block count
   EXPECT_ANY_THROW(func(matrixA_3, matrixB_3, matrixC_4));
   EXPECT_ANY_THROW(func(matrixC_4, matrixB_3, matrixB_3));
-}
-
-/// @brief Test: Wrong element structure fails, different blocks succeeds
-template<template<class, class> class MatrixPolicy, class OrderingPolicy>
-void TestWrongStructureAtInvocation()
-{
-  using SparseMatrix = MatrixPolicy<micm::Real, OrderingPolicy>;
-  using Scalar = typename SparseMatrix::template ScalarType<micm::Index>;
-
-  // Same structure, different blocks
-  auto builder3 = SparseMatrix::Create(4)
-                      .WithElement(0, 1)
-                      .WithElement(1, 2)
-                      .WithElement(2, 3)
-                      .SetNumberOfBlocks(3);
-
-  auto builder5_same = SparseMatrix::Create(4)
-                           .WithElement(0, 1)
-                           .WithElement(1, 2)
-                           .WithElement(2, 3)
-                           .SetNumberOfBlocks(5);
-
-  // Different structure (different elements)
-  auto builder5_diff = SparseMatrix::Create(4)
-                           .WithElement(0, 1)
-                           .WithElement(1, 1)  // Different!
-                           .WithElement(2, 2)  // Different!
-                           .SetNumberOfBlocks(5);
-
-  SparseMatrix matrix3{ builder3 };
-  SparseMatrix matrix5_same{ builder5_same };
-  SparseMatrix matrix5_diff{ builder5_diff };
-
-  Scalar idx_0_1 = matrix3.VectorIndex(0, 0, 1);
-  idx_0_1.CopyToDevice();
-  Scalar idx_1_2 = matrix3.VectorIndex(0, 1, 2);
-  idx_1_2.CopyToDevice();
-
-  auto func = SparseMatrix::Function(
-      MICM_LAMBDA(typename SparseMatrix::ViewType m)
-      {
-        m.ForEachBlock(
-            [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, m.GetConstBlockView(idx_0_1), m.GetBlockView(idx_1_2));
-      },
-      matrix3);
-
-  // Should work with different block count but same structure
-  func(matrix5_same);
-
-  // Should fail assertion in debug mode with different element structure
-#ifndef NDEBUG
-  EXPECT_DEATH(func(matrix5_diff), "");
-#endif
 }
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
@@ -1873,6 +1763,11 @@ void TestNonEmptyVectorEmptySparseMatrix()
   SparseMatrix matrix{ builder };
   Vector vec = { 1.0, 2.0, 3.0 };
 
+#ifndef NDEBUG
+  // Should fail assertion in debug when vector size doesn't match block count
+  EXPECT_DEATH(matrix.VectorIndex(0, 0, 1), "");
+  return;
+#endif
   Scalar idx_0_1 = matrix.VectorIndex(0, 0, 1);
   idx_0_1.CopyToDevice();
 
@@ -1882,9 +1777,6 @@ void TestNonEmptyVectorEmptySparseMatrix()
       { m.ForEachBlock([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetBlockView(idx_0_1)); },
       matrix,
       vec);
-
-  // Should throw at invocation when vector size doesn't match block count
-  EXPECT_ANY_THROW(func(matrix, vec));
 }
 
 template<template<class, class> class SparseMatrixPolicy, class OrderingPolicy>

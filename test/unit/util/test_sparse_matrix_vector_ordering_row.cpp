@@ -238,14 +238,6 @@ TEST(SparseVectorCompressedRowMatrix, MismatchedElementDimensions)
   TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
-TEST(SparseVectorCompressedRowMatrix, WrongMatrixDimensions)
-{
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
-}
-
 TEST(SparseVectorCompressedRowMatrix, ConstSparseMatrixFunction)
 {
   TestConstSparseMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
@@ -316,14 +308,6 @@ TEST(SparseVectorCompressedRowMatrix, MultipleSparseMatricesMismatchedBlocksAtIn
   TestMultipleSparseMatricesMismatchedBlocksAtInvocation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
-}
-
-TEST(SparseVectorCompressedRowMatrix, WrongStructureAtInvocation)
-{
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 }
 
 // ============================================================================

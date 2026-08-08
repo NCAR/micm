@@ -932,7 +932,7 @@ namespace micm
           }(args),
           ...);
 
-      auto result = [func = std::forward<Func>(func)](Args&... invoked_args) mutable
+      auto result = [func = std::forward<Func>(func)](auto&... invoked_args) mutable
       {
         Index num_blocks = 0;
         bool found_first = false;

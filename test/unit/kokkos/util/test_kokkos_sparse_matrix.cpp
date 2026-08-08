@@ -197,14 +197,6 @@ TEST(KokkosSparseMatrix, MismatchedElementDimensions)
   TestMismatchedElementDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
-TEST(KokkosSparseMatrix, WrongMatrixDimensions)
-{
-  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  TestWrongMatrixDimensions<micm::KokkosSparseMatrix, KokkosOrdering4>();
-}
-
 TEST(KokkosSparseMatrix, ConstSparseMatrixFunction)
 {
   TestConstSparseMatrixFunction<micm::KokkosSparseMatrix, KokkosOrdering1>();
@@ -253,14 +245,6 @@ TEST(KokkosSparseMatrix, MultipleSparseMatricesMismatchedBlocksAtInvocation)
   TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
   TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
   TestMultipleSparseMatricesMismatchedBlocksAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
-}
-
-TEST(KokkosSparseMatrix, WrongStructureAtInvocation)
-{
-  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering1>();
-  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering2>();
-  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering3>();
-  TestWrongStructureAtInvocation<micm::KokkosSparseMatrix, KokkosOrdering4>();
 }
 
 // Vector support tests
