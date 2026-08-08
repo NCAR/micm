@@ -84,6 +84,14 @@ namespace micm
         std::copy(init.begin(), init.end(), data_.begin());
     }
 
+    PaddedVector(const std::vector<T>& init)
+        : data_(((init.size() + L - 1) / L) * L, T{}),
+          size_(init.size())
+    {
+        std::copy(init.begin(), init.end(), data_.begin());
+    }
+
+
     Index size() const
     {
         return size_;

@@ -1,0 +1,3 @@
+add_executable(test_kokkos_lu_decomposition_mozart_in_place test_kokkos_lu_decomposition_mozart_in_place.cpp)
+target_link_libraries(test_kokkos_lu_decomposition_mozart_in_place PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
+add_test(NAME kokkos_lu_decomposition_mozart_in_place COMMAND test_kokkos_lu_decomposition_mozart_in_place WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

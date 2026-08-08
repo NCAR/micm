@@ -96,7 +96,6 @@ void TestDenseMatrix()
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
   auto ALU = LuDecompositionPolicy::GetLUMatrix(A, 0, false);
-  ALU.Fill(0);
   for (micm::Index i = 0; i < 3; ++i)
   {
     for (micm::Index j = 0; j < 3; ++j)
@@ -107,7 +106,13 @@ void TestDenseMatrix()
       }
     }
   }
+
+  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
+  
   lud.Decompose(ALU);
+  
+  CheckCopyToHost<SparseMatrixPolicy>(ALU);
+  
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, ALU, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }
@@ -290,7 +295,13 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
       ALU[i_block][i][i] = A[i_block][i][i];
     }
   }
+
+  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
+
   lud.Decompose(ALU);
+
+  CheckCopyToHost<SparseMatrixPolicy>(ALU);
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, ALU, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

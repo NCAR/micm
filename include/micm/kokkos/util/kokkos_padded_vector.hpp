@@ -112,6 +112,15 @@ namespace micm
         std::copy(init.begin(), init.end(), data_.begin());
     }
 
+    KokkosPaddedVector(std::vector<T> init)
+        : data_(((init.size() + L - 1) / L) * L, T{}),
+        host_view_(this->data_.data(), this->data_.size()),
+        device_view_("padded_vector", this->data_.size()),
+        size_(init.size())
+    {
+        std::copy(init.begin(), init.end(), data_.begin());
+    }
+
     Index size() const
     {
         return size_;

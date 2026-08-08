@@ -35,19 +35,59 @@ namespace micm
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   class LuDecompositionMozartInPlace
   {
+    using SparseMatrix = SparseMatrixPolicy;
+    template<class U>
+    using Vector = typename SparseMatrix::VectorType<U>;
+    template<class U>
+    using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
+   public:
+    struct IndexTrio
+    {
+      Index first_;
+      Index second_;
+      Index third_;
+    };
+    struct IndexPair
+    {
+      Index first_;
+      Index second_;
+    };
+    struct Views
+    {
+      VectorView<IndexTrio> aii_nji_nki_;
+      VectorView<Index> aji_;
+      VectorView<IndexPair> aik_njk_;
+      VectorView<IndexPair> ajk_aji_;
+
+      Views() = default;
+
+      Views(
+        const Vector<IndexTrio>& aii_nji_nki,
+        const Vector<Index>& aji,
+        const Vector<IndexPair>& aik_njk,
+        const Vector<IndexPair>& ajk_aji
+      ) : aii_nji_nki_(aii_nji_nki.GetView()),
+          aji_(aji.GetView()),
+          aik_njk_(aik_njk.GetView()),
+          ajk_aji_(ajk_aji.GetView())
+      {
+      }
+    };
    protected:
     /// Index in A.data_ for all diagonal elements, the number of iterations of the inner (j) loop
     /// for each (i) used to set A[j][i], and the number of iterations of the middle (k) loop for
     /// each (i) used to set A[j][k]
-    std::vector<std::tuple<Index, Index, Index>> aii_nji_nki_;
+    Vector<IndexTrio> aii_nji_nki_;
     /// Index in A.data_ for A[j][i] for each iteration of the inner (j) loop
     /// used to set the value of A[j][i]
-    std::vector<Index> aji_;
+    Vector<Index> aji_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop,
     /// and the number of iterations of the inner (j) loop for each (k) used to set A[j][k]
-    std::vector<std::pair<Index, Index>> aik_njk_;
+    Vector<IndexPair> aik_njk_;
     /// Index in A.data_ for A[j][k] and A[j][i] for each iteration of the inner (j) loop
-    std::vector<std::pair<Index, Index>> ajk_aji_;
+    Vector<IndexPair> ajk_aji_;
+    /// MICM_LAMBDA compatible views of the index vectors
+    Views views_;
 
    public:
     /// @brief default constructor
@@ -56,8 +96,8 @@ namespace micm
     LuDecompositionMozartInPlace(const LuDecompositionMozartInPlace&) = delete;
     LuDecompositionMozartInPlace& operator=(const LuDecompositionMozartInPlace&) = delete;
 
-    LuDecompositionMozartInPlace(LuDecompositionMozartInPlace&& other) = default;
-    LuDecompositionMozartInPlace& operator=(LuDecompositionMozartInPlace&&) = default;
+    LuDecompositionMozartInPlace(LuDecompositionMozartInPlace&& other) noexcept;
+    LuDecompositionMozartInPlace& operator=(LuDecompositionMozartInPlace&&) noexcept;
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
