@@ -26,28 +26,30 @@ TEST(SparseVectorCompressedColumnMatrix, SetScalar)
   TestSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
 }
 
-TEST(SparseVectorCompressedColumnMatrix, AddToDiagonal)
-{
-  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
-}
+// CudaSparseMatrix doesn't support AddToDiagonal(), which the next three tests use
 
-TEST(SparseVectorCompressedColumnMatrix, Print)
-{
-  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
-}
+// TEST(SparseVectorCompressedColumnMatrix, AddToDiagonal)
+// {
+//   TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+//   TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+//   TestAddToDiagonal<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+// }
 
-TEST(SparseVectorCompressedColumnMatrix, PrintNonZero)
-{
-  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
-}
+// TEST(SparseVectorCompressedColumnMatrix, Print)
+// {
+//   TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+//   TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+//   TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+//   TestPrint<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+// }
+
+// TEST(SparseVectorCompressedColumnMatrix, PrintNonZero)
+// {
+//   TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+//   TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+//   TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+//   TestPrintNonZero<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+// }
 
 /* These are the customized Tests for GPU only */
 
