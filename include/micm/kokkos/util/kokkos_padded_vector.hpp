@@ -39,7 +39,7 @@ namespace micm
 
         KOKKOS_INLINE_FUNCTION Index size() const
         {
-            return view_.extent(0);
+            return size_;
         }
 
         // So the KokkosVectorLike concept accepts a DeviceView also
@@ -65,7 +65,7 @@ namespace micm
 
         KOKKOS_INLINE_FUNCTION Index size() const
         {
-            return view_.extent(0);
+            return size_;
         }
 
         // So the KokkosVectorLike concept accepts a DeviceView also

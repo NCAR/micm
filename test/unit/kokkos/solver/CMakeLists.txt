@@ -13,3 +13,11 @@ add_test(NAME kokkos_lu_decomposition_doolittle_in_place COMMAND test_kokkos_lu_
 add_executable(test_kokkos_lu_decomposition_doolittle test_kokkos_lu_decomposition_doolittle.cpp)
 target_link_libraries(test_kokkos_lu_decomposition_doolittle PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
 add_test(NAME kokkos_lu_decomposition_doolittle COMMAND test_kokkos_lu_decomposition_doolittle WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(test_kokkos_linear_solver_in_place test_kokkos_linear_solver_in_place.cpp)
+target_link_libraries(test_kokkos_linear_solver_in_place PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
+add_test(NAME kokkos_linear_solver_in_place COMMAND test_kokkos_linear_solver_in_place WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(test_kokkos_linear_solver test_kokkos_linear_solver.cpp)
+target_link_libraries(test_kokkos_linear_solver PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
+add_test(NAME kokkos_linear_solver COMMAND test_kokkos_linear_solver WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
