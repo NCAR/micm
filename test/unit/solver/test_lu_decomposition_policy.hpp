@@ -101,7 +101,16 @@ void TestDenseMatrix()
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
   auto LU = LuDecompositionPolicy::GetLUMatrices(A, 0, false);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(A);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.first);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.second);
+
   lud.Decompose(A, LU.first, LU.second);
+
+  CheckCopyToHost<SparseMatrixPolicy>(LU.first);
+  CheckCopyToHost<SparseMatrixPolicy>(LU.second);
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }
@@ -149,7 +158,16 @@ void TestRandomMatrix(micm::Index number_of_blocks)
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
   auto LU = LuDecompositionPolicy::GetLUMatrices(A, 0, false);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(A);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.first);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.second);
+
   lud.Decompose(A, LU.first, LU.second);
+
+  CheckCopyToHost<SparseMatrixPolicy>(LU.first);
+  CheckCopyToHost<SparseMatrixPolicy>(LU.second);
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
 }
@@ -235,7 +253,17 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
 
   LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
   auto LU = LuDecompositionPolicy::GetLUMatrices(A, 0, false);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(A);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.first);
+  CheckCopyToDevice<SparseMatrixPolicy>(LU.second);
+
   lud.Decompose(A, LU.first, LU.second);
+
+  CheckCopyToHost<SparseMatrixPolicy>(LU.first);
+  CheckCopyToHost<SparseMatrixPolicy>(LU.second);
+  
+  
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

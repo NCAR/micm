@@ -19,6 +19,44 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozart<SparseMatrixPolicy>::LuDecompositionMozart(LuDecompositionMozart&& other) noexcept
+      : lii_nuji_nlji_(std::move(other.lii_nuji_nlji_)),
+        uji_aji_(std::move(other.uji_aji_)),
+        lji_aji_(std::move(other.lji_aji_)),
+        fill_uji_(std::move(other.fill_uji_)),
+        fill_lji_(std::move(other.fill_lji_)),
+        uii_nj_nk_(std::move(other.uii_nj_nk_)),
+        lji_(std::move(other.lji_)),
+        nujk_nljk_uik_(std::move(other.nujk_nljk_uik_)),
+        ujk_lji_(std::move(other.ujk_lji_)),
+        ljk_lji_(std::move(other.ljk_lji_)),
+        views_(lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_)
+  {
+  }
+
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozart<SparseMatrixPolicy>& LuDecompositionMozart<SparseMatrixPolicy>::operator=(LuDecompositionMozart&& other) noexcept
+  {
+      if (this != &other)
+      {
+          lii_nuji_nlji_ = std::move(other.lii_nuji_nlji_);
+          uji_aji_ = std::move(other.uji_aji_);
+          lji_aji_ = std::move(other.lji_aji_);
+          fill_uji_ = std::move(other.fill_uji_);
+          fill_lji_ = std::move(other.fill_lji_);
+          uii_nj_nk_ = std::move(other.uii_nj_nk_);
+          lji_ = std::move(other.lji_);
+          nujk_nljk_uik_ = std::move(other.nujk_nljk_uik_);
+          ujk_lji_ = std::move(other.ujk_lji_);
+          ljk_lji_ = std::move(other.ljk_lji_);
+          views_       = Views(lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_);
+      }
+      return *this;
+  }
+
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecompositionMozart<SparseMatrixPolicy> LuDecompositionMozart<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionMozart<SparseMatrixPolicy> lu_decomp{};
@@ -32,10 +70,20 @@ namespace micm
   {
     Index n = matrix.NumRows();
     auto LU = GetLUMatrices(matrix, initial_value, true);
+    std::vector<IndexTrio> lii_nuji_nlji_temp;
+    std::vector<IndexPair> uji_aji_temp;
+    std::vector<IndexPair> lji_aji_temp;
+    std::vector<Index> fill_uji_temp;
+    std::vector<Index> fill_lji_temp;
+    std::vector<IndexTrio> uii_nj_nk_temp;
+    std::vector<Index> lji_temp;
+    std::vector<IndexTrio> nujk_nljk_uik_temp;
+    std::vector<IndexPair> ujk_lji_temp;
+    std::vector<IndexPair> ljk_lji_temp;
     for (Index i = 0; i < n; ++i)
     {
-      std::tuple<Index, Index, Index> lii_nuji_nlji(0, 0, 0);
-      std::get<0>(lii_nuji_nlji) = LU.first.VectorIndex(0, i, i);
+      IndexTrio lii_nuji_nlji(0, 0, 0);
+      lii_nuji_nlji.first_ = LU.first.VectorIndex(0, i, i);
       // set initial values for U matrix
       for (Index j = 0; j <= i; ++j)
       {
@@ -43,12 +91,12 @@ namespace micm
         {
           if (!LU.second.IsZero(j, i))
           {
-            fill_uji_.push_back(LU.second.VectorIndex(0, j, i));
+            fill_uji_temp.push_back(LU.second.VectorIndex(0, j, i));
           }
           continue;
         }
-        uji_aji_.push_back(std::make_pair(LU.second.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)));
-        ++(std::get<1>(lii_nuji_nlji));
+        uji_aji_temp.push_back({LU.second.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)});
+        ++(lii_nuji_nlji.second_);
       }
       // set initial values for L matrix
       for (Index j = i + 1; j < n; ++j)
@@ -57,19 +105,19 @@ namespace micm
         {
           if (!LU.first.IsZero(j, i))
           {
-            fill_lji_.push_back(LU.first.VectorIndex(0, j, i));
+            fill_lji_temp.push_back(LU.first.VectorIndex(0, j, i));
           }
           continue;
         }
-        lji_aji_.push_back(std::make_pair(LU.first.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)));
-        ++(std::get<2>(lii_nuji_nlji));
+        lji_aji_temp.push_back({LU.first.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)});
+        ++(lii_nuji_nlji.third_);
       }
-      lii_nuji_nlji_.push_back(lii_nuji_nlji);
+      lii_nuji_nlji_temp.push_back(lii_nuji_nlji);
     }
     for (Index i = 0; i < matrix.NumRows(); ++i)
     {
-      std::tuple<Index, Index, Index> uii_nj_nk(0, 0, 0);
-      std::get<0>(uii_nj_nk) = LU.second.VectorIndex(0, i, i);
+      IndexTrio uii_nj_nk(0, 0, 0);
+      uii_nj_nk.first_ = LU.second.VectorIndex(0, i, i);
       // middle j loop to set L[j][i]
       for (Index j = i + 1; j < n; ++j)
       {
@@ -77,8 +125,8 @@ namespace micm
         {
           continue;
         }
-        lji_.push_back(LU.first.VectorIndex(0, j, i));
-        ++(std::get<1>(uii_nj_nk));
+        lji_temp.push_back(LU.first.VectorIndex(0, j, i));
+        ++(uii_nj_nk.second_);
       }
       // middle k loop to set U[j][k] and L[j][k]
       for (Index k = i + 1; k < n; ++k)
@@ -87,8 +135,8 @@ namespace micm
         {
           continue;
         }
-        std::tuple<Index, Index, Index> nujk_nljk_uik(0, 0, 0);
-        std::get<2>(nujk_nljk_uik) = LU.second.VectorIndex(0, i, k);
+        IndexTrio nujk_nljk_uik(0, 0, 0);
+        nujk_nljk_uik.third_ = LU.second.VectorIndex(0, i, k);
         // inner j loop to set U[j][k]
         for (Index j = i + 1; j <= k; ++j)
         {
@@ -96,11 +144,11 @@ namespace micm
           {
             continue;
           }
-          std::pair<Index, Index> ujk_lji(0, 0);
-          ujk_lji.first = LU.second.VectorIndex(0, j, k);
-          ujk_lji.second = LU.first.VectorIndex(0, j, i);
-          ujk_lji_.push_back(ujk_lji);
-          ++(std::get<0>(nujk_nljk_uik));
+          IndexPair ujk_lji(0, 0);
+          ujk_lji.first_ = LU.second.VectorIndex(0, j, k);
+          ujk_lji.second_ = LU.first.VectorIndex(0, j, i);
+          ujk_lji_temp.push_back(ujk_lji);
+          ++(nujk_nljk_uik.first_);
         }
         // inner j loop to set L[j][k]
         for (Index j = k + 1; j < n; ++j)
@@ -109,17 +157,38 @@ namespace micm
           {
             continue;
           }
-          std::pair<Index, Index> ljk_lji(0, 0);
-          ljk_lji.first = LU.first.VectorIndex(0, j, k);
-          ljk_lji.second = LU.first.VectorIndex(0, j, i);
-          ljk_lji_.push_back(ljk_lji);
-          ++(std::get<1>(nujk_nljk_uik));
+          IndexPair ljk_lji(0, 0);
+          ljk_lji.first_ = LU.first.VectorIndex(0, j, k);
+          ljk_lji.second_ = LU.first.VectorIndex(0, j, i);
+          ljk_lji_temp.push_back(ljk_lji);
+          ++(nujk_nljk_uik.second_);
         }
-        nujk_nljk_uik_.push_back(nujk_nljk_uik);
-        ++(std::get<2>(uii_nj_nk));
+        nujk_nljk_uik_temp.push_back(nujk_nljk_uik);
+        ++(uii_nj_nk.third_);
       }
-      uii_nj_nk_.push_back(uii_nj_nk);
+      uii_nj_nk_temp.push_back(uii_nj_nk);
     }
+    lii_nuji_nlji_ = lii_nuji_nlji_temp;
+    uji_aji_ = uji_aji_temp;
+    lji_aji_ = lji_aji_temp;
+    fill_uji_ = fill_uji_temp;
+    fill_lji_ = fill_lji_temp;
+    uii_nj_nk_ = uii_nj_nk_temp;
+    lji_ = lji_temp;
+    nujk_nljk_uik_ = nujk_nljk_uik_temp;
+    ujk_lji_ = ujk_lji_temp;
+    ljk_lji_ = ljk_lji_temp;
+    lii_nuji_nlji_.CopyToDevice();
+    uji_aji_.CopyToDevice();
+    lji_aji_.CopyToDevice();
+    fill_uji_.CopyToDevice();
+    fill_lji_.CopyToDevice();
+    uii_nj_nk_.CopyToDevice();
+    lji_.CopyToDevice();
+    nujk_nljk_uik_.CopyToDevice();
+    ujk_lji_.CopyToDevice();
+    ljk_lji_.CopyToDevice();
+    views_ = Views(lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_);
   }
 
   template<class SparseMatrixPolicy>
@@ -197,39 +266,41 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionMozart<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
+  inline void LuDecompositionMozart<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
   {
-    const Index n = A.NumRows();
+    Scalar<Index> n = A.NumRows();
+    n.CopyToDevice();
+    const auto& views = views_;
     SparseMatrixPolicy::Function(
-        [this, n](const auto&& A_view, auto&& lower_view, auto&& upper_view)
+        MICM_LAMBDA(typename SparseMatrix::ConstViewType A_view, typename SparseMatrix::ViewType lower_view, typename SparseMatrix::ViewType upper_view)
         {
-          auto uji_aji = uji_aji_.begin();
-          auto lji_aji = lji_aji_.begin();
-          auto uii_nj_nk = uii_nj_nk_.begin();
-          auto lji = lji_.begin();
-          auto nujk_nljk_uik = nujk_nljk_uik_.begin();
-          auto ujk_lji = ujk_lji_.begin();
-          auto ljk_lji = ljk_lji_.begin();
+          auto uji_aji = views.uji_aji_.begin();
+          auto lji_aji = views.lji_aji_.begin();
+          auto uii_nj_nk = views.uii_nj_nk_.begin();
+          auto lji = views.lji_.begin();
+          auto nujk_nljk_uik = views.nujk_nljk_uik_.begin();
+          auto ujk_lji = views.ujk_lji_.begin();
+          auto ljk_lji = views.ljk_lji_.begin();
           auto Uii_inverse = A_view.GetBlockVariable();
-          for (const auto& lii_nuji_nlji : lii_nuji_nlji_)
+          for (const auto& lii_nuji_nlji : views.lii_nuji_nlji_)
           {
-            for (Index i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
+            for (Index i = 0; i < lii_nuji_nlji.second_; ++i)
             {
-              upper_view.Copy(upper_view.GetBlockView(uji_aji->first), A_view.GetConstBlockView(uji_aji->second));
+              upper_view.Copy(upper_view.GetBlockView(uji_aji->first_), A_view.GetConstBlockView(uji_aji->second_));
               ++uji_aji;
             }
-            lower_view.Fill(lower_view.GetBlockView(std::get<0>(lii_nuji_nlji)), 1.0);
-            for (Index i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
+            lower_view.Fill(lower_view.GetBlockView(lii_nuji_nlji.first_), 1.0);
+            for (Index i = 0; i < lii_nuji_nlji.third_; ++i)
             {
-              lower_view.Copy(lower_view.GetBlockView(lji_aji->first), A_view.GetConstBlockView(lji_aji->second));
+              lower_view.Copy(lower_view.GetBlockView(lji_aji->first_), A_view.GetConstBlockView(lji_aji->second_));
               ++lji_aji;
             }
           }
-          for (const auto& fill_uji : fill_uji_)
+          for (const auto& fill_uji : views.fill_uji_)
           {
             upper_view.Fill(upper_view.GetBlockView(fill_uji), 0.0);
           }
-          for (const auto& fill_lji : fill_lji_)
+          for (const auto& fill_lji : views.fill_lji_)
           {
             lower_view.Fill(lower_view.GetBlockView(fill_lji), 0.0);
           }
@@ -238,30 +309,30 @@ namespace micm
             upper_view.ForEachBlock(
                 [](Real& uii_inv, const Real& uii) { uii_inv = 1.0 / uii; },
                 Uii_inverse,
-                upper_view.GetConstBlockView(std::get<0>(*uii_nj_nk)));
-            for (Index ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
+                upper_view.GetConstBlockView(uii_nj_nk->first_));
+            for (Index ij = 0; ij < uii_nj_nk->second_; ++ij)
             {
               lower_view.ForEachBlock(
                   [](Real& lji, const Real& uii_inv) { lji *= uii_inv; }, lower_view.GetBlockView(*(lji++)), Uii_inverse);
             }
-            for (Index ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
+            for (Index ik = 0; ik < uii_nj_nk->third_; ++ik)
             {
-              auto uik_view = upper_view.GetConstBlockView(std::get<2>(*nujk_nljk_uik));
-              for (Index ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
+              auto uik_view = upper_view.GetConstBlockView(nujk_nljk_uik->third_);
+              for (Index ij = 0; ij < nujk_nljk_uik->first_; ++ij)
               {
                 upper_view.ForEachBlock(
                     [](Real& ujk, const Real& lji, const Real& uik) { ujk -= lji * uik; },
-                    upper_view.GetBlockView(ujk_lji->first),
-                    lower_view.GetConstBlockView(ujk_lji->second),
+                    upper_view.GetBlockView(ujk_lji->first_),
+                    lower_view.GetConstBlockView(ujk_lji->second_),
                     uik_view);
                 ++ujk_lji;
               }
-              for (Index ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+              for (Index ij = 0; ij < nujk_nljk_uik->second_; ++ij)
               {
                 lower_view.ForEachBlock(
                     [](Real& ljk, const Real& lji, const Real& uik) { ljk -= lji * uik; },
-                    lower_view.GetBlockView(ljk_lji->first),
-                    lower_view.GetConstBlockView(ljk_lji->second),
+                    lower_view.GetBlockView(ljk_lji->first_),
+                    lower_view.GetConstBlockView(ljk_lji->second_),
                     uik_view);
                 ++ljk_lji;
               }

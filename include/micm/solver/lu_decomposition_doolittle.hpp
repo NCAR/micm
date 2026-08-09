@@ -43,39 +43,91 @@ namespace micm
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   class LuDecompositionDoolittle
   {
+    using SparseMatrix = SparseMatrixPolicy;
+    template<class U>
+    using Vector = typename SparseMatrix::VectorType<U>;
+    template<class U>
+    using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
+   public:
+    struct IndexPair
+    {
+      Index first_;
+      Index second_;
+    };
+    struct Views
+    {
+      VectorView<IndexPair> niLU_;
+      VectorView<Bool> do_aik_;
+      VectorView<Index> aik_;
+      VectorView<IndexPair> uik_nkj_;
+      VectorView<IndexPair> lij_ujk_;
+      VectorView<Bool> do_aki_;
+      VectorView<Index> aki_;
+      VectorView<IndexPair> lki_nkj_;
+      VectorView<IndexPair> lkj_uji_;
+      VectorView<Index> uii_;
+
+      Views() = default;
+
+      Views(
+        const Vector<IndexPair>& niLU,
+        const Vector<Bool>& do_aik,
+        const Vector<Index>& aik,
+        const Vector<IndexPair>& uik_nkj,
+        const Vector<IndexPair>& lij_ujk,
+        const Vector<Bool>& do_aki,
+        const Vector<Index>& aki,
+        const Vector<IndexPair>& lki_nkj,
+        const Vector<IndexPair>& lkj_uji,
+        const Vector<Index>& uii
+      ) : niLU_(niLU.GetView()),
+          do_aik_(do_aik.GetView()),
+          aik_(aik.GetView()),
+          uik_nkj_(uik_nkj.GetView()),
+          lij_ujk_(lij_ujk.GetView()),
+          do_aki_(do_aki.GetView()),
+          aki_(aki.GetView()),
+          lki_nkj_(lki_nkj.GetView()),
+          lkj_uji_(lkj_uji.GetView()),
+          uii_(uii.GetView())
+      {
+      }
+    };
    protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
-    std::vector<std::pair<Index, Index>> niLU_;
+    Vector<IndexPair> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
     /// triangular matrix; False otherwise.
-    std::vector<Bool> do_aik_;
+    Vector<Bool> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
-    std::vector<Index> aik_;
+    Vector<Index> aik_;
     /// Index in U.data_ for U[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when U[i][k] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
-    std::vector<std::pair<Index, Index>> uik_nkj_;
+    Vector<IndexPair> uik_nkj_;
     /// Index in L.data_ for L[i][j], and in U.data_ for U[j][k] in the upper inner (j) loop
     /// when L[i][j] and U[j][k] are both non-zero.
-    std::vector<std::pair<Index, Index>> lij_ujk_;
+    Vector<IndexPair> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
     /// triangular matrix; False otherwise.
-    std::vector<Bool> do_aki_;
+    Vector<Bool> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when A[k][i] is non-zero.
-    std::vector<Index> aki_;
+    Vector<Index> aki_;
     /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
-    std::vector<std::pair<Index, Index>> lki_nkj_;
+    Vector<IndexPair> lki_nkj_;
     /// Index in L.data_ for L[k][j], and in U.data_ for U[j][i] in the lower inner (j) loop
     /// when L[k][j] and U[j][i] are both non-zero.
-    std::vector<std::pair<Index, Index>> lkj_uji_;
+    Vector<IndexPair> lkj_uji_;
     /// Index in U.data_ for U[i][i] for each interation in the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero
-    std::vector<Index> uii_;
+    Vector<Index> uii_;
+    /// MICM_LAMBDA compatible views for index vectors
+    Views views_;
 
    public:
     /// @brief default constructor
@@ -84,8 +136,8 @@ namespace micm
     LuDecompositionDoolittle(const LuDecompositionDoolittle&) = delete;
     LuDecompositionDoolittle& operator=(const LuDecompositionDoolittle&) = delete;
 
-    LuDecompositionDoolittle(LuDecompositionDoolittle&& other) = default;
-    LuDecompositionDoolittle& operator=(LuDecompositionDoolittle&&) = default;
+    LuDecompositionDoolittle(LuDecompositionDoolittle&& other) noexcept;
+    LuDecompositionDoolittle& operator=(LuDecompositionDoolittle&&) noexcept;
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
@@ -109,7 +161,7 @@ namespace micm
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
+    void Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const;
 
    protected:
     /// @brief Sparse LU fill pattern of A together with the row/column adjacency

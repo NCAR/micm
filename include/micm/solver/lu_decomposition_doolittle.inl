@@ -19,6 +19,44 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>::LuDecompositionDoolittle(LuDecompositionDoolittle&& other) noexcept
+      : niLU_(std::move(other.niLU_)),
+        do_aik_(std::move(other.do_aik_)),
+        aik_(std::move(other.aik_)),
+        uik_nkj_(std::move(other.uik_nkj_)),
+        lij_ujk_(std::move(other.lij_ujk_)),
+        do_aki_(std::move(other.do_aki_)),
+        aki_(std::move(other.aki_)),
+        lki_nkj_(std::move(other.lki_nkj_)),
+        lkj_uji_(std::move(other.lkj_uji_)),
+        uii_(std::move(other.uii_)),
+        views_(niLU_, do_aik_, aik_, uik_nkj_, lij_ujk_, do_aki_, aki_, lki_nkj_, lkj_uji_, uii_)
+  {
+  }
+
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>& LuDecompositionDoolittle<SparseMatrixPolicy>::operator=(LuDecompositionDoolittle&& other) noexcept
+  {
+      if (this != &other)
+      {
+          niLU_ = std::move(other.niLU_);
+          do_aik_ = std::move(other.do_aik_);
+          aik_ = std::move(other.aik_);
+          uik_nkj_ = std::move(other.uik_nkj_);
+          lij_ujk_ = std::move(other.lij_ujk_);
+          do_aki_ = std::move(other.do_aki_);
+          aki_ = std::move(other.aki_);
+          lki_nkj_ = std::move(other.lki_nkj_);
+          lkj_uji_ = std::move(other.lkj_uji_);
+          uii_ = std::move(other.uii_);
+          views_       = Views(niLU_, do_aik_, aik_, uik_nkj_, lij_ujk_, do_aki_, aki_, lki_nkj_, lkj_uji_, uii_);
+      }
+      return *this;
+  }
+
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecompositionDoolittle<SparseMatrixPolicy> LuDecompositionDoolittle<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionDoolittle<SparseMatrixPolicy> lu_decomp{};
@@ -158,9 +196,20 @@ namespace micm
     // factorization's own operation count (times a log factor) rather than O(n^3).
     auto contains = [](const std::vector<Index>& v, Index x) { return std::binary_search(v.begin(), v.end(), x); };
 
+    std::vector<IndexPair> niLU_temp;
+    std::vector<Bool> do_aik_temp;
+    std::vector<Index> aik_temp;
+    std::vector<IndexPair> uik_nkj_temp;
+    std::vector<IndexPair> lij_ujk_temp;
+    std::vector<Bool> do_aki_temp;
+    std::vector<Index> aki_temp;
+    std::vector<IndexPair> lki_nkj_temp;
+    std::vector<IndexPair> lkj_uji_temp;
+    std::vector<Index> uii_temp; 
+
     for (Index i = 0; i < n; ++i)
     {
-      std::pair<Index, Index> iLU(0, 0);
+      IndexPair iLU(0, 0);
       // Upper triangular matrix: iterate only the non-zero columns of U row i.
       for (Index k : fp.Urow_[i])
       {
@@ -173,22 +222,22 @@ namespace micm
             continue;
           }
           ++nkj;
-          lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
+          lij_ujk_temp.push_back({LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)});
         }
         if (contains(fp.Arow_[i], k))
         {
-          do_aik_.push_back(true);
-          aik_.push_back(matrix.VectorIndex(0, i, k));
+          do_aik_temp.push_back(true);
+          aik_temp.push_back(matrix.VectorIndex(0, i, k));
         }
         else
         {
-          do_aik_.push_back(false);
+          do_aik_temp.push_back(false);
         }
-        uik_nkj_.push_back(std::make_pair(LU.second.VectorIndex(0, i, k), nkj));
-        ++(iLU.second);
+        uik_nkj_temp.push_back({LU.second.VectorIndex(0, i, k), nkj});
+        ++(iLU.second_);
       }
       // Lower triangular matrix: iterate only the non-zero rows of L column i.
-      lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, i, i), 0));
+      lki_nkj_temp.push_back({LU.first.VectorIndex(0, i, i), 0});
       for (Index k : fp.Lcol_[i])
       {
         Index nkj = 0;
@@ -205,24 +254,45 @@ namespace micm
             continue;
           }
           ++nkj;
-          lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
+          lkj_uji_temp.push_back({LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)});
         }
         if (contains(fp.Acol_[i], k))
         {
-          do_aki_.push_back(true);
-          aki_.push_back(matrix.VectorIndex(0, k, i));
+          do_aki_temp.push_back(true);
+          aki_temp.push_back(matrix.VectorIndex(0, k, i));
         }
         else
         {
-          do_aki_.push_back(false);
+          do_aki_temp.push_back(false);
         }
-        uii_.push_back(LU.second.VectorIndex(0, i, i));
-        lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, k, i), nkj));
-        ++(iLU.first);
+        uii_temp.push_back(LU.second.VectorIndex(0, i, i));
+        lki_nkj_temp.push_back({LU.first.VectorIndex(0, k, i), nkj});
+        ++(iLU.first_);
       }
-      niLU_.push_back(iLU);
+      niLU_temp.push_back(iLU);
     }
-    uii_.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
+    uii_temp.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
+    niLU_ = niLU_temp;
+    do_aik_ = do_aik_temp;
+    aik_ = aik_temp;
+    uik_nkj_ = uik_nkj_temp;
+    lij_ujk_ = lij_ujk_temp;
+    do_aki_ = do_aki_temp;
+    aki_ = aki_temp;
+    lki_nkj_ = lki_nkj_temp;
+    lkj_uji_ = lkj_uji_temp;
+    uii_ = uii_temp;
+    niLU_.CopyToDevice();
+    do_aik_.CopyToDevice();
+    aik_.CopyToDevice();
+    uik_nkj_.CopyToDevice();
+    lij_ujk_.CopyToDevice();
+    do_aki_.CopyToDevice();
+    aki_.CopyToDevice();
+    lki_nkj_.CopyToDevice();
+    lkj_uji_.CopyToDevice();
+    uii_.CopyToDevice();
+    views_ = Views(niLU_, do_aik_, aik_, uik_nkj_, lij_ujk_, do_aki_, aki_, lki_nkj_, lkj_uji_, uii_);
   }
 
   template<class SparseMatrixPolicy>
@@ -251,26 +321,27 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionDoolittle<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
+  inline void LuDecompositionDoolittle<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
   {
+    const auto& views = views_;
     SparseMatrixPolicy::Function(
-        [this](const auto&& A_view, auto&& lower_view, auto&& upper_view)
+        MICM_LAMBDA(typename SparseMatrix::ConstViewType A_view, typename SparseMatrix::ViewType lower_view, typename SparseMatrix::ViewType upper_view)
         {
-          auto do_aik = do_aik_.begin();
-          auto aik = aik_.begin();
-          auto uik_nkj = uik_nkj_.begin();
-          auto lij_ujk = lij_ujk_.begin();
-          auto do_aki = do_aki_.begin();
-          auto aki = aki_.begin();
-          auto lki_nkj = lki_nkj_.begin();
-          auto lkj_uji = lkj_uji_.begin();
-          auto uii = uii_.begin();
-          for (const auto& niLU : niLU_)
+          auto do_aik = views.do_aik_.begin();
+          auto aik = views.aik_.begin();
+          auto uik_nkj = views.uik_nkj_.begin();
+          auto lij_ujk = views.lij_ujk_.begin();
+          auto do_aki = views.do_aki_.begin();
+          auto aki = views.aki_.begin();
+          auto lki_nkj = views.lki_nkj_.begin();
+          auto lkj_uji = views.lkj_uji_.begin();
+          auto uii = views.uii_.begin();
+          for (const auto& niLU : views.niLU_)
           {
             // Upper triangular matrix
-            for (Index iU = 0; iU < niLU.second; ++iU)
+            for (Index iU = 0; iU < niLU.second_; ++iU)
             {
-              auto uik_view = upper_view.GetBlockView(uik_nkj->first);
+              auto uik_view = upper_view.GetBlockView(uik_nkj->first_);
               if (*(do_aik++))
               {
                 upper_view.Copy(uik_view, A_view.GetConstBlockView(*(aik++)));
@@ -279,22 +350,22 @@ namespace micm
               {
                 upper_view.Fill(uik_view, 0.0);
               }
-              for (Index ikj = 0; ikj < uik_nkj->second; ++ikj)
+              for (Index ikj = 0; ikj < uik_nkj->second_; ++ikj)
               {
                 upper_view.ForEachBlock(
                     [](Real& uik, const Real& lij, const Real& ujk) { uik -= lij * ujk; },
                     uik_view,
-                    lower_view.GetConstBlockView(lij_ujk->first),
-                    upper_view.GetConstBlockView(lij_ujk->second));
+                    lower_view.GetConstBlockView(lij_ujk->first_),
+                    upper_view.GetConstBlockView(lij_ujk->second_));
                 ++lij_ujk;
               }
               ++uik_nkj;
             }
             // Lower triangular matrix
-            lower_view.Fill(lower_view.GetBlockView((lki_nkj++)->first), 1.0);
-            for (Index iL = 0; iL < niLU.first; ++iL)
+            lower_view.Fill(lower_view.GetBlockView((lki_nkj++)->first_), 1.0);
+            for (Index iL = 0; iL < niLU.first_; ++iL)
             {
-              auto lki_view = lower_view.GetBlockView(lki_nkj->first);
+              auto lki_view = lower_view.GetBlockView(lki_nkj->first_);
               if (*(do_aki++))
               {
                 lower_view.Copy(lki_view, A_view.GetConstBlockView(*(aki++)));
@@ -303,13 +374,13 @@ namespace micm
               {
                 lower_view.Fill(lki_view, 0.0);
               }
-              for (Index ikj = 0; ikj < lki_nkj->second; ++ikj)
+              for (Index ikj = 0; ikj < lki_nkj->second_; ++ikj)
               {
                 lower_view.ForEachBlock(
                     [](Real& lki, const Real& lkj, const Real& uji) { lki -= lkj * uji; },
                     lki_view,
-                    lower_view.GetConstBlockView(lkj_uji->first),
-                    upper_view.GetConstBlockView(lkj_uji->second));
+                    lower_view.GetConstBlockView(lkj_uji->first_),
+                    upper_view.GetConstBlockView(lkj_uji->second_));
                 ++lkj_uji;
               }
               lower_view.ForEachBlock(
