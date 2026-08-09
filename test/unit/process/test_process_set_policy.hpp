@@ -463,7 +463,7 @@ void TestProcessSetFiniteDifferenceJacobian()
   // Compute FD Jacobian by wrapping the forcing function
   auto forcing_wrapper = [&](const DenseMatrixPolicy& vars, DenseMatrixPolicy& forcing)
   {
-    CheckCopyToDevice<DenseMatrixPolicy>(forcing);
+    // The finite difference function handles copying inputs to device
     process_set.AddForcingTerms(state, vars, forcing);
     CheckCopyToHost<DenseMatrixPolicy>(forcing);
   };

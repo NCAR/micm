@@ -65,6 +65,9 @@ namespace micm
       vars_plus.Copy(base_variables);
       vars_minus.Copy(base_variables);
 
+      vars_plus.CopyToHost();
+      vars_minus.CopyToHost();
+
       for (Index block = 0; block < num_blocks; ++block)
       {
         Real x_j = base_variables[block][col];
@@ -75,6 +78,9 @@ namespace micm
 
       forcing_plus.Fill(0.0);
       forcing_minus.Fill(0.0);
+
+      vars_plus.CopyToDevice();
+      vars_minus.CopyToDevice();
 
       forcing_func(vars_plus, forcing_plus);
       forcing_func(vars_minus, forcing_minus);

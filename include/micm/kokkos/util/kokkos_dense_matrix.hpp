@@ -585,7 +585,11 @@ namespace micm
       template<BlockVariableView Arg>
       KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
-        return arg.Get()[row_in_group];
+        auto& storage = arg.Get();
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+          return storage;                 // KokkosBlockVariable<T,1>: scalar
+        else
+          return storage[row_in_group];   // KokkosRowVariable (always array) or L>1
       }
 
       template<KokkosVectorLike Arg>
@@ -620,7 +624,18 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
-        Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = value; });
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+        {
+          storage = value;   // KokkosBlockVariable<T,1>: scalar
+        }
+        else if constexpr (L == 1)
+        {
+          storage[0] = value;  // KokkosRowVariable<T,1>: array of 1
+        }
+        else
+        {
+          Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = value; });
+        }
         team_.team_barrier();
       }
 
@@ -629,7 +644,18 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
-        Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.base_[i]; });
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+        {
+          storage = src.base_[0];  // KokkosBlockVariable<T,1>: scalar
+        }
+        else if constexpr (L == 1)
+        {
+          storage[0] = src.base_[0];  // KokkosRowVariable<T,1>: array of 1
+        }
+        else
+        {
+          Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.base_[i]; });
+        }
         team_.team_barrier();
       }
 
@@ -735,7 +761,11 @@ namespace micm
       template<BlockVariableView Arg>
       KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
-        return arg.Get()[row_in_group];
+        auto& storage = arg.Get();
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+          return storage;                 // KokkosBlockVariable<T,1>: scalar
+        else
+          return storage[row_in_group];   // KokkosRowVariable (always array) or L>1
       }
 
       template<KokkosVectorLike Arg>
@@ -809,7 +839,18 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
-        Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = value; });
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+        {
+          storage = value;   // KokkosBlockVariable<T,1>: scalar
+        }
+        else if constexpr (L == 1)
+        {
+          storage[0] = value;  // KokkosRowVariable<T,1>: array of 1
+        }
+        else
+        {
+          Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = value; });
+        }
         team_.team_barrier();
       }
 
@@ -818,7 +859,18 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
-        Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.base_[i]; });
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+        {
+          storage = src.base_[0];  // KokkosBlockVariable<T,1>: scalar
+        }
+        else if constexpr (L == 1)
+        {
+          storage[0] = src.base_[0];  // KokkosRowVariable<T,1>: array of 1
+        }
+        else
+        {
+          Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.base_[i]; });
+        }
         team_.team_barrier();
       }
 
