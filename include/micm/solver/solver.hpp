@@ -227,8 +227,7 @@ namespace micm
       }
       else
       {
-        ReactionRateConstantStore::EvaluateCpuRateConstants(store_, state);
-        ReactionRateConstantStore::CpuCalculateRateConstants(store_, state);
+        ReactionRateConstantStore::CalculateRateConstants(store_, state);
       }
     }
 

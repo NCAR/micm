@@ -161,8 +161,7 @@ void TestProcessUpdateState(const micm::Index number_of_grid_cells)
         num_conc;
   }
 
-  ReactionRateConstantStore::EvaluateCpuRateConstants(store, state);
-  ReactionRateConstantStore::CpuCalculateRateConstants(store, state);
+  ReactionRateConstantStore::CalculateRateConstants(store, state);
 
   for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {

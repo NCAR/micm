@@ -94,7 +94,7 @@ namespace micm
       // CPU lambda evaluation
       if (!cpu_store.lambda_entries_.empty())
       {
-        ReactionRateConstantStore::EvaluateCpuRateConstants(cpu_store, state);
+        ReactionRateConstantStore::CalculateCpuRateConstants(cpu_store, state);
         // Upload lambda values (analytic slots carry stale data; kernel overwrites them)
         state.rate_constants_.CopyToDevice();
       }

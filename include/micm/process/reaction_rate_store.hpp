@@ -8,8 +8,6 @@
 /// Reactions must be stable-sorted by RateConstantTypeOrder before BuildFrom is called
 /// (the SolverBuilder does this).  Each type occupies a contiguous block; offset helpers
 /// below give the start of each block within state.rate_constants_[cell].
-///
-/// Each step: call EvaluateCpuRateConstants (lambda entries), then CpuCalculateRateConstants (analytic types).
 
 #define _USE_MATH_DEFINES
 
@@ -241,9 +239,9 @@ namespace micm
     }
 
     /// @brief Evaluate all lambda rate constants into state.rate_constants_.
-    ///        Must be called each step before CpuCalculateRateConstants.
+    ///        Called prior to calculating device-compatible rate constants
     template<class StatePolicy>
-    static void EvaluateCpuRateConstants(const ReactionRateConstantStore& store, StatePolicy& state)
+    static void CalculateCpuRateConstants(const ReactionRateConstantStore& store, StatePolicy& state)
     {
       if (store.lambda_entries_.empty())
       {
@@ -251,7 +249,7 @@ namespace micm
       }
 
       using DenseMatrixPolicy = typename StatePolicy::DenseMatrixPolicyType;
-      DenseMatrixPolicy::Function(
+      DenseMatrixPolicy::HostFunction(
           [&store](auto&& rc_view, const auto& conditions)
           {
             for (const auto& entry : store.lambda_entries_)
@@ -265,6 +263,7 @@ namespace micm
           },
           state.rate_constants_,
           state.conditions_)(state.rate_constants_, state.conditions_);
+      state.rate_constants_.CopyToDevice();
     }
 
     /// @brief Calculate all analytic rate constants into state.rate_constants_.
@@ -274,11 +273,14 @@ namespace micm
     ///        is computed across all cells at once via ForEachRow, which is more
     ///        SIMD-friendly than the previous per-cell loop.
     template<class StatePolicy>
-    static void CpuCalculateRateConstants(const ReactionRateConstantStore& store, StatePolicy& state)
+    static void CalculateRateConstants(const ReactionRateConstantStore& store, StatePolicy& state)
     {
-      using DenseMatrixPolicy = typename StatePolicy::DenseMatrixPolicyType;
-      auto calc = DenseMatrixPolicy::Function(
-          [&store, &cond = state.conditions_](auto&& rc, auto&& cp)
+      using DenseMatrix = typename StatePolicy::DenseMatrixPolicyType;
+      using ConditionsView = typename DenseMatrix::template VectorType<Conditions>::ConstViewType;
+      CalculateCpuRateConstants(store, state);
+      ConditionsView cond = std::as_const(state.conditions_).GetView();
+      DenseMatrix::Function(
+          MICM_LAMBDA(typename DenseMatrix::ViewType rc, typename DenseMatrix::ConstViewType cp)
           {
             for (Index i = 0; i < store.arrhenius_.size(); ++i)
             {
@@ -363,9 +365,7 @@ namespace micm
             }
           },
           state.rate_constants_,
-          state.custom_rate_parameters_);
-
-      calc(state.rate_constants_, state.custom_rate_parameters_);
+          state.custom_rate_parameters_)(state.rate_constants_, state.custom_rate_parameters_);
     }
   };
 

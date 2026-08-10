@@ -1360,6 +1360,12 @@ namespace micm
       return result;
     }
 
+    template<typename Func, typename... Args>
+    static auto HostFunction(Func&& func, Args&... args)
+    {
+      return Function(std::forward<Func>(func), args...);
+    }
+
    private:
     /// @brief Get an element reference for a row (ColumnView)
     template<DenseMatrixColumnView Arg>
