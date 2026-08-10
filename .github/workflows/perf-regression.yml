@@ -48,58 +48,62 @@ jobs:
           path: base
 
       - name: Overlay PR's benchmark harness onto base
-        # The PR is the source of truth for the benchmark and scripts - that
-        # way we're measuring the same workload on both revisions, and this
-        # workflow keeps working even before the benchmark existed on main.
+        # The PR is the source of truth for the benchmark, so both revisions run
+        # the same workload. Every step below runs pr/scripts/, so only the
+        # harness needs an overlay.
         run: |
           set -euo pipefail
-          mkdir -p base/test/benchmark base/scripts
-          cp pr/test/benchmark/chapman_bench.cpp base/test/benchmark/
-          cp pr/test/benchmark/CMakeLists.txt   base/test/benchmark/
-          cp pr/scripts/profile_chapman.sh      base/scripts/
-          cp pr/scripts/compare_chapman.py      base/scripts/
-          chmod +x base/scripts/profile_chapman.sh base/scripts/compare_chapman.py
+          # Replace the whole directory. The benchmark spans several headers, and
+          # naming them one by one leaves the base building a stale mixture.
+          rm -rf base/test/benchmark
+          mkdir -p base/test
+          cp -R pr/test/benchmark base/test/
           if ! grep -q "add_subdirectory(benchmark)" base/test/CMakeLists.txt; then
             printf '\nadd_subdirectory(benchmark)\n' >> base/test/CMakeLists.txt
           fi
 
-      - name: Build PR (chapman_bench)
+      # One build configuration on both sides, so the two revisions cannot differ
+      # in what they compiled.
+      - name: Build PR (micm_bench)
         run: |
-          cmake -S pr -B pr/build -D CMAKE_BUILD_TYPE=Release
-          cmake --build pr/build --target chapman_bench --parallel
+          cmake -S pr -B pr/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
+          cmake --build pr/build --target micm_bench --parallel
 
-      - name: Build base (chapman_bench)
+      - name: Build base (micm_bench)
         run: |
-          cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release
-          cmake --build base/build --target chapman_bench --parallel
+          cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
+          cmake --build base/build --target micm_bench --parallel
 
         # Run the benchmarks (timing) for the base and PR branch, just so they
         # appear in the action logs. Doesn't affect pass/fail
       - name: Benchmark PR
-        run: pr/scripts/bench_chapman.sh pr/build
+        run: pr/scripts/bench_micm.sh pr/build
 
       - name: Benchmark base
-        run: pr/scripts/bench_chapman.sh base/build
+        run: pr/scripts/bench_micm.sh base/build
 
+      # OUT keeps the two sides' raw callgrind files apart. The script names them
+      # by mechanism and ordering, which is the same on both sides.
       - name: Profile PR
-        run: pr/scripts/profile_chapman.sh pr/build "$CELLS" "$STEPS" | tee pr.txt
+        run: OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" | tee pr.txt
 
       - name: Profile base
-        run: pr/scripts/profile_chapman.sh base/build "$CELLS" "$STEPS" | tee base.txt
+        run: OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" | tee base.txt
 
+      # continue-on-error: the comparison reports, it does not gate.
       - name: Compare instruction counts
-        run: pr/scripts/compare_chapman.py base.txt pr.txt
+        run: pr/scripts/compare_micm.py base.txt pr.txt
         continue-on-error: true
 
       - name: Profile PR timing (for benchmark action)
         run: |
-          pr/scripts/bench_chapman.sh pr/build \
+          pr/scripts/bench_micm.sh pr/build \
             | python3 pr/scripts/to_benchmark_json.py --unit ms --value-type float \
             > pr_timing.json
 
       - name: Profile PR instructions (for benchmark action)
         run: |
-          pr/scripts/profile_chapman.sh pr/build 2000 5 \
+          pr/scripts/profile_micm.sh pr/build 2000 5 \
             | python3 pr/scripts/to_benchmark_json.py --unit instructions --value-type int \
             > pr_instructions.json
 

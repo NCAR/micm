@@ -22,20 +22,34 @@ jobs:
 
       - name: Build
         run: |
-          cmake -S . -B build -D CMAKE_BUILD_TYPE=Release
-          cmake --build build --target chapman_bench --parallel
+          cmake -S . -B build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
+          cmake --build build --target micm_bench --parallel
 
       - name: Instruction counts (callgrind)
         run: |
-          scripts/profile_chapman.sh build 2000 5 \
+          scripts/profile_micm.sh build 2000 5 \
             | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
             > bench_instructions.json
 
       - name: Wall-clock timing
         run: |
-          scripts/bench_chapman.sh build \
+          scripts/bench_micm.sh build \
             | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             > bench_timing.json
+
+      # ts1 costs far more per cell than chapman, so it runs at fewer cells.
+      # Keep the count a multiple of 128, or vector128 pads its last group.
+      - name: TS1 instruction counts (callgrind)
+        run: |
+          scripts/profile_micm.sh build 256 5 cpu in-place mozart ts1 \
+            | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
+            > ts1_instructions.json
+
+      - name: TS1 wall-clock timing
+        run: |
+          scripts/bench_micm.sh build 256 30 cpu in-place mozart ts1 \
+            | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            > ts1_timing.json
 
       - name: Store instruction-count results
         uses: benchmark-action/github-action-benchmark@v1
@@ -56,3 +70,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           benchmark-data-dir-path: dev/bench/timing
+
+      # A series is keyed by `name` and `benchmark-data-dir-path` together.
+      # Editing either one on an existing series orphans its history.
+      - name: Store TS1 instruction-count results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: ts1_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/ts1/instructions
+
+      - name: Store TS1 timing results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Wall-Clock Timing
+          tool: customSmallerIsBetter
+          output-file-path: ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/ts1/timing

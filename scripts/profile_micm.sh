@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Chapman benchmark: deterministic instruction counts via callgrind.
+# micm solver benchmark: deterministic instruction counts via callgrind.
 #
-# Runs the standalone chapman_bench binary once per matrix ordering under
+# Runs the standalone micm_bench binary once per matrix ordering under
 # valgrind/callgrind. Instrumentation and collection are both disabled at
 # startup; the benchmark itself flips them on (via CALLGRIND_START_INSTRUMENTATION
 # / CALLGRIND_TOGGLE_COLLECT) only around the timed Solve() loop. That means
@@ -14,12 +14,12 @@
 # thermals, or turbo, which makes them suitable for CI regression gates on
 # the hot path.
 #
-# Because callgrind has ~50x overhead, this uses smaller CELLS/STEPS defaults
-# than bench_chapman.sh. That's fine for regression checks: any real hot-path
-# change is visible even at small counts.
+# Callgrind is much slower than a native run, so this uses smaller CELLS/STEPS
+# defaults than bench_micm.sh. A real hot-path change is visible even so.
 #
 # Usage:
-#   scripts/profile_chapman.sh [BUILD_DIR] [CELLS] [STEPS] [BACKEND] [LU_TYPE] [LU_ALGORITHM] [MATRIX]
+#   scripts/profile_micm.sh [BUILD_DIR] [CELLS] [STEPS] [BACKEND] [LU_TYPE] \
+#                           [LU_ALGORITHM] [MECHANISM] [MATRIX...]
 #
 # Defaults:
 #   BUILD_DIR    = build
@@ -28,14 +28,21 @@
 #   BACKEND      = cpu (other option: gpu)
 #   LU_TYPE      = in-place (other option: separate)
 #   LU_ALGORITHM = mozart (other option: doolittle)
+#   MECHANISM    = chapman (other option: ts1)
 #   MATRIX       = standard vector1 vector2 vector4 vector8 vector128
 #
-# Requires: chapman_bench built inside BUILD_DIR, and valgrind on PATH.
+# ts1 has 547 reactions against Chapman's 7, and callgrind multiplies that, so
+# reduce CELLS and STEPS before you profile it. Keep CELLS a multiple of 128, or
+# the vector128 ordering pads its last group.
+#
+# Requires: micm_bench built inside BUILD_DIR (configured with
+# -D MICM_ENABLE_BENCHMARK=ON), and valgrind on PATH.
 # For the tightest scoping the benchmark should also see <valgrind/callgrind.h>
 # at compile time (valgrind-devel / valgrind package on most distros).
 #
 # Output: a TSV table on stdout with columns "kind" and "instructions"
-# (space-padded). Raw callgrind files are written to $OUT (default /tmp).
+# (space-padded). Raw callgrind files go to $OUT (default /tmp), one per
+# mechanism and ordering.
 
 set -euo pipefail
 
@@ -45,17 +52,18 @@ steps="${3:-5}"
 backend="${4:-cpu}"
 lu_type="${5:-in-place}"
 lu_algorithm="${6:-mozart}"
-shift $(( $# > 6 ? 6 : $# )) || true
+mechanism="${7:-chapman}"
+shift $(( $# > 7 ? 7 : $# )) || true
 kinds=("$@")
 if [[ ${#kinds[@]} -eq 0 ]]; then
   kinds=(standard vector1 vector2 vector4 vector8 vector128)
 fi
 
-bin="${build}/chapman_bench"
+bin="${build}/micm_bench"
 if [[ ! -x "$bin" ]]; then
-  echo "chapman_bench not found at $bin — build it with:" >&2
-  echo "  cmake -S . -B $build -D CMAKE_BUILD_TYPE=Release" >&2
-  echo "  cmake --build $build --target chapman_bench --parallel" >&2
+  echo "micm_bench not found at $bin — build it with:" >&2
+  echo "  cmake -S . -B $build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON" >&2
+  echo "  cmake --build $build --target micm_bench --parallel" >&2
   exit 1
 fi
 if ! command -v valgrind >/dev/null; then
@@ -66,16 +74,18 @@ fi
 out="${OUT:-/tmp}"
 mkdir -p "$out"
 
-echo "backend = $backend; LU = $lu_algorithm / $lu_type"
+echo "mechanism = $mechanism; backend = $backend; LU = $lu_algorithm / $lu_type"
 printf '%-9s %20s\n' "kind" "instructions"
 for kind in "${kinds[@]}"; do
-  cg="${out}/cg_${kind}.out"
+  # The mechanism belongs in the name, or two mechanisms profiled in one job
+  # overwrite each other's files.
+  cg="${out}/cg_${mechanism}_${kind}.out"
   # --instr-atstart=no: skip JIT-instrumentation of setup entirely (fast).
   # --collect-atstart=no: even after the benchmark turns instrumentation on,
   #     don't count until CALLGRIND_TOGGLE_COLLECT runs.
   valgrind --tool=callgrind --callgrind-out-file="$cg" \
       --instr-atstart=no --collect-atstart=no \
-      "$bin" "$cells" "$steps" 30.0 "$backend" "$kind" "$lu_type" "$lu_algorithm" >/dev/null 2>&1
+      "$bin" "$cells" "$steps" 30.0 "$backend" "$kind" "$lu_type" "$lu_algorithm" "$mechanism" >/dev/null 2>&1
   # PROGRAM TOTALS line from callgrind_annotate: deterministic instruction count.
   # NB: grep -m1 exits early on match, which SIGPIPEs callgrind_annotate; that's
   # fine under pipefail because we redirect stderr and the count is captured

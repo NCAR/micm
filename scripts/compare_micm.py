@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Compare Chapman-benchmark instruction counts from two profile runs.
+"""Compare solver-benchmark instruction counts from two profile runs.
 
-Reads two TSV files produced by ``scripts/profile_chapman.sh`` (columns:
+Reads two TSV files produced by ``scripts/profile_micm.sh`` (columns:
 kind, instructions) and prints a side-by-side comparison. Exits non-zero if
 any matrix ordering has a higher instruction count in the PR than in the
 base, subject to an absolute-count tolerance (default 0). This is intended
 as the check step in the perf-regression CI workflow.
 
+Both files must come from the same mechanism. The TSV holds no mechanism
+column, so this script cannot detect a mismatch.
+
 Usage:
-    scripts/compare_chapman.py base.txt pr.txt [--tolerance N]
+    scripts/compare_micm.py base.txt pr.txt [--tolerance N]
 
 Instruction counts are deterministic; any real hot-path regression will
 show up as a strictly positive delta. A small tolerance is available for
@@ -23,7 +26,7 @@ from pathlib import Path
 
 
 def parse(path: Path) -> dict[str, int]:
-    """Parse a profile_chapman.sh TSV file into {kind: instructions}."""
+    """Parse a profile_micm.sh TSV file into {kind: instructions}."""
     result: dict[str, int] = {}
     for line in path.read_text().splitlines():
         parts = line.split()
@@ -79,7 +82,7 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
-    print("\nOK: PR does not increase Chapman hot-path instruction count.")
+    print("\nOK: PR does not increase the hot-path instruction count.")
     return 0
 
 

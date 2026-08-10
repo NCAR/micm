@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert bench_chapman.sh or profile_chapman.sh TSV output to github-action-benchmark JSON."""
+"""Convert bench_micm.sh or profile_micm.sh TSV output to github-action-benchmark JSON."""
 import sys, json, argparse
 
 parser = argparse.ArgumentParser()
