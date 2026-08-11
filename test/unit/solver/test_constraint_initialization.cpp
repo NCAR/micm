@@ -26,6 +26,8 @@ struct SimpleConstrainedSystem
   template<class SolverBuilderPolicy>
   static auto Build(SolverBuilderPolicy builder)
   {
+    using DenseMatrix = SolverBuilderPolicy::DenseMatrixPolicyType;
+    using SparseMatrix = SolverBuilderPolicy::SparseMatrixPolicyType;
     auto A = Species("A");
     auto B = Species("B");
     auto C = Species("C");
@@ -40,13 +42,13 @@ struct SimpleConstrainedSystem
                       .Build();
 
     // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
-    std::vector<Constraint> constraints;
-    constraints.emplace_back(EquilibriumConstraint(
+    std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+    constraints.emplace_back(EquilibriumConstraint<DenseMatrix, SparseMatrix>(
         "B_C_eq",
         C,
         std::vector<StoichSpecies>{ { B, 1.0 } },
         std::vector<StoichSpecies>{ { C, 1.0 } },
-        VantHoffParam{ .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
+        { .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
 
     return builder.SetSystem(System(gas_phase))
         .SetReactions({ rxn })

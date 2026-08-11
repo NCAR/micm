@@ -8,11 +8,18 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <type_traits>
+
+using namespace micm;
+using DenseMatrix = Matrix<Real>;
+using StdSparseMatrix = SparseMatrix<Real, SparseMatrixStandardOrdering>;
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {
@@ -70,9 +77,9 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   micm::Real sum_initial_conc = 1.0;
 
-  std::vector<micm::Constraint> constraints;
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
   constraints.emplace_back(
-      micm::LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
+      LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
 
   // ---------------------------------------------------------------------------
   // Solver

@@ -219,6 +219,17 @@ namespace micm
         update_func(state.conditions_, state.custom_rate_parameters_);
       }
 
+      // Update constraint parameters (e.g. temperature-dependent K_eq) directly from
+      // the solver's own constraints_ member — avoids the dangling-this issue that
+      // arises when a lambda capturing the builder-local ConstraintSet is registered
+      // in update_state_parameters_functions_.
+      if constexpr (requires {
+                      solver_.constraints_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
+                    })
+      {
+        solver_.constraints_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
+      }
+
       // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
       // GpuCalculateRateConstants; otherwise use the CPU path.
       if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })

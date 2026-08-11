@@ -511,11 +511,6 @@ namespace micm
       constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
       constraint_set.SetExternalModelConstraintFunctions(params_map, species_map, jacobian);
 
-      // Add functions that update state parameters when temperature changes
-      auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
-      update_state_param_funcs.insert(
-          update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
-
       // Collect constraint parameter initialization functions
       auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();
       init_constraint_param_funcs.insert(init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());

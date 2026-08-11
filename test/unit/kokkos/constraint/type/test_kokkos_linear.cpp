@@ -7,9 +7,9 @@
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
 #include <micm/util/jacobian_verification.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -21,8 +21,8 @@
 #include <vector>
 
 using namespace micm;
-using DenseMatrix = Matrix<Real>;
-using StdSparseMatrix = SparseMatrix<micm::Real, SparseMatrixStandardOrdering>;
+using DenseMatrix = KokkosDenseMatrix<Real, 1>;
+using StdSparseMatrix = KokkosSparseMatrix<micm::Real, SparseMatrixVectorOrdering<1>>;
 
 TEST(LinearConstraint, Construction)
 {
@@ -166,7 +166,11 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   // The forcing term for B (row 1, algebraic species) should be the constraint residual
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
@@ -177,7 +181,11 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   state[0][1] = 0.6;  // B
 
   forcing.Fill(0.0);
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
@@ -229,7 +237,11 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   // Compute Jacobian
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   // Due to SubtractJacobianTerms convention, the values are negated
   // Row 1 (B, the algebraic species): contains dG/d[A], dG/d[B]
@@ -289,7 +301,11 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   // The forcing term for C (row 2, algebraic species) should be the constraint residual
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
@@ -300,7 +316,11 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
     elem = 0.0;
   }
 
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   // Row 2 (C, the algebraic species): contains dG/d[A], dG/d[B], dG/d[C]
   // Due to SubtractJacobianTerms convention, the values are negated
@@ -360,7 +380,11 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   EXPECT_NEAR(forcing[0][2], 0.0, 1e-10);
 
@@ -371,7 +395,11 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   state[0][2] = 6.0;  // C
 
   forcing.Fill(0.0);
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   EXPECT_NEAR(forcing[0][2], 1.0, 1e-10);
 }
@@ -422,7 +450,11 @@ TEST(LinearConstraint, ZeroConstantResidual)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
@@ -432,7 +464,11 @@ TEST(LinearConstraint, ZeroConstantResidual)
   state[0][1] = 0.5;  // B
 
   forcing.Fill(0.0);
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.1, (std::is_same_v<micm::Real, double>) ? 1e-10 : 1e-5);
 }
@@ -484,12 +520,20 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
 
   forcing.Fill(0.0);
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<DenseMatrix>(forcing);
   set.AddForcingTerms(state, state_parameters, forcing);
+  CheckCopyToHost<DenseMatrix>(forcing);
 
   EXPECT_NEAR(forcing[0][1], 0.0, 1e-10);
 
   // Test Jacobian computation
+  CheckCopyToDevice<DenseMatrix>(state);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(state, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   // Due to SubtractJacobianTerms convention, the values are negated
   EXPECT_NEAR(jacobian[0][1][0], -0.5, 1e-10);  // -dG/d[A] = -0.5
@@ -543,7 +587,11 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   // Compute Jacobian at first state
   DenseMatrix state_parameters(1, 0);  // No parameters for linear constraints
+  CheckCopyToDevice<DenseMatrix>(state1);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(state1, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   micm::Real jac1_dA = jacobian[0][1][0];
   micm::Real jac1_dB = jacobian[0][1][1];
@@ -554,7 +602,11 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
     elem = 0.0;
   }
 
+  CheckCopyToDevice<DenseMatrix>(state2);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(state2, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   micm::Real jac2_dA = jacobian[0][1][0];
   micm::Real jac2_dB = jacobian[0][1][1];
@@ -606,11 +658,18 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   DenseMatrix state_parameters(2, 0);
 
   // Analytical Jacobian
+  CheckCopyToDevice<DenseMatrix>(variables);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   // FD Jacobian — wrap the forcing function
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { set.AddForcingTerms(vars, state_parameters, forcing); };
+  {
+    set.AddForcingTerms(vars, state_parameters, forcing);
+    CheckCopyToHost<DenseMatrix>(forcing);
+  };
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
@@ -669,10 +728,17 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
 
   DenseMatrix state_parameters(1, 0);
 
+  CheckCopyToDevice<DenseMatrix>(variables);
+  CheckCopyToDevice<DenseMatrix>(state_parameters);
+  CheckCopyToDevice<StdSparseMatrix>(jacobian);
   set.SubtractJacobianTerms(variables, state_parameters, jacobian);
+  CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { set.AddForcingTerms(vars, state_parameters, forcing); };
+  {
+    set.AddForcingTerms(vars, state_parameters, forcing);
+    CheckCopyToHost<DenseMatrix>(forcing);
+  };
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
@@ -681,4 +747,13 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   EXPECT_TRUE(comparison.passed_) << "Weighted linear constraint Jacobian mismatch: block=" << comparison.worst_block_
                                   << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
                                   << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

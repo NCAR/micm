@@ -6,6 +6,9 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -18,6 +21,9 @@
 #include <vector>
 
 using namespace micm;
+
+using DenseMatrix = Matrix<micm::Real>;
+using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
 
 /// @brief Helper function to compute temperature-dependent equilibrium constant using Van't Hoff equation
 micm::Real ComputeEquilibriumConstant(micm::Real K_HLC_ref, micm::Real delta_H, micm::Real T)
@@ -45,13 +51,13 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   // C is an algebraic variable (not in any kinetic reaction)
   micm::Real K_eq = 0.034;
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
@@ -135,19 +141,19 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   micm::Real delta_H1 = -2400.0;
   micm::Real delta_H2 = -2000.0;
 
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq1, .delta_H_ = delta_H1 }));
-  constraints.emplace_back(EquilibriumConstraint(
+      { .K_HLC_ref_ = K_eq1, .delta_H_ = delta_H1 }));
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "E_F_eq",
       F,
       std::vector<StoichSpecies>{ { E, 1.0 } },
       std::vector<StoichSpecies>{ { F, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = delta_H2 }));
+      { .K_HLC_ref_ = K_eq2, .delta_H_ = delta_H2 }));
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -219,13 +225,13 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   // This couples B (ODE variable) to C (algebraic variable)
   micm::Real K_eq = 2.0;
   micm::Real delta_H = -2400.0;
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
+      { .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
@@ -328,13 +334,13 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
 
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   micm::Real K_eq = 2.0;
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
@@ -412,19 +418,19 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
 
   micm::Real K_eq1 = 3.0;
   micm::Real K_eq2 = 5.0;
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { C, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq1, .delta_H_ = -2400.0 }));
-  constraints.emplace_back(EquilibriumConstraint(
+      { .K_HLC_ref_ = K_eq1, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_D_eq",
       D,
       std::vector<StoichSpecies>{ { B, 1.0 } },
       std::vector<StoichSpecies>{ { D, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
@@ -512,13 +518,13 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
   // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
   micm::Real K_eq = 10.0;
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "A2_B_eq",
       B,
       std::vector<StoichSpecies>{ { A, 2.0 } },
       std::vector<StoichSpecies>{ { B, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)

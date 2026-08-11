@@ -36,6 +36,8 @@
 constexpr micm::Real kAbsTol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-10;
 
 using namespace micm;
+using DenseMatrix = Matrix<Real>;
+using StdSparseMatrix = SparseMatrix<Real, SparseMatrixStandardOrdering>;
 
 /// @brief Verify that conservation-constrained algebraic variables stay non-negative
 ///        when fast kinetics drain the pool.
@@ -64,8 +66,8 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   // together. But the discrete solver can overshoot.
   micm::Real C_total = 1.0e-6;
 
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
@@ -154,19 +156,19 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   micm::Real C_total = 1.0e-6;
   micm::Real K_eq = 10.0;
 
-  std::vector<Constraint> constraints;
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
 
   // Equilibrium: K_eq * A_gas = A_aq  (A_aq is the explicitly set algebraic species)
-  constraints.emplace_back(EquilibriumConstraint(
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "gas_aq_eq",
       A_aq,
       std::vector<StoichSpecies>{ { A_gas, 1.0 } },
       std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
+      { .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
   // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
   constraints.emplace_back(
-      LinearConstraint("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+      LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
@@ -260,8 +262,8 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
                       .Build();
 
     constexpr micm::Real C_total = 1.0e-6;
-    std::vector<Constraint> constraints;
-    constraints.emplace_back(LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+    std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+    constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(gas_phase))

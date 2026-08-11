@@ -16,6 +16,11 @@
 #include <type_traits>
 #include <utility>
 
+using namespace micm;
+
+using DenseMatrix = Matrix<micm::Real>;
+using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
 ///
 /// This model contributes no state variables and no processes — only an algebraic
@@ -447,13 +452,13 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
 
   // Built-in constraint: B <-> C equilibrium
   micm::Real K_eq = 5.0;
-  std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      micm::VantHoffParam{ K_eq, 0.0 }));
+      { K_eq, 0.0 }));
 
   // Process: A_GAS -> B
   micm::Real k_rxn = 0.05;
@@ -874,13 +879,13 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
                              .Build();
 
   // Built-in constraint solver
-  std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      micm::VantHoffParam{ K_EQ, 0.0 }));
+      { K_EQ, 0.0 }));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   // Float cannot drive the algebraic-constraint Newton residual below the default

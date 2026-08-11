@@ -1794,7 +1794,7 @@ void TestEmptyVectorEmptySparseMatrix()
       MICM_LAMBDA(typename SparseMatrix::ConstViewType, typename Vector::ConstViewType)
       {
         // Should never execute
-        FAIL() << "Function should not be called for empty matrix/vector";
+        assert(false && "Function should not be called for empty matrix/vector");
       },
       matrix,
       vec);

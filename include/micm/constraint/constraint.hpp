@@ -23,15 +23,20 @@ namespace micm
   ///        Each constraint provides:
   ///        - A residual function G(y) that should equal zero when the constraint is satisfied
   ///        - Jacobian entries dG/dy for each species the constraint depends on
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class Constraint
   {
    public:
-    using ConstraintVariant = std::variant<EquilibriumConstraint, LinearConstraint>;
+    using ConstraintVariant = std::variant<
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>,
+      LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>
+    >;
 
     ConstraintVariant constraint_;
 
     template<typename T>
-      requires std::same_as<std::decay_t<T>, EquilibriumConstraint> || std::same_as<std::decay_t<T>, LinearConstraint>
+      requires std::same_as<std::decay_t<T>, EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>> 
+            || std::same_as<std::decay_t<T>, LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>
     Constraint(T&& constraint)
         : constraint_(std::forward<T>(constraint))
     {
@@ -73,60 +78,51 @@ namespace micm
       return std::visit([](const auto& c) { return c.species_dependencies_.size(); }, constraint_);
     }
 
-    /// @brief Get a function object to update constraint-specific parameters
-    ///        Returns a function that updates parameters (e.g., temperature-dependent K_eq) based on current conditions
-    ///        Called during solver build to create the update function, which is then invoked by UpdateStateParameters
-    ///        before each solve to recompute parameters from the latest temperature and other conditions
-    /// @param info Constraint information including state parameter indices
-    /// @return Function object that takes (conditions, state_param) and updates constraint parameters
-    template<typename DenseMatrixPolicy>
-    auto ConstraintParameterFunction(const ConstraintInfo& info) const
+    /// @brief Apply constraint parameter update for all grid cells (e.g., temperature-dependent K_eq)
+    ///        Called directly from ConstraintSet::UpdateStateParameters.
+    void ApplyConstraintParameter(
+        const ConstraintInfo& info,
+        const typename DenseMatrixPolicy::template VectorType<Conditions>& conditions,
+        DenseMatrixPolicy& state_param) const
     {
-      return std::visit(
-          [&info](const auto& c) { return c.template ConstraintParameterFunction<DenseMatrixPolicy>(info); }, constraint_);
+      if (auto* eq = std::get_if<EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+        eq->ApplyConstraintParameter(info, conditions, state_param);
+      else if (auto* lin = std::get_if<LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+        lin->ApplyConstraintParameter(info, conditions, state_param);
     }
 
-    /// @brief Get a function object to compute the constraint residual
-    ///        This returns a reusable function that can be invoked multiple times
-    /// @param info Constraint information including species indices and row index
-    /// @param state_variable_indices Map from species names to state variable indices
-    /// @param state_parameter_indices Map from parameter names to state parameter indices
-    /// @return Function object that takes (state_variables, state_parameters, forcing) and computes the residual
-    template<typename DenseMatrixPolicy>
-    auto ResidualFunction(
-        const ConstraintInfo& info,
-        const auto& state_variable_indices,
-        const auto& state_parameter_indices) const
+    void SetStateIndices(const ConstraintInfo& info, auto& jacobian_flat_ids)
     {
       return std::visit(
-          [&info, &state_variable_indices, &state_parameter_indices](const auto& c)
-          { return c.template ResidualFunction<DenseMatrixPolicy>(info, state_variable_indices, state_parameter_indices); },
-          constraint_);
+          [&info, &jacobian_flat_ids](auto& c) { c.SetStateIndices(info, jacobian_flat_ids); }, constraint_);
     }
 
-    /// @brief Get a function object to compute the constraint Jacobian
-    ///        This returns a reusable function that can be invoked multiple times
-    /// @param info Constraint information including species indices and Jacobian flat IDs
-    /// @param state_variable_indices Map from species names to state variable indices
-    /// @param state_parameter_indices Map from parameter names to state parameter indices
-    /// @param jacobian_flat_ids Iterator to the jacobian flat IDs for this constraint
-    /// @param jacobian Sparse matrix to store Jacobian values
-    /// @return Function object that takes (state_variables, state_parameters, jacobian) and computes partials
-    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    auto JacobianFunction(
+    /// @brief Add constraint residual G to forcing vector for all grid cells
+    ///        Called directly from ConstraintSet::AddForcingTerms.
+    void AddResidual(
         const ConstraintInfo& info,
-        const auto& state_variable_indices,
-        const auto& state_parameter_indices,
-        auto jacobian_flat_ids,
+        const DenseMatrixPolicy& state,
+        const DenseMatrixPolicy& state_param,
+        DenseMatrixPolicy& forcing) const
+    {
+      if (auto* eq = std::get_if<EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+        eq->AddResidual(info, state, state_param, forcing);
+      else if (auto* lin = std::get_if<LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+        lin->AddResidual(info, state, state_param, forcing);
+    }
+
+    /// @brief Subtract Jacobian partial derivatives from Jacobian matrix for all grid cells
+    ///        Called directly from ConstraintSet::SubtractJacobianTerms.
+    void SubtractJacobian(
+        const ConstraintInfo& info,
+        const DenseMatrixPolicy& state,
+        const DenseMatrixPolicy& state_param,
         SparseMatrixPolicy& jacobian) const
     {
-      return std::visit(
-          [&info, &state_variable_indices, &state_parameter_indices, jacobian_flat_ids, &jacobian](const auto& c)
-          {
-            return c.template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info, state_variable_indices, state_parameter_indices, jacobian_flat_ids, jacobian);
-          },
-          constraint_);
+      if (auto* eq = std::get_if<EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+        eq->SubtractJacobian(info, state, state_param, jacobian);
+      else if (auto* lin = std::get_if<LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+        lin->SubtractJacobian(info, state, state_param, jacobian);
     }
   };
 
