@@ -28,14 +28,15 @@ jobs:
 
       - name: Install dependencies
         # valgrind supplies both the callgrind tool and <valgrind/callgrind.h>.
-        # Install it before the build so chapman_bench sees the header and can
+        # Install it before the build so micm_bench sees the header and can
         # scope the instrumentation to the Solve() loop.
         run: |
            apt update
            apt install -y cmake g++ python3 pip valgrind
 
       - name: Run Cmake
-        run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
+        # MICM_ENABLE_BENCHMARK defaults to OFF; the Build step needs it on.
+        run: cmake -S . -B build -DMICM_GPU_TYPE="a10" -DMICM_ENABLE_BENCHMARK=ON
 
       - name: Copy cublas headers
         run: |
@@ -56,19 +57,33 @@ jobs:
         # an empty JSON file, and the benchmark action would fail later with a
         # misleading message.
         run: |
-          scripts/bench_chapman.sh build > cuda_timing.txt
+          scripts/bench_micm.sh build 10000 30 cpu in-place mozart chapman > cuda_timing.txt
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             < cuda_timing.txt > cuda_timing.json
 
       - name: Profile instructions (for benchmark action)
         run: |
-          scripts/profile_chapman.sh build 2000 5 > cuda_instructions.txt
+          scripts/profile_micm.sh build 2000 5 cpu in-place mozart chapman > cuda_instructions.txt
           python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
             < cuda_instructions.txt > cuda_instructions.json
+
+      # Every chart step above runs the CPU backend, so nothing else exercises
+      # the CUDA solver this job compiles. A smoke run, not a chart: the GPU
+      # backend registers no standard ordering, so name the vector ones.
+      - name: Smoke-run the GPU backend
+        continue-on-error: true
+        run: |
+          scripts/bench_micm.sh build 2000 5 gpu in-place mozart chapman \
+            vector1 vector2 vector4 vector8 vector128
+          scripts/bench_micm.sh build 2000 5 gpu in-place mozart ts1 \
+            vector1 vector2 vector4 vector8 vector128
 
       # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
       # ubuntu-latest. The two machines keep separate series and separate directories, so
       # neither one compares against the other, and the two pushes to gh-pages cannot collide.
+      #
+      # "GPU runner" in a series name is the machine. Every stored series below
+      # measures the CPU backend. Renaming the chapman series orphans its history.
       #
       # The `name` and `benchmark-data-dir-path` of a comment step must match its store step
       # exactly. The action keys its history by both. A mismatch produces no comparison and
@@ -126,14 +141,60 @@ jobs:
           auto-push: true
           benchmark-data-dir-path: dev/bench/gpu/timing
 
+      # ts1 runs after the chapman series is stored. ts1 has little convergence
+      # margin, and a failed measure step ends the job, so measuring ts1 first
+      # would stop the chapman charts from updating too.
+      #
+      # Same cells and steps as chapman above, so the two mechanisms differ only
+      # in the mechanism.
+      - name: Profile TS1 timing (for benchmark action)
+        run: |
+          scripts/bench_micm.sh build 10000 30 cpu in-place mozart ts1 > cuda_ts1_timing.txt
+          python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            < cuda_ts1_timing.txt > cuda_ts1_timing.json
+
+      - name: Profile TS1 instructions (for benchmark action)
+        run: |
+          scripts/profile_micm.sh build 2000 5 cpu in-place mozart ts1 > cuda_ts1_instructions.txt
+          python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
+            < cuda_ts1_instructions.txt > cuda_ts1_instructions.json
+
+      # A series is keyed by `name` and `benchmark-data-dir-path` together.
+      # Editing either one on an existing series orphans its history.
+      - name: Store TS1 instruction-count results
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Instruction Counts (GPU runner, CPU backend)
+          tool: customSmallerIsBetter
+          output-file-path: cuda_ts1_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/gpu/ts1/instructions
+
+      - name: Store TS1 timing results
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Timing (GPU runner, CPU backend)
+          tool: customSmallerIsBetter
+          output-file-path: cuda_ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/gpu/ts1/timing
+
 
       - name: Upload benchmark outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: chapman-bench
+          name: micm-bench
           path: |
             cuda_timing.json
             cuda_instructions.json
             cuda_timing.txt
             cuda_instructions.txt
+            cuda_ts1_timing.json
+            cuda_ts1_instructions.json
+            cuda_ts1_timing.txt
+            cuda_ts1_instructions.txt

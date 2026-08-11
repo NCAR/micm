@@ -22,21 +22,24 @@ jobs:
 
       - name: Build
         run: |
-          cmake -S . -B build -D CMAKE_BUILD_TYPE=Release
-          cmake --build build --target chapman_bench --parallel
+          cmake -S . -B build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
+          cmake --build build --target micm_bench --parallel
 
       - name: Instruction counts (callgrind)
         run: |
-          scripts/profile_chapman.sh build 2000 5 \
+          scripts/profile_micm.sh build 2000 5 cpu in-place mozart chapman \
             | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
             > bench_instructions.json
 
       - name: Wall-clock timing
         run: |
-          scripts/bench_chapman.sh build \
+          scripts/bench_micm.sh build 10000 30 cpu in-place mozart chapman \
             | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             > bench_timing.json
 
+      # The chapman series is stored before ts1 runs at all. ts1 has little
+      # convergence margin, and a failed measure step ends the job, so measuring
+      # ts1 first would stop the chapman charts from updating too.
       - name: Store instruction-count results
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -56,3 +59,39 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           benchmark-data-dir-path: dev/bench/timing
+
+      # Same cells and steps as chapman above, so the two mechanisms differ only
+      # in the mechanism.
+      - name: TS1 instruction counts (callgrind)
+        run: |
+          scripts/profile_micm.sh build 2000 5 cpu in-place mozart ts1 \
+            | python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
+            > ts1_instructions.json
+
+      - name: TS1 wall-clock timing
+        run: |
+          scripts/bench_micm.sh build 10000 30 cpu in-place mozart ts1 \
+            | python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            > ts1_timing.json
+
+      # A series is keyed by `name` and `benchmark-data-dir-path` together.
+      # Editing either one on an existing series orphans its history.
+      - name: Store TS1 instruction-count results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: ts1_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/ts1/instructions
+
+      - name: Store TS1 timing results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Wall-Clock Timing
+          tool: customSmallerIsBetter
+          output-file-path: ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/ts1/timing
