@@ -10,7 +10,8 @@ args = parser.parse_args()
 rows = []
 for line in sys.stdin:
     parts = line.split()
-    if len(parts) != 2 or parts[0] in ("kind", "backend", "best_ms"):
+    # "#" drops the "# mechanism=<name>" marker the drivers print.
+    if len(parts) != 2 or parts[0] in ("#", "kind", "backend", "best_ms"):
         continue
     try:
         val = int(parts[1]) if args.value_type == "int" else float(parts[1])

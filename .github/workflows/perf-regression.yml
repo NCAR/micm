@@ -1,8 +1,11 @@
 name: Performance Regression
 
-# Runs the Chapman micro-benchmark under callgrind on both the PR head and the
+# Runs the micm micro-benchmark under callgrind on both the PR head and the
 # base branch, and warns if the PR adds instructions to the Rosenbrock Solve()
-# function for any matrix ordering (standard, vector1,2,4,8,128).
+# function for any matrix ordering (standard, vector1,2,4,8,128). Both the
+# chapman and the ts1 mechanism run.
+#
+# The job keeps the id "chapman" so any required-check setting still matches.
 #
 # See docs/performance.md for how to reproduce this locally.
 
@@ -25,6 +28,10 @@ jobs:
       CXX: g++
       CELLS: 2000
       STEPS: 5
+      # TS1 costs far more per cell than chapman, and callgrind multiplies that
+      # again. Keep the count a multiple of 128, or vector128 pads its last group.
+      TS1_CELLS: 256
+      TS1_STEPS: 5
     steps:
       - name: Install valgrind
         run: |
@@ -90,9 +97,26 @@ jobs:
       - name: Profile base
         run: OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" | tee base.txt
 
+      # Both sides already hold TS1, so profile it too. Chapman shows per-call
+      # overhead; TS1 shows how the solver scales with mechanism size, and a
+      # change can move one without moving the other.
+      - name: Profile PR (TS1)
+        run: |
+          OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$TS1_CELLS" "$TS1_STEPS" \
+            cpu in-place mozart ts1 | tee pr_ts1.txt
+
+      - name: Profile base (TS1)
+        run: |
+          OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$TS1_CELLS" "$TS1_STEPS" \
+            cpu in-place mozart ts1 | tee base_ts1.txt
+
       # continue-on-error: the comparison reports, it does not gate.
       - name: Compare instruction counts
         run: pr/scripts/compare_micm.py base.txt pr.txt
+        continue-on-error: true
+
+      - name: Compare instruction counts (TS1)
+        run: pr/scripts/compare_micm.py base_ts1.txt pr_ts1.txt
         continue-on-error: true
 
       - name: Profile PR timing (for benchmark action)

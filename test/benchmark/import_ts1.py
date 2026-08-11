@@ -21,8 +21,8 @@ The generated header holds three plain functions plus the benchmark mechanism:
   PhaseSpeciesByName(...)           -> const micm::PhaseSpecies&
   struct Ts1                        -- Build() and InitState() for the harness
 
-CreateGasPhase and CreateProcesses are not templates, so the mechanism compiles
-once rather than once per solver configuration.
+CreateGasPhase and CreateProcesses are not templates, so every solver
+configuration shares one definition of the mechanism.
 """
 
 from __future__ import annotations

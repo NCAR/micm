@@ -139,6 +139,11 @@ namespace bench
     auto state = solver.GetState(config.num_cells_);
     Mechanism::InitState(state, config.num_cells_);
     solver.UpdateStateParameters(state);
+    // For CUDA, copy the information to the device
+    if constexpr (requires { state.SyncInputsToDevice(); })
+    {
+      state.SyncInputsToDevice();
+    }
     return TimeSolve(solver, state, config);
   }
 

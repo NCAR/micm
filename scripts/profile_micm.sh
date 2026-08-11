@@ -41,7 +41,8 @@
 # at compile time (valgrind-devel / valgrind package on most distros).
 #
 # Output: a TSV table on stdout with columns "kind" and "instructions"
-# (space-padded). Raw callgrind files go to $OUT (default /tmp), one per
+# (space-padded), under a "# mechanism=<name>" marker line that
+# compare_micm.py reads. Raw callgrind files go to $OUT (default /tmp), one per
 # mechanism and ordering.
 
 set -euo pipefail
@@ -75,6 +76,9 @@ out="${OUT:-/tmp}"
 mkdir -p "$out"
 
 echo "mechanism = $mechanism; backend = $backend; LU = $lu_algorithm / $lu_type"
+# A machine-readable copy of the mechanism, so compare_micm.py can refuse two
+# files that measure different mechanisms.
+echo "# mechanism=$mechanism"
 printf '%-9s %20s\n' "kind" "instructions"
 for kind in "${kinds[@]}"; do
   # The mechanism belongs in the name, or two mechanisms profiled in one job

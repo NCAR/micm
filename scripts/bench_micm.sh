@@ -54,6 +54,8 @@ if [[ ! -x "$bin" ]]; then
 fi
 
 echo "mechanism = $mechanism; backend = $backend; LU = $lu_algorithm / $lu_type"
+# A machine-readable copy of the mechanism, to match profile_micm.sh.
+echo "# mechanism=$mechanism"
 printf '%-9s %10s\n' "kind" "best_ms"
 for kind in "${kinds[@]}"; do
   best=""

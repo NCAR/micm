@@ -33,8 +33,8 @@ same checks the CI uses.
   ```
 
   `CreateGasPhase` and `CreateProcesses` are plain functions rather than
-  templates, so the mechanism compiles once instead of once per solver
-  configuration.
+  templates, so every solver configuration shares one definition of the
+  mechanism.
 - `scripts/bench_micm.sh` — wall-clock timing driver (noisy; use for quick
   local development iteration).
 - `scripts/profile_micm.sh` — callgrind driver that produces deterministic
@@ -56,11 +56,27 @@ cmake -S . -B build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
 cmake --build build --target micm_bench --parallel
 ```
 
-The binary lands at `build/micm_bench`. It always holds both mechanisms, and
-TS1 dominates the compile time.
+The binary lands at `build/micm_bench`. It always holds both mechanisms.
 
 Three workflows pass the option: `benchmark-charts.yml`, `perf-regression.yml`,
 and `runner.yml`. No other CI job compiles the benchmark.
+
+## Why every grid cell holds the same values
+
+Both mechanisms give every cell the same concentrations, custom rate
+parameters, temperature, and pressure. That is deliberate.
+
+The Rosenbrock solver carries **one** step size `H` for the whole state, and
+`NormalizedError` is a single RMS over every cell and every variable (see
+`include/micm/solver/rosenbrock.inl`). Every cell therefore takes the same
+internal steps whatever its contents hold. Cell-to-cell variety does not make
+the benchmark more realistic; it only changes how many internal steps the
+whole grid needs, and it couples the cells, so one hard cell can stop the
+entire solve.
+
+A spread of 0.2% on the TS1 concentrations or on its temperature is enough to
+end a 256-cell solve in `NaNDetected` or `Convergence Exceeded Max Steps` at
+`dt=30`. Keep the cells uniform.
 
 ## Wall-clock timing
 
@@ -88,6 +104,7 @@ Sample output:
 
 ```
 mechanism = chapman; backend = cpu; LU = mozart / in-place
+# mechanism=chapman
 kind         best_ms
 standard      676.85
 vector1       676.51
@@ -117,6 +134,7 @@ Sample output (TSV — copy into a spreadsheet if you like):
 
 ```
 mechanism = chapman; backend = cpu; LU = mozart / in-place
+# mechanism=chapman
 kind              instructions
 standard             611346438
 vector1              613011430
@@ -142,8 +160,10 @@ The script leaves the raw callgrind files in `$OUT` (default `/tmp`), named
 
 ## Comparing two runs
 
-Both files must come from the same mechanism. The TSV holds no mechanism
-column, so `compare_micm.py` cannot detect a mismatch.
+Both files must come from the same mechanism. Each file carries a
+`# mechanism=<name>` marker line, and `compare_micm.py` exits 2 when the two
+markers disagree. A file written before the marker existed carries none, and
+the check passes.
 
 ```bash
 scripts/profile_micm.sh build 2000 5 > base.txt
@@ -155,6 +175,8 @@ scripts/compare_micm.py base.txt pr.txt
 Output:
 
 ```
+mechanism: chapman
+
 kind                 base              pr           delta   delta%
 standard      510,009,297     611,346,438    +101,337,141  +19.87%  <-- regression
 vector1       627,328,869     613,011,430     -14,317,439   -2.28%
@@ -203,16 +225,21 @@ The workflow runs on every PR to `main`:
    revisions run the exact same benchmark code — otherwise, changing the
    benchmark itself could mask regressions).
 3. Builds `micm_bench` from both.
-4. Runs `profile_micm.sh` against both, for Chapman only.
-5. Runs `compare_micm.py`, which marks any matrix ordering that has strictly
-   more instructions on the PR.
+4. Runs `profile_micm.sh` against both, once for Chapman (`CELLS`/`STEPS`) and
+   once for TS1 (`TS1_CELLS`/`TS1_STEPS`).
+5. Runs `compare_micm.py` once per mechanism. It marks any matrix ordering that
+   has strictly more instructions on the PR.
 
-The comparison reports; it does not gate. The step carries
+Chapman shows per-call overhead and TS1 shows how the solver scales with
+mechanism size, so a change can move one without moving the other. Read both
+comparisons.
+
+The comparison reports; it does not gate. Each compare step carries
 `continue-on-error: true`, so a marked ordering shows as a failed step inside
 a passing workflow, and the PR stays mergeable. Read the step's log before you
 merge a change to a hot path.
 
-To make the comparison block a merge instead, remove `continue-on-error` from
-the "Compare instruction counts" step. The comparison already runs at
+To make a comparison block a merge instead, remove `continue-on-error` from
+that "Compare instruction counts" step. The comparison already runs at
 tolerance 0, so expect it to catch deliberate additions too; raise
 `--tolerance` in the workflow when a change adds instructions on purpose.

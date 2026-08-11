@@ -7,8 +7,10 @@ any matrix ordering has a higher instruction count in the PR than in the
 base, subject to an absolute-count tolerance (default 0). This is intended
 as the check step in the perf-regression CI workflow.
 
-Both files must come from the same mechanism. The TSV holds no mechanism
-column, so this script cannot detect a mismatch.
+Both files must come from the same mechanism. Each file carries a
+"# mechanism=<name>" marker line, and this script exits non-zero when the two
+markers disagree. A file written before the marker existed carries none, and
+the check passes.
 
 Usage:
     scripts/compare_micm.py base.txt pr.txt [--tolerance N]
@@ -25,10 +27,20 @@ import sys
 from pathlib import Path
 
 
-def parse(path: Path) -> dict[str, int]:
-    """Parse a profile_micm.sh TSV file into {kind: instructions}."""
+MECHANISM_MARKER = "# mechanism="
+
+
+def parse(path: Path) -> tuple[str | None, dict[str, int]]:
+    """Parse a profile_micm.sh TSV file into (mechanism, {kind: instructions}).
+
+    The mechanism is None when the file carries no marker line.
+    """
+    mechanism: str | None = None
     result: dict[str, int] = {}
     for line in path.read_text().splitlines():
+        if line.startswith(MECHANISM_MARKER):
+            mechanism = line[len(MECHANISM_MARKER):].strip()
+            continue
         parts = line.split()
         if len(parts) != 2 or parts[0] == "kind":
             continue
@@ -36,7 +48,7 @@ def parse(path: Path) -> dict[str, int]:
             result[parts[0]] = int(parts[1])
         except ValueError:
             continue
-    return result
+    return mechanism, result
 
 
 def main() -> int:
@@ -51,12 +63,26 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    base = parse(args.base)
-    pr = parse(args.pr)
+    base_mechanism, base = parse(args.base)
+    pr_mechanism, pr = parse(args.pr)
 
     if not base or not pr:
         print(f"error: could not parse counts from {args.base} or {args.pr}", file=sys.stderr)
         return 2
+
+    # A count from one mechanism against a count from another is meaningless,
+    # and the delta looks like an enormous regression.
+    if base_mechanism is not None and pr_mechanism is not None and base_mechanism != pr_mechanism:
+        print(
+            f"error: {args.base} measures '{base_mechanism}' and {args.pr} measures "
+            f"'{pr_mechanism}'; profile both with the same mechanism",
+            file=sys.stderr,
+        )
+        return 2
+
+    mechanism = base_mechanism or pr_mechanism
+    if mechanism is not None:
+        print(f"mechanism: {mechanism}\n")
 
     kinds = sorted(set(base) & set(pr))
     if not kinds:

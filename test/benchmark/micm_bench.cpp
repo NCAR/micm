@@ -29,6 +29,7 @@
 
 #include <cstdlib>
 #include <exception>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -41,6 +42,9 @@ namespace
     bench::Register<bench::Ts1>(registry, bench::VectorWidths{});
     return registry;
   }
+
+  constexpr const char* kUsage =
+      " [num_cells] [num_steps] [dt_seconds] [backend] [matrix] [lu_type] [lu_algorithm] [mechanism]";
 }  // namespace
 
 int main(int argc, char** argv)
@@ -56,16 +60,28 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  bench::Config config{
-    .num_cells_ = (argc > 1) ? static_cast<micm::Index>(std::stoul(argv[1])) : micm::Index{ 10000 },
-    .num_steps_ = (argc > 2) ? static_cast<micm::Index>(std::stoul(argv[2])) : micm::Index{ 100 },
-    .dt_ = (argc > 3) ? static_cast<micm::Real>(std::stod(argv[3])) : static_cast<micm::Real>(30.0),
-    .backend_ = (argc > 4) ? argv[4] : "cpu",
-    .matrix_ = (argc > 5) ? argv[5] : "standard",
-    .lu_matrix_ = (argc > 6) ? argv[6] : "in-place",
-    .lu_ = (argc > 7) ? argv[7] : "mozart",
-    .mechanism_ = (argc > 8) ? argv[8] : "chapman",
-  };
+  // std::stoul and std::stod throw on a non-numeric argument, so parse inside a
+  // try block and report the usage rather than call std::terminate.
+  bench::Config config{};
+  try
+  {
+    config = bench::Config{
+      .num_cells_ = (argc > 1) ? static_cast<micm::Index>(std::stoul(argv[1])) : micm::Index{ 10000 },
+      .num_steps_ = (argc > 2) ? static_cast<micm::Index>(std::stoul(argv[2])) : micm::Index{ 100 },
+      .dt_ = (argc > 3) ? static_cast<micm::Real>(std::stod(argv[3])) : static_cast<micm::Real>(30.0),
+      .backend_ = (argc > 4) ? argv[4] : "cpu",
+      .matrix_ = (argc > 5) ? argv[5] : "standard",
+      .lu_matrix_ = (argc > 6) ? argv[6] : "in-place",
+      .lu_ = (argc > 7) ? argv[7] : "mozart",
+      .mechanism_ = (argc > 8) ? argv[8] : "chapman",
+    };
+  }
+  catch (const std::exception& e)
+  {
+    std::cout << "Could not read the arguments: " << e.what() << std::endl;
+    std::cout << "Usage: " << argv[0] << kUsage << std::endl;
+    return 1;
+  }
 
   const auto entry = registry.find(bench::Key(config));
   if (entry == registry.end())
@@ -90,9 +106,13 @@ int main(int argc, char** argv)
   micm::cuda::CudaStreamSingleton::GetInstance().CleanUp();
 #endif
 
+  // Fixed notation, always. The default format switches to scientific above
+  // 1e6 ms, and the "elapsed_ms=([0-9.]+)" pattern in bench_micm.sh would then
+  // read 1.23457e+06 as 1.23457.
   std::cout << "mechanism=" << config.mechanism_ << " backend=" << config.backend_ << " matrix_type=" << config.matrix_
             << " lu=" << config.lu_ << "/" << config.lu_matrix_ << " cells=" << config.num_cells_
-            << " steps=" << config.num_steps_ << " dt=" << config.dt_ << " elapsed_ms=" << elapsed_ms
-            << " ms_per_step=" << elapsed_ms / static_cast<double>(config.num_steps_) << std::endl;
+            << " steps=" << config.num_steps_ << " dt=" << config.dt_ << std::fixed << std::setprecision(3)
+            << " elapsed_ms=" << elapsed_ms << " ms_per_step=" << elapsed_ms / static_cast<double>(config.num_steps_)
+            << std::endl;
   return 0;
 }
