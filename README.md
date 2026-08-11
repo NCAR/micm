@@ -183,25 +183,13 @@ hot-path change even when the wall-clock time is noisy.
 Two mechanisms run. Chapman has 7 reactions and shows per-call overhead. TS1 has
 547 reactions and shows how the solver scales with mechanism size.
 
-| chart | mechanism | machine |
-| --- | --- | --- |
-| [Instruction counts](https://ncar.github.io/micm/dev/bench/gpu/instructions/) | Chapman | CIRRUS a10 GPU runner |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | Chapman | CIRRUS a10 GPU runner |
-| [Instruction counts](https://ncar.github.io/micm/dev/bench/instructions/) | Chapman | `ubuntu-latest` |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/timing/) | Chapman | `ubuntu-latest` |
-| [Instruction counts](https://ncar.github.io/micm/dev/bench/gpu/ts1/instructions/) | TS1 | CIRRUS a10 GPU runner |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/ts1/timing/) | TS1 | CIRRUS a10 GPU runner |
-| [Instruction counts](https://ncar.github.io/micm/dev/bench/ts1/instructions/) | TS1 | `ubuntu-latest` |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/ts1/timing/) | TS1 | `ubuntu-latest` |
-
-Every chart measures the CPU backend. The machine column names the runner, not
-the backend, so the "CIRRUS a10 GPU runner" rows report what that machine's CPU
-does. No chart tracks the CUDA solver yet.
-
-Each machine and each mechanism keeps its own series. Do not compare a value
-from one series against a value from another. Both mechanisms run at the same
-grid-cell count and step count, so a TS1 chart and a Chapman chart differ only
-in the mechanism.
+| chart | mechanism | backend | machine |
+| --- | --- | --- | --- |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/instructions/) | Chapman | CPU | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/timing/) | Chapman | CPU | `ubuntu-latest` |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/ts1/instructions/) | TS1 | CPU | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/ts1/timing/) | TS1 | CPU | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | Chapman and TS1 | CUDA | CIRRUS a10 GPU runner |
 
 Each pull request also gets a commit comment that compares its Chapman numbers
 against the latest `main` values. See [docs/performance.md](docs/performance.md)

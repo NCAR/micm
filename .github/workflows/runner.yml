@@ -27,12 +27,11 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Install dependencies
-        # valgrind supplies both the callgrind tool and <valgrind/callgrind.h>.
-        # Install it before the build so micm_bench sees the header and can
-        # scope the instrumentation to the Solve() loop.
+        # No valgrind. This job charts wall-clock time only. Callgrind counts
+        # host CPU instructions and cannot see GPU kernels.
         run: |
            apt update
-           apt install -y cmake g++ python3 pip valgrind
+           apt install -y cmake g++ python3 pip
 
       - name: Run Cmake
         # MICM_ENABLE_BENCHMARK defaults to OFF; the Build step needs it on.
@@ -50,50 +49,30 @@ jobs:
           cd build
           ctest --rerun-failed --output-on-failure . --verbose -j 10
 
-      - name: Profile timing (for benchmark action)
-        # The script writes to a file first, and the conversion reads that file.
-        # A pipeline would hide a script failure, because this container runs
-        # steps under `sh -e`, which has no pipefail. The step would then write
-        # an empty JSON file, and the benchmark action would fail later with a
-        # misleading message.
+      # The GPU backend registers no standard ordering, so name the vector ones.
+      #
+      # Write to a file, then convert. This container runs steps under `sh -e`,
+      # which has no pipefail, so a pipeline would hide a script failure.
+      - name: Benchmark the GPU backend (chapman)
         run: |
-          scripts/bench_micm.sh build 10000 30 cpu in-place mozart chapman > cuda_timing.txt
+          scripts/bench_micm.sh build 10000 30 gpu in-place mozart chapman \
+            vector1 vector2 vector4 vector8 vector128 > cuda_timing.txt
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             < cuda_timing.txt > cuda_timing.json
-
-      - name: Profile instructions (for benchmark action)
-        run: |
-          scripts/profile_micm.sh build 2000 5 cpu in-place mozart chapman > cuda_instructions.txt
-          python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
-            < cuda_instructions.txt > cuda_instructions.json
-
-      # Every chart step above runs the CPU backend, so nothing else exercises
-      # the CUDA solver this job compiles. A smoke run, not a chart: the GPU
-      # backend registers no standard ordering, so name the vector ones.
-      - name: Smoke-run the GPU backend
-        continue-on-error: true
-        run: |
-          scripts/bench_micm.sh build 2000 5 gpu in-place mozart chapman \
-            vector1 vector2 vector4 vector8 vector128
-          scripts/bench_micm.sh build 2000 5 gpu in-place mozart ts1 \
-            vector1 vector2 vector4 vector8 vector128
 
       # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
       # ubuntu-latest. The two machines keep separate series and separate directories, so
       # neither one compares against the other, and the two pushes to gh-pages cannot collide.
       #
-      # "GPU runner" in a series name is the machine. Every stored series below
-      # measures the CPU backend. Renaming the chapman series orphans its history.
-      #
       # The `name` and `benchmark-data-dir-path` of a comment step must match its store step
       # exactly. The action keys its history by both. A mismatch produces no comparison and
       # no comment, and the step still reports success.
 
-      - name: Comment benchmark timing comparison on PR
+      - name: Comment benchmark timing comparison on PR (chapman)
         if: github.event_name == 'pull_request'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (GPU runner)
+          name: Chapman Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -104,85 +83,52 @@ jobs:
           fail-on-alert: false    # just warn of possible regression
           skip-fetch-gh-pages: true
 
-      - name: Comment benchmark instruction comparison on PR
-        if: github.event_name == 'pull_request'
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Chapman Instruction Counts (GPU runner)
-          tool: customSmallerIsBetter
-          output-file-path: cuda_instructions.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          benchmark-data-dir-path: dev/bench/gpu/instructions
-          comment-always: true    # posts a commit comment visible in the PR timeline
-          save-data-file: false   # never write to gh-pages from PR context
-          alert-threshold: 105%   # comment turns into a warning at +5%
-          fail-on-alert: false    # just warn of possible regression
-          skip-fetch-gh-pages: true
-
-      - name: Store instruction-count results
+      - name: Store timing results (chapman)
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Instruction Counts (GPU runner)
-          tool: customSmallerIsBetter
-          output-file-path: cuda_instructions.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          benchmark-data-dir-path: dev/bench/gpu/instructions
-
-      - name: Store timing results
-        if: github.event_name == 'push'
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Chapman Timing (GPU runner)
+          name: Chapman Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           benchmark-data-dir-path: dev/bench/gpu/timing
 
-      # ts1 runs after the chapman series is stored. ts1 has little convergence
-      # margin, and a failed measure step ends the job, so measuring ts1 first
-      # would stop the chapman charts from updating too.
-      #
-      # Same cells and steps as chapman above, so the two mechanisms differ only
-      # in the mechanism.
-      - name: Profile TS1 timing (for benchmark action)
+      # ts1 runs after the chapman series is stored, so a ts1 failure cannot
+      # stop the chapman chart from updating.
+      - name: Benchmark the GPU backend (ts1)
         run: |
-          scripts/bench_micm.sh build 10000 30 cpu in-place mozart ts1 > cuda_ts1_timing.txt
+          scripts/bench_micm.sh build 10000 30 gpu in-place mozart ts1 \
+            vector1 vector2 vector4 vector8 vector128 > cuda_ts1_timing.txt
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             < cuda_ts1_timing.txt > cuda_ts1_timing.json
 
-      - name: Profile TS1 instructions (for benchmark action)
-        run: |
-          scripts/profile_micm.sh build 2000 5 cpu in-place mozart ts1 > cuda_ts1_instructions.txt
-          python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
-            < cuda_ts1_instructions.txt > cuda_ts1_instructions.json
-
-      # A series is keyed by `name` and `benchmark-data-dir-path` together.
-      # Editing either one on an existing series orphans its history.
-      - name: Store TS1 instruction-count results
-        if: github.event_name == 'push'
+      # Both mechanisms share this directory; one data.js holds several series.
+      - name: Comment benchmark timing comparison on PR (ts1)
+        if: github.event_name == 'pull_request'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: TS1 Instruction Counts (GPU runner, CPU backend)
+          name: TS1 Timing (GPU backend)
           tool: customSmallerIsBetter
-          output-file-path: cuda_ts1_instructions.json
+          output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          benchmark-data-dir-path: dev/bench/gpu/ts1/instructions
+          benchmark-data-dir-path: dev/bench/gpu/timing
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 120%   # comment turns into a warning at +20%
+          fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
 
-      - name: Store TS1 timing results
+      - name: Store timing results (ts1)
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: TS1 Timing (GPU runner, CPU backend)
+          name: TS1 Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          benchmark-data-dir-path: dev/bench/gpu/ts1/timing
-
+          benchmark-data-dir-path: dev/bench/gpu/timing
 
       - name: Upload benchmark outputs
         if: always()
@@ -191,10 +137,6 @@ jobs:
           name: micm-bench
           path: |
             cuda_timing.json
-            cuda_instructions.json
             cuda_timing.txt
-            cuda_instructions.txt
             cuda_ts1_timing.json
-            cuda_ts1_instructions.json
             cuda_ts1_timing.txt
-            cuda_ts1_instructions.txt
