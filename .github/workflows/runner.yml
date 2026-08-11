@@ -57,29 +57,15 @@ jobs:
         # an empty JSON file, and the benchmark action would fail later with a
         # misleading message.
         run: |
-          scripts/bench_micm.sh build > cuda_timing.txt
+          scripts/bench_micm.sh build 10000 30 cpu in-place mozart chapman > cuda_timing.txt
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             < cuda_timing.txt > cuda_timing.json
 
       - name: Profile instructions (for benchmark action)
         run: |
-          scripts/profile_micm.sh build 2000 5 > cuda_instructions.txt
+          scripts/profile_micm.sh build 2000 5 cpu in-place mozart chapman > cuda_instructions.txt
           python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
             < cuda_instructions.txt > cuda_instructions.json
-
-      # ts1 costs far more per cell than chapman, so it runs at fewer cells.
-      # Keep the count a multiple of 128, or vector128 pads its last group.
-      - name: Profile TS1 timing (for benchmark action)
-        run: |
-          scripts/bench_micm.sh build 256 30 cpu in-place mozart ts1 > cuda_ts1_timing.txt
-          python3 scripts/to_benchmark_json.py --unit ms --value-type float \
-            < cuda_ts1_timing.txt > cuda_ts1_timing.json
-
-      - name: Profile TS1 instructions (for benchmark action)
-        run: |
-          scripts/profile_micm.sh build 256 5 cpu in-place mozart ts1 > cuda_ts1_instructions.txt
-          python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
-            < cuda_ts1_instructions.txt > cuda_ts1_instructions.json
 
       # Every chart step above runs the CPU backend, so nothing else exercises
       # the CUDA solver this job compiles. A smoke run, not a chart: the GPU
@@ -87,9 +73,9 @@ jobs:
       - name: Smoke-run the GPU backend
         continue-on-error: true
         run: |
-          scripts/bench_micm.sh build 1024 5 gpu in-place mozart chapman \
+          scripts/bench_micm.sh build 2000 5 gpu in-place mozart chapman \
             vector1 vector2 vector4 vector8 vector128
-          scripts/bench_micm.sh build 256 5 gpu in-place mozart ts1 \
+          scripts/bench_micm.sh build 2000 5 gpu in-place mozart ts1 \
             vector1 vector2 vector4 vector8 vector128
 
       # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
@@ -154,6 +140,24 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           benchmark-data-dir-path: dev/bench/gpu/timing
+
+      # ts1 runs after the chapman series is stored. ts1 has little convergence
+      # margin, and a failed measure step ends the job, so measuring ts1 first
+      # would stop the chapman charts from updating too.
+      #
+      # Same cells and steps as chapman above, so the two mechanisms differ only
+      # in the mechanism.
+      - name: Profile TS1 timing (for benchmark action)
+        run: |
+          scripts/bench_micm.sh build 10000 30 cpu in-place mozart ts1 > cuda_ts1_timing.txt
+          python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            < cuda_ts1_timing.txt > cuda_ts1_timing.json
+
+      - name: Profile TS1 instructions (for benchmark action)
+        run: |
+          scripts/profile_micm.sh build 2000 5 cpu in-place mozart ts1 > cuda_ts1_instructions.txt
+          python3 scripts/to_benchmark_json.py --unit instructions --value-type int \
+            < cuda_ts1_instructions.txt > cuda_ts1_instructions.json
 
       # A series is keyed by `name` and `benchmark-data-dir-path` together.
       # Editing either one on an existing series orphans its history.

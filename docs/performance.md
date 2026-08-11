@@ -93,12 +93,18 @@ The trailing `MATRIX` list is variadic, so it comes last.
     scripts/bench_micm.sh                                            # defaults: 10000 cells, 30 steps
     scripts/bench_micm.sh build 20000 50                             # 20k cells, 50 steps
     scripts/bench_micm.sh build 10000 30 cpu in-place mozart chapman vector4   # just vector4
-    scripts/bench_micm.sh build 256 30 cpu in-place mozart ts1        # the TS1 mechanism
+    scripts/bench_micm.sh build 10000 30 cpu in-place mozart ts1      # the TS1 mechanism
 
-TS1 has 547 reactions against Chapman's 7, so reduce the cell count by a long
-way. Keep `CELLS` a multiple of 128: a `vector128` group holds 128 cells, so
-any other count makes that one ordering pad its last group and solve more
-cells than the other five.
+CI runs both mechanisms at the same `CELLS` and `STEPS`, so the two charts
+differ only in the mechanism. TS1 has 547 reactions against Chapman's 7, so it
+takes far longer at the same size: about 280 s for one pass over the six
+orderings at 10000 cells and 30 steps, against about 3 s for Chapman.
+
+Keep `CELLS` a multiple of 128: a `vector128` group holds 128 cells, so any
+other count makes that one ordering pad its last group and solve more cells
+than the other five. The CI counts (2000 and 10000) are not multiples of 128,
+so `vector128` solves 2048 and 10112. Both mechanisms carry the same bias, so
+they stay comparable to each other.
 
 Sample output:
 
@@ -147,12 +153,13 @@ vector128            220045464
 Callgrind is much slower than a native run, so the defaults use smaller
 `CELLS` and `STEPS`. Any real hot-path change is still visible at that size.
 
-TS1 works here too, but measure its wall-clock cost first. TS1 costs much more
-per cell, and callgrind multiplies that again, so pick `CELLS` and `STEPS` to
-match:
+TS1 runs at the same `CELLS` and `STEPS`. It costs much more per cell, and
+callgrind multiplies that again, so allow far more time: about 10 s native for
+one pass over the six orderings, and roughly 50 to 100 times that under
+callgrind.
 
 ```bash
-scripts/profile_micm.sh build 256 5 cpu in-place mozart ts1
+scripts/profile_micm.sh build 2000 5 cpu in-place mozart ts1
 ```
 
 The script leaves the raw callgrind files in `$OUT` (default `/tmp`), named
@@ -225,8 +232,8 @@ The workflow runs on every PR to `main`:
    revisions run the exact same benchmark code — otherwise, changing the
    benchmark itself could mask regressions).
 3. Builds `micm_bench` from both.
-4. Runs `profile_micm.sh` against both, once for Chapman (`CELLS`/`STEPS`) and
-   once for TS1 (`TS1_CELLS`/`TS1_STEPS`).
+4. Runs `profile_micm.sh` against both, once for Chapman and once for TS1, at
+   the same `CELLS` and `STEPS`.
 5. Runs `compare_micm.py` once per mechanism. It marks any matrix ordering that
    has strictly more instructions on the PR.
 

@@ -31,9 +31,12 @@
 #   MECHANISM    = chapman (other option: ts1)
 #   MATRIX       = standard vector1 vector2 vector4 vector8 vector128
 #
-# ts1 has 547 reactions against Chapman's 7, and callgrind multiplies that, so
-# reduce CELLS and STEPS before you profile it. Keep CELLS a multiple of 128, or
-# the vector128 ordering pads its last group.
+# CI runs both mechanisms at the same CELLS and STEPS, so the two differ only in
+# the mechanism. ts1 has 547 reactions against Chapman's 7, and callgrind
+# multiplies that, so expect it to take far longer at the same size.
+#
+# Keep CELLS a multiple of 128, or the vector128 ordering pads its last group and
+# solves more cells than the other five.
 #
 # Requires: micm_bench built inside BUILD_DIR (configured with
 # -D MICM_ENABLE_BENCHMARK=ON), and valgrind on PATH.

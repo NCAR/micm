@@ -26,12 +26,13 @@ jobs:
     env:
       CC: gcc
       CXX: g++
+      # Both mechanisms use these, so the two runs differ only in the mechanism.
+      # CELLS/STEPS drive the callgrind profiles; BENCH_* drive the wall-clock
+      # runs, which are logged but never gate.
       CELLS: 2000
       STEPS: 5
-      # TS1 costs far more per cell than chapman, and callgrind multiplies that
-      # again. Keep the count a multiple of 128, or vector128 pads its last group.
-      TS1_CELLS: 256
-      TS1_STEPS: 5
+      BENCH_CELLS: 10000
+      BENCH_STEPS: 30
     steps:
       - name: Install valgrind
         run: |
@@ -84,30 +85,34 @@ jobs:
         # Run the benchmarks (timing) for the base and PR branch, just so they
         # appear in the action logs. Doesn't affect pass/fail
       - name: Benchmark PR
-        run: pr/scripts/bench_micm.sh pr/build
+        run: pr/scripts/bench_micm.sh pr/build "$BENCH_CELLS" "$BENCH_STEPS" cpu in-place mozart chapman
 
       - name: Benchmark base
-        run: pr/scripts/bench_micm.sh base/build
+        run: pr/scripts/bench_micm.sh base/build "$BENCH_CELLS" "$BENCH_STEPS" cpu in-place mozart chapman
 
       # OUT keeps the two sides' raw callgrind files apart. The script names them
       # by mechanism and ordering, which is the same on both sides.
       - name: Profile PR
-        run: OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" | tee pr.txt
+        run: |
+          OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" \
+            cpu in-place mozart chapman | tee pr.txt
 
       - name: Profile base
-        run: OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" | tee base.txt
+        run: |
+          OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" \
+            cpu in-place mozart chapman | tee base.txt
 
       # Both sides already hold TS1, so profile it too. Chapman shows per-call
       # overhead; TS1 shows how the solver scales with mechanism size, and a
       # change can move one without moving the other.
       - name: Profile PR (TS1)
         run: |
-          OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$TS1_CELLS" "$TS1_STEPS" \
+          OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" \
             cpu in-place mozart ts1 | tee pr_ts1.txt
 
       - name: Profile base (TS1)
         run: |
-          OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$TS1_CELLS" "$TS1_STEPS" \
+          OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" \
             cpu in-place mozart ts1 | tee base_ts1.txt
 
       # continue-on-error: the comparison reports, it does not gate.
@@ -121,13 +126,13 @@ jobs:
 
       - name: Profile PR timing (for benchmark action)
         run: |
-          pr/scripts/bench_micm.sh pr/build \
+          pr/scripts/bench_micm.sh pr/build "$BENCH_CELLS" "$BENCH_STEPS" cpu in-place mozart chapman \
             | python3 pr/scripts/to_benchmark_json.py --unit ms --value-type float \
             > pr_timing.json
 
       - name: Profile PR instructions (for benchmark action)
         run: |
-          pr/scripts/profile_micm.sh pr/build 2000 5 \
+          pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" cpu in-place mozart chapman \
             | python3 pr/scripts/to_benchmark_json.py --unit instructions --value-type int \
             > pr_instructions.json
 

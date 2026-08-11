@@ -199,8 +199,9 @@ the backend, so the "CIRRUS a10 GPU runner" rows report what that machine's CPU
 does. No chart tracks the CUDA solver yet.
 
 Each machine and each mechanism keeps its own series. Do not compare a value
-from one series against a value from another. A TS1 chart also uses far fewer
-grid cells than a Chapman chart, because TS1 costs much more per cell.
+from one series against a value from another. Both mechanisms run at the same
+grid-cell count and step count, so a TS1 chart and a Chapman chart differ only
+in the mechanism.
 
 Each pull request also gets a commit comment that compares its Chapman numbers
 against the latest `main` values. See [docs/performance.md](docs/performance.md)
