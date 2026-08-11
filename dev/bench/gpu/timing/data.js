@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786482231895,
+  "lastUpdate": 1786482417202,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -212,6 +212,57 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 56.35,
+            "unit": "ms"
+          }
+        ]
+      }
+    ],
+    "TS1 Timing (GPU backend)": [
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "95fa70322b57bc4e22ac67099a35558a4e8fcf1a",
+          "message": "Chart the CUDA solver on the GPU runner, not its CPU (#1059)\n\nChart the CUDA solver on the GPU runner\n\nThe CIRRUS a10 job called bench_chapman.sh and profile_chapman.sh with no\nbackend argument, and the scripts default to cpu. Explicitly pass gpu\nso that cirrus only reports gpu numbers\n\nAlso, remove valgrind for GPU runner because it cannot measure the\ninstruction count on the GPU and doesn't provide more information than\ncounting the cpu runs.\n\nCo-authored-by: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-08-11T15:50:01-05:00",
+          "tree_id": "03a0a93c80614b414d93501bdc476639d76d9acf",
+          "url": "https://github.com/NCAR/micm/commit/95fa70322b57bc4e22ac67099a35558a4e8fcf1a"
+        },
+        "date": 1786482416354,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 21956.75,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 10979.25,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 6941.37,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 5024.98,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 4215.15,
             "unit": "ms"
           }
         ]
