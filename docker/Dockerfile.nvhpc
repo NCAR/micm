@@ -24,6 +24,7 @@ RUN apt update \
       less \
       libcurl4-openssl-dev \
       m4 \
+      ninja-build \
       vim \
       zlib1g-dev \
     && apt clean 
@@ -43,11 +44,12 @@ RUN cp -r /opt/nvidia/hpc_sdk/*/26.5/cuda/include/* /usr/include/
 RUN mkdir /build \
       && cd /build \
       && cmake \
+        -G Ninja \
         -D CMAKE_BUILD_TYPE=Debug \
         -D MICM_GPU_TYPE="rtx5060" \
         -D CMAKE_CUDA_COMPILER=nvcc \
         -D CMAKE_CXX_FLAGS="--diag_suppress not_used_in_template_function_params,nodiscard_return_type" \
         ../micm \
-      && make -j 4
+      && ninja -j 8
 
 WORKDIR /build

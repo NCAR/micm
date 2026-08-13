@@ -85,10 +85,17 @@ void TestTerminator(BuilderPolicy& builder, micm::Index number_of_grid_cells)
       state.conditions_[i_cell].air_density_ = 42.0;   // mol m-3
     }
     state.SetCustomRateParameters(custom_rate_constants);
+
+    state.variables_.CopyToDevice();
+    state.conditions_.CopyToDevice();
+    state.custom_rate_parameters_.CopyToDevice();
+
     solver.UpdateStateParameters(state);
 
     micm::Real dt = 30.0;
     auto result = solver.Solve(dt, state);
+
+    state.variables_.CopyToHost();
 
     EXPECT_EQ(result.state_, micm::SolverState::Converged);
 

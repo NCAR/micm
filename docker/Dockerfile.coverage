@@ -7,6 +7,7 @@ RUN dnf -y update \
         git \
         lcov \
         make \
+        ninja-build \
         zlib-devel \
         llvm-devel \
         openmpi-devel \
@@ -23,10 +24,11 @@ ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 RUN mkdir /build \
       && cd /build \
       && cmake \
+        -G Ninja \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_COVERAGE:BOOL=TRUE \
         ../micm \
-      && make install -j 8
+      && ninja install -j 8
 
 WORKDIR /build

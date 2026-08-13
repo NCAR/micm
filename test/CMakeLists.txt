@@ -8,7 +8,7 @@ include(test_util)
 
 ################################################################################
 add_subdirectory(unit)
-add_subdirectory(regression)
 add_subdirectory(integration)
+add_subdirectory(regression)
 add_subdirectory(tutorial)
 add_subdirectory(benchmark)

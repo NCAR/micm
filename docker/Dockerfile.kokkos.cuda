@@ -9,6 +9,7 @@ RUN apt update \
       curl \
       less \
       libcurl4-openssl-dev \
+      ninja-build \
       m4 \
       vim \
       zlib1g-dev \
@@ -26,12 +27,13 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake \
+        -G Ninja \
         -D CMAKE_BUILD_TYPE=release \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_KOKKOS=TRUE \
         -D Kokkos_ENABLE_CUDA=ON \
         -D Kokkos_ARCH_BLACKWELL120=ON \
         ../micm \
-      && make install -j 16
+      && ninja install -j 22
 
 WORKDIR /build

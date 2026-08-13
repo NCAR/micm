@@ -171,6 +171,21 @@ namespace micm
         return data_.data();
     }
 
+    bool operator==(const KokkosPaddedVector<T, L>& other) const
+    {
+        return data_ == other.data_;
+    }
+
+    bool operator==(const std::vector<T>& other) const
+    {
+        return data_ == other;
+    }
+
+    friend bool operator==(const std::vector<T>& lhs, const KokkosPaddedVector<T, L>& rhs)
+    {
+        return rhs.data_ == lhs;
+    }
+    
     /// @brief Copy host data to the device view
     void CopyToDevice() const
     {

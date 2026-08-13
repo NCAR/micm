@@ -8,6 +8,7 @@
 #include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <Kokkos_Core.hpp>
 #include <cmath>
@@ -20,7 +21,7 @@ namespace micm
   /// Inherits from SparseMatrix (the MICM host-side data layout) and maintains
   /// a Kokkos::View as a device-side mirror. The caller must explicitly call
   /// CopyToDevice() / CopyToHost() to synchronize, matching the CUDA matrix pattern.
-  template<class T = double, class OrderingPolicy = SparseMatrixStandardOrdering>
+  template<class T = double, class OrderingPolicy = SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>
   class KokkosSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
    public:

@@ -15,6 +15,7 @@
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -27,6 +28,7 @@
 
 using namespace micm;
 
+using DenseMatrixPolicy = Matrix<Real>;
 namespace
 {
   // Helper to create a minimal gas phase with species
@@ -149,7 +151,7 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
                       .Build());
 
   SortByTypeOrder(procs);
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   // Arrhenius: 2, Troe: 1, Ternary: 0, Branched: 0, Tunneling: 1, Taylor: 0, Reversible: 0, UserDefined: 1, Surface: 1
   EXPECT_EQ(store.arrhenius_.size(), 2u);
@@ -194,7 +196,7 @@ TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
   ASSERT_EQ(store.arrhenius_.size(), 1u);
   EXPECT_REAL_EQ(store.arrhenius_[0].A_, 2.15e-4);
   EXPECT_REAL_EQ(store.arrhenius_[0].B_, 1.2);
@@ -221,7 +223,7 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
   ASSERT_EQ(store.branched_.size(), 1u);
 
   // k0_ = 2e-22 * N_A * 1e-6 * exp(n)
@@ -261,7 +263,7 @@ TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
   ASSERT_EQ(store.user_defined_.size(), 2u);
 
   EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
@@ -294,7 +296,7 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
   ASSERT_EQ(store.surface_.size(), 1u);
 
   EXPECT_REAL_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
@@ -332,7 +334,7 @@ TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
   ASSERT_EQ(store.user_defined_.size(), 1u);
   ASSERT_EQ(store.surface_.size(), 1u);
 
@@ -368,7 +370,7 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   EXPECT_EQ(store.arrhenius_.size(), 1u);
   ASSERT_EQ(store.lambda_entries_.size(), 1u);
@@ -391,7 +393,7 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
 TEST(ReactionRateConstantStore, ParameterizedMultipliers)
 {
   Species a("a"), b("b");
-  b.parameterize_ = [](const Conditions& c) { return c.air_density_ * 2.0; };
+  b.parameterize_ = { .c_rho_ = 2.0, .has_value_ = true };
   Phase gas = MakeGasPhase({ a, b });
 
   ArrheniusRateConstantParameters arr_a{};  // no parameterized reactants
@@ -410,14 +412,14 @@ TEST(ReactionRateConstantStore, ParameterizedMultipliers)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   // Only the second reaction has a parameterized reactant
   ASSERT_EQ(store.parameterized_multipliers_.size(), 1u);
   EXPECT_EQ(store.parameterized_multipliers_[0].rc_index_, 1u);
 
   Conditions cond{ .air_density_ = 5.0 };
-  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate_(cond), 10.0, 1.0e-14);
+  EXPECT_NEAR(store.parameterized_multipliers_[0].Evaluate(cond), 10.0, 1.0e-14);
 }
 
 // ============================================================
@@ -466,7 +468,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
                       .Build());
 
   SortByTypeOrder(procs);
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   // Total = lambdaOffset() + lambda_entries_.size() = number of chemical reactions
   micm::Index n_rxn = procs.size();
@@ -493,7 +495,7 @@ TEST(ReactionRateConstantStore, SurfaceMissingDiffusionCoefficientThrows)
                                   .SetPhase(gas)
                                   .Build() };
 
-  EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
+  EXPECT_THROW({ auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs); }, MicmException);
 }
 
 // ============================================================
@@ -515,5 +517,5 @@ TEST(ReactionRateConstantStore, SurfaceMissingMolecularWeightThrows)
                                   .SetPhase(gas)
                                   .Build() };
 
-  EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
+  EXPECT_THROW({ auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs); }, MicmException);
 }

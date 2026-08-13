@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>
+#include <initializer_list>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -49,10 +50,36 @@ namespace micm
       class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   struct State
   {
+    template<class U>
+    using Vector = typename SparseMatrixPolicy::template VectorType<U>;
+    template<class U>
+    using VectorView = typename Vector<U>::ConstViewType;
+    template<class U>
+    using Scalar = typename SparseMatrixPolicy::template ScalarType<U>;
+
     /// Type of the DenseMatrixPolicy
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
     using LuDecompositionPolicyType = LuDecompositionPolicy;
+
+    struct Views
+    {
+      VectorView<Real> upper_left_identity_diagonal_;
+      VectorView<Index> jacobian_diagonal_elements_;
+      VectorView<Real> absolute_tolerance_;
+
+      Views() = default;
+
+      Views(
+        const Vector<Real>& upper_left_identity_diagonal,
+        const Vector<Index>& jacobian_diagonal_elements,
+        const Vector<Real>& absolute_tolerance
+      ) : upper_left_identity_diagonal_(upper_left_identity_diagonal.GetView()),
+          jacobian_diagonal_elements_(jacobian_diagonal_elements.GetView()),
+          absolute_tolerance_(absolute_tolerance.GetView())
+      {
+      }
+    };
 
     /// @brief The number of grid cells stored in the state
     Index number_of_grid_cells_{ 1 };
@@ -65,10 +92,10 @@ namespace micm
     /// @brief Atmospheric conditions, varies in time
     typename DenseMatrixPolicy::template VectorType<Conditions> conditions_;
     /// @brief The block matrix with an upper left identity, zeros elsewhere
-    std::vector<Real> upper_left_identity_diagonal_;
+    Vector<Real> upper_left_identity_diagonal_;
     /// @brief The jacobian structure, varies for each solve
     SparseMatrixPolicy jacobian_;
-    std::vector<Index> jacobian_diagonal_elements_;
+    Vector<Index> jacobian_diagonal_elements_;
     /// @brief Immutable data required for the state
     std::unordered_map<std::string, Index> variable_map_;
     std::unordered_map<std::string, Index> custom_rate_parameter_map_;
@@ -78,8 +105,10 @@ namespace micm
     Index state_size_;
     Index constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
-    Real relative_tolerance_;
-    std::vector<Real> absolute_tolerance_;
+    Scalar<Real> relative_tolerance_;
+    Vector<Real> absolute_tolerance_;
+
+    Views views_;
 
     class VariableProxy
     {
@@ -176,6 +205,7 @@ namespace micm
       temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
       relative_tolerance_ = other.relative_tolerance_;
       absolute_tolerance_ = other.absolute_tolerance_;
+      views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
     }
 
     /// @brief Assignment operator
@@ -203,6 +233,7 @@ namespace micm
         temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = other.absolute_tolerance_;
+        views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
       }
       return *this;
     }
@@ -227,7 +258,8 @@ namespace micm
           number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
-          absolute_tolerance_(std::move(other.absolute_tolerance_))
+          absolute_tolerance_(std::move(other.absolute_tolerance_)),
+          views_(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_)
     {
     }
 
@@ -256,6 +288,7 @@ namespace micm
         temporary_variables_ = std::move(other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = std::move(other.absolute_tolerance_);
+        views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
 
         other.state_size_ = 0;
         other.constraint_size_ = 0;
@@ -363,11 +396,16 @@ namespace micm
 
     /// @brief Set the relative tolerances
     /// @param relativeTolerance relative tolerance
-    void SetRelativeTolerance(Real relativeTolerance);
+    void SetRelativeTolerance(Real relative_tolerance);
 
     /// @brief Set the absolute tolerances per species
     /// @param absoluteTolerance absolute tolerance
-    virtual void SetAbsoluteTolerances(const std::vector<Real>& absoluteTolerance);
+    virtual void SetAbsoluteTolerances(const std::vector<Real>& absolute_tolerances);
+    virtual void SetAbsoluteTolerances(const Vector<Real>& absolute_tolerances);
+    void SetAbsoluteTolerances(std::initializer_list<Real> absolute_tolerances)
+    {
+      SetAbsoluteTolerances(std::vector<Real>(absolute_tolerances));
+    }
 
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();

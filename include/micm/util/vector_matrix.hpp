@@ -43,6 +43,8 @@ namespace micm
     class ConstGroupView;
     using ViewType = GroupView;
     using ConstViewType = ConstGroupView;
+    using HostGroupView = GroupView;
+    using ConstHostGroupView = ConstGroupView;
     template<class VecT>
     using VectorType = PaddedVector<VecT, L>;
     template<class ScaT>
@@ -1198,7 +1200,17 @@ namespace micm
     /// @throws std::system_error if column counts don't match at creation, or if at invocation time:
     ///         matrices/vectors have mismatched row counts, column counts don't match creation,
     ///         or dimensions mismatch
-    template<typename Func, typename... Args>
+    ///
+    /// @tparam UseView When true (default), vector args are converted to their View/ConstView
+    ///                 via `arg.GetView()` before being handed to the lambda so lambdas whose
+    ///                 parameter is declared `Vector::ViewType`/`Vector::ConstViewType` see a
+    ///                 lightweight view (mirrors the Kokkos MakeHandle path).  When false,
+    ///                 vector args are passed through unchanged; use this for HostFunction
+    ///                 where the arg may be a KokkosPaddedVector whose GetView() returns a
+    ///                 device view unusable on host.  Both host PaddedVector and
+    ///                 KokkosPaddedVector satisfy PaddedVectorLike (operator[], size,
+    ///                 PaddedSize), so GroupView::GetRowElement handles both.
+    template<bool UseView = true, typename Func, typename... Args>
     static auto Function(Func&& func, Args&... args)
     {
       // Capture column counts for matrices at creation time using helper
@@ -1300,7 +1312,10 @@ namespace micm
         for (Index group = 0; group < num_complete_groups; ++group)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
-          // For vectors, just pass them through
+          // For vectors, either take a View/ConstView (UseView=true, matches lambda param
+          // typed as Vector::ViewType/ConstViewType) or pass through raw (UseView=false,
+          // required for HostFunction which may receive KokkosPaddedVector arguments whose
+          // GetView() returns a device view).
           func(
               [&](auto&& arg) -> decltype(auto)
               {
@@ -1308,19 +1323,25 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: get a lightweight view (View or ConstView)
-                  return std::forward<decltype(arg)>(arg).GetView();
+                  if constexpr (UseView)
+                  {
+                    return std::forward<decltype(arg)>(arg).GetView();
+                  }
+                  else
+                  {
+                    return (std::forward<decltype(arg)>(arg));
+                  }
                 }
                 else
                 {
                   // Matrix: create appropriate GroupView
                   if constexpr (std::is_const_v<ArgType>)
                   {
-                    return typename ArgTypeNoConst::ConstGroupView(arg, group, L);
+                    return typename ArgTypeNoConst::ConstHostGroupView(arg, group, L);
                   }
                   else
                   {
-                    return typename ArgTypeNoConst::GroupView(arg, group, L);
+                    return typename ArgTypeNoConst::HostGroupView(arg, group, L);
                   }
                 }
               }(invoked_args)...);
@@ -1331,7 +1352,8 @@ namespace micm
         if (remaining > 0)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
-          // For vectors, just pass them through
+          // For vectors, see the matching complete-group case for UseView vs pass-through
+          // rationale.
           func(
               [&](auto&& arg) -> decltype(auto)
               {
@@ -1339,19 +1361,25 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: get a lightweight view (View or ConstView)
-                  return std::forward<decltype(arg)>(arg).GetView();
+                  if constexpr (UseView)
+                  {
+                    return std::forward<decltype(arg)>(arg).GetView();
+                  }
+                  else
+                  {
+                    return (std::forward<decltype(arg)>(arg));
+                  }
                 }
                 else
                 {
                   // Matrix: create appropriate GroupView
                   if constexpr (std::is_const_v<ArgType>)
                   {
-                    return typename ArgTypeNoConst::ConstGroupView(arg, num_complete_groups, remaining);
+                    return typename ArgTypeNoConst::ConstHostGroupView(arg, num_complete_groups, remaining);
                   }
                   else
                   {
-                    return typename ArgTypeNoConst::GroupView(arg, num_complete_groups, remaining);
+                    return typename ArgTypeNoConst::HostGroupView(arg, num_complete_groups, remaining);
                   }
                 }
               }(invoked_args)...);
@@ -1363,7 +1391,11 @@ namespace micm
     template<typename Func, typename... Args>
     static auto HostFunction(Func&& func, Args&... args)
     {
-      return Function(std::forward<Func>(func), args...);
+      // UseView=false: pass vector args through unchanged.  A KokkosPaddedVector's
+      // GetView() returns a device view unusable on host; passing the padded vector
+      // itself lets GroupView::GetRowElement dispatch to the PaddedVectorLike overload
+      // which just indexes via operator[].
+      return Function<false>(std::forward<Func>(func), args...);
     }
 
    private:

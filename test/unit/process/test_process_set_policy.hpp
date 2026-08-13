@@ -32,7 +32,7 @@ void TestProcessSet()
   auto quuz = Species("quuz");
   auto qux = Species("qux");
   auto corge = Species("corge");
-  qux.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.72; };
+  qux.parameterize_ = { .c_rho_ = 0.72, .has_value_ = true };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz, quz, quuz, corge } };
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(

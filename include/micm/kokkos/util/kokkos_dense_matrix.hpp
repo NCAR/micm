@@ -18,35 +18,6 @@ namespace micm
 {
   namespace detail
   {
-    /// @brief Maps a micm reducer type (Sum/Max/LOr/LAnd) to the matching Kokkos
-    ///        reducer type used to actually drive Kokkos::parallel_reduce.
-    template<typename Reducer>
-    struct ToKokkosReducer;
-
-    template<typename T>
-    struct ToKokkosReducer<micm::Sum<T>>
-    {
-      using type = Kokkos::Sum<T>;
-    };
-
-    template<typename T>
-    struct ToKokkosReducer<micm::Max<T>>
-    {
-      using type = Kokkos::Max<T>;
-    };
-
-    template<>
-    struct ToKokkosReducer<micm::LOr>
-    {
-      using type = Kokkos::LOr<bool>;
-    };
-
-    template<>
-    struct ToKokkosReducer<micm::LAnd>
-    {
-      using type = Kokkos::LAnd<bool>;
-    };
-
     // ----------------------------------------------------------------
     // Device-compatible tuple for KOKKOS_LAMBDA-safe variadic dispatch
     // ----------------------------------------------------------------
@@ -138,6 +109,8 @@ namespace micm
     class ConstGroupView;
     using ViewType = GroupView;
     using ConstViewType = ConstGroupView;
+    using HostGroupView = typename VectorMatrix<T, L>::GroupView;
+    using ConstHostGroupView = typename VectorMatrix<T, L>::ConstGroupView;
     using KokkosViewType = Kokkos::View<T*>;
     using HostViewType = typename KokkosViewType::host_mirror_type;
     using TeamPolicyType = Kokkos::TeamPolicy<>;
@@ -352,6 +325,60 @@ namespace micm
       }
     };
 
+    /// @brief Kokkos functor for dispatching 2-arg flat ForEach() over the main range.
+    template<typename Func>
+    struct ForEachFunctor2
+    {
+      Func func_;
+      KokkosViewType y_view_;
+      KokkosViewType a_view_;
+      KOKKOS_INLINE_FUNCTION void operator()(const Index i) const { func_(y_view_(i), a_view_(i)); }
+    };
+
+    /// @brief Kokkos functor for dispatching 2-arg flat ForEach() over the tail range.
+    template<typename Func>
+    struct ForEachTailFunctor2
+    {
+      Func func_;
+      KokkosViewType y_view_;
+      KokkosViewType a_view_;
+      Index n_;
+      Index l_;
+      KOKKOS_INLINE_FUNCTION void operator()(const Index idx) const
+      {
+        const Index flat = n_ + (idx / l_) * L + (idx % l_);
+        func_(y_view_(flat), a_view_(flat));
+      }
+    };
+
+    /// @brief Kokkos functor for dispatching 3-arg flat ForEach() over the main range.
+    template<typename Func>
+    struct ForEachFunctor3
+    {
+      Func func_;
+      KokkosViewType y_view_;
+      KokkosViewType a_view_;
+      KokkosViewType b_view_;
+      KOKKOS_INLINE_FUNCTION void operator()(const Index i) const { func_(y_view_(i), a_view_(i), b_view_(i)); }
+    };
+
+    /// @brief Kokkos functor for dispatching 3-arg flat ForEach() over the tail range.
+    template<typename Func>
+    struct ForEachTailFunctor3
+    {
+      Func func_;
+      KokkosViewType y_view_;
+      KokkosViewType a_view_;
+      KokkosViewType b_view_;
+      Index n_;
+      Index l_;
+      KOKKOS_INLINE_FUNCTION void operator()(const Index idx) const
+      {
+        const Index flat = n_ + (idx / l_) * L + (idx % l_);
+        func_(y_view_(flat), a_view_(flat), b_view_(flat));
+      }
+    };
+
    public:
     KokkosDenseMatrix()
         : VectorMatrix<T, L>()
@@ -512,18 +539,14 @@ namespace micm
       Kokkos::parallel_for(
           "KokkosDenseMatrix::ForEach",
           Kokkos::RangePolicy<>(0, n),
-          KOKKOS_LAMBDA(const Index i) { f(y_view(i), a_view(i)); });
+          ForEachFunctor2<std::decay_t<Func>>{ f, y_view, a_view });
       const Index l = this->NumRows() % L;
       if (l > 0)
       {
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEach(tail)",
             Kokkos::RangePolicy<>(0, y_dim * l),
-            KOKKOS_LAMBDA(const Index idx)
-            {
-              const Index flat = n + (idx / l) * L + (idx % l);
-              f(y_view(flat), a_view(flat));
-            });
+            ForEachTailFunctor2<std::decay_t<Func>>{ f, y_view, a_view, n, l });
       }
     }
 
@@ -541,18 +564,14 @@ namespace micm
       Kokkos::parallel_for(
           "KokkosDenseMatrix::ForEach",
           Kokkos::RangePolicy<>(0, n),
-          KOKKOS_LAMBDA(const Index i) { f(y_view(i), a_view(i), b_view(i)); });
+          ForEachFunctor3<std::decay_t<Func>>{ f, y_view, a_view, b_view });
       const Index l = this->NumRows() % L;
       if (l > 0)
       {
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEach(tail)",
             Kokkos::RangePolicy<>(0, y_dim * l),
-            KOKKOS_LAMBDA(const Index idx)
-            {
-              const Index flat = n + (idx / l) * L + (idx % l);
-              f(y_view(flat), a_view(flat), b_view(flat));
-            });
+            ForEachTailFunctor3<std::decay_t<Func>>{ f, y_view, a_view, b_view, n, l });
       }
     }
 
@@ -919,14 +938,11 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
-        using AccT = typename KokkosReducer::value_type;
-        AccT local = Reducer::identity();
-        Kokkos::parallel_reduce(
-            Kokkos::TeamThreadRange(team_, L),
-            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
-            KokkosReducer(local));
-        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+        using AccT = decltype(Reducer::identity());
+        reducer.team_reduce(team_, L,
+            [&](const Index row_in_group, AccT& acc) {
+                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
+            });
         team_.team_barrier();
       }
 
@@ -934,14 +950,11 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using KokkosReducer = typename detail::ToKokkosReducer<Reducer>::type;
-        using AccT = typename KokkosReducer::value_type;
-        AccT local = Reducer::identity();
-        Kokkos::parallel_reduce(
-            Kokkos::TeamThreadRange(team_, num_rows_in_group_),
-            [&](const Index row_in_group, AccT& acc) { func(GetRowElement(row_in_group, args)..., acc); },
-            KokkosReducer(local));
-        Kokkos::single(Kokkos::PerTeam(team_), [&]() { Reducer::join(reducer.reference(), local); });
+        using AccT = decltype(Reducer::identity());
+        reducer.team_reduce(team_, num_rows_in_group_,
+            [&](const Index row_in_group, AccT& acc) {
+                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
+            });
         team_.team_barrier();
       }
     };
@@ -978,7 +991,7 @@ namespace micm
       auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable
       {
         Index num_rows = 0;
-        bool found_first = false;
+        Bool found_first = false;
         Index idx = 0;
 
         (

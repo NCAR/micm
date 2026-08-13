@@ -17,7 +17,7 @@ namespace micm
     using value_type = T;
     Kokkos::View<T*> view_;
 
-    constexpr explicit KokkosSum(const KokkosScalarView<T>& scalar)
+    KOKKOS_INLINE_FUNCTION constexpr explicit KokkosSum(const KokkosScalarView<T>& scalar)
         : view_(scalar.GetDeviceView())
     {
     }
@@ -32,6 +32,11 @@ namespace micm
         Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::Sum<T>(local));
         Kokkos::single(Kokkos::PerTeam(team), [&]() { Kokkos::atomic_add(view_.data(), local); });
     }
+
+    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    {
+        dst += src;
+    }
   };
 
   /// @brief Max reduction (`acc = std::max(acc, x)`).
@@ -43,7 +48,7 @@ namespace micm
     using value_type = T;
     Kokkos::View<T*> view_;
 
-    constexpr explicit KokkosMax(const KokkosScalarView<T>& scalar)
+    KOKKOS_INLINE_FUNCTION constexpr explicit KokkosMax(const KokkosScalarView<T>& scalar)
         : view_(scalar.GetDeviceView())
     {
     }
@@ -57,6 +62,14 @@ namespace micm
         Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::Max<T>(local));
         Kokkos::single(Kokkos::PerTeam(team), [&]() { Kokkos::atomic_fetch_max(view_.data(), local); });
     }
+    
+    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    {
+        if (src > dst)
+        {
+            dst = src;
+        }
+    }
   };
 
   /// @brief Logical And redicer (`acc = acc || x`).
@@ -64,11 +77,11 @@ namespace micm
   {
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
-    using T = bool;
+    using T = Bool;
     using value_type = T;
     Kokkos::View<T*> view_;
 
-    constexpr explicit KokkosLOr(const KokkosScalarView<T>& scalar)
+    KOKKOS_INLINE_FUNCTION constexpr explicit KokkosLOr(const KokkosScalarView<T>& scalar)
         : view_(scalar.GetDeviceView())
     {
     }
@@ -79,11 +92,16 @@ namespace micm
 
     template<typename RowFunc>
     KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const {
-        bool local = identity();
-        Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LOr<bool>(local));
+        Bool local = identity();
+        Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LOr<Bool>(local));
         Kokkos::single(Kokkos::PerTeam(team), [&]() {
             if (local) Kokkos::atomic_store(view_.data(), true);
         });
+    }
+
+    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    {
+        dst = dst || src;
     }
   };
 
@@ -92,11 +110,11 @@ namespace micm
   {
     using TeamPolicyType = Kokkos::TeamPolicy<>;
     using TeamMember = typename TeamPolicyType::member_type;
-    using T = bool;
+    using T = Bool;
     using value_type = T;
     Kokkos::View<T*> view_;
 
-    constexpr explicit KokkosLAnd(const KokkosScalarView<T>& scalar)
+    KOKKOS_INLINE_FUNCTION constexpr explicit KokkosLAnd(const KokkosScalarView<T>& scalar)
         : view_(scalar.GetDeviceView())
     {
     }
@@ -107,11 +125,16 @@ namespace micm
 
     template<typename RowFunc>
     KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const {
-        bool local = identity();
-        Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LAnd<bool>(local));
+        Bool local = identity();
+        Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LAnd<Bool>(local));
         Kokkos::single(Kokkos::PerTeam(team), [&]() {
             if (!local) Kokkos::atomic_store(view_.data(), false);
         });
+    }
+
+    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    {
+        dst = dst && src;
     }
   };
 }

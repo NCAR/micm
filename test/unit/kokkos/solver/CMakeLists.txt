@@ -21,3 +21,11 @@ add_test(NAME kokkos_linear_solver_in_place COMMAND test_kokkos_linear_solver_in
 add_executable(test_kokkos_linear_solver test_kokkos_linear_solver.cpp)
 target_link_libraries(test_kokkos_linear_solver PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
 add_test(NAME kokkos_linear_solver COMMAND test_kokkos_linear_solver WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(test_kokkos_backward_euler test_kokkos_backward_euler.cpp)
+target_link_libraries(test_kokkos_backward_euler PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
+add_test(NAME kokkos_backward_euler COMMAND test_kokkos_backward_euler WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(test_kokkos_rosenbrock test_kokkos_rosenbrock.cpp)
+target_link_libraries(test_kokkos_rosenbrock PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
+add_test(NAME kokkos_rosenbrock COMMAND test_kokkos_rosenbrock WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

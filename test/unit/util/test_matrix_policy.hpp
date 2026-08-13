@@ -1996,7 +1996,7 @@ template<template<class> class MatrixPolicy>
 void TestReduceLOr()
 {
   using Matrix = MatrixPolicy<micm::Real>;
-  using Scalar = typename Matrix::template ScalarType<bool>;
+  using Scalar = typename Matrix::template ScalarType<micm::Bool>;
   using LOr = typename Matrix::LOrType;
 
   // Case 1: no element exceeds the threshold -> LOr result stays false.
@@ -2012,11 +2012,11 @@ void TestReduceLOr()
         {
           view.Reduce(
               any_large_lor,
-              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(0));
           view.Reduce(
               any_large_lor,
-              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(1));
         },
         matrix);
@@ -2041,11 +2041,11 @@ void TestReduceLOr()
         {
           view.Reduce(
               any_large_lor,
-              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(0));
           view.Reduce(
               any_large_lor,
-              [](const micm::Real& a, bool& acc) { acc = acc || (a > 10.0); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc || (a > 10.0); },
               view.GetConstColumnView(1));
         },
         matrix);
@@ -2064,7 +2064,7 @@ template<template<class> class MatrixPolicy>
 void TestReduceLAnd()
 {
   using Matrix = MatrixPolicy<micm::Real>;
-  using Scalar = typename Matrix::template ScalarType<bool>;
+  using Scalar = typename Matrix::template ScalarType<micm::Bool>;
   using LAnd = typename Matrix::LAndType;
 
   // Case 1: all elements finite -> LAnd result stays true.
@@ -2080,11 +2080,11 @@ void TestReduceLAnd()
         {
           view.Reduce(
               all_finite_land,
-              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(0));
           view.Reduce(
               all_finite_land,
-              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(1));
         },
         matrix);
@@ -2109,11 +2109,11 @@ void TestReduceLAnd()
         {
           view.Reduce(
               all_finite_land,
-              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(0));
           view.Reduce(
               all_finite_land,
-              [](const micm::Real& a, bool& acc) { acc = acc && std::isfinite(a); },
+              [](const micm::Real& a, micm::Bool& acc) { acc = acc && std::isfinite(a); },
               view.GetConstColumnView(1));
         },
         matrix);

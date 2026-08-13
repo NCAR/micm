@@ -142,6 +142,21 @@ namespace micm
         return data_.data();
     }
 
+    bool operator==(const PaddedVector<T, L>& other) const
+    {
+        return data_ == other.data_;
+    }
+
+    bool operator==(const std::vector<T>& other) const
+    {
+        return data_ == other;
+    }
+
+    friend bool operator==(const std::vector<T>& lhs, const PaddedVector<T, L>& rhs)
+    {
+        return rhs.data_ == lhs;
+    }
+    
     View GetView() { return { data_.data(), size_, (Index)data_.size() }; }
     ConstView GetView() const { return { data_.data(), size_, (Index)data_.size() }; }
 

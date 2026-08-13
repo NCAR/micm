@@ -12,9 +12,8 @@ namespace micm
   template<class T>
   class KokkosScalarView
   {
-    mutable T data_; // host data
-    mutable Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> host_view_;
-    mutable Kokkos::View<T*> device_view_{ "scalar", 1 }; // device data
+    mutable Kokkos::View<T*, Kokkos::HostSpace> data_{ "scalar_host", 1 };
+    mutable Kokkos::View<T*> device_view_{ "scalar", 1 };
 
    public:
     using value_type = T;
@@ -40,7 +39,9 @@ namespace micm
 
         KOKKOS_INLINE_FUNCTION operator T() const { return view_(0); }
 
-        KOKKOS_INLINE_FUNCTION T& operator=(T other) { view_(0) = other; return view_(0);}
+        KOKKOS_INLINE_FUNCTION T& operator=(const T& other) { view_(0) = other; return view_(0);}
+
+        KOKKOS_INLINE_FUNCTION DeviceView& operator=(const DeviceView& other) { view_(0) = other.view_(0); return *this; }
 
         KOKKOS_INLINE_FUNCTION T* data() { return view_.data(); }
 
@@ -52,35 +53,43 @@ namespace micm
     };
 
     KokkosScalarView(T init = T{})
-        : data_(init),
-          host_view_(&data_, 1)
     {
+        data_(0) = init;
     }
 
     KOKKOS_INLINE_FUNCTION T* data()
     {
-        return &data_;
+        KOKKOS_IF_ON_DEVICE(( return device_view_.data(); ))
+        KOKKOS_IF_ON_HOST((   return data_.data(); ))
     }
 
     KOKKOS_INLINE_FUNCTION const T* data() const
     {
-        return &data_;
+        KOKKOS_IF_ON_DEVICE(( return device_view_.data(); ))
+        KOKKOS_IF_ON_HOST((   return data_.data(); ))
     }
 
-    KOKKOS_INLINE_FUNCTION operator T() const { return data_; }
+    KOKKOS_INLINE_FUNCTION operator T() const {
+        KOKKOS_IF_ON_DEVICE(( return device_view_(0); ))
+        KOKKOS_IF_ON_HOST(( return data_(0); ))
+    }
+
+    T& operator=(const T& other) { data_(0) = other; return data_(0); }
+
+    KokkosScalarView<T>& operator=(const KokkosScalarView<T>& other) { data_(0) = other.data_(0); return *this; }
 
     constexpr KOKKOS_INLINE_FUNCTION Kokkos::View<T*> GetDeviceView() const { return device_view_; }
 
     void CopyToHost() const
     {
-        Kokkos::deep_copy(host_view_, device_view_);
+        Kokkos::deep_copy(data_, device_view_);
     }
 
     void CopyToDevice() const
     {
-        Kokkos::deep_copy(device_view_, host_view_);
+        Kokkos::deep_copy(device_view_, data_);
     }
 
-    T& host_value() const { return data_; }
+    T& host_value() const { return data_(0); }
   };
 }

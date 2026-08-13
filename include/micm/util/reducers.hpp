@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <algorithm>
 #include <limits>
 
@@ -30,28 +32,28 @@ namespace micm
     using value_type = T;
     T& value_;
 
-    constexpr explicit Sum(T& value)
+    MICM_DEVICE_FUNCTION constexpr explicit Sum(T& value)
         : value_(value)
     {
     }
 
     template<typename Scalar>
-    explicit Sum(const Scalar& scalar)
+    MICM_DEVICE_FUNCTION explicit Sum(const Scalar& scalar)
         : value_(scalar.host_value())
     {
     }
 
-    constexpr T& reference() const
+    MICM_DEVICE_FUNCTION constexpr T& reference() const
     {
       return value_;
     }
 
-    static constexpr T identity()
+    MICM_DEVICE_FUNCTION static constexpr T identity()
     {
       return T{};
     }
 
-    static constexpr void join(T& dst, const T& src)
+    MICM_DEVICE_FUNCTION static constexpr void join(T& dst, const T& src)
     {
       dst += src;
     }
@@ -70,28 +72,28 @@ namespace micm
     using value_type = T;
     T& value_;
 
-    constexpr explicit Max(T& value)
+    MICM_DEVICE_FUNCTION constexpr explicit Max(T& value)
         : value_(value)
     {
     }
 
     template<typename Scalar>
-    explicit Max(const Scalar& scalar)
+    MICM_DEVICE_FUNCTION explicit Max(const Scalar& scalar)
         : value_(scalar.host_value())
     {
     }
 
-    constexpr T& reference() const
+    MICM_DEVICE_FUNCTION constexpr T& reference() const
     {
       return value_;
     }
 
-    static constexpr T identity()
+    MICM_DEVICE_FUNCTION static constexpr T identity()
     {
       return std::numeric_limits<T>::lowest();
     }
 
-    static constexpr void join(T& dst, const T& src)
+    MICM_DEVICE_FUNCTION static constexpr void join(T& dst, const T& src)
     {
       if (src > dst)
       {
@@ -109,31 +111,31 @@ namespace micm
   /// @brief Logical-OR reduction (`acc = acc || x`).
   struct LOr
   {
-    using value_type = bool;
-    bool& value_;
+    using value_type = Bool;
+    Bool& value_;
 
-    constexpr explicit LOr(bool& value)
+    MICM_DEVICE_FUNCTION constexpr explicit LOr(Bool& value)
         : value_(value)
     {
     }
 
     template<typename Scalar>
-    explicit LOr(const Scalar& scalar)
+    MICM_DEVICE_FUNCTION explicit LOr(const Scalar& scalar)
         : value_(scalar.host_value())
     {
     }
 
-    constexpr bool& reference() const
+    MICM_DEVICE_FUNCTION constexpr Bool& reference() const
     {
       return value_;
     }
 
-    static constexpr bool identity()
+    MICM_DEVICE_FUNCTION static constexpr Bool identity()
     {
       return false;
     }
 
-    static constexpr void join(bool& dst, bool src)
+    MICM_DEVICE_FUNCTION static constexpr void join(Bool& dst, Bool src)
     {
       dst = dst || src;
     }
@@ -142,31 +144,31 @@ namespace micm
   /// @brief Logical-AND reduction (`acc = acc && x`).
   struct LAnd
   {
-    using value_type = bool;
-    bool& value_;
+    using value_type = Bool;
+    Bool& value_;
 
-    constexpr explicit LAnd(bool& value)
+    MICM_DEVICE_FUNCTION constexpr explicit LAnd(Bool& value)
         : value_(value)
     {
     }
 
     template<typename Scalar>
-    explicit LAnd(const Scalar& scalar)
+    MICM_DEVICE_FUNCTION explicit LAnd(const Scalar& scalar)
         : value_(scalar.host_value())
     {
     }
 
-    constexpr bool& reference() const
+    MICM_DEVICE_FUNCTION constexpr Bool& reference() const
     {
       return value_;
     }
 
-    static constexpr bool identity()
+    MICM_DEVICE_FUNCTION static constexpr Bool identity()
     {
       return true;
     }
 
-    static constexpr void join(bool& dst, bool src)
+    MICM_DEVICE_FUNCTION static constexpr void join(Bool& dst, Bool src)
     {
       dst = dst && src;
     }

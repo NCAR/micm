@@ -1,12 +1,13 @@
-#include "test_rosenbrock_solver_policy.hpp"
+#include "../../solver/test_rosenbrock_solver_policy.hpp"
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
+#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -48,6 +49,10 @@ void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_
   micm::Real error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
+  y_old.CopyToDevice();
+  y_new.CopyToDevice();
+  errors.CopyToDevice();
+  state.absolute_tolerance_.CopyToDevice();
   micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto relative_error =
@@ -122,27 +127,17 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
   expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
   expected_error = std::max<micm::Real>(expected_error, 1.0e-10);
 
+  y_old.CopyToDevice();
+  y_new.CopyToDevice();
+  errors.CopyToDevice();
+  state.absolute_tolerance_.CopyToDevice();
+
   const micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
   EXPECT_NEAR(computed_error, expected_error, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-4);
 }
 
-using StandardBuilder = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::Matrix<micm::Real>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>;
 template<micm::Index L>
-using VectorBuilder = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
-
-TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
-{
-  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  TestAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
-}
+using VectorBuilder = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters, L>;
 
 TEST(RosenbrockSolver, VectorAlphaMinusJacobian)
 {
@@ -184,14 +179,6 @@ TEST(RosenbrockSolver, CanSetTolerances)
   }
 }
 
-TEST(RosenbrockSolver, StandardNormalizedError)
-{
-  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  TestNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
-}
-
 TEST(RosenbrockSolver, VectorNormalizedError)
 {
   // Exact fits
@@ -206,22 +193,6 @@ TEST(RosenbrockSolver, VectorNormalizedError)
   TestNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
   TestNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
   TestNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-}
-
-TEST(RosenbrockSolver, StandardNormalizedErrorWithConstraints)
-{
-  TestNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 2);
-  TestNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  TestNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 2);
-  TestNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 2);
-  TestNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 2);
-  TestNormalizedErrorIncludesAllVariables(
-      StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
@@ -241,26 +212,11 @@ TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
       VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
 }
 
-TEST(RosenbrockSolver, RejectedStepAlphaMatchesInPlaceSolver)
+int main(int argc, char* argv[])
 {
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  options.h_start_ = 1.0e3;
-  auto run = [&](auto builder)
-  {
-    auto solver = GetSolver(std::move(builder)).Build();
-    auto state = solver.GetState(1);
-    state.variables_[0] = { 1.0e12, 1.0e12, 1.0e12, 1.0e12, 1.0e12 };
-    state.conditions_[0].temperature_ = 298.15;
-    solver.UpdateStateParameters(state);
-    auto result = solver.Solve(options.h_start_, state);
-    EXPECT_EQ(result.state_, micm::SolverState::Converged);
-    EXPECT_GE(result.stats_.number_of_steps_ - result.stats_.accepted_, 2);
-    return result.stats_;
-  };
-
-  const auto standard = run(StandardBuilder(options));
-  const auto in_place = run(micm::CpuSolverBuilderInPlace<micm::RosenbrockSolverParameters>(options));
-  EXPECT_EQ(standard.number_of_steps_, in_place.number_of_steps_);
-  EXPECT_EQ(standard.accepted_, in_place.accepted_);
-  EXPECT_EQ(standard.rejected_, in_place.rejected_);
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

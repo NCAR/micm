@@ -1,14 +1,14 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../precision_matchers.hpp"
+#include "../../precision_matchers.hpp"
 
-#include <micm/CPU.hpp>
+#include <micm/Kokkos.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
-#include <micm/util/vector_matrix.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
@@ -18,8 +18,8 @@
 #include <type_traits>
 
 using namespace micm;
-using DenseMatrix = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {
@@ -87,7 +87,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(gas_phase))
                     .SetReactions(processes)
                     .SetConstraints(std::move(constraints))
@@ -114,7 +114,12 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
   state.conditions_[0].pressure_ = 101300.0;
   state.conditions_[0].air_density_ = 42.0;
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
+
+  state.custom_rate_parameters_.CopyToHost();
 
   constexpr micm::Index N = 12;
   micm::Real time_step = 1.0;
@@ -129,9 +134,20 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
       advanced += result.stats_.final_time_;
     }
 
+    state.variables_.CopyToHost();
+
     // 1. Mass conservation enforced by DAE constraint
     EXPECT_REAL_CLOSE(state[A] + state[B] + state[C], sum_initial_conc, 1e-10);
 
     time_step *= 10.0;
   }
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

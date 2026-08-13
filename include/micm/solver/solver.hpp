@@ -25,13 +25,14 @@ namespace micm
    private:
     using SolverParametersType = typename SolverPolicy::ParametersType;
     using DenseMatrixType = typename StatePolicy::DenseMatrixPolicyType;
+    using RateConstantStore = ReactionRateConstantStore<DenseMatrixType>;
 
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
     std::vector<std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
-    ReactionRateConstantStore store_;
+    RateConstantStore store_;
     std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
 
    public:
@@ -66,7 +67,7 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
-          store_(ReactionRateConstantStore::BuildFrom(processes_))
+          store_(RateConstantStore::BuildFrom(processes_))
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
       {
@@ -90,7 +91,7 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
-          store_(ReactionRateConstantStore::BuildFrom(processes_)),
+          store_(RateConstantStore::BuildFrom(processes_)),
           initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
@@ -200,7 +201,7 @@ namespace micm
       return processes_;
     }
 
-    const ReactionRateConstantStore& GetRateConstantStore() const
+    const RateConstantStore& GetRateConstantStore() const
     {
       return store_;
     }
@@ -238,7 +239,7 @@ namespace micm
       }
       else
       {
-        ReactionRateConstantStore::CalculateRateConstants(store_, state);
+        RateConstantStore::CalculateRateConstants(store_, state);
       }
     }
 
@@ -273,6 +274,7 @@ namespace micm
     {
       if (state.constraint_size_ > 0)
       {
+        // TODO - fix for Kokkos-backed solves
         for (Index i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
         {
           for (Index i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)

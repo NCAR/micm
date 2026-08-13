@@ -3,15 +3,29 @@
 
 #pragma once
 
-#include <micm/kokkos/process/kokkos_process_set.hpp>
+#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
+#include <micm/solver/state.hpp>
+#include <micm/CPU.hpp>
 
 namespace micm
 {
-  using KokkosDenseMatrixVector = KokkosDenseMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
-  using KokkosSparseMatrixVector = KokkosSparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+  using KokkosDenseReal = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
+  using KokkosSparseReal = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  using KokkosProcessSetVector = KokkosProcessSet<KokkosDenseMatrixVector, KokkosSparseMatrixVector>;
+  using KokkosState = State<KokkosDenseReal, KokkosSparseReal, LuDecompositionMozartInPlace<KokkosSparseReal>>;
+
+  using KokkosRosenbrockType = typename RosenbrockSolverParameters::template SolverType<
+    ProcessSet<KokkosDenseReal, KokkosSparseReal>,
+    LinearSolverInPlace<KokkosDenseReal, KokkosSparseReal, LuDecompositionMozartInPlace<KokkosSparseReal>>,
+    ConstraintSet<KokkosDenseReal, KokkosSparseReal>>;
+  using KokkosRosenbrock = Solver<KokkosRosenbrockType, KokkosState>;
+
+  using KokkosBackwardEulerType = typename BackwardEulerSolverParameters::template SolverType<
+    ProcessSet<KokkosDenseReal, KokkosSparseReal>,
+    LinearSolverInPlace<KokkosDenseReal, KokkosSparseReal, LuDecompositionMozartInPlace<KokkosSparseReal>>,
+    ConstraintSet<KokkosDenseReal, KokkosSparseReal>>;
+  using KokkosBackwardEuler = Solver<KokkosBackwardEulerType, KokkosState>;
 
 }  // namespace micm

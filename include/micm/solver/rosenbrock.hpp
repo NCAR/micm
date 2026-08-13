@@ -49,6 +49,10 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   class AbstractRosenbrockSolver
   {
+    using SparseMatrix = typename LinearSolverPolicy::SparseMatrixType;
+    using DenseMatrix = typename LinearSolverPolicy::DenseMatrixType;
+    using LuDecomposition = typename LinearSolverPolicy::LuDecompositionType;
+    using StatePolicy = State<DenseMatrix, SparseMatrix, LuDecomposition>;
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
@@ -82,28 +86,28 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(Real time_step, auto& state, const RosenbrockSolverParameters& parameters) const noexcept;
+    SolverResult Solve(Real time_step, StatePolicy& state, const RosenbrockSolverParameters& parameters) const noexcept;
 
     /// @brief Newton-iterate algebraic variables to satisfy G(y) = 0 before time integration
     /// @param state The solver state
     /// @param parameters Solver parameters (provides max iterations and tolerance)
     /// @param stats Solver stats to update with iteration counts
     /// @return SolverState::Converged on success, or an error state on failure
-    SolverState InitializeConstraints(auto& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
+    SolverState InitializeConstraints(StatePolicy& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
         const noexcept;
 
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const Real& alpha) const;
+    void AlphaMinusJacobian(StatePolicy& state, const Real& alpha) const;
 
     /// @brief Perform the LU decomposition of the matrix
     /// @param alpha The alpha value
     /// @param number_densities The number densities
     /// @param stats The solver stats
     /// @param state The state
-    void LinearFactor(const Real alpha, SolverStats& stats, auto& state) const;
+    void LinearFactor(const Real alpha, SolverStats& stats, StatePolicy& state) const;
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
@@ -115,7 +119,7 @@ namespace micm
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
-        auto& state) const;
+        StatePolicy& state) const;
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>

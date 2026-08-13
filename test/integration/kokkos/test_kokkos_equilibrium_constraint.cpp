@@ -1,12 +1,12 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#include <micm/CPU.hpp>
+#include <micm/Kokkos.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/util/constants.hpp>
-#include <micm/util/vector_matrix.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
@@ -22,8 +22,8 @@
 
 using namespace micm;
 
-using DenseMatrix = VectorMatrix<micm::Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<micm::Real, MICM_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
 /// @brief Helper function to compute temperature-dependent equilibrium constant using Van't Hoff equation
 micm::Real ComputeEquilibriumConstant(micm::Real K_HLC_ref, micm::Real delta_H, micm::Real T)
@@ -61,7 +61,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -96,9 +96,12 @@ TEST(EquilibriumIntegration, SetConstraintsAPIWorks)
   state.variables_[0][C_idx] = K_eq * 0.1;  // C = K_eq * B
   state.conditions_[0].temperature_ = 300.0;
   state.conditions_[0].pressure_ = 101325.0;
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
 
   // Verify UpdateStateParameters works
   solver.UpdateStateParameters(state);
+  state.custom_rate_parameters_.CopyToHost();
 
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 300.0);
   // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
@@ -157,7 +160,7 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn1, rxn2 })
                     .SetConstraints(std::move(constraints))
@@ -189,11 +192,17 @@ TEST(EquilibriumIntegration, SetConstraintsAPIMultipleConstraints)
   state.conditions_[0].temperature_ = current_temp;
   state.conditions_[0].pressure_ = 101325.0;
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
+
+  state.custom_rate_parameters_.CopyToHost();
 
   // Verify temperature-dependent K_eq values are calculated correctly
   micm::Real expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, delta_H1, current_temp);
   micm::Real expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, delta_H2, current_temp);
+
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq1, 1e-10);
   // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
   EXPECT_NEAR(
@@ -241,7 +250,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   {
     options.h_start_ = 1.0e-6;
   }
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -262,8 +271,14 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
   state.conditions_[0].temperature_ = 270.0;
   state.conditions_[0].pressure_ = 101325.0;
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+
   // Verify UpdateStateParameters calculates K_eq correctly before time integration
   solver.UpdateStateParameters(state);
+
+  state.custom_rate_parameters_.CopyToHost();
+
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, delta_H, 270.0);
   // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
   EXPECT_NEAR(
@@ -291,6 +306,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
       FAIL() << "DAE solve did not converge at step " << steps << ", time=" << time;
     }
 
+    state.variables_.CopyToHost();
+    state.custom_rate_parameters_.CopyToHost();
+
     // Verify constraint is maintained by the solver
     micm::Real constraint_residual =
         state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
@@ -300,6 +318,8 @@ TEST(EquilibriumIntegration, DAESolveWithConstraint)
     time += dt;
     steps++;
   }
+
+  state.custom_rate_parameters_.CopyToHost();
 
   // Verify constraint is satisfied: C = K_eq * B
   micm::Real expected_C = state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx];
@@ -350,7 +370,7 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   {
     options.h_start_ = 1.0e-6;
   }
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -370,8 +390,14 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
   state.conditions_[0].temperature_ = 400.0;
   state.conditions_[0].pressure_ = 101325.0;
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
+
+  state.custom_rate_parameters_.CopyToHost();
+
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 400.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq, 1e-10);
 
@@ -384,6 +410,9 @@ TEST(EquilibriumIntegration, DAESolveWithConstraintAndReorderState)
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Reordered DAE solve did not converge at time=" << time;
+
+    state.variables_.CopyToHost();
+    state.custom_rate_parameters_.CopyToHost();
 
     // Constraint should hold at each step
     micm::Real residual =
@@ -440,7 +469,7 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   {
     options.h_start_ = 1.0e-6;
   }
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -463,8 +492,14 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
   state.conditions_[0].temperature_ = 300.0;
   state.conditions_[0].pressure_ = 101325.0;
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+
   // Verify UpdateStateParameters calculates K_eq correctly for both constraints
   solver.UpdateStateParameters(state);
+
+  state.custom_rate_parameters_.CopyToHost();
+
   micm::Real expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, -2400.0, 300.0);
   micm::Real expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, -2400.0, 300.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][B_C_eq_idx], expected_K_eq1, 1e-10);
@@ -479,6 +514,9 @@ TEST(EquilibriumIntegration, DAESolveWithTwoCoupledConstraints)
     solver.UpdateStateParameters(state);
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Coupled constraints did not converge at time=" << time;
+
+    state.variables_.CopyToHost();
+    state.custom_rate_parameters_.CopyToHost();
 
     micm::Real residual1 =
         state.custom_rate_parameters_[0][B_C_eq_idx] * state.variables_[0][B_idx] - state.variables_[0][C_idx];
@@ -534,7 +572,7 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   {
     options.h_start_ = 1.0e-6;
   }
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -555,8 +593,14 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+
   // Verify UpdateStateParameters calculates K_eq correctly
   solver.UpdateStateParameters(state);
+
+  state.custom_rate_parameters_.CopyToHost();
+
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 298.0);
   EXPECT_NEAR(state.custom_rate_parameters_[0][A2_B_eq_idx], expected_K_eq, 1e-10);
 
@@ -570,6 +614,9 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
     auto result = solver.Solve(dt, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "NonUnit stoich did not converge at time=" << time;
 
+    state.variables_.CopyToHost();
+    state.custom_rate_parameters_.CopyToHost();
+
     // Constraint: K_eq * [A]^2 - [B] = 0
     micm::Real A_val = state.variables_[0][A_idx];
     micm::Real B_val = state.variables_[0][B_idx];
@@ -578,4 +625,13 @@ TEST(EquilibriumIntegration, DAESolveWithNonUnitStoichiometry)
 
     time += dt;
   }
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

@@ -33,6 +33,8 @@ namespace micm
     class ConstGroupView;
     using ViewType = GroupView;
     using ConstViewType = ConstGroupView;
+    using HostGroupView = GroupView;
+    using ConstHostGroupView = ConstGroupView;
     template<class VecT>
     using VectorType = PaddedVector<VecT,1>;
     template<class ScaT>
@@ -891,7 +893,7 @@ namespace micm
     /// @throws std::system_error if column counts don't match at creation, vectors have wrong sizes
     ///         at creation, or if at invocation time: matrices/vectors have mismatched row counts,
     ///         column counts don't match creation, or column indices are out of bounds
-    template<typename Func, typename... Args>
+    template<bool UseView = true, typename Func, typename... Args>
     static auto Function(Func&& func, Args&... args)
     {
       // Capture column counts for matrices at creation time using helper
@@ -999,8 +1001,14 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: get a lightweight view (View or ConstView)
-                  return std::forward<decltype(arg)>(arg).GetView();
+                  if constexpr(UseView)
+                  {
+                    return std::forward<decltype(arg)>(arg).GetView();
+                  }
+                  else
+                  {
+                    return (std::forward<decltype(arg)>(arg));
+                  }
                 }
                 else
                 {
@@ -1023,7 +1031,7 @@ namespace micm
     template<typename Func, typename ... Args>
     static auto HostFunction(Func&& func, Args&&... args)
     {
-      return Function(std::forward<Func>(func), args...);
+      return Function<false>(std::forward<Func>(func), args...);
     }
 
    private:

@@ -56,6 +56,9 @@ namespace micm
     template<class U>
     using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
    public:
+    using DenseMatrixType = MatrixPolicy;
+    using SparseMatrixType = SparseMatrixPolicy;
+    using LuDecompositionType = LuDecompositionPolicy;
     struct IndexPair
     {
       Index first_;

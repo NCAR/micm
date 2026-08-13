@@ -6,6 +6,7 @@ RUN dnf -y update \
         gcc-c++ \
         gdb \
         git \
+        ninja-build \
         make \
     && dnf clean all
 
@@ -16,10 +17,11 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake \
+        -G Ninja \
         -D CMAKE_BUILD_TYPE=release \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_KOKKOS=TRUE \
         ../micm \
-      && make install -j 8
+      && ninja install -j 8
 
 WORKDIR /build

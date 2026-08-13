@@ -18,7 +18,7 @@
 // exceed C_total, making C = C_total - A - B negative.  Including algebraic
 // variables in the error norm causes the solver to reject those steps.
 
-#include <micm/CPU.hpp>
+#include <micm/Kokkos.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
@@ -36,8 +36,8 @@
 constexpr micm::Real kAbsTol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-10;
 
 using namespace micm;
-using DenseMatrix = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
 /// @brief Verify that conservation-constrained algebraic variables stay non-negative
 ///        when fast kinetics drain the pool.
@@ -70,7 +70,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -93,6 +93,8 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
   state.variables_[0][C_idx] = 0.1e-6;  // C_total - A
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
 
   solver.UpdateStateParameters(state);
 
@@ -106,6 +108,7 @@ TEST(DAEConstraintOvershoot, AlgebraicVariableStaysNonNegative)
     auto result = solver.Solve(dt - advanced, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge at t=" << advanced;
     advanced += result.stats_.final_time_;
+    state.variables_.CopyToHost();
 
     // Check conservation
     micm::Real sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
@@ -171,7 +174,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
       LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+  auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                     .SetSystem(System(gas_phase))
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -202,6 +205,8 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
   state.variables_[0][P_idx] = 0.0;
   state.conditions_[0].temperature_ = 298.0;
   state.conditions_[0].pressure_ = 101325.0;
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
 
   solver.UpdateStateParameters(state);
 
@@ -213,6 +218,7 @@ TEST(DAEConstraintOvershoot, EquilibriumPlusConservation)
     auto result = solver.Solve(dt - advanced, state);
     ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge at t=" << advanced;
     advanced += result.stats_.final_time_;
+    state.variables_.CopyToHost();
 
     micm::Real sum = state.variables_[0][A_gas_idx] + state.variables_[0][A_aq_idx] + state.variables_[0][P_idx];
     EXPECT_NEAR(sum, C_total, 1.0e-12) << "Conservation violated at t=" << advanced;
@@ -265,7 +271,7 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
     constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
-    auto solver = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
+    auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)
                       .SetSystem(System(gas_phase))
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
@@ -285,6 +291,8 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     state.variables_[0][C_idx] = 0.1e-6;
     state.conditions_[0].temperature_ = 298.0;
     state.conditions_[0].pressure_ = 101325.0;
+    state.variables_.CopyToDevice();
+    state.conditions_.CopyToDevice();
 
     solver.UpdateStateParameters(state);
 
@@ -295,6 +303,7 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
       auto result = solver.Solve(dt - advanced, state);
       ASSERT_EQ(result.state_, SolverState::Converged) << "Solver did not converge for " << name << " at t=" << advanced;
       advanced += result.stats_.final_time_;
+      state.variables_.CopyToHost();
 
       const micm::Real sum = state.variables_[0][A_idx] + state.variables_[0][B_idx] + state.variables_[0][C_idx];
       EXPECT_NEAR(sum, C_total, 1.0e-12);
@@ -306,4 +315,13 @@ TEST(DAEConstraintOvershoot, AllRosenbrockOrdersConstrained)
     EXPECT_NEAR(state.variables_[0][B_idx], 0.9e-6, 1.0e-10);
     EXPECT_NEAR(state.variables_[0][C_idx], 0.1e-6, 1.0e-10);
   }
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }
