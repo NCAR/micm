@@ -11,6 +11,8 @@
 
 #include <type_traits>
 
+#define JUST_ONE_SOLVER
+
 template<micm::Index L>
 using VectorBackwardEuler = micm::KokkosSolverBuilder<micm::BackwardEulerSolverParameters, L>;
 template<micm::Index L>
@@ -80,6 +82,9 @@ using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
 template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorBackwardEulerMozartInPlace<L>::StatePolicyType;
 
+#ifdef JUST_ONE_SOLVER
+auto backward_euler = VectorBackwardEulerMozartInPlace<8>(micm::BackwardEulerSolverParameters());
+#else
 auto backward_euler = micm::KokkosSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_2 = VectorBackwardEuler<2>(micm::BackwardEulerSolverParameters());
@@ -114,10 +119,12 @@ auto backward_euler_vector_mozart_in_place_1 = VectorBackwardEulerMozartInPlace<
 auto backward_euler_vector_mozart_in_place_2 = VectorBackwardEulerMozartInPlace<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_3 = VectorBackwardEulerMozartInPlace<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<4>(micm::BackwardEulerSolverParameters());
+#endif
 
 TEST(AnalyticalExamples, Troe)
 {
   TestAnalyticalTroe(backward_euler, 1e-6);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalTroe(backard_euler_vector_1, 1e-6);
   TestAnalyticalTroe(backard_euler_vector_2, 1e-6);
   TestAnalyticalTroe(backard_euler_vector_3, 1e-6);
@@ -142,6 +149,7 @@ TEST(AnalyticalExamples, Troe)
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_2, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_4, 1e-6);
+#endif
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
@@ -155,19 +163,23 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffTroe(backward_euler);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffTroe(backard_euler_vector_1);
   TestAnalyticalStiffTroe(backard_euler_vector_2);
   TestAnalyticalStiffTroe(backard_euler_vector_3);
   TestAnalyticalStiffTroe(backard_euler_vector_4);
+#endif
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
   TestAnalyticalPhotolysis(backward_euler, 1e-3);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalPhotolysis(backard_euler_vector_1, 1e-3);
   TestAnalyticalPhotolysis(backard_euler_vector_2, 1e-3);
   TestAnalyticalPhotolysis(backard_euler_vector_3, 1e-3);
   TestAnalyticalPhotolysis(backard_euler_vector_4, 1e-3);
+#endif
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
@@ -181,19 +193,23 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffPhotolysis(backward_euler, 1e-3);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffPhotolysis(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_2, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_3, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_4, 1e-3);
+#endif
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
   TestAnalyticalTernaryChemicalActivation(backward_euler, 1e-5);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalTernaryChemicalActivation(backard_euler_vector_1, 1e-5);
   TestAnalyticalTernaryChemicalActivation(backard_euler_vector_2, 1e-5);
   TestAnalyticalTernaryChemicalActivation(backard_euler_vector_3, 1e-5);
   TestAnalyticalTernaryChemicalActivation(backard_euler_vector_4, 1e-5);
+#endif
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
@@ -207,19 +223,23 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffTernaryChemicalActivation(backward_euler, 1e-2);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_1, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_2, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_3, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_4, 1e-2);
+#endif
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
   TestAnalyticalTunneling(backward_euler, 1e-3);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalTunneling(backard_euler_vector_1, 1e-3);
   TestAnalyticalTunneling(backard_euler_vector_2, 1e-3);
   TestAnalyticalTunneling(backard_euler_vector_3, 1e-3);
   TestAnalyticalTunneling(backard_euler_vector_4, 1e-3);
+#endif
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
@@ -233,19 +253,23 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffTunneling(backward_euler, 1e-3);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffTunneling(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_2, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_3, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_4, 1e-3);
+#endif
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
   TestAnalyticalArrhenius(backward_euler, 1e-3);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalArrhenius(backard_euler_vector_1, 1e-3);
   TestAnalyticalArrhenius(backard_euler_vector_2, 1e-3);
   TestAnalyticalArrhenius(backard_euler_vector_3, 1e-3);
   TestAnalyticalArrhenius(backard_euler_vector_4, 1e-3);
+#endif
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
@@ -259,19 +283,23 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffArrhenius(backward_euler, 1e-3);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffArrhenius(backard_euler_vector_1, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_2, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_3, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_4, 1e-3);
+#endif
 }
 
 TEST(AnalyticalExamples, Branched)
 {
   TestAnalyticalBranched(backward_euler, 1e-5);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalBranched(backard_euler_vector_1, 1e-5);
   TestAnalyticalBranched(backard_euler_vector_2, 1e-5);
   TestAnalyticalBranched(backard_euler_vector_3, 1e-5);
   TestAnalyticalBranched(backard_euler_vector_4, 1e-5);
+#endif
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
@@ -285,10 +313,12 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffBranched(backward_euler, 1e-2);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffBranched(backard_euler_vector_1, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_2, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_3, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_4, 1e-2);
+#endif
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
@@ -299,6 +329,7 @@ TEST(AnalyticalExamples, SurfaceRxn)
 TEST(AnalyticalExamples, HIRES)
 {
   TestAnalyticalHires(backward_euler, 1e-1);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalHires(backard_euler_vector_1, 1e-1);
   TestAnalyticalHires(backard_euler_vector_2, 1e-1);
   TestAnalyticalHires(backard_euler_vector_3, 1e-1);
@@ -315,6 +346,7 @@ TEST(AnalyticalExamples, HIRES)
   TestAnalyticalHires(backward_euler_vector_mozart_in_place_2, 1e-1);
   TestAnalyticalHires(backward_euler_vector_mozart_in_place_3, 1e-1);
   TestAnalyticalHires(backward_euler_vector_mozart_in_place_4, 1e-1);
+#endif
 }
 
 TEST(AnalyticalExamples, Oregonator)
@@ -327,6 +359,7 @@ TEST(AnalyticalExamples, Oregonator)
   constexpr micm::Index kOregonatorSubsteps = 18000;
 
   TestAnalyticalOregonator(backward_euler, 5e-3, kOregonatorSubsteps);
+#ifndef JUST_ONE_SOLVER
   TestAnalyticalOregonator(backard_euler_vector_1, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backard_euler_vector_2, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backard_euler_vector_3, 5e-3, kOregonatorSubsteps);
@@ -343,6 +376,7 @@ TEST(AnalyticalExamples, Oregonator)
   TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_2, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_3, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, 5e-3, kOregonatorSubsteps);
+#endif
 }
 
 int main(int argc, char* argv[])

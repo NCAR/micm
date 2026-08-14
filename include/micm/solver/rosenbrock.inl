@@ -15,7 +15,6 @@ namespace micm
   {
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
-    using ScalarReal = typename DenseMatrixPolicy::template ScalarType<Real>;
 
     SolverResult result{};
     result.state_ = SolverState::Running;
@@ -26,6 +25,10 @@ namespace micm
     DenseMatrixPolicy& initial_forcing = derived_class_temporary_variables->initial_forcing_;
     std::vector<DenseMatrixPolicy>& K = derived_class_temporary_variables->K_;
     DenseMatrixPolicy& Yerror = derived_class_temporary_variables->Yerror_;
+    auto& current_c_over_h = derived_class_temporary_variables->current_c_over_h_;
+    auto& error = derived_class_temporary_variables->error_;
+    auto& diagonal = state.views_.upper_left_identity_diagonal_;
+
     const Real h_min = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
     const Real h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
     const Real h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
@@ -36,9 +39,6 @@ namespace micm
     // Declared here so they remain in scope for the solver loop below (captured by reference by mass_coupling).
     // std::function gives mass_coupling a concrete, nameable type; the closure type returned by
     // DenseMatrixPolicy::Function() is anonymous and cannot be named directly.
-    ScalarReal current_c_over_h = 0.0;
-    current_c_over_h.CopyToDevice();
-    auto& diagonal = state.views_.upper_left_identity_diagonal_;
     std::function<void(DenseMatrixPolicy&, DenseMatrixPolicy&)> mass_coupling;
 
     // Initialize algebraic constraint variables and pre-build the mass-coupling function.
@@ -123,17 +123,16 @@ namespace micm
       while (!accepted)
       {
         // Compute alpha for AlphaMinusJacobian function
-        ScalarReal alpha = 1.0 / (H * parameters.gamma_[0]);
+        Real alpha = 1.0 / (H * parameters.gamma_[0]);
         if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
         {
           // The Jacobian retains the alpha shift applied on earlier attempts of
           // this step, so shift by the difference only. last_alpha must hold the
           // cumulative shift now present in the matrix, not the per-attempt delta.
           const double cumulative_alpha = alpha;
-          alpha = alpha - last_alpha;
+          alpha -= last_alpha;
           last_alpha = cumulative_alpha;
         }
-        alpha.CopyToDevice();
 
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(alpha, result.stats_, state);
@@ -153,9 +152,7 @@ namespace micm
               Ynew.Copy(Y);
               for (Index j = 0; j < stage; ++j)
               {
-                ScalarReal a = parameters.a_[stage_combinations + j];
-                a.CopyToDevice();
-                Ynew.Axpy(a, K[j]);
+                Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state, Ynew, K[stage]);
@@ -172,8 +169,7 @@ namespace micm
           }
           for (Index j = 0; j < stage; ++j)
           {
-            ScalarReal c_over_h = parameters.c_[stage_combinations + j] / H;
-            c_over_h.CopyToDevice();
+            Real c_over_h = parameters.c_[stage_combinations + j] / H;
             if (!has_constraints)
             {
               K[stage].Axpy(c_over_h, K[j]);
@@ -202,17 +198,13 @@ namespace micm
         Ynew.Copy(Y);
         for (Index stage = 0; stage < parameters.stages_; ++stage)
         {
-          ScalarReal m = parameters.m_[stage];
-          m.CopyToDevice();
-          Ynew.Axpy(m, K[stage]);
+          Ynew.Axpy(parameters.m_[stage], K[stage]);
         }
 
         Yerror.Fill(0);
         for (Index stage = 0; stage < parameters.stages_; ++stage)
         {
-          ScalarReal e = parameters.e_[stage];
-          e.CopyToDevice();
-          Yerror.Axpy(e, K[stage]);
+          Yerror.Axpy(parameters.e_[stage], K[stage]);
         }
 
         // For DAE systems, replace the near-zero algebraic error estimates with step changes.
@@ -233,7 +225,7 @@ namespace micm
         }
 
         // Compute the normalized error
-        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
+        static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state, error);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         Real fac = std::min(
@@ -359,13 +351,13 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   template<class DenseMatrixPolicy>
-  inline Real AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors,
-      StatePolicy& state) const
+      const StatePolicy& state,
+      typename DenseMatrixPolicy::template ScalarType<Real>& error) const
   {
-    using ScalarReal = typename DenseMatrixPolicy::template ScalarType<Real>;
     using SumType = typename DenseMatrixPolicy::template SumType<Real>;
 
     // Solving Ordinary Differential Equations II, page 123
@@ -375,7 +367,7 @@ namespace micm
     const Index n_vars = Y.NumColumns();
     const Index n_cells = Y.NumRows();
 
-    ScalarReal error = 0;
+    error = 0;
     error.CopyToDevice();
 
     DenseMatrixPolicy::Function(
@@ -408,7 +400,7 @@ namespace micm
     constexpr Real error_min = 1.0e-10;
     const Index N = std::max<Index>(1, Y.NumRows() * Y.NumColumns());
 
-    return std::max(std::sqrt(error / N), error_min);
+    error = std::max(std::sqrt(error / N), error_min);
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
@@ -420,21 +412,21 @@ namespace micm
   {
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
-    using ScalarReal = typename DenseMatrixPolicy::template ScalarType<Real>;
-    using ScalarBool = typename DenseMatrixPolicy::template ScalarType<Bool>;
     using LOrType = typename DenseMatrixPolicy::LOrType;
     using MaxType = typename DenseMatrixPolicy::template MaxType<Real>;
 
     auto& Y = state.variables_;
+    auto& diagonal = state.views_.upper_left_identity_diagonal_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
     // Reuse initial_forcing_ as the residual/delta workspace
     auto& delta = derived_class_temporary_variables->initial_forcing_;
-
-    auto& diagonal = state.views_.upper_left_identity_diagonal_;
-    ScalarReal max_residual = 0;
-    ScalarBool nan_detected = false;
-    ScalarBool inf_detected = false;
+    auto& max_residual = derived_class_temporary_variables->max_residual_;
+    auto& nan_detected = derived_class_temporary_variables->nan_detected_;
+    auto& inf_detected = derived_class_temporary_variables->inf_detected_;
+    max_residual = 0;
+    nan_detected = false;
+    inf_detected = false;
     max_residual.CopyToDevice();
     nan_detected.CopyToDevice();
     inf_detected.CopyToDevice();

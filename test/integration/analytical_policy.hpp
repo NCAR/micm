@@ -1486,9 +1486,6 @@ void TestAnalyticalRobertson(
     times.push_back(target_time);
     prepare_for_solve(state);
 
-    state.variables_.CopyToHost();
-    state.rate_constants_.CopyToHost();
-
     // Model results
     micm::Real actual_solve = 0;
     while (actual_solve < delta_t)
@@ -1496,6 +1493,8 @@ void TestAnalyticalRobertson(
       auto result = solver.Solve(delta_t - actual_solve, state);
       actual_solve += result.stats_.final_time_;
     }
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
     current_time = target_time;

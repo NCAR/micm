@@ -49,11 +49,12 @@ void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_
   micm::Real error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
+  typename MatrixPolicy::template ScalarType<micm::Real> computed_error;
   y_old.CopyToDevice();
   y_new.CopyToDevice();
   errors.CopyToDevice();
   state.absolute_tolerance_.CopyToDevice();
-  micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
@@ -127,12 +128,13 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
   expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
   expected_error = std::max<micm::Real>(expected_error, 1.0e-10);
 
+  typename MatrixPolicy::template ScalarType<micm::Real> computed_error;
   y_old.CopyToDevice();
   y_new.CopyToDevice();
   errors.CopyToDevice();
   state.absolute_tolerance_.CopyToDevice();
 
-  const micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
   EXPECT_NEAR(computed_error, expected_error, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-4);
 }
 

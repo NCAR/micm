@@ -314,7 +314,6 @@ namespace micm
     upper_left_identity_diagonal_.CopyToDevice();
     jacobian_diagonal_elements_.CopyToDevice();
     absolute_tolerance_.CopyToDevice();
-    relative_tolerance_.CopyToDevice();
     views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
   }
 
@@ -561,7 +560,6 @@ namespace micm
       Real relative_tolerance)
   {
     relative_tolerance_ = relative_tolerance;
-    relative_tolerance_.CopyToDevice();
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>

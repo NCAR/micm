@@ -115,11 +115,12 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     template<class DenseMatrixPolicy>
-    Real NormalizedError(
+    void NormalizedError(
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
-        StatePolicy& state) const;
+        const StatePolicy& state,
+        typename DenseMatrixPolicy::template ScalarType<Real>& error) const;
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>

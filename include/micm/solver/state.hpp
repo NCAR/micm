@@ -105,7 +105,7 @@ namespace micm
     Index state_size_;
     Index constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
-    Scalar<Real> relative_tolerance_;
+    Real relative_tolerance_;
     Vector<Real> absolute_tolerance_;
 
     Views views_;

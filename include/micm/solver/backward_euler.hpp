@@ -73,12 +73,13 @@ namespace micm
     /// @param state The current state being solved for
     /// @return true if the residual is small enough to stop the iteration
     template<class DenseMatrixPolicy>
-    static bool IsConverged(
+    static void IsConverged(
         const BackwardEulerSolverParameters& parameters,
         const DenseMatrixPolicy& residual,
         const DenseMatrixPolicy& Yn1,
-        const typename DenseMatrixPolicy::template VectorType<Real>& absolute_tolerance,
-        Real relative_tolerance);
+        const typename DenseMatrixPolicy::template VectorType<Real>::ConstViewType& absolute_tolerance,
+        const Real relative_tolerance,
+        typename DenseMatrixPolicy::template ScalarType<Bool>& is_converged);
   };
 
 }  // namespace micm

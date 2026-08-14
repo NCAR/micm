@@ -314,6 +314,22 @@ namespace micm
     {
     }
 
+    KokkosSparseMatrix(const KokkosSparseMatrix& other)
+      : SparseMatrix<T, OrderingPolicy>(other),
+        view_("spase_matrix", other.view_.extent(0))
+    {
+      Kokkos::deep_copy(view_, other.view_);
+    }
+
+    KokkosSparseMatrix& operator=(const KokkosSparseMatrix& other)
+    {
+      if (this == &other) return *this;
+      SparseMatrix<T, OrderingPolicy>::operator=(other);
+      Kokkos::realloc(view_, other.view_.extent(0));
+      Kokkos::deep_copy(view_, other.view_);
+      return *this;
+    }
+
     /// @brief Copy host data (MICM's data_) to the device view
     void CopyToDevice()
     {

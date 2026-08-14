@@ -13,11 +13,18 @@ namespace micm
   template<class DenseMatrixPolicy>
   class RosenbrockTemporaryVariables : public TemporaryVariables
   {
+    template<class U>
+    using Scalar = typename DenseMatrixPolicy:: template ScalarType<U>;
    public:
     DenseMatrixPolicy Ynew_;
     DenseMatrixPolicy initial_forcing_;
     std::vector<DenseMatrixPolicy> K_;
     DenseMatrixPolicy Yerror_;
+    Scalar<Real> current_c_over_h_;
+    Scalar<Real> error_;
+    Scalar<Real> max_residual_;
+    Scalar<Bool> nan_detected_;
+    Scalar<Bool> inf_detected_;
 
     RosenbrockTemporaryVariables() = default;
     RosenbrockTemporaryVariables(const RosenbrockTemporaryVariables& other) = default;

@@ -23,8 +23,6 @@ namespace micm
 
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
-    using ScalarReal = typename DenseMatrixPolicy::template ScalarType<Real>;
-    using ScalarBool = typename DenseMatrixPolicy::template ScalarType<Bool>;
     using LOrType = typename DenseMatrixPolicy::LOrType;
 
     SolverResult result;
@@ -32,7 +30,7 @@ namespace micm
     Index max_iter = parameters.max_number_of_steps_;
     const auto time_step_reductions = parameters.time_step_reductions_;
 
-    ScalarReal H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
+    Real H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
     Real present_time = 0.0;
     Index n_successful_integrations = 0;
     Index n_convergence_failures = 0;
@@ -42,6 +40,9 @@ namespace micm
     DenseMatrixPolicy& Yn = derived_class_temporary_variables->Yn_;
     DenseMatrixPolicy& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     DenseMatrixPolicy& forcing = derived_class_temporary_variables->forcing_;
+    auto& is_nan = derived_class_temporary_variables->is_nan_;
+    auto& is_inf = derived_class_temporary_variables->is_inf_;
+    auto& is_converged = derived_class_temporary_variables->is_converged_;
 
     // Ensure Yn starts with the same values as the state variables
     Yn.Copy(Yn1);
@@ -49,7 +50,7 @@ namespace micm
     while (present_time < time_step)
     {
       result.state_ = SolverState::Running;
-      bool converged = false;
+      is_converged = false;
       Index iterations = 0;
 
       do
@@ -69,7 +70,6 @@ namespace micm
         result.stats_.jacobian_updates_++;
 
         // add the inverse of the time step from the diagonal
-        H.CopyToDevice();
         state.jacobian_.AddToDiagonal(1 / H);
 
         // We want to solve this equation for a zero
@@ -121,10 +121,10 @@ namespace micm
         }
 
         // check for convergence
-        converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
-      } while (!converged && iterations < max_iter);
+        IsConverged(parameters, forcing, Yn1, state.views_.absolute_tolerance_, state.relative_tolerance_, is_converged);
+      } while (!is_converged && iterations < max_iter);
 
-      if (!converged)
+      if (!is_converged)
       {
         result.stats_.rejected_++;
         n_successful_integrations = 0;
@@ -136,8 +136,8 @@ namespace micm
           // non-finite concentrations under a "success" status. Only reached once the solver has
           // already exhausted its step-size reductions, so this scan costs nothing in the happy path.
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
-          ScalarBool is_nan = false;
-          ScalarBool is_inf = false;
+          is_nan = false;
+          is_inf = false;
           is_nan.CopyToDevice();
           is_inf.CopyToDevice();
           const Index n_vars = Yn1.NumColumns();
@@ -178,7 +178,7 @@ namespace micm
 
         // if we fail, we need to reset the solution to the last known good solution
         Yn1.Copy(Yn);
-        H = H * time_step_reductions[n_convergence_failures++];
+        H *= time_step_reductions[n_convergence_failures++];
       }
       else
       {
@@ -192,12 +192,11 @@ namespace micm
         if (n_successful_integrations >= 2)
         {
           n_successful_integrations = 0;
-          H = H * 2.0;
+          H *= 2.0;
         }
       }
       // Don't let H go past the time step
-      Real curr_H = H;
-      H = std::min(curr_H, time_step - present_time);
+      H = std::min(H, time_step - present_time);
     }
 
     result.stats_.final_time_ = present_time;
@@ -206,27 +205,23 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
+  inline void AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
-      const typename DenseMatrixPolicy::template VectorType<Real>& absolute_tolerance,
-      Real relative_tolerance)
+      const typename DenseMatrixPolicy::template VectorType<Real>::ConstViewType& absolute_tolerance,
+      const Real relative_tolerance,
+      typename DenseMatrixPolicy::template ScalarType<Bool>& is_converged)
   {
-    using ScalarIndex = typename DenseMatrixPolicy::template ScalarType<Index>;
-    using ScalarReal = typename DenseMatrixPolicy::template ScalarType<Real>;
-    using ScalarBool = typename DenseMatrixPolicy::template ScalarType<Bool>;
     using LAndType = typename DenseMatrixPolicy::LAndType;
-    const ScalarIndex n_vars = absolute_tolerance.size();
-    const ScalarReal small = parameters.small_;
-    const auto& rel_tol = relative_tolerance;
-    ScalarBool retval = true;
-    n_vars.CopyToDevice();
-    small.CopyToDevice();
-    retval.CopyToDevice();
+    const Index n_vars = absolute_tolerance.size();
+    const Real small = parameters.small_;
+    const Real& rel_tol = relative_tolerance;
+    is_converged = true;
+    is_converged.CopyToDevice();
     // Capture a lightweight device view of absolute_tolerance to avoid copying
     // the full KokkosPaddedVector (which contains a std::vector) into the device kernel.
-    const auto abs_tol_view = absolute_tolerance.GetView();
+    const auto& abs_tol_view = absolute_tolerance;
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
           typename DenseMatrixPolicy::ConstViewType residual_view,
@@ -237,7 +232,7 @@ namespace micm
           {
             const Real var_abs_tol = abs_tol_view[i_var];
             residual_view.ReduceStrict(
-                LAndType{ retval },
+                LAndType{ is_converged },
                 [=](const Real& residual, const Real& Yn1, Bool& acc)
                 {
                   // A non-finite residual is never converged. Without this check an infinite residual escapes
@@ -256,7 +251,7 @@ namespace micm
                 },
                 residual_view.GetConstColumnView(i_var),
                 Yn1_view.GetConstColumnView(i_var));
-            if (!retval)
+            if (!is_converged)
             {
               return;
             }
@@ -264,7 +259,6 @@ namespace micm
         },
         residual,
         Yn1)(residual, Yn1);
-    retval.CopyToHost();
-    return bool(retval);
+    is_converged.CopyToHost();
   }
 }  // namespace micm

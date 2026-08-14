@@ -405,6 +405,22 @@ namespace micm
       CopyToDevice();
     }
 
+    KokkosDenseMatrix(const KokkosDenseMatrix& other)
+      : VectorMatrix<T, L>(other),
+        view_("dense_matrix", other.view_.extent(0))
+    {
+      Kokkos::deep_copy(view_, other.view_);
+    }
+
+    KokkosDenseMatrix& operator=(const KokkosDenseMatrix& other)
+    {
+      if (this == &other) return *this;
+      VectorMatrix<T, L>::operator=(other);
+      Kokkos::realloc(view_, other.view_.extent(0));
+      Kokkos::deep_copy(view_, other.view_);
+      return *this;
+    }
+
     /// @brief Copy host data (MICM's data_) to the device view
     void CopyToDevice()
     {
