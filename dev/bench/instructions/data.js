@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786481660552,
+  "lastUpdate": 1786720773374,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -239,6 +239,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/95fa70322b57bc4e22ac67099a35558a4e8fcf1a"
         },
         "date": 1786481660215,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 530969733,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 539574531,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 366258762,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 287643944,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 247372360,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 211095607,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6c1491ce289b51ef58d444a2b9176f43501868c3",
+          "message": "adding more detail to performance table and description (#1060)",
+          "timestamp": "2026-08-14T10:15:31-05:00",
+          "tree_id": "e240f5661808519cbd26a09f6d8af87868f4e520",
+          "url": "https://github.com/NCAR/micm/commit/6c1491ce289b51ef58d444a2b9176f43501868c3"
+        },
+        "date": 1786720772509,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
