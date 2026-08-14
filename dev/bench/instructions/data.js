@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786720773374,
+  "lastUpdate": 1786720914362,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -293,6 +293,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/6c1491ce289b51ef58d444a2b9176f43501868c3"
         },
         "date": 1786720772509,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 530969733,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 539574531,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 366258762,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 287643944,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 247372360,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 211095607,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "97ac9e5d8aadd345c242722ee8274d71dfe0f73e",
+          "message": "update python version to correct ci failure (#1061)",
+          "timestamp": "2026-08-14T10:17:55-05:00",
+          "tree_id": "7e9cd39e9e1beef97b5d3c7547b0b3dfd6cfe9b2",
+          "url": "https://github.com/NCAR/micm/commit/97ac9e5d8aadd345c242722ee8274d71dfe0f73e"
+        },
+        "date": 1786720913653,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
