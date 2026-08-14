@@ -52,7 +52,6 @@ namespace micm
     using SparseMatrix = typename LinearSolverPolicy::SparseMatrixType;
     using DenseMatrix = typename LinearSolverPolicy::DenseMatrixType;
     using LuDecomposition = typename LinearSolverPolicy::LuDecompositionType;
-    using StatePolicy = State<DenseMatrix, SparseMatrix, LuDecomposition>;
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
@@ -86,6 +85,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
+    template<class StatePolicy>
     SolverResult Solve(Real time_step, StatePolicy& state, const RosenbrockSolverParameters& parameters) const noexcept;
 
     /// @brief Newton-iterate algebraic variables to satisfy G(y) = 0 before time integration
@@ -93,13 +93,14 @@ namespace micm
     /// @param parameters Solver parameters (provides max iterations and tolerance)
     /// @param stats Solver stats to update with iteration counts
     /// @return SolverState::Converged on success, or an error state on failure
+    template<class StatePolicy>
     SolverState InitializeConstraints(StatePolicy& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
         const noexcept;
 
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
-    template<class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy, class StatePolicy>
     void AlphaMinusJacobian(StatePolicy& state, const Real& alpha) const;
 
     /// @brief Perform the LU decomposition of the matrix
@@ -107,6 +108,7 @@ namespace micm
     /// @param number_densities The number densities
     /// @param stats The solver stats
     /// @param state The state
+    template<class StatePolicy>
     void LinearFactor(const Real alpha, SolverStats& stats, StatePolicy& state) const;
 
     /// @brief Computes the scaled norm of the vector errors
@@ -114,7 +116,7 @@ namespace micm
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return
-    template<class DenseMatrixPolicy>
+    template<class DenseMatrixPolicy, class StatePolicy>
     void NormalizedError(
         const DenseMatrixPolicy& y,
         const DenseMatrixPolicy& Ynew,

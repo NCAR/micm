@@ -17,6 +17,8 @@
 
 template<micm::Index L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
+template<micm::Index L, class U>
+using Scalar = typename micm::CudaDenseMatrix<micm::Real, L>::template ScalarType<U>;
 
 // In this Test, all the elements in the same array are identical;
 // thus the calculated RMSE should be the same no matter what the size of the array is.
@@ -40,7 +42,8 @@ void TestNormalizedErrorConst(const micm::Index number_of_grid_cells = L)
 
   state.SyncInputsToDevice();
 
-  micm::Real error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  Scalar<L, micm::Real> error;
+  gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state, error);
 
   micm::Real expected_error = 0.0;
   for (micm::Index i = 0; i < state.state_size_; ++i)
@@ -108,7 +111,8 @@ void TestNormalizedErrorDiff(const micm::Index number_of_grid_cells = L)
   errors.CopyToDevice();
   state.SyncInputsToDevice();
 
-  micm::Real computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  Scalar<L, micm::Real> computed_error;
+  gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));

@@ -8,6 +8,7 @@ namespace micm
 {
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class StatePolicy>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::Solve(
       Real time_step,
       StatePolicy& state,
@@ -305,7 +306,7 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class StatePolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
       StatePolicy& state,
       const Real& alpha) const
@@ -328,6 +329,7 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class StatePolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::LinearFactor(
       const Real alpha,
       SolverStats& stats,
@@ -350,7 +352,7 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class DenseMatrixPolicy>
+  template<class DenseMatrixPolicy, class StatePolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
@@ -404,6 +406,7 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class StatePolicy>
   inline SolverState
   AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::InitializeConstraints(
       StatePolicy& state,

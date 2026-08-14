@@ -22,6 +22,7 @@ namespace micm
   ///
   /// Constructed once per solver build; never modified during a run.
   /// The device conditions buffer grows on demand (amortised allocation).
+  template<class DenseMatrixPolicy>
   class CudaReactionRateStore
   {
    private:
@@ -56,7 +57,7 @@ namespace micm
     // Helpers
     // ----------------------------------------------------------------
     template<class T>
-    static void ReallocAndUpload(T*& d_ptr, const std::vector<T>& host_vec)
+    static void ReallocAndUpload(T*& d_ptr, const DenseMatrixPolicy::template VectorType<T>& host_vec)
     {
       FreeDevice(d_ptr);
       if (host_vec.empty())
@@ -143,7 +144,7 @@ namespace micm
     ///
     ///        Called once after the ReactionRateConstantStore is built in Solver's constructor.
     ///        Any previous device allocations are freed before re-uploading.
-    void BuildFrom(const ReactionRateConstantStore& cpu_store)
+    void BuildFrom(const auto& cpu_store)
     {
       ReallocAndUpload(d_arrhenius_, cpu_store.arrhenius_);
       ReallocAndUpload(d_troe_, cpu_store.troe_);
@@ -211,7 +212,7 @@ namespace micm
     ///        Layout: [group * n_mults * L + mult * L + lane]
     /// @return Device pointer to multiplier values, or nullptr if there are no multipliers.
     const Real*
-    UploadMultiplierValues(const ReactionRateConstantStore& cpu_store, const auto& conditions, Index L)
+    UploadMultiplierValues(const auto& cpu_store, const auto& conditions, Index L)
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())
@@ -234,7 +235,7 @@ namespace micm
             const Index cell = g * L + j;
             if (cell < n_cells)
             {
-              host_vals[g * n_mults * L + i * L + j] = mults[i].evaluate_(conditions[cell]);
+              host_vals[g * n_mults * L + i * L + j] = mults[i].Evaluate(conditions[cell]);
             }
           }
         }

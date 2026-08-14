@@ -142,6 +142,11 @@ namespace micm
         return data_.data();
     }
 
+    bool empty() const
+    {
+        return data_.empty();
+    }
+
     bool operator==(const PaddedVector<T, L>& other) const
     {
         return data_ == other.data_;

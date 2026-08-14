@@ -27,7 +27,7 @@ namespace micm
     ProcessSetParam devstruct_;
 
     /// GPU-resident analytic rate constant parameter store (built once per solver build)
-    CudaReactionRateStore cuda_rate_store_;
+    CudaReactionRateStore<DenseMatrixPolicy> cuda_rate_store_;
 
     CudaProcessSet() = default;
 
@@ -72,7 +72,7 @@ namespace micm
 
     /// @brief Upload all analytic parameter arrays from cpu_store to device memory.
     ///        Called once by Solver after ReactionRateConstantStore is built.
-    void BuildCudaStore(const ReactionRateConstantStore& cpu_store)
+    void BuildCudaStore(const ReactionRateConstantStore<DenseMatrixPolicy>& cpu_store)
     {
       cuda_rate_store_.BuildFrom(cpu_store);
     }
@@ -86,7 +86,7 @@ namespace micm
     ///
     /// After this call, device rate_constants_ is fully populated for the current step.
     template<class StatePolicy>
-    void GpuCalculateRateConstants(const ReactionRateConstantStore& cpu_store, StatePolicy& state)
+    void GpuCalculateRateConstants(const ReactionRateConstantStore<DenseMatrixPolicy>& cpu_store, StatePolicy& state)
       requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType>)
     {
       using DM = typename StatePolicy::DenseMatrixPolicyType;
@@ -94,7 +94,7 @@ namespace micm
       // CPU lambda evaluation
       if (!cpu_store.lambda_entries_.empty())
       {
-        ReactionRateConstantStore::CalculateCpuRateConstants(cpu_store, state);
+        ReactionRateConstantStore<DM>::CalculateCpuRateConstants(cpu_store, state);
         // Upload lambda values (analytic slots carry stale data; kernel overwrites them)
         state.rate_constants_.CopyToDevice();
       }

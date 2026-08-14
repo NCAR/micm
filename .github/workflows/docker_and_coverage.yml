@@ -21,6 +21,7 @@ jobs:
         dockerfile:
           - Dockerfile
           - Dockerfile.coverage
+          - Dockerfile.kokkos.serial
           - Dockerfile.memcheck
           - Dockerfile.nvhpc
           - Dockerfile.openmp

@@ -3,6 +3,7 @@
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
+#include <micm/util/padded_vector.hpp>
 #include <micm/util/types.hpp>
 
 #include <cuda_runtime.h>
