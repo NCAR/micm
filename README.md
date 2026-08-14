@@ -183,13 +183,18 @@ hot-path change even when the wall-clock time is noisy.
 Two mechanisms run. Chapman has 7 reactions and shows per-call overhead. TS1 has
 547 reactions and shows how the solver scales with mechanism size.
 
-| chart | mechanism | backend | machine |
-| --- | --- | --- | --- |
-| [Instruction counts](https://ncar.github.io/micm/dev/bench/instructions/) | Chapman | CPU | `ubuntu-latest` |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/timing/) | Chapman | CPU | `ubuntu-latest` |
-| [Instruction counts](https://ncar.github.io/micm/dev/bench/ts1/instructions/) | TS1 | CPU | `ubuntu-latest` |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/ts1/timing/) | TS1 | CPU | `ubuntu-latest` |
-| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | Chapman and TS1 | CUDA | CIRRUS a10 GPU runner |
+| chart | mechanism | backend | grid cells | steps | machine |
+| --- | --- | --- | --- | --- | --- |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/instructions/) | Chapman | CPU | 2000 | 5 | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/timing/) | Chapman | CPU | 10000 | 30 | `ubuntu-latest` |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/ts1/instructions/) | TS1 | CPU | 2000 | 5 | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/ts1/timing/) | TS1 | CPU | 10000 | 30 | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | Chapman and TS1 | CUDA | 10000 | 30 | CIRRUS a10 GPU runner |
+
+Every step advances the solver by `30 s`. The callgrind charts use a smaller
+grid and fewer steps, because valgrind runs far slower than a native run. The
+`vector128` ordering pads its last group, so it solves 2048 cells rather than
+2000, and 10112 rather than 10000.
 
 Each pull request also gets a commit comment that compares its Chapman numbers
 against the latest `main` values. See [docs/performance.md](docs/performance.md)
