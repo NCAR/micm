@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786721483002,
+  "lastUpdate": 1786721668241,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -312,6 +312,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 4215.15,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "97ac9e5d8aadd345c242722ee8274d71dfe0f73e",
+          "message": "update python version to correct ci failure (#1061)",
+          "timestamp": "2026-08-14T10:17:55-05:00",
+          "tree_id": "7e9cd39e9e1beef97b5d3c7547b0b3dfd6cfe9b2",
+          "url": "https://github.com/NCAR/micm/commit/97ac9e5d8aadd345c242722ee8274d71dfe0f73e"
+        },
+        "date": 1786721667612,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 22001.05,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 11004.34,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 6964.77,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 5059.25,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 4260.8,
             "unit": "ms"
           }
         ]
