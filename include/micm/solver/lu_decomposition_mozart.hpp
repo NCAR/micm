@@ -63,17 +63,6 @@ namespace micm
     template<class U>
     using Scalar = typename SparseMatrix::template ScalarType<U>;
    public:
-    struct IndexTrio
-    {
-      Index first_;
-      Index second_;
-      Index third_;
-    };
-    struct IndexPair
-    {
-      Index first_;
-      Index second_;
-    };
     struct Views
     {
       VectorView<IndexTrio> lii_nuji_nlji_;

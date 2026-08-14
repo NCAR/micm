@@ -49,11 +49,6 @@ namespace micm
     template<class U>
     using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
    public:
-    struct IndexPair
-    {
-      Index first_;
-      Index second_;
-    };
     struct Views
     {
       VectorView<IndexPair> niLU_;

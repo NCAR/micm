@@ -32,10 +32,10 @@
 // implemented this yet still produce valid code.
 // __CUDACC__: nvcc always needs constexpr so --expt-relaxed-constexpr can call
 // these from device code, even when the host compiler lacks P1383R2.
-#if defined(__cpp_lib_constexpr_cmath) || defined(__CUDACC__)
+#if (defined(__cpp_lib_constexpr_cmath) || defined(__CUDACC__)) && !defined(MICM_ENABLE_KOKKOS)
   #define MICM_CONSTEXPR constexpr
 #else
-  #define MICM_CONSTEXPR
+  #define MICM_CONSTEXPR MICM_DEVICE_FUNCTION
 #endif
 
 #ifndef M_PI
@@ -49,7 +49,7 @@ namespace micm
   ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
   ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
   template<class FalloffParams>
-  MICM_DEVICE_FUNCTION Real FalloffKernel(const FalloffParams& p, Real temperature, Real air_density, Real numerator_scale)
+  MICM_CONSTEXPR Real FalloffKernel(const FalloffParams& p, Real temperature, Real air_density, Real numerator_scale)
   {
     Real k0 = p.k0_A_ * std::exp(p.k0_C_ / temperature) * std::pow(temperature / 300.0, p.k0_B_);
     Real kinf = p.kinf_A_ * std::exp(p.kinf_C_ / temperature) * std::pow(temperature / 300.0, p.kinf_B_);
@@ -59,19 +59,19 @@ namespace micm
 
   /// @brief Calculate Arrhenius rate constant.
   ///        k = A * exp(C/T) * (T/D)^B * (1 + E*P)
-  MICM_DEVICE_FUNCTION Real CalculateArrhenius(const ArrheniusRateConstantParameters& p, Real temperature, Real pressure)
+  MICM_CONSTEXPR Real CalculateArrhenius(const ArrheniusRateConstantParameters& p, Real temperature, Real pressure)
   {
     return p.A_ * std::exp(p.C_ / temperature) * std::pow(temperature / p.D_, p.B_) * (1.0 + p.E_ * pressure);
   }
 
   /// @brief Calculate Troe rate constant.
-  MICM_DEVICE_FUNCTION Real CalculateTroe(const TroeRateConstantParameters& p, Real temperature, Real air_density)
+  MICM_CONSTEXPR Real CalculateTroe(const TroeRateConstantParameters& p, Real temperature, Real air_density)
   {
     return FalloffKernel(p, temperature, air_density, air_density);
   }
 
   /// @brief Calculate Ternary Chemical Activation rate constant.
-  MICM_DEVICE_FUNCTION Real CalculateTernaryChemicalActivation(
+  MICM_CONSTEXPR Real CalculateTernaryChemicalActivation(
       const TernaryChemicalActivationRateConstantParameters& p,
       Real temperature,
       Real air_density)
@@ -81,14 +81,14 @@ namespace micm
 
   /// @brief Calculate Tunneling rate constant.
   ///        k = A * exp(-B/T + C/T^3)
-  MICM_DEVICE_FUNCTION Real CalculateTunneling(const TunnelingRateConstantParameters& p, Real temperature)
+  MICM_CONSTEXPR Real CalculateTunneling(const TunnelingRateConstantParameters& p, Real temperature)
   {
     return p.A_ * std::exp(-p.B_ / temperature + p.C_ / (temperature * temperature * temperature));
   }
 
   /// @brief Calculate Branched rate constant.
   ///        Requires p.k0_ and p.z_ to be precomputed by ReactionRateConstantStore::BuildFrom.
-  MICM_DEVICE_FUNCTION Real CalculateBranched(const BranchedRateConstantParameters& p, Real temperature, Real air_density)
+  MICM_CONSTEXPR Real CalculateBranched(const BranchedRateConstantParameters& p, Real temperature, Real air_density)
   {
     Real a = p.k0_ * air_density;
     Real b = 0.43 * std::pow(temperature / 298.0, -8.0);
@@ -100,7 +100,7 @@ namespace micm
 
   /// @brief Calculate Taylor Series rate constant.
   ///        k = (sum_{j=0}^{n-1} c_j * T^j) * A * exp(C/T) * (T/D)^B * (1 + E*P)
-  MICM_DEVICE_FUNCTION Real
+  MICM_CONSTEXPR Real
   CalculateTaylorSeries(const TaylorSeriesRateConstantParameters& p, Real temperature, Real pressure)
   {
     Real poly = 0.0;
@@ -114,14 +114,14 @@ namespace micm
 
   /// @brief Calculate Reversible rate constant.
   ///        k = A * exp(C/T) * k_r
-  MICM_DEVICE_FUNCTION Real CalculateReversible(const ReversibleRateConstantParameters& p, Real temperature)
+  MICM_CONSTEXPR Real CalculateReversible(const ReversibleRateConstantParameters& p, Real temperature)
   {
     return p.A_ * std::exp(p.C_ / temperature) * p.k_r_;
   }
 
   /// @brief Calculate user-defined rate constant.
   ///        k = custom_param_value * scaling_factor
-  MICM_DEVICE_FUNCTION Real CalculateUserDefined(const UserDefinedRateConstantData& p, Real custom_param_value)
+  MICM_CONSTEXPR Real CalculateUserDefined(const UserDefinedRateConstantData& p, Real custom_param_value)
   {
     return custom_param_value * p.scaling_factor_;
   }
@@ -129,7 +129,7 @@ namespace micm
   /// @brief Calculate one surface rate constant given pre-fetched aerosol parameters.
   /// @param radius    Aerosol effective radius [m]
   /// @param num_conc  Particle number concentration [# m-3]
-  MICM_DEVICE_FUNCTION Real
+  MICM_CONSTEXPR Real
   CalculateSurfaceOne(const SurfaceRateConstantData& p, Real temperature, Real radius, Real num_conc)
   {
     Real mean_free_speed = std::sqrt(p.mean_free_speed_factor_ * temperature);

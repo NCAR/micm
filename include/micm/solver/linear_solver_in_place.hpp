@@ -29,11 +29,6 @@ namespace micm
     using DenseMatrixType = MatrixPolicy;
     using SparseMatrixType = SparseMatrixPolicy;
     using LuDecompositionType = LuDecompositionPolicy;
-    struct IndexPair
-    {
-      Index first_;
-      Index second_;
-    };
     struct Views
     {
       VectorView<Index> nLij_;

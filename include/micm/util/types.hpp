@@ -40,4 +40,19 @@ namespace micm
   // to a CUDA memcpy or to index from device code.
   using Bool = std::uint8_t;
 
+  /// @brief A device-compatible struct for holding three indices
+  struct IndexTrio
+  {
+    Index first_;
+    Index second_;
+    Index third_;
+  };
+  
+  /// @brief A device-compatible struct for holding pairs of indices
+  struct IndexPair
+  {
+    Index first_;
+    Index second_;
+  };
+
 }  // namespace micm
