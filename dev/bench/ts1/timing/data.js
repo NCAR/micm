@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786723676187,
+  "lastUpdate": 1786723759628,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -215,6 +215,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 46042.9,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "97ac9e5d8aadd345c242722ee8274d71dfe0f73e",
+          "message": "update python version to correct ci failure (#1061)",
+          "timestamp": "2026-08-14T10:17:55-05:00",
+          "tree_id": "7e9cd39e9e1beef97b5d3c7547b0b3dfd6cfe9b2",
+          "url": "https://github.com/NCAR/micm/commit/97ac9e5d8aadd345c242722ee8274d71dfe0f73e"
+        },
+        "date": 1786723759027,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 115329.32,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 115160.81,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 92414.77,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 81495.91,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 77471.47,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 45142.36,
             "unit": "ms"
           }
         ]
