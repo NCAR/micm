@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786484739899,
+  "lastUpdate": 1786723676187,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -161,6 +161,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 49781.02,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6c1491ce289b51ef58d444a2b9176f43501868c3",
+          "message": "adding more detail to performance table and description (#1060)",
+          "timestamp": "2026-08-14T10:15:31-05:00",
+          "tree_id": "e240f5661808519cbd26a09f6d8af87868f4e520",
+          "url": "https://github.com/NCAR/micm/commit/6c1491ce289b51ef58d444a2b9176f43501868c3"
+        },
+        "date": 1786723675440,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 117830.11,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 116866.35,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 96752.69,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 83954.96,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 79892.12,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 46042.9,
             "unit": "ms"
           }
         ]
