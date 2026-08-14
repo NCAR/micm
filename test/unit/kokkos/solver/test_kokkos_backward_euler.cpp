@@ -78,7 +78,7 @@ void CheckIsConverged()
 
   parameters.small_ = 1e-6;
   micm::Real relative_tolerance = 1e-3;
-  typename DenseMatrixPolicy::VectorType<micm::Real> absolute_tolerance_data = { 1e-6, 1e-6, 1e-6 };
+  typename DenseMatrixPolicy::template VectorType<micm::Real> absolute_tolerance_data = { 1e-6, 1e-6, 1e-6 };
 
   residual.CopyToDevice();
   Yn1.CopyToDevice();

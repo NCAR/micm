@@ -45,9 +45,9 @@ namespace micm
   {
     using SparseMatrix = SparseMatrixPolicy;
     template<class U>
-    using Vector = typename SparseMatrix::VectorType<U>;
+    using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
-    using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
    public:
     struct Views
     {

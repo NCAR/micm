@@ -59,7 +59,7 @@ namespace micm
     template<class U>
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
-    using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
     template<class U>
     using Scalar = typename SparseMatrix::template ScalarType<U>;
    public:

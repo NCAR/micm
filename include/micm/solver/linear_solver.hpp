@@ -54,7 +54,7 @@ namespace micm
     template<class U>
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
-    using VectorView = typename SparseMatrix::VectorType<U>::ConstViewType;
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
    public:
     using DenseMatrixType = MatrixPolicy;
     using SparseMatrixType = SparseMatrixPolicy;
