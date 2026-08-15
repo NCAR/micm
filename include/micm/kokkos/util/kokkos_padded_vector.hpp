@@ -5,7 +5,6 @@
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
-// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 #include <initializer_list>
 #include <vector>
@@ -33,7 +32,7 @@ namespace micm
       Kokkos::View<const T*> view_;
       Index size_;
 
-      KOKKOS_INLINE_FUNCTION const T& operator[](Index i) const
+      KOKKOS_INLINE_FUNCTION const T& operator[](Index i) const  // NOLINT(readability-identifier-naming)
       {
         return view_(i);
       }
@@ -68,7 +67,7 @@ namespace micm
       Kokkos::View<T*> view_;
       Index size_;
 
-      KOKKOS_INLINE_FUNCTION T& operator[](Index i) const
+      KOKKOS_INLINE_FUNCTION T& operator[](Index i) const  // NOLINT(readability-identifier-naming)
       {
         return view_(i);
       }

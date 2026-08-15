@@ -4,7 +4,6 @@
 
 #include <micm/util/types.hpp>
 
-// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 
 namespace micm
@@ -52,7 +51,7 @@ namespace micm
         return view_(0);
       }
 
-      KOKKOS_INLINE_FUNCTION T& operator=(const T& other)
+      KOKKOS_INLINE_FUNCTION T& operator=(const T& other)  // NOLINT(readability-identifier-naming)
       {
         view_(0) = other;
         return view_(0);

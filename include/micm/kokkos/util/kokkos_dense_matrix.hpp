@@ -11,7 +11,6 @@
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 #include <vector>
 

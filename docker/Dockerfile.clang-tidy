@@ -28,6 +28,7 @@ FROM install AS build-cpu
 # Non-CUDA configure: generates ./build/compile_commands.json
 RUN cmake \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DMICM_ENABLE_KOKKOS=ON \
       -B./build \
       -S.
 

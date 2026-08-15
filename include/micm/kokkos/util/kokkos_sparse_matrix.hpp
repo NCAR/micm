@@ -10,7 +10,6 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
-// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 #include <cmath>
 #include <vector>
@@ -432,8 +431,8 @@ namespace micm
     /// @brief Access the non-zero element at a precomputed flat index (from
     ///        VectorIndex(0, row, col)) in every block, for direct on-device
     ///        modification via ForEachBlock().
-    KOKKOS_INLINE_FUNCTION KokkosBlockView<T, L> GetBlockView(
-        Index vector_index)  // NOLINT(readability-identifier-naming) clang-tidy thinks KokkosBlockView is a class member
+    KOKKOS_INLINE_FUNCTION KokkosBlockView<T, L> GetBlockView(  // NOLINT(readability-identifier-naming)
+        Index vector_index)
     {
       return KokkosBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
     }

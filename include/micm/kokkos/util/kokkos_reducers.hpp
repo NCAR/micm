@@ -4,7 +4,6 @@
 
 #include <micm/kokkos/util/kokkos_scalar_view.hpp>
 
-// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 
 namespace micm
@@ -23,7 +22,7 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION T* device_ptr() const
+    KOKKOS_INLINE_FUNCTION T* device_ptr() const  // NOLINT(readability-identifier-naming)
     {
       return view_.data();
     }
@@ -61,7 +60,7 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION T* device_ptr() const
+    KOKKOS_INLINE_FUNCTION T* device_ptr() const  // NOLINT(readability-identifier-naming)
     {
       return view_.data();
     }

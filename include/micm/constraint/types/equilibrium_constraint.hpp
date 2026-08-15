@@ -569,11 +569,17 @@ namespace micm
                   [=](const Real& conc, const Real& prod, Real& partial)
                   {
                     if (stoich_i == 1.0)
+                    {
                       partial = prod;
+                    }
                     else if (conc > 0.0)
+                    {
                       partial = stoich_i * prod * std::pow(conc, stoich_i - 1.0);
+                    }
                     else
+                    {
                       partial = 0.0;
+                    }
                   },
                   state_view.GetConstColumnView(species_idx_i),
                   partial_product,

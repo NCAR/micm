@@ -165,7 +165,7 @@ namespace micm
 
     MICM_DEVICE_FUNCTION static constexpr Bool Identity()
     {
-      return true;
+      return static_cast<Bool>(true);
     }
 
     MICM_DEVICE_FUNCTION static constexpr void Join(Bool& dst, Bool src)
