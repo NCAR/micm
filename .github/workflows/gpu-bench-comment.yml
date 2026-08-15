@@ -48,16 +48,16 @@ jobs:
           fail-on-alert: false
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
-      - name: Comment instruction-count comparison on PR
+      - name: Comment TS1 timing comparison on PR
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Instruction Counts (GPU runner)
+          name: Chapman Timing (GPU runner)
           tool: customSmallerIsBetter
-          output-file-path: cuda_instructions.json
+          output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          benchmark-data-dir-path: dev/bench/gpu/instructions
+          benchmark-data-dir-path: dev/bench/gpu/timing
           comment-always: true
           save-data-file: false
-          alert-threshold: 105%
+          alert-threshold: 120%
           fail-on-alert: false
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
