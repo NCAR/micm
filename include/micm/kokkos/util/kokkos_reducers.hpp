@@ -22,7 +22,7 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION T* device_ptr() const  // NOLINT(readability-identifier-naming)
+    KOKKOS_INLINE_FUNCTION T* DevicePtr() const  // NOLINT(readability-identifier-naming)
     {
       return view_.data();
     }
@@ -33,7 +33,7 @@ namespace micm
     }
 
     template<typename RowFunc>
-    KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
+    KOKKOS_INLINE_FUNCTION void TeamReduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
       T local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::Sum<T>(local));
@@ -60,7 +60,7 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION T* device_ptr() const  // NOLINT(readability-identifier-naming)
+    KOKKOS_INLINE_FUNCTION T* DevicePtr() const  // NOLINT(readability-identifier-naming)
     {
       return view_.data();
     }
@@ -70,7 +70,7 @@ namespace micm
       return T{};
     }
     template<typename RowFunc>
-    KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
+    KOKKOS_INLINE_FUNCTION void TeamReduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
       T local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::Max<T>(local));
@@ -100,7 +100,7 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION T* device_ptr() const
+    KOKKOS_INLINE_FUNCTION T* DevicePtr() const
     {
       return view_.data();
     }
@@ -111,7 +111,7 @@ namespace micm
     }
 
     template<typename RowFunc>
-    KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
+    KOKKOS_INLINE_FUNCTION void TeamReduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
       Bool local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LOr<Bool>(local));
@@ -120,13 +120,15 @@ namespace micm
           [&]()
           {
             if (local)
+            {
               Kokkos::atomic_store(view_.data(), true);
+            }
           });
     }
 
     KOKKOS_INLINE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
-      dst = dst || src;
+      dst = static_cast<T>(static_cast<bool>(dst) || static_cast<bool>(src));
     }
   };
 
@@ -144,7 +146,7 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION T* device_ptr() const
+    KOKKOS_INLINE_FUNCTION T* DevicePtr() const
     {
       return view_.data();
     }
@@ -155,7 +157,7 @@ namespace micm
     }
 
     template<typename RowFunc>
-    KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
+    KOKKOS_INLINE_FUNCTION void TeamReduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
       Bool local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LAnd<Bool>(local));
@@ -164,13 +166,15 @@ namespace micm
           [&]()
           {
             if (!local)
+            {
               Kokkos::atomic_store(view_.data(), false);
+            }
           });
     }
 
     KOKKOS_INLINE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
-      dst = dst && src;
+      dst = static_cast<T>(static_cast<bool>(dst) && static_cast<bool>(src));
     }
   };
 }  // namespace micm

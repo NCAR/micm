@@ -85,7 +85,7 @@ namespace micm
     }
 
     template<typename... Ts>
-    KOKKOS_INLINE_FUNCTION DeviceTuple<std::decay_t<Ts>...> make_device_tuple(Ts&&... ts)
+    KOKKOS_INLINE_FUNCTION DeviceTuple<std::decay_t<Ts>...> MakeDeviceTuple(Ts&&... ts)
     {
       return DeviceTuple<std::decay_t<Ts>...>(std::forward<Ts>(ts)...);
     }
@@ -385,7 +385,6 @@ namespace micm
       }
     };
 
-   public:
     KokkosDenseMatrix()
         : VectorMatrix<T, L>()
     {
@@ -628,9 +627,13 @@ namespace micm
       {
         auto& storage = arg.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+        {
           return storage;  // KokkosBlockVariable<T,1>: scalar
+        }
         else
+        {
           return storage[row_in_group];  // KokkosRowVariable (always array) or L>1
+        }
       }
 
       template<KokkosVectorLike Arg>
@@ -752,7 +755,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             L,
             [&](const Index row_in_group, AccT& acc)
@@ -765,7 +768,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             num_rows_in_group_,
             [&](const Index row_in_group, AccT& acc)
@@ -806,9 +809,13 @@ namespace micm
       {
         auto& storage = arg.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
+        {
           return storage;  // KokkosBlockVariable<T,1>: scalar
+        }
         else
+        {
           return storage[row_in_group];  // KokkosRowVariable (always array) or L>1
+        }
       }
 
       template<KokkosVectorLike Arg>
@@ -963,7 +970,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             L,
             [&](const Index row_in_group, AccT& acc)
@@ -976,7 +983,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             num_rows_in_group_,
             [&](const Index row_in_group, AccT& acc)
@@ -1085,7 +1092,7 @@ namespace micm
         // Always dispatch via Kokkos::TeamPolicy (never a bare RangePolicy), even when
         // L == 1: GroupView/ConstGroupView require a real TeamMember for
         // TeamThreadRange/team_barrier, and TeamMember is not default-constructible.
-        auto dev_handles = detail::make_device_tuple(MakeHandle(invoked_args)...);
+        auto dev_handles = detail::MakeDeviceTuple(MakeHandle(invoked_args)...);
         using DH = decltype(dev_handles);
 
         if (num_complete_groups > 0)
@@ -1123,7 +1130,7 @@ namespace micm
 
       // Bundle args into a DeviceTuple so that the Kokkos functor structs below
       // can capture a single object rather than a parameter pack, satisfying NVHPC.
-      auto args_tuple = detail::make_device_tuple(args...);
+      auto args_tuple = detail::MakeDeviceTuple(args...);
       using AT = decltype(args_tuple);
 
       if constexpr (L == 1)

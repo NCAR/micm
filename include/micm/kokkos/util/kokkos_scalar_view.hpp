@@ -59,7 +59,10 @@ namespace micm
 
       KOKKOS_INLINE_FUNCTION DeviceView& operator=(const DeviceView& other)
       {
-        view_(0) = other.view_(0);
+        if (this != &other)
+        {
+          view_(0) = other.view_(0);
+        }
         return *this;
       }
 
@@ -115,7 +118,10 @@ namespace micm
 
     KokkosScalarView<T>& operator=(const KokkosScalarView<T>& other)
     {
-      data_(0) = other.data_(0);
+      if (this != &other)
+      {
+        data_(0) = other.data_(0);
+      }
       return *this;
     }
 

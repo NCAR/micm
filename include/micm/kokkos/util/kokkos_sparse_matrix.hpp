@@ -297,7 +297,6 @@ namespace micm
       }
     };
 
-   public:
     KokkosSparseMatrix()
         : SparseMatrix<T, OrderingPolicy>()
     {
@@ -457,7 +456,7 @@ namespace micm
       KokkosViewType view = view_;
 
       // Bundle args into a DeviceTuple (see KokkosDenseMatrix::ForEachRow for rationale).
-      auto args_tuple = detail::make_device_tuple(args...);
+      auto args_tuple = detail::MakeDeviceTuple(args...);
       using AT = decltype(args_tuple);
 
       if constexpr (L == 1)
@@ -472,7 +471,7 @@ namespace micm
         return;
       }
 
-      const Index num_complete_groups = static_cast<Index>(std::floor(num_blocks / (double)L));
+      const auto num_complete_groups = static_cast<Index>(std::floor(num_blocks / (double)L));
       const Index remaining = num_blocks % L;
 
       if (num_complete_groups > 0)
@@ -669,7 +668,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             L,
             [&](const Index block_in_group, AccT& acc)
@@ -682,7 +681,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             num_blocks_in_group_,
             [&](const Index block_in_group, AccT& acc)
@@ -906,7 +905,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             L,
             [&](const Index block_in_group, AccT& acc)
@@ -919,7 +918,7 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
-        reducer.team_reduce(
+        reducer.TeamReduce(
             team_,
             num_blocks_in_group_,
             [&](const Index block_in_group, AccT& acc)
@@ -1018,7 +1017,7 @@ namespace micm
         // Bundle handles into a DeviceTuple and dispatch via named Kokkos functor structs.
         // See KokkosDenseMatrix::Function() for the full rationale on why
         // generic-lambda + KOKKOS_LAMBDA nesting and pack capture must be avoided.
-        auto dev_handles = detail::make_device_tuple(MakeHandle(invoked_args)...);
+        auto dev_handles = detail::MakeDeviceTuple(MakeHandle(invoked_args)...);
         using DH = decltype(dev_handles);
 
         if (num_complete_groups > 0)
