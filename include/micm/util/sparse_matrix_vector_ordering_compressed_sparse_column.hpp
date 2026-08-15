@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/sparse_matrix.hpp>
 #include <micm/util/padded_vector.hpp>
+#include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 

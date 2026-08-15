@@ -30,34 +30,47 @@ namespace micm
         nujk_nljk_uik_(std::move(other.nujk_nljk_uik_)),
         ujk_lji_(std::move(other.ujk_lji_)),
         ljk_lji_(std::move(other.ljk_lji_)),
-        views_(lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_)
+        views_(
+            lii_nuji_nlji_,
+            uji_aji_,
+            lji_aji_,
+            fill_uji_,
+            fill_lji_,
+            uii_nj_nk_,
+            lji_,
+            nujk_nljk_uik_,
+            ujk_lji_,
+            ljk_lji_)
   {
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionMozart<SparseMatrixPolicy>& LuDecompositionMozart<SparseMatrixPolicy>::operator=(LuDecompositionMozart&& other) noexcept
+  inline LuDecompositionMozart<SparseMatrixPolicy>& LuDecompositionMozart<SparseMatrixPolicy>::operator=(
+      LuDecompositionMozart&& other) noexcept
   {
-      if (this != &other)
-      {
-          lii_nuji_nlji_ = std::move(other.lii_nuji_nlji_);
-          uji_aji_ = std::move(other.uji_aji_);
-          lji_aji_ = std::move(other.lji_aji_);
-          fill_uji_ = std::move(other.fill_uji_);
-          fill_lji_ = std::move(other.fill_lji_);
-          uii_nj_nk_ = std::move(other.uii_nj_nk_);
-          lji_ = std::move(other.lji_);
-          nujk_nljk_uik_ = std::move(other.nujk_nljk_uik_);
-          ujk_lji_ = std::move(other.ujk_lji_);
-          ljk_lji_ = std::move(other.ljk_lji_);
-          views_       = Views(lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_);
-      }
-      return *this;
+    if (this != &other)
+    {
+      lii_nuji_nlji_ = std::move(other.lii_nuji_nlji_);
+      uji_aji_ = std::move(other.uji_aji_);
+      lji_aji_ = std::move(other.lji_aji_);
+      fill_uji_ = std::move(other.fill_uji_);
+      fill_lji_ = std::move(other.fill_lji_);
+      uii_nj_nk_ = std::move(other.uii_nj_nk_);
+      lji_ = std::move(other.lji_);
+      nujk_nljk_uik_ = std::move(other.nujk_nljk_uik_);
+      ujk_lji_ = std::move(other.ujk_lji_);
+      ljk_lji_ = std::move(other.ljk_lji_);
+      views_ = Views(
+          lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_);
+    }
+    return *this;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionMozart<SparseMatrixPolicy> LuDecompositionMozart<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionMozart<SparseMatrixPolicy> LuDecompositionMozart<SparseMatrixPolicy>::Create(
+      const SparseMatrixPolicy& matrix)
   {
     LuDecompositionMozart<SparseMatrixPolicy> lu_decomp{};
     lu_decomp.Initialize(matrix, typename SparseMatrixPolicy::value_type());
@@ -95,7 +108,7 @@ namespace micm
           }
           continue;
         }
-        uji_aji_temp.push_back({LU.second.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)});
+        uji_aji_temp.push_back({ LU.second.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i) });
         ++(lii_nuji_nlji.second_);
       }
       // set initial values for L matrix
@@ -109,7 +122,7 @@ namespace micm
           }
           continue;
         }
-        lji_aji_temp.push_back({LU.first.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)});
+        lji_aji_temp.push_back({ LU.first.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i) });
         ++(lii_nuji_nlji.third_);
       }
       lii_nuji_nlji_temp.push_back(lii_nuji_nlji);
@@ -188,7 +201,8 @@ namespace micm
     nujk_nljk_uik_.CopyToDevice();
     ujk_lji_.CopyToDevice();
     ljk_lji_.CopyToDevice();
-    views_ = Views(lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_);
+    views_ = Views(
+        lii_nuji_nlji_, uji_aji_, lji_aji_, fill_uji_, fill_lji_, uii_nj_nk_, lji_, nujk_nljk_uik_, ujk_lji_, ljk_lji_);
   }
 
   template<class SparseMatrixPolicy>
@@ -266,14 +280,19 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionMozart<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
+  inline void LuDecompositionMozart<SparseMatrixPolicy>::Decompose(
+      const SparseMatrixPolicy& A,
+      SparseMatrixPolicy& L,
+      SparseMatrixPolicy& U) const
   {
     Scalar<Index> n = A.NumRows();
     n.CopyToDevice();
     const auto& views = views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename SparseMatrix::ConstViewType A_view, typename SparseMatrix::ViewType lower_view, typename SparseMatrix::ViewType upper_view)
-        {
+        MICM_LAMBDA(
+            typename SparseMatrix::ConstViewType A_view,
+            typename SparseMatrix::ViewType lower_view,
+            typename SparseMatrix::ViewType upper_view) {
           auto uji_aji = views.uji_aji_.begin();
           auto lji_aji = views.lji_aji_.begin();
           auto uii_nj_nk = views.uii_nj_nk_.begin();

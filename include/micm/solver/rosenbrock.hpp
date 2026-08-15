@@ -52,6 +52,7 @@ namespace micm
     using SparseMatrix = typename LinearSolverPolicy::SparseMatrixType;
     using DenseMatrix = typename LinearSolverPolicy::DenseMatrixType;
     using LuDecomposition = typename LinearSolverPolicy::LuDecompositionType;
+
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;

@@ -211,8 +211,7 @@ namespace micm
     /// @brief Evaluate parameterized multipliers on CPU, pack into interleaved layout, and upload.
     ///        Layout: [group * n_mults * L + mult * L + lane]
     /// @return Device pointer to multiplier values, or nullptr if there are no multipliers.
-    const Real*
-    UploadMultiplierValues(const auto& cpu_store, const auto& conditions, Index L)
+    const Real* UploadMultiplierValues(const auto& cpu_store, const auto& conditions, Index L)
     {
       const auto& mults = cpu_store.parameterized_multipliers_;
       if (mults.empty())

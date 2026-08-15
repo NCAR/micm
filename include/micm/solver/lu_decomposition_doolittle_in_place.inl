@@ -12,14 +12,16 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::LuDecompositionDoolittleInPlace(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::LuDecompositionDoolittleInPlace(
+      const SparseMatrixPolicy& matrix)
   {
     Initialize(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::LuDecompositionDoolittleInPlace(LuDecompositionDoolittleInPlace&& other) noexcept
+  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::LuDecompositionDoolittleInPlace(
+      LuDecompositionDoolittleInPlace&& other) noexcept
       : nik_nki_aii_(std::move(other.nik_nki_aii_)),
         aik_njk_(std::move(other.aik_njk_)),
         aij_ajk_(std::move(other.aij_ajk_)),
@@ -31,23 +33,25 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy>& LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::operator=(LuDecompositionDoolittleInPlace&& other) noexcept
+  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy>& LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::operator=(
+      LuDecompositionDoolittleInPlace&& other) noexcept
   {
-      if (this != &other)
-      {
-          nik_nki_aii_ = std::move(other.nik_nki_aii_);
-          aik_njk_ = std::move(other.aik_njk_);
-          aij_ajk_ = std::move(other.aij_ajk_);
-          aki_nji_ = std::move(other.aki_nji_);
-          akj_aji_ = std::move(other.akj_aji_);
-          views_       = Views(nik_nki_aii_, aik_njk_, aij_ajk_, aki_nji_, akj_aji_);
-      }
-      return *this;
+    if (this != &other)
+    {
+      nik_nki_aii_ = std::move(other.nik_nki_aii_);
+      aik_njk_ = std::move(other.aik_njk_);
+      aij_ajk_ = std::move(other.aij_ajk_);
+      aki_nji_ = std::move(other.aki_nji_);
+      akj_aji_ = std::move(other.akj_aji_);
+      views_ = Views(nik_nki_aii_, aik_njk_, aij_ajk_, aki_nji_, akj_aji_);
+    }
+    return *this;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy> LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionDoolittleInPlace<SparseMatrixPolicy> LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::Create(
+      const SparseMatrixPolicy& matrix)
   {
     LuDecompositionDoolittleInPlace<SparseMatrixPolicy> lu_decomp{};
     lu_decomp.Initialize(matrix, typename SparseMatrixPolicy::value_type());
@@ -56,7 +60,9 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
+  inline void LuDecompositionDoolittleInPlace<SparseMatrixPolicy>::Initialize(
+      const SparseMatrixPolicy& matrix,
+      auto initial_value)
   {
     Index n = matrix.NumRows();
     auto ALU = GetLUMatrix(matrix, initial_value, true);
@@ -85,7 +91,7 @@ namespace micm
           {
             continue;
           }
-          aij_ajk_temp.push_back({ALU.VectorIndex(0, i, j), ALU.VectorIndex(0, j, k)});
+          aij_ajk_temp.push_back({ ALU.VectorIndex(0, i, j), ALU.VectorIndex(0, j, k) });
           ++(aik_njk.second_);
         }
         aik_njk_temp.push_back(aik_njk);
@@ -104,7 +110,7 @@ namespace micm
           {
             continue;
           }
-          akj_aji_temp.push_back({ALU.VectorIndex(0, k, j), ALU.VectorIndex(0, j, i)});
+          akj_aji_temp.push_back({ ALU.VectorIndex(0, k, j), ALU.VectorIndex(0, j, i) });
           ++(aki_nji.second_);
         }
         aki_nji_temp.push_back(aki_nji);
@@ -185,8 +191,7 @@ namespace micm
   {
     const auto& views = views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename SparseMatrix::ViewType alu_view)
-        {
+        MICM_LAMBDA(typename SparseMatrix::ViewType alu_view) {
           auto aik_njk = views.aik_njk_.begin();
           auto aij_ajk = views.aij_ajk_.begin();
           auto aki_nji = views.aki_nji_.begin();
@@ -220,9 +225,7 @@ namespace micm
                 ++akj_aji;
               }
               alu_view.ForEachBlock(
-                  [](Real& aki, const Real& aii) { aki /= aii; },
-                  aki_view,
-                  alu_view.GetConstBlockView(nik_nki_aii.third_));
+                  [](Real& aki, const Real& aii) { aki /= aii; }, aki_view, alu_view.GetConstBlockView(nik_nki_aii.third_));
               ++aki_nji;
             }
           }

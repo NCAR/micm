@@ -11,7 +11,7 @@
 
 #ifdef MICM_ENABLE_KOKKOS
   #include <Kokkos_Macros.hpp>
-  #define MICM_LAMBDA KOKKOS_LAMBDA
+  #define MICM_LAMBDA          KOKKOS_LAMBDA
   #define MICM_DEVICE_FUNCTION KOKKOS_INLINE_FUNCTION
 #else
   #define MICM_LAMBDA [=]
@@ -47,7 +47,7 @@ namespace micm
     Index second_;
     Index third_;
   };
-  
+
   /// @brief A device-compatible struct for holding pairs of indices
   struct IndexPair
   {

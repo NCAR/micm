@@ -12,22 +12,22 @@
 
 namespace micm
 {
-    /// @brief Builder of Kokkos-backed solvers
-    /// @tparam SolverParametersPolicy Policy for the solver parameters struct
-    /// @tparam L Vector dimension
-    template<class SolverParametersPolicy, Index L = MICM_DEFAULT_VECTOR_SIZE>
-    using KokkosSolverBuilder = SolverBuilder<
-        SolverParametersPolicy,
-        KokkosDenseMatrix<Real, L>,
-        KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
-        ProcessSet<KokkosDenseMatrix<Real, L>, KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>,
-        LuDecompositionMozartInPlace<KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>,
-        LinearSolverInPlace<
-            KokkosDenseMatrix<Real, L>,
-            KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
-            LuDecompositionMozartInPlace<KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>>,
-        State<
-            KokkosDenseMatrix<Real, L>,
-            KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
-            LuDecompositionMozartInPlace<KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>>>;
-}
+  /// @brief Builder of Kokkos-backed solvers
+  /// @tparam SolverParametersPolicy Policy for the solver parameters struct
+  /// @tparam L Vector dimension
+  template<class SolverParametersPolicy, Index L = MICM_DEFAULT_VECTOR_SIZE>
+  using KokkosSolverBuilder = SolverBuilder<
+      SolverParametersPolicy,
+      KokkosDenseMatrix<Real, L>,
+      KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
+      ProcessSet<KokkosDenseMatrix<Real, L>, KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>,
+      LuDecompositionMozartInPlace<KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>,
+      LinearSolverInPlace<
+          KokkosDenseMatrix<Real, L>,
+          KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
+          LuDecompositionMozartInPlace<KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>>,
+      State<
+          KokkosDenseMatrix<Real, L>,
+          KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>,
+          LuDecompositionMozartInPlace<KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<L>>>>>;
+}  // namespace micm

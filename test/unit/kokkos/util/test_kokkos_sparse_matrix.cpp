@@ -17,14 +17,13 @@ using KokkosOrdering3 = micm::SparseMatrixVectorOrderingCompressedSparseRow<3>;
 using KokkosOrdering4 = micm::SparseMatrixVectorOrderingCompressedSparseRow<4>;
 
 template<class T>
-using KokkosDense1 = micm::KokkosDenseMatrix<T,1>;
+using KokkosDense1 = micm::KokkosDenseMatrix<T, 1>;
 template<class T>
-using KokkosDense2 = micm::KokkosDenseMatrix<T,2>;
+using KokkosDense2 = micm::KokkosDenseMatrix<T, 2>;
 template<class T>
-using KokkosDense3 = micm::KokkosDenseMatrix<T,3>;
+using KokkosDense3 = micm::KokkosDenseMatrix<T, 3>;
 template<class T>
-using KokkosDense4 = micm::KokkosDenseMatrix<T,4>;
-
+using KokkosDense4 = micm::KokkosDenseMatrix<T, 4>;
 
 // Core matrix tests
 TEST(KokkosSparseMatrix, ZeroMatrix)

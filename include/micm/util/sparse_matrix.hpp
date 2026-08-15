@@ -358,10 +358,14 @@ namespace micm
     /// override this to copy host data to a device mirror. Defined here as a
     /// no-op so shared MatrixPolicy tests and solver code can call it
     /// unconditionally regardless of which matrix policy is in use.
-    void CopyToDevice() const {}
+    void CopyToDevice() const
+    {
+    }
 
     /// @brief No-op device-to-host sync hook. See CopyToDevice().
-    void CopyToHost() const {}
+    void CopyToHost() const
+    {
+    }
 
     /// @brief Creates a scalar usable with this matrix type in Function lambda captures
     /// @param init initial value for scalar
@@ -370,7 +374,7 @@ namespace micm
     ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
     {
       return ScalarType<ScaT>(init);
-    }  
+    }
 
     ConstProxyRow operator[](Index b) const
     {

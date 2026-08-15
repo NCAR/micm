@@ -19,7 +19,7 @@
 
 namespace micm
 {
-  
+
   /// @brief Constraint for chemical equilibrium with temperature-dependent K_eq using Van't Hoff equation
   ///        For a reversible reaction: aA + bB <-> cC + dD
   ///        The equilibrium constraint is: G = K_eq(T) * [A]^a * [B]^b - [C]^c * [D]^d = 0
@@ -35,8 +35,8 @@ namespace micm
     using VectorView = typename Vector<U>::ConstViewType;
     template<class U>
     using Scalar = typename DenseMatrix::template ScalarType<U>;
+
    public:
-    
     /// @brief Define parameters for Van't Hoff equation
     struct VantHoffParam
     {
@@ -61,20 +61,20 @@ namespace micm
       VectorView<Real> product_stoich_;
       VectorView<Index> product_state_idx_;
       VectorView<Index> flat_ids_;
-      
+
       Views() = default;
-      
+
       Views(
-        const Vector<Real>& reactant_stoich,
-        const Vector<Index>& reactant_state_idx,
-        const Vector<Real>& product_stoich,
-        const Vector<Index>& product_state_idx,
-        const Vector<Index>& flat_ids
-      ) : reactant_stoich_(reactant_stoich.GetView()),
-          reactant_state_idx_(reactant_state_idx.GetView()),
-          product_stoich_(product_stoich.GetView()),
-          product_state_idx_(product_state_idx.GetView()),
-          flat_ids_(flat_ids.GetView())
+          const Vector<Real>& reactant_stoich,
+          const Vector<Index>& reactant_state_idx,
+          const Vector<Real>& product_stoich,
+          const Vector<Index>& product_state_idx,
+          const Vector<Index>& flat_ids)
+          : reactant_stoich_(reactant_stoich.GetView()),
+            reactant_state_idx_(reactant_state_idx.GetView()),
+            product_stoich_(product_stoich.GetView()),
+            product_state_idx_(product_state_idx.GetView()),
+            flat_ids_(flat_ids.GetView())
       {
       }
     };
@@ -96,7 +96,6 @@ namespace micm
 
     /// @brief For equilibrium constraints, this contains a single parameter K_eq
     std::vector<std::string> parameters_;
-
 
    private:
     /// @brief Van't Hoff equation parameter used to calculate Henry’s Law Constant
@@ -163,21 +162,21 @@ namespace micm
     }
 
     EquilibriumConstraint(EquilibriumConstraint&& other) noexcept
-      : name_(std::move(other.name_)),
-        algebraic_species_(std::move(other.algebraic_species_)),
-        species_dependencies_(std::move(other.species_dependencies_)),
-        reactants_(std::move(other.reactants_)),
-        products_(std::move(other.products_)),
-        parameters_(std::move(other.parameters_)),
-        vant_hoff_param_(std::move(other.vant_hoff_param_)),
-        reactant_dependency_indices_(std::move(other.reactant_dependency_indices_)),
-        product_dependency_indices_(std::move(other.product_dependency_indices_)),
-        reactant_stoich_(std::move(other.reactant_stoich_)),
-        reactant_state_idx_(std::move(other.reactant_state_idx_)),
-        product_stoich_(std::move(other.product_stoich_)),
-        product_state_idx_(std::move(other.product_state_idx_)),
-        flat_ids_(std::move(other.flat_ids_)),
-        views_(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_)
+        : name_(std::move(other.name_)),
+          algebraic_species_(std::move(other.algebraic_species_)),
+          species_dependencies_(std::move(other.species_dependencies_)),
+          reactants_(std::move(other.reactants_)),
+          products_(std::move(other.products_)),
+          parameters_(std::move(other.parameters_)),
+          vant_hoff_param_(std::move(other.vant_hoff_param_)),
+          reactant_dependency_indices_(std::move(other.reactant_dependency_indices_)),
+          product_dependency_indices_(std::move(other.product_dependency_indices_)),
+          reactant_stoich_(std::move(other.reactant_stoich_)),
+          reactant_state_idx_(std::move(other.reactant_state_idx_)),
+          product_stoich_(std::move(other.product_stoich_)),
+          product_state_idx_(std::move(other.product_state_idx_)),
+          flat_ids_(std::move(other.flat_ids_)),
+          views_(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_)
     {
     }
 
@@ -314,17 +313,15 @@ namespace micm
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
               typename Vector<Conditions>::ConstViewType conditions_view,
-              typename DenseMatrixPolicy::ViewType state_param_view)
-          {
+              typename DenseMatrixPolicy::ViewType state_param_view) {
             state_param_view.ForEachRow(
                 [=](const Conditions& cond, Real& K_eq)
-                {
-                  K_eq = K_ref * std::exp((delta_H / R) * (1.0 / cond.temperature_ - 1.0 / T_ref));
-                },
+                { K_eq = K_ref * std::exp((delta_H / R) * (1.0 / cond.temperature_ - 1.0 / T_ref)); },
                 conditions_view,
                 state_param_view.GetColumnView(K_eq_idx));
           },
-          conditions, state_param)(conditions, state_param);
+          conditions,
+          state_param)(conditions, state_param);
     }
 
     void SetStateIndices(const ConstraintInfo& info, auto& jacobian_flat_ids)
@@ -394,15 +391,18 @@ namespace micm
       const auto& views = views_;
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-            typename DenseMatrixPolicy::ConstViewType state_view,
-            typename DenseMatrixPolicy::ConstViewType state_param_view,
-            typename DenseMatrixPolicy::ViewType force_view)
-          {
+              typename DenseMatrixPolicy::ConstViewType state_view,
+              typename DenseMatrixPolicy::ConstViewType state_param_view,
+              typename DenseMatrixPolicy::ViewType force_view) {
             auto reactant_product = force_view.GetRowVariable();
             auto product_product = force_view.GetRowVariable();
 
             state_view.ForEachRow(
-                [=](const Real& K_eq, Real& rp, Real& pp) { rp = K_eq; pp = 1.0; },
+                [=](const Real& K_eq, Real& rp, Real& pp)
+                {
+                  rp = K_eq;
+                  pp = 1.0;
+                },
                 state_param_view.GetConstColumnView(K_eq_idx),
                 reactant_product,
                 product_product);
@@ -433,7 +433,9 @@ namespace micm
                 product_product,
                 force_view.GetColumnView(row_idx));
           },
-          state, state_param, forcing)(state, state_param, forcing);
+          state,
+          state_param,
+          forcing)(state, state_param, forcing);
     }
 
     /// @brief Subtract Jacobian partial derivatives dG/d[species] from Jacobian matrix for all grid cells
@@ -457,14 +459,17 @@ namespace micm
           MICM_LAMBDA(
               typename DenseMatrix::ConstViewType state_view,
               typename DenseMatrix::ConstViewType state_param_view,
-              typename SparseMatrix::ViewType jacobian_values)
-          {
+              typename SparseMatrix::ViewType jacobian_values) {
             auto reactant_product = jacobian_values.GetBlockVariable();
             auto product_product = jacobian_values.GetBlockVariable();
             auto partial_derivative = jacobian_values.GetBlockVariable();
 
             jacobian_values.ForEachBlock(
-                [=](const Real& K_eq, Real& rp, Real& pp) { rp = K_eq; pp = 1.0; },
+                [=](const Real& K_eq, Real& rp, Real& pp)
+                {
+                  rp = K_eq;
+                  pp = 1.0;
+                },
                 state_param_view.GetConstColumnView(K_eq_idx),
                 reactant_product,
                 product_product);
@@ -574,7 +579,9 @@ namespace micm
                   jacobian_values.GetBlockView(views.flat_ids_[views.reactant_stoich_.size() + i]));
             }
           },
-          state, state_param, jacobian)(state, state_param, jacobian);
+          state,
+          state_param,
+          jacobian)(state, state_param, jacobian);
     }
   };
 

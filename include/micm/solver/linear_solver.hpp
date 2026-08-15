@@ -55,6 +55,7 @@ namespace micm
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
     using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
    public:
     using DenseMatrixType = MatrixPolicy;
     using SparseMatrixType = SparseMatrixPolicy;
@@ -69,17 +70,18 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<IndexPair>& nLij_Lii,
-        const Vector<IndexPair>& Lij_yj,
-        const Vector<IndexPair>& nUij_Uii,
-        const Vector<IndexPair>& Uij_xj
-      ) : nLij_Lii_(nLij_Lii.GetView()),
-          Lij_yj_(Lij_yj.GetView()),
-          nUij_Uii_(nUij_Uii.GetView()),
-          Uij_xj_(Uij_xj.GetView())
+          const Vector<IndexPair>& nLij_Lii,
+          const Vector<IndexPair>& Lij_yj,
+          const Vector<IndexPair>& nUij_Uii,
+          const Vector<IndexPair>& Uij_xj)
+          : nLij_Lii_(nLij_Lii.GetView()),
+            Lij_yj_(Lij_yj.GetView()),
+            nUij_Uii_(nUij_Uii.GetView()),
+            Uij_xj_(Uij_xj.GetView())
       {
       }
     };
+
    protected:
     // Parameters needed to calculate L (U x) = b
     //

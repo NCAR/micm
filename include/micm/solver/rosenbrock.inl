@@ -48,10 +48,7 @@ namespace micm
     {
       mass_coupling = DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-            typename DenseMatrixPolicy::ViewType k_stage_view,
-            typename DenseMatrixPolicy::ConstViewType k_j_view
-          )
-          {
+              typename DenseMatrixPolicy::ViewType k_stage_view, typename DenseMatrixPolicy::ConstViewType k_j_view) {
             for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
             {
               if (diagonal[i_var] != 0.0)
@@ -315,8 +312,7 @@ namespace micm
     // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
     auto& views = state.views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename SparseMatrixPolicy::ViewType jacobian_view)
-        {
+        MICM_LAMBDA(typename SparseMatrixPolicy::ViewType jacobian_view) {
           Index i_diag = 0;
           for (const auto& i_elem : views.jacobian_diagonal_elements_)
           {
@@ -374,10 +370,9 @@ namespace micm
 
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
-          typename DenseMatrixPolicy::ConstViewType y_view,
-          typename DenseMatrixPolicy::ConstViewType ynew_view,
-          typename DenseMatrixPolicy::ConstViewType errors_view)
-        {
+            typename DenseMatrixPolicy::ConstViewType y_view,
+            typename DenseMatrixPolicy::ConstViewType ynew_view,
+            typename DenseMatrixPolicy::ConstViewType errors_view) {
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
             // skip padding rows so their possibly non-zero values
@@ -436,71 +431,46 @@ namespace micm
 
     // Pre-build reusable Function objects outside the iteration loop
     auto check_convergence = DenseMatrixPolicy::Function(
-        MICM_LAMBDA(typename DenseMatrixPolicy::ConstViewType delta_view)
-        {
+        MICM_LAMBDA(typename DenseMatrixPolicy::ConstViewType delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
             if (diagonal[i_var] == 0.0)
             {
               auto col_view = delta_view.GetConstColumnView(i_var);
               delta_view.ReduceStrict(
-                LOrType{ nan_detected },
-                [](const Real& val, Bool& acc)
-                {
-                  acc = acc || std::isnan(val);
-                },
-                col_view);
+                  LOrType{ nan_detected }, [](const Real& val, Bool& acc) { acc = acc || std::isnan(val); }, col_view);
 
               delta_view.ReduceStrict(
-                LOrType{ inf_detected },
-                [](const Real& val, Bool& acc)
-                {
-                  acc = acc || std::isinf(val);
-                },
-                col_view);
+                  LOrType{ inf_detected }, [](const Real& val, Bool& acc) { acc = acc || std::isinf(val); }, col_view);
 
               // exclude padded cells incase they are non-zero
               delta_view.ReduceStrict(
-                MaxType{ max_residual },
-                [](const Real& val, Real& acc)
-                {
-                  Real abs_val = std::abs(val);
-                  if (!std::isnan(abs_val) && !std::isinf(abs_val))
+                  MaxType{ max_residual },
+                  [](const Real& val, Real& acc)
                   {
-                    acc = (acc > abs_val ? acc : abs_val);
-                  }
-                },
-                col_view);
+                    Real abs_val = std::abs(val);
+                    if (!std::isnan(abs_val) && !std::isinf(abs_val))
+                    {
+                      acc = (acc > abs_val ? acc : abs_val);
+                    }
+                  },
+                  col_view);
             }
           }
         },
         delta);
 
     auto apply_update = DenseMatrixPolicy::Function(
-        MICM_LAMBDA(
-          typename DenseMatrixPolicy::ViewType y_view,
-          typename DenseMatrixPolicy::ConstViewType delta_view
-        )
-        {
+        MICM_LAMBDA(typename DenseMatrixPolicy::ViewType y_view, typename DenseMatrixPolicy::ConstViewType delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
             if (diagonal[i_var] == 0.0)
             {
               auto d_col_view = delta_view.GetConstColumnView(i_var);
               y_view.ReduceStrict(
-                LOrType{ nan_detected },
-                [](const Real& d_val, Bool& acc)
-                {
-                  acc = acc || std::isnan(d_val);
-                },
-                d_col_view);
+                  LOrType{ nan_detected }, [](const Real& d_val, Bool& acc) { acc = acc || std::isnan(d_val); }, d_col_view);
               y_view.ReduceStrict(
-                LOrType{ inf_detected },
-                [](const Real& d_val, Bool& acc)
-                {
-                  acc = acc || std::isinf(d_val);
-                },
-                d_col_view);
+                  LOrType{ inf_detected }, [](const Real& d_val, Bool& acc) { acc = acc || std::isinf(d_val); }, d_col_view);
               y_view.ForEachRow(
                   [&](Real& y_val, const Real& d_val)
                   {

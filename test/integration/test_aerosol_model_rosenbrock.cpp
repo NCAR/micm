@@ -46,7 +46,8 @@ using VectorRosenbrockDolittleCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
+    micm::LuDecompositionDoolittle<
+        micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorRosenbrockMozartCSC = micm::CpuSolverBuilder<

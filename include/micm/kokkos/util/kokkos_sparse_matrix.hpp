@@ -3,9 +3,9 @@
 #pragma once
 
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_reducers.hpp>
 #include <micm/kokkos/util/kokkos_scalar_view.hpp>
-#include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -149,11 +149,8 @@ namespace micm
     ///        KokkosDenseMatrix group view) for one handle produced by MakeHandle().
     ///        Runs on-device (called from within a KOKKOS_LAMBDA).
     template<typename Handle>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) BuildGroupView(
-        Handle&& handle,
-        Index group,
-        Index count,
-        const TeamMember& team)
+    KOKKOS_INLINE_FUNCTION static decltype(auto)
+    BuildGroupView(Handle&& handle, Index group, Index count, const TeamMember& team)
     {
       using HandleType = std::remove_cvref_t<Handle>;
       if constexpr (std::is_same_v<HandleType, SparseMatrixHandle>)
@@ -315,15 +312,16 @@ namespace micm
     }
 
     KokkosSparseMatrix(const KokkosSparseMatrix& other)
-      : SparseMatrix<T, OrderingPolicy>(other),
-        view_("spase_matrix", other.view_.extent(0))
+        : SparseMatrix<T, OrderingPolicy>(other),
+          view_("spase_matrix", other.view_.extent(0))
     {
       Kokkos::deep_copy(view_, other.view_);
     }
 
     KokkosSparseMatrix& operator=(const KokkosSparseMatrix& other)
     {
-      if (this == &other) return *this;
+      if (this == &other)
+        return *this;
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       Kokkos::realloc(view_, other.view_.extent(0));
       Kokkos::deep_copy(view_, other.view_);
@@ -418,8 +416,7 @@ namespace micm
       Kokkos::parallel_for(
           "KokkosSparseMatrix::AddToDiagonal",
           Kokkos::RangePolicy<>(0, num_groups * num_diagonal_elements),
-          KOKKOS_LAMBDA(const Index idx)
-          {
+          KOKKOS_LAMBDA(const Index idx) {
             const Index group = idx / num_diagonal_elements;
             const Index base = group * group_size + d_offsets(idx % num_diagonal_elements);
             for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
@@ -605,7 +602,8 @@ namespace micm
         if constexpr (L > 1)
         {
           Kokkos::parallel_for(
-              Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.group_base_[src.block_offset_ + i]; });
+              Kokkos::TeamThreadRange(team_, L),
+              [&](const Index i) { storage[i] = src.group_base_[src.block_offset_ + i]; });
           team_.team_barrier();
         }
         else
@@ -668,10 +666,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, L,
-            [&](const Index block_in_group, AccT& acc) {
-                func(GetBlockElement(block_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            L,
+            [&](const Index block_in_group, AccT& acc)
+            { func(GetBlockElement(block_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
 
@@ -680,10 +679,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, num_blocks_in_group_,
-            [&](const Index block_in_group, AccT& acc) {
-                func(GeBlockElement(block_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            num_blocks_in_group_,
+            [&](const Index block_in_group, AccT& acc)
+            { func(GeBlockElement(block_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
     };
@@ -839,7 +839,8 @@ namespace micm
         if constexpr (L > 1)
         {
           Kokkos::parallel_for(
-              Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.group_base_[src.block_offset_ + i]; });
+              Kokkos::TeamThreadRange(team_, L),
+              [&](const Index i) { storage[i] = src.group_base_[src.block_offset_ + i]; });
           team_.team_barrier();
         }
         else
@@ -902,10 +903,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, L,
-            [&](const Index block_in_group, AccT& acc) {
-                func(GetBlockElement(block_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            L,
+            [&](const Index block_in_group, AccT& acc)
+            { func(GetBlockElement(block_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
 
@@ -914,10 +916,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, num_blocks_in_group_,
-            [&](const Index block_in_group, AccT& acc) {
-                func(GeBlockElement(block_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            num_blocks_in_group_,
+            [&](const Index block_in_group, AccT& acc)
+            { func(GeBlockElement(block_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
     };
@@ -1029,8 +1032,7 @@ namespace micm
           Kokkos::parallel_for(
               "KokkosSparseMatrix::Function(tail)",
               tail_policy,
-              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{
-                  func, dev_handles, num_complete_groups, remaining });
+              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles, num_complete_groups, remaining });
         }
       };
       return result;
@@ -1040,31 +1042,19 @@ namespace micm
     /// @brief Get an element reference for a block at the (ungrouped) matrix level.
     ///        Used by the matrix-level ForEachBlock() override.
     template<SparseMatrixBlockView Arg>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
-        KokkosViewType,
-        Index,
-        Index block,
-        Arg&& arg)
+    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(KokkosViewType, Index, Index block, Arg&& arg)
     {
       return arg.Data()[(block / L) * arg.FlatBlockSize() * L + arg.ElementPosition() + block % L];
     }
 
     template<BlockVariableView Arg>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
-        KokkosViewType,
-        Index,
-        Index block,
-        Arg&& arg)
+    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(KokkosViewType, Index, Index block, Arg&& arg)
     {
       return arg.Get();
     }
 
     template<KokkosVectorLike Arg>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(
-        KokkosViewType,
-        Index,
-        Index block,
-        Arg&& arg)
+    KOKKOS_INLINE_FUNCTION static decltype(auto) GetTopLevelBlockElement(KokkosViewType, Index, Index block, Arg&& arg)
     {
       return arg[block];
     }

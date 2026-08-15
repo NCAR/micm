@@ -36,28 +36,30 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittle<SparseMatrixPolicy>& LuDecompositionDoolittle<SparseMatrixPolicy>::operator=(LuDecompositionDoolittle&& other) noexcept
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>& LuDecompositionDoolittle<SparseMatrixPolicy>::operator=(
+      LuDecompositionDoolittle&& other) noexcept
   {
-      if (this != &other)
-      {
-          niLU_ = std::move(other.niLU_);
-          do_aik_ = std::move(other.do_aik_);
-          aik_ = std::move(other.aik_);
-          uik_nkj_ = std::move(other.uik_nkj_);
-          lij_ujk_ = std::move(other.lij_ujk_);
-          do_aki_ = std::move(other.do_aki_);
-          aki_ = std::move(other.aki_);
-          lki_nkj_ = std::move(other.lki_nkj_);
-          lkj_uji_ = std::move(other.lkj_uji_);
-          uii_ = std::move(other.uii_);
-          views_       = Views(niLU_, do_aik_, aik_, uik_nkj_, lij_ujk_, do_aki_, aki_, lki_nkj_, lkj_uji_, uii_);
-      }
-      return *this;
+    if (this != &other)
+    {
+      niLU_ = std::move(other.niLU_);
+      do_aik_ = std::move(other.do_aik_);
+      aik_ = std::move(other.aik_);
+      uik_nkj_ = std::move(other.uik_nkj_);
+      lij_ujk_ = std::move(other.lij_ujk_);
+      do_aki_ = std::move(other.do_aki_);
+      aki_ = std::move(other.aki_);
+      lki_nkj_ = std::move(other.lki_nkj_);
+      lkj_uji_ = std::move(other.lkj_uji_);
+      uii_ = std::move(other.uii_);
+      views_ = Views(niLU_, do_aik_, aik_, uik_nkj_, lij_ujk_, do_aki_, aki_, lki_nkj_, lkj_uji_, uii_);
+    }
+    return *this;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittle<SparseMatrixPolicy> LuDecompositionDoolittle<SparseMatrixPolicy>::Create(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy> LuDecompositionDoolittle<SparseMatrixPolicy>::Create(
+      const SparseMatrixPolicy& matrix)
   {
     LuDecompositionDoolittle<SparseMatrixPolicy> lu_decomp{};
     lu_decomp.Initialize(matrix, typename SparseMatrixPolicy::value_type());
@@ -66,7 +68,8 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionDoolittle<SparseMatrixPolicy>::FillPattern LuDecompositionDoolittle<SparseMatrixPolicy>::ComputeFillPattern(const SparseMatrixPolicy& A)
+  inline LuDecompositionDoolittle<SparseMatrixPolicy>::FillPattern
+  LuDecompositionDoolittle<SparseMatrixPolicy>::ComputeFillPattern(const SparseMatrixPolicy& A)
   {
     Index n = A.NumRows();
     FillPattern fp;
@@ -205,7 +208,7 @@ namespace micm
     std::vector<Index> aki_temp;
     std::vector<IndexPair> lki_nkj_temp;
     std::vector<IndexPair> lkj_uji_temp;
-    std::vector<Index> uii_temp; 
+    std::vector<Index> uii_temp;
 
     for (Index i = 0; i < n; ++i)
     {
@@ -222,7 +225,7 @@ namespace micm
             continue;
           }
           ++nkj;
-          lij_ujk_temp.push_back({LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)});
+          lij_ujk_temp.push_back({ LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k) });
         }
         if (contains(fp.Arow_[i], k))
         {
@@ -233,11 +236,11 @@ namespace micm
         {
           do_aik_temp.push_back(false);
         }
-        uik_nkj_temp.push_back({LU.second.VectorIndex(0, i, k), nkj});
+        uik_nkj_temp.push_back({ LU.second.VectorIndex(0, i, k), nkj });
         ++(iLU.second_);
       }
       // Lower triangular matrix: iterate only the non-zero rows of L column i.
-      lki_nkj_temp.push_back({LU.first.VectorIndex(0, i, i), 0});
+      lki_nkj_temp.push_back({ LU.first.VectorIndex(0, i, i), 0 });
       for (Index k : fp.Lcol_[i])
       {
         Index nkj = 0;
@@ -254,7 +257,7 @@ namespace micm
             continue;
           }
           ++nkj;
-          lkj_uji_temp.push_back({LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)});
+          lkj_uji_temp.push_back({ LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i) });
         }
         if (contains(fp.Acol_[i], k))
         {
@@ -266,7 +269,7 @@ namespace micm
           do_aki_temp.push_back(false);
         }
         uii_temp.push_back(LU.second.VectorIndex(0, i, i));
-        lki_nkj_temp.push_back({LU.first.VectorIndex(0, k, i), nkj});
+        lki_nkj_temp.push_back({ LU.first.VectorIndex(0, k, i), nkj });
         ++(iLU.first_);
       }
       niLU_temp.push_back(iLU);
@@ -321,12 +324,17 @@ namespace micm
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionDoolittle<SparseMatrixPolicy>::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
+  inline void LuDecompositionDoolittle<SparseMatrixPolicy>::Decompose(
+      const SparseMatrixPolicy& A,
+      SparseMatrixPolicy& L,
+      SparseMatrixPolicy& U) const
   {
     const auto& views = views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename SparseMatrix::ConstViewType A_view, typename SparseMatrix::ViewType lower_view, typename SparseMatrix::ViewType upper_view)
-        {
+        MICM_LAMBDA(
+            typename SparseMatrix::ConstViewType A_view,
+            typename SparseMatrix::ViewType lower_view,
+            typename SparseMatrix::ViewType upper_view) {
           auto do_aik = views.do_aik_.begin();
           auto aik = views.aik_.begin();
           auto uik_nkj = views.uik_nkj_.begin();

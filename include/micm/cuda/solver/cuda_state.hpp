@@ -16,6 +16,7 @@ namespace micm
   {
     template<class U>
     using Vector = typename DenseMatrixPolicy::template VectorType<U>;
+
    public:
     CudaState(const CudaState&) = delete;
     CudaState& operator=(const CudaState&) = delete;
@@ -63,7 +64,8 @@ namespace micm
       CHECK_CUDA_ERROR(
           micm::cuda::MallocArray<Index>(jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
           "cudaMalloc");
-      CHECK_CUDA_ERROR((micm::cuda::CopyToDevice<DenseMatrixPolicy, Real>(absolute_tolerance_param_, atol)), "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(
+          (micm::cuda::CopyToDevice<DenseMatrixPolicy, Real>(absolute_tolerance_param_, atol)), "cudaMemcpyHostToDevice");
 
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
@@ -119,7 +121,8 @@ namespace micm
     {
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absolute_tolerances);
       CHECK_CUDA_ERROR(
-          (micm::cuda::CopyToDevice<DenseMatrixPolicy, Real>(absolute_tolerance_param_, absolute_tolerances)), "cudaMemcpyHostToDevice");
+          (micm::cuda::CopyToDevice<DenseMatrixPolicy, Real>(absolute_tolerance_param_, absolute_tolerances)),
+          "cudaMemcpyHostToDevice");
     }
 
     /// @brief Copy input variables to the device.

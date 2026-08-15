@@ -1,11 +1,11 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
 
+#include <micm/Kokkos.hpp>
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
-#include <micm/Kokkos.hpp>
 
 #include <gtest/gtest.h>
 
@@ -21,47 +21,32 @@ template<micm::Index L>
 using Sparse = micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
 template<micm::Index L>
-using VectorRosenbrock = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    Dense<L>,
-    Sparse<L>>;
+using VectorRosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, Dense<L>, Sparse<L>>;
 
 template<micm::Index L>
-using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionDoolittle<Sparse<L>>>;
+using VectorRosenbrockDoolittle =
+    micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, Dense<L>, Sparse<L>, micm::LuDecompositionDoolittle<Sparse<L>>>;
 
 template<micm::Index L>
-using VectorStateTypeDoolittle = micm::State<
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionDoolittle<Sparse<L>>>;
+using VectorStateTypeDoolittle = micm::State<Dense<L>, Sparse<L>, micm::LuDecompositionDoolittle<Sparse<L>>>;
 
 template<micm::Index L>
-using VectorRosenbrockMozart = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionMozart<Sparse<L>>>;
+using VectorRosenbrockMozart =
+    micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, Dense<L>, Sparse<L>, micm::LuDecompositionMozart<Sparse<L>>>;
 
 template<micm::Index L>
-using VectorStateTypeMozart = micm::State<
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionMozart<Sparse<L>>>;
+using VectorStateTypeMozart = micm::State<Dense<L>, Sparse<L>, micm::LuDecompositionMozart<Sparse<L>>>;
 
 template<micm::Index L>
-using VectorStateType =
-    micm::State<Dense<L>, Sparse<L>>;
+using VectorStateType = micm::State<Dense<L>, Sparse<L>>;
 
 template<micm::Index L>
 using VectorRosenbrockDolittleCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     Dense<L>,
     micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
+    micm::LuDecompositionDoolittle<
+        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeDoolittleCSC = typename VectorRosenbrockDolittleCSC<L>::StatePolicyType;
@@ -71,7 +56,8 @@ using VectorRosenbrockMozartCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     Dense<L>,
     micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
+    micm::LuDecompositionMozart<
+        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeMozartCSC = typename VectorRosenbrockMozartCSC<L>::StatePolicyType;
@@ -96,8 +82,8 @@ using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilderInPlace<
 template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorRosenbrockMozartInPlace<L>::StatePolicyType;
 
-auto rosenbrock_3stage = VectorRosenbrockMozartInPlace<8>(
-    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_3stage =
+    VectorRosenbrockMozartInPlace<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 #ifndef JUST_ONE_SOLVER
 auto rosenbrock_2stage = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());

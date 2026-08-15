@@ -177,11 +177,31 @@ TEST(SparseVectorCompressedRowMatrix, SparseAndDenseMatrixFunction)
 TEST(SparseVectorCompressedRowMatrix, SparseAndVectorMatrixFunction)
 {
   // Valid: Vector-ordered sparse with matching L vector matrix
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>, VectorDense1, 1>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>, VectorDense2, 2>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>, VectorDense3, 3>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>, VectorDense4, 4>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<10>, VectorDense10, 10>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseRow<1>,
+      VectorDense1,
+      1>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseRow<2>,
+      VectorDense2,
+      2>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseRow<3>,
+      VectorDense3,
+      3>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseRow<4>,
+      VectorDense4,
+      4>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseRow<10>,
+      VectorDense10,
+      10>();
 }
 
 TEST(SparseVectorCompressedRowMatrix, IncompatibleOrdering)

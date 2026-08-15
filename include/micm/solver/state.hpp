@@ -16,8 +16,8 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <iomanip>
 #include <initializer_list>
+#include <iomanip>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -71,12 +71,12 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<Real>& upper_left_identity_diagonal,
-        const Vector<Index>& jacobian_diagonal_elements,
-        const Vector<Real>& absolute_tolerance
-      ) : upper_left_identity_diagonal_(upper_left_identity_diagonal.GetView()),
-          jacobian_diagonal_elements_(jacobian_diagonal_elements.GetView()),
-          absolute_tolerance_(absolute_tolerance.GetView())
+          const Vector<Real>& upper_left_identity_diagonal,
+          const Vector<Index>& jacobian_diagonal_elements,
+          const Vector<Real>& absolute_tolerance)
+          : upper_left_identity_diagonal_(upper_left_identity_diagonal.GetView()),
+            jacobian_diagonal_elements_(jacobian_diagonal_elements.GetView()),
+            absolute_tolerance_(absolute_tolerance.GetView())
       {
       }
     };

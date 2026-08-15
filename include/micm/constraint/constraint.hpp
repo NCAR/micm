@@ -28,15 +28,14 @@ namespace micm
   {
    public:
     using ConstraintVariant = std::variant<
-      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>,
-      LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>
-    >;
+        EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>,
+        LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>;
 
     ConstraintVariant constraint_;
 
     template<typename T>
-      requires std::same_as<std::decay_t<T>, EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>> 
-            || std::same_as<std::decay_t<T>, LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>
+      requires std::same_as<std::decay_t<T>, EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>> ||
+               std::same_as<std::decay_t<T>, LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>
     Constraint(T&& constraint)
         : constraint_(std::forward<T>(constraint))
     {
@@ -93,8 +92,7 @@ namespace micm
 
     void SetStateIndices(const ConstraintInfo& info, auto& jacobian_flat_ids)
     {
-      return std::visit(
-          [&info, &jacobian_flat_ids](auto& c) { c.SetStateIndices(info, jacobian_flat_ids); }, constraint_);
+      return std::visit([&info, &jacobian_flat_ids](auto& c) { c.SetStateIndices(info, jacobian_flat_ids); }, constraint_);
     }
 
     /// @brief Add constraint residual G to forcing vector for all grid cells

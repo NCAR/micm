@@ -48,6 +48,7 @@ namespace micm
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
     using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
    public:
     struct Views
     {
@@ -65,29 +66,30 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<IndexPair>& niLU,
-        const Vector<Bool>& do_aik,
-        const Vector<Index>& aik,
-        const Vector<IndexPair>& uik_nkj,
-        const Vector<IndexPair>& lij_ujk,
-        const Vector<Bool>& do_aki,
-        const Vector<Index>& aki,
-        const Vector<IndexPair>& lki_nkj,
-        const Vector<IndexPair>& lkj_uji,
-        const Vector<Index>& uii
-      ) : niLU_(niLU.GetView()),
-          do_aik_(do_aik.GetView()),
-          aik_(aik.GetView()),
-          uik_nkj_(uik_nkj.GetView()),
-          lij_ujk_(lij_ujk.GetView()),
-          do_aki_(do_aki.GetView()),
-          aki_(aki.GetView()),
-          lki_nkj_(lki_nkj.GetView()),
-          lkj_uji_(lkj_uji.GetView()),
-          uii_(uii.GetView())
+          const Vector<IndexPair>& niLU,
+          const Vector<Bool>& do_aik,
+          const Vector<Index>& aik,
+          const Vector<IndexPair>& uik_nkj,
+          const Vector<IndexPair>& lij_ujk,
+          const Vector<Bool>& do_aki,
+          const Vector<Index>& aki,
+          const Vector<IndexPair>& lki_nkj,
+          const Vector<IndexPair>& lkj_uji,
+          const Vector<Index>& uii)
+          : niLU_(niLU.GetView()),
+            do_aik_(do_aik.GetView()),
+            aik_(aik.GetView()),
+            uik_nkj_(uik_nkj.GetView()),
+            lij_ujk_(lij_ujk.GetView()),
+            do_aki_(do_aki.GetView()),
+            aki_(aki.GetView()),
+            lki_nkj_(lki_nkj.GetView()),
+            lkj_uji_(lkj_uji.GetView()),
+            uii_(uii.GetView())
       {
       }
     };
+
    protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop

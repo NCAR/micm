@@ -1,11 +1,11 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
 
+#include <micm/Kokkos.hpp>
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
-#include <micm/Kokkos.hpp>
 
 #include <gtest/gtest.h>
 
@@ -23,11 +23,8 @@ template<micm::Index L>
 using Sparse = micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
 template<micm::Index L>
-using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
-    micm::BackwardEulerSolverParameters,
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionDoolittle<Sparse<L>>>;
+using VectorBackwardEulerDoolittle = micm::
+    CpuSolverBuilder<micm::BackwardEulerSolverParameters, Dense<L>, Sparse<L>, micm::LuDecompositionDoolittle<Sparse<L>>>;
 
 template<micm::Index L>
 using VectorStateTypeDoolittle = typename VectorBackwardEulerDoolittle<L>::StatePolicyType;
@@ -37,17 +34,15 @@ using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     Dense<L>,
     micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
+    micm::LuDecompositionDoolittle<
+        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeDoolittleCSC = typename VectorBackwardEulerDolittleCSC<L>::StatePolicyType;
 
 template<micm::Index L>
-using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
-    micm::BackwardEulerSolverParameters,
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionMozart<Sparse<L>>>;
+using VectorBackwardEulerMozart =
+    micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters, Dense<L>, Sparse<L>, micm::LuDecompositionMozart<Sparse<L>>>;
 
 template<micm::Index L>
 using VectorStateTypeMozart = typename VectorBackwardEulerMozart<L>::StatePolicyType;
@@ -57,7 +52,8 @@ using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     Dense<L>,
     micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
+    micm::LuDecompositionMozart<
+        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeMozartCSC = typename VectorBackwardEulerMozartCSC<L>::StatePolicyType;

@@ -7,7 +7,8 @@
 
 #include <Kokkos_Core.hpp>
 
-template<class T>using Group1KokkosMatrixAlias = micm::KokkosDenseMatrix<T, 1>;
+template<class T>
+using Group1KokkosMatrixAlias = micm::KokkosDenseMatrix<T, 1>;
 template<class T>
 using Group2KokkosMatrixAlias = micm::KokkosDenseMatrix<T, 2>;
 template<class T>
@@ -523,4 +524,3 @@ int main(int argc, char* argv[])
   Kokkos::finalize();
   return result;
 }
-

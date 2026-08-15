@@ -55,7 +55,7 @@ void TestSolve(SolverPolicy& solver, micm::Real relative_tolerance = 1.0e-8)
       fixed_state.variables_[0][j] = variables[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
     }
     fixed_solver.UpdateState(fixed_state);
-    fixed_results[i] = fixed_solver.Solve(0.0, 500.0, fixed_state); // NOLINT(nodiscard_return_type)
+    fixed_results[i] = fixed_solver.Solve(0.0, 500.0, fixed_state);  // NOLINT(nodiscard_return_type)
   }
 
   // compare results

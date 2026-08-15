@@ -100,8 +100,7 @@ namespace micm
 
   /// @brief Calculate Taylor Series rate constant.
   ///        k = (sum_{j=0}^{n-1} c_j * T^j) * A * exp(C/T) * (T/D)^B * (1 + E*P)
-  MICM_CONSTEXPR Real
-  CalculateTaylorSeries(const TaylorSeriesRateConstantParameters& p, Real temperature, Real pressure)
+  MICM_CONSTEXPR Real CalculateTaylorSeries(const TaylorSeriesRateConstantParameters& p, Real temperature, Real pressure)
   {
     Real poly = 0.0;
     Real t_pow = 1.0;
@@ -129,8 +128,7 @@ namespace micm
   /// @brief Calculate one surface rate constant given pre-fetched aerosol parameters.
   /// @param radius    Aerosol effective radius [m]
   /// @param num_conc  Particle number concentration [# m-3]
-  MICM_CONSTEXPR Real
-  CalculateSurfaceOne(const SurfaceRateConstantData& p, Real temperature, Real radius, Real num_conc)
+  MICM_CONSTEXPR Real CalculateSurfaceOne(const SurfaceRateConstantData& p, Real temperature, Real radius, Real num_conc)
   {
     Real mean_free_speed = std::sqrt(p.mean_free_speed_factor_ * temperature);
     return 4.0 * num_conc * M_PI * radius * radius /

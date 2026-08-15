@@ -36,7 +36,7 @@ namespace micm
     using HostGroupView = GroupView;
     using ConstHostGroupView = ConstGroupView;
     template<class VecT>
-    using VectorType = PaddedVector<VecT,1>;
+    using VectorType = PaddedVector<VecT, 1>;
     template<class ScaT>
     using ScalarType = ScalarView<ScaT>;
     template<class U>
@@ -316,10 +316,14 @@ namespace micm
     /// override this to copy host data to a device mirror. Defined here as a
     /// no-op so shared MatrixPolicy tests and solver code can call it
     /// unconditionally regardless of which matrix policy is in use.
-    void CopyToDevice() const {}
+    void CopyToDevice() const
+    {
+    }
 
     /// @brief No-op device-to-host sync hook. See CopyToDevice().
-    void CopyToHost() const {}
+    void CopyToHost() const
+    {
+    }
 
     /// @brief Creates a vector usable with this matrix type in Function() lambdas
     /// @param n vector size
@@ -1001,7 +1005,7 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  if constexpr(UseView)
+                  if constexpr (UseView)
                   {
                     return std::forward<decltype(arg)>(arg).GetView();
                   }
@@ -1028,7 +1032,7 @@ namespace micm
       return result;
     }
 
-    template<typename Func, typename ... Args>
+    template<typename Func, typename... Args>
     static auto HostFunction(Func&& func, Args&&... args)
     {
       return Function<false>(std::forward<Func>(func), args...);

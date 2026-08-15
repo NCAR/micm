@@ -2,12 +2,12 @@
 
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
-#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
-#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
-#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>

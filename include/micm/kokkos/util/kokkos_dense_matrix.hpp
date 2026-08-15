@@ -7,8 +7,8 @@
 #include <micm/kokkos/util/kokkos_scalar_view.hpp>
 #include <micm/kokkos/util/kokkos_view_category.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
-#include <micm/util/types.hpp>
 #include <micm/util/reducers.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <Kokkos_Core.hpp>
@@ -41,7 +41,8 @@ namespace micm
     {
       KOKKOS_DEFAULTED_FUNCTION DTupleBase() = default;
       template<typename... Us>
-      KOKKOS_INLINE_FUNCTION explicit DTupleBase(Us&&... us) : DTupleElem<Is, Ts>{ std::forward<Us>(us) }...
+      KOKKOS_INLINE_FUNCTION explicit DTupleBase(Us&&... us)
+          : DTupleElem<Is, Ts>{ std::forward<Us>(us) }...
       {
       }
     };
@@ -181,14 +182,11 @@ namespace micm
       }
     }
 
-    /// @brief Construct the appropriate GroupView/ConstGroupView 
+    /// @brief Construct the appropriate GroupView/ConstGroupView
     ///        Runs on-device (called from within a KOKKOS_LAMBDA).
     template<typename Handle>
-    KOKKOS_INLINE_FUNCTION static decltype(auto) BuildGroupView(
-        Handle&& handle,
-        Index group,
-        Index count,
-        const TeamMember& team)
+    KOKKOS_INLINE_FUNCTION static decltype(auto)
+    BuildGroupView(Handle&& handle, Index group, Index count, const TeamMember& team)
     {
       using HandleType = std::remove_cvref_t<Handle>;
       if constexpr (std::is_same_v<HandleType, DenseMatrixHandle>)
@@ -332,7 +330,10 @@ namespace micm
       Func func_;
       KokkosViewType y_view_;
       KokkosViewType a_view_;
-      KOKKOS_INLINE_FUNCTION void operator()(const Index i) const { func_(y_view_(i), a_view_(i)); }
+      KOKKOS_INLINE_FUNCTION void operator()(const Index i) const
+      {
+        func_(y_view_(i), a_view_(i));
+      }
     };
 
     /// @brief Kokkos functor for dispatching 2-arg flat ForEach() over the tail range.
@@ -359,7 +360,10 @@ namespace micm
       KokkosViewType y_view_;
       KokkosViewType a_view_;
       KokkosViewType b_view_;
-      KOKKOS_INLINE_FUNCTION void operator()(const Index i) const { func_(y_view_(i), a_view_(i), b_view_(i)); }
+      KOKKOS_INLINE_FUNCTION void operator()(const Index i) const
+      {
+        func_(y_view_(i), a_view_(i), b_view_(i));
+      }
     };
 
     /// @brief Kokkos functor for dispatching 3-arg flat ForEach() over the tail range.
@@ -406,15 +410,16 @@ namespace micm
     }
 
     KokkosDenseMatrix(const KokkosDenseMatrix& other)
-      : VectorMatrix<T, L>(other),
-        view_("dense_matrix", other.view_.extent(0))
+        : VectorMatrix<T, L>(other),
+          view_("dense_matrix", other.view_.extent(0))
     {
       Kokkos::deep_copy(view_, other.view_);
     }
 
     KokkosDenseMatrix& operator=(const KokkosDenseMatrix& other)
     {
-      if (this == &other) return *this;
+      if (this == &other)
+        return *this;
       VectorMatrix<T, L>::operator=(other);
       Kokkos::realloc(view_, other.view_.extent(0));
       Kokkos::deep_copy(view_, other.view_);
@@ -482,17 +487,14 @@ namespace micm
       const Index y_dim = this->NumColumns();
       const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
       Kokkos::parallel_for(
-          "KokkosDenseMatrix::Axpy",
-          Kokkos::RangePolicy<>(0, n),
-          KOKKOS_LAMBDA(const Index i) { y_view(i) += alpha * x_view(i); });
+          "KokkosDenseMatrix::Axpy", Kokkos::RangePolicy<>(0, n), KOKKOS_LAMBDA(const Index i) {
+            y_view(i) += alpha * x_view(i);
+          });
       const Index l = this->NumRows() % L;
       if (l > 0)
       {
         Kokkos::parallel_for(
-            "KokkosDenseMatrix::Axpy(tail)",
-            Kokkos::RangePolicy<>(0, y_dim * l),
-            KOKKOS_LAMBDA(const Index idx)
-            {
+            "KokkosDenseMatrix::Axpy(tail)", Kokkos::RangePolicy<>(0, y_dim * l), KOKKOS_LAMBDA(const Index idx) {
               const Index flat = n + (idx / l) * L + (idx % l);
               y_view(flat) += alpha * x_view(flat);
             });
@@ -506,9 +508,9 @@ namespace micm
     {
       KokkosViewType y_view = view_;
       Kokkos::parallel_for(
-          "KokkosDenseMatrix::Max",
-          Kokkos::RangePolicy<>(0, y_view.extent(0)),
-          KOKKOS_LAMBDA(const Index i) { y_view(i) = y_view(i) > x ? y_view(i) : x; });
+          "KokkosDenseMatrix::Max", Kokkos::RangePolicy<>(0, y_view.extent(0)), KOKKOS_LAMBDA(const Index i) {
+            y_view(i) = y_view(i) > x ? y_view(i) : x;
+          });
     }
 
     /// @brief For each element of the matrix, perform y = min(y, x), where x is a scalar constant.
@@ -518,9 +520,9 @@ namespace micm
     {
       KokkosViewType y_view = view_;
       Kokkos::parallel_for(
-          "KokkosDenseMatrix::Min",
-          Kokkos::RangePolicy<>(0, y_view.extent(0)),
-          KOKKOS_LAMBDA(const Index i) { y_view(i) = y_view(i) < x ? y_view(i) : x; });
+          "KokkosDenseMatrix::Min", Kokkos::RangePolicy<>(0, y_view.extent(0)), KOKKOS_LAMBDA(const Index i) {
+            y_view(i) = y_view(i) < x ? y_view(i) : x;
+          });
     }
 
     /// @brief Copy the device data from the other Kokkos dense matrix into this one
@@ -622,9 +624,9 @@ namespace micm
       {
         auto& storage = arg.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
-          return storage;                 // KokkosBlockVariable<T,1>: scalar
+          return storage;  // KokkosBlockVariable<T,1>: scalar
         else
-          return storage[row_in_group];   // KokkosRowVariable (always array) or L>1
+          return storage[row_in_group];  // KokkosRowVariable (always array) or L>1
       }
 
       template<KokkosVectorLike Arg>
@@ -661,7 +663,7 @@ namespace micm
         auto& storage = dst.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
         {
-          storage = value;   // KokkosBlockVariable<T,1>: scalar
+          storage = value;  // KokkosBlockVariable<T,1>: scalar
         }
         else if constexpr (L == 1)
         {
@@ -746,10 +748,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, L,
-            [&](const Index row_in_group, AccT& acc) {
-                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            L,
+            [&](const Index row_in_group, AccT& acc)
+            { func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
 
@@ -758,10 +761,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, num_rows_in_group_,
-            [&](const Index row_in_group, AccT& acc) {
-                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            num_rows_in_group_,
+            [&](const Index row_in_group, AccT& acc)
+            { func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
     };
@@ -798,9 +802,9 @@ namespace micm
       {
         auto& storage = arg.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
-          return storage;                 // KokkosBlockVariable<T,1>: scalar
+          return storage;  // KokkosBlockVariable<T,1>: scalar
         else
-          return storage[row_in_group];   // KokkosRowVariable (always array) or L>1
+          return storage[row_in_group];  // KokkosRowVariable (always array) or L>1
       }
 
       template<KokkosVectorLike Arg>
@@ -876,7 +880,7 @@ namespace micm
         auto& storage = dst.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
         {
-          storage = value;   // KokkosBlockVariable<T,1>: scalar
+          storage = value;  // KokkosBlockVariable<T,1>: scalar
         }
         else if constexpr (L == 1)
         {
@@ -955,10 +959,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, L,
-            [&](const Index row_in_group, AccT& acc) {
-                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            L,
+            [&](const Index row_in_group, AccT& acc)
+            { func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
 
@@ -967,10 +972,11 @@ namespace micm
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::identity());
-        reducer.team_reduce(team_, num_rows_in_group_,
-            [&](const Index row_in_group, AccT& acc) {
-                func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);
-            });
+        reducer.team_reduce(
+            team_,
+            num_rows_in_group_,
+            [&](const Index row_in_group, AccT& acc)
+            { func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc); });
         team_.team_barrier();
       }
     };
@@ -1092,8 +1098,7 @@ namespace micm
           Kokkos::parallel_for(
               "KokkosDenseMatrix::Function(tail)",
               tail_policy,
-              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{
-                  func, dev_handles, num_complete_groups, remaining });
+              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles, num_complete_groups, remaining });
         }
       };
       return result;
@@ -1146,8 +1151,7 @@ namespace micm
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow(tail)",
             tail_policy,
-            ForEachRowTailFunctor<std::decay_t<Func>, AT>{
-                func, view, y_dim, args_tuple, num_complete_groups, remaining });
+            ForEachRowTailFunctor<std::decay_t<Func>, AT>{ func, view, y_dim, args_tuple, num_complete_groups, remaining });
       }
     }
 

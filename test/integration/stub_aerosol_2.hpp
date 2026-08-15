@@ -129,8 +129,8 @@ class AnotherStubAerosolModel
 
   // We have parameters for this stub model, one of which we will update based on temperature
   template<typename DenseMatrixPolicy>
-  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  UpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
   {
     // Create a function that updates the BAZ-to-QUX rate constant based on temperature for each grid cell
     auto baz_to_qux_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
@@ -141,7 +141,9 @@ class AnotherStubAerosolModel
       return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
     }
     micm::Index baz_to_qux_param_index = baz_to_qux_param_it->second;
-    return [baz_to_qux_param_index](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
+    return [baz_to_qux_param_index](
+               const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
+               DenseMatrixPolicy& state_parameters)
     {
       for (micm::Index cell = 0; cell < conditions.size(); ++cell)
       {

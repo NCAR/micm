@@ -78,32 +78,32 @@ namespace micm
     // ----------------------------------------------------------------
     // Analytic types (GPU-safe parameter structs) — stored in device-capable vectors
     // ----------------------------------------------------------------
-    Vector<ArrheniusRateConstantParameters>                 arrhenius_;
-    Vector<TroeRateConstantParameters>                      troe_;
+    Vector<ArrheniusRateConstantParameters> arrhenius_;
+    Vector<TroeRateConstantParameters> troe_;
     Vector<TernaryChemicalActivationRateConstantParameters> ternary_;
-    Vector<BranchedRateConstantParameters>                  branched_;
-    Vector<TunnelingRateConstantParameters>                 tunneling_;
-    Vector<TaylorSeriesRateConstantParameters>              taylor_;
-    Vector<ReversibleRateConstantParameters>                reversible_;
-    Vector<UserDefinedRateConstantData>                     user_defined_;
-    Vector<SurfaceRateConstantData>                         surface_;
-    Vector<ParameterizedMultiplier>                         parameterized_multipliers_;
+    Vector<BranchedRateConstantParameters> branched_;
+    Vector<TunnelingRateConstantParameters> tunneling_;
+    Vector<TaylorSeriesRateConstantParameters> taylor_;
+    Vector<ReversibleRateConstantParameters> reversible_;
+    Vector<UserDefinedRateConstantData> user_defined_;
+    Vector<SurfaceRateConstantData> surface_;
+    Vector<ParameterizedMultiplier> parameterized_multipliers_;
 
     // ----------------------------------------------------------------
     // Device-accessible views (rebuilt in CopyToDevice after population)
     // ----------------------------------------------------------------
     struct Views
     {
-      VectorView<ArrheniusRateConstantParameters>                 arrhenius_;
-      VectorView<TroeRateConstantParameters>                      troe_;
+      VectorView<ArrheniusRateConstantParameters> arrhenius_;
+      VectorView<TroeRateConstantParameters> troe_;
       VectorView<TernaryChemicalActivationRateConstantParameters> ternary_;
-      VectorView<BranchedRateConstantParameters>                  branched_;
-      VectorView<TunnelingRateConstantParameters>                 tunneling_;
-      VectorView<TaylorSeriesRateConstantParameters>              taylor_;
-      VectorView<ReversibleRateConstantParameters>                reversible_;
-      VectorView<UserDefinedRateConstantData>                     user_defined_;
-      VectorView<SurfaceRateConstantData>                         surface_;
-      VectorView<ParameterizedMultiplier>                         parameterized_multipliers_;
+      VectorView<BranchedRateConstantParameters> branched_;
+      VectorView<TunnelingRateConstantParameters> tunneling_;
+      VectorView<TaylorSeriesRateConstantParameters> taylor_;
+      VectorView<ReversibleRateConstantParameters> reversible_;
+      VectorView<UserDefinedRateConstantData> user_defined_;
+      VectorView<SurfaceRateConstantData> surface_;
+      VectorView<ParameterizedMultiplier> parameterized_multipliers_;
 
       Views() = default;
 
@@ -135,31 +135,71 @@ namespace micm
 
     void CopyToDevice()
     {
-      arrhenius_.CopyToDevice();   troe_.CopyToDevice();    ternary_.CopyToDevice();
-      branched_.CopyToDevice();    tunneling_.CopyToDevice(); taylor_.CopyToDevice();
-      reversible_.CopyToDevice(); user_defined_.CopyToDevice(); surface_.CopyToDevice();
+      arrhenius_.CopyToDevice();
+      troe_.CopyToDevice();
+      ternary_.CopyToDevice();
+      branched_.CopyToDevice();
+      tunneling_.CopyToDevice();
+      taylor_.CopyToDevice();
+      reversible_.CopyToDevice();
+      user_defined_.CopyToDevice();
+      surface_.CopyToDevice();
       parameterized_multipliers_.CopyToDevice();
-      views_ = Views(arrhenius_, troe_, ternary_, branched_, tunneling_,
-                     taylor_, reversible_, user_defined_, surface_,
-                     parameterized_multipliers_);
+      views_ = Views(
+          arrhenius_,
+          troe_,
+          ternary_,
+          branched_,
+          tunneling_,
+          taylor_,
+          reversible_,
+          user_defined_,
+          surface_,
+          parameterized_multipliers_);
     }
 
     // ----------------------------------------------------------------
     // Precomputed contiguous-block offsets into state.rate_constants_[cell]
     // ----------------------------------------------------------------
-    Index off_troe_{ 0 }, off_tern_{ 0 }, off_bran_{ 0 }, off_tunn_{ 0 },
-          off_tayl_{ 0 }, off_rev_{ 0 },  off_ud_{ 0 },   off_surf_{ 0 },
-          off_lambda_{ 0 };
+    Index off_troe_{ 0 }, off_tern_{ 0 }, off_bran_{ 0 }, off_tunn_{ 0 }, off_tayl_{ 0 }, off_rev_{ 0 }, off_ud_{ 0 },
+        off_surf_{ 0 }, off_lambda_{ 0 };
 
-    Index TroeOffset()     const { return off_troe_; }
-    Index TernaryOffset()  const { return off_tern_; }
-    Index BranchedOffset() const { return off_bran_; }
-    Index TunnelingOffset()const { return off_tunn_; }
-    Index TaylorOffset()   const { return off_tayl_; }
-    Index ReversibleOffset()const{ return off_rev_;  }
-    Index UserDefinedOffset()const{ return off_ud_;  }
-    Index SurfaceOffset()  const { return off_surf_; }
-    Index LambdaOffset()   const { return off_lambda_; }
+    Index TroeOffset() const
+    {
+      return off_troe_;
+    }
+    Index TernaryOffset() const
+    {
+      return off_tern_;
+    }
+    Index BranchedOffset() const
+    {
+      return off_bran_;
+    }
+    Index TunnelingOffset() const
+    {
+      return off_tunn_;
+    }
+    Index TaylorOffset() const
+    {
+      return off_tayl_;
+    }
+    Index ReversibleOffset() const
+    {
+      return off_rev_;
+    }
+    Index UserDefinedOffset() const
+    {
+      return off_ud_;
+    }
+    Index SurfaceOffset() const
+    {
+      return off_surf_;
+    }
+    Index LambdaOffset() const
+    {
+      return off_lambda_;
+    }
 
     // ----------------------------------------------------------------
     // CPU-only lambda entries
@@ -182,16 +222,16 @@ namespace micm
     {
       ReactionRateConstantStore<DenseMatrixPolicy> store;
       // Accumulate into plain std::vector (push_back friendly), then assign to Vector<T>
-      std::vector<ArrheniusRateConstantParameters>                 arrhenius_tmp;
-      std::vector<TroeRateConstantParameters>                      troe_tmp;
+      std::vector<ArrheniusRateConstantParameters> arrhenius_tmp;
+      std::vector<TroeRateConstantParameters> troe_tmp;
       std::vector<TernaryChemicalActivationRateConstantParameters> ternary_tmp;
-      std::vector<BranchedRateConstantParameters>                  branched_tmp;
-      std::vector<TunnelingRateConstantParameters>                 tunneling_tmp;
-      std::vector<TaylorSeriesRateConstantParameters>              taylor_tmp;
-      std::vector<ReversibleRateConstantParameters>                reversible_tmp;
-      std::vector<UserDefinedRateConstantData>                     user_defined_tmp;
-      std::vector<SurfaceRateConstantData>                         surface_tmp;
-      std::vector<ParameterizedMultiplier>                         parameterized_multipliers_tmp;
+      std::vector<BranchedRateConstantParameters> branched_tmp;
+      std::vector<TunnelingRateConstantParameters> tunneling_tmp;
+      std::vector<TaylorSeriesRateConstantParameters> taylor_tmp;
+      std::vector<ReversibleRateConstantParameters> reversible_tmp;
+      std::vector<UserDefinedRateConstantData> user_defined_tmp;
+      std::vector<SurfaceRateConstantData> surface_tmp;
+      std::vector<ParameterizedMultiplier> parameterized_multipliers_tmp;
 
       Index rc_index = 0;
       Index custom_param_off = 0;
@@ -301,27 +341,27 @@ namespace micm
       }
 
       // Assign temp vectors to device-capable Vector<T> members and upload
-      store.arrhenius_    = Vector<ArrheniusRateConstantParameters>(arrhenius_tmp);
-      store.troe_         = Vector<TroeRateConstantParameters>(troe_tmp);
-      store.ternary_      = Vector<TernaryChemicalActivationRateConstantParameters>(ternary_tmp);
-      store.branched_     = Vector<BranchedRateConstantParameters>(branched_tmp);
-      store.tunneling_    = Vector<TunnelingRateConstantParameters>(tunneling_tmp);
-      store.taylor_       = Vector<TaylorSeriesRateConstantParameters>(taylor_tmp);
-      store.reversible_   = Vector<ReversibleRateConstantParameters>(reversible_tmp);
+      store.arrhenius_ = Vector<ArrheniusRateConstantParameters>(arrhenius_tmp);
+      store.troe_ = Vector<TroeRateConstantParameters>(troe_tmp);
+      store.ternary_ = Vector<TernaryChemicalActivationRateConstantParameters>(ternary_tmp);
+      store.branched_ = Vector<BranchedRateConstantParameters>(branched_tmp);
+      store.tunneling_ = Vector<TunnelingRateConstantParameters>(tunneling_tmp);
+      store.taylor_ = Vector<TaylorSeriesRateConstantParameters>(taylor_tmp);
+      store.reversible_ = Vector<ReversibleRateConstantParameters>(reversible_tmp);
       store.user_defined_ = Vector<UserDefinedRateConstantData>(user_defined_tmp);
-      store.surface_      = Vector<SurfaceRateConstantData>(surface_tmp);
+      store.surface_ = Vector<SurfaceRateConstantData>(surface_tmp);
       store.parameterized_multipliers_ = Vector<ParameterizedMultiplier>(parameterized_multipliers_tmp);
 
       // Precompute offsets
-      store.off_troe_   = static_cast<Index>(arrhenius_tmp.size());
-      store.off_tern_   = store.off_troe_  + static_cast<Index>(troe_tmp.size());
-      store.off_bran_   = store.off_tern_  + static_cast<Index>(ternary_tmp.size());
-      store.off_tunn_   = store.off_bran_  + static_cast<Index>(branched_tmp.size());
-      store.off_tayl_   = store.off_tunn_  + static_cast<Index>(tunneling_tmp.size());
-      store.off_rev_    = store.off_tayl_  + static_cast<Index>(taylor_tmp.size());
-      store.off_ud_     = store.off_rev_   + static_cast<Index>(reversible_tmp.size());
-      store.off_surf_   = store.off_ud_    + static_cast<Index>(user_defined_tmp.size());
-      store.off_lambda_ = store.off_surf_  + static_cast<Index>(surface_tmp.size());
+      store.off_troe_ = static_cast<Index>(arrhenius_tmp.size());
+      store.off_tern_ = store.off_troe_ + static_cast<Index>(troe_tmp.size());
+      store.off_bran_ = store.off_tern_ + static_cast<Index>(ternary_tmp.size());
+      store.off_tunn_ = store.off_bran_ + static_cast<Index>(branched_tmp.size());
+      store.off_tayl_ = store.off_tunn_ + static_cast<Index>(tunneling_tmp.size());
+      store.off_rev_ = store.off_tayl_ + static_cast<Index>(taylor_tmp.size());
+      store.off_ud_ = store.off_rev_ + static_cast<Index>(reversible_tmp.size());
+      store.off_surf_ = store.off_ud_ + static_cast<Index>(user_defined_tmp.size());
+      store.off_lambda_ = store.off_surf_ + static_cast<Index>(surface_tmp.size());
 
       store.CopyToDevice();
       return store;
@@ -369,32 +409,30 @@ namespace micm
       // views_ members are VectorView<T> (KokkosPaddedVector::ConstDeviceView for Kokkos builds)
       // which hold a Kokkos::View pointing to device-resident data uploaded by CopyToDevice().
       const auto& v = store.views_;
-      const Index n_arr   = static_cast<Index>(v.arrhenius_.size());
-      const Index n_troe  = static_cast<Index>(v.troe_.size());
-      const Index n_tern  = static_cast<Index>(v.ternary_.size());
-      const Index n_bran  = static_cast<Index>(v.branched_.size());
-      const Index n_tunn  = static_cast<Index>(v.tunneling_.size());
-      const Index n_tayl  = static_cast<Index>(v.taylor_.size());
-      const Index n_rev   = static_cast<Index>(v.reversible_.size());
-      const Index n_ud    = static_cast<Index>(v.user_defined_.size());
-      const Index n_surf  = static_cast<Index>(v.surface_.size());
-      const Index n_mult  = static_cast<Index>(v.parameterized_multipliers_.size());
-      const Index off_troe = store.off_troe_,  off_tern = store.off_tern_,
-                  off_bran = store.off_bran_,  off_tunn = store.off_tunn_,
-                  off_tayl = store.off_tayl_,  off_rev  = store.off_rev_,
-                  off_ud   = store.off_ud_,    off_surf = store.off_surf_;
+      const Index n_arr = static_cast<Index>(v.arrhenius_.size());
+      const Index n_troe = static_cast<Index>(v.troe_.size());
+      const Index n_tern = static_cast<Index>(v.ternary_.size());
+      const Index n_bran = static_cast<Index>(v.branched_.size());
+      const Index n_tunn = static_cast<Index>(v.tunneling_.size());
+      const Index n_tayl = static_cast<Index>(v.taylor_.size());
+      const Index n_rev = static_cast<Index>(v.reversible_.size());
+      const Index n_ud = static_cast<Index>(v.user_defined_.size());
+      const Index n_surf = static_cast<Index>(v.surface_.size());
+      const Index n_mult = static_cast<Index>(v.parameterized_multipliers_.size());
+      const Index off_troe = store.off_troe_, off_tern = store.off_tern_, off_bran = store.off_bran_,
+                  off_tunn = store.off_tunn_, off_tayl = store.off_tayl_, off_rev = store.off_rev_, off_ud = store.off_ud_,
+                  off_surf = store.off_surf_;
       DenseMatrix::Function(
           MICM_LAMBDA(
-            typename DenseMatrix::ViewType rate_constants,
-            typename DenseMatrix::ConstViewType parameters,
-            typename Vector<Conditions>::ConstViewType conditions
-          )
-          {
+              typename DenseMatrix::ViewType rate_constants,
+              typename DenseMatrix::ConstViewType parameters,
+              typename Vector<Conditions>::ConstViewType conditions) {
             for (Index i = 0; i < n_arr; ++i)
             {
               const auto& p = v.arrhenius_[i];
               rate_constants.ForEachRow(
-                  [=](Real& out, const Conditions& conditions) { out = CalculateArrhenius(p, conditions.temperature_, conditions.pressure_); },
+                  [=](Real& out, const Conditions& conditions)
+                  { out = CalculateArrhenius(p, conditions.temperature_, conditions.pressure_); },
                   rate_constants.GetColumnView(i),
                   conditions);
             }
@@ -402,7 +440,8 @@ namespace micm
             {
               const auto& p = v.troe_[i];
               rate_constants.ForEachRow(
-                  [=](Real& out, const Conditions& conditions) { out = CalculateTroe(p, conditions.temperature_, conditions.air_density_); },
+                  [=](Real& out, const Conditions& conditions)
+                  { out = CalculateTroe(p, conditions.temperature_, conditions.air_density_); },
                   rate_constants.GetColumnView(off_troe + i),
                   conditions);
             }
@@ -419,7 +458,8 @@ namespace micm
             {
               const auto& p = v.branched_[i];
               rate_constants.ForEachRow(
-                  [=](Real& out, const Conditions& conditions) { out = CalculateBranched(p, conditions.temperature_, conditions.air_density_); },
+                  [=](Real& out, const Conditions& conditions)
+                  { out = CalculateBranched(p, conditions.temperature_, conditions.air_density_); },
                   rate_constants.GetColumnView(off_bran + i),
                   conditions);
             }
@@ -435,7 +475,8 @@ namespace micm
             {
               const auto& p = v.taylor_[i];
               rate_constants.ForEachRow(
-                  [=](Real& out, const Conditions& conditions) { out = CalculateTaylorSeries(p, conditions.temperature_, conditions.pressure_); },
+                  [=](Real& out, const Conditions& conditions)
+                  { out = CalculateTaylorSeries(p, conditions.temperature_, conditions.pressure_); },
                   rate_constants.GetColumnView(off_tayl + i),
                   conditions);
             }
@@ -482,4 +523,3 @@ namespace micm
   };
 
 }  // namespace micm
-

@@ -130,7 +130,7 @@ namespace micm
 
    public:
     template<class VecT>
-    using VectorType = PaddedVector<VecT,1>;
+    using VectorType = PaddedVector<VecT, 1>;
 
     /// @brief A block-local temporary variable with its own storage
     /// For standard ordering: single value

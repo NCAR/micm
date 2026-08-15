@@ -7,7 +7,7 @@
 
 namespace micm
 {
-  
+
   /// @brief LU decomposer for SparseMatrix following the Doolittle algorithm
   ///
   /// The LU decomposition uses the Doolittle algorithm following the
@@ -41,6 +41,7 @@ namespace micm
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
     using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
    public:
     struct Views
     {
@@ -53,19 +54,20 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<IndexTrio>& nik_nki_aii,
-        const Vector<IndexPair>& aik_njk,
-        const Vector<IndexPair>& aij_ajk,
-        const Vector<IndexPair>& aki_nji,
-        const Vector<IndexPair>& akj_aji
-      ) : nik_nki_aii_(nik_nki_aii.GetView()),
-          aik_njk_(aik_njk.GetView()),
-          aij_ajk_(aij_ajk.GetView()),
-          aki_nji_(aki_nji.GetView()),
-          akj_aji_(akj_aji.GetView())
+          const Vector<IndexTrio>& nik_nki_aii,
+          const Vector<IndexPair>& aik_njk,
+          const Vector<IndexPair>& aij_ajk,
+          const Vector<IndexPair>& aki_nji,
+          const Vector<IndexPair>& akj_aji)
+          : nik_nki_aii_(nik_nki_aii.GetView()),
+            aik_njk_(aik_njk.GetView()),
+            aij_ajk_(aij_ajk.GetView()),
+            aki_nji_(aki_nji.GetView()),
+            akj_aji_(akj_aji.GetView())
       {
       }
-    };    
+    };
+
    protected:
     /// Number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// and the index in A.data_ for A[i][i] for each iteration of the outer (i) loop

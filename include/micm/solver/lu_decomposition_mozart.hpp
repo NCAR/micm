@@ -62,6 +62,7 @@ namespace micm
     using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
     template<class U>
     using Scalar = typename SparseMatrix::template ScalarType<U>;
+
    public:
     struct Views
     {
@@ -79,29 +80,30 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<IndexTrio>& lii_nuji_nlji,
-        const Vector<IndexPair>& uji_aji,
-        const Vector<IndexPair>& lji_aji,
-        const Vector<Index>& fill_uji,
-        const Vector<Index>& fill_lji,
-        const Vector<IndexTrio>& uii_nj_nk,
-        const Vector<Index>& lji,
-        const Vector<IndexTrio>& nujk_nljk_uik,
-        const Vector<IndexPair>& ujk_lji,
-        const Vector<IndexPair>& ljk_lji
-      ) : lii_nuji_nlji_(lii_nuji_nlji.GetView()),
-          uji_aji_(uji_aji.GetView()),
-          lji_aji_(lji_aji.GetView()),
-          fill_uji_(fill_uji.GetView()),
-          fill_lji_(fill_lji.GetView()),
-          uii_nj_nk_(uii_nj_nk.GetView()),
-          lji_(lji.GetView()),
-          nujk_nljk_uik_(nujk_nljk_uik.GetView()),
-          ujk_lji_(ujk_lji.GetView()),
-          ljk_lji_(ljk_lji.GetView())
+          const Vector<IndexTrio>& lii_nuji_nlji,
+          const Vector<IndexPair>& uji_aji,
+          const Vector<IndexPair>& lji_aji,
+          const Vector<Index>& fill_uji,
+          const Vector<Index>& fill_lji,
+          const Vector<IndexTrio>& uii_nj_nk,
+          const Vector<Index>& lji,
+          const Vector<IndexTrio>& nujk_nljk_uik,
+          const Vector<IndexPair>& ujk_lji,
+          const Vector<IndexPair>& ljk_lji)
+          : lii_nuji_nlji_(lii_nuji_nlji.GetView()),
+            uji_aji_(uji_aji.GetView()),
+            lji_aji_(lji_aji.GetView()),
+            fill_uji_(fill_uji.GetView()),
+            fill_lji_(fill_lji.GetView()),
+            uii_nj_nk_(uii_nj_nk.GetView()),
+            lji_(lji.GetView()),
+            nujk_nljk_uik_(nujk_nljk_uik.GetView()),
+            ujk_lji_(ujk_lji.GetView()),
+            ljk_lji_(ljk_lji.GetView())
       {
       }
     };
+
    protected:
     /// Index in L.data_ for all diagonal elements, and number of iterations of the middle (j) loops
     /// used to set the initial value for the L and U matrices

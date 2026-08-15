@@ -1,12 +1,12 @@
+#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/process/chemical_reaction_builder.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver_builder.hpp>
-#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
-#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
-#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 

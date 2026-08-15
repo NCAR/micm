@@ -115,11 +115,12 @@ class StubAerosolModel
 
   // We have no parameters for this stub model
   template<typename DenseMatrixPolicy>
-  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(
-      const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  UpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
   {
     // No parameters to update in this stub model
-    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions, DenseMatrixPolicy& state_parameters)
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
+              DenseMatrixPolicy& state_parameters)
     {
       // Do nothing
     };

@@ -14,7 +14,8 @@ namespace micm
   class RosenbrockTemporaryVariables : public TemporaryVariables
   {
     template<class U>
-    using Scalar = typename DenseMatrixPolicy:: template ScalarType<U>;
+    using Scalar = typename DenseMatrixPolicy::template ScalarType<U>;
+
    public:
     DenseMatrixPolicy Ynew_;
     DenseMatrixPolicy initial_forcing_;

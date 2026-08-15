@@ -66,8 +66,7 @@ namespace micm
         external_constraint_jacobian_functions_;
 
     /// @brief Pre-compiled external constraint parameter update functions
-    std::vector<std::function<void(const Vector<Conditions>&, DenseMatrixPolicy&)>>
-        external_constraint_param_functions_;
+    std::vector<std::function<void(const Vector<Conditions>&, DenseMatrixPolicy&)>> external_constraint_param_functions_;
 
     /// @brief Pre-compiled external constraint parameter initialization functions
     ///        These diagnose constraint parameters from state variables at the start of each Solve()
@@ -89,7 +88,9 @@ namespace micm
     ///        Constraints replace selected species rows in the state/Jacobian (DAE formulation)
     /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
-    ConstraintSet(std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>>&& constraints, const std::unordered_map<std::string, Index>& variable_map)
+    ConstraintSet(
+        std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>>&& constraints,
+        const std::unordered_map<std::string, Index>& variable_map)
         : constraints_(std::move(constraints))
     {
       // Build constraint info and dependency indices
@@ -268,16 +269,16 @@ namespace micm
     /// @param Ynew Proposed state at end of step (after constraint enforcement)
     void SetAlgebraicErrors(DenseMatrixPolicy& Yerror, const DenseMatrixPolicy& Y, const DenseMatrixPolicy& Ynew) const
     {
-      if (algebraic_variable_ids_.empty()) return;
+      if (algebraic_variable_ids_.empty())
+        return;
 
       const auto& alg_ids = alg_ids_view_;
 
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-            typename DenseMatrixPolicy::ViewType yerr,
-            typename DenseMatrixPolicy::ConstViewType y,
-            typename DenseMatrixPolicy::ConstViewType ynew)
-          {
+              typename DenseMatrixPolicy::ViewType yerr,
+              typename DenseMatrixPolicy::ConstViewType y,
+              typename DenseMatrixPolicy::ConstViewType ynew) {
             for (const auto& col : alg_ids)
             {
               yerr.ForEachRow(
@@ -287,7 +288,9 @@ namespace micm
                   yerr.GetColumnView(col));
             }
           },
-          Yerror, Y, Ynew)(Yerror, Y, Ynew);
+          Yerror,
+          Y,
+          Ynew)(Yerror, Y, Ynew);
     }
 
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
@@ -561,7 +564,8 @@ namespace micm
     /// @param state_variable_indices Map from species names to state variable indices (for sizing temp matrices)
     void BuildAlgebraicErrorFunction(const auto& state_variable_indices)
     {
-      if (algebraic_variable_ids_.empty()) return;
+      if (algebraic_variable_ids_.empty())
+        return;
 
       std::vector<Index> alg_ids_temp(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
       alg_ids_data_ = alg_ids_temp;

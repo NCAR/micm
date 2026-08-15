@@ -31,8 +31,8 @@ namespace micm
     using VectorView = typename Vector<U>::ConstViewType;
     template<class U>
     using Scalar = typename DenseMatrix::template ScalarType<U>;
-   public:
 
+   public:
     struct Views
     {
       VectorView<Index> species_indices_;
@@ -41,13 +41,10 @@ namespace micm
 
       Views() = default;
 
-      Views(
-        const Vector<Index>& species_indices,
-        const Vector<Real>& coeffs,
-        const Vector<Index>& flat_ids
-      ) : species_indices_(species_indices.GetView()),
-          coeffs_(coeffs.GetView()),
-          flat_ids_(flat_ids.GetView())
+      Views(const Vector<Index>& species_indices, const Vector<Real>& coeffs, const Vector<Index>& flat_ids)
+          : species_indices_(species_indices.GetView()),
+            coeffs_(coeffs.GetView()),
+            flat_ids_(flat_ids.GetView())
       {
       }
     };
@@ -112,16 +109,16 @@ namespace micm
     }
 
     LinearConstraint(LinearConstraint&& other) noexcept
-      : name_(std::move(other.name_)),
-        algebraic_species_(std::move(other.algebraic_species_)),
-        species_dependencies_(std::move(other.species_dependencies_)),
-        terms_(std::move(other.terms_)),
-        constant_(std::move(other.constant_)),
-        parameters_(std::move(other.parameters_)),
-        species_indices_(std::move(other.species_indices_)),
-        coeffs_(std::move(other.coeffs_)),
-        flat_ids_(std::move(other.flat_ids_)),
-        views_(species_indices_, coeffs_, flat_ids_)
+        : name_(std::move(other.name_)),
+          algebraic_species_(std::move(other.algebraic_species_)),
+          species_dependencies_(std::move(other.species_dependencies_)),
+          terms_(std::move(other.terms_)),
+          constant_(std::move(other.constant_)),
+          parameters_(std::move(other.parameters_)),
+          species_indices_(std::move(other.species_indices_)),
+          coeffs_(std::move(other.coeffs_)),
+          flat_ids_(std::move(other.flat_ids_)),
+          views_(species_indices_, coeffs_, flat_ids_)
     {
     }
 
@@ -200,7 +197,7 @@ namespace micm
       species_indices_ = species_indices_temp;
       coeffs_.CopyToDevice();
       species_indices_.CopyToDevice();
-      
+
       std::vector<Index> flat_ids_temp;
       flat_ids_temp.reserve(this->terms_.size());
       for (Index i = 0; i < this->terms_.size(); ++i)
@@ -209,7 +206,7 @@ namespace micm
       }
       flat_ids_ = flat_ids_temp;
       flat_ids_.CopyToDevice();
-      
+
       views_ = Views(species_indices_, coeffs_, flat_ids_);
     }
 
@@ -235,10 +232,9 @@ namespace micm
 
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-            typename DenseMatrix::ConstViewType state_view,
-            typename DenseMatrix::ConstViewType params_view,
-            typename DenseMatrix::ViewType force_view)
-          {
+              typename DenseMatrix::ConstViewType state_view,
+              typename DenseMatrix::ConstViewType params_view,
+              typename DenseMatrix::ViewType force_view) {
             auto linear_sum = force_view.GetRowVariable();
             state_view.ForEachRow([=](Real& sum) { sum = 0.0; }, linear_sum);
 
@@ -257,7 +253,9 @@ namespace micm
                 linear_sum,
                 force_view.GetColumnView(row_idx));
           },
-          state, state_param, forcing)(state, state_param, forcing);
+          state,
+          state_param,
+          forcing)(state, state_param, forcing);
     }
 
     /// @brief Subtract linear constraint Jacobian terms from Jacobian matrix for all grid cells
@@ -276,17 +274,19 @@ namespace micm
 
       SparseMatrixPolicy::Function(
           MICM_LAMBDA(
-            typename DenseMatrix::ConstViewType state_view,
-            typename DenseMatrix::ConstViewType params_view,
-            typename SparseMatrix::ViewType jacobian_values)
-          {
+              typename DenseMatrix::ConstViewType state_view,
+              typename DenseMatrix::ConstViewType params_view,
+              typename SparseMatrix::ViewType jacobian_values) {
             for (Index i = 0; i < views.coeffs_.size(); ++i)
             {
               const Real coeff = views.coeffs_[i];
-              jacobian_values.ForEachBlock([=](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(views.flat_ids_[i]));
+              jacobian_values.ForEachBlock(
+                  [=](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(views.flat_ids_[i]));
             }
           },
-          state, state_param, jacobian)(state, state_param, jacobian);
+          state,
+          state_param,
+          jacobian)(state, state_param, jacobian);
     }
   };
 

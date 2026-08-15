@@ -368,10 +368,14 @@ namespace micm
     /// override this to copy host data to a device mirror. Defined here as a
     /// no-op so shared MatrixPolicy tests and solver code can call it
     /// unconditionally regardless of which matrix policy is in use.
-    void CopyToDevice() const {}
+    void CopyToDevice() const
+    {
+    }
 
     /// @brief No-op device-to-host sync hook. See CopyToDevice().
-    void CopyToHost() const {}
+    void CopyToHost() const
+    {
+    }
 
     /// @brief Creates a vector usable with this matrix type in Function() lambdas
     /// @param n vector size (excluding padding)

@@ -13,6 +13,7 @@ namespace micm
   {
     template<class U>
     using Scalar = typename DenseMatrixPolicy::template ScalarType<U>;
+
    public:
     DenseMatrixPolicy Yn_;
     DenseMatrixPolicy forcing_;

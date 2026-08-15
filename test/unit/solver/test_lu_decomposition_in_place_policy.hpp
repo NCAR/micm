@@ -108,11 +108,11 @@ void TestDenseMatrix()
   }
 
   CheckCopyToDevice<SparseMatrixPolicy>(ALU);
-  
+
   lud.Decompose(ALU);
-  
+
   CheckCopyToHost<SparseMatrixPolicy>(ALU);
-  
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, ALU, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

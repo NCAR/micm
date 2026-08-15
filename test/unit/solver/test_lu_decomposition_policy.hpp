@@ -262,8 +262,7 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
 
   CheckCopyToHost<SparseMatrixPolicy>(LU.first);
   CheckCopyToHost<SparseMatrixPolicy>(LU.second);
-  
-  
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

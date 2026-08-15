@@ -15,10 +15,10 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatr
 using Group4SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>;
 
 using LUStandard = micm::LuDecompositionDoolittle<SparseMatrixTest>;
-using LUVector1  = micm::LuDecompositionDoolittle<Group1SparseVectorMatrix>;
-using LUVector2  = micm::LuDecompositionDoolittle<Group2SparseVectorMatrix>;
-using LUVector3  = micm::LuDecompositionDoolittle<Group3SparseVectorMatrix>;
-using LUVector4  = micm::LuDecompositionDoolittle<Group4SparseVectorMatrix>;
+using LUVector1 = micm::LuDecompositionDoolittle<Group1SparseVectorMatrix>;
+using LUVector2 = micm::LuDecompositionDoolittle<Group2SparseVectorMatrix>;
+using LUVector3 = micm::LuDecompositionDoolittle<Group3SparseVectorMatrix>;
+using LUVector4 = micm::LuDecompositionDoolittle<Group4SparseVectorMatrix>;
 
 TEST(LuDecompositionDoolittle, DenseMatrixStandardOrdering)
 {

@@ -15,4 +15,4 @@ namespace micm
   concept KokkosVectorLike = VectorLike<T> && requires(T t) {
     { t.GetView() };
   };
-}
+}  // namespace micm

@@ -15,10 +15,10 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatr
 using Group4SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>;
 
 using LUStandard = micm::LuDecompositionMozartInPlace<SparseMatrixTest>;
-using LUVector1  = micm::LuDecompositionMozartInPlace<Group1SparseVectorMatrix>;
-using LUVector2  = micm::LuDecompositionMozartInPlace<Group2SparseVectorMatrix>;
-using LUVector3  = micm::LuDecompositionMozartInPlace<Group3SparseVectorMatrix>;
-using LUVector4  = micm::LuDecompositionMozartInPlace<Group4SparseVectorMatrix>;
+using LUVector1 = micm::LuDecompositionMozartInPlace<Group1SparseVectorMatrix>;
+using LUVector2 = micm::LuDecompositionMozartInPlace<Group2SparseVectorMatrix>;
+using LUVector3 = micm::LuDecompositionMozartInPlace<Group3SparseVectorMatrix>;
+using LUVector4 = micm::LuDecompositionMozartInPlace<Group4SparseVectorMatrix>;
 
 TEST(LuDecompositionMozartInPlace, DenseMatrixStandardOrdering)
 {

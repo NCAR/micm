@@ -26,7 +26,10 @@ using Group4SparseVectorMatrix = KokkosSparseMatrix<micm::Real, SparseMatrixVect
 
 TEST(ConstraintSet, Construction)
 {
-  TestConstruction<Group3VectorMatrix, Group3SparseVectorMatrix, ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  TestConstruction<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
 }
 
 TEST(ConstraintSet, ReplaceStateRowsMapsToAlgebraicSpecies)
@@ -55,7 +58,10 @@ TEST(ConstraintSet, MultipleConstraints)
 
 TEST(ConstraintSet, AddForcingTerms)
 {
-  TestAddForcingTerms<Group3VectorMatrix, Group3SparseVectorMatrix, ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  TestAddForcingTerms<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      ConstraintSet<Group3VectorMatrix, Group3SparseVectorMatrix>>();
 }
 
 TEST(ConstraintSet, SubtractJacobianTerms)

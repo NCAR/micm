@@ -6,10 +6,10 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/util/constants.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 

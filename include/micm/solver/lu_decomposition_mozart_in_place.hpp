@@ -40,6 +40,7 @@ namespace micm
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
     using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
    public:
     struct Views
     {
@@ -51,17 +52,18 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<IndexTrio>& aii_nji_nki,
-        const Vector<Index>& aji,
-        const Vector<IndexPair>& aik_njk,
-        const Vector<IndexPair>& ajk_aji
-      ) : aii_nji_nki_(aii_nji_nki.GetView()),
-          aji_(aji.GetView()),
-          aik_njk_(aik_njk.GetView()),
-          ajk_aji_(ajk_aji.GetView())
+          const Vector<IndexTrio>& aii_nji_nki,
+          const Vector<Index>& aji,
+          const Vector<IndexPair>& aik_njk,
+          const Vector<IndexPair>& ajk_aji)
+          : aii_nji_nki_(aii_nji_nki.GetView()),
+            aji_(aji.GetView()),
+            aik_njk_(aik_njk.GetView()),
+            ajk_aji_(ajk_aji.GetView())
       {
       }
     };
+
    protected:
     /// Index in A.data_ for all diagonal elements, the number of iterations of the inner (j) loop
     /// for each (i) used to set A[j][i], and the number of iterations of the middle (k) loop for

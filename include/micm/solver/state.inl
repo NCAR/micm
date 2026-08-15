@@ -573,7 +573,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(
-    const Vector<Real>& absolute_tolerances)
+      const Vector<Real>& absolute_tolerances)
   {
     absolute_tolerance_ = absolute_tolerances;
     absolute_tolerance_.CopyToDevice();

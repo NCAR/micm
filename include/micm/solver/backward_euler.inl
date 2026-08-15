@@ -89,10 +89,7 @@ namespace micm
         // forcing_blk in camchem
         // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
-        forcing.ForEach(
-          MICM_LAMBDA(Real& f, const Real& yn1, const Real& yn)
-          { f -= (yn1 - yn) / H; },
-          Yn1, Yn);
+        forcing.ForEach(MICM_LAMBDA(Real & f, const Real& yn1, const Real& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
@@ -109,10 +106,7 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        Yn1.ForEach(
-          MICM_LAMBDA(Real& yn1, const Real& f)
-          { yn1 = (0.0 > yn1 + f ? 0.0 : yn1 + f); },
-          forcing);
+        Yn1.ForEach(MICM_LAMBDA(Real & yn1, const Real& f) { yn1 = (0.0 > yn1 + f ? 0.0 : yn1 + f); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
@@ -142,26 +136,20 @@ namespace micm
           is_inf.CopyToDevice();
           const Index n_vars = Yn1.NumColumns();
           DenseMatrixPolicy::Function(
-            MICM_LAMBDA(typename DenseMatrixPolicy::ConstViewType y_view)
-            {
-              for (Index i_var = 0; i_var < n_vars; ++i_var)
-              {
-                y_view.Reduce(
-                  LOrType{ is_nan },
-                  [](const Real& y_val, Bool& acc)
-                  {
-                    acc = acc || std::isnan(y_val);
-                  },
-                  y_view.GetConstColumnView(i_var));
-                y_view.Reduce(
-                  LOrType{ is_inf },
-                  [](const Real& y_val, Bool& acc)
-                  {
-                    acc = acc || std::isinf(y_val);
-                  },
-                  y_view.GetConstColumnView(i_var));
-              }
-            }, Yn1)(Yn1);
+              MICM_LAMBDA(typename DenseMatrixPolicy::ConstViewType y_view) {
+                for (Index i_var = 0; i_var < n_vars; ++i_var)
+                {
+                  y_view.Reduce(
+                      LOrType{ is_nan },
+                      [](const Real& y_val, Bool& acc) { acc = acc || std::isnan(y_val); },
+                      y_view.GetConstColumnView(i_var));
+                  y_view.Reduce(
+                      LOrType{ is_inf },
+                      [](const Real& y_val, Bool& acc) { acc = acc || std::isinf(y_val); },
+                      y_view.GetConstColumnView(i_var));
+                }
+              },
+              Yn1)(Yn1);
           is_nan.CopyToHost();
           is_inf.CopyToHost();
           if (is_nan)
@@ -224,10 +212,7 @@ namespace micm
     const auto& abs_tol_view = absolute_tolerance;
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
-          typename DenseMatrixPolicy::ConstViewType residual_view,
-          typename DenseMatrixPolicy::ConstViewType Yn1_view
-        )
-        {
+            typename DenseMatrixPolicy::ConstViewType residual_view, typename DenseMatrixPolicy::ConstViewType Yn1_view) {
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
             const Real var_abs_tol = abs_tol_view[i_var];

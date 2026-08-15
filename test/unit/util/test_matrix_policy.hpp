@@ -300,7 +300,7 @@ MatrixPolicy<micm::Real> TestForEach()
 
   matrix.CopyToDevice();
   other.CopyToDevice();
-  matrix.ForEach(MICM_LAMBDA(micm::Real& a, const micm::Real& b) { a += b; }, other);
+  matrix.ForEach(MICM_LAMBDA(micm::Real & a, const micm::Real& b) { a += b; }, other);
   matrix.CopyToHost();
   for (micm::Index i = 0; i < 4; ++i)
     for (micm::Index j = 0; j < 3; ++j)
@@ -313,15 +313,11 @@ MatrixPolicy<micm::Real> TestForEach()
 
   matrix.CopyToDevice();
   other2.CopyToDevice();
-  matrix.ForEach(
-      MICM_LAMBDA(micm::Real& a, const micm::Real& b, const micm::Real& c) { a = a + b - c; }, other, other2);
+  matrix.ForEach(MICM_LAMBDA(micm::Real & a, const micm::Real& b, const micm::Real& c) { a = a + b - c; }, other, other2);
   matrix.CopyToHost();
   for (micm::Index i = 0; i < 4; ++i)
     for (micm::Index j = 0; j < 3; ++j)
-      EXPECT_NEAR(
-          matrix[i][j],
-          (i * 10.3 + j * 100.5) + (i * 1.7 + j * 10.2) - (i * 19.5 + j * 32.2),
-          1.0e-5);
+      EXPECT_NEAR(matrix[i][j], (i * 10.3 + j * 100.5) + (i * 1.7 + j * 10.2) - (i * 19.5 + j * 32.2), 1.0e-5);
 
   return matrix;
 }
@@ -442,8 +438,7 @@ MatrixPolicy<micm::Real> TestArrayFunction()
   // Row 4: 2, 12, 22
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
@@ -531,8 +526,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixAr
   // Row 2: 4, 24, 8
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB) {
         // Use an array function to set C = A + B
         // where A is from matrixA, B is from matrixB, C is in matrixA
         auto tmp = mA.GetRowVariable();
@@ -600,8 +594,7 @@ MatrixPolicy<micm::Real> TestVectorInMatrixFunction()
   vec[4] = 500.0;
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
@@ -651,8 +644,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
   Matrix matrixB_create{ 3, 3, 0.0 };
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB) {
         auto tmp = mA.GetRowVariable();
         mA.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; },
@@ -708,7 +700,8 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultiMatrixDi
 
 /// @brief Test: Matrix + vector - function created with N rows, used with M rows
 template<template<class> class MatrixPolicy>
-std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>> TestMatrixVectorDifferentRowsFromCreation()
+std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template VectorType<micm::Real>>
+TestMatrixVectorDifferentRowsFromCreation()
 {
   using Matrix = MatrixPolicy<micm::Real>;
   using Vector = typename Matrix::template VectorType<micm::Real>;
@@ -717,8 +710,7 @@ std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template
   Vector vec_create(3);
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
@@ -763,8 +755,9 @@ void TestMismatchedRowsAtInvocation()
   Vector vec_create(3);
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0));
+      },
       matrix_create,
       vec_create);
 
@@ -815,8 +808,7 @@ void TestWrongColumnCountAtInvocation()
   Matrix matrix_create{ 4, 3, 0.0 };
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
@@ -850,8 +842,7 @@ void TestMismatchedRowDimensions()
   // Should now SUCCEED when creating with different row counts
   // (as long as column counts match, which they do here)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB) {
         mA.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; },
             mA.GetConstColumnView(0),
@@ -883,8 +874,7 @@ void TestMismatchedColumnDimensions()
 
   // Create the function - this should succeed
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         // Try to access a column that doesn't exist
         m.ForEachRow(
             [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
@@ -909,8 +899,7 @@ void TestWrongMatrixDimensions()
 
   // Create a function that expects 4 columns
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         m.ForEachRow(
             [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
             m.GetConstColumnView(0),
@@ -944,8 +933,7 @@ MatrixPolicy<micm::Real> TestMultipleTemporaries()
   }
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         // Use TWO temporaries for intermediate calculations
         auto tmp1 = m.GetRowVariable();
         auto tmp2 = m.GetRowVariable();
@@ -1014,8 +1002,7 @@ MatrixPolicy<micm::Real> TestColumnViewReuse()
   }
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(Matrix::ViewType m)
-      {
+      MICM_LAMBDA(Matrix::ViewType m) {
         // Create column views once
         auto col0 = m.GetConstColumnView(0);
         auto col1 = m.GetColumnView(1);
@@ -1064,8 +1051,7 @@ MatrixPolicy<micm::Real> TestFunctionReusability()
   Matrix matrix1{ 2, 3, 1.0 };
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, const micm::Real& c, micm::Real& t) { t = a + b + c; },
@@ -1137,8 +1123,7 @@ void TestConstMatrixFunction()
 
   // Create a function that only reads from the matrix
   auto read_func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ConstViewType m) {
         auto tmp = m.GetRowVariable();
         // Only use GetConstColumnView - should work with const matrices
         m.ForEachRow(
@@ -1171,8 +1156,7 @@ void TestEmptyMatrixFunction()
   Matrix empty_rows{ 0, 3, 1.0 };
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         // This should never execute
         m.ForEachRow(
             [&](micm::Real& val) { val = 99.0; },  // Would fail if executed
@@ -1187,9 +1171,8 @@ void TestEmptyMatrixFunction()
   Matrix empty_cols{ 3, 0, 1.0 };
 
   auto func2 = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType)
-      {
-        // Cannot get any column views, so just return
+      MICM_LAMBDA(typename Matrix::ViewType){
+          // Cannot get any column views, so just return
       },
       empty_cols);
 
@@ -1212,8 +1195,7 @@ void TestVectorTooSmall()
 
   // Should succeed at creation (row counts can differ at creation)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ConstViewType v) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
@@ -1237,8 +1219,7 @@ void TestVectorTooLarge()
 
   // Should succeed at creation (row counts can differ at creation)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ConstViewType v) {
         auto tmp = m.GetRowVariable();
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& t) { t = a + b; }, m.GetConstColumnView(0), v, tmp);
@@ -1262,7 +1243,9 @@ void TestEmptyVectorNonEmptyMatrix()
 
   // Should succeed at creation
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0));
+      },
       matrix,
       empty_vec);
 
@@ -1282,7 +1265,9 @@ void TestNonEmptyVectorEmptyMatrix()
 
   // Should succeed at creation
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0));
+      },
       matrix,
       vec);
 
@@ -1298,11 +1283,13 @@ void TestEmptyVectorEmptyMatrix()
   using Vector = typename Matrix::template VectorType<micm::Real>;
 
   Matrix matrix{ 0, 3, 1.0 };  // 0 rows
-  Vector empty_vec;             // Empty
+  Vector empty_vec;            // Empty
 
   // Should succeed - both are empty, ForEachRow won't iterate
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0));
+      },
       matrix,
       empty_vec);
 
@@ -1354,8 +1341,7 @@ MatrixPolicy<micm::Real> TestMultipleVectorsSameSize()
 
   // Should succeed
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v1, typename Vector::ConstViewType v2)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v1, typename Vector::ConstViewType v2) {
         // col0 = v1 + v2
         m.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; }, v1, v2, m.GetColumnView(0));
@@ -1399,8 +1385,7 @@ std::tuple<MatrixPolicy<micm::Real>, MatrixPolicy<micm::Real>> TestMultipleMatri
 
   // Should succeed - both matrices have 4 rows, vector has 4 elements
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ViewType mB, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ViewType mB, typename Vector::ConstViewType v) {
         // matrixA col1 = matrixA col0 + vector
         mA.ForEachRow(
             [&](const micm::Real& a, const micm::Real& b, micm::Real& c) { c = a + b; },
@@ -1457,8 +1442,9 @@ void TestMultipleMatricesDifferentRowsVector()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB, typename Vector::ConstViewType v)
-      { mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, mA.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB, typename Vector::ConstViewType v) {
+        mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, mA.GetColumnView(0));
+      },
       matrixA,
       matrixB,
       vec);
@@ -1487,8 +1473,9 @@ void TestVectorSizeMatchesOneMatrixOnly()
 
   // Should succeed at creation (different row counts allowed at creation)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB, typename Vector::ConstViewType v)
-      { mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, mA.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType mA, typename Matrix::ConstViewType mB, typename Vector::ConstViewType v) {
+        mA.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, mA.GetColumnView(0));
+      },
       matrixA,
       matrixB,
       vec);
@@ -1512,8 +1499,7 @@ MatrixPolicy<micm::Real> TestConstVector()
   const Vector& const_vec = vec_data;
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
         // Read from const vector, write to matrix
         m.ForEachRow(
             [&](const micm::Real& a, micm::Real& b) { b = a * 2.0; },
@@ -1550,8 +1536,7 @@ std::tuple<MatrixPolicy<micm::Real>, typename MatrixPolicy<micm::Real>::template
   }
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v) {
         // Write to vector from matrix
         m.ForEachRow(
             [&](const micm::Real& a, micm::Real& b) { b = a * 3.0; },
@@ -1585,8 +1570,9 @@ MatrixPolicy<micm::Real> TestFunctionReusabilityWithVectors()
 
   // Create function once
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 10.0; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 10.0; }, v, m.GetColumnView(0));
+      },
       matrix,
       vec1);
 
@@ -1623,7 +1609,9 @@ void TestFunctionInvocationWithWrongSizedVector()
 
   // Create function with correct-sized vector
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a; }, v, m.GetColumnView(0));
+      },
       matrix,
       vec_correct);
 
@@ -1652,8 +1640,7 @@ MatrixPolicy<micm::Real> TestMixedVectorColumnViewRowVariable()
   }
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
         auto tmp = m.GetRowVariable();
 
         // tmp = col0 + col1
@@ -1702,7 +1689,9 @@ MatrixPolicy<int> TestIntegerVector()
   Vector vec = { 10, 20, 30 };
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.ForEachRow([&](const int& a, int& b) { b = a * 2; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const int& a, int& b) { b = a * 2; }, v, m.GetColumnView(0));
+      },
       matrix,
       vec);
 
@@ -1728,8 +1717,9 @@ void TestFunctionWithConstSignature()
 
   // Create function
   auto func_auto = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      { m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0)); },
+      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) {
+        m.ForEachRow([&](const micm::Real& a, micm::Real& b) { b = a * 2.0; }, v, m.GetColumnView(0));
+      },
       matrix,
       vec);
 
@@ -1766,8 +1756,7 @@ void TestFill()
   {
     Vector vec(3);
     auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v) 
-      { m.Fill(v, 3.2); }, matrix, vec);
+        MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v) { m.Fill(v, 3.2); }, matrix, vec);
 
     func(matrix, vec);
     vec.CopyToHost();
@@ -1780,8 +1769,7 @@ void TestFill()
   // Fill a caller-owned row-variable temp with a scalar value.
   {
     auto func = Matrix::Function(
-        MICM_LAMBDA(typename Matrix::ViewType m)
-        {
+        MICM_LAMBDA(typename Matrix::ViewType m) {
           auto tmp = m.GetRowVariable();
           m.Fill(tmp, 9.9);
           // Broadcast the temp into column 0 so we can observe it from outside.
@@ -1812,8 +1800,9 @@ void TestCopy()
     vec.CopyToDevice();
     matrix.CopyToDevice();
     auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v)
-      { m.Copy(m.GetColumnView(1), v); }, matrix, vec);
+        MICM_LAMBDA(typename Matrix::ViewType m, typename Vector::ConstViewType v) { m.Copy(m.GetColumnView(1), v); },
+        matrix,
+        vec);
 
     func(matrix, vec);
     matrix.CopyToHost();
@@ -1831,8 +1820,9 @@ void TestCopy()
     Vector vec2(3);
     vec2.CopyToDevice();
     auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v)
-      { m.Copy(v, m.GetConstColumnView(1)); }, matrix, vec2);
+        MICM_LAMBDA(typename Matrix::ConstViewType m, typename Vector::ViewType v) { m.Copy(v, m.GetConstColumnView(1)); },
+        matrix,
+        vec2);
 
     func(matrix, vec2);
     vec2.CopyToHost();
@@ -1845,8 +1835,7 @@ void TestCopy()
   // Copy one matrix column into another (mutable-to-mutable).
   {
     auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m) 
-      { m.Copy(m.GetColumnView(0), m.GetColumnView(1)); }, matrix);
+        MICM_LAMBDA(typename Matrix::ViewType m) { m.Copy(m.GetColumnView(0), m.GetColumnView(1)); }, matrix);
 
     func(matrix);
     matrix.CopyToHost();
@@ -1868,8 +1857,7 @@ void TestCopy()
     }
 
     auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      { m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); }, matrix);
+        MICM_LAMBDA(typename Matrix::ViewType m) { m.Copy(m.GetColumnView(0), m.GetConstColumnView(1)); }, matrix);
 
     func(matrix);
     matrix.CopyToHost();
@@ -1882,8 +1870,7 @@ void TestCopy()
   // Round-trip: matrix column -> row-variable temp -> matrix column.
   {
     auto func = Matrix::Function(
-        MICM_LAMBDA(typename Matrix::ViewType m)
-        {
+        MICM_LAMBDA(typename Matrix::ViewType m) {
           auto tmp = m.GetRowVariable();
           m.Copy(tmp, m.GetConstColumnView(1));
           // Zero column 1 first so the copy-back is observable.
@@ -1923,18 +1910,11 @@ void TestReduceSum()
 
   Scalar total = 0.0;
   total.CopyToDevice();
-  Sum total_sum{ total }; // must construct outside of lambda (on host)
+  Sum total_sum{ total };  // must construct outside of lambda (on host)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType view)
-      {
-        view.Reduce(
-            total_sum,
-            [](const micm::Real& a, micm::Real& acc) { acc += a * a; },
-            view.GetConstColumnView(0));
-        view.Reduce(
-            total_sum,
-            [](const micm::Real& a, micm::Real& acc) { acc += a * a; },
-            view.GetConstColumnView(1));
+      MICM_LAMBDA(typename Matrix::ConstViewType view) {
+        view.Reduce(total_sum, [](const micm::Real& a, micm::Real& acc) { acc += a * a; }, view.GetConstColumnView(0));
+        view.Reduce(total_sum, [](const micm::Real& a, micm::Real& acc) { acc += a * a; }, view.GetConstColumnView(1));
       },
       matrix);
   func(matrix);
@@ -1963,10 +1943,9 @@ void TestReduceMax()
 
   Scalar max_val = std::numeric_limits<micm::Real>::lowest();
   max_val.CopyToDevice();
-  Max max_val_max{ max_val }; // must construct outside of lambda
+  Max max_val_max{ max_val };  // must construct outside of lambda
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType view)
-      {
+      MICM_LAMBDA(typename Matrix::ConstViewType view) {
         view.Reduce(
             max_val_max,
             [](const micm::Real& a, micm::Real& acc)
@@ -2006,10 +1985,9 @@ void TestReduceLOr()
 
     Scalar any_large = false;
     any_large.CopyToDevice();
-    LOr any_large_lor{ any_large }; // must construct outside of lambda
+    LOr any_large_lor{ any_large };  // must construct outside of lambda
     auto func = Matrix::Function(
-        MICM_LAMBDA(typename Matrix::ConstViewType view)
-        {
+        MICM_LAMBDA(typename Matrix::ConstViewType view) {
           view.Reduce(
               any_large_lor,
               [](const micm::Real& a, micm::Bool& acc) { acc = acc || (a > 10.0); },
@@ -2035,10 +2013,9 @@ void TestReduceLOr()
 
     Scalar any_large = false;
     any_large.CopyToDevice();
-    LOr any_large_lor{ any_large }; // must construct outside of lambda
+    LOr any_large_lor{ any_large };  // must construct outside of lambda
     auto func = Matrix::Function(
-        MICM_LAMBDA(typename Matrix::ConstViewType view)
-        {
+        MICM_LAMBDA(typename Matrix::ConstViewType view) {
           view.Reduce(
               any_large_lor,
               [](const micm::Real& a, micm::Bool& acc) { acc = acc || (a > 10.0); },
@@ -2074,10 +2051,9 @@ void TestReduceLAnd()
 
     Scalar all_finite = true;
     all_finite.CopyToDevice();
-    LAnd all_finite_land{ all_finite }; // must construct outside of lambda (on host)
+    LAnd all_finite_land{ all_finite };  // must construct outside of lambda (on host)
     auto func = Matrix::Function(
-        MICM_LAMBDA(typename Matrix::ConstViewType view)
-        {
+        MICM_LAMBDA(typename Matrix::ConstViewType view) {
           view.Reduce(
               all_finite_land,
               [](const micm::Real& a, micm::Bool& acc) { acc = acc && std::isfinite(a); },
@@ -2103,10 +2079,9 @@ void TestReduceLAnd()
 
     Scalar all_finite = true;
     all_finite.CopyToDevice();
-    LAnd all_finite_land{ all_finite }; // must construct outside of lambda (on host)
+    LAnd all_finite_land{ all_finite };  // must construct outside of lambda (on host)
     auto func = Matrix::Function(
-        MICM_LAMBDA(typename Matrix::ConstViewType view)
-        {
+        MICM_LAMBDA(typename Matrix::ConstViewType view) {
           view.Reduce(
               all_finite_land,
               [](const micm::Real& a, micm::Bool& acc) { acc = acc && std::isfinite(a); },
@@ -2141,14 +2116,10 @@ void TestReduceStrict()
 
   Scalar count = 0.0;
   count.CopyToDevice();
-  Sum count_sum{ count }; // must construct outside of lambda (on host)
+  Sum count_sum{ count };  // must construct outside of lambda (on host)
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ConstViewType view)
-      {
-        view.ReduceStrict(
-            count_sum,
-            [](const micm::Real&, micm::Real& acc) { acc += 1.0; },
-            view.GetConstColumnView(0));
+      MICM_LAMBDA(typename Matrix::ConstViewType view) {
+        view.ReduceStrict(count_sum, [](const micm::Real&, micm::Real& acc) { acc += 1.0; }, view.GetConstColumnView(0));
       },
       matrix);
   func(matrix);
@@ -2177,13 +2148,12 @@ void TestVectorCapture()
   auto vec2_view = std::as_const(vec2).GetView();
 
   auto func = Matrix::Function(
-      MICM_LAMBDA(typename Matrix::ViewType m)
-      {
+      MICM_LAMBDA(typename Matrix::ViewType m) {
         for (auto v1 : vec1_view)
         {
-          m.ForEachRow([=](double& a){ a += vec2_view[v1]; }, m.GetColumnView(0));
+          m.ForEachRow([=](double& a) { a += vec2_view[v1]; }, m.GetColumnView(0));
         }
-        m.ForEachRow([=](double& a){ a += vec2_view[vec1_view[1]]; }, m.GetColumnView(1));
+        m.ForEachRow([=](double& a) { a += vec2_view[vec1_view[1]]; }, m.GetColumnView(1));
       },
       matrix);
   func(matrix);
@@ -2191,11 +2161,11 @@ void TestVectorCapture()
 
   EXPECT_EQ(matrix[0][0], 60.0);
   EXPECT_EQ(matrix[0][1], 10.0);
-  EXPECT_EQ(matrix[0][2],  0.0);
+  EXPECT_EQ(matrix[0][2], 0.0);
   EXPECT_EQ(matrix[1][0], 60.0);
   EXPECT_EQ(matrix[1][1], 10.0);
-  EXPECT_EQ(matrix[1][2],  0.0);
+  EXPECT_EQ(matrix[1][2], 0.0);
   EXPECT_EQ(matrix[2][0], 60.0);
   EXPECT_EQ(matrix[2][1], 10.0);
-  EXPECT_EQ(matrix[2][2],  0.0);
+  EXPECT_EQ(matrix[2][2], 0.0);
 }

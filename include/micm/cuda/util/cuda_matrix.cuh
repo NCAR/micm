@@ -60,7 +60,7 @@ namespace micm::cuda
   template<typename DenseMatrixPolicy, typename T>
   inline cudaError_t CopyToDevice(CudaMatrixParam& param, const typename DenseMatrixPolicy::template VectorType<T>& h_data)
   {
-      cudaError_t err = cudaMemcpyAsync(
+    cudaError_t err = cudaMemcpyAsync(
         param.d_data_,
         h_data.data(),
         sizeof(T) * param.number_of_elements_,

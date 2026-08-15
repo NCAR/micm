@@ -10,7 +10,10 @@
 
 namespace micm
 {
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace<SparseMatrixPolicy>>
+  template<
+      class MatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace<SparseMatrixPolicy>>
   class CudaLinearSolverInPlace : public LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:

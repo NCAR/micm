@@ -99,7 +99,7 @@ void TestAnalyticalSurfaceRxn(
   for (micm::Index i = 1; i <= nstep; ++i)
   {
     micm::Real elapsed_solve_time = 0;
-    
+
     prepare_for_solve(state);
     state.variables_.CopyToDevice();
     state.conditions_.CopyToDevice();

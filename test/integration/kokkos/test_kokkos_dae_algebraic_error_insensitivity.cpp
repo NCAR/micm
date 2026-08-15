@@ -91,8 +91,8 @@ namespace
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
         { .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
     // A_gas is explicitly set as the algebraic balance variable
-    constraints.emplace_back(
-        LinearConstraint<DenseMatrix, StdSparseMatrix>("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+    constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
+        "mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = KokkosSolverBuilder<RosenbrockSolverParameters>(options)

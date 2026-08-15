@@ -1,8 +1,8 @@
 #include "../../process/test_process_set_policy.hpp"
 
-#include <micm/process/process_set.hpp>
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
+#include <micm/process/process_set.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
@@ -44,12 +44,18 @@ TEST(KokkosProcessSet, VectorMatrix)
 
 TEST(KokkosRandomProcessSet, Matrix)
 {
-  TestRandomSystem<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>(
-      200, 50, 40);
-  TestRandomSystem<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>(
-      300, 30, 20);
-  TestRandomSystem<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>(
-      400, 100, 80);
+  TestRandomSystem<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>(200, 50, 40);
+  TestRandomSystem<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>(300, 30, 20);
+  TestRandomSystem<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::ProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>>(400, 100, 80);
 }
 
 TEST(KokkosProcessSetAlgebraicVariables, CudaMatrix)

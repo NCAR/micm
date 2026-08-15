@@ -16,7 +16,10 @@ namespace micm
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
   /// The L and U matrices are decomposed in-place over the original A matrix.
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
+  template<
+      class MatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   class LinearSolverInPlace
   {
     using SparseMatrix = SparseMatrixPolicy;
@@ -25,6 +28,7 @@ namespace micm
     using Vector = typename SparseMatrix::template VectorType<U>;
     template<class U>
     using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
    public:
     using DenseMatrixType = MatrixPolicy;
     using SparseMatrixType = SparseMatrixPolicy;
@@ -39,17 +43,18 @@ namespace micm
       Views() = default;
 
       Views(
-        const Vector<Index>& nLij,
-        const Vector<IndexPair>& Lij_yj,
-        const Vector<IndexPair>& nUij_Uii,
-        const Vector<IndexPair>& Uij_xj
-      ) : nLij_(nLij.GetView()),
-          Lij_yj_(Lij_yj.GetView()),
-          nUij_Uii_(nUij_Uii.GetView()),
-          Uij_xj_(Uij_xj.GetView())
+          const Vector<Index>& nLij,
+          const Vector<IndexPair>& Lij_yj,
+          const Vector<IndexPair>& nUij_Uii,
+          const Vector<IndexPair>& Uij_xj)
+          : nLij_(nLij.GetView()),
+            Lij_yj_(Lij_yj.GetView()),
+            nUij_Uii_(nUij_Uii.GetView()),
+            Uij_xj_(Uij_xj.GetView())
       {
       }
     };
+
    protected:
     // Parameters needed to calculate L (U x) = b
     //

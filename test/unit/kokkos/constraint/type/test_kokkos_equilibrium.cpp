@@ -4,11 +4,11 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/stoich_species.hpp>
 #include <micm/util/jacobian_verification.hpp>
-#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
-#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 
@@ -557,7 +557,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   CheckCopyToHost<StdSparseMatrix>(jacobian);
 
   auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { 
+  {
     set.AddForcingTerms(vars, state_parameters, forcing);
     CheckCopyToHost<DenseMatrix>(forcing);
   };
