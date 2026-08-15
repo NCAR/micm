@@ -52,7 +52,7 @@ RUN cmake \
 # scan-includes: public headers only, no CUDA context needed
 # Run locally: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cpu AS scan-includes
-RUN find include -mindepth 2 -type f \( -name '*.hpp' -o -name '*.h' \) \
+RUN find include -mindepth 3 -type f \( -name '*.hpp' -o -name '*.h' \) \
       | xargs clang-tidy-22 \
           -p ./build/ \
           --config-file=./.clang-tidy \
