@@ -58,7 +58,7 @@ RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="-Iinclude/"
+          --extra-arg="-I$(pwd)/include/"
 
 # -----------------------------------------------------------------------------
 # scan-cuda-source: .cu and supporting source files under src/
@@ -70,7 +70,7 @@ RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="-Iinclude/"
+          --extra-arg="-I$(pwd)/include/"
 
 # -----------------------------------------------------------------------------
 # scan-tests: unit and integration tests (excluding tutorial, JIT, and OpenMP
