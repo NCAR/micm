@@ -662,12 +662,12 @@ namespace micm
 
       /// @brief Apply a reduction to the single row in this group. The user's
       ///        function receives its column-view/row-variable arguments plus a
-      ///        trailing reference to `reducer.reference()` as an accumulator.
+      ///        trailing reference to `reducer.Reference()` as an accumulator.
       ///        For standard Matrix (L=1) this is just one function call.
       template<typename Reducer, typename Func, typename... Args>
       void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
-        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
       }
 
       /// @brief Same as Reduce but guaranteed to skip padding rows.
@@ -676,7 +676,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
-        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
       }
 
       Index NumRows() const
@@ -854,7 +854,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       void Reduce(Reducer reducer, Func&& func, Args&&... args)
       {
-        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
       }
 
       /// @brief Same as Reduce but guaranteed to skip padding rows. For
@@ -862,7 +862,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       void ReduceStrict(Reducer reducer, Func&& func, Args&&... args)
       {
-        func(GetRowElement(std::forward<Args>(args))..., reducer.reference());
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
       }
 
       Index NumRows() const

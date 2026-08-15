@@ -5,6 +5,7 @@
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
+// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 #include <initializer_list>
 #include <vector>

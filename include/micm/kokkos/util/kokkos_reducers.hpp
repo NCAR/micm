@@ -4,6 +4,7 @@
 
 #include <micm/kokkos/util/kokkos_scalar_view.hpp>
 
+// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 
 namespace micm
@@ -27,7 +28,7 @@ namespace micm
       return view_.data();
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr T identity()
+    KOKKOS_INLINE_FUNCTION static constexpr T Identity()
     {
       return T{};
     }
@@ -35,12 +36,12 @@ namespace micm
     template<typename RowFunc>
     KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
-      T local = identity();
+      T local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::Sum<T>(local));
       Kokkos::single(Kokkos::PerTeam(team), [&]() { Kokkos::atomic_add(view_.data(), local); });
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    KOKKOS_INLINE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
       dst += src;
     }
@@ -65,19 +66,19 @@ namespace micm
       return view_.data();
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr T identity()
+    KOKKOS_INLINE_FUNCTION static constexpr T Identity()
     {
       return T{};
     }
     template<typename RowFunc>
     KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
-      T local = identity();
+      T local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::Max<T>(local));
       Kokkos::single(Kokkos::PerTeam(team), [&]() { Kokkos::atomic_fetch_max(view_.data(), local); });
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    KOKKOS_INLINE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
       if (src > dst)
       {
@@ -105,7 +106,7 @@ namespace micm
       return view_.data();
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr T identity()
+    KOKKOS_INLINE_FUNCTION static constexpr T Identity()
     {
       return T{};
     }
@@ -113,7 +114,7 @@ namespace micm
     template<typename RowFunc>
     KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
-      Bool local = identity();
+      Bool local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LOr<Bool>(local));
       Kokkos::single(
           Kokkos::PerTeam(team),
@@ -124,7 +125,7 @@ namespace micm
           });
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    KOKKOS_INLINE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
       dst = dst || src;
     }
@@ -149,7 +150,7 @@ namespace micm
       return view_.data();
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr T identity()
+    KOKKOS_INLINE_FUNCTION static constexpr T Identity()
     {
       return T{};
     }
@@ -157,7 +158,7 @@ namespace micm
     template<typename RowFunc>
     KOKKOS_INLINE_FUNCTION void team_reduce(const TeamMember& team, Index count, RowFunc&& row_func) const
     {
-      Bool local = identity();
+      Bool local = Identity();
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, count), row_func, Kokkos::LAnd<Bool>(local));
       Kokkos::single(
           Kokkos::PerTeam(team),
@@ -168,7 +169,7 @@ namespace micm
           });
     }
 
-    KOKKOS_INLINE_FUNCTION static constexpr void join(T& dst, const T& src)
+    KOKKOS_INLINE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
       dst = dst && src;
     }

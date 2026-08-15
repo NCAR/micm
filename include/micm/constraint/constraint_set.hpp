@@ -240,9 +240,13 @@ namespace micm
         DenseMatrixPolicy& forcing) const
     {
       for (const auto& info : constraint_info_)
+      {
         constraints_[info.index_].AddResidual(info, state_variables, state_parameters, forcing);
+      }
       for (const auto& forcing_fn : external_constraint_forcing_functions_)
+      {
         forcing_fn(state_variables, state_parameters, forcing);
+      }
     }
 
     /// @brief Subtract constraint Jacobian terms from Jacobian matrix
@@ -257,9 +261,13 @@ namespace micm
         SparseMatrixPolicy& jacobian) const
     {
       for (const auto& info : constraint_info_)
+      {
         constraints_[info.index_].SubtractJacobian(info, state_variables, state_parameters, jacobian);
+      }
       for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
+      {
         jacobian_fn(state_variables, state_parameters, jacobian);
+      }
     }
 
     /// @brief Set algebraic variable error estimates using step changes
@@ -270,7 +278,9 @@ namespace micm
     void SetAlgebraicErrors(DenseMatrixPolicy& Yerror, const DenseMatrixPolicy& Y, const DenseMatrixPolicy& Ynew) const
     {
       if (algebraic_variable_ids_.empty())
+      {
         return;
+      }
 
       const auto& alg_ids = alg_ids_view_;
 
@@ -368,7 +378,9 @@ namespace micm
         DenseMatrixPolicy& state_param) const
     {
       for (const auto& info : constraint_info_)
+      {
         constraints_[info.index_].ApplyConstraintParameter(info, conditions, state_param);
+      }
     }
 
     /// @brief Set external model constraint wrappers
@@ -565,7 +577,9 @@ namespace micm
     void BuildAlgebraicErrorFunction(const auto& state_variable_indices)
     {
       if (algebraic_variable_ids_.empty())
+      {
         return;
+      }
 
       std::vector<Index> alg_ids_temp(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
       alg_ids_data_ = alg_ids_temp;

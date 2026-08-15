@@ -250,7 +250,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
   Species bar("bar");
-  bar.parameterize_ = { .c_rho_ = 0.82, .has_value_ = true };
+  bar.parameterize_ = { .c_rho_ = 0.82, .has_value_ = micm::Bool(true) };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar } };
 

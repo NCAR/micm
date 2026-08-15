@@ -409,16 +409,16 @@ namespace micm
       // views_ members are VectorView<T> (KokkosPaddedVector::ConstDeviceView for Kokkos builds)
       // which hold a Kokkos::View pointing to device-resident data uploaded by CopyToDevice().
       const auto& v = store.views_;
-      const Index n_arr = static_cast<Index>(v.arrhenius_.size());
-      const Index n_troe = static_cast<Index>(v.troe_.size());
-      const Index n_tern = static_cast<Index>(v.ternary_.size());
-      const Index n_bran = static_cast<Index>(v.branched_.size());
-      const Index n_tunn = static_cast<Index>(v.tunneling_.size());
-      const Index n_tayl = static_cast<Index>(v.taylor_.size());
-      const Index n_rev = static_cast<Index>(v.reversible_.size());
-      const Index n_ud = static_cast<Index>(v.user_defined_.size());
-      const Index n_surf = static_cast<Index>(v.surface_.size());
-      const Index n_mult = static_cast<Index>(v.parameterized_multipliers_.size());
+      const auto n_arr = static_cast<Index>(v.arrhenius_.size());
+      const auto n_troe = static_cast<Index>(v.troe_.size());
+      const auto n_tern = static_cast<Index>(v.ternary_.size());
+      const auto n_bran = static_cast<Index>(v.branched_.size());
+      const auto n_tunn = static_cast<Index>(v.tunneling_.size());
+      const auto n_tayl = static_cast<Index>(v.taylor_.size());
+      const auto n_rev = static_cast<Index>(v.reversible_.size());
+      const auto n_ud = static_cast<Index>(v.user_defined_.size());
+      const auto n_surf = static_cast<Index>(v.surface_.size());
+      const auto n_mult = static_cast<Index>(v.parameterized_multipliers_.size());
       const Index off_troe = store.off_troe_, off_tern = store.off_tern_, off_bran = store.off_bran_,
                   off_tunn = store.off_tunn_, off_tayl = store.off_tayl_, off_rev = store.off_rev_, off_ud = store.off_ud_,
                   off_surf = store.off_surf_;

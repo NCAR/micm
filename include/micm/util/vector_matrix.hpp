@@ -848,14 +848,14 @@ namespace micm
 
       /// @brief Apply a reduction to each row in this group. The user's function
       ///        receives its column-view/row-variable arguments plus a trailing
-      ///        reference to `reducer.reference()` as an accumulator, and
+      ///        reference to `reducer.Reference()` as an accumulator, and
       ///        accumulates into it (e.g. `acc += x*x` for a sum, `acc = std::max(acc, x)`
       ///        for a max). Matches ForEachRow's group-iteration shape, including
       ///        operating on padded rows.
       template<typename Reducer, typename Func, typename... Args>
       void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
-        auto& acc = reducer.reference();
+        auto& acc = reducer.Reference();
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
@@ -866,7 +866,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
-        auto& acc = reducer.reference();
+        auto& acc = reducer.Reference();
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
@@ -1153,7 +1153,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       void Reduce(Reducer reducer, Func&& func, Args&&... args)
       {
-        auto& acc = reducer.reference();
+        auto& acc = reducer.Reference();
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
@@ -1164,7 +1164,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       void ReduceStrict(Reducer reducer, Func&& func, Args&&... args)
       {
-        auto& acc = reducer.reference();
+        auto& acc = reducer.Reference();
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)

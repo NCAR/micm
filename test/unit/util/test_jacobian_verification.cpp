@@ -139,8 +139,8 @@ TEST(JacobianVerification, CompareFailsForWrongJacobian)
   auto result = micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrix>(wrong_analytical, fd_jac, num_species);
 
   EXPECT_FALSE(result.passed_);
-  EXPECT_EQ(result.worst_row_, 0u);
-  EXPECT_EQ(result.worst_col_, 0u);
+  EXPECT_EQ(result.worst_row_, micm::Bool(false));
+  EXPECT_EQ(result.worst_col_, micm::Bool(false));
 }
 
 TEST(JacobianVerification, SparsityCompletenessPassesWhenComplete)
@@ -188,8 +188,8 @@ TEST(JacobianVerification, SparsityCompletenessFailsWhenMissingEntry)
   auto result = micm::CheckJacobianSparsityCompleteness<DenseMatrix, SparseMatrix>(incomplete_sparsity, fd_jac, num_species);
 
   EXPECT_FALSE(result.passed_);
-  EXPECT_EQ(result.worst_row_, 1u);
-  EXPECT_EQ(result.worst_col_, 0u);
+  EXPECT_EQ(result.worst_row_, micm::Bool(true));
+  EXPECT_EQ(result.worst_col_, micm::Bool(false));
 }
 
 TEST(JacobianVerification, NearZeroVariableHandled)

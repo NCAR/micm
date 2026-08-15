@@ -29,14 +29,14 @@ namespace micm
     Real c_T_ = 0.0;
     Real c_P_ = 0.0;
     Real c_rho_ = 0.0;
-    Bool has_value_ = false;
+    Bool has_value_ = static_cast<Bool>(false);
 
     MICM_DEVICE_FUNCTION Real operator()(const Conditions& c) const
     {
       return c0_ + c_T_ * c.temperature_ + c_P_ * c.pressure_ + c_rho_ * c.air_density_;
     }
 
-    MICM_DEVICE_FUNCTION Bool has_value() const
+    MICM_DEVICE_FUNCTION Bool HasValue() const
     {
       return has_value_;
     }

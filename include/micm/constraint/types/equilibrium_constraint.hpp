@@ -163,7 +163,7 @@ namespace micm
 
     EquilibriumConstraint(EquilibriumConstraint&& other) noexcept
         : name_(std::move(other.name_)),
-          algebraic_species_(std::move(other.algebraic_species_)),
+          algebraic_species_(other.algebraic_species_),  // Species is not move constructible
           species_dependencies_(std::move(other.species_dependencies_)),
           reactants_(std::move(other.reactants_)),
           products_(std::move(other.products_)),
@@ -185,7 +185,7 @@ namespace micm
       if (this != &other)
       {
         name_ = std::move(other.name_);
-        algebraic_species_ = std::move(other.algebraic_species_);
+        algebraic_species_ = other.algebraic_species_;  // Speces is not move assignable
         species_dependencies_ = std::move(other.species_dependencies_);
         reactants_ = std::move(other.reactants_);
         products_ = std::move(other.products_);
@@ -522,11 +522,17 @@ namespace micm
                   [=](const Real& conc, const Real& prod, Real& partial)
                   {
                     if (stoich_i == 1.0)
+                    {
                       partial = prod;
+                    }
                     else if (conc > 0.0)
+                    {
                       partial = stoich_i * prod * std::pow(conc, stoich_i - 1.0);
+                    }
                     else
+                    {
                       partial = 0.0;
+                    }
                   },
                   state_view.GetConstColumnView(species_idx_i),
                   partial_product,

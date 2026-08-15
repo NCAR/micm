@@ -107,7 +107,7 @@ namespace micm
 
   inline bool Species::IsParameterized() const
   {
-    return parameterize_.has_value();
+    return static_cast<bool>(parameterize_.HasValue());
   }
 
   inline bool Species::HasProperty(const std::string& key) const
@@ -118,7 +118,7 @@ namespace micm
 
   inline void Species::SetThirdBody()
   {
-    parameterize_ = { .c_rho_ = 1.0, .has_value_ = true };
+    parameterize_ = { .c_rho_ = 1.0, .has_value_ = static_cast<Bool>(true) };
   }
 
   template<class T>

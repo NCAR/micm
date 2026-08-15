@@ -10,6 +10,7 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
+// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 #include <cmath>
 #include <vector>
@@ -74,17 +75,17 @@ namespace micm
     /// MakeHandle()/BuildGroupView() below.
     struct SparseMatrixHandle
     {
-      Kokkos::View<T*> view;
-      Index flat_block_size;
-      KokkosSparseMatrix* matrix;
+      Kokkos::View<T*> view_;
+      Index flat_block_size_;
+      KokkosSparseMatrix* matrix_;
     };
 
     /// @brief Const variant of SparseMatrixHandle. See SparseMatrixHandle for details.
     struct ConstSparseMatrixHandle
     {
-      Kokkos::View<const T*> view;
-      Index flat_block_size;
-      const KokkosSparseMatrix* matrix;
+      Kokkos::View<const T*> view_;
+      Index flat_block_size_;
+      const KokkosSparseMatrix* matrix_;
     };
 
     /// @brief Device-safe handle for a KokkosDenseMatrix argument mixed into a call to
@@ -93,16 +94,16 @@ namespace micm
     /// See SparseMatrixHandle for why only the view + column count are captured.
     struct DenseMatrixArgHandle
     {
-      Kokkos::View<T*> view;
-      Index y_dim;
+      Kokkos::View<T*> view_;
+      Index y_dim_;
     };
 
     /// @brief Const variant of DenseMatrixArgHandle. See DenseMatrixArgHandle for
     ///        details.
     struct ConstDenseMatrixArgHandle
     {
-      Kokkos::View<const T*> view;
-      Index y_dim;
+      Kokkos::View<const T*> view_;
+      Index y_dim_;
     };
 
    private:
@@ -155,19 +156,19 @@ namespace micm
       using HandleType = std::remove_cvref_t<Handle>;
       if constexpr (std::is_same_v<HandleType, SparseMatrixHandle>)
       {
-        return GroupView(handle.view, group, handle.flat_block_size, count, team, handle.matrix);
+        return GroupView(handle.view_, group, handle.flat_block_size_, count, team, handle.matrix_);
       }
       else if constexpr (std::is_same_v<HandleType, ConstSparseMatrixHandle>)
       {
-        return ConstGroupView(handle.view, group, handle.flat_block_size, count, team, handle.matrix);
+        return ConstGroupView(handle.view_, group, handle.flat_block_size_, count, team, handle.matrix_);
       }
       else if constexpr (std::is_same_v<HandleType, DenseMatrixArgHandle>)
       {
-        return typename KokkosDenseMatrix<T, L>::GroupView(handle.view, group, handle.y_dim, count, team);
+        return typename KokkosDenseMatrix<T, L>::GroupView(handle.view_, group, handle.y_dim_, count, team);
       }
       else if constexpr (std::is_same_v<HandleType, ConstDenseMatrixArgHandle>)
       {
-        return typename KokkosDenseMatrix<T, L>::ConstGroupView(handle.view, group, handle.y_dim, count, team);
+        return typename KokkosDenseMatrix<T, L>::ConstGroupView(handle.view_, group, handle.y_dim_, count, team);
       }
       else if (KokkosVectorLike<HandleType>)
       {
@@ -185,14 +186,14 @@ namespace micm
       HandlesTuple handles_;
 
       template<std::size_t... Is>
-      KOKKOS_INLINE_FUNCTION void dispatch(Index group, const TeamMember& team, std::index_sequence<Is...>) const
+      KOKKOS_INLINE_FUNCTION void Dispatch(Index group, const TeamMember& team, std::index_sequence<Is...>) const
       {
-        func_(BuildGroupView(detail::dt_get<Is>(handles_), group, L, team)...);
+        func_(BuildGroupView(detail::DeviceTupleGet<Is>(handles_), group, L, team)...);
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
       {
-        dispatch(static_cast<Index>(team.league_rank()), team, std::make_index_sequence<HandlesTuple::N>{});
+        Dispatch(static_cast<Index>(team.league_rank()), team, std::make_index_sequence<HandlesTuple::N>{});
       }
     };
 
@@ -206,14 +207,14 @@ namespace micm
       Index remaining_;
 
       template<std::size_t... Is>
-      KOKKOS_INLINE_FUNCTION void dispatch(const TeamMember& team, std::index_sequence<Is...>) const
+      KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, std::index_sequence<Is...>) const
       {
-        func_(BuildGroupView(detail::dt_get<Is>(handles_), num_complete_groups_, remaining_, team)...);
+        func_(BuildGroupView(detail::DeviceTupleGet<Is>(handles_), num_complete_groups_, remaining_, team)...);
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
       {
-        dispatch(team, std::make_index_sequence<HandlesTuple::N>{});
+        Dispatch(team, std::make_index_sequence<HandlesTuple::N>{});
       }
     };
 
@@ -227,15 +228,15 @@ namespace micm
       ArgsTuple args_;
 
       template<std::size_t... Is>
-      KOKKOS_INLINE_FUNCTION void dispatch(Index block, std::index_sequence<Is...>) const
+      KOKKOS_INLINE_FUNCTION void Dispatch(Index block, std::index_sequence<Is...>) const
       {
         func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-            view_, flat_block_size_, block, detail::dt_get<Is>(args_))...);
+            view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(Index block) const
       {
-        dispatch(block, std::make_index_sequence<ArgsTuple::N>{});
+        Dispatch(block, std::make_index_sequence<ArgsTuple::N>{});
       }
     };
 
@@ -249,7 +250,7 @@ namespace micm
       ArgsTuple args_;
 
       template<std::size_t... Is>
-      KOKKOS_INLINE_FUNCTION void dispatch(const TeamMember& team, Index group, std::index_sequence<Is...>) const
+      KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, Index group, std::index_sequence<Is...>) const
       {
         Kokkos::parallel_for(
             Kokkos::TeamThreadRange(team, L),
@@ -257,13 +258,13 @@ namespace micm
             {
               const Index block = group * L + block_in_group;
               func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                  view_, flat_block_size_, block, detail::dt_get<Is>(args_))...);
+                  view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
             });
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
       {
-        dispatch(team, static_cast<Index>(team.league_rank()), std::make_index_sequence<ArgsTuple::N>{});
+        Dispatch(team, static_cast<Index>(team.league_rank()), std::make_index_sequence<ArgsTuple::N>{});
       }
     };
 
@@ -279,7 +280,7 @@ namespace micm
       Index remaining_;
 
       template<std::size_t... Is>
-      KOKKOS_INLINE_FUNCTION void dispatch(const TeamMember& team, std::index_sequence<Is...>) const
+      KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, std::index_sequence<Is...>) const
       {
         Kokkos::parallel_for(
             Kokkos::TeamThreadRange(team, remaining_),
@@ -287,13 +288,13 @@ namespace micm
             {
               const Index block = num_complete_groups_ * L + block_in_group;
               func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                  view_, flat_block_size_, block, detail::dt_get<Is>(args_))...);
+                  view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
             });
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(const TeamMember& team) const
       {
-        dispatch(team, std::make_index_sequence<ArgsTuple::N>{});
+        Dispatch(team, std::make_index_sequence<ArgsTuple::N>{});
       }
     };
 
@@ -321,7 +322,9 @@ namespace micm
     KokkosSparseMatrix& operator=(const KokkosSparseMatrix& other)
     {
       if (this == &other)
+      {
         return *this;
+      }
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       Kokkos::realloc(view_, other.view_.extent(0));
       Kokkos::deep_copy(view_, other.view_);
@@ -411,7 +414,7 @@ namespace micm
       KokkosViewType data_view = view_;
       const Index group_size = L * this->FlatBlockSize();
       const Index num_groups = (this->NumberOfBlocks() + L - 1) / L;
-      const Index num_diagonal_elements = static_cast<Index>(diagonal_offsets.size());
+      const auto num_diagonal_elements = static_cast<Index>(diagonal_offsets.size());
 
       Kokkos::parallel_for(
           "KokkosSparseMatrix::AddToDiagonal",
@@ -429,7 +432,8 @@ namespace micm
     /// @brief Access the non-zero element at a precomputed flat index (from
     ///        VectorIndex(0, row, col)) in every block, for direct on-device
     ///        modification via ForEachBlock().
-    KOKKOS_INLINE_FUNCTION KokkosBlockView<T, L> GetBlockView(Index vector_index)
+    KOKKOS_INLINE_FUNCTION KokkosBlockView<T, L> GetBlockView(
+        Index vector_index)  // NOLINT(readability-identifier-naming) clang-tidy thinks KokkosBlockView is a class member
     {
       return KokkosBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
     }
@@ -661,11 +665,11 @@ namespace micm
       ///        `acc = std::max(acc, x)`). The micm reducer type (Sum/Max/LOr/LAnd)
       ///        is translated to the matching Kokkos reducer, which handles the
       ///        inter-thread join and writes the final result back to
-      ///        `reducer.reference()`.
+      ///        `reducer.Reference()`.
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using AccT = decltype(Reducer::identity());
+        using AccT = decltype(Reducer::Identity());
         reducer.team_reduce(
             team_,
             L,
@@ -678,7 +682,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using AccT = decltype(Reducer::identity());
+        using AccT = decltype(Reducer::Identity());
         reducer.team_reduce(
             team_,
             num_blocks_in_group_,
@@ -898,11 +902,11 @@ namespace micm
       ///        `acc = std::max(acc, x)`). The micm reducer type (Sum/Max/LOr/LAnd)
       ///        is translated to the matching Kokkos reducer, which handles the
       ///        inter-thread join and writes the final result back to
-      ///        `reducer.reference()`.
+      ///        `reducer.Reference()`.
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using AccT = decltype(Reducer::identity());
+        using AccT = decltype(Reducer::Identity());
         reducer.team_reduce(
             team_,
             L,
@@ -915,7 +919,7 @@ namespace micm
       template<typename Reducer, typename Func, typename... Args>
       KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
-        using AccT = decltype(Reducer::identity());
+        using AccT = decltype(Reducer::Identity());
         reducer.team_reduce(
             team_,
             num_blocks_in_group_,
@@ -1009,7 +1013,7 @@ namespace micm
             }(invoked_args),
             ...);
 
-        Index num_complete_groups = static_cast<Index>(std::floor(num_blocks / (double)L));
+        auto num_complete_groups = static_cast<Index>(std::floor(num_blocks / (double)L));
         Index remaining = num_blocks % L;
 
         // Bundle handles into a DeviceTuple and dispatch via named Kokkos functor structs.

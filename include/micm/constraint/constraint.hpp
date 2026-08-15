@@ -85,9 +85,13 @@ namespace micm
         DenseMatrixPolicy& state_param) const
     {
       if (auto* eq = std::get_if<EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+      {
         eq->ApplyConstraintParameter(info, conditions, state_param);
+      }
       else if (auto* lin = std::get_if<LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+      {
         lin->ApplyConstraintParameter(info, conditions, state_param);
+      }
     }
 
     void SetStateIndices(const ConstraintInfo& info, auto& jacobian_flat_ids)
@@ -104,9 +108,13 @@ namespace micm
         DenseMatrixPolicy& forcing) const
     {
       if (auto* eq = std::get_if<EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+      {
         eq->AddResidual(info, state, state_param, forcing);
+      }
       else if (auto* lin = std::get_if<LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+      {
         lin->AddResidual(info, state, state_param, forcing);
+      }
     }
 
     /// @brief Subtract Jacobian partial derivatives from Jacobian matrix for all grid cells
@@ -118,9 +126,13 @@ namespace micm
         SparseMatrixPolicy& jacobian) const
     {
       if (auto* eq = std::get_if<EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+      {
         eq->SubtractJacobian(info, state, state_param, jacobian);
+      }
       else if (auto* lin = std::get_if<LinearConstraint<DenseMatrixPolicy, SparseMatrixPolicy>>(&constraint_))
+      {
         lin->SubtractJacobian(info, state, state_param, jacobian);
+      }
     }
   };
 

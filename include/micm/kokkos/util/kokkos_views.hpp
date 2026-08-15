@@ -5,6 +5,7 @@
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
+// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 
 namespace micm
@@ -39,7 +40,8 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION Index ColumnIndex() const
+    KOKKOS_INLINE_FUNCTION Index
+    ColumnIndex() const  // NOLINT(readability-identifier-naming) clang-tidy thinks Index is a class member
     {
       return column_index_;
     }
@@ -74,7 +76,8 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION Index ColumnIndex() const
+    KOKKOS_INLINE_FUNCTION Index
+    ColumnIndex() const  // NOLINT(readability-identifier-naming) clang-tidy thinks Index is a class member
     {
       return column_index_;
     }
@@ -173,7 +176,8 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION Index ElementPosition() const
+    KOKKOS_INLINE_FUNCTION Index
+    ElementPosition() const  // NOLINT(readability-identifier-naming) clang-tidy thinks Index is a class member
     {
       return element_position_;
     }
@@ -208,7 +212,8 @@ namespace micm
     {
     }
 
-    KOKKOS_INLINE_FUNCTION Index ElementPosition() const
+    KOKKOS_INLINE_FUNCTION Index
+    ElementPosition() const  // NOLINT(readability-identifier-naming) clang-tidy thinks Index is a class member
     {
       return element_position_;
     }

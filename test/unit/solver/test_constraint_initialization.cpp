@@ -136,7 +136,7 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   // (it will change from time stepping, but the initialization should not touch it)
   // We can't check exact equality post-solve because time stepping changes A,
   // but we verify the initialization converged and the constraint is satisfied
-  EXPECT_GT(result.stats_.constraint_init_iterations_, 0u);
+  EXPECT_GT(result.stats_.constraint_init_iterations_, micm::Bool(false));
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
   micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
@@ -221,7 +221,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
 
   EXPECT_EQ(result.state_, SolverState::Converged);
   // No constraint initialization should have happened
-  EXPECT_EQ(result.stats_.constraint_init_iterations_, 0u);
+  EXPECT_EQ(result.stats_.constraint_init_iterations_, micm::Bool(false));
 }
 
 /// @brief Test multi-cell systems with different inconsistency levels

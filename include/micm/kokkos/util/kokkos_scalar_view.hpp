@@ -4,6 +4,7 @@
 
 #include <micm/util/types.hpp>
 
+// NOLINTNEXTLINE(clang-diagnostic-error): Kokkos isn't included in the clang-tidy build
 #include <Kokkos_Core.hpp>
 
 namespace micm
@@ -134,7 +135,7 @@ namespace micm
       Kokkos::deep_copy(device_view_, data_);
     }
 
-    T& host_value() const
+    T& HostValue() const
     {
       return data_(0);
     }

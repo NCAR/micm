@@ -60,7 +60,7 @@ TEST(Phase, ConstructorWithParameterizedSpecies)
   PhaseSpecies gas_bar(bar);
   PhaseSpecies gas_baz(baz);
 
-  gas_bar.species_.parameterize_ = { .c0_ = 42.0, .has_value_ = true };
+  gas_bar.species_.parameterize_ = { .c0_ = 42.0, .has_value_ = micm::Bool(true) };
   Phase phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_baz }));
 
   EXPECT_EQ(phase.phase_species_.size(), 3);
@@ -76,7 +76,7 @@ TEST(Phase, UniqueNamesWithParameterizedSpecies)
   PhaseSpecies gas_bar(bar);
   PhaseSpecies gas_baz(baz);
 
-  gas_bar.species_.parameterize_ = { .c0_ = 42.0, .has_value_ = true };
+  gas_bar.species_.parameterize_ = { .c0_ = 42.0, .has_value_ = micm::Bool(true) };
   Phase phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_baz }));
 
   auto names = phase.UniqueNames();

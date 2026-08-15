@@ -110,10 +110,10 @@ namespace micm
 
     LinearConstraint(LinearConstraint&& other) noexcept
         : name_(std::move(other.name_)),
-          algebraic_species_(std::move(other.algebraic_species_)),
+          algebraic_species_(other.algebraic_species_),  // Species is not move constructible
           species_dependencies_(std::move(other.species_dependencies_)),
           terms_(std::move(other.terms_)),
-          constant_(std::move(other.constant_)),
+          constant_(other.constant_),
           parameters_(std::move(other.parameters_)),
           species_indices_(std::move(other.species_indices_)),
           coeffs_(std::move(other.coeffs_)),
@@ -127,10 +127,10 @@ namespace micm
       if (this != &other)
       {
         name_ = std::move(other.name_);
-        algebraic_species_ = std::move(other.algebraic_species_);
+        algebraic_species_ = other.algebraic_species_;  // Species is not move assignable
         species_dependencies_ = std::move(other.species_dependencies_);
         terms_ = std::move(other.terms_);
-        constant_ = std::move(other.constant_);
+        constant_ = other.constant_;
         parameters_ = std::move(other.parameters_);
         species_indices_ = std::move(other.species_indices_);
         coeffs_ = std::move(other.coeffs_);

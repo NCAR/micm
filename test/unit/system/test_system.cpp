@@ -40,7 +40,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
 
   // Parameterized species
   Species param_species = Species("paramSpecies");
-  param_species.parameterize_ = { .c0_ = 64.2, .has_value_ = true };
+  param_species.parameterize_ = { .c0_ = 64.2, .has_value_ = micm::Bool(true) };
   PhaseSpecies gas_param_species(param_species);
 
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_param_species }));

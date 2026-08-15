@@ -11,7 +11,7 @@ TEST(Species, StringConstructor)
   micm::Species species("thing");
   EXPECT_EQ(species.name_, "thing");
   EXPECT_FALSE(species.IsParameterized());
-  species.parameterize_ = { .c_T_ = 100.0, .has_value_ = true };
+  species.parameterize_ = { .c_T_ = 100.0, .has_value_ = micm::Bool(true) };
   EXPECT_TRUE(species.IsParameterized());
   EXPECT_EQ(species.parameterize_({ .temperature_ = 12.5 }), 12.5 * 100.0);
 }
@@ -131,7 +131,7 @@ TEST(Species, CopyConstructor)
   }
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
-    species.parameterize_ = { .c0_ = 15.4, .has_value_ = true };
+    species.parameterize_ = { .c0_ = 15.4, .has_value_ = micm::Bool(true) };
     species.SetProperty("foo", "bar");
     species.SetProperty("baz", 42);
     species.SetProperty("qux", true);
@@ -173,7 +173,7 @@ TEST(Species, CopyAssignment)
   }
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
-    species.parameterize_ = { .c0_ = 15.4, .has_value_ = true };
+    species.parameterize_ = { .c0_ = 15.4, .has_value_ = micm::Bool(true) };
     species.SetProperty("foo", "bar");
     species.SetProperty("baz", 42);
     species.SetProperty("qux", true);

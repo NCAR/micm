@@ -16,12 +16,12 @@ namespace micm
   /// `Kokkos::LAnd`: each reducer wraps a caller-owned destination scalar (`T&`)
   /// and exposes:
   /// - `value_type`: the accumulator's scalar type.
-  /// - `reference()`: returns the destination scalar by reference.
-  /// - `identity()`: the identity value used to seed a fresh accumulator.
-  /// - `join(dst, src)`: how per-thread accumulators combine into `dst`.
+  /// - `Reference()`: returns the destination scalar by reference.
+  /// - `Identity()`: the identity value used to seed a fresh accumulator.
+  /// - `Join(dst, src)`: how per-thread accumulators combine into `dst`.
   ///
   /// On host matrix policies, `Reduce` iterates serially and writes into
-  /// `reference()` directly. On `KokkosDenseMatrix`, the reducer is translated
+  /// `Reference()` directly. On `KokkosDenseMatrix`, the reducer is translated
   /// into the matching `Kokkos::Sum` / `Kokkos::Max` / `Kokkos::LOr` /
   /// `Kokkos::LAnd` before dispatching `Kokkos::parallel_reduce`.
 
@@ -39,21 +39,21 @@ namespace micm
 
     template<typename Scalar>
     MICM_DEVICE_FUNCTION explicit Sum(const Scalar& scalar)
-        : value_(scalar.host_value())
+        : value_(scalar.HostValue())
     {
     }
 
-    MICM_DEVICE_FUNCTION constexpr T& reference() const
+    MICM_DEVICE_FUNCTION constexpr T& Reference() const
     {
       return value_;
     }
 
-    MICM_DEVICE_FUNCTION static constexpr T identity()
+    MICM_DEVICE_FUNCTION static constexpr T Identity()
     {
       return T{};
     }
 
-    MICM_DEVICE_FUNCTION static constexpr void join(T& dst, const T& src)
+    MICM_DEVICE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
       dst += src;
     }
@@ -79,21 +79,21 @@ namespace micm
 
     template<typename Scalar>
     MICM_DEVICE_FUNCTION explicit Max(const Scalar& scalar)
-        : value_(scalar.host_value())
+        : value_(scalar.HostValue())
     {
     }
 
-    MICM_DEVICE_FUNCTION constexpr T& reference() const
+    MICM_DEVICE_FUNCTION constexpr T& Reference() const
     {
       return value_;
     }
 
-    MICM_DEVICE_FUNCTION static constexpr T identity()
+    MICM_DEVICE_FUNCTION static constexpr T Identity()
     {
       return std::numeric_limits<T>::lowest();
     }
 
-    MICM_DEVICE_FUNCTION static constexpr void join(T& dst, const T& src)
+    MICM_DEVICE_FUNCTION static constexpr void Join(T& dst, const T& src)
     {
       if (src > dst)
       {
@@ -121,23 +121,23 @@ namespace micm
 
     template<typename Scalar>
     MICM_DEVICE_FUNCTION explicit LOr(const Scalar& scalar)
-        : value_(scalar.host_value())
+        : value_(scalar.HostValue())
     {
     }
 
-    MICM_DEVICE_FUNCTION constexpr Bool& reference() const
+    MICM_DEVICE_FUNCTION constexpr Bool& Reference() const
     {
       return value_;
     }
 
-    MICM_DEVICE_FUNCTION static constexpr Bool identity()
+    MICM_DEVICE_FUNCTION static constexpr Bool Identity()
     {
-      return false;
+      return static_cast<Bool>(false);
     }
 
-    MICM_DEVICE_FUNCTION static constexpr void join(Bool& dst, Bool src)
+    MICM_DEVICE_FUNCTION static constexpr void Join(Bool& dst, Bool src)
     {
-      dst = dst || src;
+      dst = static_cast<Bool>(static_cast<bool>(dst) || static_cast<bool>(src));
     }
   };
 
@@ -154,23 +154,23 @@ namespace micm
 
     template<typename Scalar>
     MICM_DEVICE_FUNCTION explicit LAnd(const Scalar& scalar)
-        : value_(scalar.host_value())
+        : value_(scalar.HostValue())
     {
     }
 
-    MICM_DEVICE_FUNCTION constexpr Bool& reference() const
+    MICM_DEVICE_FUNCTION constexpr Bool& Reference() const
     {
       return value_;
     }
 
-    MICM_DEVICE_FUNCTION static constexpr Bool identity()
+    MICM_DEVICE_FUNCTION static constexpr Bool Identity()
     {
       return true;
     }
 
-    MICM_DEVICE_FUNCTION static constexpr void join(Bool& dst, Bool src)
+    MICM_DEVICE_FUNCTION static constexpr void Join(Bool& dst, Bool src)
     {
-      dst = dst && src;
+      dst = static_cast<Bool>(static_cast<bool>(dst) && static_cast<bool>(src));
     }
   };
 }  // namespace micm
