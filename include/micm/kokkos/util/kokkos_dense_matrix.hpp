@@ -1166,7 +1166,6 @@ namespace micm
       }
     }
 
-   private:
     /// @brief Get an element reference for a row at the (ungrouped) matrix level.
     ///        Used by the matrix-level ForEachRow() override.
     template<DenseMatrixColumnView Arg>

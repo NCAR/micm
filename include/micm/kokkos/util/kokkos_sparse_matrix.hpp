@@ -1040,7 +1040,6 @@ namespace micm
       return result;
     }
 
-   private:
     /// @brief Get an element reference for a block at the (ungrouped) matrix level.
     ///        Used by the matrix-level ForEachBlock() override.
     template<SparseMatrixBlockView Arg>
