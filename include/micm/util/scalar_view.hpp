@@ -24,7 +24,10 @@ public:
     operator T() const { return *data_; }
     T& operator=(const T& val) { *data_ = val; return *data_; }
     ScalarView& operator=(const ScalarView<T>& val) { *data_ = *(val.data_); return *this; }
-    T* data() const { return data_.get(); }
+    T* data() const // NOLINT(readability-identifier-naming)
+    {
+        return data_.get();
+    }
 
     void CopyToHost() const {}
     void CopyToDevice() const {}

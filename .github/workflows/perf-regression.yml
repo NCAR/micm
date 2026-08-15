@@ -58,9 +58,16 @@ jobs:
       - name: Overlay PR's benchmark harness onto base
         # The PR is the source of truth for the benchmark, so both revisions run
         # the same workload. Every step below runs pr/scripts/, so only the
-        # harness needs an overlay.
+        # harness needs an overlay. Snapshot base's own harness first so we
+        # can fall back to it if the overlay fails to build against base.
         run: |
           set -euo pipefail
+          rm -rf /tmp/base-bench-orig
+          mkdir -p /tmp/base-bench-orig
+          if [ -d base/test/benchmark ]; then
+            cp -R base/test/benchmark /tmp/base-bench-orig/benchmark
+          fi
+          cp base/test/CMakeLists.txt /tmp/base-bench-orig/CMakeLists.txt
           # Replace the whole directory. The benchmark spans several headers, and
           # naming them one by one leaves the base building a stale mixture.
           rm -rf base/test/benchmark
@@ -78,7 +85,25 @@ jobs:
           cmake --build pr/build --target micm_bench --parallel
 
       - name: Build base (micm_bench)
+        # First try to build base with the PR's harness overlaid (apples-to-apples
+        # comparison). If the PR harness depends on APIs not in base, fall back
+        # to base's own harness so we can still compare something. The compare
+        # steps below then measure whatever workload both sides could build.
         run: |
+          set -eo pipefail
+          if cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON \
+              && cmake --build base/build --target micm_bench --parallel; then
+            exit 0
+          fi
+          echo "::warning::PR benchmark harness failed to build against base; falling back to base's own harness"
+          rm -rf base/test/benchmark base/build
+          if [ -d /tmp/base-bench-orig/benchmark ]; then
+            cp -R /tmp/base-bench-orig/benchmark base/test/benchmark
+          fi
+          cp /tmp/base-bench-orig/CMakeLists.txt base/test/CMakeLists.txt
+          if ! grep -q "add_subdirectory(benchmark)" base/test/CMakeLists.txt; then
+            printf '\nadd_subdirectory(benchmark)\n' >> base/test/CMakeLists.txt
+          fi
           cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
           cmake --build base/build --target micm_bench --parallel
 

@@ -28,9 +28,15 @@ namespace micm
 
         KOKKOS_INLINE_FUNCTION operator T() const { return view_(0); }
 
-        KOKKOS_INLINE_FUNCTION const T* data() const { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION const T* data() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data();
+        }
         
-        KOKKOS_INLINE_FUNCTION ConstView GetView() const { return *this; }
+        KOKKOS_INLINE_FUNCTION ConstView GetView() const
+        {
+            return *this;
+        }
     };
 
     struct DeviceView
@@ -43,9 +49,15 @@ namespace micm
 
         KOKKOS_INLINE_FUNCTION DeviceView& operator=(const DeviceView& other) { view_(0) = other.view_(0); return *this; }
 
-        KOKKOS_INLINE_FUNCTION T* data() { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION T* data() // NOLINT(readability-identifier-naming)
+        {
+            return view_.data();
+        }
 
-        KOKKOS_INLINE_FUNCTION const T* data() const { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION const T* data() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data();
+        }
 
         KOKKOS_INLINE_FUNCTION View GetView() const { return *this; }
 
@@ -57,13 +69,13 @@ namespace micm
         data_(0) = init;
     }
 
-    KOKKOS_INLINE_FUNCTION T* data()
+    KOKKOS_INLINE_FUNCTION T* data() // NOLINT(readability-identifier-naming)
     {
         KOKKOS_IF_ON_DEVICE(( return device_view_.data(); ))
         KOKKOS_IF_ON_HOST((   return data_.data(); ))
     }
 
-    KOKKOS_INLINE_FUNCTION const T* data() const
+    KOKKOS_INLINE_FUNCTION const T* data() const // NOLINT(readability-identifier-naming)
     {
         KOKKOS_IF_ON_DEVICE(( return device_view_.data(); ))
         KOKKOS_IF_ON_HOST((   return data_.data(); ))

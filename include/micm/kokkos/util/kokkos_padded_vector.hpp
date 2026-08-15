@@ -37,7 +37,7 @@ namespace micm
             return view_(i);
         }
 
-        KOKKOS_INLINE_FUNCTION Index size() const
+        KOKKOS_INLINE_FUNCTION Index size() const // NOLINT(readability-identifier-naming)
         {
             return size_;
         }
@@ -48,9 +48,18 @@ namespace micm
             return *this;
         }
 
-        KOKKOS_INLINE_FUNCTION const T* begin() const { return view_.data(); }
-        KOKKOS_INLINE_FUNCTION const T* end() const { return view_.data() + size_; }
-        KOKKOS_INLINE_FUNCTION const T* data() const { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION const T* begin() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data();
+        }
+        KOKKOS_INLINE_FUNCTION const T* end() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data() + size_;
+        }
+        KOKKOS_INLINE_FUNCTION const T* data() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data();
+        }
     };
 
     struct DeviceView
@@ -63,7 +72,7 @@ namespace micm
             return view_(i);
         }
 
-        KOKKOS_INLINE_FUNCTION Index size() const
+        KOKKOS_INLINE_FUNCTION Index size() const // NOLINT(readability-identifier-naming)
         {
             return size_;
         }
@@ -80,9 +89,18 @@ namespace micm
             return { view_ };
         }
 
-        KOKKOS_INLINE_FUNCTION const T* begin() const { return view_.data(); }
-        KOKKOS_INLINE_FUNCTION const T* end() const { return view_.data() + size_; }
-        KOKKOS_INLINE_FUNCTION const T* data() const { return view_.data(); }
+        KOKKOS_INLINE_FUNCTION const T* begin() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data();
+        }
+        KOKKOS_INLINE_FUNCTION const T* end() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data() + size_;
+        }
+        KOKKOS_INLINE_FUNCTION const T* data() const // NOLINT(readability-identifier-naming)
+        {
+            return view_.data(); 
+        }
     };
 
     static constexpr Index GroupVectorSize()
@@ -121,7 +139,7 @@ namespace micm
         std::copy(init.begin(), init.end(), data_.begin());
     }
 
-    Index size() const
+    Index size() const // NOLINT(readability-identifier-naming)
     {
         return size_;
     }
@@ -141,32 +159,32 @@ namespace micm
         return data_[i];
     }
 
-    auto begin()
+    auto begin() // NOLINT(readability-identifier-naming)
     {
         return data_.begin();
     }
 
-    auto end()
+    auto end() // NOLINT(readability-identifier-naming)
     {
         return data_.begin() + size_;
     }
 
-    auto begin() const
+    auto begin() const // NOLINT(readability-identifier-naming)
     {
         return data_.begin();
     }
 
-    auto end() const
+    auto end() const // NOLINT(readability-identifier-naming)
     {
         return data_.begin() + size_;
     }
 
-    T* data()
+    T* data() // NOLINT(readability-identifier-naming)
     {
         return data_.data();
     }
 
-    const T* data() const
+    const T* data() const // NOLINT(readability-identifier-naming)
     {
         return data_.data();
     }

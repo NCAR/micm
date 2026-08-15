@@ -32,13 +32,25 @@ namespace micm
         Index padded_size_;
 
         const T& operator[](Index i) const { return data_[i]; }
-        Index size() const { return size_; }
+        Index size() const // NOLINT(readability-identifier-naming)
+        {
+            return size_;
+        }
         Index PaddedSize() const { return padded_size_; }
         ConstView GetView() const { return *this; }
 
-        const T* begin() const { return data_; }
-        const T* end() const { return data_ + size_; }
-        const T* data() const { return data_; }
+        const T* begin() const // NOLINT(readability-identifier-naming)
+        {
+            return data_;
+        }
+        const T* end() const // NOLINT(readability-identifier-naming)
+        {
+            return data_ + size_;
+        }
+        const T* data() const // NOLINT(readability-identifier-naming)
+        {
+            return data_;
+        }
     };
 
     struct View
@@ -49,16 +61,37 @@ namespace micm
 
         T& operator[](Index i) { return data_[i]; }
         const T& operator[](Index i) const { return data_[i]; }
-        Index size() const { return size_; }
+        Index size() const // NOLINT(readability-identifier-naming)
+        {
+            return size_;
+        }
         Index PaddedSize() const { return padded_size_; }
         View GetView() const { return *this; }
 
-        T* begin() { return data_; }
-        T* end() { return data_ + size_; }
-        const T* begin() const { return data_; }
-        const T* end() const { return data_ + size_; }
-        T* data() { return data_; }
-        const T* data() const { return data_; }
+        T* begin() // NOLINT(readability-identifier-naming)
+        {
+            return data_;
+        }
+        T* end() // NOLINT(readability-identifier-naming)
+        {
+            return data_ + size_;
+        }
+        const T* begin() const // NOLINT(readability-identifier-naming)
+        {
+            return data_;
+        }
+        const T* end() const // NOLINT(readability-identifier-naming)
+        {
+            return data_ + size_;
+        }
+        T* data() // NOLINT(readability-identifier-naming)
+        {
+            return data_;
+        }
+        const T* data() const // NOLINT(readability-identifier-naming)
+        {
+            return data_;
+        }
 
         // Implicit conversion to ConstView (mirrors DeviceView -> ConstDeviceView)
         operator ConstView() const { return { data_, size_, padded_size_ }; }
@@ -92,7 +125,7 @@ namespace micm
     }
 
 
-    Index size() const
+    Index size() const // NOLINT(readability-identifier-naming)
     {
         return size_;
     }
@@ -112,37 +145,37 @@ namespace micm
         return data_[i];
     }
 
-    auto begin()
+    auto begin() // NOLINT(readability-identifier-naming)
     {
         return data_.begin();
     }
 
-    auto end()
+    auto end() // NOLINT(readability-identifier-naming)
     {
         return data_.begin() + size_;
     }
 
-    auto begin() const
+    auto begin() const // NOLINT(readability-identifier-naming)
     {
         return data_.begin();
     }
 
-    auto end() const
+    auto end() const // NOLINT(readability-identifier-naming)
     {
         return data_.begin() + size_;
     }
 
-    T* data()
+    T* data() // NOLINT(readability-identifier-naming)
     {
         return data_.data();
     }
 
-    const T* data() const
+    const T* data() const // NOLINT(readability-identifier-naming)
     {
         return data_.data();
     }
 
-    bool empty() const
+    bool empty() const // NOLINT(readability-identifier-naming)
     {
         return data_.empty();
     }
