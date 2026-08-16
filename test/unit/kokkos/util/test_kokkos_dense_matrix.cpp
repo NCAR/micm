@@ -44,7 +44,9 @@ TEST(KokkosDenseMatrix, CopyToDeviceAndHost)
 
   // Clear host data manually (not using matrix.Fill(0.0) as it clears device data)
   for (auto& elem : matrix.AsVector())
+  {
     elem = 0.0;
+  }
   EXPECT_EQ(matrix[0][0], 0.0);
 
   matrix.CopyToHost();

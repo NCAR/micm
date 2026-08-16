@@ -286,9 +286,9 @@ namespace micm
 
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename DenseMatrixPolicy::ViewType yerr,
-              typename DenseMatrixPolicy::ConstViewType y,
-              typename DenseMatrixPolicy::ConstViewType ynew) {
+              const typename DenseMatrixPolicy::ViewType& yerr,
+              const typename DenseMatrixPolicy::ConstViewType& y,
+              const typename DenseMatrixPolicy::ConstViewType& ynew) {
             for (const auto& col : alg_ids)
             {
               yerr.ForEachRow(

@@ -431,7 +431,7 @@ namespace micm
     ///        VectorIndex(0, row, col)) in every block, for direct on-device
     ///        modification via ForEachBlock().
     KOKKOS_INLINE_FUNCTION KokkosBlockView<T, L> GetBlockView(  // NOLINT(readability-identifier-naming)
-        Index vector_index)
+        Index vector_index) const
     {
       return KokkosBlockView<T, L>(view_.data(), this->FlatBlockSize(), vector_index);
     }
@@ -561,7 +561,7 @@ namespace micm
           Index num_blocks_in_group,
           const TeamMember& team,
           const KokkosSparseMatrix* matrix)
-          : view_(view),
+          : view_(std::move(view)),
             group_(group),
             flat_block_size_(flat_block_size),
             num_blocks_in_group_(num_blocks_in_group),
@@ -759,7 +759,7 @@ namespace micm
           Index num_blocks_in_group,
           const TeamMember& team,
           KokkosSparseMatrix* matrix)
-          : view_(view),
+          : view_(std::move(view)),
             group_(group),
             flat_block_size_(flat_block_size),
             num_blocks_in_group_(num_blocks_in_group),

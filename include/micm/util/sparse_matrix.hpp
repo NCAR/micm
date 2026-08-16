@@ -120,7 +120,7 @@ namespace micm
     class BlockView
     {
       friend class SparseMatrix;
-      SparseMatrix* matrix_;
+      mutable SparseMatrix* matrix_;
       Index elem_position_;  // The nth non-zero element position (0-based)
 
       explicit BlockView(SparseMatrix* matrix, Index elem_position)
@@ -135,7 +135,7 @@ namespace micm
       {
         return elem_position_;
       }
-      SparseMatrix* GetMatrix()
+      SparseMatrix* GetMatrix() const
       {
         return matrix_;
       }
@@ -455,14 +455,14 @@ namespace micm
     /// @brief Create a mutable block view for accessing the nth non-zero element
     /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
     /// @return A BlockView descriptor
-    BlockView GetBlockView(Index vector_index)
+    BlockView GetBlockView(Index vector_index) const
     {
       return BlockView(this, vector_index);
     }
 
     /// @brief Get a block variable with persistent storage for temporary values
     /// @return A BlockVariable with stack-allocated storage
-    BlockVariable GetBlockVariable()
+    BlockVariable GetBlockVariable() const
     {
       return BlockVariable();
     }
@@ -473,7 +473,7 @@ namespace micm
     /// @param func The function to apply to each block
     /// @param args Block views or block variables
     template<typename Func, typename... Args>
-    void ForEachBlock(Func&& func, Args&&... args)
+    void ForEachBlock(Func&& func, Args&&... args) const
     {
       for (Index block = 0; block < number_of_blocks_; ++block)
       {

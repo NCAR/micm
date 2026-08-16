@@ -552,18 +552,10 @@ namespace micm
     /// @brief Create a mutable column view for accessing a column
     /// @param column_index The index of the column
     /// @return A ColumnView descriptor
-    ColumnView GetColumnView(Index column_index)
+    ColumnView GetColumnView(Index column_index) const
     {
       assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
-    }
-
-    /// @brief Get a row variable with persistent storage for temporary values
-    /// @return A RowVariable with stack-allocated storage
-    RowVariable GetRowVariable()
-    {
-      // Stack-allocated array of L elements
-      return RowVariable();
     }
 
     /// @brief Get a row variable with persistent storage for temporary values (const version)
@@ -909,7 +901,7 @@ namespace micm
       /// @brief Get an element reference for a specific row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
@@ -920,7 +912,7 @@ namespace micm
       /// Fast path: `base_` already points at row 0 of this group's L-row block.
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg.base_[row_in_group];
       }
@@ -930,7 +922,7 @@ namespace micm
       ///        dispatch rationale.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         if constexpr (requires(Index i) { arg.Get()[i]; })
         {
@@ -945,7 +937,7 @@ namespace micm
       /// @brief Get an element reference for a specific row in this group (Vector-like)
       template<PaddedVectorLike Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg[group_ * L + row_in_group];
       }
@@ -985,20 +977,20 @@ namespace micm
 
       /// @brief Returns a grouped mutable column view whose element base_ pointer is
       ///        precomputed for this GroupView's group.
-      GroupedColumnView GetColumnView(Index column_index)
+      GroupedColumnView GetColumnView(Index column_index) const
       {
         assert(column_index < matrix_.y_dim_ && "column index out of range");
         return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
-      RowVariable GetRowVariable()
+      RowVariable GetRowVariable() const
       {
         // Stack-allocated array of L elements
         return RowVariable();
       }
 
       [[gnu::always_inline]]
-      void Fill(GroupedColumnView view, T value)
+      void Fill(GroupedColumnView view, T value) const
       {
         if constexpr (L >= 16)
         {
@@ -1016,7 +1008,7 @@ namespace micm
 
       template<GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
-      void Copy(GroupedColumnView dst_view, Src&& src_view)
+      void Copy(GroupedColumnView dst_view, Src&& src_view) const
       {
         if constexpr (L >= 16)
         {
@@ -1036,7 +1028,7 @@ namespace micm
       /// @brief Copy a per-row vector into dst column within this group.
       template<PaddedVectorLike Src>
       [[gnu::always_inline]]
-      void Copy(GroupedColumnView dst_view, Src&& src)
+      void Copy(GroupedColumnView dst_view, Src&& src) const
       {
         T* dst = dst_view.base_;
         const Index start = group_ * L;
@@ -1051,7 +1043,7 @@ namespace micm
       ///        dispatch rationale.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
-      void Fill(Dst&& dst, T value)
+      void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
         if constexpr (requires { storage[Index{ 0 }]; })
@@ -1080,7 +1072,7 @@ namespace micm
       ///        dispatch rationale.
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
-      void Copy(Dst&& dst, Src&& src)
+      void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
         if constexpr (requires { storage[Index{ 0 }]; })
@@ -1107,7 +1099,7 @@ namespace micm
       /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
       template<PaddedVectorLike Vec>
       [[gnu::always_inline]]
-      void Fill(Vec& vec, T value)
+      void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
         for (Index i = 0; i < L; ++i)
@@ -1119,7 +1111,7 @@ namespace micm
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
       template<PaddedVectorLike Vec, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
-      void Copy(Vec& vec, Src&& src)
+      void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
         for (Index i = 0; i < L; ++i)
@@ -1129,7 +1121,7 @@ namespace micm
       }
 
       template<typename Func, typename... Args>
-      void ForEachRow(Func&& func, Args&&... args)
+      void ForEachRow(Func&& func, Args&&... args) const
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
@@ -1140,7 +1132,7 @@ namespace micm
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
       ///        See ConstGroupView::ForEachRowStrict for details.
       template<typename Func, typename... Args>
-      void ForEachRowStrict(Func&& func, Args&&... args)
+      void ForEachRowStrict(Func&& func, Args&&... args) const
       {
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
@@ -1151,7 +1143,7 @@ namespace micm
       /// @brief Apply a reduction to each row in this group. See
       ///        ConstGroupView::Reduce for details.
       template<typename Reducer, typename Func, typename... Args>
-      void Reduce(Reducer reducer, Func&& func, Args&&... args)
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         auto& acc = reducer.Reference();
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
@@ -1162,7 +1154,7 @@ namespace micm
 
       /// @brief Same as Reduce but guaranteed to skip padding rows.
       template<typename Reducer, typename Func, typename... Args>
-      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args)
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
       {
         auto& acc = reducer.Reference();
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)

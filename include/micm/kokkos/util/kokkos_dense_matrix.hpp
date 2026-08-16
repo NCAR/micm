@@ -645,7 +645,7 @@ namespace micm
      public:
       KOKKOS_INLINE_FUNCTION
       ConstGroupView(Kokkos::View<const T*> view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
-          : view_(view),
+          : view_(std::move(view)),
             group_(group),
             y_dim_(y_dim),
             num_rows_in_group_(num_rows_in_group),
@@ -752,7 +752,7 @@ namespace micm
       ///        inter-thread join and writes the final result back to
       ///        `reducer.Reference()`.
       template<typename Reducer, typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      KOKKOS_INLINE_FUNCTION void Reduce(const Reducer& reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
         reducer.TeamReduce(
@@ -765,7 +765,7 @@ namespace micm
 
       /// @brief Same as Reduce but guaranteed to skip padding rows.
       template<typename Reducer, typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      KOKKOS_INLINE_FUNCTION void ReduceStrict(const Reducer& reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
         reducer.TeamReduce(
@@ -827,7 +827,7 @@ namespace micm
      public:
       KOKKOS_INLINE_FUNCTION
       GroupView(KokkosViewType view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
-          : view_(view),
+          : view_(std::move(view)),
             group_(group),
             y_dim_(y_dim),
             num_rows_in_group_(num_rows_in_group),
@@ -980,7 +980,7 @@ namespace micm
 
       /// @brief Same as Reduce but guaranteed to skip padding rows.
       template<typename Reducer, typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      KOKKOS_INLINE_FUNCTION void ReduceStrict(const Reducer& reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
         reducer.TeamReduce(

@@ -232,9 +232,9 @@ namespace micm
 
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename DenseMatrix::ConstViewType state_view,
-              typename DenseMatrix::ConstViewType params_view,
-              typename DenseMatrix::ViewType force_view) {
+              const typename DenseMatrix::ConstViewType& state_view,
+              const typename DenseMatrix::ConstViewType& params_view,
+              const typename DenseMatrix::ViewType& force_view) {
             auto linear_sum = force_view.GetRowVariable();
             state_view.ForEachRow([=](Real& sum) { sum = 0.0; }, linear_sum);
 
@@ -274,9 +274,9 @@ namespace micm
 
       SparseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename DenseMatrix::ConstViewType state_view,
-              typename DenseMatrix::ConstViewType params_view,
-              typename SparseMatrix::ViewType jacobian_values) {
+              const typename DenseMatrix::ConstViewType& state_view,
+              const typename DenseMatrix::ConstViewType& params_view,
+              const typename SparseMatrix::ViewType& jacobian_values) {
             for (Index i = 0; i < views.coeffs_.size(); ++i)
             {
               const Real coeff = views.coeffs_[i];

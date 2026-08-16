@@ -424,9 +424,9 @@ namespace micm
                   off_surf = store.off_surf_;
       DenseMatrix::Function(
           MICM_LAMBDA(
-              typename DenseMatrix::ViewType rate_constants,
-              typename DenseMatrix::ConstViewType parameters,
-              typename Vector<Conditions>::ConstViewType conditions) {
+              const typename DenseMatrix::ViewType& rate_constants,
+              const typename DenseMatrix::ConstViewType& parameters,
+              const typename Vector<Conditions>::ConstViewType& conditions) {
             for (Index i = 0; i < n_arr; ++i)
             {
               const auto& p = v.arrhenius_[i];

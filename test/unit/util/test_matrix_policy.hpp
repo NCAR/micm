@@ -303,21 +303,33 @@ MatrixPolicy<micm::Real> TestForEach()
   matrix.ForEach(MICM_LAMBDA(micm::Real & a, const micm::Real& b) { a += b; }, other);
   matrix.CopyToHost();
   for (micm::Index i = 0; i < 4; ++i)
+  {
     for (micm::Index j = 0; j < 3; ++j)
+    {
       EXPECT_NEAR(matrix[i][j], (i * 10.3 + j * 100.5) + (i * 1.7 + j * 10.2), 1.0e-5);
+    }
+  }
 
   // Reset matrix to original values
   for (micm::Index i = 0; i < 4; ++i)
+  {
     for (micm::Index j = 0; j < 3; ++j)
+    {
       matrix[i][j] = i * 10.3 + j * 100.5;
+    }
+  }
 
   matrix.CopyToDevice();
   other2.CopyToDevice();
   matrix.ForEach(MICM_LAMBDA(micm::Real & a, const micm::Real& b, const micm::Real& c) { a = a + b - c; }, other, other2);
   matrix.CopyToHost();
   for (micm::Index i = 0; i < 4; ++i)
+  {
     for (micm::Index j = 0; j < 3; ++j)
+    {
       EXPECT_NEAR(matrix[i][j], (i * 10.3 + j * 100.5) + (i * 1.7 + j * 10.2) - (i * 19.5 + j * 32.2), 1.0e-5);
+    }
+  }
 
   return matrix;
 }
@@ -1951,7 +1963,9 @@ void TestReduceMax()
             [](const micm::Real& a, micm::Real& acc)
             {
               if (a > acc)
+              {
                 acc = a;
+              }
             },
             view.GetConstColumnView(0));
         view.Reduce(
@@ -1959,7 +1973,9 @@ void TestReduceMax()
             [](const micm::Real& a, micm::Real& acc)
             {
               if (a > acc)
+              {
                 acc = a;
+              }
             },
             view.GetConstColumnView(1));
       },

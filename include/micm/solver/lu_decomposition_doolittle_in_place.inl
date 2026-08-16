@@ -191,7 +191,7 @@ namespace micm
   {
     const auto& views = views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename SparseMatrix::ViewType alu_view) {
+        MICM_LAMBDA(const typename SparseMatrix::ViewType& alu_view) {
           auto aik_njk = views.aik_njk_.begin();
           auto aij_ajk = views.aij_ajk_.begin();
           auto aki_nji = views.aki_nji_.begin();

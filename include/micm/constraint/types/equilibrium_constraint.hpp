@@ -223,7 +223,7 @@ namespace micm
           algebraic_species_(algebraic_species),
           reactants_(std::move(reactants)),
           products_(std::move(products)),
-          vant_hoff_param_(vant_hoff_param)
+          vant_hoff_param_(std::move(vant_hoff_param))
     {
       if (reactants_.empty())
       {
@@ -312,8 +312,8 @@ namespace micm
 
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename Vector<Conditions>::ConstViewType conditions_view,
-              typename DenseMatrixPolicy::ViewType state_param_view) {
+              const typename Vector<Conditions>::ConstViewType& conditions_view,
+              const typename DenseMatrixPolicy::ViewType& state_param_view) {
             state_param_view.ForEachRow(
                 [=](const Conditions& cond, Real& K_eq)
                 { K_eq = K_ref * std::exp((delta_H / R) * (1.0 / cond.temperature_ - 1.0 / T_ref)); },
@@ -391,9 +391,9 @@ namespace micm
       const auto& views = views_;
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename DenseMatrixPolicy::ConstViewType state_view,
-              typename DenseMatrixPolicy::ConstViewType state_param_view,
-              typename DenseMatrixPolicy::ViewType force_view) {
+              const typename DenseMatrixPolicy::ConstViewType& state_view,
+              const typename DenseMatrixPolicy::ConstViewType& state_param_view,
+              const typename DenseMatrixPolicy::ViewType& force_view) {
             auto reactant_product = force_view.GetRowVariable();
             auto product_product = force_view.GetRowVariable();
 
@@ -457,9 +457,9 @@ namespace micm
 
       SparseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename DenseMatrix::ConstViewType state_view,
-              typename DenseMatrix::ConstViewType state_param_view,
-              typename SparseMatrix::ViewType jacobian_values) {
+              const typename DenseMatrix::ConstViewType& state_view,
+              const typename DenseMatrix::ConstViewType& state_param_view,
+              const typename SparseMatrix::ViewType& jacobian_values) {
             auto reactant_product = jacobian_values.GetBlockVariable();
             auto product_product = jacobian_values.GetBlockVariable();
             auto partial_derivative = jacobian_values.GetBlockVariable();

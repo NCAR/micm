@@ -48,7 +48,8 @@ namespace micm
     {
       mass_coupling = DenseMatrixPolicy::Function(
           MICM_LAMBDA(
-              typename DenseMatrixPolicy::ViewType k_stage_view, typename DenseMatrixPolicy::ConstViewType k_j_view) {
+              const typename DenseMatrixPolicy::ViewType& k_stage_view,
+              const typename DenseMatrixPolicy::ConstViewType& k_j_view) {
             for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
             {
               if (diagonal[i_var] != 0.0)
@@ -312,7 +313,7 @@ namespace micm
     // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
     auto& views = state.views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename SparseMatrixPolicy::ViewType jacobian_view) {
+        MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
           Index i_diag = 0;
           for (const auto& i_elem : views.jacobian_diagonal_elements_)
           {
@@ -370,9 +371,9 @@ namespace micm
 
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
-            typename DenseMatrixPolicy::ConstViewType y_view,
-            typename DenseMatrixPolicy::ConstViewType ynew_view,
-            typename DenseMatrixPolicy::ConstViewType errors_view) {
+            const typename DenseMatrixPolicy::ConstViewType& y_view,
+            const typename DenseMatrixPolicy::ConstViewType& ynew_view,
+            const typename DenseMatrixPolicy::ConstViewType& errors_view) {
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
             // skip padding rows so their possibly non-zero values
@@ -431,7 +432,7 @@ namespace micm
 
     // Pre-build reusable Function objects outside the iteration loop
     auto check_convergence = DenseMatrixPolicy::Function(
-        MICM_LAMBDA(typename DenseMatrixPolicy::ConstViewType delta_view) {
+        MICM_LAMBDA(const typename DenseMatrixPolicy::ConstViewType& delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
             if (diagonal[i_var] == 0.0)
@@ -461,7 +462,9 @@ namespace micm
         delta);
 
     auto apply_update = DenseMatrixPolicy::Function(
-        MICM_LAMBDA(typename DenseMatrixPolicy::ViewType y_view, typename DenseMatrixPolicy::ConstViewType delta_view) {
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ViewType& y_view,
+            const typename DenseMatrixPolicy::ConstViewType& delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
             if (diagonal[i_var] == 0.0)

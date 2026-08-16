@@ -44,6 +44,7 @@ RUN cmake \
       -DCMAKE_CUDA_COMPILER=clang++-22 \
       -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DMICM_ENABLE_KOKKOS=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
       -S.

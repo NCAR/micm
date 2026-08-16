@@ -116,7 +116,7 @@ namespace micm
   {
     const auto& views = views_;
     SparseMatrixPolicy::Function(
-        MICM_LAMBDA(typename DenseMatrix::ViewType x_view, typename SparseMatrix::ConstViewType lu_view)
+        MICM_LAMBDA(const typename DenseMatrix::ViewType& x_view, const typename SparseMatrix::ConstViewType& lu_view)
         {
           // Forward substitution
           // b values passed in as x; overwrites b with y values

@@ -368,7 +368,7 @@ namespace micm
       /// @brief Get element from sparse matrix BlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         Index elem_position = arg.ElementPosition();
@@ -381,7 +381,7 @@ namespace micm
       /// @brief Get element from GroupedBlockView
       template<GroupedSparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         // L=1 for standard ordering, so block_in_group is always 0.
         return arg.group_base_[arg.block_offset_];
@@ -391,7 +391,7 @@ namespace micm
       /// For standard ordering: compatible with standard Matrix or VectorMatrix with L=1
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // Verify L=1 for VectorMatrix types
@@ -407,7 +407,7 @@ namespace micm
       /// @brief Get element from GroupedColumnView (fast path)
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg.base_[0];
       }
@@ -415,7 +415,7 @@ namespace micm
       /// @brief Get element from BlockVariable
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg.Get();
       }
@@ -423,7 +423,7 @@ namespace micm
       /// @brief Get element from Vector-like
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -449,19 +449,19 @@ namespace micm
 
       /// @brief Returns a grouped mutable block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
-      GroupedBlockView GetBlockView(Index vector_index)
+      GroupedBlockView GetBlockView(Index vector_index) const
       {
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize(), vector_index };
       }
 
-      auto GetBlockVariable()
+      auto GetBlockVariable() const
       {
         return BlockVariable<T>();
       }
 
       /// @brief Assign value to the (single) cell of the block within this group.
       [[gnu::always_inline]]
-      void Fill(GroupedBlockView view, T value)
+      void Fill(GroupedBlockView view, T value) const
       {
         view.group_base_[view.block_offset_] = value;
       }
@@ -469,7 +469,7 @@ namespace micm
       /// @brief Copy src block value into dst block value within this group.
       template<GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
-      void Copy(GroupedBlockView dst, Src&& src)
+      void Copy(GroupedBlockView dst, Src&& src) const
       {
         dst.group_base_[dst.block_offset_] = src.group_base_[src.block_offset_];
       }
@@ -477,7 +477,7 @@ namespace micm
       /// @brief Copy `src[group_]` from a caller-owned vector into dst block.
       template<VectorLike Src>
       [[gnu::always_inline]]
-      void Copy(GroupedBlockView dst, Src&& src)
+      void Copy(GroupedBlockView dst, Src&& src) const
       {
         dst.group_base_[dst.block_offset_] = src[group_];
       }
@@ -485,7 +485,7 @@ namespace micm
       /// @brief Assign value to the caller-owned block-variable temp.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
-      void Fill(Dst&& dst, T value)
+      void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
@@ -501,7 +501,7 @@ namespace micm
       /// @brief Copy a sparse-block value into the caller-owned block-variable temp.
       template<BlockVariableView Dst, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
-      void Copy(Dst&& dst, Src&& src)
+      void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
@@ -517,7 +517,7 @@ namespace micm
       /// @brief Assign value to `vec[group_]` (L=1).
       template<VectorLike Vec>
       [[gnu::always_inline]]
-      void Fill(Vec& vec, T value)
+      void Fill(Vec& vec, T value) const
       {
         vec[group_] = value;
       }
@@ -525,14 +525,14 @@ namespace micm
       /// @brief Copy a sparse-block value into `vec[group_]`.
       template<VectorLike Vec, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
-      void Copy(Vec& vec, Src&& src)
+      void Copy(Vec& vec, Src&& src) const
       {
         vec[group_] = src.group_base_[src.block_offset_];
       }
 
       /// @brief Execute a function for every block in the matrix
       template<typename Func, typename... Args>
-      void ForEachBlock(Func&& func, Args&&... args)
+      void ForEachBlock(Func&& func, Args&&... args) const
       {
         // For standard ordering, only one block per group
         func(GetBlockElement(0, std::forward<Args>(args))...);
@@ -541,7 +541,7 @@ namespace micm
       /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
       ///        See ConstGroupView::ForEachBlockStrict for details.
       template<typename Func, typename... Args>
-      void ForEachBlockStrict(Func&& func, Args&&... args)
+      void ForEachBlockStrict(Func&& func, Args&&... args) const
       {
         func(GetBlockElement(0, std::forward<Args>(args))...);
       }

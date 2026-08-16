@@ -532,9 +532,9 @@ namespace micm
     const DenseMatrix& rate_constants = state.rate_constants_;
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
-            typename DenseMatrix::ViewType forcing_view,
-            typename DenseMatrix::ConstViewType state_view,
-            typename DenseMatrix::ConstViewType rc_view) {
+            const typename DenseMatrix::ViewType& forcing_view,
+            const typename DenseMatrix::ConstViewType& state_view,
+            const typename DenseMatrix::ConstViewType& rc_view) {
           auto react_id = views.reactant_ids_.begin();
           auto prod_id = views.product_ids_.begin();
           auto yield = views.yields_.begin();
@@ -603,9 +603,9 @@ namespace micm
     const DenseMatrix rate_constants = state.rate_constants_;
     SparseMatrixPolicy::Function(
         MICM_LAMBDA(
-            typename SparseMatrix::ViewType jacobian_view,
-            typename DenseMatrix::ConstViewType state_view,
-            typename DenseMatrix::ConstViewType rc_view) {
+            const typename SparseMatrix::ViewType& jacobian_view,
+            const typename DenseMatrix::ConstViewType& state_view,
+            const typename DenseMatrix::ConstViewType& rc_view) {
           auto react_id = views.jacobian_reactant_ids_.begin();
           auto prod_id = views.jacobian_product_ids_.begin();
           auto yield = views.jacobian_yields_.begin();

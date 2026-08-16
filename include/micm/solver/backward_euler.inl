@@ -136,7 +136,7 @@ namespace micm
           is_inf.CopyToDevice();
           const Index n_vars = Yn1.NumColumns();
           DenseMatrixPolicy::Function(
-              MICM_LAMBDA(typename DenseMatrixPolicy::ConstViewType y_view) {
+              MICM_LAMBDA(const typename DenseMatrixPolicy::ConstViewType& y_view) {
                 for (Index i_var = 0; i_var < n_vars; ++i_var)
                 {
                   y_view.Reduce(
@@ -212,7 +212,8 @@ namespace micm
     const auto& abs_tol_view = absolute_tolerance;
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
-            typename DenseMatrixPolicy::ConstViewType residual_view, typename DenseMatrixPolicy::ConstViewType Yn1_view) {
+            const typename DenseMatrixPolicy::ConstViewType& residual_view,
+            const typename DenseMatrixPolicy::ConstViewType& Yn1_view) {
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
             const Real var_abs_tol = abs_tol_view[i_var];

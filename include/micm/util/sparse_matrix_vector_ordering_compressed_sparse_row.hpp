@@ -444,7 +444,7 @@ namespace micm
       /// @brief Get element from sparse matrix BlockView
       template<SparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // See ConstGroupView::GetBlockElement for the reasoning.
@@ -456,7 +456,7 @@ namespace micm
       /// @brief Get element from GroupedBlockView
       template<GroupedSparseMatrixBlockView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg.group_base_[arg.block_offset_ + block_in_group];
       }
@@ -465,7 +465,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasTieredGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // See ConstGroupView::GetBlockElement for the reasoning.
@@ -475,7 +475,7 @@ namespace micm
       /// @brief Get element from GroupedColumnView
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg.base_[block_in_group];
       }
@@ -484,7 +484,7 @@ namespace micm
       template<DenseMatrixColumnView Arg>
         requires HasSimpleGrouping<std::remove_pointer_t<decltype(std::declval<Arg>().GetMatrix())>>
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         // Calculate the actual block index from group and block_in_group
         Index block = group_ * L + block_in_group;
@@ -498,7 +498,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         // Vector ordering: BlockVariable has array storage
         return arg.Get()[block_in_group];
@@ -508,7 +508,7 @@ namespace micm
       template<BlockVariableView Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         // L=1 case: BlockVariable has single value storage
         return arg.Get();
@@ -518,7 +518,7 @@ namespace micm
       template<PaddedVectorLike Arg>
         requires(L > 1)
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg[group_ * L + block_in_group];
       }
@@ -527,7 +527,7 @@ namespace micm
       template<PaddedVectorLike Arg>
         requires(L == 1)
       [[gnu::always_inline]]
-      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg)
+      decltype(auto) GetBlockElement(Index block_in_group, Arg&& arg) const
       {
         return arg[group_];
       }
@@ -557,12 +557,12 @@ namespace micm
 
       /// @brief Returns a grouped mutable block view whose group base_ pointer is
       ///        precomputed for this GroupView's group.
-      GroupedBlockView GetBlockView(Index vector_index)
+      GroupedBlockView GetBlockView(Index vector_index) const
       {
         return { matrix_.AsVector().data() + group_ * matrix_.FlatBlockSize() * L, vector_index };
       }
 
-      auto GetBlockVariable()
+      auto GetBlockVariable() const
       {
         return BlockVariable<T>();
       }
@@ -572,7 +572,7 @@ namespace micm
       ///          ForEachBlock([&](T& x){ x = value; }, view)
       ///        but bulk-writes a contiguous block.
       [[gnu::always_inline]]
-      void Fill(GroupedBlockView view, T value)
+      void Fill(GroupedBlockView view, T value) const
       {
         if constexpr (L >= 16)
         {
@@ -594,7 +594,7 @@ namespace micm
       ///        but bulk-copies contiguous storage.
       template<GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
-      void Copy(GroupedBlockView dst_view, Src&& src_view)
+      void Copy(GroupedBlockView dst_view, Src&& src_view) const
       {
         if constexpr (L >= 16)
         {
@@ -614,7 +614,7 @@ namespace micm
       /// @brief Copy `src[group_*L + i]` from a caller-owned vector into dst block.
       template<PaddedVectorLike Src>
       [[gnu::always_inline]]
-      void Copy(GroupedBlockView dst_view, Src&& src)
+      void Copy(GroupedBlockView dst_view, Src&& src) const
       {
         T* dst = dst_view.group_base_ + dst_view.block_offset_;
         const Index start = group_ * L;
@@ -628,7 +628,7 @@ namespace micm
       ///        See ConstGroupView::Fill(Dst&&, T) for dispatch rationale.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
-      void Fill(Dst&& dst, T value)
+      void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
@@ -648,7 +648,7 @@ namespace micm
       /// @brief Copy a sparse-block into the caller-owned block-variable temp.
       template<BlockVariableView Dst, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
-      void Copy(Dst&& dst, Src&& src)
+      void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
@@ -668,7 +668,7 @@ namespace micm
       /// @brief Assign value to `vec`.
       template<PaddedVectorLike Vec>
       [[gnu::always_inline]]
-      void Fill(Vec& vec, T value)
+      void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
         for (Index i = 0; i < L; ++i)
@@ -680,7 +680,7 @@ namespace micm
       /// @brief Copy a sparse-block into `vec`.
       template<PaddedVectorLike Vec, GroupedSparseMatrixBlockView Src>
       [[gnu::always_inline]]
-      void Copy(Vec& vec, Src&& src)
+      void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
         for (Index i = 0; i < L; ++i)
@@ -691,7 +691,7 @@ namespace micm
 
       /// @brief Execute a function for every block in the matrix
       template<typename Func, typename... Args>
-      void ForEachBlock(Func&& func, Args&&... args)
+      void ForEachBlock(Func&& func, Args&&... args) const
       {
         for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
         {
@@ -702,7 +702,7 @@ namespace micm
       /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
       ///        Use ForEachBlock when operations on padded blocks are safe (better performance).
       template<typename Func, typename... Args>
-      void ForEachBlockStrict(Func&& func, Args&&... args)
+      void ForEachBlockStrict(Func&& func, Args&&... args) const
       {
         for (Index block_in_group = 0; block_in_group < num_blocks_in_group_; ++block_in_group)
         {
