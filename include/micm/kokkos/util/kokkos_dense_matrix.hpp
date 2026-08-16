@@ -130,6 +130,8 @@ namespace micm
    private:
     /// Device-side (or unified) view — the Kokkos mirror of VectorMatrix::data_
     KokkosViewType view_;
+    /// Host view for copying to and from device
+    Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> host_view_;
 
    public:
     // -----------------------------------------------------------------------
@@ -392,27 +394,31 @@ namespace micm
 
     KokkosDenseMatrix(Index x_dim, Index y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim),
-          view_("dense_matrix", VectorMatrix<T, L>(x_dim, y_dim).AsVector().size())
+          view_("dense_matrix", VectorMatrix<T, L>(x_dim, y_dim).AsVector().size()),
+          host_view_(this->data_.data(), this->data_.size())
     {
     }
 
     KokkosDenseMatrix(Index x_dim, Index y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value),
-          view_("dense_matrix", VectorMatrix<T, L>(x_dim, y_dim).AsVector().size())
+          view_("dense_matrix", VectorMatrix<T, L>(x_dim, y_dim).AsVector().size()),
+          host_view_(this->data_.data(), this->data_.size())
     {
       Kokkos::deep_copy(view_, initial_value);
     }
 
     KokkosDenseMatrix(const std::vector<std::vector<T>>& other)
         : VectorMatrix<T, L>(other),
-          view_("dense_matrix", this->data_.size())
+          view_("dense_matrix", this->data_.size()),
+          host_view_(this->data_.data(), this->data_.size())
     {
       CopyToDevice();
     }
 
     KokkosDenseMatrix(const KokkosDenseMatrix& other)
         : VectorMatrix<T, L>(other),
-          view_("dense_matrix", other.view_.extent(0))
+          view_("dense_matrix", other.view_.extent(0)),
+          host_view_(this->data_.data(), this->data_.size())
     {
       Kokkos::deep_copy(view_, other.view_);
     }
@@ -426,25 +432,21 @@ namespace micm
       VectorMatrix<T, L>::operator=(other);
       Kokkos::realloc(view_, other.view_.extent(0));
       Kokkos::deep_copy(view_, other.view_);
+      host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+          this->data_.data(), this->data_.size());
       return *this;
     }
 
     /// @brief Copy host data (MICM's data_) to the device view
     void CopyToDevice()
     {
-      auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
-          this->data_.data(), this->data_.size());
-      Kokkos::deep_copy(view_, h_view);
+      Kokkos::deep_copy(view_, host_view_);
     }
 
     /// @brief Copy device view data back to host (MICM's data_)
-    ///
-    /// TODO: Move host view to class member
     void CopyToHost()
     {
-      auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
-          this->data_.data(), this->data_.size());
-      Kokkos::deep_copy(h_view, view_);
+      Kokkos::deep_copy(host_view_, view_);
     }
 
     KokkosViewType GetView() const
@@ -538,6 +540,7 @@ namespace micm
     void Swap(KokkosDenseMatrix& other)
     {
       std::swap(view_, other.view_);
+      std::swap(host_view_, other.host_view_);
       this->data_.swap(other.data_);
     }
 

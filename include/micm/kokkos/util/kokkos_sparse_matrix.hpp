@@ -55,6 +55,8 @@ namespace micm
 
     /// Device-side (or unified) view — the Kokkos mirror of MICM's data_
     KokkosViewType view_;
+    /// Host view for copying to and from device
+    Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> host_view_;
 
    public:
     // -----------------------------------------------------------------------
@@ -302,17 +304,26 @@ namespace micm
     {
     }
 
-    using SparseMatrix<T, OrderingPolicy>::operator=;
-
     KokkosSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
         : SparseMatrix<T, OrderingPolicy>(builder, indexing_only),
-          view_("sparse_matrix", SparseMatrix<T, OrderingPolicy>(builder, indexing_only).AsVector().size())
+          view_("sparse_matrix", SparseMatrix<T, OrderingPolicy>(builder, indexing_only).AsVector().size()),
+          host_view_(this->data_.data(), this->data_.size())
     {
+    }
+
+    KokkosSparseMatrix& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
+    {
+      SparseMatrix<T, OrderingPolicy>::operator=(builder);
+      view_ = KokkosViewType("sparse_matrix", this->data_.size());
+      host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+          this->data_.data(), this->data_.size());
+      return *this;
     }
 
     KokkosSparseMatrix(const KokkosSparseMatrix& other)
         : SparseMatrix<T, OrderingPolicy>(other),
-          view_("spase_matrix", other.view_.extent(0))
+          view_("spase_matrix", other.view_.extent(0)),
+          host_view_(this->data_.data(), this->data_.size())
     {
       Kokkos::deep_copy(view_, other.view_);
     }
@@ -326,30 +337,21 @@ namespace micm
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       Kokkos::realloc(view_, other.view_.extent(0));
       Kokkos::deep_copy(view_, other.view_);
+      host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+          this->data_.data(), this->data_.size());
       return *this;
     }
 
     /// @brief Copy host data (MICM's data_) to the device view
     void CopyToDevice()
     {
-      if (view_.extent(0) != this->data_.size())
-      {
-        view_ = KokkosViewType("sparse_matrix", this->data_.size());
-      }
-      auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
-          this->data_.data(), this->data_.size());
-      Kokkos::deep_copy(view_, h_view);
+      Kokkos::deep_copy(view_, host_view_);
     }
 
     /// @brief Copy device view data back to host (MICM's data_)
     void CopyToHost()
     {
-      if (view_.extent(0) != 0)
-      {
-        auto h_view = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
-            this->data_.data(), this->data_.size());
-        Kokkos::deep_copy(h_view, view_);
-      }
+      Kokkos::deep_copy(host_view_, view_);
     }
 
     KokkosViewType GetView() const
@@ -379,10 +381,6 @@ namespace micm
     /// @brief Set every element on the device to a given value
     void Fill(T val)
     {
-      if (view_.extent(0) != this->data_.size())
-      {
-        view_ = KokkosViewType("sparse_matrix", this->data_.size());
-      }
       Kokkos::deep_copy(view_, val);
     }
 
