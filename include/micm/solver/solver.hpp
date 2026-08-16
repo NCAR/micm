@@ -270,24 +270,25 @@ namespace micm
           "Lambda rate constant with name '" + name + "' not found in any process");
     }
 
-   private:
     /// @brief Clamp state variables to non-negative after a solve
     ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
     void PostSolveClamp(StatePolicy& state)
     {
       if (state.constraint_size_ > 0)
       {
-        // TODO - fix for Kokkos-backed solves
-        for (Index i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
-        {
-          for (Index i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
-          {
-            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-            {
-              state.variables_[i_cell][i_var] = std::max<Real>(0.0, state.variables_[i_cell][i_var]);
-            }
-          }
-        }
+        auto& views = state.views_;
+        Index n_vars = state.variables_.NumColumns();
+        DenseMatrixType::Function(
+            MICM_LAMBDA(const typename DenseMatrixType::ViewType& var_view) {
+              for (Index i_var = 0; i_var < n_vars; ++i_var)
+              {
+                if (views.upper_left_identity_diagonal_[i_var] > 0.0)
+                {
+                  var_view.ForEachRow([=](Real& y) { y = (y > 0.0 ? y : 0.0); }, var_view.GetColumnView(i_var));
+                }
+              }
+            },
+            state.variables_)(state.variables_);
       }
       else
       {

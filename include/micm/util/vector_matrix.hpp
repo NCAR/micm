@@ -125,7 +125,6 @@ namespace micm
       }
     };
 
-   private:
    protected:
     std::vector<T> data_;  // Memory alignment depends on std::vector's allocator
     Index x_dim_;          // number of rows
@@ -1303,7 +1302,6 @@ namespace micm
             ...);
 
         // Iterate over groups, processing L rows at a time
-        // TODO: see if we can loop over all (including incomplete) groups
         Index num_complete_groups = std::floor(num_rows / (double)L);
         for (Index group = 0; group < num_complete_groups; ++group)
         {
