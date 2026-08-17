@@ -32,7 +32,7 @@
 // implemented this yet still produce valid code.
 // __CUDACC__: nvcc always needs constexpr so --expt-relaxed-constexpr can call
 // these from device code, even when the host compiler lacks P1383R2.
-#if (defined(__cpp_lib_constexpr_cmath) || defined(__CUDACC__)) && !defined(MICM_ENABLE_KOKKOS)
+#if (defined(__cpp_lib_constexpr_cmath) || defined(__CUDACC__)) && !defined(MICM_USE_KOKKOS)
   #define MICM_CONSTEXPR constexpr
 #else
   #define MICM_CONSTEXPR MICM_DEVICE_FUNCTION

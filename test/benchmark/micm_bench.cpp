@@ -7,7 +7,7 @@
 // over per-call overhead.
 //
 // Usage: micm_bench [num_cells] [num_steps] [dt_seconds] [backend] [matrix] [lu_type] [lu_algorithm] [mechanism]
-//   backend:      "cpu" (default) or "gpu"
+//   backend:      "cpu" (default) or "gpu|kokkos"
 //   matrix:       "standard" (default) or "vector1|2|4|8|128"
 //   lu_type:      "in-place" (default) or "separate"
 //   lu_algorithm: "mozart" (default) or "doolittle"
@@ -25,6 +25,9 @@
 
 #ifdef MICM_USE_CUDA
   #include <micm/cuda/util/cuda_util.cuh>
+#endif
+#ifdef MICM_USE_KOKKOS
+  #include <Kokkos_Core.hpp>
 #endif
 
 #include <cstdlib>
@@ -49,6 +52,9 @@ namespace
 
 int main(int argc, char** argv)
 {
+#ifdef MICM_USE_KOKKOS
+  Kokkos::ScopeGuard kokkos_scope(argc, argv);
+#endif
   const auto registry = BuildRegistry();
 
   if (argc > 1 && std::string(argv[1]) == "list")

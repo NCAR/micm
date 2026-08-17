@@ -7,10 +7,10 @@ set(CMAKE_CXX_CLANG_TIDY "")
 include(test_util)
 
 ################################################################################
+if(MICM_ENABLE_BENCHMARK)
+  add_subdirectory(benchmark)
+endif()
 add_subdirectory(unit)
 add_subdirectory(integration)
 add_subdirectory(regression)
 add_subdirectory(tutorial)
-if(MICM_ENABLE_BENCHMARK)
-  add_subdirectory(benchmark)
-endif()

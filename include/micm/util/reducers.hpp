@@ -38,7 +38,7 @@ namespace micm
     }
 
     template<typename Scalar>
-    MICM_DEVICE_FUNCTION explicit Sum(const Scalar& scalar)
+    explicit Sum(const Scalar& scalar)
         : value_(scalar.HostValue())
     {
     }
@@ -78,7 +78,7 @@ namespace micm
     }
 
     template<typename Scalar>
-    MICM_DEVICE_FUNCTION explicit Max(const Scalar& scalar)
+    explicit Max(const Scalar& scalar)
         : value_(scalar.HostValue())
     {
     }
@@ -120,7 +120,7 @@ namespace micm
     }
 
     template<typename Scalar>
-    MICM_DEVICE_FUNCTION explicit LOr(const Scalar& scalar)
+    explicit LOr(const Scalar& scalar)
         : value_(scalar.HostValue())
     {
     }
@@ -153,7 +153,7 @@ namespace micm
     }
 
     template<typename Scalar>
-    MICM_DEVICE_FUNCTION explicit LAnd(const Scalar& scalar)
+    explicit LAnd(const Scalar& scalar)
         : value_(scalar.HostValue())
     {
     }

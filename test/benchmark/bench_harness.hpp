@@ -18,6 +18,9 @@
 #ifdef MICM_USE_CUDA
   #include <micm/GPU.hpp>
 #endif
+#ifdef MICM_USE_KOKKOS
+  #include <micm/Kokkos.hpp>
+#endif
 
 #include <chrono>
 #include <map>
@@ -138,6 +141,11 @@ namespace bench
     auto solver = Mechanism::Build(SolverBuilderPolicy(options));
     auto state = solver.GetState(config.num_cells_);
     Mechanism::InitState(state, config.num_cells_);
+    // For Kokkos, copy inputs to device (no-op for CPU solvers)
+    state.variables_.CopyToDevice();
+    state.custom_rate_parameters_.CopyToDevice();
+    state.conditions_.CopyToDevice();
+    // For Kokkos, UpdateStateParameters runs on device with copied over custom_rate_parameters_
     solver.UpdateStateParameters(state);
     // For CUDA, copy the information to the device
     if constexpr (requires { state.SyncInputsToDevice(); })
@@ -174,6 +182,10 @@ namespace bench
   template<micm::Index L>
   using CudaRosen = micm::CudaSolverBuilderInPlace<micm::RosenbrockSolverParameters, L>;
 #endif
+#ifdef MICM_USE_KOKKOS
+  template<micm::Index L>
+  using KokkosRosen = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters, L>;
+#endif
 
   /// @brief Register the four CPU LU combinations for one matrix ordering.
   template<class Mechanism, class DM, class SM>
@@ -189,7 +201,8 @@ namespace bench
   }
 
   /// @brief Register every configuration that a single vector width supports.
-  ///        The GPU backend only supports the in-place Mozart LU.
+  ///        The CUDA backend only supports the in-place Mozart LU.
+  ///        Kokkos backend supports all LU types, but we just include Mozart LU to cut down on build times
   template<class Mechanism, micm::Index L>
   void RegisterVector(Registry& registry)
   {
@@ -197,6 +210,9 @@ namespace bench
     RegisterCpu<Mechanism, VectorDense<L>, VectorSparse<L>>(registry, matrix);
 #ifdef MICM_USE_CUDA
     registry[Key(std::string{ Mechanism::kName }, "gpu", matrix, "in-place", "mozart")] = &RunCase<Mechanism, CudaRosen<L>>;
+#endif
+#ifdef MICM_USE_KOKKOS
+    registry[Key(std::string{ Mechanism::kName }, "kokkos", matrix, "in-place", "mozart")] = &RunCase<Mechanism, KokkosRosen<L>>;
 #endif
   }
 

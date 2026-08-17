@@ -6,7 +6,10 @@ name: GPU Benchmark PR Comment
 
 on:
   workflow_run:
-    workflows: ["Designated GPU Runner"]
+    workflows: [
+      "Designated GPU Runner for CUDA Solvers",
+      "Designated GPU Runner for Kokkos Solvers"
+    ]
     types: [completed]
 
 jobs:
@@ -34,10 +37,10 @@ jobs:
 
       # The `name` and `benchmark-data-dir-path` must match the corresponding
       # store steps in runner.yml exactly; the action keys its history by both.
-      - name: Comment timing comparison on PR
+      - name: Comment timing comparison on PR for CUDA
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (GPU runner)
+          name: Chapman Timing (CUDA Solvers)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,14 +51,42 @@ jobs:
           fail-on-alert: false
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
-      - name: Comment TS1 timing comparison on PR
+      - name: Comment TS1 timing comparison on PR for CUDA
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (GPU runner)
+          name: Chapman Timing (CUDA Solvers)
           tool: customSmallerIsBetter
           output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           benchmark-data-dir-path: dev/bench/gpu/timing
+          comment-always: true
+          save-data-file: false
+          alert-threshold: 120%
+          fail-on-alert: false
+          skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
+
+      - name: Comment timing comparison on PR for Kokkos
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing (Kokkos Solvers)
+          tool: customSmallerIsBetter
+          output-file-path: kokkos_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: dev/bench/kokkos/timing
+          comment-always: true
+          save-data-file: false
+          alert-threshold: 120%
+          fail-on-alert: false
+          skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
+
+      - name: Comment TS1 timing comparison on PR for Kokkos
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing (Kokkos Solvers)
+          tool: customSmallerIsBetter
+          output-file-path: kokkos_ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: dev/bench/kokkos/timing
           comment-always: true
           save-data-file: false
           alert-threshold: 120%

@@ -22,7 +22,7 @@ class ScalarView
   /// Returns T& even from a const ScalarView — the shared_ptr can't be
   /// reseated but the pointed-to value is still mutable. This is what
   /// lets [=]-captured copies accumulate into shared storage.
-  MICM_DEVICE_FUNCTION T& HostValue() const
+  T& HostValue() const
   {
     return *data_;
   }

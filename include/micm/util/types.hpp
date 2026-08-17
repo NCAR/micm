@@ -9,7 +9,7 @@
   #error "MICM_USE_SINGLE and MICM_USE_DOUBLE are mutually exclusive"
 #endif
 
-#ifdef MICM_ENABLE_KOKKOS
+#ifdef MICM_USE_KOKKOS
   #include <Kokkos_Macros.hpp>
   #define MICM_LAMBDA          KOKKOS_LAMBDA
   #define MICM_DEVICE_FUNCTION KOKKOS_INLINE_FUNCTION

@@ -1,4 +1,4 @@
-name: Designated GPU Runner for CUDA Solvers
+name: Designated GPU Runner for Kokkos Solvers
 
 on:
   push:
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cuda_tests:
+  kokkos_tests:
     runs-on:
       group: CIRRUS-4x16-gpu
     container:
@@ -31,15 +31,11 @@ jobs:
         # host CPU instructions and cannot see GPU kernels.
         run: |
            apt update
-           apt install -y cmake g++ python3 pip
+           apt install -y cmake g++ python3 pip ninja-build
 
       - name: Run Cmake
         # MICM_ENABLE_BENCHMARK defaults to OFF; the Build step needs it on.
-        run: cmake -S . -B build -DMICM_GPU_TYPE="a10" -DMICM_ENABLE_BENCHMARK=ON
-
-      - name: Copy cublas headers
-        run: |
-          cp -r /opt/nvidia/hpc_sdk/*/25.9/cuda/include/* /usr/include/
+        run: cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_TYPE_AMPERE86=ON -DMICM_ENABLE_BENCHMARK=ON
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -49,16 +45,16 @@ jobs:
           cd build
           ctest --rerun-failed --output-on-failure . --verbose -j 10
 
-      # The GPU backend registers no standard ordering, so name the vector ones.
+      # The Kokkos backend registers no standard ordering, so name the vector ones.
       #
       # Write to a file, then convert. This container runs steps under `sh -e`,
       # which has no pipefail, so a pipeline would hide a script failure.
-      - name: Benchmark the GPU backend (chapman)
+      - name: Benchmark the Kokkos backend (chapman)
         run: |
-          scripts/bench_micm.sh build 10000 30 gpu in-place mozart chapman \
-            vector1 vector2 vector4 vector8 vector128 > cuda_timing.txt
+          scripts/bench_micm.sh build 10000 30 kokkos in-place mozart chapman \
+            vector1 vector2 vector4 vector8 vector128 > kokkos_timing.txt
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
-            < cuda_timing.txt > cuda_timing.json
+            < kokkos_timing.txt > kokkos_timing.json
 
       # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
       # ubuntu-latest. The two machines keep separate series and separate directories, so
@@ -68,32 +64,32 @@ jobs:
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (GPU backend)
+          name: Chapman Timing (Kokkos backend)
           tool: customSmallerIsBetter
-          output-file-path: cuda_timing.json
+          output-file-path: kokkos_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          benchmark-data-dir-path: dev/bench/gpu/timing
+          benchmark-data-dir-path: dev/bench/kokkos/timing
 
       # ts1 runs after the chapman series is stored, so a ts1 failure cannot
       # stop the chapman chart from updating.
-      - name: Benchmark the GPU backend (ts1)
+      - name: Benchmark the Kokkos backend (ts1)
         run: |
-          scripts/bench_micm.sh build 10000 30 gpu in-place mozart ts1 \
-            vector1 vector2 vector4 vector8 vector128 > cuda_ts1_timing.txt
+          scripts/bench_micm.sh build 10000 30 kokkos in-place mozart ts1 \
+            vector1 vector2 vector4 vector8 vector128 > kokkos_ts1_timing.txt
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
-            < cuda_ts1_timing.txt > cuda_ts1_timing.json
+            < kokkos_ts1_timing.txt > kokkos_ts1_timing.json
 
       - name: Store timing results (ts1)
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: TS1 Timing (GPU backend)
+          name: TS1 Timing (Kokkos backend)
           tool: customSmallerIsBetter
-          output-file-path: cuda_ts1_timing.json
+          output-file-path: kokkos_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          benchmark-data-dir-path: dev/bench/gpu/timing
+          benchmark-data-dir-path: dev/bench/kokkos/timing
 
       - name: Save PR number for benchmark comment workflow
         run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
@@ -104,8 +100,8 @@ jobs:
         with:
           name: micm-bench
           path: |
-            cuda_timing.json
-            cuda_timing.txt
-            cuda_ts1_timing.json
-            cuda_ts1_timing.txt
+            kokkos_timing.json
+            kokkos_timing.txt
+            kokkos_ts1_timing.json
+            kokkos_ts1_timing.txt
             pr-number.txt
