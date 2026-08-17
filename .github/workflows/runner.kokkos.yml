@@ -16,7 +16,7 @@ jobs:
     runs-on:
       group: CIRRUS-4x16-gpu
     container:
-      image: nvcr.io/nvidia/nvhpc:25.9-devel-cuda13.0-ubuntu24.04
+      image: nvcr.io/nvidia/nvhpc:26.5-devel-cuda_multi-ubuntu24.04
       options: --gpus all
     steps:
       - uses: actions/checkout@v4

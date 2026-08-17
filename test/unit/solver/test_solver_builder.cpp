@@ -17,6 +17,8 @@
 
 namespace
 {
+  constexpr micm::Index L = 4;
+
   auto a = micm::Species("A");
   auto b = micm::Species("B");
   auto c = micm::Species("C");
@@ -77,7 +79,6 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
                             .SetReactions(reactions)
                             .Build();
 
-  constexpr micm::Index L = 4;
   auto backward_euler_vector =
       micm::CpuSolverBuilder<
           micm::BackwardEulerSolverParameters,
@@ -100,7 +101,6 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                         .SetReactions(reactions)
                         .Build();
 
-  constexpr micm::Index L = 4;
   auto rosenbrock_vector = micm::CpuSolverBuilder<
                                micm::RosenbrockSolverParameters,
                                micm::VectorMatrix<micm::Real, L>,
