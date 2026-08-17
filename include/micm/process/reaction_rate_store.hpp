@@ -76,7 +76,7 @@ namespace micm
     };
 
     // ----------------------------------------------------------------
-    // Analytic types (GPU-safe parameter structs) — stored in device-capable vectors
+    // Analytic types (GPU-safe parameter structs) stored in device-capable vectors
     // ----------------------------------------------------------------
     Vector<ArrheniusRateConstantParameters> arrhenius_;
     Vector<TroeRateConstantParameters> troe_;

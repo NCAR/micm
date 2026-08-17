@@ -21,8 +21,7 @@ namespace micm
     // ----------------------------------------------------------------
     // Device-compatible tuple for KOKKOS_LAMBDA-safe variadic dispatch
     // ----------------------------------------------------------------
-    // EBO-based heterogeneous tuple: no STL runtime dependencies,
-    // works inside KOKKOS_FUNCTION contexts.
+    // No STL runtime dependencies, works inside KOKKOS_FUNCTION contexts.
     // Used to bundle Function()/ForEachRow()/ForEachBlock() argument packs
     // into a single capturable object, avoiding NVHPC restrictions on
     // (a) extended lambdas inside generic lambdas and (b) pack element capture.
@@ -137,17 +136,11 @@ namespace micm
     // -----------------------------------------------------------------------
     // CUDA-visible implementation types
     // Public so they can appear in __global__ kernel template arguments, which
-    // CUDA forbids for private/protected nested types.  These are internal
-    // implementation details and are not part of the stable user-facing API.
+    // CUDA forbids for private/protected nested types.
     // -----------------------------------------------------------------------
 
     /// @brief Device-safe handle for a mutable KokkosDenseMatrix argument to
     ///        Function()/ForEachRow().
-    ///
-    /// Only the flat Kokkos::View and column count are captured -- both are trivially
-    /// copyable -- so this handle (rather than the matrix object itself, which owns a
-    /// non-trivially-copyable host std::vector) is what gets captured by value into a
-    /// device lambda.  Only ever used internally by MakeHandle()/BuildGroupView() below.
     struct DenseMatrixHandle
     {
       Kokkos::View<T*> view_;
@@ -206,7 +199,7 @@ namespace micm
     }
 
    public:
-    /// @brief Kokkos functor for dispatching Function() over complete groups.
+    /// @brief Kokkos functor for dispatching Function() over complete groups (size L).
     ///        Avoids NVHPC restrictions on extended lambdas inside generic lambdas
     ///        and parameter-pack capture in device lambdas.
     template<typename Func, typename HandlesTuple>
@@ -227,7 +220,7 @@ namespace micm
       }
     };
 
-    /// @brief Kokkos functor for dispatching Function() over the tail group.
+    /// @brief Kokkos functor for dispatching Function() over the tail group (size < L).
     template<typename Func, typename HandlesTuple>
     struct FunctionTailFunctor
     {

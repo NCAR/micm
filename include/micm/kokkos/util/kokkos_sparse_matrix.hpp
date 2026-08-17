@@ -62,18 +62,11 @@ namespace micm
     // -----------------------------------------------------------------------
     // CUDA-visible implementation types
     // Public so they can appear in __global__ kernel template arguments, which
-    // CUDA forbids for private/protected nested types.  These are internal
-    // implementation details and are not part of the stable user-facing API.
+    // CUDA forbids for private/protected nested types.
     // -----------------------------------------------------------------------
 
     /// @brief Device-safe handle for a mutable KokkosSparseMatrix argument to
     ///        Function()/ForEachBlock().
-    ///
-    /// Only the flat Kokkos::View and the number of non-zero elements per block are
-    /// captured -- both are trivially copyable -- so this handle (rather than the
-    /// matrix object itself, which owns a non-trivially-copyable host std::vector) is
-    /// what gets captured by value into a device lambda.  Only ever used internally by
-    /// MakeHandle()/BuildGroupView() below.
     struct SparseMatrixHandle
     {
       Kokkos::View<T*> view_;
@@ -109,11 +102,6 @@ namespace micm
 
    private:
     /// @brief Build a device-safe handle for one Function()/ForEachBlock() argument.
-    ///
-    /// KokkosSparseMatrix arguments are reduced to their (trivially copyable) View +
-    /// non-zero-element count. KokkosDenseMatrix arguments (e.g. the state variables a
-    /// Jacobian depends on) are reduced the same way as in KokkosDenseMatrix::MakeHandle,
-    /// so the two matrix types can be mixed in the same Function() call.
     template<typename Arg>
     static auto MakeHandle(Arg&& arg)
     {
@@ -178,7 +166,7 @@ namespace micm
     }
 
    public:
-    /// @brief Kokkos functor for dispatching Function() over complete groups.
+    /// @brief Kokkos functor for dispatching Function() over complete groups (size L).
     ///        See KokkosDenseMatrix::FunctionMainFunctor for rationale.
     template<typename Func, typename HandlesTuple>
     struct FunctionMainFunctor
@@ -198,7 +186,7 @@ namespace micm
       }
     };
 
-    /// @brief Kokkos functor for dispatching Function() over the tail group.
+    /// @brief Kokkos functor for dispatching Function() over the tail group (size < L).
     template<typename Func, typename HandlesTuple>
     struct FunctionTailFunctor
     {
