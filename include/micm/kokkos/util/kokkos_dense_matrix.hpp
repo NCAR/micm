@@ -54,33 +54,16 @@ namespace micm
       static constexpr std::size_t N = sizeof...(Ts);
     };
 
-    /// @brief TypeAt: get the I-th type from a pack without std::tuple_element
-    template<std::size_t I, typename T, typename...>
-    struct TypeAtHelper
+    template<std::size_t I, typename T>
+    KOKKOS_INLINE_FUNCTION auto& DeviceTupleGet(DTupleElem<I, T>& elem) noexcept
     {
-      using type = T;
-    };
-    template<std::size_t I, typename T, typename... Rest>
-    struct TypeAt : TypeAt<I - 1, Rest...>
-    {
-    };
-    template<typename T, typename... Rest>
-    struct TypeAt<0, T, Rest...> : TypeAtHelper<0, T>
-    {
-    };
-
-    template<std::size_t I, typename... Ts>
-    KOKKOS_INLINE_FUNCTION auto& DeviceTupleGet(DeviceTuple<Ts...>& t) noexcept
-    {
-      using T = typename TypeAt<I, Ts...>::type;
-      return static_cast<DTupleElem<I, T>&>(t).val_;
+      return elem.val_;
     }
 
-    template<std::size_t I, typename... Ts>
-    KOKKOS_INLINE_FUNCTION const auto& DeviceTupleGet(const DeviceTuple<Ts...>& t) noexcept
+    template<std::size_t I, typename T>
+    KOKKOS_INLINE_FUNCTION const T& DeviceTupleGet(const DTupleElem<I, T>& elem) noexcept
     {
-      using T = typename TypeAt<I, Ts...>::type;
-      return static_cast<const DTupleElem<I, T>&>(t).val_;
+      return elem.val_;
     }
 
     template<typename... Ts>
