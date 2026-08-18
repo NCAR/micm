@@ -22,52 +22,18 @@ namespace micm
    public:
     using value_type = T;
     using category = PaddedVectorTag;
+    template<class U>
     struct DeviceView;
-    struct ConstDeviceView;
-    using ViewType = DeviceView;
-    using ConstViewType = ConstDeviceView;
+    using ViewType = DeviceView<T>;
+    using ConstViewType = DeviceView<const T>;
 
-    struct ConstDeviceView
-    {
-      Kokkos::View<const T*> view_;
-      Index size_;
-
-      KOKKOS_INLINE_FUNCTION const T& operator[](Index i) const  // NOLINT(readability-identifier-naming)
-      {
-        return view_(i);
-      }
-
-      KOKKOS_INLINE_FUNCTION Index size() const  // NOLINT(readability-identifier-naming)
-      {
-        return size_;
-      }
-
-      // So the KokkosVectorLike concept accepts a DeviceView also
-      KOKKOS_INLINE_FUNCTION const ConstDeviceView& GetView() const
-      {
-        return *this;
-      }
-
-      KOKKOS_INLINE_FUNCTION const T* begin() const  // NOLINT(readability-identifier-naming)
-      {
-        return view_.data();
-      }
-      KOKKOS_INLINE_FUNCTION const T* end() const  // NOLINT(readability-identifier-naming)
-      {
-        return view_.data() + size_;
-      }
-      KOKKOS_INLINE_FUNCTION const T* data() const  // NOLINT(readability-identifier-naming)
-      {
-        return view_.data();
-      }
-    };
-
+    template<class U>
     struct DeviceView
     {
-      Kokkos::View<T*> view_;
+      Kokkos::View<U*> view_;
       Index size_;
 
-      KOKKOS_INLINE_FUNCTION T& operator[](Index i) const  // NOLINT(readability-identifier-naming)
+      KOKKOS_INLINE_FUNCTION U& operator[](Index i) const  // NOLINT(readability-identifier-naming)
       {
         return view_(i);
       }
@@ -83,21 +49,22 @@ namespace micm
         return *this;
       }
 
-      // Implicit conversion to ConstDeviceView (mirrors Kokkos::View<T*> -> View<const T*>)
-      KOKKOS_INLINE_FUNCTION operator ConstDeviceView() const
+      // NOLINTNEXTLINE(modernize-use-constraints) nvhpc warnings when constraints are used
+      template<class V = U, std::enable_if_t<!std::is_const_v<V>, int> = 0>
+      KOKKOS_INLINE_FUNCTION operator DeviceView<const U>() const
       {
         return { view_ };
       }
 
-      KOKKOS_INLINE_FUNCTION const T* begin() const  // NOLINT(readability-identifier-naming)
+      KOKKOS_INLINE_FUNCTION const U* begin() const  // NOLINT(readability-identifier-naming)
       {
         return view_.data();
       }
-      KOKKOS_INLINE_FUNCTION const T* end() const  // NOLINT(readability-identifier-naming)
+      KOKKOS_INLINE_FUNCTION const U* end() const  // NOLINT(readability-identifier-naming)
       {
         return view_.data() + size_;
       }
-      KOKKOS_INLINE_FUNCTION const T* data() const  // NOLINT(readability-identifier-naming)
+      KOKKOS_INLINE_FUNCTION const U* data() const  // NOLINT(readability-identifier-naming)
       {
         return view_.data();
       }
@@ -216,12 +183,12 @@ namespace micm
       Kokkos::deep_copy(host_view_, device_view_);
     }
 
-    KOKKOS_INLINE_FUNCTION DeviceView GetView()
+    KOKKOS_INLINE_FUNCTION DeviceView<T> GetView()
     {
       return { device_view_, size_ };
     }
 
-    KOKKOS_INLINE_FUNCTION ConstDeviceView GetView() const
+    KOKKOS_INLINE_FUNCTION DeviceView<const T> GetView() const
     {
       return { device_view_, size_ };
     }

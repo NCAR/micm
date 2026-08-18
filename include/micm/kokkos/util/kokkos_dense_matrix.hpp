@@ -634,6 +634,7 @@ namespace micm
       {
       }
 
+      // NOLINTNEXTLINE(modernize-use-constraints) nvhpc warnings when constraints are used
       template<class V = U, std::enable_if_t<!std::is_const_v<V>, int> = 0>
       KOKKOS_INLINE_FUNCTION operator GroupView<const T>() const
       {
@@ -767,7 +768,7 @@ namespace micm
       /// @brief Apply a reduction to each row in this group, on-device via team
       ///        parallelism. See ConstGroupView::Reduce for details.
       template<typename Reducer, typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      KOKKOS_INLINE_FUNCTION void Reduce(const Reducer& reducer, Func&& func, Args&&... args) const
       {
         using AccT = decltype(Reducer::Identity());
         reducer.TeamReduce(

@@ -151,11 +151,11 @@ namespace micm
       }
       else if constexpr (std::is_same_v<HandleType, DenseMatrixArgHandle>)
       {
-        return typename KokkosDenseMatrix<T, L>::GroupView<T>(handle.view_, group, handle.y_dim_, count, team);
+        return typename KokkosDenseMatrix<T, L>::template GroupView<T>(handle.view_, group, handle.y_dim_, count, team);
       }
       else if constexpr (std::is_same_v<HandleType, ConstDenseMatrixArgHandle>)
       {
-        return typename KokkosDenseMatrix<T, L>::GroupView<const T>(handle.view_, group, handle.y_dim_, count, team);
+        return typename KokkosDenseMatrix<T, L>::template GroupView<const T>(handle.view_, group, handle.y_dim_, count, team);
       }
       else if (KokkosVectorLike<HandleType>)
       {
@@ -553,6 +553,7 @@ namespace micm
       {
       }
 
+      // NOLINTNEXTLINE(modernize-use-constraints) nvhpc warnings when constraints are used
       template<class V = U, std::enable_if_t<!std::is_const_v<V>, int> = 0>
       KOKKOS_INLINE_FUNCTION operator GroupView<const T>() const
       {

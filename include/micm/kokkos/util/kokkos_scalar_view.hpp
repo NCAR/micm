@@ -17,75 +17,10 @@ namespace micm
 
    public:
     using value_type = T;
+    template<class U>
     struct View;
-    struct ConstView;
-    using ViewType = View;
-    using ConstViewType = ConstView;
-
-    struct ConstDeviceView
-    {
-      Kokkos::View<const T*> view_;
-
-      KOKKOS_INLINE_FUNCTION operator T() const
-      {
-        return view_(0);
-      }
-
-      KOKKOS_INLINE_FUNCTION const T* data() const  // NOLINT(readability-identifier-naming)
-      {
-        return view_.data();
-      }
-
-      KOKKOS_INLINE_FUNCTION ConstView GetView() const
-      {
-        return *this;
-      }
-    };
-
-    struct DeviceView
-    {
-      Kokkos::View<T*> view_;
-
-      KOKKOS_INLINE_FUNCTION operator T() const
-      {
-        return view_(0);
-      }
-
-      KOKKOS_INLINE_FUNCTION T& operator=(const T& other)  // NOLINT(readability-identifier-naming)
-      {
-        view_(0) = other;
-        return view_(0);
-      }
-
-      KOKKOS_INLINE_FUNCTION DeviceView& operator=(const DeviceView& other)
-      {
-        if (this != &other)
-        {
-          view_(0) = other.view_(0);
-        }
-        return *this;
-      }
-
-      KOKKOS_INLINE_FUNCTION T* data()  // NOLINT(readability-identifier-naming)
-      {
-        return view_.data();
-      }
-
-      KOKKOS_INLINE_FUNCTION const T* data() const  // NOLINT(readability-identifier-naming)
-      {
-        return view_.data();
-      }
-
-      KOKKOS_INLINE_FUNCTION View GetView() const
-      {
-        return *this;
-      }
-
-      KOKKOS_INLINE_FUNCTION operator ConstDeviceView() const
-      {
-        return { view_ };
-      }
-    };
+    using ViewType = View<T>;
+    using ConstViewType = View<const T>;
 
     KokkosScalarView(T init = T{})
     {
