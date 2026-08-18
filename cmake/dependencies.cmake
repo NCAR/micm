@@ -160,6 +160,7 @@ if(MICM_ENABLE_KOKKOS)
   FetchContent_Declare(kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
     GIT_TAG 5.1.0
+    FIND_PACKAGE_ARGS NAMES Kokkos
   )
   FetchContent_MakeAvailable(kokkos)
   message(STATUS "Compiling with Kokkos support")

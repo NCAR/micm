@@ -67,27 +67,3 @@ jobs:
         run: |
           cd build
           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
-
-  # Kokkos doesn't build with gcc-14 on MacOS for some reason. (upstream problem)
-  
-  # kokkos_serial:
-  #   runs-on: macos-latest
-  #   strategy:
-  #     matrix:
-  #       build_type: [Release]
-  #   env:
-  #     CC: gcc-14
-  #     CXX: g++-14
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Run Cmake
-  #       run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_ENABLE_KOKKOS=ON -D Kokkos_ENABLE_SERIAL=ON
-
-  #     - name: Build
-  #       run: cmake --build build --parallel 10
-
-  #     - name: Run tests
-  #       run: |
-  #         cd build
-  #         ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
