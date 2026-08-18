@@ -574,7 +574,7 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args)
     {
       // Process complete groups of L rows
-      Index num_groups = (x_dim_ / (double)L);
+      Index num_groups = x_dim_ / L;
       for (Index group = 0; group < num_groups; ++group)
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
@@ -606,7 +606,7 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args) const
     {
       // Process complete groups of L rows
-      Index num_groups = (x_dim_ / (double)L);
+      Index num_groups = x_dim_ / L;
       for (Index group = 0; group < num_groups; ++group)
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)

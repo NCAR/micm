@@ -466,7 +466,7 @@ namespace micm
       KokkosViewType y_view = view_;
       KokkosViewType x_view = x.view_;
       const Index y_dim = this->NumColumns();
-      const Index n = static_cast<Index>(this->NumRows() / L) * L * y_dim;
+      const Index n = (this->NumRows() / L) * L * y_dim;
       Kokkos::parallel_for(
           "KokkosDenseMatrix::Axpy", Kokkos::RangePolicy<>(0, n), KOKKOS_LAMBDA(const Index i) {
             y_view(i) += alpha * x_view(i);
@@ -946,7 +946,7 @@ namespace micm
         return;
       }
 
-      const auto num_complete_groups = static_cast<Index>(num_rows / L);
+      const auto num_complete_groups = num_rows / L;
       const Index remaining = num_rows % L;
 
       if (num_complete_groups > 0)
