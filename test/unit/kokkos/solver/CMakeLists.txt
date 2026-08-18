@@ -1,31 +1,11 @@
-add_executable(test_kokkos_lu_decomposition_mozart_in_place test_kokkos_lu_decomposition_mozart_in_place.cpp)
-target_link_libraries(test_kokkos_lu_decomposition_mozart_in_place PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_lu_decomposition_mozart_in_place COMMAND test_kokkos_lu_decomposition_mozart_in_place WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+################################################################################
+# Tests
 
-add_executable(test_kokkos_lu_decomposition_mozart test_kokkos_lu_decomposition_mozart.cpp)
-target_link_libraries(test_kokkos_lu_decomposition_mozart PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_lu_decomposition_mozart COMMAND test_kokkos_lu_decomposition_mozart WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_executable(test_kokkos_lu_decomposition_doolittle_in_place test_kokkos_lu_decomposition_doolittle_in_place.cpp)
-target_link_libraries(test_kokkos_lu_decomposition_doolittle_in_place PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_lu_decomposition_doolittle_in_place COMMAND test_kokkos_lu_decomposition_doolittle_in_place WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_executable(test_kokkos_lu_decomposition_doolittle test_kokkos_lu_decomposition_doolittle.cpp)
-target_link_libraries(test_kokkos_lu_decomposition_doolittle PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_lu_decomposition_doolittle COMMAND test_kokkos_lu_decomposition_doolittle WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_executable(test_kokkos_linear_solver_in_place test_kokkos_linear_solver_in_place.cpp)
-target_link_libraries(test_kokkos_linear_solver_in_place PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_linear_solver_in_place COMMAND test_kokkos_linear_solver_in_place WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_executable(test_kokkos_linear_solver test_kokkos_linear_solver.cpp)
-target_link_libraries(test_kokkos_linear_solver PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_linear_solver COMMAND test_kokkos_linear_solver WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_executable(test_kokkos_backward_euler test_kokkos_backward_euler.cpp)
-target_link_libraries(test_kokkos_backward_euler PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_backward_euler COMMAND test_kokkos_backward_euler WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-add_executable(test_kokkos_rosenbrock test_kokkos_rosenbrock.cpp)
-target_link_libraries(test_kokkos_rosenbrock PUBLIC musica::micm musica::micm_kokkos GTest::gtest)
-add_test(NAME kokkos_rosenbrock COMMAND test_kokkos_rosenbrock WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+create_standard_test(NAME kokkos_lu_decomposition_mozart SOURCES test_kokkos_lu_decomposition_mozart.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_lu_decomposition_mozart_in_place SOURCES test_kokkos_lu_decomposition_mozart_in_place.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_lu_decomposition_doolittle SOURCES test_kokkos_lu_decomposition_doolittle.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_lu_decomposition_doolittle_in_place SOURCES test_kokkos_lu_decomposition_doolittle_in_place.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_linaer_solver SOURCES test_kokkos_linear_solver.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_linaer_solver_in_place SOURCES test_kokkos_linear_solver_in_place.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_backward_euler SOURCES test_kokkos_backward_euler.cpp LIBRARIES musica::micm_kokkos)
+create_standard_test(NAME kokkos_rosenbrock SOURCES test_kokkos_rosenbrock.cpp LIBRARIES musica::micm_kokkos)

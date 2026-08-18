@@ -172,7 +172,7 @@ namespace micm
       Func func_;
       HandlesTuple handles_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(Index group, const TeamMember& team, std::index_sequence<Is...>) const
       {
         func_(BuildGroupView(detail::DeviceTupleGet<Is>(handles_), group, L, team)...);
@@ -193,7 +193,7 @@ namespace micm
       Index num_complete_groups_;
       Index remaining_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, std::index_sequence<Is...>) const
       {
         func_(BuildGroupView(detail::DeviceTupleGet<Is>(handles_), num_complete_groups_, remaining_, team)...);
@@ -214,7 +214,7 @@ namespace micm
       Index flat_block_size_;
       ArgsTuple args_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(Index block, std::index_sequence<Is...>) const
       {
         func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
@@ -236,7 +236,7 @@ namespace micm
       Index flat_block_size_;
       ArgsTuple args_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, Index group, std::index_sequence<Is...>) const
       {
         Kokkos::parallel_for(
@@ -266,7 +266,7 @@ namespace micm
       Index num_complete_groups_;
       Index remaining_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, std::index_sequence<Is...>) const
       {
         Kokkos::parallel_for(

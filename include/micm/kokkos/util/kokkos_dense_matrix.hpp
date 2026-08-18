@@ -26,7 +26,7 @@ namespace micm
     // into a single capturable object, avoiding NVHPC restrictions on
     // (a) extended lambdas inside generic lambdas and (b) pack element capture.
 
-    template<std::size_t I, typename T>
+    template<Index I, typename T>
     struct DTupleElem
     {
       T val_;
@@ -35,7 +35,7 @@ namespace micm
     template<typename Seq, typename... Ts>
     struct DTupleBase;
 
-    template<std::size_t... Is, typename... Ts>
+    template<Index... Is, typename... Ts>
     struct DTupleBase<std::index_sequence<Is...>, Ts...> : DTupleElem<Is, Ts>...
     {
       KOKKOS_DEFAULTED_FUNCTION DTupleBase() = default;
@@ -51,16 +51,16 @@ namespace micm
     {
       using Base = DTupleBase<std::index_sequence_for<Ts...>, Ts...>;
       using Base::Base;
-      static constexpr std::size_t N = sizeof...(Ts);
+      static constexpr Index N = sizeof...(Ts);
     };
 
-    template<std::size_t I, typename T>
+    template<Index I, typename T>
     KOKKOS_INLINE_FUNCTION auto& DeviceTupleGet(DTupleElem<I, T>& elem) noexcept
     {
       return elem.val_;
     }
 
-    template<std::size_t I, typename T>
+    template<Index I, typename T>
     KOKKOS_INLINE_FUNCTION const T& DeviceTupleGet(const DTupleElem<I, T>& elem) noexcept
     {
       return elem.val_;
@@ -191,7 +191,7 @@ namespace micm
       Func func_;
       HandlesTuple handles_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(Index group, const TeamMember& team, std::index_sequence<Is...>) const
       {
         func_(BuildGroupView(detail::DeviceTupleGet<Is>(handles_), group, L, team)...);
@@ -212,7 +212,7 @@ namespace micm
       Index num_complete_groups_;
       Index remaining_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, std::index_sequence<Is...>) const
       {
         func_(BuildGroupView(detail::DeviceTupleGet<Is>(handles_), num_complete_groups_, remaining_, team)...);
@@ -233,7 +233,7 @@ namespace micm
       Index y_dim_;
       ArgsTuple args_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(Index row, std::index_sequence<Is...>) const
       {
         func_(KokkosDenseMatrix<T, L>::GetTopLevelRowElement(view_, y_dim_, row, detail::DeviceTupleGet<Is>(args_))...);
@@ -254,7 +254,7 @@ namespace micm
       Index y_dim_;
       ArgsTuple args_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, Index group, std::index_sequence<Is...>) const
       {
         Kokkos::parallel_for(
@@ -284,7 +284,7 @@ namespace micm
       Index num_complete_groups_;
       Index remaining_;
 
-      template<std::size_t... Is>
+      template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(const TeamMember& team, std::index_sequence<Is...>) const
       {
         Kokkos::parallel_for(

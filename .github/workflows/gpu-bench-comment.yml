@@ -54,7 +54,7 @@ jobs:
       - name: Comment TS1 timing comparison on PR for CUDA
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (CUDA Solvers)
+          name: TS1 Timing (CUDA Solvers)
           tool: customSmallerIsBetter
           output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -82,7 +82,7 @@ jobs:
       - name: Comment TS1 timing comparison on PR for Kokkos
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (Kokkos Solvers)
+          name: TS1 Timing (Kokkos Solvers)
           tool: customSmallerIsBetter
           output-file-path: kokkos_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
