@@ -284,7 +284,7 @@ namespace micm
                                       std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
                     throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
-                  auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
+                  auto iter = std::next(data.begin(), (i_row / L) * y_dim * L + i_row % L);
                   for (auto& elem : other_row)
                   {
                     *iter = elem;
@@ -397,12 +397,12 @@ namespace micm
 
     ConstProxy operator[](Index x) const
     {
-      return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);
+      return ConstProxy(*this, (x / L), x % L, y_dim_);
     }
 
     Proxy operator[](Index x)
     {
-      return Proxy(*this, std::floor(x / L), x % L, y_dim_);
+      return Proxy(*this, (x / L), x % L, y_dim_);
     }
 
     VectorMatrix& operator=(T val)
@@ -419,7 +419,7 @@ namespace micm
     {
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
-      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      const Index n = (x_dim_ / L) * L * y_dim_;
       for (Index i = 0; i < n; ++i)
       {
         *(y_iter++) += alpha * (*(x_iter++));
@@ -458,7 +458,7 @@ namespace micm
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
-      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      const Index n = (x_dim_ / L) * L * y_dim_;
       for (Index i = 0; i < n; ++i)
       {
         f(*(this_iter++), *(a_iter++));
@@ -478,7 +478,7 @@ namespace micm
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
-      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      const Index n = (x_dim_ / L) * L * y_dim_;
       for (Index i = 0; i < n; ++i)
       {
         f(*(this_iter++), *(a_iter++), *(b_iter++));
@@ -574,7 +574,7 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args)
     {
       // Process complete groups of L rows
-      Index num_groups = std::floor(x_dim_ / (double)L);
+      Index num_groups = (x_dim_ / (double)L);
       for (Index group = 0; group < num_groups; ++group)
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
@@ -606,7 +606,7 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args) const
     {
       // Process complete groups of L rows
-      Index num_groups = std::floor(x_dim_ / (double)L);
+      Index num_groups = (x_dim_ / (double)L);
       for (Index group = 0; group < num_groups; ++group)
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
@@ -1302,7 +1302,7 @@ namespace micm
             ...);
 
         // Iterate over groups, processing L rows at a time
-        Index num_complete_groups = std::floor(num_rows / (double)L);
+        Index num_complete_groups = (num_rows / L);
         for (Index group = 0; group < num_complete_groups; ++group)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView

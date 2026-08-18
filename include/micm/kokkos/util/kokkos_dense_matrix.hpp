@@ -387,14 +387,14 @@ namespace micm
 
     KokkosDenseMatrix(Index x_dim, Index y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim),
-          view_("dense_matrix", VectorMatrix<T, L>(x_dim, y_dim).AsVector().size()),
+          view_("dense_matrix", this->data_.size()),
           host_view_(this->data_.data(), this->data_.size())
     {
     }
 
     KokkosDenseMatrix(Index x_dim, Index y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value),
-          view_("dense_matrix", VectorMatrix<T, L>(x_dim, y_dim).AsVector().size()),
+          view_("dense_matrix", this->data_.size()),
           host_view_(this->data_.data(), this->data_.size())
     {
       Kokkos::deep_copy(view_, initial_value);
@@ -483,7 +483,7 @@ namespace micm
       KokkosViewType y_view = view_;
       KokkosViewType x_view = x.view_;
       const Index y_dim = this->NumColumns();
-      const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
+      const Index n = static_cast<Index>(this->NumRows() / L) * L * y_dim;
       Kokkos::parallel_for(
           "KokkosDenseMatrix::Axpy", Kokkos::RangePolicy<>(0, n), KOKKOS_LAMBDA(const Index i) {
             y_view(i) += alpha * x_view(i);
@@ -552,7 +552,7 @@ namespace micm
       KokkosViewType y_view = view_;
       KokkosViewType a_view = a.view_;
       const Index y_dim = this->NumColumns();
-      const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
+      const Index n = static_cast<Index>(this->NumRows() / L) * L * y_dim;
       Kokkos::parallel_for(
           "KokkosDenseMatrix::ForEach",
           Kokkos::RangePolicy<>(0, n),
@@ -577,7 +577,7 @@ namespace micm
       KokkosViewType a_view = a.view_;
       KokkosViewType b_view = b.view_;
       const Index y_dim = this->NumColumns();
-      const Index n = static_cast<Index>(std::floor(this->NumRows() / (double)L)) * L * y_dim;
+      const Index n = static_cast<Index>(this->NumRows() / L) * L * y_dim;
       Kokkos::parallel_for(
           "KokkosDenseMatrix::ForEach",
           Kokkos::RangePolicy<>(0, n),
@@ -1076,7 +1076,7 @@ namespace micm
             }(invoked_args),
             ...);
 
-        auto num_complete_groups = static_cast<Index>(std::floor(num_rows / (double)L));
+        auto num_complete_groups = static_cast<Index>(num_rows / L);
         Index remaining = num_rows % L;
 
         // Reduce each argument to a device-safe handle before entering device code,
@@ -1141,7 +1141,7 @@ namespace micm
         return;
       }
 
-      const auto num_complete_groups = static_cast<Index>(std::floor(num_rows / (double)L));
+      const auto num_complete_groups = static_cast<Index>(num_rows / L);
       const Index remaining = num_rows % L;
 
       if (num_complete_groups > 0)

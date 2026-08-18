@@ -294,7 +294,7 @@ namespace micm
 
     KokkosSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder, bool indexing_only = false)
         : SparseMatrix<T, OrderingPolicy>(builder, indexing_only),
-          view_("sparse_matrix", SparseMatrix<T, OrderingPolicy>(builder, indexing_only).AsVector().size()),
+          view_("sparse_matrix", this->data_.size()),
           host_view_(this->data_.data(), this->data_.size())
     {
     }
@@ -457,7 +457,7 @@ namespace micm
         return;
       }
 
-      const auto num_complete_groups = static_cast<Index>(std::floor(num_blocks / (double)L));
+      const auto num_complete_groups = static_cast<Index>(num_blocks / L);
       const Index remaining = num_blocks % L;
 
       if (num_complete_groups > 0)
@@ -997,7 +997,7 @@ namespace micm
             }(invoked_args),
             ...);
 
-        auto num_complete_groups = static_cast<Index>(std::floor(num_blocks / (double)L));
+        auto num_complete_groups = static_cast<Index>(num_blocks / L);
         Index remaining = num_blocks % L;
 
         // Bundle handles into a DeviceTuple and dispatch via named Kokkos functor structs.
