@@ -88,10 +88,10 @@ namespace micm
       return L;
     }
     using value_type = T;
+    template<class U>
     class GroupView;
-    class ConstGroupView;
-    using ViewType = GroupView;
-    using ConstViewType = ConstGroupView;
+    using ViewType = GroupView<T>;
+    using ConstViewType = GroupView<const T>;
     using HostGroupView = typename VectorMatrix<T, L>::GroupView;
     using ConstHostGroupView = typename VectorMatrix<T, L>::ConstGroupView;
     using KokkosViewType = Kokkos::View<T*>;
@@ -169,11 +169,11 @@ namespace micm
       using HandleType = std::remove_cvref_t<Handle>;
       if constexpr (std::is_same_v<HandleType, DenseMatrixHandle>)
       {
-        return GroupView(handle.view_, group, handle.y_dim_, count, team);
+        return GroupView<T>(handle.view_, group, handle.y_dim_, count, team);
       }
       else if constexpr (std::is_same_v<HandleType, ConstDenseMatrixHandle>)
       {
-        return ConstGroupView(handle.view_, group, handle.y_dim_, count, team);
+        return GroupView<const T>(handle.view_, group, handle.y_dim_, count, team);
       }
       else
       {
@@ -575,197 +575,17 @@ namespace micm
       }
     }
 
-    /// @brief ConstGroupView provides a team-parallel const view of a single group of L
-    ///        rows for iteration on-device.
-    class ConstGroupView
-    {
-     public:
-      using GroupedConstColumnView = micm::KokkosGroupedConstColumnView<T>;
-
-     private:
-      Kokkos::View<const T*> view_;
-      Index group_;
-      Index y_dim_;
-      Index num_rows_in_group_;
-      TeamMember team_;
-
-      template<DenseMatrixColumnView Arg>
-      KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
-      {
-        return arg.Data()[(group_ * arg.YDim() + arg.ColumnIndex()) * L + row_in_group];
-      }
-
-      template<GroupedDenseMatrixColumnView Arg>
-      KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
-      {
-        return arg.base_[row_in_group];
-      }
-
-      template<BlockVariableView Arg>
-      KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
-      {
-        auto& storage = arg.Get();
-        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
-        {
-          return storage;  // KokkosBlockVariable<T,1>: scalar
-        }
-        else
-        {
-          return storage[row_in_group];  // KokkosRowVariable (always array) or L>1
-        }
-      }
-
-      template<KokkosVectorLike Arg>
-      KOKKOS_INLINE_FUNCTION decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
-      {
-        return arg[group_ * L + row_in_group];
-      }
-
-     public:
-      KOKKOS_INLINE_FUNCTION
-      ConstGroupView(Kokkos::View<const T*> view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
-          : view_(std::move(view)),
-            group_(group),
-            y_dim_(y_dim),
-            num_rows_in_group_(num_rows_in_group),
-            team_(team)
-      {
-      }
-
-      KOKKOS_INLINE_FUNCTION GroupedConstColumnView GetConstColumnView(Index column_index) const
-      {
-        return { view_.data() + (group_ * y_dim_ + column_index) * L };
-      }
-
-      KOKKOS_INLINE_FUNCTION KokkosRowVariable<T, L> GetRowVariable() const
-      {
-        return KokkosRowVariable<T, L>();
-      }
-
-      /// @brief Assign value to dst.
-      template<BlockVariableView Dst>
-      KOKKOS_INLINE_FUNCTION void Fill(Dst&& dst, T value) const
-      {
-        auto& storage = dst.Get();
-        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
-        {
-          storage = value;  // KokkosBlockVariable<T,1>: scalar
-        }
-        else if constexpr (L == 1)
-        {
-          storage[0] = value;  // KokkosRowVariable<T,1>: array of 1
-        }
-        else
-        {
-          Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = value; });
-        }
-        team_.team_barrier();
-      }
-
-      /// @brief Copy src into dst.
-      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
-      KOKKOS_INLINE_FUNCTION void Copy(Dst&& dst, Src&& src) const
-      {
-        auto& storage = dst.Get();
-        if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
-        {
-          storage = src.base_[0];  // KokkosBlockVariable<T,1>: scalar
-        }
-        else if constexpr (L == 1)
-        {
-          storage[0] = src.base_[0];  // KokkosRowVariable<T,1>: array of 1
-        }
-        else
-        {
-          Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { storage[i] = src.base_[i]; });
-        }
-        team_.team_barrier();
-      }
-
-      /// @brief Assign value to every element in the vector.
-      template<KokkosVectorLike Vec>
-      KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, T value) const
-      {
-        const Index start = group_ * L;
-        Kokkos::parallel_for(
-            Kokkos::TeamThreadRange(team_, num_rows_in_group_), [&](const Index i) { vec[start + i] = value; });
-        team_.team_barrier();
-      }
-
-      /// @brief Copy src into vec.
-      template<KokkosVectorLike Vec, GroupedDenseMatrixColumnView Src>
-      KOKKOS_INLINE_FUNCTION void Copy(Vec& vec, Src&& src) const
-      {
-        const Index start = group_ * L;
-        Kokkos::parallel_for(
-            Kokkos::TeamThreadRange(team_, num_rows_in_group_), [&](const Index i) { vec[start + i] = src.base_[i]; });
-        team_.team_barrier();
-      }
-
-      /// @brief Apply the provided function to every row in the matrix.
-      template<typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void ForEachRow(Func&& func, Args&&... args) const
-      {
-        Kokkos::parallel_for(
-            Kokkos::TeamThreadRange(team_, L),
-            [&](const Index row_in_group) { func(GetRowElement(row_in_group, args)...); });
-        team_.team_barrier();
-      }
-
-      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
-      template<typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void ForEachRowStrict(Func&& func, Args&&... args) const
-      {
-        Kokkos::parallel_for(
-            Kokkos::TeamThreadRange(team_, num_rows_in_group_),
-            [&](const Index row_in_group) { func(GetRowElement(row_in_group, args)...); });
-        team_.team_barrier();
-      }
-
-      /// @brief Apply a reduction to each row in this group, on-device via team
-      ///        parallelism. The user's function receives its column-view /
-      ///        row-variable arguments plus a trailing reference to a per-thread
-      ///        accumulator, and accumulates into it (e.g. `acc += x*x`,
-      ///        `acc = std::max(acc, x)`). The micm reducer type (Sum/Max/LOr/LAnd)
-      ///        is translated to the matching Kokkos reducer, which handles the
-      ///        inter-thread join and writes the final result back to
-      ///        `reducer.Reference()`.
-      template<typename Reducer, typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void Reduce(const Reducer& reducer, Func&& func, Args&&... args) const
-      {
-        using AccT = decltype(Reducer::Identity());
-        reducer.TeamReduce(
-            team_,
-            L,
-            [&](const Index row_in_group, AccT& acc)
-            { func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc); });
-        team_.team_barrier();
-      }
-
-      /// @brief Same as Reduce but guaranteed to skip padding rows.
-      template<typename Reducer, typename Func, typename... Args>
-      KOKKOS_INLINE_FUNCTION void ReduceStrict(const Reducer& reducer, Func&& func, Args&&... args) const
-      {
-        using AccT = decltype(Reducer::Identity());
-        reducer.TeamReduce(
-            team_,
-            num_rows_in_group_,
-            [&](const Index row_in_group, AccT& acc)
-            { func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc); });
-        team_.team_barrier();
-      }
-    };
-
     /// @brief GroupView provides a team-parallel view of a single group of L rows for
     ///        iteration on-device.
+    template<class U>
     class GroupView
     {
      public:
-      using GroupedColumnView = micm::KokkosGroupedColumnView<T>;
-      using GroupedConstColumnView = micm::KokkosGroupedConstColumnView<T>;
+      using GroupedColumnView = micm::KokkosGroupedColumnView<U>;
+      using GroupedConstColumnView = micm::KokkosGroupedColumnView<const U>;
 
      private:
-      KokkosViewType view_;
+      Kokkos::View<U*> view_;
       Index group_;
       Index y_dim_;
       Index num_rows_in_group_;
@@ -805,7 +625,7 @@ namespace micm
 
      public:
       KOKKOS_INLINE_FUNCTION
-      GroupView(KokkosViewType view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
+      GroupView(Kokkos::View<U*> view, Index group, Index y_dim, Index num_rows_in_group, const TeamMember& team)
           : view_(std::move(view)),
             group_(group),
             y_dim_(y_dim),
@@ -814,9 +634,10 @@ namespace micm
       {
       }
 
-      KOKKOS_INLINE_FUNCTION operator ConstGroupView() const
+      template<class V = U, std::enable_if_t<!std::is_const_v<V>, int> = 0>
+      KOKKOS_INLINE_FUNCTION operator GroupView<const T>() const
       {
-        return ConstGroupView(view_, group_, y_dim_, num_rows_in_group_, team_);
+        return GroupView<const T>(view_, group_, y_dim_, num_rows_in_group_, team_);
       }
 
       KOKKOS_INLINE_FUNCTION GroupedConstColumnView GetConstColumnView(Index column_index) const
@@ -835,7 +656,7 @@ namespace micm
       }
 
       /// @brief Assign value to view.
-      KOKKOS_INLINE_FUNCTION void Fill(GroupedColumnView view, T value) const
+      KOKKOS_INLINE_FUNCTION void Fill(GroupedColumnView view, const T value) const
       {
         T* dst = view.base_;
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team_, L), [&](const Index i) { dst[i] = value; });
@@ -865,7 +686,7 @@ namespace micm
 
       /// @brief Assign value to dst.
       template<BlockVariableView Dst>
-      KOKKOS_INLINE_FUNCTION void Fill(Dst&& dst, T value) const
+      KOKKOS_INLINE_FUNCTION void Fill(Dst&& dst, const T value) const
       {
         auto& storage = dst.Get();
         if constexpr (std::is_same_v<std::remove_reference_t<decltype(storage)>, T>)
@@ -905,7 +726,7 @@ namespace micm
 
       /// @brief Assign value to all vec elements.
       template<KokkosVectorLike Vec>
-      KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, T value) const
+      KOKKOS_INLINE_FUNCTION void Fill(Vec& vec, const T value) const
       {
         const Index start = group_ * L;
         Kokkos::parallel_for(

@@ -56,42 +56,6 @@ namespace micm
     }
   };
 
-  /// @brief Const variant of KokkosColumnView. See KokkosColumnView for details.
-  template<class T, Index L>
-  class KokkosConstColumnView
-  {
-    const T* data_;
-    Index y_dim_;
-    Index column_index_;
-
-   public:
-    using category = DenseMatrixColumnViewTag;
-
-    KOKKOS_INLINE_FUNCTION
-    KokkosConstColumnView(const T* data, Index y_dim, Index column_index)
-        : data_(data),
-          y_dim_(y_dim),
-          column_index_(column_index)
-    {
-    }
-
-    KOKKOS_INLINE_FUNCTION Index  // NOLINT(readability-identifier-naming)
-    ColumnIndex() const
-    {
-      return column_index_;
-    }
-
-    KOKKOS_INLINE_FUNCTION const T* Data() const
-    {
-      return data_;
-    }
-
-    KOKKOS_INLINE_FUNCTION Index YDim() const
-    {
-      return y_dim_;
-    }
-  };
-
   /// @brief Enriched mutable column view for a single row-group of a Kokkos-backed
   ///        dense matrix.
   ///
@@ -105,15 +69,6 @@ namespace micm
   {
     using category = GroupedDenseMatrixColumnViewTag;
     T* base_;
-  };
-
-  /// @brief Const variant of KokkosGroupedColumnView. See KokkosGroupedColumnView
-  ///        for details.
-  template<class T>
-  struct KokkosGroupedConstColumnView
-  {
-    using category = GroupedDenseMatrixColumnViewTag;
-    const T* base_;
   };
 
   /// @brief A row-local temporary variable with its own device-callable storage.
@@ -182,42 +137,6 @@ namespace micm
     }
 
     KOKKOS_INLINE_FUNCTION T* Data() const
-    {
-      return data_;
-    }
-
-    KOKKOS_INLINE_FUNCTION Index FlatBlockSize() const
-    {
-      return flat_block_size_;
-    }
-  };
-
-  /// @brief Const variant of KokkosBlockView. See KokkosBlockView for details.
-  template<class T, Index L>
-  class KokkosConstBlockView
-  {
-    const T* data_;
-    Index flat_block_size_;
-    Index element_position_;
-
-   public:
-    using category = SparseMatrixBlockViewTag;
-
-    KOKKOS_INLINE_FUNCTION
-    KokkosConstBlockView(const T* data, Index flat_block_size, Index element_position)
-        : data_(data),
-          flat_block_size_(flat_block_size),
-          element_position_(element_position)
-    {
-    }
-
-    KOKKOS_INLINE_FUNCTION Index  // NOLINT(readability-identifier-naming)
-    ElementPosition() const
-    {
-      return element_position_;
-    }
-
-    KOKKOS_INLINE_FUNCTION const T* Data() const
     {
       return data_;
     }
