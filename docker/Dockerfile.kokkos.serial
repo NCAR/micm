@@ -7,7 +7,6 @@ RUN dnf -y update \
         gdb \
         git \
         ninja-build \
-        make \
     && dnf clean all
 
 # copy the MICM code

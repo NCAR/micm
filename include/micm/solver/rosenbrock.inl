@@ -423,12 +423,6 @@ namespace micm
     auto& max_residual = derived_class_temporary_variables->max_residual_;
     auto& nan_detected = derived_class_temporary_variables->nan_detected_;
     auto& inf_detected = derived_class_temporary_variables->inf_detected_;
-    max_residual = 0;
-    nan_detected = false;
-    inf_detected = false;
-    max_residual.CopyToDevice();
-    nan_detected.CopyToDevice();
-    inf_detected.CopyToDevice();
 
     // Pre-build reusable Function objects outside the iteration loop
     auto check_convergence = DenseMatrixPolicy::Function(
