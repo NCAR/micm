@@ -900,7 +900,7 @@ namespace micm
 
         if (num_complete_groups > 0)
         {
-          TeamPolicyType policy(static_cast<int>(num_complete_groups), L);
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
           Kokkos::parallel_for(
               "KokkosDenseMatrix::Function",
               policy,
@@ -908,7 +908,7 @@ namespace micm
         }
         if (remaining > 0)
         {
-          TeamPolicyType tail_policy(1, L);
+          TeamPolicyType tail_policy(1, Kokkos::AUTO);
           Kokkos::parallel_for(
               "KokkosDenseMatrix::Function(tail)",
               tail_policy,
@@ -953,7 +953,7 @@ namespace micm
 
       if (num_complete_groups > 0)
       {
-        TeamPolicyType policy(static_cast<int>(num_complete_groups), L);
+        TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow",
             policy,
@@ -961,7 +961,7 @@ namespace micm
       }
       if (remaining > 0)
       {
-        TeamPolicyType tail_policy(1, L);
+        TeamPolicyType tail_policy(1, Kokkos::AUTO);
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow(tail)",
             tail_policy,
