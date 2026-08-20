@@ -13,9 +13,11 @@
   #include <Kokkos_Macros.hpp>
   #define MICM_LAMBDA          KOKKOS_LAMBDA
   #define MICM_DEVICE_FUNCTION KOKKOS_INLINE_FUNCTION
+  #define MICM_INLINE_DEVICE_FUNCTION KOKKOS_INLINE_FUNCTION
 #else
   #define MICM_LAMBDA [=]
   #define MICM_DEVICE_FUNCTION
+  #define MICM_INLINE_DEVICE_FUNCTION inline
 #endif
 
 namespace micm

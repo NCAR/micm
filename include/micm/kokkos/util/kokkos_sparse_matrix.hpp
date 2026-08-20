@@ -21,7 +21,7 @@ namespace micm
   /// Inherits from SparseMatrix (the MICM host-side data layout) and maintains
   /// a Kokkos::View as a device-side mirror. The caller must explicitly call
   /// CopyToDevice() / CopyToHost() to synchronize, matching the CUDA matrix pattern.
-  template<class T = double, class OrderingPolicy = SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>
+  template<class T = double, class OrderingPolicy = SparseMatrixVectorOrdering<detail::MICM_KOKKOS_DEFAULT_TEAM_SIZE>>
   class KokkosSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
    public:
@@ -460,7 +460,7 @@ namespace micm
 
       if (num_complete_groups > 0)
       {
-        TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
+        TeamPolicyType policy(static_cast<int>(num_complete_groups), L);
         Kokkos::parallel_for(
             "KokkosSparseMatrix::ForEachBlock",
             policy,
@@ -468,7 +468,7 @@ namespace micm
       }
       if (remaining > 0)
       {
-        TeamPolicyType tail_policy(1, Kokkos::AUTO);
+        TeamPolicyType tail_policy(1, L);
         Kokkos::parallel_for(
             "KokkosSparseMatrix::ForEachBlock(tail)",
             tail_policy,
@@ -809,7 +809,7 @@ namespace micm
 
         if (num_complete_groups > 0)
         {
-          TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), L);
           Kokkos::parallel_for(
               "KokkosSparseMatrix::Function",
               policy,
@@ -817,7 +817,7 @@ namespace micm
         }
         if (remaining > 0)
         {
-          TeamPolicyType tail_policy(1, Kokkos::AUTO);
+          TeamPolicyType tail_policy(1, L);
           Kokkos::parallel_for(
               "KokkosSparseMatrix::Function(tail)",
               tail_policy,

@@ -600,7 +600,7 @@ namespace micm
     const Scalar<Index> n_rxn = number_of_reactants_.size();
     n_rxn.CopyToDevice();
     const auto& views = views_;
-    const DenseMatrix rate_constants = state.rate_constants_;
+    const DenseMatrix& rate_constants = state.rate_constants_;
     SparseMatrixPolicy::Function(
         MICM_LAMBDA(
             const typename SparseMatrix::ViewType& jacobian_view,

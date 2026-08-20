@@ -106,6 +106,33 @@ namespace micm
       std::copy(init.begin(), init.end(), data_.begin());
     }
 
+    KokkosPaddedVector(const KokkosPaddedVector& other)
+        : data_(other.data_),
+          host_view_(this->data_.data(), this->data_.size()),
+          device_view_("padded_vector", this->data_.size()),
+          size_(other.size_)
+    {
+      Kokkos::deep_copy(device_view_, other.device_view_);
+    }
+
+    KokkosPaddedVector& operator=(const KokkosPaddedVector& other)
+    {
+      if (this == &other)
+      {
+        return *this;
+      }
+      data_ = other.data_;
+      host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+          this->data_.data(), this->data_.size());
+      Kokkos::realloc(device_view_, other.device_view_.extent(0));
+      Kokkos::deep_copy(device_view_, other.device_view_);
+      return *this;
+    }
+
+    KokkosPaddedVector(KokkosPaddedVector&& other) = default;
+
+    KokkosPaddedVector& operator=(KokkosPaddedVector&& other) = default;
+
     Index size() const  // NOLINT(readability-identifier-naming)
     {
       return size_;

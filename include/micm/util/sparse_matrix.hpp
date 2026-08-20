@@ -288,6 +288,8 @@ namespace micm
       return *this;
     }
 
+    virtual ~SparseMatrix() = default;
+
     std::vector<Index> DiagonalIndices(const Index block_id) const
     {
       return OrderingPolicy::DiagonalIndices(number_of_blocks_, block_id);

@@ -72,6 +72,8 @@ namespace micm
       return DeviceTuple<std::decay_t<Ts>...>(std::forward<Ts>(ts)...);
     }
 
+    constexpr Index MICM_KOKKOS_DEFAULT_TEAM_SIZE = 128;
+
   }  // namespace detail
 
   /// @brief Provides a Kokkos implementation to the VectorMatrix functionality.
@@ -79,7 +81,7 @@ namespace micm
   /// Inherits from VectorMatrix (the MICM host-side data layout) and maintains
   /// a Kokkos::View as a device-side mirror. The caller must explicitly call
   /// CopyToDevice() / CopyToHost() to synchronize, matching the CUDA matrix pattern.
-  template<class T, Index L = MICM_DEFAULT_VECTOR_SIZE>
+  template<class T, Index L = detail::MICM_KOKKOS_DEFAULT_TEAM_SIZE>
   class KokkosDenseMatrix : public VectorMatrix<T, L>
   {
    public:
@@ -898,7 +900,7 @@ namespace micm
 
         if (num_complete_groups > 0)
         {
-          TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), L);
           Kokkos::parallel_for(
               "KokkosDenseMatrix::Function",
               policy,
@@ -906,7 +908,7 @@ namespace micm
         }
         if (remaining > 0)
         {
-          TeamPolicyType tail_policy(1, Kokkos::AUTO);
+          TeamPolicyType tail_policy(1, L);
           Kokkos::parallel_for(
               "KokkosDenseMatrix::Function(tail)",
               tail_policy,
@@ -951,7 +953,7 @@ namespace micm
 
       if (num_complete_groups > 0)
       {
-        TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
+        TeamPolicyType policy(static_cast<int>(num_complete_groups), L);
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow",
             policy,
@@ -959,7 +961,7 @@ namespace micm
       }
       if (remaining > 0)
       {
-        TeamPolicyType tail_policy(1, Kokkos::AUTO);
+        TeamPolicyType tail_policy(1, L);
         Kokkos::parallel_for(
             "KokkosDenseMatrix::ForEachRow(tail)",
             tail_policy,

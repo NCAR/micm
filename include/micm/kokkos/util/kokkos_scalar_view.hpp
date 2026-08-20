@@ -45,10 +45,12 @@ namespace micm
       KOKKOS_IF_ON_HOST((return data_(0);))
     }
 
-    T& operator=(const T& other)
+    // Default copy constructor to allow device lambda captures that just copy the view pointers
+
+    KOKKOS_INLINE_FUNCTION T& operator=(const T& other)
     {
-      data_(0) = other;
-      return data_(0);
+      KOKKOS_IF_ON_HOST((data_(0) = other; return data_(0);))
+      KOKKOS_IF_ON_DEVICE((device_view_(0) = other; return device_view_(0);))
     }
 
     KokkosScalarView<T>& operator=(const KokkosScalarView<T>& other)

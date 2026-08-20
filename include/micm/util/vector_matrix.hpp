@@ -299,6 +299,8 @@ namespace micm
     {
     }
 
+    virtual ~VectorMatrix() = default;
+
     Index NumRows() const
     {
       return x_dim_;

@@ -35,7 +35,7 @@
 #if (defined(__cpp_lib_constexpr_cmath) || defined(__CUDACC__)) && !defined(MICM_USE_KOKKOS)
   #define MICM_CONSTEXPR constexpr
 #else
-  #define MICM_CONSTEXPR MICM_DEVICE_FUNCTION
+  #define MICM_CONSTEXPR MICM_INLINE_DEVICE_FUNCTION
 #endif
 
 #ifndef M_PI
