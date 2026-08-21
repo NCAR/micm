@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787283061305,
+  "lastUpdate": 1787342424459,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -377,6 +377,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 44447.7,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mattldawson@gmail.com",
+            "name": "Matt Dawson",
+            "username": "mattldawson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "189534168c7bffd5d6312697df31d21f8653f66a",
+          "message": "Remove some unneeded scalar views (#1076)\n\nremove some views",
+          "timestamp": "2026-08-21T13:13:22-06:00",
+          "tree_id": "33deb847d145828cd260dfa0f553ef0ce9e9fe7b",
+          "url": "https://github.com/NCAR/micm/commit/189534168c7bffd5d6312697df31d21f8653f66a"
+        },
+        "date": 1787342424165,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 104205.12,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 103965.23,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 94312.3,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 79233.34,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 76240.54,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 44878.3,
             "unit": "ms"
           }
         ]
