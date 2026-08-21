@@ -285,8 +285,7 @@ namespace micm
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U) const
   {
-    Scalar<Index> n = A.NumRows();
-    n.CopyToDevice();
+    const Index n = A.NumRows();
     const auto& views = views_;
     SparseMatrixPolicy::Function(
         MICM_LAMBDA(

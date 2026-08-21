@@ -40,18 +40,10 @@ namespace micm
     /// @brief Define parameters for Van't Hoff equation
     struct VantHoffParam
     {
-      Scalar<Real> K_HLC_ref_;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
-      Scalar<Real> delta_H_;                      // Enthalpy of dissolution (J/mol)
-      Scalar<Real> R_ = constants::GAS_CONSTANT;  // (J/mol·K)
-      Scalar<Real> T_ref_ = 298.15;
-
-      void CopyToDevice()
-      {
-        K_HLC_ref_.CopyToDevice();
-        delta_H_.CopyToDevice();
-        R_.CopyToDevice();
-        T_ref_.CopyToDevice();
-      }
+      Real K_HLC_ref_;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
+      Real delta_H_;                      // Enthalpy of dissolution (J/mol)
+      Real R_ = constants::GAS_CONSTANT;  // (J/mol·K)
+      Real T_ref_ = 298.15;
     };
 
     struct Views
@@ -280,8 +272,6 @@ namespace micm
         species_dependencies_.push_back(p.species_.name_);
         product_dependency_indices_.push_back(idx++);
       }
-
-      vant_hoff_param_.CopyToDevice();
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
@@ -302,21 +292,16 @@ namespace micm
         const typename DenseMatrixPolicy::template VectorType<Conditions>& conditions,
         DenseMatrixPolicy& state_param) const
     {
-      Scalar<Index> K_eq_idx = info.state_param_indices_[0];
-      K_eq_idx.CopyToDevice();
-
-      const Real K_ref = vant_hoff_param_.K_HLC_ref_;
-      const Real delta_H = vant_hoff_param_.delta_H_;
-      const Real R = vant_hoff_param_.R_;
-      const Real T_ref = vant_hoff_param_.T_ref_;
-
+      Index K_eq_idx = info.state_param_indices_[0];
+      const VantHoffParam& param = vant_hoff_param_;
+      
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
               const typename Vector<Conditions>::ConstViewType& conditions_view,
               const typename DenseMatrixPolicy::ViewType& state_param_view) {
             state_param_view.ForEachRow(
                 [=](const Conditions& cond, Real& K_eq)
-                { K_eq = K_ref * std::exp((delta_H / R) * (1.0 / cond.temperature_ - 1.0 / T_ref)); },
+                { K_eq = param.K_HLC_ref_ * std::exp((param.delta_H_ / param.R_) * (1.0 / cond.temperature_ - 1.0 / param.T_ref_)); },
                 conditions_view,
                 state_param_view.GetColumnView(K_eq_idx));
           },
@@ -383,11 +368,9 @@ namespace micm
         const DenseMatrixPolicy& state_param,
         DenseMatrixPolicy& forcing) const
     {
-      Scalar<Index> row_idx = info.row_index_;
-      Scalar<Index> K_eq_idx = info.state_param_indices_[0];
-      row_idx.CopyToDevice();
-      K_eq_idx.CopyToDevice();
-
+      Index row_idx = info.row_index_;
+      Index K_eq_idx = info.state_param_indices_[0];
+      
       const auto& views = views_;
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
@@ -450,8 +433,7 @@ namespace micm
         const DenseMatrixPolicy& state_param,
         SparseMatrixPolicy& jacobian) const
     {
-      Scalar<Index> K_eq_idx = info.state_param_indices_[0];
-      K_eq_idx.CopyToDevice();
+      Index K_eq_idx = info.state_param_indices_[0];
 
       const auto& views = views_;
 
