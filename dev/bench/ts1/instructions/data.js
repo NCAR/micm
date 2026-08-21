@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787343003619,
+  "lastUpdate": 1787348827935,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -455,6 +455,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/336ae6400e5b1f1810f987f3b0595a86263fc073"
         },
         "date": 1787343003008,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41708627336,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41485941289,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29330761895,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21602766209,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17996594258,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14842982364,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e2e21ed02e38f42a5368752a28f9ed32affc9b83",
+          "message": "Fix build, CI and packaging for Kokkos deps (#1075)\n\n* fix build, ci and packaging\n\n* fix the broken CI tests",
+          "timestamp": "2026-08-21T14:55:43-06:00",
+          "tree_id": "87ed9a7dc6ed9621c2458bc09e1421cebf3a6bd9",
+          "url": "https://github.com/NCAR/micm/commit/e2e21ed02e38f42a5368752a28f9ed32affc9b83"
+        },
+        "date": 1787348822015,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
