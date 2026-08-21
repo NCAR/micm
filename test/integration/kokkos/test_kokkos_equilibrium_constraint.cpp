@@ -22,8 +22,8 @@
 
 using namespace micm;
 
-using DenseMatrix = KokkosDenseMatrix<micm::Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<micm::Real, MICM_KOKKOS_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<MICM_KOKKOS_DEFAULT_VECTOR_SIZE>>;
 
 /// @brief Helper function to compute temperature-dependent equilibrium constant using Van't Hoff equation
 micm::Real ComputeEquilibriumConstant(micm::Real K_HLC_ref, micm::Real delta_H, micm::Real T)

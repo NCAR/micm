@@ -39,6 +39,7 @@ cmake_dependent_option(MICM_ENABLE_BENCHMARK "Build the performance benchmark" O
 option(MICM_USE_DOUBLE "Use double precision for the micm::Real floating-point type" ON)
 option(MICM_BUILD_SHARED_LIBS "Build micm_cuda as shared libraries" OFF)
 set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+set(MICM_KOKKOS_DEFAULT_VECTOR_SIZE "" CACHE STRING "Vector width for Kokkos matrix types; empty selects a default from the Kokkos backend")
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 
 # on Windows with MSVC, add the /bigobj flag to allow for large object files

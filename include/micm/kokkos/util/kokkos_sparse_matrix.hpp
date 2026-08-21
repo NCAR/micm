@@ -57,6 +57,12 @@ namespace micm
     KokkosViewType view_;
     /// Host view for copying to and from device
     Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> host_view_;
+    /// Cached device copy of the diagonal elements' block-relative offsets, for
+    /// AddToDiagonal.  The sparsity pattern is fixed except on assignment, so this is
+    /// built once rather than rebuilt and re-uploaded on every call.  A default-
+    /// constructed View allocates nothing and is safe before Kokkos::initialize().
+    Kokkos::View<Index*> diagonal_offsets_;
+    bool diagonal_offsets_valid_ = false;
 
    public:
     // -----------------------------------------------------------------------
@@ -286,6 +292,27 @@ namespace micm
       }
     };
 
+    /// @brief Team size for a launch whose intra-team work is TeamThreadRange(team, L).
+    ///
+    /// Kokkos::AUTO sizes a team from the functor's resource use, which is unrelated to L.
+    /// Since every intra-team loop here is TeamThreadRange(team, L), a team wider than L
+    /// has threads with no iterations to run -- on a GPU that is most of the block sitting
+    /// idle through the team's barriers.  Request L instead, clamped to what the backend
+    /// permits for this functor.  Cached per functor type: the query is a host-side
+    /// occupancy calculation whose answer does not change between launches.
+    template<typename Functor>
+    static int TeamSizeForL(const Functor& team_functor)
+    {
+      static const int team_size = [&team_functor]()
+      {
+        const int max_team_size = TeamPolicyType(1, Kokkos::AUTO).team_size_max(team_functor, Kokkos::ParallelForTag());
+        const int wanted = static_cast<int>(L);
+        const int clamped = wanted < max_team_size ? wanted : max_team_size;
+        return clamped > 0 ? clamped : 1;  // never hand TeamPolicy a team size of 0
+      }();
+      return team_size;
+    }
+
     KokkosSparseMatrix()
         : SparseMatrix<T, OrderingPolicy>()
     {
@@ -301,6 +328,9 @@ namespace micm
     KokkosSparseMatrix& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
+      // The sparsity pattern changes here, so the cached diagonal offsets no longer apply.
+      diagonal_offsets_ = Kokkos::View<Index*>();
+      diagonal_offsets_valid_ = false;
       view_ = KokkosViewType("sparse_matrix", this->data_.size());
       host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
           this->data_.data(), this->data_.size());
@@ -322,6 +352,10 @@ namespace micm
         return *this;
       }
       SparseMatrix<T, OrderingPolicy>::operator=(other);
+      // *this takes on other's sparsity pattern, so drop any cached diagonal offsets
+      // built for the old one.
+      diagonal_offsets_ = Kokkos::View<Index*>();
+      diagonal_offsets_valid_ = false;
       Kokkos::realloc(view_, other.view_.extent(0));
       Kokkos::deep_copy(view_, other.view_);
       host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
@@ -366,9 +400,18 @@ namespace micm
     }
 
     /// @brief Set every element on the device to a given value
+    ///
+    /// Uses parallel_for rather than the scalar deep_copy overload.  deep_copy(view, value)
+    /// fences the default execution space; Fill runs several times per attempted solver
+    /// step, so those fences serialize the step for no ordering benefit -- kernels on the
+    /// same execution space are already ordered with respect to each other.
     void Fill(T val)
     {
-      Kokkos::deep_copy(view_, val);
+      KokkosViewType fill_view = view_;
+      Kokkos::parallel_for(
+          "KokkosSparseMatrix::Fill", Kokkos::RangePolicy<>(0, fill_view.extent(0)), KOKKOS_LAMBDA(const Index i) {
+            fill_view(i) = val;
+          });
     }
 
     KokkosSparseMatrix& operator=(T val)
@@ -382,33 +425,45 @@ namespace micm
     {
       // Every block shares the same sparsity pattern, so the diagonal's block-relative
       // offsets only need to be computed once (from block 0) and then reused for every
-      // block-group.
-      const std::vector<Index> diagonal_offsets = this->DiagonalIndices(0);
-      if (diagonal_offsets.empty())
+      // block-group.  They are cached across calls: AddToDiagonal runs once per Backward
+      // Euler iteration, and rebuilding the host table plus allocating and uploading a
+      // device View on every call put a device allocation and a fencing host-to-device
+      // copy inside the inner time-stepping loop.
+      if (!diagonal_offsets_valid_)
+      {
+        const std::vector<Index> offsets = this->DiagonalIndices(0);
+        diagonal_offsets_ = Kokkos::View<Index*>("diagonal_offsets", offsets.size());
+        if (!offsets.empty())
+        {
+          auto h_offsets = Kokkos::View<const Index*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
+              offsets.data(), offsets.size());
+          Kokkos::deep_copy(diagonal_offsets_, h_offsets);
+        }
+        diagonal_offsets_valid_ = true;
+      }
+      const auto num_diagonal_elements = static_cast<Index>(diagonal_offsets_.extent(0));
+      if (num_diagonal_elements == 0)
       {
         return;
       }
 
-      Kokkos::View<Index*> d_offsets("diagonal_offsets", diagonal_offsets.size());
-      auto h_offsets = Kokkos::View<const Index*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
-          diagonal_offsets.data(), diagonal_offsets.size());
-      Kokkos::deep_copy(d_offsets, h_offsets);
-
       KokkosViewType data_view = view_;
+      Kokkos::View<Index*> offsets_view = diagonal_offsets_;
       const Index group_size = L * this->FlatBlockSize();
       const Index num_groups = (this->NumberOfBlocks() + L - 1) / L;
-      const auto num_diagonal_elements = static_cast<Index>(diagonal_offsets.size());
 
+      // block_in_group is the fastest-varying index, so consecutive threads touch
+      // consecutive addresses.  Walking it as a serial inner loop instead launched L times
+      // too few threads and gave each of them a strided, uncoalesced walk.
       Kokkos::parallel_for(
           "KokkosSparseMatrix::AddToDiagonal",
-          Kokkos::RangePolicy<>(0, num_groups * num_diagonal_elements),
+          Kokkos::RangePolicy<>(0, num_groups * num_diagonal_elements * L),
           KOKKOS_LAMBDA(const Index idx) {
-            const Index group = idx / num_diagonal_elements;
-            const Index base = group * group_size + d_offsets(idx % num_diagonal_elements);
-            for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
-            {
-              data_view(base + block_in_group) += value;
-            }
+            const Index block_in_group = idx % L;
+            const Index rest = idx / L;
+            const Index offset_index = rest % num_diagonal_elements;
+            const Index group = rest / num_diagonal_elements;
+            data_view(group * group_size + offsets_view(offset_index) + block_in_group) += value;
           });
     }
 
@@ -461,20 +516,17 @@ namespace micm
 
       if (num_complete_groups > 0)
       {
-        TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
-        Kokkos::parallel_for(
-            "KokkosSparseMatrix::ForEachBlock",
-            policy,
-            ForEachBlockTeamFunctor<std::decay_t<Func>, AT>{ func, view, flat_block_size, args_tuple });
+        const ForEachBlockTeamFunctor<std::decay_t<Func>, AT> team_functor{ func, view, flat_block_size, args_tuple };
+        TeamPolicyType policy(static_cast<int>(num_complete_groups), TeamSizeForL(team_functor));
+        Kokkos::parallel_for("KokkosSparseMatrix::ForEachBlock", policy, team_functor);
       }
       if (remaining > 0)
       {
-        TeamPolicyType tail_policy(1, Kokkos::AUTO);
-        Kokkos::parallel_for(
-            "KokkosSparseMatrix::ForEachBlock(tail)",
-            tail_policy,
-            ForEachBlockTailFunctor<std::decay_t<Func>, AT>{
-                func, view, flat_block_size, args_tuple, num_complete_groups, remaining });
+        const ForEachBlockTailFunctor<std::decay_t<Func>, AT> team_functor{
+          func, view, flat_block_size, args_tuple, num_complete_groups, remaining
+        };
+        TeamPolicyType tail_policy(1, TeamSizeForL(team_functor));
+        Kokkos::parallel_for("KokkosSparseMatrix::ForEachBlock(tail)", tail_policy, team_functor);
       }
     }
 
@@ -805,19 +857,17 @@ namespace micm
 
         if (num_complete_groups > 0)
         {
-          TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
-          Kokkos::parallel_for(
-              "KokkosSparseMatrix::Function",
-              policy,
-              FunctionMainFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles });
+          const FunctionMainFunctor<std::decay_t<decltype(func)>, DH> team_functor{ func, dev_handles };
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), TeamSizeForL(team_functor));
+          Kokkos::parallel_for("KokkosSparseMatrix::Function", policy, team_functor);
         }
         if (remaining > 0)
         {
-          TeamPolicyType tail_policy(1, Kokkos::AUTO);
-          Kokkos::parallel_for(
-              "KokkosSparseMatrix::Function(tail)",
-              tail_policy,
-              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles, num_complete_groups, remaining });
+          const FunctionTailFunctor<std::decay_t<decltype(func)>, DH> team_functor{
+            func, dev_handles, num_complete_groups, remaining
+          };
+          TeamPolicyType tail_policy(1, TeamSizeForL(team_functor));
+          Kokkos::parallel_for("KokkosSparseMatrix::Function(tail)", tail_policy, team_functor);
         }
       };
       return result;

@@ -14,6 +14,20 @@
 #include <Kokkos_Core.hpp>
 #include <vector>
 
+// Default vector (group) width for the Kokkos matrix types.  Deliberately separate from
+// MICM_DEFAULT_VECTOR_SIZE: that one is a CPU SIMD register width, whereas L here is also
+// the width of every intra-team loop (TeamThreadRange(team, L)), so on a GPU it decides how
+// much of each team has work to do.  A SIMD-sized L leaves most of a warp idle.  Host
+// Kokkos backends keep the CPU value.  Override with -DMICM_KOKKOS_DEFAULT_VECTOR_SIZE=N
+// (or the CMake cache variable of the same name) to tune per mechanism and grid size.
+#ifndef MICM_KOKKOS_DEFAULT_VECTOR_SIZE
+  #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
+    #define MICM_KOKKOS_DEFAULT_VECTOR_SIZE 32
+  #else
+    #define MICM_KOKKOS_DEFAULT_VECTOR_SIZE MICM_DEFAULT_VECTOR_SIZE
+  #endif
+#endif
+
 namespace micm
 {
   namespace detail
@@ -365,6 +379,27 @@ namespace micm
       }
     };
 
+    /// @brief Team size for a launch whose intra-team work is TeamThreadRange(team, L).
+    ///
+    /// Kokkos::AUTO sizes a team from the functor's resource use, which is unrelated to L.
+    /// Since every intra-team loop here is TeamThreadRange(team, L), a team wider than L
+    /// has threads with no iterations to run -- on a GPU that is most of the block sitting
+    /// idle through the team's barriers.  Request L instead, clamped to what the backend
+    /// permits for this functor.  Cached per functor type: the query is a host-side
+    /// occupancy calculation whose answer does not change between launches.
+    template<typename Functor>
+    static int TeamSizeForL(const Functor& team_functor)
+    {
+      static const int team_size = [&team_functor]()
+      {
+        const int max_team_size = TeamPolicyType(1, Kokkos::AUTO).team_size_max(team_functor, Kokkos::ParallelForTag());
+        const int wanted = static_cast<int>(L);
+        const int clamped = wanted < max_team_size ? wanted : max_team_size;
+        return clamped > 0 ? clamped : 1;  // never hand TeamPolicy a team size of 0
+      }();
+      return team_size;
+    }
+
     KokkosDenseMatrix()
         : VectorMatrix<T, L>()
     {
@@ -452,9 +487,18 @@ namespace micm
     }
 
     /// @brief Set every element on the device to a given value
+    ///
+    /// Uses parallel_for rather than the scalar deep_copy overload.  deep_copy(view, value)
+    /// fences the default execution space; Fill runs several times per attempted solver
+    /// step, so those fences serialize the step for no ordering benefit -- kernels on the
+    /// same execution space are already ordered with respect to each other.
     void Fill(T val)
     {
-      Kokkos::deep_copy(view_, val);
+      KokkosViewType fill_view = view_;
+      Kokkos::parallel_for(
+          "KokkosDenseMatrix::Fill", Kokkos::RangePolicy<>(0, fill_view.extent(0)), KOKKOS_LAMBDA(const Index i) {
+            fill_view(i) = val;
+          });
     }
 
     /// @brief For each element in the KokkosDenseMatrix x and y, perform y = alpha * x + y,
@@ -900,19 +944,17 @@ namespace micm
 
         if (num_complete_groups > 0)
         {
-          TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
-          Kokkos::parallel_for(
-              "KokkosDenseMatrix::Function",
-              policy,
-              FunctionMainFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles });
+          const FunctionMainFunctor<std::decay_t<decltype(func)>, DH> team_functor{ func, dev_handles };
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), TeamSizeForL(team_functor));
+          Kokkos::parallel_for("KokkosDenseMatrix::Function", policy, team_functor);
         }
         if (remaining > 0)
         {
-          TeamPolicyType tail_policy(1, Kokkos::AUTO);
-          Kokkos::parallel_for(
-              "KokkosDenseMatrix::Function(tail)",
-              tail_policy,
-              FunctionTailFunctor<std::decay_t<decltype(func)>, DH>{ func, dev_handles, num_complete_groups, remaining });
+          const FunctionTailFunctor<std::decay_t<decltype(func)>, DH> team_functor{
+            func, dev_handles, num_complete_groups, remaining
+          };
+          TeamPolicyType tail_policy(1, TeamSizeForL(team_functor));
+          Kokkos::parallel_for("KokkosDenseMatrix::Function(tail)", tail_policy, team_functor);
         }
       };
       return result;
@@ -953,19 +995,17 @@ namespace micm
 
       if (num_complete_groups > 0)
       {
-        TeamPolicyType policy(static_cast<int>(num_complete_groups), Kokkos::AUTO);
-        Kokkos::parallel_for(
-            "KokkosDenseMatrix::ForEachRow",
-            policy,
-            ForEachRowTeamFunctor<std::decay_t<Func>, AT>{ func, view, y_dim, args_tuple });
+        const ForEachRowTeamFunctor<std::decay_t<Func>, AT> team_functor{ func, view, y_dim, args_tuple };
+        TeamPolicyType policy(static_cast<int>(num_complete_groups), TeamSizeForL(team_functor));
+        Kokkos::parallel_for("KokkosDenseMatrix::ForEachRow", policy, team_functor);
       }
       if (remaining > 0)
       {
-        TeamPolicyType tail_policy(1, Kokkos::AUTO);
-        Kokkos::parallel_for(
-            "KokkosDenseMatrix::ForEachRow(tail)",
-            tail_policy,
-            ForEachRowTailFunctor<std::decay_t<Func>, AT>{ func, view, y_dim, args_tuple, num_complete_groups, remaining });
+        const ForEachRowTailFunctor<std::decay_t<Func>, AT> team_functor{
+          func, view, y_dim, args_tuple, num_complete_groups, remaining
+        };
+        TeamPolicyType tail_policy(1, TeamSizeForL(team_functor));
+        Kokkos::parallel_for("KokkosDenseMatrix::ForEachRow(tail)", tail_policy, team_functor);
       }
     }
 

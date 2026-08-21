@@ -18,8 +18,8 @@
 #include <type_traits>
 
 using namespace micm;
-using DenseMatrix = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<Real, MICM_KOKKOS_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_KOKKOS_DEFAULT_VECTOR_SIZE>>;
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {

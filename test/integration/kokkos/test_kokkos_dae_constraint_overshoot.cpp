@@ -36,8 +36,8 @@
 constexpr micm::Real kAbsTol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-10;
 
 using namespace micm;
-using DenseMatrix = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<Real, MICM_KOKKOS_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_KOKKOS_DEFAULT_VECTOR_SIZE>>;
 
 /// @brief Verify that conservation-constrained algebraic variables stay non-negative
 ///        when fast kinetics drain the pool.

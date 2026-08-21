@@ -11,8 +11,8 @@
 
 namespace micm
 {
-  using KokkosDenseReal = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
-  using KokkosSparseReal = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+  using KokkosDenseReal = KokkosDenseMatrix<Real, MICM_KOKKOS_DEFAULT_VECTOR_SIZE>;
+  using KokkosSparseReal = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_KOKKOS_DEFAULT_VECTOR_SIZE>>;
 
   using KokkosState = State<KokkosDenseReal, KokkosSparseReal, LuDecompositionMozartInPlace<KokkosSparseReal>>;
 
