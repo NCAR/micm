@@ -294,14 +294,16 @@ namespace micm
     {
       Index K_eq_idx = info.state_param_indices_[0];
       const VantHoffParam& param = vant_hoff_param_;
-      
+
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
               const typename Vector<Conditions>::ConstViewType& conditions_view,
               const typename DenseMatrixPolicy::ViewType& state_param_view) {
             state_param_view.ForEachRow(
-                [=](const Conditions& cond, Real& K_eq)
-                { K_eq = param.K_HLC_ref_ * std::exp((param.delta_H_ / param.R_) * (1.0 / cond.temperature_ - 1.0 / param.T_ref_)); },
+                [=](const Conditions& cond, Real& K_eq) {
+                  K_eq = param.K_HLC_ref_ *
+                         std::exp((param.delta_H_ / param.R_) * (1.0 / cond.temperature_ - 1.0 / param.T_ref_));
+                },
                 conditions_view,
                 state_param_view.GetColumnView(K_eq_idx));
           },
@@ -370,7 +372,7 @@ namespace micm
     {
       Index row_idx = info.row_index_;
       Index K_eq_idx = info.state_param_indices_[0];
-      
+
       const auto& views = views_;
       DenseMatrixPolicy::Function(
           MICM_LAMBDA(
