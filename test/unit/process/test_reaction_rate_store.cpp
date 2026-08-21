@@ -15,6 +15,7 @@
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -27,6 +28,7 @@
 
 using namespace micm;
 
+using DenseMatrixPolicy = Matrix<Real>;
 namespace
 {
   // Helper to create a minimal gas phase with species
@@ -149,18 +151,18 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
                       .Build());
 
   SortByTypeOrder(procs);
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   // Arrhenius: 2, Troe: 1, Ternary: 0, Branched: 0, Tunneling: 1, Taylor: 0, Reversible: 0, UserDefined: 1, Surface: 1
   EXPECT_EQ(store.arrhenius_.size(), 2u);
-  EXPECT_EQ(store.troe_.size(), 1u);
-  EXPECT_EQ(store.ternary_.size(), 0u);
-  EXPECT_EQ(store.branched_.size(), 0u);
-  EXPECT_EQ(store.tunneling_.size(), 1u);
-  EXPECT_EQ(store.taylor_.size(), 0u);
-  EXPECT_EQ(store.reversible_.size(), 0u);
-  EXPECT_EQ(store.user_defined_.size(), 1u);
-  EXPECT_EQ(store.surface_.size(), 1u);
+  EXPECT_EQ(store.troe_.size(), micm::Bool(true));
+  EXPECT_EQ(store.ternary_.size(), micm::Bool(false));
+  EXPECT_EQ(store.branched_.size(), micm::Bool(false));
+  EXPECT_EQ(store.tunneling_.size(), micm::Bool(true));
+  EXPECT_EQ(store.taylor_.size(), micm::Bool(false));
+  EXPECT_EQ(store.reversible_.size(), micm::Bool(false));
+  EXPECT_EQ(store.user_defined_.size(), micm::Bool(true));
+  EXPECT_EQ(store.surface_.size(), micm::Bool(true));
 
   // Verify cumulative offsets
   EXPECT_EQ(store.TroeOffset(), 2u);
@@ -194,8 +196,8 @@ TEST(ReactionRateConstantStore, ArrheniusParametersPreserved)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
-  ASSERT_EQ(store.arrhenius_.size(), 1u);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
+  ASSERT_EQ(store.arrhenius_.size(), micm::Bool(true));
   EXPECT_REAL_EQ(store.arrhenius_[0].A_, 2.15e-4);
   EXPECT_REAL_EQ(store.arrhenius_[0].B_, 1.2);
   EXPECT_REAL_EQ(store.arrhenius_[0].C_, 110.0);
@@ -221,8 +223,8 @@ TEST(ReactionRateConstantStore, BranchedDerivedFieldsComputed)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
-  ASSERT_EQ(store.branched_.size(), 1u);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
+  ASSERT_EQ(store.branched_.size(), micm::Bool(true));
 
   // k0_ = 2e-22 * N_A * 1e-6 * exp(n)
   micm::Real expected_k0 = 2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(3.0);
@@ -261,13 +263,13 @@ TEST(ReactionRateConstantStore, UserDefinedCustomParamIndex)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
   ASSERT_EQ(store.user_defined_.size(), 2u);
 
-  EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
+  EXPECT_EQ(store.user_defined_[0].custom_param_index_, micm::Bool(false));
   EXPECT_REAL_EQ(store.user_defined_[0].scaling_factor_, 2.0);
 
-  EXPECT_EQ(store.user_defined_[1].custom_param_index_, 1u);
+  EXPECT_EQ(store.user_defined_[1].custom_param_index_, micm::Bool(true));
   EXPECT_REAL_EQ(store.user_defined_[1].scaling_factor_, 0.5);
 }
 
@@ -294,8 +296,8 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
-  ASSERT_EQ(store.surface_.size(), 1u);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
+  ASSERT_EQ(store.surface_.size(), micm::Bool(true));
 
   EXPECT_REAL_EQ(store.surface_[0].diffusion_coefficient_, diff_coeff);
   EXPECT_NEAR(
@@ -303,7 +305,7 @@ TEST(ReactionRateConstantStore, SurfaceDataFieldsAndCustomParamIndex)
       8.0 * constants::GAS_CONSTANT / (M_PI * mw),
       (std::is_same_v<micm::Real, double>) ? 1.0e-14 : 1.0e-3);
   EXPECT_REAL_EQ(store.surface_[0].reaction_probability_, prob);
-  EXPECT_EQ(store.surface_[0].custom_param_base_index_, 0u);
+  EXPECT_EQ(store.surface_[0].custom_param_base_index_, micm::Bool(false));
 }
 
 TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
@@ -332,13 +334,13 @@ TEST(ReactionRateConstantStore, SurfaceCustomParamIndexAfterUserDefined)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
-  ASSERT_EQ(store.user_defined_.size(), 1u);
-  ASSERT_EQ(store.surface_.size(), 1u);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
+  ASSERT_EQ(store.user_defined_.size(), micm::Bool(true));
+  ASSERT_EQ(store.surface_.size(), micm::Bool(true));
 
   // UserDefined takes slot 0; Surface takes slots 1 (radius) and 2 (num_conc)
-  EXPECT_EQ(store.user_defined_[0].custom_param_index_, 0u);
-  EXPECT_EQ(store.surface_[0].custom_param_base_index_, 1u);
+  EXPECT_EQ(store.user_defined_[0].custom_param_index_, micm::Bool(false));
+  EXPECT_EQ(store.surface_[0].custom_param_base_index_, micm::Bool(true));
 }
 
 // ============================================================
@@ -368,13 +370,13 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
-  EXPECT_EQ(store.arrhenius_.size(), 1u);
-  ASSERT_EQ(store.lambda_entries_.size(), 1u);
+  EXPECT_EQ(store.arrhenius_.size(), micm::Bool(true));
+  ASSERT_EQ(store.lambda_entries_.size(), micm::Bool(true));
 
   // Lambda is the second process → rc_index = 1
-  EXPECT_EQ(store.lambda_entries_[0].rc_index_, 1u);
+  EXPECT_EQ(store.lambda_entries_[0].rc_index_, micm::Bool(true));
   // Pointer should be non-null and function should work
   ASSERT_NE(store.lambda_entries_[0].source_, nullptr);
   Conditions cond{ .temperature_ = 300.0 };
@@ -391,7 +393,7 @@ TEST(ReactionRateConstantStore, LambdaEntriesRcIndex)
 TEST(ReactionRateConstantStore, ParameterizedMultipliers)
 {
   Species a("a"), b("b");
-  b.parameterize_ = [](const Conditions& c) { return c.air_density_ * 2.0; };
+  b.parameterize_ = { .c_rho_ = 2.0, .has_value_ = micm::Bool(true) };
   Phase gas = MakeGasPhase({ a, b });
 
   ArrheniusRateConstantParameters arr_a{};  // no parameterized reactants
@@ -410,14 +412,14 @@ TEST(ReactionRateConstantStore, ParameterizedMultipliers)
                                   .SetPhase(gas)
                                   .Build() };
 
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   // Only the second reaction has a parameterized reactant
-  ASSERT_EQ(store.parameterized_multipliers_.size(), 1u);
-  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index_, 1u);
+  ASSERT_EQ(store.parameterized_multipliers_.size(), micm::Bool(true));
+  EXPECT_EQ(store.parameterized_multipliers_[0].rc_index_, micm::Bool(true));
 
   Conditions cond{ .air_density_ = 5.0 };
-  EXPECT_NEAR(store.parameterized_multipliers_[0].evaluate_(cond), 10.0, 1.0e-14);
+  EXPECT_NEAR(store.parameterized_multipliers_[0].Evaluate(cond), 10.0, 1.0e-14);
 }
 
 // ============================================================
@@ -466,7 +468,7 @@ TEST(ReactionRateConstantStore, TotalRateConstantsMatchesProcessCount)
                       .Build());
 
   SortByTypeOrder(procs);
-  auto store = ReactionRateConstantStore::BuildFrom(procs);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs);
 
   // Total = lambdaOffset() + lambda_entries_.size() = number of chemical reactions
   micm::Index n_rxn = procs.size();
@@ -493,7 +495,7 @@ TEST(ReactionRateConstantStore, SurfaceMissingDiffusionCoefficientThrows)
                                   .SetPhase(gas)
                                   .Build() };
 
-  EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
+  EXPECT_THROW({ auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs); }, MicmException);
 }
 
 // ============================================================
@@ -515,5 +517,5 @@ TEST(ReactionRateConstantStore, SurfaceMissingMolecularWeightThrows)
                                   .SetPhase(gas)
                                   .Build() };
 
-  EXPECT_THROW({ auto store = ReactionRateConstantStore::BuildFrom(procs); }, MicmException);
+  EXPECT_THROW({ auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(procs); }, MicmException);
 }

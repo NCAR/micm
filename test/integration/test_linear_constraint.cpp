@@ -8,11 +8,18 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 #include <type_traits>
+
+using namespace micm;
+using DenseMatrix = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
+using StdSparseMatrix = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
 TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 {
@@ -70,9 +77,9 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   micm::Real sum_initial_conc = 1.0;
 
-  std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(
-      micm::LinearConstraint("mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
+      "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
 
   // ---------------------------------------------------------------------------
   // Solver
@@ -80,7 +87,7 @@ TEST(DAESolveWithConstraint, TerminatorAndRobertson)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DenseMatrix, StdSparseMatrix>(options)
                     .SetSystem(micm::System(gas_phase))
                     .SetReactions(processes)
                     .SetConstraints(std::move(constraints))

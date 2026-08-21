@@ -20,42 +20,43 @@ using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<
+        micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittleInPlace>;
+    micm::LuDecompositionDoolittleInPlace<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozartInPlace>;
+    micm::LuDecompositionMozartInPlace<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 

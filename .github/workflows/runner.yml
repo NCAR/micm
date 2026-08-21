@@ -1,4 +1,4 @@
-name: Designated GPU Runner
+name: Designated GPU Runner for CUDA Solvers
 
 on:
   push:
@@ -63,25 +63,6 @@ jobs:
       # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
       # ubuntu-latest. The two machines keep separate series and separate directories, so
       # neither one compares against the other, and the two pushes to gh-pages cannot collide.
-      #
-      # The `name` and `benchmark-data-dir-path` of a comment step must match its store step
-      # exactly. The action keys its history by both. A mismatch produces no comparison and
-      # no comment, and the step still reports success.
-
-      - name: Comment benchmark timing comparison on PR (chapman)
-        if: github.event_name == 'pull_request'
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Chapman Timing (GPU backend)
-          tool: customSmallerIsBetter
-          output-file-path: cuda_timing.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          benchmark-data-dir-path: dev/bench/gpu/timing
-          comment-always: true    # posts a commit comment visible in the PR timeline
-          save-data-file: false   # never write to gh-pages from PR context
-          alert-threshold: 120%   # comment turns into a warning at +20%
-          fail-on-alert: false    # just warn of possible regression
-          skip-fetch-gh-pages: true
 
       - name: Store timing results (chapman)
         if: github.event_name == 'push'
@@ -103,22 +84,6 @@ jobs:
           python3 scripts/to_benchmark_json.py --unit ms --value-type float \
             < cuda_ts1_timing.txt > cuda_ts1_timing.json
 
-      # Both mechanisms share this directory; one data.js holds several series.
-      - name: Comment benchmark timing comparison on PR (ts1)
-        if: github.event_name == 'pull_request'
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: TS1 Timing (GPU backend)
-          tool: customSmallerIsBetter
-          output-file-path: cuda_ts1_timing.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          benchmark-data-dir-path: dev/bench/gpu/timing
-          comment-always: true    # posts a commit comment visible in the PR timeline
-          save-data-file: false   # never write to gh-pages from PR context
-          alert-threshold: 120%   # comment turns into a warning at +20%
-          fail-on-alert: false    # just warn of possible regression
-          skip-fetch-gh-pages: true
-
       - name: Store timing results (ts1)
         if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@v1
@@ -130,6 +95,9 @@ jobs:
           auto-push: true
           benchmark-data-dir-path: dev/bench/gpu/timing
 
+      - name: Save PR number for benchmark comment workflow
+        run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
+
       - name: Upload benchmark outputs
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,3 +108,4 @@ jobs:
             cuda_timing.txt
             cuda_ts1_timing.json
             cuda_ts1_timing.txt
+            pr-number.txt

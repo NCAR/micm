@@ -105,7 +105,7 @@ void TestProcessUpdateState(const micm::Index number_of_grid_cells)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   Species bar("bar");
-  bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
+  bar.parameterize_ = { .c_rho_ = 0.82, .has_value_ = true };
 
   micm::Real foo_diff_coeff = 2.3e2;
   PhaseSpecies gas_foo(foo, foo_diff_coeff);
@@ -133,7 +133,7 @@ void TestProcessUpdateState(const micm::Index number_of_grid_cells)
   }
 
   // Build the ReactionRateConstantStore
-  auto store = ReactionRateConstantStore::BuildFrom(processes);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(processes);
 
   State<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
@@ -161,8 +161,7 @@ void TestProcessUpdateState(const micm::Index number_of_grid_cells)
         num_conc;
   }
 
-  ReactionRateConstantStore::EvaluateCpuRateConstants(store, state);
-  ReactionRateConstantStore::CpuCalculateRateConstants(store, state);
+  ReactionRateConstantStore<DenseMatrixPolicy>::CalculateRateConstants(store, state);
 
   for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
@@ -251,7 +250,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
   Species bar("bar");
-  bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
+  bar.parameterize_ = { .c_rho_ = 0.82, .has_value_ = micm::Bool(true) };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar } };
 

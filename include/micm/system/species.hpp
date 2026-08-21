@@ -5,9 +5,9 @@
 #include <micm/system/conditions.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/parameterized_function.hpp>
 #include <micm/util/types.hpp>
 
-#include <functional>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -27,14 +27,18 @@ namespace micm
     /// @brief A list of properties of this species
     std::map<std::string, std::string> properties_string_;
     std::map<std::string, Real> properties_double_;
-    std::map<std::string, bool> properties_bool_;
+    std::map<std::string, Bool> properties_bool_;
     std::map<std::string, int> properties_int_;
 
-    /// @brief A function that if provided will be used to parameterize
+    /// @brief A parameterization that, if provided, is used to compute
     ///        the concentration of this species during solving.
-    ///        Species with this function defined will be excluded from
-    ///        the solver state.
-    std::function<Real(const Conditions)> parameterize_{ nullptr };
+    ///        Species with this parameterization defined will be excluded
+    ///        from the solver state.
+    ///
+    ///        This is a POD (see ParameterizedFunction) so it can be copied
+    ///        to a CUDA/HIP device.  Set `has_value_ = true` and populate the
+    ///        c0_/c_T_/c_P_/c_rho_ coefficients to enable it.
+    ParameterizedFunction parameterize_{};
 
     /// @brief Default constructor
     Species() = default;
@@ -103,7 +107,7 @@ namespace micm
 
   inline bool Species::IsParameterized() const
   {
-    return parameterize_ != nullptr;
+    return static_cast<bool>(parameterize_.HasValue());
   }
 
   inline bool Species::HasProperty(const std::string& key) const
@@ -114,7 +118,7 @@ namespace micm
 
   inline void Species::SetThirdBody()
   {
-    parameterize_ = [](const Conditions& c) { return c.air_density_; };
+    parameterize_ = { .c_rho_ = 1.0, .has_value_ = static_cast<Bool>(true) };
   }
 
   template<class T>

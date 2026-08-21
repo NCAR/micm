@@ -26,6 +26,8 @@ struct SimpleConstrainedSystem
   template<class SolverBuilderPolicy>
   static auto Build(SolverBuilderPolicy builder)
   {
+    using DenseMatrix = SolverBuilderPolicy::DenseMatrixPolicyType;
+    using SparseMatrix = SolverBuilderPolicy::SparseMatrixPolicyType;
     auto A = Species("A");
     auto B = Species("B");
     auto C = Species("C");
@@ -40,13 +42,13 @@ struct SimpleConstrainedSystem
                       .Build();
 
     // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
-    std::vector<Constraint> constraints;
-    constraints.emplace_back(EquilibriumConstraint(
+    std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+    constraints.emplace_back(EquilibriumConstraint<DenseMatrix, SparseMatrix>(
         "B_C_eq",
         C,
         std::vector<StoichSpecies>{ { B, 1.0 } },
         std::vector<StoichSpecies>{ { C, 1.0 } },
-        VantHoffParam{ .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
+        { .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
 
     return builder.SetSystem(System(gas_phase))
         .SetReactions({ rxn })
@@ -134,7 +136,7 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   // (it will change from time stepping, but the initialization should not touch it)
   // We can't check exact equality post-solve because time stepping changes A,
   // but we verify the initialization converged and the constraint is satisfied
-  EXPECT_GT(result.stats_.constraint_init_iterations_, 0u);
+  EXPECT_GT(result.stats_.constraint_init_iterations_, micm::Bool(false));
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
   micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
@@ -219,7 +221,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
 
   EXPECT_EQ(result.state_, SolverState::Converged);
   // No constraint initialization should have happened
-  EXPECT_EQ(result.stats_.constraint_init_iterations_, 0u);
+  EXPECT_EQ(result.stats_.constraint_init_iterations_, micm::Bool(false));
 }
 
 /// @brief Test multi-cell systems with different inconsistency levels

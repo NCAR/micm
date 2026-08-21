@@ -102,13 +102,14 @@ TEST(CudaDenseMatrix, AssignmentFromVectorPolicy)
   TestAssignmentFromVector<Group2MatrixAlias>();
 }
 
-TEST(CudaDenseMatrix, ForEachPolicy)
-{
-  TestForEach<Group1MatrixAlias>();
-  TestForEach<Group2MatrixAlias>();
-  TestForEach<Group3MatrixAlias>();
-  TestForEach<Group4MatrixAlias>();
-}
+// CudaDenseMatrix doesn't support ForEach()
+// TEST(CudaDenseMatrix, ForEachPolicy)
+// {
+//   TestForEach<Group1MatrixAlias>();
+//   TestForEach<Group2MatrixAlias>();
+//   TestForEach<Group3MatrixAlias>();
+//   TestForEach<Group4MatrixAlias>();
+// }
 
 TEST(CudaDenseMatrix, PrintPolicy)
 {

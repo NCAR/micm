@@ -28,6 +28,9 @@
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -37,6 +40,8 @@
 #include <vector>
 
 using namespace micm;
+using DenseMatrix = Matrix<Real>;
+using StdSparseMatrix = SparseMatrix<Real, SparseMatrixStandardOrdering>;
 
 namespace
 {
@@ -72,22 +77,22 @@ namespace
                       .SetPhase(gas_phase)
                       .Build();
 
-    std::vector<Constraint> constraints;
-    constraints.emplace_back(EquilibriumConstraint(
+    std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+    constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
         "eq1",
         A_aq,
         std::vector<StoichSpecies>{ { A_gas, 1.0 } },
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
-    constraints.emplace_back(EquilibriumConstraint(
+        { .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
+    constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
         "eq2",
         B_aq,
         std::vector<StoichSpecies>{ { A_aq, 1.0 } },
         std::vector<StoichSpecies>{ { B_aq, 1.0 } },
-        VantHoffParam{ .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
+        { .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
     // A_gas is explicitly set as the algebraic balance variable
-    constraints.emplace_back(
-        LinearConstraint("mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+    constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
+        "mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)

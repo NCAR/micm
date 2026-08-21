@@ -54,10 +54,10 @@ struct ProcessSetParam
 /// This struct could be allocated on the host or device;
 struct LuDecomposeMozartInPlaceParam
 {
-  std::tuple<micm::Index, micm::Index, micm::Index>* aii_nji_nki_ = nullptr;
+  micm::IndexTrio* aii_nji_nki_ = nullptr;
   micm::Index* aji_ = nullptr;
-  std::pair<micm::Index, micm::Index>* aik_njk_ = nullptr;
-  std::pair<micm::Index, micm::Index>* ajk_aji_ = nullptr;
+  micm::IndexPair* aik_njk_ = nullptr;
+  micm::IndexPair* ajk_aji_ = nullptr;
   micm::Index aii_nji_nki_size_;
   micm::Index aji_size_;
   micm::Index aik_njk_size_;
@@ -74,9 +74,9 @@ using LuDecomposeParam = LuDecomposeMozartInPlaceParam;
 struct LinearSolverInPlaceParam
 {
   micm::Index* nLij_ = nullptr;
-  std::pair<micm::Index, micm::Index>* Lij_yj_ = nullptr;
-  std::pair<micm::Index, micm::Index>* nUij_Uii_ = nullptr;
-  std::pair<micm::Index, micm::Index>* Uij_xj_ = nullptr;
+  micm::IndexPair* Lij_yj_ = nullptr;
+  micm::IndexPair* nUij_Uii_ = nullptr;
+  micm::IndexPair* Uij_xj_ = nullptr;
   micm::Index nLij_size_;
   micm::Index Lij_yj_size_;
   micm::Index nUij_Uii_size_;

@@ -16,6 +16,11 @@
 #include <type_traits>
 #include <utility>
 
+using namespace micm;
+
+using DenseMatrix = Matrix<micm::Real>;
+using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
 ///
 /// This model contributes no state variables and no processes — only an algebraic
@@ -58,10 +63,10 @@ class EquilibriumConstraintModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, micm::Index>&) const
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   /// Residual: G = K_eq * [reactant] - [product]
@@ -162,10 +167,10 @@ class ConservativeEquilibriumConstraintModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, micm::Index>&) const
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
@@ -268,10 +273,10 @@ class MassConservationModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, micm::Index>&) const
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const std::vector<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
   }
 
   template<typename DenseMatrixPolicy>
@@ -447,13 +452,13 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
 
   // Built-in constraint: B <-> C equilibrium
   micm::Real K_eq = 5.0;
-  std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      micm::VantHoffParam{ K_eq, 0.0 }));
+      { K_eq, 0.0 }));
 
   // Process: A_GAS -> B
   micm::Real k_rxn = 0.05;
@@ -874,13 +879,13 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
                              .Build();
 
   // Built-in constraint solver
-  std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
       std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      micm::VantHoffParam{ K_EQ, 0.0 }));
+      { K_EQ, 0.0 }));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   // Float cannot drive the algebraic-constraint Newton residual below the default
@@ -1350,14 +1355,15 @@ class TemperatureDependentEquilibriumModel
   }
 
   template<typename DenseMatrixPolicy>
-  std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)> ConstraintUpdateStateParametersFunction(
-      const std::unordered_map<std::string, micm::Index>& param_indices) const
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>& param_indices) const
   {
     auto i_K = param_indices.at(param_name_);
     micm::Real K_ref = K_eq_ref_;
     micm::Real dH_R = delta_H_over_R_;
     micm::Real T_ref = T_ref_;
-    return [=](const std::vector<micm::Conditions>& conditions, DenseMatrixPolicy& params)
+    return
+        [=](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions, DenseMatrixPolicy& params)
     {
       for (micm::Index i = 0; i < conditions.size(); ++i)
       {

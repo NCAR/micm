@@ -32,7 +32,7 @@ void TestProcessSet()
   auto quuz = Species("quuz");
   auto qux = Species("qux");
   auto corge = Species("corge");
-  qux.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.72; };
+  qux.parameterize_ = { .c_rho_ = 0.72, .has_value_ = true };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz, quz, quuz, corge } };
   State<DenseMatrixPolicy, SparseMatrixPolicy> state(
@@ -251,6 +251,7 @@ void TestRandomSystem(micm::Index n_cells, micm::Index n_reactions, micm::Index 
   DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
   state.rate_constants_ = rate_constants;
 
+  CheckCopyToDevice<DenseMatrixPolicy>(state.variables_);
   CheckCopyToDevice<DenseMatrixPolicy>(state.rate_constants_);
   CheckCopyToDevice<DenseMatrixPolicy>(forcing);
 
@@ -462,7 +463,7 @@ void TestProcessSetFiniteDifferenceJacobian()
   // Compute FD Jacobian by wrapping the forcing function
   auto forcing_wrapper = [&](const DenseMatrixPolicy& vars, DenseMatrixPolicy& forcing)
   {
-    CheckCopyToDevice<DenseMatrixPolicy>(forcing);
+    // The finite difference function handles copying inputs to device
     process_set.AddForcingTerms(state, vars, forcing);
     CheckCopyToHost<DenseMatrixPolicy>(forcing);
   };

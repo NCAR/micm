@@ -236,7 +236,8 @@ namespace micm
         number_of_grid_cells_(0),
         temporary_variables_(nullptr),
         relative_tolerance_(1e-06),
-        absolute_tolerance_()
+        absolute_tolerance_(),
+        views_(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_)
   {
   }
 
@@ -260,7 +261,8 @@ namespace micm
         constraint_size_(parameters.number_of_constraints_),
         number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
-        absolute_tolerance_(parameters.absolute_tolerance_)
+        absolute_tolerance_(parameters.absolute_tolerance_),
+        views_()
   {
     Index index = 0;
     for (auto& name : variable_names_)
@@ -284,9 +286,10 @@ namespace micm
     else
     {
       // Default: all ODE variables (diagonal = 1.0)
+      upper_left_identity_diagonal_ = Vector<Real>(state_size_);
       for (Index i = 0; i < state_size_; i++)
       {
-        upper_left_identity_diagonal_.push_back(1.0);
+        upper_left_identity_diagonal_[i] = 1.0;
       }
     }
 
@@ -294,20 +297,24 @@ namespace micm
     {
       jacobian_ =
           BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, true);
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0, false);
+      auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian_, 0, false);
       jacobian_ = std::move(lu);
     }
     else
     {
       jacobian_ =
           BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_, false);
-      auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(jacobian_, 0, false);
+      auto lu = LuDecompositionPolicy::GetLUMatrices(jacobian_, 0, false);
       auto lower_matrix = std::move(lu.first);
       auto upper_matrix = std::move(lu.second);
       lower_matrix_ = lower_matrix;
       upper_matrix_ = upper_matrix;
     }
     jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
+    upper_left_identity_diagonal_.CopyToDevice();
+    jacobian_diagonal_elements_.CopyToDevice();
+    absolute_tolerance_.CopyToDevice();
+    views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -550,16 +557,27 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetRelativeTolerance(
-      Real relativeTolerance)
+      Real relative_tolerance)
   {
-    this->relative_tolerance_ = relativeTolerance;
+    relative_tolerance_ = relative_tolerance;
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(
-      const std::vector<Real>& absoluteTolerance)
+      const std::vector<Real>& absolute_tolerances)
   {
-    this->absolute_tolerance_ = absoluteTolerance;
+    absolute_tolerance_ = absolute_tolerances;
+    absolute_tolerance_.CopyToDevice();
+    views_.absolute_tolerance_ = std::as_const(absolute_tolerance_).GetView();
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(
+      const Vector<Real>& absolute_tolerances)
+  {
+    absolute_tolerance_ = absolute_tolerances;
+    absolute_tolerance_.CopyToDevice();
+    views_.absolute_tolerance_ = std::as_const(absolute_tolerance_).GetView();
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>

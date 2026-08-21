@@ -20,48 +20,48 @@ using StandardRosenbrockDoolittle = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::Matrix<micm::Real>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
 using StandardStateTypeDoolittle = micm::State<
     micm::Matrix<micm::Real>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
 
 template<micm::Index L>
 using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeDoolittle = micm::State<
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 using StandardRosenbrockMozart = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::Matrix<micm::Real>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
 
 using StandardStateTypeMozart = micm::State<
     micm::Matrix<micm::Real>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
 
 template<micm::Index L>
 using VectorRosenbrockMozart = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeMozart = micm::State<
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorStateType =
@@ -72,7 +72,8 @@ using VectorRosenbrockDolittleCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle>;
+    micm::LuDecompositionDoolittle<
+        micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeDoolittleCSC = typename VectorRosenbrockDolittleCSC<L>::StatePolicyType;
@@ -82,7 +83,7 @@ using VectorRosenbrockMozartCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart>;
+    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeMozartCSC = typename VectorRosenbrockMozartCSC<L>::StatePolicyType;
@@ -92,7 +93,7 @@ using VectorRosenbrockDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittleInPlace>;
+    micm::LuDecompositionDoolittleInPlace<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeDoolittleInPlace = typename VectorRosenbrockDoolittleInPlace<L>::StatePolicyType;
@@ -102,7 +103,7 @@ using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozartInPlace>;
+    micm::LuDecompositionMozartInPlace<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorRosenbrockMozartInPlace<L>::StatePolicyType;

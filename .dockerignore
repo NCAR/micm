@@ -4,6 +4,7 @@
 # include things to copy
 !CMakeLists.txt
 !.clang-tidy
+!scripts/
 !src/
 !docs/
 !libs/

@@ -14,6 +14,9 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
   struct CudaState : public State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>
   {
+    template<class U>
+    using Vector = typename DenseMatrixPolicy::template VectorType<U>;
+
    public:
     CudaState(const CudaState&) = delete;
     CudaState& operator=(const CudaState&) = delete;
@@ -61,7 +64,8 @@ namespace micm
       CHECK_CUDA_ERROR(
           micm::cuda::MallocArray<Index>(jacobian_diagonal_elements_param_.data_, jacobian_diagonal_elements_param_.size_),
           "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<Real>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(
+          (micm::cuda::CopyToDevice<DenseMatrixPolicy, Real>(absolute_tolerance_param_, atol)), "cudaMemcpyHostToDevice");
 
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
@@ -104,11 +108,21 @@ namespace micm
     }
     // NOLINTEND(bugprone-use-after-move)
 
-    void SetAbsoluteTolerances(const std::vector<Real>& absoluteTolerance) override
+    using State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances;
+
+    void SetAbsoluteTolerances(const std::vector<Real>& absolute_tolerances) override
     {
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absoluteTolerance);
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absolute_tolerances);
       CHECK_CUDA_ERROR(
-          micm::cuda::CopyToDevice<Real>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
+          micm::cuda::CopyToDevice<Real>(absolute_tolerance_param_, absolute_tolerances), "cudaMemcpyHostToDevice");
+    }
+
+    void SetAbsoluteTolerances(const Vector<Real>& absolute_tolerances) override
+    {
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absolute_tolerances);
+      CHECK_CUDA_ERROR(
+          (micm::cuda::CopyToDevice<DenseMatrixPolicy, Real>(absolute_tolerance_param_, absolute_tolerances)),
+          "cudaMemcpyHostToDevice");
     }
 
     /// @brief Copy input variables to the device.

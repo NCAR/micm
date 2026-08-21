@@ -458,11 +458,7 @@ TEST(GroupedView, SparseVectorRowColOverloadStillFunctional)
   }
 
   SM::ConstGroupView group1(matrix, 1);
-  auto raw = group1.GetConstBlockView(0, 1);
-  // The (row, col) overload returns the *raw* ConstBlockView from the parent
-  // SparseMatrix, not the grouped one. Read via ForEachBlock and confirm.
-  static_assert(SparseMatrixBlockView<decltype(raw)>);
-  static_assert(!GroupedSparseMatrixBlockView<decltype(raw)>);
+  auto raw = group1.GetConstBlockView(matrix.VectorIndex(0, 0, 1));
 
   micm::Real accumulator = 0.0;
   group1.ForEachBlock([&accumulator](const micm::Real& v) { accumulator += v; }, raw);

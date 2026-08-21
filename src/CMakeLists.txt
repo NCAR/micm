@@ -75,6 +75,13 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(util)
 endif()
 
+if(MICM_ENABLE_KOKKOS)
+  add_library(micm_kokkos INTERFACE)
+  add_library(musica::micm_kokkos ALIAS micm_kokkos)
+  target_link_libraries(micm_kokkos INTERFACE micm Kokkos::kokkos)
+  target_compile_definitions(micm_kokkos INTERFACE MICM_USE_KOKKOS)
+  target_link_libraries(micm INTERFACE Kokkos::kokkos)
+endif()
 
 if (MICM_ENABLE_TESTS)
   target_compile_definitions(micm INTERFACE MICM_ENABLE_TESTS)

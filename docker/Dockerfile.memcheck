@@ -8,6 +8,7 @@ RUN dnf -y update \
         gcc-c++ \
         git \
         make \
+        ninja-build \
         valgrind \
         valgrind-devel \
     && dnf clean all
@@ -19,10 +20,11 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake \
+        -G Ninja \
         -D CMAKE_BUILD_TYPE=${BUILD_TYPE} \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_MEMCHECK:BOOL=TRUE \
         ../micm \
-      && make install -j 8
+      && ninja install -j 8
 
 WORKDIR /build

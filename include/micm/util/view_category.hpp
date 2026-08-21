@@ -46,6 +46,11 @@ namespace micm
   {
   };
 
+  /// @brief Tag for padded vectors (size = ceil(N/L)*L)
+  struct PaddedVectorTag
+  {
+  };
+
   // ============================================================================
   // Grouping Strategy Tags - How data is organized
   // ============================================================================
@@ -148,6 +153,15 @@ namespace micm
         t.NumRows();
         t.NumColumns();
       };  // Exclude matrix types
+
+  /// @brief Vector-like with padded cells for use in vector-ordered matrices
+  ///        Function() lambdas
+  template<typename T>
+  concept PaddedVectorLike = requires(T t, Index i) {
+    { t[i] };
+    { t.size() } -> std::convertible_to<Index>;
+    { t.PaddedSize() } -> std::convertible_to<Index>;
+  };
 
   // ============================================================================
   // Concepts for Grouping Strategies

@@ -32,7 +32,7 @@ namespace micm
           LinearSolverInPlace<
               VectorMatrix<Real, 1>,
               SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
-              LuDecompositionMozartInPlace>,
+              LuDecompositionMozartInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>>,
           VectorMatrix<Real, 1>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LinearSolverInPlace for vector matrices does not meet the LinearSolverInPlaceConcept requirements");
@@ -46,9 +46,42 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   class LinearSolver
   {
+    using SparseMatrix = SparseMatrixPolicy;
+    using DenseMatrix = MatrixPolicy;
+    template<class U>
+    using Vector = typename SparseMatrix::template VectorType<U>;
+    template<class U>
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
+   public:
+    using DenseMatrixType = MatrixPolicy;
+    using SparseMatrixType = SparseMatrixPolicy;
+    using LuDecompositionType = LuDecompositionPolicy;
+    struct Views
+    {
+      VectorView<IndexPair> nLij_Lii_;
+      VectorView<IndexPair> Lij_yj_;
+      VectorView<IndexPair> nUij_Uii_;
+      VectorView<IndexPair> Uij_xj_;
+
+      Views() = default;
+
+      Views(
+          const Vector<IndexPair>& nLij_Lii,
+          const Vector<IndexPair>& Lij_yj,
+          const Vector<IndexPair>& nUij_Uii,
+          const Vector<IndexPair>& Uij_xj)
+          : nLij_Lii_(nLij_Lii.GetView()),
+            Lij_yj_(Lij_yj.GetView()),
+            nUij_Uii_(nUij_Uii.GetView()),
+            Uij_xj_(Uij_xj.GetView())
+      {
+      }
+    };
+
    protected:
     // Parameters needed to calculate L (U x) = b
     //
@@ -64,14 +97,16 @@ namespace micm
 
     // Number of non-zero elements (excluding the diagonal) and the index of the diagonal
     // element for each row in L
-    std::vector<std::pair<Index, Index>> nLij_Lii_;
+    Vector<IndexPair> nLij_Lii_;
     // Indices of non-zero combinations of L_ij and y_j
-    std::vector<std::pair<Index, Index>> Lij_yj_;
+    Vector<IndexPair> Lij_yj_;
     // Number of non-zero elements (exluding the diagonal) and the index of the diagonal
     // element for each row in U (in reverse order)
-    std::vector<std::pair<Index, Index>> nUij_Uii_;
+    Vector<IndexPair> nUij_Uii_;
     // Indices of non-zero combinations of U_ij and x_j
-    std::vector<std::pair<Index, Index>> Uij_xj_;
+    Vector<IndexPair> Uij_xj_;
+    // MICM_LAMBDA compatible views of index vectors
+    Views views_;
 
     LuDecompositionPolicy lu_decomp_;
 
@@ -81,8 +116,8 @@ namespace micm
 
     LinearSolver(const LinearSolver&) = delete;
     LinearSolver& operator=(const LinearSolver&) = delete;
-    LinearSolver(LinearSolver&&) = default;
-    LinearSolver& operator=(LinearSolver&&) = default;
+    LinearSolver(LinearSolver&&) noexcept;
+    LinearSolver& operator=(LinearSolver&&) noexcept;
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix

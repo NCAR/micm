@@ -13,10 +13,10 @@ namespace micm::cuda
     Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
     // Local device variables
-    const std::tuple<Index, Index, Index>* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
+    const IndexTrio* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
     const Index* __restrict__ d_aji = devstruct.aji_;
-    const std::pair<Index, Index>* __restrict__ d_aik_njk = devstruct.aik_njk_;
-    const std::pair<Index, Index>* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
+    const IndexPair* __restrict__ d_aik_njk = devstruct.aik_njk_;
+    const IndexPair* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
     const Index d_aii_nji_nki_size = devstruct.aii_nji_nki_size_;
 
     Real* __restrict__ d_ALU = ALU_param.d_data_;
@@ -33,22 +33,22 @@ namespace micm::cuda
       for (Index i = 0; i < d_aii_nji_nki_size; ++i)
       {
         const auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
-        auto* d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
+        auto* d_Aii = d_ALU + d_aii_nji_nki_elem.first_;
         auto d_Aii_inverse = 1.0 / d_Aii[local_tid];
-        for (Index ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
+        for (Index ij = 0; ij < d_aii_nji_nki_elem.second_; ++ij)
         {
           auto* d_ALU_ji = d_ALU + *d_aji + local_tid;
           *d_ALU_ji *= d_Aii_inverse;
           ++d_aji;
         }
-        for (Index ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
+        for (Index ik = 0; ik < d_aii_nji_nki_elem.third_; ++ik)
         {
-          const Index d_aik_njk_first = std::get<0>(*d_aik_njk);
-          const Index d_aik_njk_second = std::get<1>(*d_aik_njk);
+          const Index d_aik_njk_first = d_aik_njk->first_;
+          const Index d_aik_njk_second = d_aik_njk->second_;
           for (Index ijk = 0; ijk < d_aik_njk_second; ++ijk)
           {
-            auto* d_ALU_first = d_ALU + d_ajk_aji->first + local_tid;
-            auto* d_ALU_second = d_ALU + d_ajk_aji->second + local_tid;
+            auto* d_ALU_first = d_ALU + d_ajk_aji->first_ + local_tid;
+            auto* d_ALU_second = d_ALU + d_ajk_aji->second_ + local_tid;
             auto* d_ALU_aik = d_ALU + d_aik_njk_first + local_tid;
             *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
             ++d_ajk_aji;

@@ -31,9 +31,13 @@ namespace micm
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   class ConstraintSet
   {
-   private:
+    template<class U>
+    using Vector = typename DenseMatrixPolicy::template VectorType<U>;
+    template<class U>
+    using VectorView = typename DenseMatrixPolicy::template VectorType<U>::ConstViewType;
+
     /// @brief The constraints
-    std::vector<Constraint> constraints_;
+    std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints_;
 
     /// @brief Information about each constraint for forcing/Jacobian computation
     std::vector<ConstraintInfo> constraint_info_;
@@ -46,17 +50,6 @@ namespace micm
 
     /// @brief Species variable ids whose ODE rows are replaced by constraints
     std::set<Index> algebraic_variable_ids_;
-
-    /// @brief Pre-compiled constraint parameter functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>> constraint_param_functions_;
-
-    /// @brief Pre-compiled constraint residual functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
-        constraint_forcing_functions_;
-
-    /// @brief Pre-compiled constraint Jacobian functions (initialized during solver build via SetConstraintFunctions)
-    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
-        constraint_jacobian_functions_;
 
     /// @brief External model constraint wrappers
     std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
@@ -73,8 +66,7 @@ namespace micm
         external_constraint_jacobian_functions_;
 
     /// @brief Pre-compiled external constraint parameter update functions
-    std::vector<std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)>>
-        external_constraint_param_functions_;
+    std::vector<std::function<void(const Vector<Conditions>&, DenseMatrixPolicy&)>> external_constraint_param_functions_;
 
     /// @brief Pre-compiled external constraint parameter initialization functions
     ///        These diagnose constraint parameters from state variables at the start of each Solve()
@@ -85,7 +77,8 @@ namespace micm
     ///        Instead, we use the step change (Ynew[a] - Y[a]) as the error estimate for algebraic variables.
     ///        This captures the full change imposed by constraint enforcement and allows the solver to
     ///        reject steps where algebraic variables change too much relative to their tolerances.
-    std::function<void(DenseMatrixPolicy&, const DenseMatrixPolicy&, const DenseMatrixPolicy&)> algebraic_error_function_;
+    Vector<Index> alg_ids_data_;
+    VectorView<Index> alg_ids_view_;
 
    public:
     /// @brief Default constructor
@@ -95,7 +88,9 @@ namespace micm
     ///        Constraints replace selected species rows in the state/Jacobian (DAE formulation)
     /// @param constraints Vector of constraints
     /// @param variable_map Map from species names to state variable indices
-    ConstraintSet(std::vector<Constraint>&& constraints, const std::unordered_map<std::string, Index>& variable_map)
+    ConstraintSet(
+        std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>>&& constraints,
+        const std::unordered_map<std::string, Index>& variable_map)
         : constraints_(std::move(constraints))
     {
       // Build constraint info and dependency indices
@@ -244,9 +239,9 @@ namespace micm
         const DenseMatrixPolicy& state_parameters,
         DenseMatrixPolicy& forcing) const
     {
-      for (const auto& forcing_fn : constraint_forcing_functions_)
+      for (const auto& info : constraint_info_)
       {
-        forcing_fn(state_variables, state_parameters, forcing);
+        constraints_[info.index_].AddResidual(info, state_variables, state_parameters, forcing);
       }
       for (const auto& forcing_fn : external_constraint_forcing_functions_)
       {
@@ -265,9 +260,9 @@ namespace micm
         const DenseMatrixPolicy& state_parameters,
         SparseMatrixPolicy& jacobian) const
     {
-      for (const auto& jacobian_fn : constraint_jacobian_functions_)
+      for (const auto& info : constraint_info_)
       {
-        jacobian_fn(state_variables, state_parameters, jacobian);
+        constraints_[info.index_].SubtractJacobian(info, state_variables, state_parameters, jacobian);
       }
       for (const auto& jacobian_fn : external_constraint_jacobian_functions_)
       {
@@ -282,10 +277,30 @@ namespace micm
     /// @param Ynew Proposed state at end of step (after constraint enforcement)
     void SetAlgebraicErrors(DenseMatrixPolicy& Yerror, const DenseMatrixPolicy& Y, const DenseMatrixPolicy& Ynew) const
     {
-      if (algebraic_error_function_)
+      if (algebraic_variable_ids_.empty())
       {
-        algebraic_error_function_(Yerror, Y, Ynew);
+        return;
       }
+
+      const auto& alg_ids = alg_ids_view_;
+
+      DenseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename DenseMatrixPolicy::ViewType& yerr,
+              const typename DenseMatrixPolicy::ConstViewType& y,
+              const typename DenseMatrixPolicy::ConstViewType& ynew) {
+            for (const auto& col : alg_ids)
+            {
+              yerr.ForEachRow(
+                  [](const Real& ynew_a, const Real& y_a, Real& err_a) { err_a = ynew_a - y_a; },
+                  ynew.GetConstColumnView(col),
+                  y.GetConstColumnView(col),
+                  yerr.GetColumnView(col));
+            }
+          },
+          Yerror,
+          Y,
+          Ynew)(Yerror, Y, Ynew);
     }
 
     /// @brief Returns positions of all non-zero Jacobian elements for constraint rows
@@ -333,49 +348,39 @@ namespace micm
       }
     }
 
-    /// @brief Pre-compiles constraint residual and Jacobian functions for efficient evaluation
-    ///        Creates reusable function objects from each constraint's ResidualFunction and JacobianFunction.
+    /// @brief Sets up constraint indices and Jacobian metadata for direct-call execution.
     ///        Must be called after SetJacobianFlatIds and before solver execution.
     /// @param state_variable_indices Map from species names to state variable indices
-    /// @param jacobian The sparse Jacobian matrix (used for function template instantiation)
+    /// @param state_parameter_indices Map from parameter names to state parameter indices
+    /// @param jacobian The sparse Jacobian matrix (used for flat ID setup)
     void SetConstraintFunctions(
-        const auto& state_variable_indices,   // std::unordered_map<std::string, Index>
-        const auto& state_parameter_indices,  // std::unordered_map<std::string, Index>
+        const auto& state_variable_indices,
+        const auto& state_parameter_indices,
         SparseMatrixPolicy& jacobian)
     {
       SetConstraintParamIndices(state_parameter_indices);
 
-      constraint_param_functions_.clear();
-      constraint_forcing_functions_.clear();
-      constraint_jacobian_functions_.clear();
       for (const auto& info : constraint_info_)
       {
-        constraint_param_functions_.push_back(
-            constraints_[info.index_].template ConstraintParameterFunction<DenseMatrixPolicy>(info));
-
-        constraint_forcing_functions_.push_back(constraints_[info.index_].template ResidualFunction<DenseMatrixPolicy>(
-            info, state_variable_indices, state_parameter_indices));
-
-        constraint_jacobian_functions_.push_back(
-            constraints_[info.index_].template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-                info,
-                state_variable_indices,
-                state_parameter_indices,
-                jacobian_flat_ids_.begin() + info.jacobian_flat_offset_,
-                jacobian));
+        auto flat_ids = jacobian_flat_ids_.begin() + info.jacobian_flat_offset_;
+        constraints_[info.index_].SetStateIndices(info, flat_ids);
       }
 
-      // Build the algebraic error function once for all algebraic variables
       BuildAlgebraicErrorFunction(state_variable_indices);
     }
 
-    /// @brief Returns pre-compiled constraint parameter update functions
-    ///        These functions compute temperature-dependent parameters (e.g., K_eq) for each constraint
-    ///        Called by solver builder to retrieve functions for UpdateStateParameters pipeline
-    /// @return Vector of function objects that take (conditions, state_param) and update constraint parameters
-    auto GetUpdateStateParamFunctions()
+    /// @brief Apply constraint parameter updates for all grid cells (e.g., temperature-dependent K_eq).
+    ///        Called directly from the solver's UpdateStateParameters pipeline.
+    /// @param conditions Per-grid-cell atmospheric conditions
+    /// @param state_param State parameter matrix to update
+    void UpdateStateParameters(
+        const typename DenseMatrixPolicy::template VectorType<Conditions>& conditions,
+        DenseMatrixPolicy& state_param) const
     {
-      return constraint_param_functions_;
+      for (const auto& info : constraint_info_)
+      {
+        constraints_[info.index_].ApplyConstraintParameter(info, conditions, state_param);
+      }
     }
 
     /// @brief Set external model constraint wrappers
@@ -573,28 +578,13 @@ namespace micm
     {
       if (algebraic_variable_ids_.empty())
       {
-        algebraic_error_function_ = {};
         return;
       }
 
-      std::vector<Index> alg_ids(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
-      DenseMatrixPolicy temp{ 1, state_variable_indices.size(), 0.0 };
-
-      algebraic_error_function_ = DenseMatrixPolicy::Function(
-          [alg_ids](auto&& yerr, auto&& y, auto&& ynew)
-          {
-            for (const auto& col : alg_ids)
-            {
-              yerr.ForEachRow(
-                  [](const Real& ynew_a, const Real& y_a, Real& err_a) { err_a = ynew_a - y_a; },
-                  ynew.GetConstColumnView(col),
-                  y.GetConstColumnView(col),
-                  yerr.GetColumnView(col));
-            }
-          },
-          temp,
-          temp,
-          temp);
+      std::vector<Index> alg_ids_temp(algebraic_variable_ids_.begin(), algebraic_variable_ids_.end());
+      alg_ids_data_ = alg_ids_temp;
+      alg_ids_data_.CopyToDevice();
+      alg_ids_view_ = std::as_const(alg_ids_data_).GetView();
     }
 
     /// @brief Maps constraint parameter names to their column indices in the state parameter matrix

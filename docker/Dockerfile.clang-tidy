@@ -28,6 +28,7 @@ FROM install AS build-cpu
 # Non-CUDA configure: generates ./build/compile_commands.json
 RUN cmake \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DMICM_ENABLE_KOKKOS=ON \
       -B./build \
       -S.
 
@@ -43,6 +44,7 @@ RUN cmake \
       -DCMAKE_CUDA_COMPILER=clang++-22 \
       -DCMAKE_CUDA_FLAGS="--cuda-host-only --cuda-path=/usr" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DMICM_ENABLE_KOKKOS=ON \
       -DMICM_GPU_TYPE=v100 \
       -B./cuda-build \
       -S.
@@ -51,13 +53,13 @@ RUN cmake \
 # scan-includes: public headers only, no CUDA context needed
 # Run locally: docker build --target scan-includes --progress=plain -f docker/Dockerfile.clang-tidy .
 FROM build-cpu AS scan-includes
-RUN find include -type f \( -name '*.hpp' -o -name '*.h' \) \
+RUN find include -mindepth 3 -type f \( -name '*.hpp' -o -name '*.h' \) \
       | xargs clang-tidy-22 \
           -p ./build/ \
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="-Iinclude/"
+          --extra-arg="-I$(pwd)/include/"
 
 # -----------------------------------------------------------------------------
 # scan-cuda-source: .cu and supporting source files under src/
@@ -69,7 +71,7 @@ RUN find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*
           --config-file=./.clang-tidy \
           --header-filter="$(pwd)/include/.*" \
           --extra-arg="-std=c++20" \
-          --extra-arg="-Iinclude/"
+          --extra-arg="-I$(pwd)/include/"
 
 # -----------------------------------------------------------------------------
 # scan-tests: unit and integration tests (excluding tutorial, JIT, and OpenMP

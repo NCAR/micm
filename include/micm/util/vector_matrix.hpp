@@ -3,6 +3,9 @@
 #pragma once
 
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/padded_vector.hpp>
+#include <micm/util/reducers.hpp>
+#include <micm/util/scalar_view.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -36,6 +39,22 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
+    class GroupView;
+    class ConstGroupView;
+    using ViewType = GroupView;
+    using ConstViewType = ConstGroupView;
+    using HostGroupView = GroupView;
+    using ConstHostGroupView = ConstGroupView;
+    template<class VecT>
+    using VectorType = PaddedVector<VecT, L>;
+    template<class ScaT>
+    using ScalarType = ScalarView<ScaT>;
+    template<class U>
+    using SumType = micm::Sum<U>;
+    template<class U>
+    using MaxType = micm::Max<U>;
+    using LOrType = micm::LOr;
+    using LAndType = micm::LAnd;
 
     /// @brief A lightweight descriptor for a const column in a matrix
     class ConstColumnView
@@ -106,7 +125,6 @@ namespace micm
       }
     };
 
-   private:
    protected:
     std::vector<T> data_;  // Memory alignment depends on std::vector's allocator
     Index x_dim_;          // number of rows
@@ -266,7 +284,7 @@ namespace micm
                                       std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
                     throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
-                  auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
+                  auto iter = std::next(data.begin(), (i_row / L) * y_dim * L + i_row % L);
                   for (auto& elem : other_row)
                   {
                     *iter = elem;
@@ -280,6 +298,8 @@ namespace micm
               }())
     {
     }
+
+    virtual ~VectorMatrix() = default;
 
     Index NumRows() const
     {
@@ -343,14 +363,48 @@ namespace micm
       std::fill(data_.begin(), data_.end(), val);
     }
 
+    /// @brief No-op host-to-device sync hook.
+    ///
+    /// GPU-backed matrix policies (e.g. KokkosDenseMatrix, CudaDenseMatrix)
+    /// override this to copy host data to a device mirror. Defined here as a
+    /// no-op so shared MatrixPolicy tests and solver code can call it
+    /// unconditionally regardless of which matrix policy is in use.
+    void CopyToDevice() const
+    {
+    }
+
+    /// @brief No-op device-to-host sync hook. See CopyToDevice().
+    void CopyToHost() const
+    {
+    }
+
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size (excluding padding)
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType<VecT>(n, init);
+    }
+
+    /// @brief Creates a scalar usable with this matrix type in Function lambda captures
+    /// @param init initial value for scalar
+    /// @return scalar usable in Function() lambda captures
+    template<class ScaT>
+    ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
+    {
+      return ScalarType<ScaT>(init);
+    }
+
     ConstProxy operator[](Index x) const
     {
-      return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);
+      return ConstProxy(*this, (x / L), x % L, y_dim_);
     }
 
     Proxy operator[](Index x)
     {
-      return Proxy(*this, std::floor(x / L), x % L, y_dim_);
+      return Proxy(*this, (x / L), x % L, y_dim_);
     }
 
     VectorMatrix& operator=(T val)
@@ -367,7 +421,7 @@ namespace micm
     {
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
-      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      const Index n = (x_dim_ / L) * L * y_dim_;
       for (Index i = 0; i < n; ++i)
       {
         *(y_iter++) += alpha * (*(x_iter++));
@@ -406,7 +460,7 @@ namespace micm
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
-      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      const Index n = (x_dim_ / L) * L * y_dim_;
       for (Index i = 0; i < n; ++i)
       {
         f(*(this_iter++), *(a_iter++));
@@ -426,7 +480,7 @@ namespace micm
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
-      const Index n = std::floor(x_dim_ / L) * L * y_dim_;
+      const Index n = (x_dim_ / L) * L * y_dim_;
       for (Index i = 0; i < n; ++i)
       {
         f(*(this_iter++), *(a_iter++), *(b_iter++));
@@ -499,18 +553,10 @@ namespace micm
     /// @brief Create a mutable column view for accessing a column
     /// @param column_index The index of the column
     /// @return A ColumnView descriptor
-    ColumnView GetColumnView(Index column_index)
+    ColumnView GetColumnView(Index column_index) const
     {
       assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
-    }
-
-    /// @brief Get a row variable with persistent storage for temporary values
-    /// @return A RowVariable with stack-allocated storage
-    RowVariable GetRowVariable()
-    {
-      // Stack-allocated array of L elements
-      return RowVariable();
     }
 
     /// @brief Get a row variable with persistent storage for temporary values (const version)
@@ -530,7 +576,7 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args)
     {
       // Process complete groups of L rows
-      Index num_groups = std::floor(x_dim_ / (double)L);
+      Index num_groups = x_dim_ / L;
       for (Index group = 0; group < num_groups; ++group)
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
@@ -562,7 +608,7 @@ namespace micm
     void ForEachRow(Func&& func, Args&&... args) const
     {
       // Process complete groups of L rows
-      Index num_groups = std::floor(x_dim_ / (double)L);
+      Index num_groups = x_dim_ / L;
       for (Index group = 0; group < num_groups; ++group)
       {
         for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
@@ -647,8 +693,8 @@ namespace micm
         }
       }
 
-      /// @brief Get a const element reference for a specific row in this group (Vector-like)
-      template<VectorLike Arg>
+      /// @brief Get a const element reference for a specific row in this group (Padded Vector-like)
+      template<PaddedVectorLike Arg>
       [[gnu::always_inline]]
       decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
@@ -749,57 +795,37 @@ namespace micm
         }
       }
 
-      /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
-      ///        Respects `num_rows_in_group_` so the last (partial) group doesn't
-      ///        write past the vector's real size (VectorLike has NumRows() entries,
-      ///        not padded).
-      template<VectorLike Vec>
+      /// @brief Assign value to `vec[group_*L + i]` for every row in this group.
+      template<PaddedVectorLike Vec>
       [[gnu::always_inline]]
       void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_rows_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = value;
         }
       }
 
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
-      ///        Respects `num_rows_in_group_` so the last group doesn't write past
-      ///        the vector's real size.
-      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      template<PaddedVectorLike Vec, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
       void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_rows_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = src.base_[i];
         }
       }
 
+      /// @brief Calls a lambda function for every row in the group (including padded rows)
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
-        // VectorMatrix storage is padded to ceil(x_dim/L)*L cells, so it is always safe to
-        // process L rows per group for matrix args. VectorLike args (e.g. std::vector<T>),
-        // however, have exactly N elements and would OOB past the vector's real size, so
-        // we fall back to the runtime bound whenever any arg is VectorLike.
-        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
-        if constexpr (has_vector_arg)
+        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
-          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
-          {
-            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
-        }
-        else
-        {
-          // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
-          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-          {
-            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -810,6 +836,33 @@ namespace micm
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      /// @brief Apply a reduction to each row in this group. The user's function
+      ///        receives its column-view/row-variable arguments plus a trailing
+      ///        reference to `reducer.Reference()` as an accumulator, and
+      ///        accumulates into it (e.g. `acc += x*x` for a sum, `acc = std::max(acc, x)`
+      ///        for a max). Matches ForEachRow's group-iteration shape, including
+      ///        operating on padded rows.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        auto& acc = reducer.Reference();
+        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        auto& acc = reducer.Reference();
+        for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -849,7 +902,7 @@ namespace micm
       /// @brief Get an element reference for a specific row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         // VectorMatrix layout: data_[(group * y_dim_ + column) * L + row_in_group]
@@ -860,7 +913,7 @@ namespace micm
       /// Fast path: `base_` already points at row 0 of this group's L-row block.
       template<GroupedDenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg.base_[row_in_group];
       }
@@ -870,7 +923,7 @@ namespace micm
       ///        dispatch rationale.
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         if constexpr (requires(Index i) { arg.Get()[i]; })
         {
@@ -883,9 +936,9 @@ namespace micm
       }
 
       /// @brief Get an element reference for a specific row in this group (Vector-like)
-      template<VectorLike Arg>
+      template<PaddedVectorLike Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg)
+      decltype(auto) GetRowElement(Index row_in_group, Arg&& arg) const
       {
         return arg[group_ * L + row_in_group];
       }
@@ -910,6 +963,11 @@ namespace micm
       {
       }
 
+      operator ConstGroupView() const
+      {
+        return ConstGroupView(matrix_, group_, num_rows_in_group_);
+      }
+
       /// @brief Returns a grouped const column view whose element base_ pointer is
       ///        precomputed for this GroupView's group.
       GroupedConstColumnView GetConstColumnView(Index column_index) const
@@ -920,20 +978,20 @@ namespace micm
 
       /// @brief Returns a grouped mutable column view whose element base_ pointer is
       ///        precomputed for this GroupView's group.
-      GroupedColumnView GetColumnView(Index column_index)
+      GroupedColumnView GetColumnView(Index column_index) const
       {
         assert(column_index < matrix_.y_dim_ && "column index out of range");
         return { matrix_.data_.data() + (group_ * matrix_.y_dim_ + column_index) * L };
       }
 
-      RowVariable GetRowVariable()
+      RowVariable GetRowVariable() const
       {
         // Stack-allocated array of L elements
         return RowVariable();
       }
 
       [[gnu::always_inline]]
-      void Fill(GroupedColumnView view, T value)
+      void Fill(GroupedColumnView view, T value) const
       {
         if constexpr (L >= 16)
         {
@@ -951,7 +1009,7 @@ namespace micm
 
       template<GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
-      void Copy(GroupedColumnView dst_view, Src&& src_view)
+      void Copy(GroupedColumnView dst_view, Src&& src_view) const
       {
         if constexpr (L >= 16)
         {
@@ -969,13 +1027,9 @@ namespace micm
       }
 
       /// @brief Copy a per-row vector into dst column within this group.
-      ///        `src` has one entry per real row of the matrix (size == NumRows()),
-      ///        so we must respect `num_rows_in_group_` on the last (partial) group
-      ///        to avoid reading past the vector's end. Padding cells of `dst` are
-      ///        left untouched (they're scratch storage).
-      template<VectorLike Src>
+      template<PaddedVectorLike Src>
       [[gnu::always_inline]]
-      void Copy(GroupedColumnView dst_view, Src&& src)
+      void Copy(GroupedColumnView dst_view, Src&& src) const
       {
         T* dst = dst_view.base_;
         const Index start = group_ * L;
@@ -990,7 +1044,7 @@ namespace micm
       ///        dispatch rationale.
       template<BlockVariableView Dst>
       [[gnu::always_inline]]
-      void Fill(Dst&& dst, T value)
+      void Fill(Dst&& dst, T value) const
       {
         auto& storage = dst.Get();
         if constexpr (requires { storage[Index{ 0 }]; })
@@ -1019,7 +1073,7 @@ namespace micm
       ///        dispatch rationale.
       template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
-      void Copy(Dst&& dst, Src&& src)
+      void Copy(Dst&& dst, Src&& src) const
       {
         auto& storage = dst.Get();
         if constexpr (requires { storage[Index{ 0 }]; })
@@ -1044,60 +1098,69 @@ namespace micm
       }
 
       /// @brief Assign value to `vec[group_*L + i]` for every real row in this group.
-      ///        See ConstGroupView::Fill(Vec&, T) for details.
-      template<VectorLike Vec>
+      template<PaddedVectorLike Vec>
       [[gnu::always_inline]]
-      void Fill(Vec& vec, T value)
+      void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_rows_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = value;
         }
       }
 
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
-      ///        See ConstGroupView::Copy(Vec&, Src&&) for details.
-      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      template<PaddedVectorLike Vec, GroupedDenseMatrixColumnView Src>
       [[gnu::always_inline]]
-      void Copy(Vec& vec, Src&& src)
+      void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < num_rows_in_group_; ++i)
+        for (Index i = 0; i < L; ++i)
         {
           vec[start + i] = src.base_[i];
         }
       }
 
       template<typename Func, typename... Args>
-      void ForEachRow(Func&& func, Args&&... args)
+      void ForEachRow(Func&& func, Args&&... args) const
       {
-        // See ConstGroupView::ForEachRow for rationale.
-        constexpr bool has_vector_arg = (VectorLike<std::remove_cvref_t<Args>> || ...);
-        if constexpr (has_vector_arg)
+        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
         {
-          for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
-          {
-            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
-        }
-        else
-        {
-          for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-          {
-            func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-          }
+          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
         }
       }
 
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
       ///        See ConstGroupView::ForEachRowStrict for details.
       template<typename Func, typename... Args>
-      void ForEachRowStrict(Func&& func, Args&&... args)
+      void ForEachRowStrict(Func&& func, Args&&... args) const
       {
         for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
         {
           func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      /// @brief Apply a reduction to each row in this group. See
+      ///        ConstGroupView::Reduce for details.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        auto& acc = reducer.Reference();
+        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+        }
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        auto& acc = reducer.Reference();
+        for (Index row_in_group = 0; row_in_group < num_rows_in_group_; ++row_in_group)
+        {
+          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
         }
       }
 
@@ -1134,7 +1197,17 @@ namespace micm
     /// @throws std::system_error if column counts don't match at creation, or if at invocation time:
     ///         matrices/vectors have mismatched row counts, column counts don't match creation,
     ///         or dimensions mismatch
-    template<typename Func, typename... Args>
+    ///
+    /// @tparam UseView When true (default), vector args are converted to their View/ConstView
+    ///                 via `arg.GetView()` before being handed to the lambda so lambdas whose
+    ///                 parameter is declared `Vector::ViewType`/`Vector::ConstViewType` see a
+    ///                 lightweight view (mirrors the Kokkos MakeHandle path).  When false,
+    ///                 vector args are passed through unchanged; use this for HostFunction
+    ///                 where the arg may be a KokkosPaddedVector whose GetView() returns a
+    ///                 device view unusable on host.  Both host PaddedVector and
+    ///                 KokkosPaddedVector satisfy PaddedVectorLike (operator[], size,
+    ///                 PaddedSize), so GroupView::GetRowElement handles both.
+    template<bool UseView = true, typename Func, typename... Args>
     static auto Function(Func&& func, Args&... args)
     {
       // Capture column counts for matrices at creation time using helper
@@ -1147,7 +1220,7 @@ namespace micm
             [&](auto& arg)
             {
               using ArgType = std::remove_cvref_t<decltype(arg)>;
-              if constexpr (VectorLike<ArgType>)
+              if constexpr (PaddedVectorLike<ArgType>)
               {
                 cols[idx] = 0;  // Not used for vectors
               }
@@ -1176,7 +1249,7 @@ namespace micm
             {
               using ArgType = std::remove_cvref_t<decltype(arg)>;
 
-              if constexpr (VectorLike<ArgType>)
+              if constexpr (PaddedVectorLike<ArgType>)
               {
                 // Vector - validate size matches row count
                 if (!found_first)
@@ -1231,31 +1304,40 @@ namespace micm
             ...);
 
         // Iterate over groups, processing L rows at a time
-        Index num_complete_groups = std::floor(num_rows / (double)L);
+        Index num_complete_groups = (num_rows / L);
         for (Index group = 0; group < num_complete_groups; ++group)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
-          // For vectors, just pass them through
+          // For vectors, either take a View/ConstView (UseView=true, matches lambda param
+          // typed as Vector::ViewType/ConstViewType) or pass through raw (UseView=false,
+          // required for HostFunction which may receive KokkosPaddedVector arguments whose
+          // GetView() returns a device view).
           func(
               [&](auto&& arg) -> decltype(auto)
               {
                 using ArgType = std::remove_reference_t<decltype(arg)>;
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
-                if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+                if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: just forward it
-                  return std::forward<decltype(arg)>(arg);
+                  if constexpr (UseView)
+                  {
+                    return std::forward<decltype(arg)>(arg).GetView();
+                  }
+                  else
+                  {
+                    return (std::forward<decltype(arg)>(arg));
+                  }
                 }
                 else
                 {
                   // Matrix: create appropriate GroupView
                   if constexpr (std::is_const_v<ArgType>)
                   {
-                    return typename ArgTypeNoConst::ConstGroupView(arg, group, L);
+                    return typename ArgTypeNoConst::ConstHostGroupView(arg, group, L);
                   }
                   else
                   {
-                    return typename ArgTypeNoConst::GroupView(arg, group, L);
+                    return typename ArgTypeNoConst::HostGroupView(arg, group, L);
                   }
                 }
               }(invoked_args)...);
@@ -1266,33 +1348,50 @@ namespace micm
         if (remaining > 0)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
-          // For vectors, just pass them through
+          // For vectors, see the matching complete-group case for UseView vs pass-through
+          // rationale.
           func(
               [&](auto&& arg) -> decltype(auto)
               {
                 using ArgType = std::remove_reference_t<decltype(arg)>;
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
-                if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+                if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: just forward it
-                  return std::forward<decltype(arg)>(arg);
+                  if constexpr (UseView)
+                  {
+                    return std::forward<decltype(arg)>(arg).GetView();
+                  }
+                  else
+                  {
+                    return (std::forward<decltype(arg)>(arg));
+                  }
                 }
                 else
                 {
                   // Matrix: create appropriate GroupView
                   if constexpr (std::is_const_v<ArgType>)
                   {
-                    return typename ArgTypeNoConst::ConstGroupView(arg, num_complete_groups, remaining);
+                    return typename ArgTypeNoConst::ConstHostGroupView(arg, num_complete_groups, remaining);
                   }
                   else
                   {
-                    return typename ArgTypeNoConst::GroupView(arg, num_complete_groups, remaining);
+                    return typename ArgTypeNoConst::HostGroupView(arg, num_complete_groups, remaining);
                   }
                 }
               }(invoked_args)...);
         }
       };
       return result;
+    }
+
+    template<typename Func, typename... Args>
+    static auto HostFunction(Func&& func, Args&... args)
+    {
+      // UseView=false: pass vector args through unchanged.  A KokkosPaddedVector's
+      // GetView() returns a device view unusable on host; passing the padded vector
+      // itself lets GroupView::GetRowElement dispatch to the PaddedVectorLike overload
+      // which just indexes via operator[].
+      return Function<false>(std::forward<Func>(func), args...);
     }
 
    private:
@@ -1324,7 +1423,7 @@ namespace micm
     }
 
     /// @brief Get an element reference for a row (Vector-like)
-    template<VectorLike Arg>
+    template<PaddedVectorLike Arg>
     [[gnu::always_inline]]
     decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg)
     {
@@ -1359,7 +1458,7 @@ namespace micm
     }
 
     /// @brief Get a const element reference for a row (Vector-like) - const version
-    template<VectorLike Arg>
+    template<PaddedVectorLike Arg>
     [[gnu::always_inline]]
     decltype(auto) GetRowElement(Index row, Index group, Index row_in_group, Arg&& arg) const
     {

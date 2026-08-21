@@ -11,9 +11,15 @@ namespace micm
   template<class DenseMatrixPolicy>
   class BackwardEulerTemporaryVariables : public TemporaryVariables
   {
+    template<class U>
+    using Scalar = typename DenseMatrixPolicy::template ScalarType<U>;
+
    public:
     DenseMatrixPolicy Yn_;
     DenseMatrixPolicy forcing_;
+    Scalar<Bool> is_nan_;
+    Scalar<Bool> is_inf_;
+    Scalar<Bool> is_converged_;
 
     BackwardEulerTemporaryVariables() = default;
     BackwardEulerTemporaryVariables(const BackwardEulerTemporaryVariables& other) = default;

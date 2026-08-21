@@ -21,6 +21,7 @@ jobs:
         dockerfile:
           - Dockerfile
           - Dockerfile.coverage
+          - Dockerfile.kokkos.serial
           - Dockerfile.memcheck
           - Dockerfile.nvhpc
           - Dockerfile.openmp
@@ -41,11 +42,11 @@ jobs:
       - name: Run tests in container
         # only run this if we are not running coverage tests or have built the cuda files
         if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
-        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+        run: docker run --name test-container -t micm bash -c 'ctest --rerun-failed --output-on-failure -j8'
 
       - name: Run coverage tests in container
         if: matrix.dockerfile == 'Dockerfile.coverage'
-        run: docker run --name test-container -t micm bash -c 'make coverage'
+        run: docker run --name test-container -t micm bash -c 'ninja coverage'
 
       - name: Copy coverage from container
         if: matrix.dockerfile == 'Dockerfile.coverage'

@@ -9,6 +9,17 @@
   #error "MICM_USE_SINGLE and MICM_USE_DOUBLE are mutually exclusive"
 #endif
 
+#ifdef MICM_USE_KOKKOS
+  #include <Kokkos_Macros.hpp>
+  #define MICM_LAMBDA          KOKKOS_LAMBDA
+  #define MICM_DEVICE_FUNCTION KOKKOS_INLINE_FUNCTION
+  #define MICM_INLINE_DEVICE_FUNCTION KOKKOS_INLINE_FUNCTION
+#else
+  #define MICM_LAMBDA [=]
+  #define MICM_DEVICE_FUNCTION
+  #define MICM_INLINE_DEVICE_FUNCTION inline
+#endif
+
 namespace micm
 {
 
@@ -26,9 +37,24 @@ namespace micm
 
   using Index = std::size_t;
 
-  // Boolean stored as a single byte.  Used in place of bool wherever a contiguous array of flags is
-  // needed: std::vector<bool> is a bit-packed specialization, so it offers no data() pointer to hand
+  // Boolean stored as a single byte.  Used in place of Bool wherever a contiguous array of flags is
+  // needed: std::vector<Bool> is a bit-packed specialization, so it offers no data() pointer to hand
   // to a CUDA memcpy or to index from device code.
   using Bool = std::uint8_t;
+
+  /// @brief A device-compatible struct for holding three indices
+  struct IndexTrio
+  {
+    Index first_;
+    Index second_;
+    Index third_;
+  };
+
+  /// @brief A device-compatible struct for holding pairs of indices
+  struct IndexPair
+  {
+    Index first_;
+    Index second_;
+  };
 
 }  // namespace micm

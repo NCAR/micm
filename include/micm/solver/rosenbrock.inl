@@ -1,15 +1,17 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/reducers.hpp>
 #include <micm/util/types.hpp>
 
 namespace micm
 {
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class StatePolicy>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::Solve(
       Real time_step,
-      auto& state,
+      StatePolicy& state,
       const RosenbrockSolverParameters& parameters) const noexcept
   {
     using DenseMatrixPolicy = decltype(state.variables_);
@@ -17,13 +19,17 @@ namespace micm
 
     SolverResult result{};
     result.state_ = SolverState::Running;
-    auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
+    DenseMatrixPolicy& Y = state.variables_;  // Y will hold the new solution at the end of the solve
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    auto& Ynew = derived_class_temporary_variables->Ynew_;
-    auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
-    auto& K = derived_class_temporary_variables->K_;
-    auto& Yerror = derived_class_temporary_variables->Yerror_;
+    DenseMatrixPolicy& Ynew = derived_class_temporary_variables->Ynew_;
+    DenseMatrixPolicy& initial_forcing = derived_class_temporary_variables->initial_forcing_;
+    std::vector<DenseMatrixPolicy>& K = derived_class_temporary_variables->K_;
+    DenseMatrixPolicy& Yerror = derived_class_temporary_variables->Yerror_;
+    auto& current_c_over_h = derived_class_temporary_variables->current_c_over_h_;
+    auto& error = derived_class_temporary_variables->error_;
+    auto& diagonal = state.views_.upper_left_identity_diagonal_;
+
     const Real h_min = parameters.h_min_ == 0.0 ? DEFAULT_H_MIN * time_step : parameters.h_min_;
     const Real h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
     const Real h_start = parameters.h_start_ == 0.0 ? DEFAULT_H_START * time_step : std::min(h_max, parameters.h_start_);
@@ -34,8 +40,6 @@ namespace micm
     // Declared here so they remain in scope for the solver loop below (captured by reference by mass_coupling).
     // std::function gives mass_coupling a concrete, nameable type; the closure type returned by
     // DenseMatrixPolicy::Function() is anonymous and cannot be named directly.
-    Real current_c_over_h = 0.0;
-    const auto& diagonal = state.upper_left_identity_diagonal_;
     std::function<void(DenseMatrixPolicy&, DenseMatrixPolicy&)> mass_coupling;
 
     // Initialize algebraic constraint variables and pre-build the mass-coupling function.
@@ -43,8 +47,9 @@ namespace micm
     if (has_constraints)
     {
       mass_coupling = DenseMatrixPolicy::Function(
-          [&current_c_over_h, &diagonal](auto&& k_stage_view, auto&& k_j_view)
-          {
+          MICM_LAMBDA(
+              const typename DenseMatrixPolicy::ViewType& k_stage_view,
+              const typename DenseMatrixPolicy::ConstViewType& k_j_view) {
             for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
             {
               if (diagonal[i_var] != 0.0)
@@ -163,7 +168,7 @@ namespace micm
           }
           for (Index j = 0; j < stage; ++j)
           {
-            const Real c_over_h = parameters.c_[stage_combinations + j] / H;
+            Real c_over_h = parameters.c_[stage_combinations + j] / H;
             if (!has_constraints)
             {
               K[stage].Axpy(c_over_h, K[j]);
@@ -174,6 +179,7 @@ namespace micm
               // For ODE variables (diagonal = 1), accumulate c/H * K[j].
               // For algebraic variables (diagonal = 0), the coupling is zero.
               current_c_over_h = c_over_h;
+              current_c_over_h.CopyToDevice();
               mass_coupling(K[stage], K[j]);
             }
           }
@@ -218,7 +224,7 @@ namespace micm
         }
 
         // Compute the normalized error
-        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
+        static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state, error);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         Real fac = std::min(
@@ -298,20 +304,20 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class StatePolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::AlphaMinusJacobian(
-      auto& state,
+      StatePolicy& state,
       const Real& alpha) const
   {
     // Form [alpha * M - J] by scaling diagonal updates with the mass matrix diagonal.
     // ODE rows have M[i][i]=1 and get +alpha; algebraic rows have M[i][i]=0 and get no alpha shift.
+    auto& views = state.views_;
     SparseMatrixPolicy::Function(
-        [alpha, &state](auto&& jacobian_view)
-        {
+        MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
           Index i_diag = 0;
-          for (const auto& i_elem : state.jacobian_diagonal_elements_)
+          for (const auto& i_elem : views.jacobian_diagonal_elements_)
           {
-            const Real scaled_alpha = alpha * state.upper_left_identity_diagonal_[i_diag++];
+            const Real scaled_alpha = alpha * views.upper_left_identity_diagonal_[i_diag++];
             jacobian_view.ForEachBlock(
                 [scaled_alpha](Real& diag) { diag += scaled_alpha; }, jacobian_view.GetBlockView(i_elem));
           }
@@ -320,10 +326,11 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class StatePolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::LinearFactor(
       const Real alpha,
       SolverStats& stats,
-      auto& state) const
+      StatePolicy& state) const
   {
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
@@ -342,35 +349,42 @@ namespace micm
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
-  template<class DenseMatrixPolicy>
-  inline Real AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
+  template<class DenseMatrixPolicy, class StatePolicy>
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors,
-      auto& state) const
+      const StatePolicy& state,
+      typename DenseMatrixPolicy::template ScalarType<Real>& error) const
   {
+    using SumType = typename DenseMatrixPolicy::template SumType<Real>;
+
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-    const auto& atol = state.absolute_tolerance_;
+    const auto& atol = std::as_const(state.absolute_tolerance_).GetView();
     const auto& rtol = state.relative_tolerance_;
     const Index n_vars = Y.NumColumns();
     const Index n_cells = Y.NumRows();
 
-    Real error = 0;
+    error = 0;
+    error.CopyToDevice();
 
     DenseMatrixPolicy::Function(
-        [&](const auto&& y_view, const auto&& ynew_view, const auto&& errors_view)
-        {
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ConstViewType& y_view,
+            const typename DenseMatrixPolicy::ConstViewType& ynew_view,
+            const typename DenseMatrixPolicy::ConstViewType& errors_view) {
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
             // skip padding rows so their possibly non-zero values
             // do not end up in the normalized error.
-            y_view.ForEachRowStrict(
-                [&](const Real& y, const Real& ynew, const Real& var_error)
+            y_view.ReduceStrict(
+                SumType{ error },
+                [&](const Real& y, const Real& ynew, const Real& var_error, Real& acc)
                 {
-                  Real ymax = std::max(std::abs(y), std::abs(ynew));
+                  Real ymax = (std::abs(y) > std::abs(ynew) ? std::abs(y) : std::abs(ynew));
                   Real errors_over_scale = var_error / (atol[i_var % n_vars] + rtol * ymax);
-                  error += errors_over_scale * errors_over_scale;
+                  acc += errors_over_scale * errors_over_scale;
                 },
                 y_view.GetConstColumnView(i_var),
                 ynew_view.GetConstColumnView(i_var),
@@ -380,83 +394,84 @@ namespace micm
         Y,
         Ynew,
         errors)(Y, Ynew, errors);
+    error.CopyToHost();
     constexpr Real error_min = 1.0e-10;
     const Index N = std::max<Index>(1, Y.NumRows() * Y.NumColumns());
 
-    return std::max(std::sqrt(error / N), error_min);
+    error = std::max(std::sqrt(error / N), error_min);
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
+  template<class StatePolicy>
   inline SolverState
   AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy, Derived>::InitializeConstraints(
-      auto& state,
+      StatePolicy& state,
       const RosenbrockSolverParameters& parameters,
       SolverStats& stats) const noexcept
   {
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
+    using LOrType = typename DenseMatrixPolicy::LOrType;
+    using MaxType = typename DenseMatrixPolicy::template MaxType<Real>;
 
     auto& Y = state.variables_;
+    auto& diagonal = state.views_.upper_left_identity_diagonal_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
     // Reuse initial_forcing_ as the residual/delta workspace
     auto& delta = derived_class_temporary_variables->initial_forcing_;
-
-    const auto& diagonal = state.upper_left_identity_diagonal_;
-    Real max_residual = 0;
-    bool nan_detected = false;
-    bool inf_detected = false;
+    auto& max_residual = derived_class_temporary_variables->max_residual_;
+    auto& nan_detected = derived_class_temporary_variables->nan_detected_;
+    auto& inf_detected = derived_class_temporary_variables->inf_detected_;
 
     // Pre-build reusable Function objects outside the iteration loop
     auto check_convergence = DenseMatrixPolicy::Function(
-        [&max_residual, &nan_detected, &inf_detected, &diagonal](auto&& delta_view)
-        {
+        MICM_LAMBDA(const typename DenseMatrixPolicy::ConstViewType& delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
             if (diagonal[i_var] == 0.0)
             {
-              delta_view.ForEachRow(
-                  [&](const Real& val)
+              auto col_view = delta_view.GetConstColumnView(i_var);
+              delta_view.ReduceStrict(
+                  LOrType{ nan_detected }, [](const Real& val, Bool& acc) { acc = acc || std::isnan(val); }, col_view);
+
+              delta_view.ReduceStrict(
+                  LOrType{ inf_detected }, [](const Real& val, Bool& acc) { acc = acc || std::isinf(val); }, col_view);
+
+              // exclude padded cells incase they are non-zero
+              delta_view.ReduceStrict(
+                  MaxType{ max_residual },
+                  [](const Real& val, Real& acc)
                   {
                     Real abs_val = std::abs(val);
-                    if (std::isnan(abs_val))
+                    if (!std::isnan(abs_val) && !std::isinf(abs_val))
                     {
-                      nan_detected = true;
-                    }
-                    else if (std::isinf(abs_val))
-                    {
-                      inf_detected = true;
-                    }
-                    else
-                    {
-                      max_residual = std::max(max_residual, abs_val);
+                      acc = (acc > abs_val ? acc : abs_val);
                     }
                   },
-                  delta_view.GetConstColumnView(i_var));
+                  col_view);
             }
           }
         },
         delta);
 
     auto apply_update = DenseMatrixPolicy::Function(
-        [&nan_detected, &inf_detected, &diagonal](auto&& y_view, auto&& delta_view)
-        {
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ViewType& y_view,
+            const typename DenseMatrixPolicy::ConstViewType& delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
             if (diagonal[i_var] == 0.0)
             {
+              auto d_col_view = delta_view.GetConstColumnView(i_var);
+              y_view.ReduceStrict(
+                  LOrType{ nan_detected }, [](const Real& d_val, Bool& acc) { acc = acc || std::isnan(d_val); }, d_col_view);
+              y_view.ReduceStrict(
+                  LOrType{ inf_detected }, [](const Real& d_val, Bool& acc) { acc = acc || std::isinf(d_val); }, d_col_view);
               y_view.ForEachRow(
                   [&](Real& y_val, const Real& d_val)
                   {
-                    if (std::isnan(d_val))
-                    {
-                      nan_detected = true;
-                    }
-                    else if (std::isinf(d_val))
-                    {
-                      inf_detected = true;
-                    }
-                    else
+                    if (!std::isnan(d_val) && !std::isinf(d_val))
                     {
                       y_val += d_val;
                     }
@@ -479,7 +494,13 @@ namespace micm
       max_residual = 0;
       nan_detected = false;
       inf_detected = false;
+      max_residual.CopyToDevice();
+      nan_detected.CopyToDevice();
+      inf_detected.CopyToDevice();
       check_convergence(delta);
+      max_residual.CopyToHost();
+      nan_detected.CopyToHost();
+      inf_detected.CopyToHost();
 
       if (nan_detected)
       {
@@ -532,7 +553,13 @@ namespace micm
       // 7. Apply update only to algebraic variables
       nan_detected = false;
       inf_detected = false;
+      max_residual.CopyToDevice();
+      nan_detected.CopyToDevice();
+      inf_detected.CopyToDevice();
       apply_update(Y, delta);
+      max_residual.CopyToHost();
+      nan_detected.CopyToHost();
+      inf_detected.CopyToHost();
 
       if (nan_detected)
       {

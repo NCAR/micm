@@ -200,6 +200,10 @@ void TestSimpleSystem(
         CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   std::vector<micm::Real> times;
   times.push_back(0);
   for (micm::Index i_time = 1; i_time < NSTEPS; ++i_time)
@@ -210,6 +214,10 @@ void TestSimpleSystem(
     auto result = solver.Solve(time_step, state);
     postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
       // Rate constants are compared relatively, not against the concentration tolerance: they range
@@ -332,6 +340,10 @@ void TestSimpleStiffSystem(
         CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   std::vector<micm::Real> times;
   times.push_back(0);
   for (micm::Index i_time = 1; i_time < NSTEPS; ++i_time)
@@ -342,6 +354,10 @@ void TestSimpleStiffSystem(
     auto result = solver.Solve(time_step, state);
     postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a1] + state.variables_[i][_a2];
@@ -1459,12 +1475,17 @@ void TestAnalyticalRobertson(
   micm::Real current_time = 0.0;
   std::vector<micm::Real> times;
   times.push_back(0);
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
     micm::Real delta_t = target_time - current_time;
     times.push_back(target_time);
     prepare_for_solve(state);
+
     // Model results
     micm::Real actual_solve = 0;
     while (actual_solve < delta_t)
@@ -1472,6 +1493,8 @@ void TestAnalyticalRobertson(
       auto result = solver.Solve(delta_t - actual_solve, state);
       actual_solve += result.stats_.final_time_;
     }
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
     current_time = target_time;
@@ -1713,6 +1736,10 @@ void TestAnalyticalOregonator(
   state.SetCustomRateParameter("r5", k5_const);
 
   state.variables_[0] = model_concentrations[0];
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
@@ -1735,6 +1762,10 @@ void TestAnalyticalOregonator(
       actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     model_concentrations[i_time + 1] = state.variables_[0];
   }
 
@@ -1916,6 +1947,10 @@ void TestAnalyticalHires(
   state.SetCustomRateParameter("r9", 280.0);
 
   state.variables_[0] = model_concentrations[0];
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
@@ -1936,6 +1971,10 @@ void TestAnalyticalHires(
       actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     model_concentrations[i_time + 1] = state.variables_[0];
     time_step += 100;
   }
@@ -2081,6 +2120,10 @@ void TestAnalyticalE5(
   state.SetCustomRateParameter("r4", 1.13e3);
 
   state.variables_[0] = model_concentrations[0];
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
@@ -2100,6 +2143,10 @@ void TestAnalyticalE5(
       actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     model_concentrations[i_time + 1] = state.variables_[0];
     current_time = target_time;
     target_time *= 100;

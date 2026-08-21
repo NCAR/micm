@@ -26,3 +26,8 @@ set_target_properties(micm_bench PROPERTIES
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   target_link_libraries(micm_bench PRIVATE micm_cuda)
 endif()
+
+if(MICM_ENABLE_KOKKOS)
+  target_link_libraries(micm_bench PRIVATE micm_kokkos)
+  target_compile_definitions(micm_bench PRIVATE MICM_USE_KOKKOS)
+endif()

@@ -73,24 +73,33 @@ void CheckIsConverged()
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };
   DenseMatrixPolicy Yn1{ 4, 3, 0.0 };
+  typename DenseMatrixPolicy::template ScalarType<micm::Bool> is_converged;
 
   parameters.small_ = 1e-6;
   micm::Real relative_tolerance = 1e-3;
-  std::vector<micm::Real> absolute_tolerance = { 1e-6, 1e-6, 1e-6 };
+  typename DenseMatrixPolicy::template VectorType<micm::Real> absolute_tolerance_data = { 1e-6, 1e-6, 1e-6 };
+  auto absolute_tolerance = std::as_const(absolute_tolerance_data).GetView();
 
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
   residual[0][1] = 1e-5;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_FALSE(is_converged);
   parameters.small_ = 1e-4;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
   residual[3][2] = 1e-3;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_FALSE(is_converged);
   Yn1[3][2] = 10.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
   residual[3][2] = 1e-1;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
-  absolute_tolerance[2] = 1.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_FALSE(is_converged);
+  absolute_tolerance_data[2] = 1.0;
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
 }
 
 TEST(BackwardEuler, IsConverged)

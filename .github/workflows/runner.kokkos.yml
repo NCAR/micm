@@ -1,0 +1,107 @@
+name: Designated GPU Runner for Kokkos Solvers
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  kokkos_tests:
+    runs-on:
+      group: CIRRUS-4x16-gpu
+    container:
+      image: nvcr.io/nvidia/nvhpc:26.5-devel-cuda_multi-ubuntu24.04
+      options: --gpus all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so gh-pages branch is available
+
+      - name: Mark workspace as git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install dependencies
+        # No valgrind. This job charts wall-clock time only. Callgrind counts
+        # host CPU instructions and cannot see GPU kernels.
+        run: |
+           apt update
+           apt install -y cmake g++ python3 pip ninja-build
+
+      - name: Run Cmake
+        # MICM_ENABLE_BENCHMARK defaults to OFF; the Build step needs it on.
+        run: cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE86=ON -DMICM_ENABLE_BENCHMARK=ON
+
+      - name: Build
+        run: cmake --build build --parallel 6
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10
+
+      # The Kokkos backend registers no standard ordering, so name the vector ones.
+      #
+      # Write to a file, then convert. This container runs steps under `sh -e`,
+      # which has no pipefail, so a pipeline would hide a script failure.
+      - name: Benchmark the Kokkos backend (chapman)
+        run: |
+          scripts/bench_micm.sh build 10000 30 kokkos in-place mozart chapman \
+            vector1 vector2 vector4 vector8 vector128 > kokkos_timing.txt
+          python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            < kokkos_timing.txt > kokkos_timing.json
+
+      # This workflow measures the CIRRUS a10 GPU runner. benchmark-charts.yml measures
+      # ubuntu-latest. The two machines keep separate series and separate directories, so
+      # neither one compares against the other, and the two pushes to gh-pages cannot collide.
+
+      - name: Store timing results (chapman)
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing (Kokkos backend)
+          tool: customSmallerIsBetter
+          output-file-path: kokkos_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/kokkos/timing
+
+      # ts1 runs after the chapman series is stored, so a ts1 failure cannot
+      # stop the chapman chart from updating.
+      - name: Benchmark the Kokkos backend (ts1)
+        run: |
+          scripts/bench_micm.sh build 10000 30 kokkos in-place mozart ts1 \
+            vector1 vector2 vector4 vector8 vector128 > kokkos_ts1_timing.txt
+          python3 scripts/to_benchmark_json.py --unit ms --value-type float \
+            < kokkos_ts1_timing.txt > kokkos_ts1_timing.json
+
+      - name: Store timing results (ts1)
+        if: github.event_name == 'push'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Timing (Kokkos backend)
+          tool: customSmallerIsBetter
+          output-file-path: kokkos_ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          benchmark-data-dir-path: dev/bench/kokkos/timing
+
+      - name: Save PR number for benchmark comment workflow
+        run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
+
+      - name: Upload benchmark outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: micm-bench
+          path: |
+            kokkos_timing.json
+            kokkos_timing.txt
+            kokkos_ts1_timing.json
+            kokkos_ts1_timing.txt
+            pr-number.txt

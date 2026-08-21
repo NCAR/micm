@@ -25,13 +25,15 @@ namespace micm
    private:
     using SolverParametersType = typename SolverPolicy::ParametersType;
     using DenseMatrixType = typename StatePolicy::DenseMatrixPolicyType;
+    using RateConstantStore = ReactionRateConstantStore<DenseMatrixType>;
 
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>
+    std::vector<
+        std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>
         update_state_parameters_functions_;
-    ReactionRateConstantStore store_;
+    RateConstantStore store_;
     std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
 
    public:
@@ -58,7 +60,8 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+        const std::vector<
+            std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>&
             update_state_parameters_functions)
         : solver_(std::move(solver)),
           state_parameters_(std::move(state_parameters)),
@@ -66,7 +69,7 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
-          store_(ReactionRateConstantStore::BuildFrom(processes_))
+          store_(RateConstantStore::BuildFrom(processes_))
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
       {
@@ -80,7 +83,8 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system,
-        const std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixType&)>>&
+        const std::vector<
+            std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>&
             update_state_parameters_functions,
         const std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>&
             initialize_constraint_parameters_functions)
@@ -90,7 +94,7 @@ namespace micm
           processes_(std::move(processes)),
           system_(std::move(system)),
           update_state_parameters_functions_(update_state_parameters_functions),
-          store_(ReactionRateConstantStore::BuildFrom(processes_)),
+          store_(RateConstantStore::BuildFrom(processes_)),
           initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
@@ -200,7 +204,7 @@ namespace micm
       return processes_;
     }
 
-    const ReactionRateConstantStore& GetRateConstantStore() const
+    const RateConstantStore& GetRateConstantStore() const
     {
       return store_;
     }
@@ -219,6 +223,17 @@ namespace micm
         update_func(state.conditions_, state.custom_rate_parameters_);
       }
 
+      // Update constraint parameters (e.g. temperature-dependent K_eq) directly from
+      // the solver's own constraints_ member — avoids the dangling-this issue that
+      // arises when a lambda capturing the builder-local ConstraintSet is registered
+      // in update_state_parameters_functions_.
+      if constexpr (requires {
+                      solver_.constraints_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
+                    })
+      {
+        solver_.constraints_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
+      }
+
       // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
       // GpuCalculateRateConstants; otherwise use the CPU path.
       if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })
@@ -227,8 +242,7 @@ namespace micm
       }
       else
       {
-        ReactionRateConstantStore::EvaluateCpuRateConstants(store_, state);
-        ReactionRateConstantStore::CpuCalculateRateConstants(store_, state);
+        RateConstantStore::CalculateRateConstants(store_, state);
       }
     }
 
@@ -256,23 +270,25 @@ namespace micm
           "Lambda rate constant with name '" + name + "' not found in any process");
     }
 
-   private:
     /// @brief Clamp state variables to non-negative after a solve
     ///        For DAE systems, only ODE variables are clamped; algebraic variables are left unclamped
     void PostSolveClamp(StatePolicy& state)
     {
       if (state.constraint_size_ > 0)
       {
-        for (Index i_cell = 0; i_cell < state.variables_.NumRows(); ++i_cell)
-        {
-          for (Index i_var = 0; i_var < state.variables_.NumColumns(); ++i_var)
-          {
-            if (state.upper_left_identity_diagonal_[i_var] > 0.0)
-            {
-              state.variables_[i_cell][i_var] = std::max<Real>(0.0, state.variables_[i_cell][i_var]);
-            }
-          }
-        }
+        auto& views = state.views_;
+        Index n_vars = state.variables_.NumColumns();
+        DenseMatrixType::Function(
+            MICM_LAMBDA(const typename DenseMatrixType::ViewType& var_view) {
+              for (Index i_var = 0; i_var < n_vars; ++i_var)
+              {
+                if (views.upper_left_identity_diagonal_[i_var] > 0.0)
+                {
+                  var_view.ForEachRow([=](Real& y) { y = (y > 0.0 ? y : 0.0); }, var_view.GetColumnView(i_var));
+                }
+              }
+            },
+            state.variables_)(state.variables_);
       }
       else
       {

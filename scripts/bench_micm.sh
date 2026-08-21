@@ -15,7 +15,7 @@
 #   BUILD_DIR    = build
 #   CELLS        = 10000
 #   STEPS        = 30
-#   BACKEND      = cpu (other option: gpu)
+#   BACKEND      = cpu (other options: gpu|kokkos)
 #   LU_TYPE      = in-place (other option: separate)
 #   LU_ALGORITHM = mozart (other option: doolittle)
 #   MECHANISM    = chapman (other option: ts1)

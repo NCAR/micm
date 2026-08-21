@@ -1,0 +1,224 @@
+#include "../../solver/test_rosenbrock_solver_policy.hpp"
+
+#include <micm/constraint/constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/kokkos/solver/kokkos_solver_builder.hpp>
+#include <micm/kokkos/util/kokkos_dense_matrix.hpp>
+#include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
+#include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
+#include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
+#include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
+
+#include <iomanip>
+#include <type_traits>
+
+// In this Test, the elements in the same array are different;
+// thus the calculated RMSE will change when the size of the array changes.
+template<class SolverBuilderPolicy>
+void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_grid_cells)
+{
+  builder = GetSolver(builder);
+  auto solver = builder.Build();
+  auto state = solver.GetState(number_of_grid_cells);
+  const auto& atol = state.absolute_tolerance_;
+  micm::Real rtol = state.relative_tolerance_;
+
+  using MatrixPolicy = decltype(state.variables_);
+  auto y_old = MatrixPolicy(number_of_grid_cells, state.state_size_, 7.7);
+  auto y_new = MatrixPolicy(number_of_grid_cells, state.state_size_, -13.9);
+  auto errors = MatrixPolicy(number_of_grid_cells, state.state_size_, 81.57);
+
+  micm::Real expected_error = 0.0;
+  for (micm::Index i = 0; i < number_of_grid_cells; ++i)
+  {
+    for (micm::Index j = 0; j < state.state_size_; ++j)
+    {
+      y_old[i][j] = y_old[i][j] * i + j;
+      y_new[i][j] = y_new[i][j] / (j + 1) - i;
+      errors[i][j] = errors[i][j] / (i + 7) / (j + 3);
+      micm::Real ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      micm::Real scale = atol[j] + rtol * ymax;
+      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
+    }
+  }
+  micm::Real error_min_ = 1.0e-10;
+  expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
+
+  typename MatrixPolicy::template ScalarType<micm::Real> computed_error;
+  y_old.CopyToDevice();
+  y_new.CopyToDevice();
+  errors.CopyToDevice();
+  state.absolute_tolerance_.CopyToDevice();
+  solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
+
+  auto relative_error =
+      std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
+
+  if (relative_error > ((std::is_same_v<micm::Real, double>) ? 1.e-11 : 1.e-4))
+  {
+    std::cout << "computed_error: " << std::setprecision(12) << computed_error << std::endl;
+    std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
+    std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl;
+    throw std::runtime_error("Fail to match computed_error and expected_error.\n");
+  }
+}
+
+template<class SolverBuilderPolicy>
+void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::Index number_of_grid_cells)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A, B, C } };
+  micm::Process reaction = micm::ChemicalReactionBuilder()
+                               .SetReactants({ A })
+                               .SetProducts({ micm::StoichSpecies(B, 1) })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0.0, .C_ = 0.0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+
+  using DenseMatrix = SolverBuilderPolicy::DenseMatrixPolicyType;
+  using SparseMatrix = SolverBuilderPolicy::SparseMatrixPolicyType;
+  std::vector<micm::Constraint<DenseMatrix, SparseMatrix>> constraints;
+  constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, SparseMatrix>(
+      "B_C_eq",
+      C,
+      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
+      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
+      { .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
+
+  auto solver = builder.SetSystem(micm::System(gas_phase))
+                    .SetReactions({ reaction })
+                    .SetConstraints(std::move(constraints))
+                    .SetReorderState(false)
+                    .Build();
+  auto state = solver.GetState(number_of_grid_cells);
+
+  ASSERT_EQ(state.constraint_size_, 1);
+
+  using MatrixPolicy = decltype(state.variables_);
+  MatrixPolicy y_old(number_of_grid_cells, state.state_size_, 0.0);
+  MatrixPolicy y_new(number_of_grid_cells, state.state_size_, 0.0);
+  MatrixPolicy errors(number_of_grid_cells, state.state_size_, 0.0);
+
+  micm::Real expected_error = 0.0;
+  const auto& atol = state.absolute_tolerance_;
+  const auto& rtol = state.relative_tolerance_;
+
+  for (micm::Index i = 0; i < number_of_grid_cells; ++i)
+  {
+    for (micm::Index j = 0; j < state.state_size_; ++j)
+    {
+      y_old[i][j] = 1.0 + i + 0.1 * j;
+      y_new[i][j] = 0.8 + 0.5 * i + 0.2 * j;
+      errors[i][j] = 0.01 * (1 + i + j);
+
+      const micm::Real ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      const micm::Real scale = atol[j] + rtol * ymax;
+      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
+    }
+  }
+
+  expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
+  expected_error = std::max<micm::Real>(expected_error, 1.0e-10);
+
+  typename MatrixPolicy::template ScalarType<micm::Real> computed_error;
+  y_old.CopyToDevice();
+  y_new.CopyToDevice();
+  errors.CopyToDevice();
+  state.absolute_tolerance_.CopyToDevice();
+
+  solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
+  EXPECT_NEAR(computed_error, expected_error, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-4);
+}
+
+template<micm::Index L>
+using VectorBuilder = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters, L>;
+
+TEST(RosenbrockSolver, VectorAlphaMinusJacobian)
+{
+  TestAlphaMinusJacobian(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestAlphaMinusJacobian(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+  TestAlphaMinusJacobian(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestAlphaMinusJacobian(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+}
+
+TEST(RosenbrockSolver, CanSetTolerances)
+{
+  auto foo = micm::Species("foo");
+  auto bar = micm::Species("bar");
+
+  foo.SetProperty("absolute tolerance", micm::Real{ 1.0e-07 });
+  bar.SetProperty("absolute tolerance", micm::Real{ 1.0e-08 });
+
+  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ foo, bar } };
+
+  micm::Process r1 = micm::ChemicalReactionBuilder()
+                         .SetReactants({ foo })
+                         .SetProducts({ micm::StoichSpecies(bar, 1) })
+                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 })
+                         .SetPhase(gas_phase)
+                         .Build();
+
+  for (micm::Index number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
+  {
+    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                      .SetSystem(micm::System(gas_phase))
+                      .SetReactions(std::vector<micm::Process>{ r1 })
+                      .Build();
+    auto state = solver.GetState(number_of_grid_cells);
+    auto absolute_tolerances = state.absolute_tolerance_;
+    EXPECT_EQ(absolute_tolerances.size(), 2);
+    EXPECT_REAL_EQ(absolute_tolerances[0], 1.0e-07);
+    EXPECT_REAL_EQ(absolute_tolerances[1], 1.0e-08);
+  }
+}
+
+TEST(RosenbrockSolver, VectorNormalizedError)
+{
+  // Exact fits
+  TestNormalizedErrorDiff(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+
+  // Inexact fits
+  TestNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  TestNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  TestNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+  TestNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+}
+
+TEST(RosenbrockSolver, VectorNormalizedErrorWithConstraints)
+{
+  TestNormalizedErrorIncludesAllVariables(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 3);
+  TestNormalizedErrorIncludesAllVariables(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  TestNormalizedErrorIncludesAllVariables(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 3);
+  TestNormalizedErrorIncludesAllVariables(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 3);
+  TestNormalizedErrorIncludesAllVariables(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 3);
+
+  TestNormalizedErrorIncludesAllVariables(
+      VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
+}

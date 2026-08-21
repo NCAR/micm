@@ -32,22 +32,58 @@ namespace micm
   /// necessarily match that of the LU matrices. There can be more nonzero elements in the LU matrices
   /// than in the jacobian. It is expected that the elements of the L and U matrices that are zero in the A matrix
   /// will be set to zero before the combined matrix is passed to the decomposition function.
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
   class LuDecompositionDoolittleInPlace
   {
+    using SparseMatrix = SparseMatrixPolicy;
+    template<class U>
+    using Vector = typename SparseMatrix::template VectorType<U>;
+    template<class U>
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
+   public:
+    struct Views
+    {
+      VectorView<IndexTrio> nik_nki_aii_;
+      VectorView<IndexPair> aik_njk_;
+      VectorView<IndexPair> aij_ajk_;
+      VectorView<IndexPair> aki_nji_;
+      VectorView<IndexPair> akj_aji_;
+
+      Views() = default;
+
+      Views(
+          const Vector<IndexTrio>& nik_nki_aii,
+          const Vector<IndexPair>& aik_njk,
+          const Vector<IndexPair>& aij_ajk,
+          const Vector<IndexPair>& aki_nji,
+          const Vector<IndexPair>& akj_aji)
+          : nik_nki_aii_(nik_nki_aii.GetView()),
+            aik_njk_(aik_njk.GetView()),
+            aij_ajk_(aij_ajk.GetView()),
+            aki_nji_(aki_nji.GetView()),
+            akj_aji_(akj_aji.GetView())
+      {
+      }
+    };
+
    protected:
     /// Number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// and the index in A.data_ for A[i][i] for each iteration of the outer (i) loop
-    std::vector<std::tuple<Index, Index, Index>> nik_nki_aii_;
+    Vector<IndexTrio> nik_nki_aii_;
     /// Index in A.data_ for A[i][k] for each iteration of the upper middle (k) loop and the
     /// number of elements in the inner (j) loop for each upper (k) element used to set A[i][k]
-    std::vector<std::pair<Index, Index>> aik_njk_;
+    Vector<IndexPair> aik_njk_;
     /// Index in A.data_ for A[i][j] and A[j][k] for each iteration of the upper inner (j) loop
-    std::vector<std::pair<Index, Index>> aij_ajk_;
+    Vector<IndexPair> aij_ajk_;
     /// Index in A.data_ for A[k][i] for each iteration of the lower middle (k) loop, the
     /// number of elements in the inner (j) loop for each lower (k) element used to set A[k][i]
-    std::vector<std::pair<Index, Index>> aki_nji_;
+    Vector<IndexPair> aki_nji_;
     /// Index in A.data_ for A[k][j] and A[j][i] for each iteration of the lower inner (j) loop
-    std::vector<std::pair<Index, Index>> akj_aji_;
+    Vector<IndexPair> akj_aji_;
+    /// MICM_LAMBDA compatible views for index vectors
+    Views views_;
 
    public:
     /// @brief default constructor
@@ -56,28 +92,22 @@ namespace micm
     LuDecompositionDoolittleInPlace(const LuDecompositionDoolittleInPlace&) = delete;
     LuDecompositionDoolittleInPlace& operator=(const LuDecompositionDoolittleInPlace&) = delete;
 
-    LuDecompositionDoolittleInPlace(LuDecompositionDoolittleInPlace&& other) = default;
-    LuDecompositionDoolittleInPlace& operator=(LuDecompositionDoolittleInPlace&&) = default;
+    LuDecompositionDoolittleInPlace(LuDecompositionDoolittleInPlace&& other) noexcept;
+    LuDecompositionDoolittleInPlace& operator=(LuDecompositionDoolittleInPlace&&) noexcept;
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     LuDecompositionDoolittleInPlace(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionDoolittleInPlace() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static LuDecompositionDoolittleInPlace Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static SparseMatrixPolicy GetLUMatrix(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
@@ -87,14 +117,11 @@ namespace micm
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    template<class SparseMatrixPolicy>
     void Decompose(SparseMatrixPolicy& ALU) const;
 
    protected:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 

@@ -18,6 +18,9 @@
 #ifdef MICM_USE_CUDA
   #include <micm/GPU.hpp>
 #endif
+#ifdef MICM_USE_KOKKOS
+  #include <micm/Kokkos.hpp>
+#endif
 
 #include <chrono>
 #include <map>
@@ -138,6 +141,11 @@ namespace bench
     auto solver = Mechanism::Build(SolverBuilderPolicy(options));
     auto state = solver.GetState(config.num_cells_);
     Mechanism::InitState(state, config.num_cells_);
+    // For Kokkos, copy inputs to device (no-op for CPU solvers)
+    state.variables_.CopyToDevice();
+    state.custom_rate_parameters_.CopyToDevice();
+    state.conditions_.CopyToDevice();
+    // For Kokkos, UpdateStateParameters runs on device with copied over custom_rate_parameters_
     solver.UpdateStateParameters(state);
     // For CUDA, copy the information to the device
     if constexpr (requires { state.SyncInputsToDevice(); })
@@ -157,10 +165,14 @@ namespace bench
   template<micm::Index L>
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
-  using DooLU = micm::LuDecompositionDoolittle;
-  using DooLUInPlace = micm::LuDecompositionDoolittleInPlace;
-  using MozLU = micm::LuDecompositionMozart;
-  using MozLUInPlace = micm::LuDecompositionMozartInPlace;
+  template<class SM>
+  using DooLU = micm::LuDecompositionDoolittle<SM>;
+  template<class SM>
+  using DooLUInPlace = micm::LuDecompositionDoolittleInPlace<SM>;
+  template<class SM>
+  using MozLU = micm::LuDecompositionMozart<SM>;
+  template<class SM>
+  using MozLUInPlace = micm::LuDecompositionMozartInPlace<SM>;
 
   template<class DM, class SM, class LU>
   using CpuRosen = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DM, SM, LU>;
@@ -170,6 +182,10 @@ namespace bench
   template<micm::Index L>
   using CudaRosen = micm::CudaSolverBuilderInPlace<micm::RosenbrockSolverParameters, L>;
 #endif
+#ifdef MICM_USE_KOKKOS
+  template<micm::Index L>
+  using KokkosRosen = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters, L>;
+#endif
 
   /// @brief Register the four CPU LU combinations for one matrix ordering.
   template<class Mechanism, class DM, class SM>
@@ -177,15 +193,16 @@ namespace bench
   {
     const std::string mechanism{ Mechanism::kName };
     registry[Key(mechanism, "cpu", matrix, "in-place", "mozart")] =
-        &RunCase<Mechanism, CpuRosenInPlace<DM, SM, MozLUInPlace>>;
+        &RunCase<Mechanism, CpuRosenInPlace<DM, SM, MozLUInPlace<SM>>>;
     registry[Key(mechanism, "cpu", matrix, "in-place", "doolittle")] =
-        &RunCase<Mechanism, CpuRosenInPlace<DM, SM, DooLUInPlace>>;
-    registry[Key(mechanism, "cpu", matrix, "separate", "mozart")] = &RunCase<Mechanism, CpuRosen<DM, SM, MozLU>>;
-    registry[Key(mechanism, "cpu", matrix, "separate", "doolittle")] = &RunCase<Mechanism, CpuRosen<DM, SM, DooLU>>;
+        &RunCase<Mechanism, CpuRosenInPlace<DM, SM, DooLUInPlace<SM>>>;
+    registry[Key(mechanism, "cpu", matrix, "separate", "mozart")] = &RunCase<Mechanism, CpuRosen<DM, SM, MozLU<SM>>>;
+    registry[Key(mechanism, "cpu", matrix, "separate", "doolittle")] = &RunCase<Mechanism, CpuRosen<DM, SM, DooLU<SM>>>;
   }
 
   /// @brief Register every configuration that a single vector width supports.
-  ///        The GPU backend only supports the in-place Mozart LU.
+  ///        The CUDA backend only supports the in-place Mozart LU.
+  ///        Kokkos backend supports all LU types, but we just include Mozart LU to cut down on build times
   template<class Mechanism, micm::Index L>
   void RegisterVector(Registry& registry)
   {
@@ -193,6 +210,9 @@ namespace bench
     RegisterCpu<Mechanism, VectorDense<L>, VectorSparse<L>>(registry, matrix);
 #ifdef MICM_USE_CUDA
     registry[Key(std::string{ Mechanism::kName }, "gpu", matrix, "in-place", "mozart")] = &RunCase<Mechanism, CudaRosen<L>>;
+#endif
+#ifdef MICM_USE_KOKKOS
+    registry[Key(std::string{ Mechanism::kName }, "kokkos", matrix, "in-place", "mozart")] = &RunCase<Mechanism, KokkosRosen<L>>;
 #endif
   }
 

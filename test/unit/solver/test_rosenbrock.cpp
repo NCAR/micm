@@ -24,7 +24,7 @@ void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_
   builder = GetSolver(builder);
   auto solver = builder.Build();
   auto state = solver.GetState(number_of_grid_cells);
-  const std::vector<micm::Real>& atol = state.absolute_tolerance_;
+  const auto& atol = state.absolute_tolerance_;
   micm::Real rtol = state.relative_tolerance_;
 
   using MatrixPolicy = decltype(state.variables_);
@@ -48,7 +48,8 @@ void TestNormalizedErrorDiff(SolverBuilderPolicy builder, micm::Index number_of_
   micm::Real error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
-  micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  typename MatrixPolicy::template ScalarType<micm::Real> computed_error;
+  solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
@@ -77,13 +78,15 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
                                .SetPhase(gas_phase)
                                .Build();
 
-  std::vector<micm::Constraint> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint(
+  using DenseMatrix = SolverBuilderPolicy::DenseMatrixPolicyType;
+  using SparseMatrix = SolverBuilderPolicy::SparseMatrixPolicyType;
+  std::vector<micm::Constraint<DenseMatrix, SparseMatrix>> constraints;
+  constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, SparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
-      micm::VantHoffParam{ .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
 
   auto solver = builder.SetSystem(micm::System(gas_phase))
                     .SetReactions({ reaction })
@@ -120,7 +123,8 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
   expected_error = std::sqrt(expected_error / (number_of_grid_cells * state.state_size_));
   expected_error = std::max<micm::Real>(expected_error, 1.0e-10);
 
-  const micm::Real computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
+  typename MatrixPolicy::template ScalarType<micm::Real> computed_error;
+  solver.solver_.NormalizedError(y_old, y_new, errors, state, computed_error);
   EXPECT_NEAR(computed_error, expected_error, (std::is_same_v<micm::Real, double>) ? 1e-12 : 1e-4);
 }
 

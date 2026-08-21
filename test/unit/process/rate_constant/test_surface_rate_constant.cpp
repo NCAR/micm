@@ -6,6 +6,7 @@
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -79,7 +80,7 @@ TEST(SurfaceRateConstant, DiffusionCoefficientIsMissing)
 
   try
   {
-    auto store = ReactionRateConstantStore::BuildFrom(processes);
+    auto store = ReactionRateConstantStore<Matrix<Real>>::BuildFrom(processes);
     FAIL() << "Expected MicmException to be thrown";
   }
   catch (const micm::MicmException& e)
@@ -103,7 +104,7 @@ TEST(SurfaceRateConstant, MolecularWeightIsMissing)
 
   try
   {
-    auto store = ReactionRateConstantStore::BuildFrom(processes);
+    auto store = ReactionRateConstantStore<Matrix<Real>>::BuildFrom(processes);
     FAIL() << "Expected MicmException to be thrown";
   }
   catch (const micm::MicmException& e)

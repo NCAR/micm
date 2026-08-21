@@ -92,44 +92,41 @@ void TestAnalyticalSurfaceRxn(
   micm::Real time_step = 0.1 / k1;  // s
   micm::Index nstep = 10;
 
-  std::vector<std::vector<micm::Real>> model_conc(nstep + 1, std::vector<micm::Real>(3));
-  // Reference always in double, whatever the solver's working precision -- see TestSimpleSystem.
-  std::vector<std::vector<double>> analytic_conc(nstep + 1, std::vector<double>(3));
-
-  model_conc[0] = { conc_foo, 0, 0 };
-  analytic_conc[0] = { conc_foo, 0, 0 };
-
-  micm::Index idx_foo = 0, idx_bar = 1, idx_baz = 2;
+  micm::Index idx_foo = state.variable_map_.at("foo");
+  micm::Index idx_bar = state.variable_map_.at("bar");
+  micm::Index idx_baz = state.variable_map_.at("baz");
 
   for (micm::Index i = 1; i <= nstep; ++i)
   {
     micm::Real elapsed_solve_time = 0;
-    solver.UpdateStateParameters(state);
 
     prepare_for_solve(state);
+    state.variables_.CopyToDevice();
+    state.conditions_.CopyToDevice();
+    state.custom_rate_parameters_.CopyToDevice();
+    solver.UpdateStateParameters(state);
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
     postpare_for_solve(state);
     elapsed_solve_time = result.stats_.final_time_;
-    ;
 
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
 
     // Check surface reaction rate calculation
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
 
-    model_conc[i] = state.variables_.AsVector();
-
     const double t = i * time_step;
-    analytic_conc[i][idx_foo] = (double)conc_foo * std::exp(-(double)k1 * t);
-    analytic_conc[i][idx_bar] = (double)bar_yield * (1.0 - analytic_conc[i][idx_foo]);
-    analytic_conc[i][idx_baz] = (double)baz_yield * (1.0 - analytic_conc[i][idx_foo]);
+    const double curr_foo = (double)conc_foo * std::exp(-(double)k1 * t);
+    const double curr_bar = (double)bar_yield * (1.0 - curr_foo);
+    const double curr_baz = (double)baz_yield * (1.0 - curr_foo);
 
     // Check concentrations. The requested relative tolerance is floored at the working precision:
     // the default 1e-7 sits below float epsilon (1.2e-7), so a float build was being asked for
     // sub-ULP agreement.
-    EXPECT_REAL_REL(model_conc[i][idx_foo], analytic_conc[i][idx_foo], tolerance);
-    EXPECT_REAL_REL(model_conc[i][idx_bar], analytic_conc[i][idx_bar], tolerance);
-    EXPECT_REAL_REL(model_conc[i][idx_baz], analytic_conc[i][idx_baz], tolerance);
+    EXPECT_REAL_REL(state.variables_[0][idx_foo], curr_foo, tolerance);
+    EXPECT_REAL_REL(state.variables_[0][idx_bar], curr_bar, tolerance);
+    EXPECT_REAL_REL(state.variables_[0][idx_baz], curr_baz, tolerance);
   }
 }

@@ -3,6 +3,8 @@
 #pragma once
 
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/reducers.hpp>
+#include <micm/util/scalar_view.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
@@ -67,6 +69,28 @@ namespace micm
     using IntMatrix = SparseMatrix<int, OrderingPolicy>;
     using value_type = T;
 
+    /// @brief Alias for the ordering policy's BlockVariable type
+    using BlockVariable = typename OrderingPolicy::template BlockVariable<T>;
+
+    /// @brief Alias for the ordering policy's ConstGroupView type
+    using ConstGroupView = typename OrderingPolicy::template ConstGroupView<SparseMatrix>;
+
+    /// @brief Alias for the ordering policy's GroupView type
+    using GroupView = typename OrderingPolicy::template GroupView<SparseMatrix>;
+
+    using ViewType = GroupView;
+    using ConstViewType = ConstGroupView;
+    template<class VecT>
+    using VectorType = typename OrderingPolicy::template VectorType<VecT>;
+    template<class ScaT>
+    using ScalarType = ScalarView<ScaT>;
+    template<class U>
+    using SumType = micm::Sum<U>;
+    template<class U>
+    using MaxType = micm::Max<U>;
+    using LOrType = micm::LOr;
+    using LAndType = micm::LAnd;
+
     /// @brief A lightweight descriptor for a const block element in a sparse matrix
     class ConstBlockView
     {
@@ -96,7 +120,7 @@ namespace micm
     class BlockView
     {
       friend class SparseMatrix;
-      SparseMatrix* matrix_;
+      mutable SparseMatrix* matrix_;
       Index elem_position_;  // The nth non-zero element position (0-based)
 
       explicit BlockView(SparseMatrix* matrix, Index elem_position)
@@ -111,20 +135,11 @@ namespace micm
       {
         return elem_position_;
       }
-      SparseMatrix* GetMatrix()
+      SparseMatrix* GetMatrix() const
       {
         return matrix_;
       }
     };
-
-    /// @brief Alias for the ordering policy's BlockVariable type
-    using BlockVariable = typename OrderingPolicy::template BlockVariable<T>;
-
-    /// @brief Alias for the ordering policy's ConstGroupView type
-    using ConstGroupView = typename OrderingPolicy::template ConstGroupView<SparseMatrix>;
-
-    /// @brief Alias for the ordering policy's GroupView type
-    using GroupView = typename OrderingPolicy::template GroupView<SparseMatrix>;
 
    protected:
     Index number_of_blocks_;                       // Number of block sub-matrices in the overall matrix
@@ -273,6 +288,8 @@ namespace micm
       return *this;
     }
 
+    virtual ~SparseMatrix() = default;
+
     std::vector<Index> DiagonalIndices(const Index block_id) const
     {
       return OrderingPolicy::DiagonalIndices(number_of_blocks_, block_id);
@@ -335,6 +352,30 @@ namespace micm
     void Fill(T val)
     {
       std::fill(data_.begin(), data_.end(), val);
+    }
+
+    /// @brief No-op host-to-device sync hook.
+    ///
+    /// GPU-backed matrix policies (e.g. KokkosSparseMatrix, CudaSparseMatrix)
+    /// override this to copy host data to a device mirror. Defined here as a
+    /// no-op so shared MatrixPolicy tests and solver code can call it
+    /// unconditionally regardless of which matrix policy is in use.
+    void CopyToDevice() const
+    {
+    }
+
+    /// @brief No-op device-to-host sync hook. See CopyToDevice().
+    void CopyToHost() const
+    {
+    }
+
+    /// @brief Creates a scalar usable with this matrix type in Function lambda captures
+    /// @param init initial value for scalar
+    /// @return scalar usable in Function() lambda captures
+    template<class ScaT>
+    ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
+    {
+      return ScalarType<ScaT>(init);
     }
 
     ConstProxyRow operator[](Index b) const
@@ -410,46 +451,20 @@ namespace micm
     /// @return A ConstBlockView descriptor
     ConstBlockView GetConstBlockView(Index vector_index) const
     {
-      Index elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
-      return ConstBlockView(this, elem_position);
-    }
-
-    /// @brief Create a const block view for accessing a block element
-    /// @param row The row index of the block element
-    /// @param col The column index of the block element
-    /// @return A ConstBlockView descriptor
-    ConstBlockView GetConstBlockView(Index row, Index col) const
-    {
-      assert(row < block_size_ && col < block_size_ && "block element out of range");
-      assert(!this->IsZero(row, col) && "cannot create view for zero block element");
-      Index vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
       return ConstBlockView(this, vector_index);
     }
 
     /// @brief Create a mutable block view for accessing the nth non-zero element
     /// @param vector_index The data array index from VectorIndex(0, row, col) for the element
     /// @return A BlockView descriptor
-    BlockView GetBlockView(Index vector_index)
+    BlockView GetBlockView(Index vector_index) const
     {
-      Index elem_position = OrderingPolicy::ElementPositionFromVectorIndex(vector_index);
-      return BlockView(this, elem_position);
-    }
-
-    /// @brief Create a mutable block view for accessing a block element
-    /// @param row The row index of the block element
-    /// @param col The column index of the block element
-    /// @return A BlockView descriptor
-    BlockView GetBlockView(Index row, Index col)
-    {
-      assert(row < block_size_ && col < block_size_ && "block element out of range");
-      assert(!this->IsZero(row, col) && "cannot create view for zero block element");
-      Index vector_index = OrderingPolicy::VectorIndexFromRowColumn(row, col);
       return BlockView(this, vector_index);
     }
 
     /// @brief Get a block variable with persistent storage for temporary values
     /// @return A BlockVariable with stack-allocated storage
-    BlockVariable GetBlockVariable()
+    BlockVariable GetBlockVariable() const
     {
       return BlockVariable();
     }
@@ -460,7 +475,7 @@ namespace micm
     /// @param func The function to apply to each block
     /// @param args Block views or block variables
     template<typename Func, typename... Args>
-    void ForEachBlock(Func&& func, Args&&... args)
+    void ForEachBlock(Func&& func, Args&&... args) const
     {
       for (Index block = 0; block < number_of_blocks_; ++block)
       {
@@ -614,10 +629,10 @@ namespace micm
               {
                 using ArgType = std::remove_reference_t<decltype(arg)>;
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
-                if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
+                if constexpr (PaddedVectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: just forward it
-                  return std::forward<decltype(arg)>(arg);
+                  // Vector: get a lightweight view (View or ConstView)
+                  return std::forward<decltype(arg)>(arg).GetView();
                 }
                 else
                 {

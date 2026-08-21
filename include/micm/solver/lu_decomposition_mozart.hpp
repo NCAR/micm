@@ -51,37 +51,90 @@ namespace micm
   /// to the LU matrix. This value is implicitly zero when the sparsity pattern differs. The Fill values
   /// here do this implicit assignment
   /// More detail in this issue: https://github.com/NCAR/micm/issues/625
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
   class LuDecompositionMozart
   {
+    using SparseMatrix = SparseMatrixPolicy;
+    template<class U>
+    using Vector = typename SparseMatrix::template VectorType<U>;
+    template<class U>
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+    template<class U>
+    using Scalar = typename SparseMatrix::template ScalarType<U>;
+
+   public:
+    struct Views
+    {
+      VectorView<IndexTrio> lii_nuji_nlji_;
+      VectorView<IndexPair> uji_aji_;
+      VectorView<IndexPair> lji_aji_;
+      VectorView<Index> fill_uji_;
+      VectorView<Index> fill_lji_;
+      VectorView<IndexTrio> uii_nj_nk_;
+      VectorView<Index> lji_;
+      VectorView<IndexTrio> nujk_nljk_uik_;
+      VectorView<IndexPair> ujk_lji_;
+      VectorView<IndexPair> ljk_lji_;
+
+      Views() = default;
+
+      Views(
+          const Vector<IndexTrio>& lii_nuji_nlji,
+          const Vector<IndexPair>& uji_aji,
+          const Vector<IndexPair>& lji_aji,
+          const Vector<Index>& fill_uji,
+          const Vector<Index>& fill_lji,
+          const Vector<IndexTrio>& uii_nj_nk,
+          const Vector<Index>& lji,
+          const Vector<IndexTrio>& nujk_nljk_uik,
+          const Vector<IndexPair>& ujk_lji,
+          const Vector<IndexPair>& ljk_lji)
+          : lii_nuji_nlji_(lii_nuji_nlji.GetView()),
+            uji_aji_(uji_aji.GetView()),
+            lji_aji_(lji_aji.GetView()),
+            fill_uji_(fill_uji.GetView()),
+            fill_lji_(fill_lji.GetView()),
+            uii_nj_nk_(uii_nj_nk.GetView()),
+            lji_(lji.GetView()),
+            nujk_nljk_uik_(nujk_nljk_uik.GetView()),
+            ujk_lji_(ujk_lji.GetView()),
+            ljk_lji_(ljk_lji.GetView())
+      {
+      }
+    };
+
    protected:
     /// Index in L.data_ for all diagonal elements, and number of iterations of the middle (j) loops
     /// used to set the initial value for the L and U matrices
-    std::vector<std::tuple<Index, Index, Index>> lii_nuji_nlji_;
+    Vector<IndexTrio> lii_nuji_nlji_;
     /// Index in U.data_ and A.data_ for U[j][i] and A[j][i] for each iteration of the inner (j) loop
     /// used to set the initial value for the U matrix
-    std::vector<std::pair<Index, Index>> uji_aji_;
+    Vector<IndexPair> uji_aji_;
     /// Index in L.data_ and A.data_ for L[j][i] and A[j][i] for each iteration of the inner (j) loop
     /// used to set the initial value for the L matrix
-    std::vector<std::pair<Index, Index>> lji_aji_;
+    Vector<IndexPair> lji_aji_;
     /// Index in U.data_ for each non-zero element in U that is zero in A
-    std::vector<Index> fill_uji_;
+    Vector<Index> fill_uji_;
     /// Index in L.data_ for each non-zero element in L that is zero in A
-    std::vector<Index> fill_lji_;
+    Vector<Index> fill_lji_;
     /// Index in U.data_ for U[i][i] and the number of elements in the middle (j) and (k) loops
     /// for each iteration of the outer (i) loop
-    std::vector<std::tuple<Index, Index, Index>> uii_nj_nk_;
+    Vector<IndexTrio> uii_nj_nk_;
     /// Index in L.data_ for L[j][i] for each iteration of the middle (j) loop
     /// for the lower triangular matrix
-    std::vector<Index> lji_;
+    Vector<Index> lji_;
     /// Number of elements in the inner (j) loops for each iteration of the middle (k) loop for the
     /// upper and lower triangular matrices, and the index in U.data_ for U[j][k] for each iteration
-    std::vector<std::tuple<Index, Index, Index>> nujk_nljk_uik_;
+    Vector<IndexTrio> nujk_nljk_uik_;
     /// Index in U.data_ for U[j][k] and in L.data_ for L[j][i]
     /// for each iteration of the inner (j) loop for the upper triangular matrix
-    std::vector<std::pair<Index, Index>> ujk_lji_;
+    Vector<IndexPair> ujk_lji_;
     /// Index in L.data_ for L[j][k] and in L.data_ for L[j][i]
     /// for each iteration of the inner (j) loop for the lower triangular matrix
-    std::vector<std::pair<Index, Index>> ljk_lji_;
+    Vector<IndexPair> ljk_lji_;
+    /// MICM_LAMBDA compatible views for index vectors
+    Views views_;
 
    public:
     /// @brief default constructor
@@ -90,28 +143,22 @@ namespace micm
     LuDecompositionMozart(const LuDecompositionMozart&) = delete;
     LuDecompositionMozart& operator=(const LuDecompositionMozart&) = delete;
 
-    LuDecompositionMozart(LuDecompositionMozart&& other) = default;
-    LuDecompositionMozart& operator=(LuDecompositionMozart&&) = default;
+    LuDecompositionMozart(LuDecompositionMozart&& other) noexcept;
+    LuDecompositionMozart& operator=(LuDecompositionMozart&&) noexcept;
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     LuDecompositionMozart(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionMozart() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static LuDecompositionMozart Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value,
@@ -121,14 +168,11 @@ namespace micm
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    template<class SparseMatrixPolicy>
-    void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
+    void Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const;
 
    private:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy>
-      requires(SparseMatrixConcept<SparseMatrixPolicy>)
     void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 

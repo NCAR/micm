@@ -1,6 +1,7 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/reducers.hpp>
 #include <micm/util/types.hpp>
 
 namespace micm
@@ -8,7 +9,7 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::Solve(
       Real time_step,
-      auto& state,
+      StatePolicy& state,
       const BackwardEulerSolverParameters& parameters) const
   {
     // A fully implicit euler implementation is given by the following equation:
@@ -22,6 +23,7 @@ namespace micm
 
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
+    using LOrType = typename DenseMatrixPolicy::LOrType;
 
     SolverResult result;
 
@@ -35,9 +37,12 @@ namespace micm
 
     auto derived_class_temporary_variables =
         static_cast<BackwardEulerTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    auto& Yn = derived_class_temporary_variables->Yn_;
-    auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
-    auto& forcing = derived_class_temporary_variables->forcing_;
+    DenseMatrixPolicy& Yn = derived_class_temporary_variables->Yn_;
+    DenseMatrixPolicy& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
+    DenseMatrixPolicy& forcing = derived_class_temporary_variables->forcing_;
+    auto& is_nan = derived_class_temporary_variables->is_nan_;
+    auto& is_inf = derived_class_temporary_variables->is_inf_;
+    auto& is_converged = derived_class_temporary_variables->is_converged_;
 
     // Ensure Yn starts with the same values as the state variables
     Yn.Copy(Yn1);
@@ -45,7 +50,7 @@ namespace micm
     while (present_time < time_step)
     {
       result.state_ = SolverState::Running;
-      bool converged = false;
+      is_converged = false;
       Index iterations = 0;
 
       do
@@ -84,7 +89,7 @@ namespace micm
         // forcing_blk in camchem
         // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
-        forcing.ForEach([&](Real& f, const Real& yn1, const Real& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
+        forcing.ForEach(MICM_LAMBDA(Real & f, const Real& yn1, const Real& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
@@ -101,7 +106,7 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        Yn1.ForEach([&](Real& yn1, const Real& f) { yn1 = std::max<Real>(0.0, yn1 + f); }, forcing);
+        Yn1.ForEach(MICM_LAMBDA(Real & yn1, const Real& f) { yn1 = (0.0 > yn1 + f ? 0.0 : yn1 + f); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
@@ -110,10 +115,10 @@ namespace micm
         }
 
         // check for convergence
-        converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
-      } while (!converged && iterations < max_iter);
+        IsConverged(parameters, forcing, Yn1, state.views_.absolute_tolerance_, state.relative_tolerance_, is_converged);
+      } while (!is_converged && iterations < max_iter);
 
-      if (!converged)
+      if (!is_converged)
       {
         result.stats_.rejected_++;
         n_successful_integrations = 0;
@@ -125,17 +130,36 @@ namespace micm
           // non-finite concentrations under a "success" status. Only reached once the solver has
           // already exhausted its step-size reductions, so this scan costs nothing in the happy path.
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
-          for (const auto& y : Yn1.AsVector())
+          is_nan = false;
+          is_inf = false;
+          is_nan.CopyToDevice();
+          is_inf.CopyToDevice();
+          const Index n_vars = Yn1.NumColumns();
+          DenseMatrixPolicy::Function(
+              MICM_LAMBDA(const typename DenseMatrixPolicy::ConstViewType& y_view) {
+                for (Index i_var = 0; i_var < n_vars; ++i_var)
+                {
+                  y_view.Reduce(
+                      LOrType{ is_nan },
+                      [](const Real& y_val, Bool& acc) { acc = acc || std::isnan(y_val); },
+                      y_view.GetConstColumnView(i_var));
+                  y_view.Reduce(
+                      LOrType{ is_inf },
+                      [](const Real& y_val, Bool& acc) { acc = acc || std::isinf(y_val); },
+                      y_view.GetConstColumnView(i_var));
+                }
+              },
+              Yn1)(Yn1);
+          is_nan.CopyToHost();
+          is_inf.CopyToHost();
+          if (is_nan)
           {
-            if (std::isnan(y))
-            {
-              result.state_ = SolverState::NaNDetected;
-              break;
-            }
-            if (std::isinf(y))
-            {
-              result.state_ = SolverState::InfDetected;
-            }
+            result.state_ = SolverState::NaNDetected;
+            break;
+          }
+          if (is_inf)
+          {
+            result.state_ = SolverState::InfDetected;
           }
           break;
         }
@@ -169,48 +193,54 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   template<class DenseMatrixPolicy>
-  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
+  inline void AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
-      const std::vector<Real>& absolute_tolerance,
-      Real relative_tolerance)
+      const typename DenseMatrixPolicy::template VectorType<Real>::ConstViewType& absolute_tolerance,
+      const Real relative_tolerance,
+      typename DenseMatrixPolicy::template ScalarType<Bool>& is_converged)
   {
+    using LAndType = typename DenseMatrixPolicy::LAndType;
     const Index n_vars = absolute_tolerance.size();
-    bool retval = true;
+    const Real small = parameters.small_;
+    const Real& rel_tol = relative_tolerance;
+    is_converged = true;
+    is_converged.CopyToDevice();
+    // Capture a lightweight device view of absolute_tolerance to avoid copying
+    // the full KokkosPaddedVector (which contains a std::vector) into the device kernel.
+    const auto& abs_tol_view = absolute_tolerance;
     DenseMatrixPolicy::Function(
-        [&](const auto&& residual_view, const auto&& Yn1_view)
-        {
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ConstViewType& residual_view,
+            const typename DenseMatrixPolicy::ConstViewType& Yn1_view) {
           for (Index i_var = 0; i_var < n_vars; ++i_var)
           {
-            const Real var_abs_tol = absolute_tolerance[i_var];
-            residual_view.ForEachRow(
-                [&](const Real& residual, const Real& Yn1)
+            const Real var_abs_tol = abs_tol_view[i_var];
+            residual_view.ReduceStrict(
+                LAndType{ is_converged },
+                [=](const Real& residual, const Real& Yn1, Bool& acc)
                 {
                   // A non-finite residual is never converged. Without this check an infinite residual escapes
                   // the test below, because the relative bound rel_tol * |Yn1| is itself infinite and
                   // inf > inf is false -- a blown-up solve would then be reported as SolverState::Converged.
                   if (!std::isfinite(residual))
                   {
-                    retval = false;
+                    acc = false;
                     return;
                   }
-                  if (std::abs(residual) > parameters.small_ && std::abs(residual) > var_abs_tol &&
-                      std::abs(residual) > relative_tolerance * std::abs(Yn1))
+                  if (std::abs(residual) > small && std::abs(residual) > var_abs_tol &&
+                      std::abs(residual) > rel_tol * std::abs(Yn1))
                   {
-                    retval = false;
+                    acc = false;
                   }
                 },
                 residual_view.GetConstColumnView(i_var),
                 Yn1_view.GetConstColumnView(i_var));
-            if (!retval)
-            {
-              return;
-            }
           }
         },
         residual,
         Yn1)(residual, Yn1);
-    return retval;
+    is_converged.CopyToHost();
   }
 }  // namespace micm

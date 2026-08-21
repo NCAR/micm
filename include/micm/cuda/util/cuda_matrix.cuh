@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/cuda/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/types.hpp>
 
 #include <cuda_runtime.h>
@@ -51,6 +52,22 @@ namespace micm::cuda
   /// @returns Error code from copying to device from the host, if any
   template<typename T>
   cudaError_t CopyToDevice(CudaMatrixParam& param, const std::vector<T>& h_data);
+
+  /// @brief Copies data from the host to the device
+  /// @param param Struct containing allocated device memory
+  /// @param h_data Host data to copy from
+  /// @returns Error code from copying to device from the host, if any
+  template<typename DenseMatrixPolicy, typename T>
+  inline cudaError_t CopyToDevice(CudaMatrixParam& param, const typename DenseMatrixPolicy::template VectorType<T>& h_data)
+  {
+    cudaError_t err = cudaMemcpyAsync(
+        param.d_data_,
+        h_data.data(),
+        sizeof(T) * param.number_of_elements_,
+        cudaMemcpyHostToDevice,
+        CudaStreamSingleton::GetInstance().GetCudaStream(0));
+    return err;
+  }
 
   /// @brief Copies data from the device to the host
   /// @param param Struct containing allocated device memory

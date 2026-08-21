@@ -6,6 +6,7 @@ RUN dnf -y update \
         gcc-c++ \
         git \
         make \
+        ninja-build \
         openmpi-devel \
     && dnf clean all
 
@@ -16,9 +17,10 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake  \
+        -G Ninja \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_OPENMP:BOOL=TRUE \
         ../micm \
-      && make install -j 8
+      && ninja install -j 8
 
 WORKDIR /build

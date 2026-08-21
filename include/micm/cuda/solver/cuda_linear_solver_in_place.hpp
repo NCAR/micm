@@ -10,7 +10,10 @@
 
 namespace micm
 {
-  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace>
+  template<
+      class MatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy = CudaLuDecompositionMozartInPlace<SparseMatrixPolicy>>
   class CudaLinearSolverInPlace : public LinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
@@ -73,7 +76,7 @@ namespace micm
       hoststruct.Uij_xj_size_ = this->Uij_xj_.size();
 
       /// Create the ALU matrix with all the fill-ins for the non-zero values
-      auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(matrix, 0, true);
+      auto ALU = LuDecompositionPolicy::GetLUMatrix(matrix, 0, true);
       hoststruct.number_of_non_zeros_ = ALU.GroupSize() / SparseMatrixPolicy::GroupVectorSize();
 
       /// Copy the data from host struct to device struct

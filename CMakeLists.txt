@@ -30,6 +30,7 @@ option(MICM_ENABLE_MPI "Enable MPI parallel support" OFF)
 option(MICM_ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
+option(MICM_ENABLE_KOKKOS "Enable Kokkos support" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 # The benchmark carries the whole TS1 mechanism and registers no ctest. Only the

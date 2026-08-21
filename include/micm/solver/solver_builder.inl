@@ -252,6 +252,7 @@ namespace micm
     constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {
       m.CopyToDevice();
       m.CopyToHost();
+      m.AsDeviceParam();
     };
     if constexpr (is_cuda_policy)
     {
@@ -337,7 +338,9 @@ namespace micm
 
     // Create vector of functions to update external model state parameters
     // (compiled after all params are added to params_map — see below)
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
+    std::vector<
+        std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>>
+        update_state_param_funcs;
 
     // Build constraint set
     ConstraintSetPolicy constraint_set;
@@ -470,7 +473,7 @@ namespace micm
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
+      auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian, 0, true);
       jacobian = std::move(lu);
     }
 
@@ -509,11 +512,6 @@ namespace micm
       // and custom parameters.
       constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
       constraint_set.SetExternalModelConstraintFunctions(params_map, species_map, jacobian);
-
-      // Add functions that update state parameters when temperature changes
-      auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
-      update_state_param_funcs.insert(
-          update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
 
       // Collect constraint parameter initialization functions
       auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();

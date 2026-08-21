@@ -55,7 +55,7 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::vector<Constraint> constraints_;
+    std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints_;
 
     std::vector<ExternalModelSystem> external_systems_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
@@ -101,7 +101,7 @@ namespace micm
     /// @brief Set algebraic constraints for DAE solving
     /// @param constraints Vector of constraints
     /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints)
+    SolverBuilder& SetConstraints(std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>>&& constraints)
     {
       constraints_ = std::move(constraints);
       return *this;
@@ -225,7 +225,7 @@ namespace micm
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<Real>,
       class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition>
+      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -244,7 +244,7 @@ namespace micm
       class SolverParametersPolicy,
       class DenseMatrix = Matrix<Real>,
       class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecompositionInPlace>
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   using CpuSolverBuilderInPlace = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrix,

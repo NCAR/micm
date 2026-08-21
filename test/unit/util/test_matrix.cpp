@@ -281,11 +281,6 @@ TEST(Matrix, FunctionInvocationWithWrongSizedVector)
   TestFunctionInvocationWithWrongSizedVector<micm::Matrix>();
 }
 
-TEST(Matrix, ArraySupport)
-{
-  TestArraySupport<micm::Matrix>();
-}
-
 TEST(Matrix, MixedVectorColumnViewRowVariable)
 {
   TestMixedVectorColumnViewRowVariable<micm::Matrix>();
@@ -309,4 +304,34 @@ TEST(Matrix, TestFill)
 TEST(Matrix, TestCopy)
 {
   TestCopy<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceSum)
+{
+  TestReduceSum<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceMax)
+{
+  TestReduceMax<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceLOr)
+{
+  TestReduceLOr<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceLAnd)
+{
+  TestReduceLAnd<micm::Matrix>();
+}
+
+TEST(Matrix, ReduceStrict)
+{
+  TestReduceStrict<micm::Matrix>();
+}
+
+TEST(Matrix, VectorCapture)
+{
+  TestVectorCapture<micm::Matrix>();
 }

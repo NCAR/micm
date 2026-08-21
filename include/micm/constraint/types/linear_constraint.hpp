@@ -20,9 +20,34 @@ namespace micm
   /// @brief Constraint for linear relationships: sum(coeff[i] * [species[i]]) = constant
   ///        For example: A + B + C = 1.0 represents a conservation law
   ///        The linear constraint is: G = c1*[A] + c2*[B] + c3*[C] - constant = 0
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class LinearConstraint
   {
+    using DenseMatrix = DenseMatrixPolicy;
+    using SparseMatrix = SparseMatrixPolicy;
+    template<class U>
+    using Vector = typename DenseMatrix::template VectorType<U>;
+    template<class U>
+    using VectorView = typename Vector<U>::ConstViewType;
+    template<class U>
+    using Scalar = typename DenseMatrix::template ScalarType<U>;
+
    public:
+    struct Views
+    {
+      VectorView<Index> species_indices_;
+      VectorView<Real> coeffs_;
+      VectorView<Index> flat_ids_;
+
+      Views() = default;
+
+      Views(const Vector<Index>& species_indices, const Vector<Real>& coeffs, const Vector<Index>& flat_ids)
+          : species_indices_(species_indices.GetView()),
+            coeffs_(coeffs.GetView()),
+            flat_ids_(flat_ids.GetView())
+      {
+      }
+    };
     /// @brief Name of the constraint
     std::string name_;
 
@@ -41,8 +66,79 @@ namespace micm
     /// @brief Parameter set (unused for this class, always empty).
     std::vector<std::string> parameters_;
 
+   protected:
+    Vector<Index> species_indices_;
+    Vector<Real> coeffs_;
+    Vector<Index> flat_ids_;
+    Views views_;
+
+   public:
     /// @brief Default constructor
     LinearConstraint() = default;
+
+    LinearConstraint(const LinearConstraint& other)
+        : name_(other.name_),
+          algebraic_species_(other.algebraic_species_),
+          species_dependencies_(other.species_dependencies_),
+          terms_(other.terms_),
+          constant_(other.constant_),
+          parameters_(other.parameters_),
+          species_indices_(other.species_indices_),
+          coeffs_(other.coeffs_),
+          flat_ids_(other.flat_ids_),
+          views_(species_indices_, coeffs_, flat_ids_)
+    {
+    }
+
+    LinearConstraint& operator=(const LinearConstraint& other)
+    {
+      if (this != &other)
+      {
+        name_ = other.name_;
+        algebraic_species_ = other.algebraic_species_;
+        species_dependencies_ = other.species_dependencies_;
+        terms_ = other.terms_;
+        constant_ = other.constant_;
+        parameters_ = other.parameters_;
+        species_indices_ = other.species_indices_;
+        coeffs_ = other.coeffs_;
+        flat_ids_ = other.flat_ids_;
+        views_ = Views(species_indices_, coeffs_, flat_ids_);
+      }
+      return *this;
+    }
+
+    LinearConstraint(LinearConstraint&& other) noexcept
+        : name_(std::move(other.name_)),
+          algebraic_species_(other.algebraic_species_),  // Species is not move constructible
+          species_dependencies_(std::move(other.species_dependencies_)),
+          terms_(std::move(other.terms_)),
+          constant_(other.constant_),
+          parameters_(std::move(other.parameters_)),
+          species_indices_(std::move(other.species_indices_)),
+          coeffs_(std::move(other.coeffs_)),
+          flat_ids_(std::move(other.flat_ids_)),
+          views_(species_indices_, coeffs_, flat_ids_)
+    {
+    }
+
+    LinearConstraint& operator=(LinearConstraint&& other) noexcept
+    {
+      if (this != &other)
+      {
+        name_ = std::move(other.name_);
+        algebraic_species_ = other.algebraic_species_;  // Species is not move assignable
+        species_dependencies_ = std::move(other.species_dependencies_);
+        terms_ = std::move(other.terms_);
+        constant_ = other.constant_;
+        parameters_ = std::move(other.parameters_);
+        species_indices_ = std::move(other.species_indices_);
+        coeffs_ = std::move(other.coeffs_);
+        flat_ids_ = std::move(other.flat_ids_);
+        views_ = Views(species_indices_, coeffs_, flat_ids_);
+      }
+      return *this;
+    }
 
     /// @brief Construct a linear constraint
     ///        Validates that terms are non-empty
@@ -78,127 +174,119 @@ namespace micm
       return algebraic_species_.name_;
     }
 
-    template<typename DenseMatrixPolicy>
-    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
-        const ConstraintInfo& info) const
+    /// @brief Apply constraint parameter update (no-op for linear constraints)
+    ///        Linear constraints have no temperature-dependent parameters.
+    void ApplyConstraintParameter(
+        const ConstraintInfo&,
+        const typename DenseMatrixPolicy::template VectorType<Conditions>&,
+        DenseMatrixPolicy&) const
     {
-      // Linear constraints have no temperature-dependent parameters
-      return [](const std::vector<Conditions>&, DenseMatrixPolicy&)
-      {
-        // No-op: linear constraints don't have runtime parameters to update
-      };
+      // No-op: linear constraints don't have runtime parameters to update
     }
 
-    /// @brief Create a function to compute the linear constraint residual
-    ///        Returns a reusable function object that evaluates:
-    ///        G = sum(coeff[i] * [species[i]]) - constant
-    /// @param info Constraint information including species indices and row index
-    /// @param state_variable_indices Mapping of state variable names to indices
-    /// @param state_parameter_indices Mapping of parameter names to indices (unused for LinearConstraint)
-    /// @return Function object that takes (state_variables, state_parameters, forcing) and computes residual
-    template<typename DenseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ResidualFunction(
-        const ConstraintInfo& info,
-        const auto& state_variable_indices,
-        const auto& state_parameter_indices) const
+    void SetStateIndices(const ConstraintInfo& info, auto& jacobian_flat_ids)
     {
-      DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
-      DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
-
-      // Copy data to avoid issues when ConstraintSet is moved
-      std::vector<Real> coeffs;
-      std::vector<Index> species_indices;
+      std::vector<Real> coeffs_temp;
+      std::vector<Index> species_indices_temp;
       for (Index i = 0; i < this->terms_.size(); ++i)
       {
-        coeffs.push_back(this->terms_[i].coefficient_);
-        species_indices.push_back(info.state_indices_[i]);
+        coeffs_temp.push_back(this->terms_[i].coefficient_);
+        species_indices_temp.push_back(info.state_indices_[i]);
       }
-      Real constant = this->constant_;
-      Index row_idx = info.row_index_;
+      coeffs_ = coeffs_temp;
+      species_indices_ = species_indices_temp;
+      coeffs_.CopyToDevice();
+      species_indices_.CopyToDevice();
 
-      return DenseMatrixPolicy::Function(
-          [coeffs, species_indices, constant, row_idx](auto&& state, auto&& params, auto&& force)
-          {
-            // Create a variable for accumulating the linear sum
-            auto linear_sum = force.GetRowVariable();
+      std::vector<Index> flat_ids_temp;
+      flat_ids_temp.reserve(this->terms_.size());
+      for (Index i = 0; i < this->terms_.size(); ++i)
+      {
+        flat_ids_temp.push_back(*jacobian_flat_ids++);
+      }
+      flat_ids_ = flat_ids_temp;
+      flat_ids_.CopyToDevice();
 
-            // Initialize linear_sum to 0.0 before accumulation
-            state.ForEachRow([](Real& sum) { sum = 0.0; }, linear_sum);
+      views_ = Views(species_indices_, coeffs_, flat_ids_);
+    }
 
-            for (Index i = 0; i < coeffs.size(); ++i)
+    /// @brief Add linear constraint residual G to forcing vector for all grid cells
+    ///        Computes G = sum(coeff[i] * [species[i]]) - constant
+    ///        Called directly from ConstraintSet::AddForcingTerms.
+    void AddResidual(
+        const ConstraintInfo& info,
+        const DenseMatrixPolicy& state,
+        const DenseMatrixPolicy& state_param,
+        DenseMatrixPolicy& forcing) const
+    {
+      using DenseMatrix = DenseMatrixPolicy;
+      using ScalarReal = typename DenseMatrix::template ScalarType<Real>;
+      using ScalarIndex = typename DenseMatrix::template ScalarType<Index>;
+
+      ScalarReal constant = this->constant_;
+      ScalarIndex row_idx = info.row_index_;
+      constant.CopyToDevice();
+      row_idx.CopyToDevice();
+
+      const auto& views = views_;
+
+      DenseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename DenseMatrix::ConstViewType& state_view,
+              const typename DenseMatrix::ConstViewType& params_view,
+              const typename DenseMatrix::ViewType& force_view) {
+            auto linear_sum = force_view.GetRowVariable();
+            state_view.ForEachRow([=](Real& sum) { sum = 0.0; }, linear_sum);
+
+            for (Index i = 0; i < views.coeffs_.size(); ++i)
             {
-              const Real coeff = coeffs[i];
-              const Index species_idx = species_indices[i];
-
-              state.ForEachRow(
-                  [coeff](const Real& conc, Real& sum) { sum += coeff * conc; },
-                  state.GetConstColumnView(species_idx),
+              const Real coeff = views.coeffs_[i];
+              const Index species_idx = views.species_indices_[i];
+              state_view.ForEachRow(
+                  [=](const Real& conc, Real& sum) { sum += coeff * conc; },
+                  state_view.GetConstColumnView(species_idx),
                   linear_sum);
             }
 
-            // Forcing term = sum(coeff[i] * [species[i]]) - constant
-            state.ForEachRow(
-                [constant](const Real& sum_val, Real& forcing_term) { forcing_term = sum_val - constant; },
+            state_view.ForEachRow(
+                [=](const Real& sum_val, Real& forcing_term) { forcing_term = sum_val - constant; },
                 linear_sum,
-                force.GetColumnView(row_idx));
+                force_view.GetColumnView(row_idx));
           },
-          temp_state_variables,
-          temp_state_parameters,
-          temp_state_variables);
+          state,
+          state_param,
+          forcing)(state, state_param, forcing);
     }
 
-    /// @brief Create a function to compute Jacobian entries dG/d[species]
-    ///        For a linear constraint, the Jacobian is simply the coefficients:
-    ///        dG/d[species[i]] = coeff[i]
-    /// @param info Constraint information including species indices
-    /// @param state_variable_indices Mapping of state variable names to indices
-    /// @param state_parameter_indices Mapping of parameter names to indices (unused for LinearConstraint)
-    /// @param jacobian_flat_ids Iterator to this constraint's flat Jacobian indices in shared storage
-    /// @param jacobian Sparse matrix to store Jacobian values
-    /// @return Function object that takes (state_variables, state_parameters, jacobian) and computes partials
-    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+    /// @brief Subtract linear constraint Jacobian terms from Jacobian matrix for all grid cells
+    ///        dG/d[species[i]] = coeff[i], subtracted matching SubtractJacobianTerms convention.
+    ///        Called directly from ConstraintSet::SubtractJacobianTerms.
+    void SubtractJacobian(
         const ConstraintInfo& info,
-        const auto& state_variable_indices,
-        const auto& state_parameter_indices,
-        auto jacobian_flat_ids,
+        const DenseMatrixPolicy& state,
+        const DenseMatrixPolicy& state_param,
         SparseMatrixPolicy& jacobian) const
     {
-      DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
-      DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
+      using DenseMatrix = DenseMatrixPolicy;
+      using SparseMatrix = SparseMatrixPolicy;
 
-      // Pre-compute flat IDs and store them in a vector
-      // This avoids iterator issues when the lambda is called multiple times
-      std::vector<Index> flat_ids;
-      flat_ids.reserve(this->terms_.size());
-      for (Index i = 0; i < this->terms_.size(); ++i)
-      {
-        flat_ids.push_back(*jacobian_flat_ids++);
-      }
+      const auto& views = views_;
 
-      // Copy data to avoid issues when ConstraintSet is moved
-      std::vector<Real> coeffs;
-      coeffs.reserve(this->terms_.size());
-      for (const auto& term : this->terms_)
-      {
-        coeffs.push_back(term.coefficient_);
-      }
-
-      return SparseMatrixPolicy::Function(
-          [coeffs, flat_ids](auto&& state, auto&& params, auto&& jacobian_values)
-          {
-            // For linear constraints, dG/d[species[i]] = coeff[i]
-            // We subtract the coefficient from the Jacobian (matching the SubtractJacobianTerms convention)
-            for (Index i = 0; i < coeffs.size(); ++i)
+      SparseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename DenseMatrix::ConstViewType& state_view,
+              const typename DenseMatrix::ConstViewType& params_view,
+              const typename SparseMatrix::ViewType& jacobian_values) {
+            for (Index i = 0; i < views.coeffs_.size(); ++i)
             {
-              const Real coeff = coeffs[i];
-
-              jacobian_values.ForEachBlock([coeff](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(flat_ids[i]));
+              const Real coeff = views.coeffs_[i];
+              jacobian_values.ForEachBlock(
+                  [=](Real& jac) { jac -= coeff; }, jacobian_values.GetBlockView(views.flat_ids_[i]));
             }
           },
-          temp_state_variables,
-          temp_state_parameters,
-          jacobian);
+          state,
+          state_param,
+          jacobian)(state, state_param, jacobian);
     }
   };
 

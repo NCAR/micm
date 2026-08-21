@@ -17,9 +17,9 @@ namespace micm::cuda
 
     // Local device variables
     const Index* const __restrict__ d_nLij = devstruct.nLij_;
-    const std::pair<Index, Index>* __restrict__ d_Lij_yj = devstruct.Lij_yj_;
-    const std::pair<Index, Index>* const __restrict__ d_nUij_Uii = devstruct.nUij_Uii_;
-    const std::pair<Index, Index>* __restrict__ d_Uij_xj = devstruct.Uij_xj_;
+    const IndexPair* __restrict__ d_Lij_yj = devstruct.Lij_yj_;
+    const IndexPair* const __restrict__ d_nUij_Uii = devstruct.nUij_Uii_;
+    const IndexPair* __restrict__ d_Uij_xj = devstruct.Uij_xj_;
     const Index d_nLij_size = devstruct.nLij_size_;
     const Index d_nUij_Uii_size = devstruct.nUij_Uii_size_;
 
@@ -45,8 +45,8 @@ namespace micm::cuda
           const Index j_lim = d_nLij[i];
           for (Index j = 0; j < j_lim; ++j)
           {
-            const Index d_Lij_yj_first = (*d_Lij_yj).first;
-            const Index d_Lij_yj_second_times_vector_length = (*d_Lij_yj).second * cuda_matrix_vector_length;
+            const Index d_Lij_yj_first = (*d_Lij_yj).first_;
+            const Index d_Lij_yj_second_times_vector_length = (*d_Lij_yj).second_ * cuda_matrix_vector_length;
             auto* d_ALU_ptr = d_ALU + d_Lij_yj_first;
             auto* d_x_ptr = d_x + d_Lij_yj_second_times_vector_length;
             d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
@@ -61,15 +61,15 @@ namespace micm::cuda
         d_y = d_x + x_param.number_of_elements_ / number_of_groups - cuda_matrix_vector_length;
         for (Index i = 0; i < d_nUij_Uii_size; ++i)
         {
-          const Index j_lim = d_nUij_Uii[i].first;
+          const Index j_lim = d_nUij_Uii[i].first_;
           for (Index j = 0; j < j_lim; ++j)
           {
-            auto* d_ALU_ptr = d_ALU + (*d_Uij_xj).first;
-            auto* d_x_ptr = d_x + (*d_Uij_xj).second * cuda_matrix_vector_length;
+            auto* d_ALU_ptr = d_ALU + (*d_Uij_xj).first_;
+            auto* d_x_ptr = d_x + (*d_Uij_xj).second_ * cuda_matrix_vector_length;
             d_y[local_tid] -= d_ALU_ptr[local_tid] * d_x_ptr[local_tid];
             ++d_Uij_xj;
           }
-          auto* d_ALU_ptr = d_ALU + d_nUij_Uii[i].second;
+          auto* d_ALU_ptr = d_ALU + d_nUij_Uii[i].second_;
           d_y[local_tid] /= d_ALU_ptr[local_tid];
           d_y -= cuda_matrix_vector_length;
         }

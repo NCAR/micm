@@ -21,7 +21,8 @@
 #include <vector>
 
 using namespace micm;
-using StandardSparseMatrix = SparseMatrix<micm::Real, SparseMatrixStandardOrdering>;
+using DenseMatrix = Matrix<Real>;
+using StdSparseMatrix = SparseMatrix<micm::Real, SparseMatrixStandardOrdering>;
 
 TEST(EquilibriumConstraint, Construction)
 {
@@ -33,12 +34,12 @@ TEST(EquilibriumConstraint, Construction)
   auto A = Species("A");
   auto B = Species("B");
   auto AB = Species("AB");
-  EquilibriumConstraint constraint(
+  EquilibriumConstraint<DenseMatrix, StdSparseMatrix> constraint(
       "A_B_equilibrium",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "A_B_equilibrium");
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
@@ -57,12 +58,12 @@ TEST(EquilibriumConstraint, AlgebraicSpecies)
   auto A = Species("A");
   auto B = Species("B");
   auto AB = Species("AB");
-  EquilibriumConstraint constraint(
+  EquilibriumConstraint<DenseMatrix, StdSparseMatrix> constraint(
       "A_B_equilibrium",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
 
   EXPECT_EQ(constraint.AlgebraicSpecies(), "AB");
 }
@@ -76,12 +77,12 @@ TEST(EquilibriumConstraint, SingleReactantSingleProduct)
   micm::Real K_eq = 10.0;
   auto A = Species("A");
   auto B = Species("B");
-  EquilibriumConstraint constraint(
+  EquilibriumConstraint<DenseMatrix, StdSparseMatrix> constraint(
       "A_B_simple",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "A_B_simple");
   EXPECT_EQ(constraint.species_dependencies_.size(), 2);
@@ -100,12 +101,12 @@ TEST(EquilibriumConstraint, MultipleReactantsAndProducts)
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
-  EquilibriumConstraint constraint(
+  EquilibriumConstraint<DenseMatrix, StdSparseMatrix> constraint(
       "dissociation",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
+      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 });
 
   EXPECT_EQ(constraint.name_, "dissociation");
   EXPECT_EQ(constraint.species_dependencies_.size(), 3);
@@ -124,21 +125,21 @@ TEST(EquilibriumConstraint, InvalidEquilibriumConstant)
   auto A = Species("A");
   auto B = Species("B");
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-          VantHoffParam{ .K_HLC_ref_ = -1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = -1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-          VantHoffParam{ .K_HLC_ref_ = 0.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 0.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 }
 
@@ -146,12 +147,12 @@ TEST(EquilibriumConstraint, EmptyReactantsThrows)
 {
   auto B = Species("B");
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{},  // empty reactants
           std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-          VantHoffParam{ .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 }
 
@@ -159,12 +160,12 @@ TEST(EquilibriumConstraint, EmptyProductsThrows)
 {
   auto A = Species("A");
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           Species("B"),
           std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
           std::vector<StoichSpecies>{},  // empty products
-          VantHoffParam{ .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 }
 
@@ -175,42 +176,42 @@ TEST(EquilibriumConstraint, InvalidStoichiometryThrows)
 
   // Zero stoichiometry for reactant
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{ StoichSpecies(A, 0.0) },
           std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-          VantHoffParam{ .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 
   // Negative stoichiometry for reactant
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{ StoichSpecies(A, -1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-          VantHoffParam{ .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 
   // Zero stoichiometry for product
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(B, 0.0) },
-          VantHoffParam{ .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 
   // Negative stoichiometry for product
   EXPECT_THROW(
-      EquilibriumConstraint(
+      (EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
           "invalid",
           B,
           std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
           std::vector<StoichSpecies>{ StoichSpecies(B, -2.0) },
-          VantHoffParam{ .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 }),
+          { .K_HLC_ref_ = 1.0, .delta_H_ = -2400.0 })),
       micm::MicmException);
 }
 
@@ -221,29 +222,27 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   // Test: A + B <-> AB with K_eq = 1000
   // Constraint: G = K_eq * [A] * [B] - [AB] = 0
 
-  using DenseMatrix = Matrix<micm::Real>;
-
   auto A = Species("A");
   auto B = Species("B");
   auto AB = Species("AB");
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "A_B_equilibrium",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   micm::Index num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
+  ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  auto builder = StdSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (micm::Index i = 0; i < num_species; ++i)
   {
@@ -254,7 +253,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
     builder = builder.WithElement(elem.first, elem.second);
   }
 
-  StandardSparseMatrix jacobian{ builder };
+  StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_equilibrium", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
@@ -298,29 +297,27 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   // dG/d[B] = K_eq * [A]
   // dG/d[AB] = -1
 
-  using DenseMatrix = Matrix<micm::Real>;
-
   auto A = Species("A");
   auto B = Species("B");
   auto AB = Species("AB");
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "A_B_equilibrium",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
   micm::Index num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
+  ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for Jacobian using builder
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  auto builder = StdSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (micm::Index i = 0; i < num_species; ++i)
   {
@@ -331,7 +328,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
     builder = builder.WithElement(elem.first, elem.second);
   }
 
-  StandardSparseMatrix jacobian{ builder };
+  StdSparseMatrix jacobian{ builder };
 
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_equilibrium", 0 } };
@@ -364,29 +361,27 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   // Test: 2A <-> B + C with K_eq = 100
   // Constraint: G = K_eq * [A]^2 - [B] * [C] = 0
 
-  using DenseMatrix = Matrix<micm::Real>;
-
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "dissociation",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = 100.0, .delta_H_ = -2400.0 }));
+      { .K_HLC_ref_ = 100.0, .delta_H_ = -2400.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
   micm::Index num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
+  ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
   auto non_zero_elements = set.NonZeroJacobianElements();
 
-  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  auto builder = StdSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
 
   for (micm::Index i = 0; i < num_species; ++i)
   {
@@ -397,7 +392,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
     builder = builder.WithElement(elem.first, elem.second);
   }
 
-  StandardSparseMatrix jacobian{ builder };
+  StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "dissociation", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
@@ -425,26 +420,25 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   // A + B <-> AB, K_eq = 1000 (at 298.15 K with delta_H = 0)
   // G = K_eq * [A] * [B] - [AB]
   // dG/dA = K_eq * [B], dG/dB = K_eq * [A], dG/dAB = -1
-  using DenseMatrix = Matrix<micm::Real>;
 
   auto A = Species("A");
   auto B = Species("B");
   auto AB = Species("AB");
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "eq",
       AB,
       std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
       std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = 1000.0, .delta_H_ = 0.0 }));
+      { .K_HLC_ref_ = 1000.0, .delta_H_ = 0.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
   const micm::Index num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
+  ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
-  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  auto builder = StdSparseMatrix::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
   for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
@@ -453,7 +447,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   {
     builder = builder.WithElement(elem.first, elem.second);
   }
-  StandardSparseMatrix jacobian{ builder };
+  StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "eq", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
@@ -477,13 +471,13 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
-  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StdSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Equilibrium constraint Jacobian mismatch: block=" << comparison.worst_block_
                                   << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
                                   << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 
-  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StdSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
                                 << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
@@ -494,26 +488,25 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   // 2A <-> B + C, K_eq = 100
   // G = K_eq * [A]^2 - [B] * [C]
   // dG/dA = K_eq * 2 * [A], dG/dB = -[C], dG/dC = -[B]
-  using DenseMatrix = Matrix<micm::Real>;
 
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
-  std::vector<Constraint> constraints;
-  constraints.emplace_back(EquilibriumConstraint(
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
       "dissociation",
       B,
       std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
       std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
-      VantHoffParam{ .K_HLC_ref_ = 100.0, .delta_H_ = 0.0 }));
+      { .K_HLC_ref_ = 100.0, .delta_H_ = 0.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
   const micm::Index num_species = 3;
 
-  ConstraintSet<DenseMatrix, StandardSparseMatrix> set{ std::move(constraints), variable_map };
+  ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
-  auto builder = StandardSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  auto builder = StdSparseMatrix::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
   for (micm::Index i = 0; i < num_species; ++i)
   {
     builder = builder.WithElement(i, i);
@@ -522,7 +515,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   {
     builder = builder.WithElement(elem.first, elem.second);
   }
-  StandardSparseMatrix jacobian{ builder };
+  StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "dissociation", 0 } };
   set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
@@ -541,13 +534,13 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
 
   auto fd_jac = FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
-  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+  auto comparison = CompareJacobianToFiniteDifference<DenseMatrix, StdSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Complex stoichiometry Jacobian mismatch: block=" << comparison.worst_block_
                                   << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
                                   << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 
-  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StandardSparseMatrix>(jacobian, fd_jac, num_species);
+  auto sparsity = CheckJacobianSparsityCompleteness<DenseMatrix, StdSparseMatrix>(jacobian, fd_jac, num_species);
 
   EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
                                 << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;

@@ -1,6 +1,6 @@
 name: Mac
 
-on: 
+on:
   push:
     branches:
       - main
@@ -14,7 +14,7 @@ concurrency:
 jobs:
   xcode_macos_15_intel:
     runs-on: macos-15-intel
-    continue-on-error: true 
+    continue-on-error: true
     strategy:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md#xcode
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Cmake 
+      - name: Run Cmake
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
@@ -39,7 +39,7 @@ jobs:
 
   macos_lateset:
     runs-on: macos-latest
-    continue-on-error: true 
+    continue-on-error: true
     strategy:
       matrix:
         compiler:
@@ -57,7 +57,7 @@ jobs:
         with:
           xcode-version: '26.0'
 
-      - name: Run Cmake 
+      - name: Run Cmake
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build

@@ -94,9 +94,8 @@ void TestDenseMatrix()
   A[0][2][1] = -2;
   A[0][2][2] = 8;
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
-  ALU.Fill(0);
+  LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
+  auto ALU = LuDecompositionPolicy::GetLUMatrix(A, 0, false);
   for (micm::Index i = 0; i < 3; ++i)
   {
     for (micm::Index j = 0; j < 3; ++j)
@@ -107,7 +106,13 @@ void TestDenseMatrix()
       }
     }
   }
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
+
+  lud.Decompose(ALU);
+
+  CheckCopyToHost<SparseMatrixPolicy>(ALU);
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, ALU, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }
@@ -152,8 +157,8 @@ void TestRandomMatrix(micm::Index number_of_blocks)
     }
   }
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
+  LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
+  auto ALU = LuDecompositionPolicy::GetLUMatrix(A, 0, false);
   for (micm::Index i = 0; i < size; ++i)
   {
     for (micm::Index j = 0; j < size; ++j)
@@ -170,7 +175,7 @@ void TestRandomMatrix(micm::Index number_of_blocks)
 
   CheckCopyToDevice<SparseMatrixPolicy>(ALU);
 
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
+  lud.Decompose(ALU);
 
   CheckCopyToHost<SparseMatrixPolicy>(ALU);
 
@@ -219,8 +224,8 @@ void TestExtremeValueInitialization(micm::Index number_of_blocks, micm::Real ini
     }
   }
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, initial_value, false);
+  LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
+  auto ALU = LuDecompositionPolicy::GetLUMatrix(A, initial_value, false);
   for (micm::Index i = 0; i < size; ++i)
   {
     for (micm::Index j = 0; j < size; ++j)
@@ -247,7 +252,7 @@ void TestExtremeValueInitialization(micm::Index number_of_blocks, micm::Real ini
 
   CheckCopyToDevice<SparseMatrixPolicy>(ALU);
 
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
+  lud.Decompose(ALU);
 
   CheckCopyToHost<SparseMatrixPolicy>(ALU);
 
@@ -280,8 +285,8 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
     }
   }
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
-  auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0, false);
+  LuDecompositionPolicy lud = LuDecompositionPolicy::Create(A);
+  auto ALU = LuDecompositionPolicy::GetLUMatrix(A, 0, false);
   ALU.Fill(0);
   for (micm::Index i = 0; i < 6; ++i)
   {
@@ -290,7 +295,13 @@ void TestDiagonalMatrix(micm::Index number_of_blocks)
       ALU[i_block][i][i] = A[i_block][i][i];
     }
   }
-  lud.template Decompose<SparseMatrixPolicy>(ALU);
+
+  CheckCopyToDevice<SparseMatrixPolicy>(ALU);
+
+  lud.Decompose(ALU);
+
+  CheckCopyToHost<SparseMatrixPolicy>(ALU);
+
   CheckResults<micm::Real, SparseMatrixPolicy>(
       A, ALU, [&](const micm::Real a, const micm::Real b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

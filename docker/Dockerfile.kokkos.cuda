@@ -1,0 +1,38 @@
+from nvcr.io/nvidia/nvhpc:26.5-devel-cuda_multi-ubuntu24.04
+
+RUN apt update \
+    && apt -y install \
+      build-essential \
+      ca-certificates \
+      cmake \
+      cmake-curses-gui \
+      curl \
+      less \
+      libcurl4-openssl-dev \
+      ninja-build \
+      m4 \
+      vim \
+      zlib1g-dev \
+    && apt clean 
+
+# set compilers
+ENV CXX=nvc++
+ENV CC=nvc
+
+# copy the MICM code
+COPY . /micm/
+
+# build the library and run the tests
+RUN mkdir /build \
+      && cd /build \
+      && cmake \
+        -G Ninja \
+        -D CMAKE_BUILD_TYPE=release \
+        -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
+        -D MICM_ENABLE_KOKKOS=TRUE \
+        -D Kokkos_ENABLE_CUDA=ON \
+        -D Kokkos_ARCH_BLACKWELL120=ON \
+        ../micm \
+      && ninja install -j 16
+
+WORKDIR /build

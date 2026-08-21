@@ -31,6 +31,11 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>
   class AbstractBackwardEuler
   {
+    using SparseMatrix = typename LinearSolverPolicy::SparseMatrixType;
+    using DenseMatrix = typename LinearSolverPolicy::DenseMatrixType;
+    using LuDecomposition = typename LinearSolverPolicy::LuDecompositionType;
+    using StatePolicy = State<DenseMatrix, SparseMatrix, LuDecomposition>;
+
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
@@ -61,7 +66,7 @@ namespace micm
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
     /// @return result of the solver (success or failure, and statistics)
-    SolverResult Solve(Real time_step, auto& state, const BackwardEulerSolverParameters& parameters) const;
+    SolverResult Solve(Real time_step, StatePolicy& state, const BackwardEulerSolverParameters& parameters) const;
 
     /// @brief Determines whether the residual is small enough to stop the
     ///        internal solver iteration
@@ -69,12 +74,13 @@ namespace micm
     /// @param state The current state being solved for
     /// @return true if the residual is small enough to stop the iteration
     template<class DenseMatrixPolicy>
-    static bool IsConverged(
+    static void IsConverged(
         const BackwardEulerSolverParameters& parameters,
         const DenseMatrixPolicy& residual,
         const DenseMatrixPolicy& Yn1,
-        const std::vector<Real>& absolute_tolerance,
-        Real relative_tolerance);
+        const typename DenseMatrixPolicy::template VectorType<Real>::ConstViewType& absolute_tolerance,
+        const Real relative_tolerance,
+        typename DenseMatrixPolicy::template ScalarType<Bool>& is_converged);
   };
 
 }  // namespace micm
