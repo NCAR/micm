@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787346884180,
+  "lastUpdate": 1787347122257,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -704,6 +704,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 5954.17,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e2e21ed02e38f42a5368752a28f9ed32affc9b83",
+          "message": "Fix build, CI and packaging for Kokkos deps (#1075)\n\n* fix build, ci and packaging\n\n* fix the broken CI tests",
+          "timestamp": "2026-08-21T14:55:43-06:00",
+          "tree_id": "87ed9a7dc6ed9621c2458bc09e1421cebf3a6bd9",
+          "url": "https://github.com/NCAR/micm/commit/e2e21ed02e38f42a5368752a28f9ed32affc9b83"
+        },
+        "date": 1787347121431,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 28339.42,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 14230.91,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 8946.86,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 6398.23,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 5385.82,
             "unit": "ms"
           }
         ]
