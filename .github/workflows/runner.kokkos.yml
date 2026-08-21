@@ -43,7 +43,7 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest --rerun-failed --output-on-failure . --verbose -j 10
+          ctest --output-on-failure . --verbose -j 10
 
       # The Kokkos backend registers no standard ordering, so name the vector ones.
       #

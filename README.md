@@ -51,9 +51,15 @@ If you would later like to uninstall MICM, you can run
 ## Options
 
 There are multiple options for running micm. You can use our
-solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
+solvers on CPUs, [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs,
+or [Kokkos](https://kokkos.org)-based solvers for performance portability across CPUs and GPUs
+(`-DMICM_ENABLE_KOKKOS=ON`; see the
+[Kokkos guide](https://micm.readthedocs.io/en/latest/user_guide/kokkos.html)).
 Please [read our docs](https://micm.readthedocs.io/en/latest/getting_started.html) 
 to learn how to enable these options.
+
+Third-party components fetched at build time (Kokkos, GoogleTest) are listed in
+[NOTICE](NOTICE) along with their licenses.
 
 ## Running a MICM Docker container
 
@@ -190,6 +196,7 @@ Two mechanisms run. Chapman has 7 reactions and shows per-call overhead. TS1 has
 | [Instruction counts](https://ncar.github.io/micm/dev/bench/ts1/instructions/) | TS1 | CPU | 2000 | 5 | `ubuntu-latest` |
 | [Wall-clock timing](https://ncar.github.io/micm/dev/bench/ts1/timing/) | TS1 | CPU | 10000 | 30 | `ubuntu-latest` |
 | [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | Chapman and TS1 | CUDA | 10000 | 30 | CIRRUS a10 GPU runner |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/kokkos/timing/) | Chapman and TS1 | Kokkos | 10000 | 30 | CIRRUS a10 GPU runner |
 
 Every step advances the solver by `30 s`. The callgrind charts use a smaller
 grid and fewer steps, because valgrind runs far slower than a native run. The
