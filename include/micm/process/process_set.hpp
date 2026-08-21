@@ -526,8 +526,7 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
   {
-    const Scalar<Index> n_rxn = number_of_reactants_.size();
-    n_rxn.CopyToDevice();
+    const Index n_rxn = number_of_reactants_.size();
     const auto& views = views_;
     const DenseMatrix& rate_constants = state.rate_constants_;
     DenseMatrixPolicy::Function(
@@ -597,8 +596,7 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    const Scalar<Index> n_rxn = number_of_reactants_.size();
-    n_rxn.CopyToDevice();
+    const Index n_rxn = number_of_reactants_.size();
     const auto& views = views_;
     const DenseMatrix& rate_constants = state.rate_constants_;
     SparseMatrixPolicy::Function(
