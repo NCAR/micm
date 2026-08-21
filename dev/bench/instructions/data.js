@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787270999712,
+  "lastUpdate": 1787280238458,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -401,6 +401,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/359d392c96e6acd1b02c2d1af8cbf4b4c6a19f75"
         },
         "date": 1787270998901,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 523981742,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 528351292,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 365242961,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 285958500,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238109141,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 221002949,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f94aeddd622bba69cffe955449c0c60c2691ba7c",
+          "message": "Auto-format code changes (#1071)\n\nAuto-format code using Clang-Format\n\nCo-authored-by: GitHub Actions <actions@github.com>",
+          "timestamp": "2026-08-20T20:39:44-06:00",
+          "tree_id": "75f5bb50d306515e6114d38bf5a320d834b3c1ce",
+          "url": "https://github.com/NCAR/micm/commit/f94aeddd622bba69cffe955449c0c60c2691ba7c"
+        },
+        "date": 1787280237785,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
