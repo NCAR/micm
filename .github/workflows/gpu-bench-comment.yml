@@ -1,8 +1,8 @@
 name: GPU Benchmark PR Comment
 
-# Runs in the base-repo context after the "Designated GPU Runner" workflow
-# completes.  Because this is a workflow_run trigger (not pull_request), the
-# GITHUB_TOKEN has full write access even when the PR comes from a fork.
+# Runs in the base-repo context after a GPU runner workflow completes.  Because this
+# is a workflow_run trigger (not pull_request), the GITHUB_TOKEN has write access even
+# when the PR comes from a fork.
 
 on:
   workflow_run:
@@ -21,7 +21,18 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     permissions:
+      # Naming `permissions` sets every unlisted scope to none, so the scopes
+      # actions/checkout and actions/download-artifact need must be spelled out:
+      # contents:read to check out, actions:read to reach another run's artifacts.
+      contents: read
+      actions: read
       pull-requests: write
+
+    env:
+      # Which runner triggered us.  Each GPU workflow uploads only its own backend's
+      # json, so the comment steps below have to be gated on this -- otherwise half of
+      # them fail on a missing output-file-path.
+      TRIGGER: ${{ github.event.workflow_run.name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -31,16 +42,19 @@ jobs:
       - name: Download benchmark artifacts from triggering run
         uses: actions/download-artifact@v4
         with:
-          name: chapman-bench
+          # Must match the upload step name in runner.yml and runner.kokkos.yml.
+          name: micm-bench
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # The `name` and `benchmark-data-dir-path` must match the corresponding
-      # store steps in runner.yml exactly; the action keys its history by both.
+      # The `name` and `benchmark-data-dir-path` must match the corresponding store
+      # steps in runner.yml / runner.kokkos.yml exactly; the action keys its history by
+      # both, and a mismatch yields no comparison while still reporting success.
       - name: Comment timing comparison on PR for CUDA
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (CUDA Solvers)
+          name: Chapman Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,9 +66,10 @@ jobs:
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment TS1 timing comparison on PR for CUDA
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: TS1 Timing (CUDA Solvers)
+          name: TS1 Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -66,9 +81,10 @@ jobs:
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment timing comparison on PR for Kokkos
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: Chapman Timing (Kokkos Solvers)
+          name: Chapman Timing (Kokkos backend)
           tool: customSmallerIsBetter
           output-file-path: kokkos_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -80,9 +96,10 @@ jobs:
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment TS1 timing comparison on PR for Kokkos
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: TS1 Timing (Kokkos Solvers)
+          name: TS1 Timing (Kokkos backend)
           tool: customSmallerIsBetter
           output-file-path: kokkos_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
