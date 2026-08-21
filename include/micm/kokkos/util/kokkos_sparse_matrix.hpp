@@ -112,11 +112,11 @@ namespace micm
       {
         if constexpr (std::is_const_v<ArgType>)
         {
-          return ConstSparseMatrixHandle{ arg.GetView(), arg.FlatBlockSize()};
+          return ConstSparseMatrixHandle{ arg.GetView(), arg.FlatBlockSize() };
         }
         else
         {
-          return SparseMatrixHandle{ arg.GetView(), arg.FlatBlockSize()};
+          return SparseMatrixHandle{ arg.GetView(), arg.FlatBlockSize() };
         }
       }
       else
@@ -155,7 +155,8 @@ namespace micm
       }
       else if constexpr (std::is_same_v<HandleType, ConstDenseMatrixArgHandle>)
       {
-        return typename KokkosDenseMatrix<T, L>::template GroupView<const T>(handle.view_, group, handle.y_dim_, count, team);
+        return
+            typename KokkosDenseMatrix<T, L>::template GroupView<const T>(handle.view_, group, handle.y_dim_, count, team);
       }
       else if (KokkosVectorLike<HandleType>)
       {
@@ -539,12 +540,7 @@ namespace micm
 
      public:
       KOKKOS_INLINE_FUNCTION
-      GroupView(
-          Kokkos::View<U*> view,
-          Index group,
-          Index flat_block_size,
-          Index num_blocks_in_group,
-          const TeamMember& team)
+      GroupView(Kokkos::View<U*> view, Index group, Index flat_block_size, Index num_blocks_in_group, const TeamMember& team)
           : view_(std::move(view)),
             group_(group),
             flat_block_size_(flat_block_size),

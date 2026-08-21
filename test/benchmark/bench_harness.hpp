@@ -212,7 +212,8 @@ namespace bench
     registry[Key(std::string{ Mechanism::kName }, "gpu", matrix, "in-place", "mozart")] = &RunCase<Mechanism, CudaRosen<L>>;
 #endif
 #ifdef MICM_USE_KOKKOS
-    registry[Key(std::string{ Mechanism::kName }, "kokkos", matrix, "in-place", "mozart")] = &RunCase<Mechanism, KokkosRosen<L>>;
+    registry[Key(std::string{ Mechanism::kName }, "kokkos", matrix, "in-place", "mozart")] =
+        &RunCase<Mechanism, KokkosRosen<L>>;
 #endif
   }
 
