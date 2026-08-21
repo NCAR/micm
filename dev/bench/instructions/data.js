@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787280238458,
+  "lastUpdate": 1787339839464,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -485,6 +485,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 221002949,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mattldawson@gmail.com",
+            "name": "Matt Dawson",
+            "username": "mattldawson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "189534168c7bffd5d6312697df31d21f8653f66a",
+          "message": "Remove some unneeded scalar views (#1076)\n\nremove some views",
+          "timestamp": "2026-08-21T13:13:22-06:00",
+          "tree_id": "33deb847d145828cd260dfa0f553ef0ce9e9fe7b",
+          "url": "https://github.com/NCAR/micm/commit/189534168c7bffd5d6312697df31d21f8653f66a"
+        },
+        "date": 1787339839102,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 530108298,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 525968252,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 364331696,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 276518978,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238027062,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 219474226,
             "unit": "instructions"
           }
         ]
