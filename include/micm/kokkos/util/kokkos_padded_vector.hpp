@@ -53,7 +53,10 @@ namespace micm
       template<class V = U, std::enable_if_t<!std::is_const_v<V>, int> = 0>
       KOKKOS_INLINE_FUNCTION operator DeviceView<const U>() const
       {
-        return { view_ };
+        // size_ has to be carried across explicitly. DeviceView is an aggregate, so a
+        // brace-init that names only view_ leaves size_ zero-initialized and the converted
+        // view reports size() == 0 while still pointing at the full padded allocation.
+        return { view_, size_ };
       }
 
       KOKKOS_INLINE_FUNCTION const U* begin() const  // NOLINT(readability-identifier-naming)
@@ -122,6 +125,11 @@ namespace micm
         return *this;
       }
       data_ = other.data_;
+      // size_ is the logical length and is independent of data_.size(), which is padded.
+      // Leaving it behind here would silently keep the assignee's old length -- State's copy
+      // assignment reaches this operator through conditions_ and the diagonal-element
+      // vectors, so a stale size_ corrupts every kernel that bounds its loop by size().
+      size_ = other.size_;
       host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
           this->data_.data(), this->data_.size());
       Kokkos::realloc(device_view_, other.device_view_.extent(0));

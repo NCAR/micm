@@ -1,0 +1,216 @@
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+//
+// Tests verifying that the Rosenbrock DAE step-change error estimate for
+// algebraic variables makes the solver sensitive to algebraic tolerances
+// and prevents overshoot.
+//
+// Root cause: The embedded error formula Yerror = sum(e_i * K_i) produces
+// near-zero entries for algebraic variables because the mass matrix diagonal
+// M_ii = 0 zeroes out the inter-stage coupling terms (c/H) * M_ii * K[j].
+// Fix: replace Yerror[a] with Ynew[a] - Y[a] for algebraic variables.
+//
+// System (4 species, 2 equilibria, 1 reaction, 1 conservation):
+//   A_gas <-> A_aq   (equilibrium, K1)    -- A_aq is algebraic
+//   A_aq  <-> B_aq   (equilibrium, K2)    -- B_aq is algebraic
+//   B_aq  -> P       (kinetics, rate k)   -- P is the only differential variable
+//   Conservation: A_aq + B_aq + P + A_gas = C_total   -- A_gas is the algebraic balance variable
+//
+// Analytical solution:
+//   A_gas(t) = (C - P(t)) / (1 + K1 + K1*K2)
+//   P(t)     = C * (1 - exp(-r*t))   where r = k*K1*K2 / (1 + K1 + K1*K2)
+//
+// As P approaches C_total, A_gas approaches zero. If the solver overshoots
+// P > C_total, the conservation constraint forces A_gas negative.
+//
+// Shared by the CPU and Kokkos drivers so the two cannot drift apart. The
+// CopyToDevice()/CopyToHost() calls are no-ops on the CPU matrix types, so both backends run
+// the identical call sequence.
+#pragma once
+
+#include <micm/CPU.hpp>
+#include <micm/constraint/constraint.hpp>
+#include <micm/constraint/constraint_set.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/constraint/types/linear_constraint.hpp>
+#include <micm/util/types.hpp>
+
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cmath>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+namespace
+{
+  struct SolveResult
+  {
+    micm::Real A_gas_final_;
+    micm::Real P_final_;
+    micm::Real min_A_gas_;
+    micm::Index accepted_;
+    micm::Index rejected_;
+  };
+
+  /// @brief Run a cascade equilibrium system with the given tolerance for the balance variable (A_gas)
+  /// @param builder A freshly constructed solver builder; it is consumed by Build()
+  /// @param balance_atol Absolute tolerance for A_gas (the algebraic balance variable)
+  /// @param k Rate constant for B_aq -> P reaction
+  /// @param K1 Equilibrium constant for A_gas <-> A_aq
+  /// @param K2 Equilibrium constant for A_aq <-> B_aq
+  template<class BuilderPolicy>
+  SolveResult RunCascadeSystem(BuilderPolicy builder, micm::Real balance_atol, micm::Real k, micm::Real K1, micm::Real K2)
+  {
+    using DenseMatrix = typename BuilderPolicy::DenseMatrixPolicyType;
+    using StdSparseMatrix = typename BuilderPolicy::SparseMatrixPolicyType;
+
+    auto A_gas = micm::Species("A_gas");
+    auto A_aq = micm::Species("A_aq");
+    auto B_aq = micm::Species("B_aq");
+    auto P = micm::Species("P");
+
+    micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ A_gas, A_aq, B_aq, P } };
+
+    micm::Real C_total = 1.0e-6;
+
+    micm::Process rxn = micm::ChemicalReactionBuilder()
+                            .SetReactants({ B_aq })
+                            .SetProducts({ { P, 1 } })
+                            .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k, .B_ = 0, .C_ = 0 })
+                            .SetPhase(gas_phase)
+                            .Build();
+
+    std::vector<micm::Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+    constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+        "eq1",
+        A_aq,
+        std::vector<micm::StoichSpecies>{ { A_gas, 1.0 } },
+        std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
+        { .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
+    constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+        "eq2",
+        B_aq,
+        std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
+        std::vector<micm::StoichSpecies>{ { B_aq, 1.0 } },
+        { .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
+    // A_gas is explicitly set as the algebraic balance variable
+    constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
+        "mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+
+    auto solver = builder.SetSystem(micm::System(gas_phase))
+                      .SetReactions({ rxn })
+                      .SetConstraints(std::move(constraints))
+                      .SetReorderState(false)
+                      .Build();
+
+    auto state = solver.GetState(1);
+    // Float precision cannot support a 1e-6 relative tolerance (~8x float epsilon);
+    // the ultra-stiff case underflows the step size. Keep double mode unchanged.
+    constexpr micm::Real rel_tol = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-4;
+    state.SetRelativeTolerance(rel_tol);
+
+    auto& vm = state.variable_map_;
+    micm::Index gi = vm.at("A_gas");
+    micm::Index ai = vm.at("A_aq");
+    micm::Index bi = vm.at("B_aq");
+    micm::Index pi = vm.at("P");
+
+    // balance_atol for A_gas (algebraic balance variable under test),
+    // moderate atol for equilibrium algebraic variables (A_aq, B_aq),
+    // tight atol for the only differential variable (P)
+    std::vector<micm::Real> atols(4, 1.0e-12);
+    atols[gi] = balance_atol;
+    atols[ai] = 1.0e-8;
+    atols[bi] = 1.0e-8;
+    // P's atol sets the internal step size near P=0 (dP/dt is large in the
+    // ultra-stiff case). A 1e-12 atol demands a step below the float unit
+    // roundoff, so the step size underflows and the solver reports
+    // StepSizeTooSmall. Relax P's atol for float (still the tightest of any
+    // variable) while keeping double mode at its original 1e-12.
+    constexpr micm::Real p_atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-9;
+    atols[pi] = p_atol;
+    state.SetAbsoluteTolerances(atols);
+
+    // Initial: equilibrium satisfied, P = 0
+    micm::Real denom = 1.0 + K1 + K1 * K2;
+    micm::Real Ag0 = C_total / denom;
+    state.variables_[0][gi] = Ag0;
+    state.variables_[0][ai] = K1 * Ag0;
+    state.variables_[0][bi] = K2 * K1 * Ag0;
+    state.variables_[0][pi] = 0.0;
+    state.conditions_[0].temperature_ = 298.0;
+    state.conditions_[0].pressure_ = 101325.0;
+    state.variables_.CopyToDevice();
+    state.conditions_.CopyToDevice();
+
+    solver.UpdateStateParameters(state);
+
+    micm::Real dt = 30.0;
+    micm::Real advanced = 0.0;
+    micm::Real min_a_gas = 1e99;
+    micm::Index total_accepted = 0;
+    micm::Index total_rejected = 0;
+
+    while (advanced < dt)
+    {
+      auto result = solver.Solve(dt - advanced, state);
+      EXPECT_EQ(result.state_, micm::SolverState::Converged);
+      if (result.state_ != micm::SolverState::Converged)
+      {
+        break;
+      }
+      advanced += result.stats_.final_time_;
+      total_accepted += result.stats_.accepted_;
+      total_rejected += result.stats_.rejected_;
+      // min_A_gas is sampled per outer step, so the download has to happen inside the loop.
+      state.variables_.CopyToHost();
+      min_a_gas = std::min(min_a_gas, state.variables_[0][gi]);
+    }
+
+    return { state.variables_[0][gi], state.variables_[0][pi], min_a_gas, total_accepted, total_rejected };
+  }
+}  // namespace
+
+/// @brief Prove that the step-change error estimate makes the solver sensitive to algebraic atol.
+///
+/// With the step-change error injection, tighter atol for the algebraic balance
+/// variable (A_gas) should produce more internal steps during the transient.
+/// Uses moderate stiffness so the transient is long enough to require many steps.
+///
+/// Takes a factory because each RunCascadeSystem call consumes a builder.
+template<class BuilderFactory>
+void TestErrorSensitiveToBalanceAtol(BuilderFactory make_builder)
+{
+  // Moderate stiffness: k=100, K1=2, K2=2
+  // Time constant ≈ 1/(k*K1*K2/(1+K1+K1*K2)) = 7/(100*4) ≈ 0.018 s
+  // A_gas0 = C/7 ≈ 1.43e-7
+  auto r_loose = RunCascadeSystem(make_builder(), 1e-3, 100.0, 2.0, 2.0);
+  auto r_tight = RunCascadeSystem(make_builder(), 1e-8, 100.0, 2.0, 2.0);
+
+  // With the fix, tight balance atol should produce more steps
+  EXPECT_GT(r_tight.accepted_, r_loose.accepted_) << "Tight atol should require more steps than loose atol. "
+                                                  << "loose=" << r_loose.accepted_ << " tight=" << r_tight.accepted_;
+}
+
+/// @brief Verify that the algebraic balance variable does not go deeply negative.
+///
+/// Uses an ultra-stiff system (k=1e4, K1=100, K2=50) where the embedded error
+/// estimate produces near-zero Yerror for all variables. Without the step-change
+/// fix, the solver would accept a huge first step, overshooting P > C_total and
+/// forcing A_gas deeply negative.
+template<class BuilderFactory>
+void TestAlgebraicVariableDoesNotOvershootDeeply(BuilderFactory make_builder)
+{
+  // Ultra-stiff: transient is ~5e-3 s, solver converges quickly
+  auto r = RunCascadeSystem(make_builder(), 1e-8, 1.0e4, 100.0, 50.0);
+
+  // A_gas should stay non-negative (or very close to zero).
+  // The analytical solution has A_gas >= 0 at all times.
+  EXPECT_GE(r.min_A_gas_, -1.0e-8) << "A_gas overshot deeply negative: min_A_gas=" << r.min_A_gas_;
+
+  // After 30s the system should be fully converted: P ≈ C_total, A_gas ≈ 0
+  EXPECT_NEAR(r.P_final_, 1.0e-6, 1.0e-8);
+  EXPECT_NEAR(r.A_gas_final_, 0.0, 1.0e-10);
+}

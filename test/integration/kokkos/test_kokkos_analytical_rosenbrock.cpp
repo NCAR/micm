@@ -11,7 +11,12 @@
 
 #include <type_traits>
 
-#define JUST_ONE_SOLVER
+// This file deliberately instantiates the full matrix of solver variants, mirroring its CPU twin
+// test/integration/test_analytical_rosenbrock.cpp. A JUST_ONE_SOLVER macro used to live here and
+// compiled out everything but a single instance, which meant the Kokkos-native KokkosSolverBuilder
+// was never exercised at all - the only solver left standing was the CPU algorithm running over
+// Kokkos matrix types. Anyone re-adding such a shortcut would be switching off the coverage that is
+// the entire reason this file exists.
 
 using BuilderType = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>;
 using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
@@ -82,9 +87,6 @@ using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilderInPlace<
 template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorRosenbrockMozartInPlace<L>::StatePolicyType;
 
-auto rosenbrock_3stage =
-    VectorRosenbrockMozartInPlace<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-#ifndef JUST_ONE_SOLVER
 auto rosenbrock_2stage = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto rosenbrock_3stage = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(
@@ -153,13 +155,16 @@ auto rosenbrock_vector_mozart_in_place_3 =
     VectorRosenbrockMozartInPlace<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto rosenbrock_vector_mozart_in_place_4 =
     VectorRosenbrockMozartInPlace<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-#endif
+// The vector length 8 instance is the CPU solver algorithm driving Kokkos matrix types, which is a
+// distinct code path from the Kokkos-native builders above and was historically the only solver this
+// file actually compiled, so it stays in every test body.
+auto rosenbrock_vector_mozart_in_place_8 =
+    VectorRosenbrockMozartInPlace<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
 TEST(AnalyticalExamples, Troe)
 {
-  TestAnalyticalTroe(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalTroe(rosenbrock_2stage);
+  TestAnalyticalTroe(rosenbrock_3stage);
   TestAnalyticalTroe(rosenbrock_4stage);
   TestAnalyticalTroe(rosenbrock_4stage_da);
   TestAnalyticalTroe(rosenbrock_6stage_da);
@@ -191,7 +196,7 @@ TEST(AnalyticalExamples, Troe)
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
@@ -201,9 +206,8 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalStiffTroe(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffTroe(rosenbrock_2stage);
+  TestAnalyticalStiffTroe(rosenbrock_3stage);
   TestAnalyticalStiffTroe(rosenbrock_4stage);
   TestAnalyticalStiffTroe(rosenbrock_4stage_da);
   TestAnalyticalStiffTroe(rosenbrock_6stage_da);
@@ -227,14 +231,13 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   TestAnalyticalStiffTroe(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalStiffTroe(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalStiffTroe(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalStiffTroe(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  TestAnalyticalPhotolysis(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalPhotolysis(rosenbrock_2stage);
+  TestAnalyticalPhotolysis(rosenbrock_3stage);
   TestAnalyticalPhotolysis(rosenbrock_4stage);
   TestAnalyticalPhotolysis(rosenbrock_4stage_da);
   TestAnalyticalPhotolysis(rosenbrock_6stage_da);
@@ -258,7 +261,7 @@ TEST(AnalyticalExamples, Photolysis)
   TestAnalyticalPhotolysis(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalPhotolysis(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalPhotolysis(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalPhotolysis(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
@@ -268,9 +271,8 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalStiffPhotolysis(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffPhotolysis(rosenbrock_2stage);
+  TestAnalyticalStiffPhotolysis(rosenbrock_3stage);
   TestAnalyticalStiffPhotolysis(rosenbrock_4stage);
   TestAnalyticalStiffPhotolysis(rosenbrock_4stage_da);
   TestAnalyticalStiffPhotolysis(rosenbrock_6stage_da);
@@ -294,14 +296,13 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  TestAnalyticalTernaryChemicalActivation(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalTernaryChemicalActivation(rosenbrock_2stage);
+  TestAnalyticalTernaryChemicalActivation(rosenbrock_3stage);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_4stage);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_4stage_da);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_6stage_da);
@@ -325,7 +326,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
@@ -335,9 +336,8 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_3stage, 2e-3);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_2stage, 2e-3);
+  TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_3stage, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_4stage, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_4stage_da, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_6stage_da, 2e-3);
@@ -361,14 +361,13 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_2, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_3, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_4, 2e-3);
-#endif
+  TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_8, 2e-3);
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  TestAnalyticalTunneling(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalTunneling(rosenbrock_2stage, 2e-5);
+  TestAnalyticalTunneling(rosenbrock_3stage);
   TestAnalyticalTunneling(rosenbrock_4stage);
   TestAnalyticalTunneling(rosenbrock_4stage_da);
   TestAnalyticalTunneling(rosenbrock_6stage_da);
@@ -392,7 +391,7 @@ TEST(AnalyticalExamples, Tunneling)
   TestAnalyticalTunneling(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalTunneling(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalTunneling(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalTunneling(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
@@ -402,9 +401,8 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalStiffTunneling(rosenbrock_3stage, 1e-4);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffTunneling(rosenbrock_2stage, 1e-4);
+  TestAnalyticalStiffTunneling(rosenbrock_3stage, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_4stage, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_4stage_da, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_6stage_da, 1e-4);
@@ -428,14 +426,13 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_in_place_2, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_in_place_3, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_in_place_4, 1e-4);
-#endif
+  TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_in_place_8, 1e-4);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  TestAnalyticalArrhenius(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalArrhenius(rosenbrock_2stage, 4e-6);
+  TestAnalyticalArrhenius(rosenbrock_3stage);
   TestAnalyticalArrhenius(rosenbrock_4stage);
   TestAnalyticalArrhenius(rosenbrock_4stage_da);
   TestAnalyticalArrhenius(rosenbrock_6stage_da);
@@ -459,7 +456,7 @@ TEST(AnalyticalExamples, Arrhenius)
   TestAnalyticalArrhenius(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalArrhenius(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalArrhenius(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalArrhenius(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
@@ -469,9 +466,8 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalStiffArrhenius(rosenbrock_3stage, 2e-5);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffArrhenius(rosenbrock_2stage, 1e-4);
+  TestAnalyticalStiffArrhenius(rosenbrock_3stage, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_4stage, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_4stage_da, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_6stage_da, 1e-5);
@@ -495,14 +491,13 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_in_place_2, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_in_place_3, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_in_place_4, 2e-5);
-#endif
+  TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_in_place_8, 2e-5);
 }
 
 TEST(AnalyticalExamples, Branched)
 {
-  TestAnalyticalBranched(rosenbrock_3stage);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalBranched(rosenbrock_2stage, 1e-10);
+  TestAnalyticalBranched(rosenbrock_3stage);
   TestAnalyticalBranched(rosenbrock_4stage);
   TestAnalyticalBranched(rosenbrock_4stage_da);
   TestAnalyticalBranched(rosenbrock_6stage_da);
@@ -526,7 +521,7 @@ TEST(AnalyticalExamples, Branched)
   TestAnalyticalBranched(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalBranched(rosenbrock_vector_mozart_in_place_3);
   TestAnalyticalBranched(rosenbrock_vector_mozart_in_place_4);
-#endif
+  TestAnalyticalBranched(rosenbrock_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
@@ -536,9 +531,8 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalStiffBranched(rosenbrock_3stage, 2e-3);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalStiffBranched(rosenbrock_2stage, 2e-3);
+  TestAnalyticalStiffBranched(rosenbrock_3stage, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_4stage, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_4stage_da, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_6stage_da, 2e-3);
@@ -562,18 +556,17 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   TestAnalyticalStiffBranched(rosenbrock_vector_mozart_in_place_2, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_vector_mozart_in_place_3, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_vector_mozart_in_place_4, 2e-3);
-#endif
+  TestAnalyticalStiffBranched(rosenbrock_vector_mozart_in_place_8, 2e-3);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
-  TestAnalyticalSurfaceRxn(rosenbrock_3stage, 1e-5);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalSurfaceRxn(rosenbrock_2stage, 1e-2);
+  TestAnalyticalSurfaceRxn(rosenbrock_3stage, 1e-5);
   TestAnalyticalSurfaceRxn(rosenbrock_4stage, 1e-6);
   TestAnalyticalSurfaceRxn(rosenbrock_4stage_da, 1e-5);
   TestAnalyticalSurfaceRxn(rosenbrock_6stage_da, 1e-7);
-#endif
+  TestAnalyticalSurfaceRxn(rosenbrock_vector_mozart_in_place_8, 1e-5);
 }
 
 TEST(AnalyticalExamples, Robertson)
@@ -583,9 +576,8 @@ TEST(AnalyticalExamples, Robertson)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalRobertson(rosenbrock_3stage, 1e-6);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalRobertson(rosenbrock_2stage, 1e-6);
+  TestAnalyticalRobertson(rosenbrock_3stage, 1e-6);
   TestAnalyticalRobertson(rosenbrock_4stage, 1e-6);
   TestAnalyticalRobertson(rosenbrock_4stage_da, 1e-6);
   TestAnalyticalRobertson(rosenbrock_6stage_da, 1e-6);
@@ -613,7 +605,7 @@ TEST(AnalyticalExamples, Robertson)
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_2, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_3, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_4, 1e-6);
-#endif
+  TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_8, 1e-6);
 }
 
 TEST(AnalyticalExamples, E5)
@@ -623,9 +615,8 @@ TEST(AnalyticalExamples, E5)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalE5(rosenbrock_3stage, 1e-10);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalE5(rosenbrock_2stage, 1e-10);
+  TestAnalyticalE5(rosenbrock_3stage, 1e-10);
   TestAnalyticalE5(rosenbrock_4stage, 1e-10);
   TestAnalyticalE5(rosenbrock_4stage_da, 1e-10);
   TestAnalyticalE5(rosenbrock_6stage_da, 1e-10);
@@ -653,7 +644,7 @@ TEST(AnalyticalExamples, E5)
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_2, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_3, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_4, 1e-10);
-#endif
+  TestAnalyticalE5(rosenbrock_vector_mozart_in_place_8, 1e-10);
 }
 
 TEST(AnalyticalExamples, Oregonator)
@@ -664,9 +655,8 @@ TEST(AnalyticalExamples, Oregonator)
   }
 
   micm::Real rel_tol = 1e-6;
-  TestAnalyticalOregonator(rosenbrock_3stage, rel_tol);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalOregonator(rosenbrock_2stage, rel_tol);
+  TestAnalyticalOregonator(rosenbrock_3stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_4stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_4stage_da, rel_tol);
   TestAnalyticalOregonator(rosenbrock_6stage_da, rel_tol);
@@ -694,7 +684,7 @@ TEST(AnalyticalExamples, Oregonator)
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_2, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_3, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_4, rel_tol);
-#endif
+  TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_8, rel_tol);
 }
 
 TEST(AnalyticalExamples, HIRES)
@@ -704,9 +694,8 @@ TEST(AnalyticalExamples, HIRES)
     GTEST_SKIP() << "Stiff analytical problem is not solvable to the required accuracy in single precision.";
   }
 
-  TestAnalyticalHires(rosenbrock_3stage, 1e-7);
-#ifndef JUST_ONE_SOLVER
   TestAnalyticalHires(rosenbrock_2stage, 1e-6);
+  TestAnalyticalHires(rosenbrock_3stage, 1e-7);
   TestAnalyticalHires(rosenbrock_4stage, 1e-7);
   TestAnalyticalHires(rosenbrock_4stage_da, 1e-6);
   TestAnalyticalHires(rosenbrock_6stage_da, 1e-6);
@@ -742,7 +731,7 @@ TEST(AnalyticalExamples, HIRES)
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_2, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_3, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_4, 1e-7);
-#endif
+  TestAnalyticalHires(rosenbrock_vector_mozart_in_place_8, 1e-7);
 }
 
 int main(int argc, char* argv[])
