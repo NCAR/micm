@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787343005580,
+  "lastUpdate": 1787348830257,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -485,6 +485,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 47749.35,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e2e21ed02e38f42a5368752a28f9ed32affc9b83",
+          "message": "Fix build, CI and packaging for Kokkos deps (#1075)\n\n* fix build, ci and packaging\n\n* fix the broken CI tests",
+          "timestamp": "2026-08-21T14:55:43-06:00",
+          "tree_id": "87ed9a7dc6ed9621c2458bc09e1421cebf3a6bd9",
+          "url": "https://github.com/NCAR/micm/commit/e2e21ed02e38f42a5368752a28f9ed32affc9b83"
+        },
+        "date": 1787348829476,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 113158.03,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 114026.84,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 99734.94,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 81730.38,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 76078.35,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 44917.99,
             "unit": "ms"
           }
         ]
