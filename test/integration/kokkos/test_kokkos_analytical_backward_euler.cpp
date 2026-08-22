@@ -11,7 +11,12 @@
 
 #include <type_traits>
 
-#define JUST_ONE_SOLVER
+// This file deliberately instantiates the full matrix of solver variants, mirroring its CPU twin
+// test/integration/test_analytical_backward_euler.cpp. A JUST_ONE_SOLVER macro used to live here
+// and compiled out everything but a single instance, which meant the Kokkos-native
+// KokkosSolverBuilder was never exercised at all -- the only solver left standing was the CPU
+// algorithm running over Kokkos matrix types. Anyone re-adding such a shortcut would be switching
+// off the coverage that is the entire reason this file exists.
 
 template<micm::Index L>
 using VectorBackwardEuler = micm::KokkosSolverBuilder<micm::BackwardEulerSolverParameters, L>;
@@ -78,74 +83,42 @@ using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
 template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorBackwardEulerMozartInPlace<L>::StatePolicyType;
 
-#ifdef JUST_ONE_SOLVER
-auto backward_euler = VectorBackwardEulerMozartInPlace<8>(micm::BackwardEulerSolverParameters());
-#else
+// Vector-width coverage note: each LU/ordering family below is instantiated at the default
+// vector width only, not at widths 1/2/3 as well. The widths exercise the padding and grouping
+// logic of the Kokkos matrices, and that is covered directly and far more cheaply by
+// test/unit/kokkos/util/test_kokkos_dense_matrix.cpp and test_kokkos_sparse_matrix.cpp (both
+// run every operation at L = 1, 2, 3, 4) and end-to-end through the solver by
+// test_kokkos_cpu_agreement.cpp (L = 1, 2, 4, 8, compared against the CPU backend). What this
+// file uniquely covers is each LU variant and sparse ordering driving the Kokkos matrices
+// against an analytical solution, and one width per family covers that.
+//
+// Instantiating all four widths cost 3.7 GB of compiler memory and ~30 min of single-core
+// compile time for this one translation unit, which OOM-killed the Fedora Docker CI job.
 auto backward_euler = micm::KokkosSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
-auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
-auto backard_euler_vector_2 = VectorBackwardEuler<2>(micm::BackwardEulerSolverParameters());
-auto backard_euler_vector_3 = VectorBackwardEuler<3>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_4 = VectorBackwardEuler<4>(micm::BackwardEulerSolverParameters());
 
-auto backward_euler_vector_doolittle_1 = VectorBackwardEulerDoolittle<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_2 = VectorBackwardEulerDoolittle<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_3 = VectorBackwardEulerDoolittle<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_4 = VectorBackwardEulerDoolittle<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_1 = VectorBackwardEulerDolittleCSC<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_2 = VectorBackwardEulerDolittleCSC<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_3 = VectorBackwardEulerDolittleCSC<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_csc_4 = VectorBackwardEulerDolittleCSC<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_1 = VectorBackwardEulerMozart<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_2 = VectorBackwardEulerMozart<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_3 = VectorBackwardEulerMozart<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_4 = VectorBackwardEulerMozart<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_1 = VectorBackwardEulerMozartCSC<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_2 = VectorBackwardEulerMozartCSC<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_3 = VectorBackwardEulerMozartCSC<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_csc_4 = VectorBackwardEulerMozartCSC<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_1 =
-    VectorBackwardEulerDoolittleInPlace<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_2 =
-    VectorBackwardEulerDoolittleInPlace<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_3 =
-    VectorBackwardEulerDoolittleInPlace<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_in_place_4 =
     VectorBackwardEulerDoolittleInPlace<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_in_place_1 = VectorBackwardEulerMozartInPlace<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_in_place_2 = VectorBackwardEulerMozartInPlace<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_in_place_3 = VectorBackwardEulerMozartInPlace<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<4>(micm::BackwardEulerSolverParameters());
-#endif
+// The vector length 8 instance is the CPU solver algorithm driving Kokkos matrix types, which is
+// a distinct code path from the Kokkos-native builders above and was historically the only solver
+// this file actually compiled, so it stays in every test body.
+auto backward_euler_vector_mozart_in_place_8 = VectorBackwardEulerMozartInPlace<8>(micm::BackwardEulerSolverParameters());
 
 TEST(AnalyticalExamples, Troe)
 {
   TestAnalyticalTroe(backward_euler, 1e-6);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalTroe(backard_euler_vector_1, 1e-6);
-  TestAnalyticalTroe(backard_euler_vector_2, 1e-6);
-  TestAnalyticalTroe(backard_euler_vector_3, 1e-6);
   TestAnalyticalTroe(backard_euler_vector_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_doolittle_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_doolittle_csc_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_csc_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_4, 1e-6);
-#endif
+  TestAnalyticalTroe(backward_euler_vector_mozart_in_place_8, 1e-6);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
@@ -159,23 +132,15 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffTroe(backward_euler);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalStiffTroe(backard_euler_vector_1);
-  TestAnalyticalStiffTroe(backard_euler_vector_2);
-  TestAnalyticalStiffTroe(backard_euler_vector_3);
   TestAnalyticalStiffTroe(backard_euler_vector_4);
-#endif
+  TestAnalyticalStiffTroe(backward_euler_vector_mozart_in_place_8);
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
   TestAnalyticalPhotolysis(backward_euler, 1e-3);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalPhotolysis(backard_euler_vector_1, 1e-3);
-  TestAnalyticalPhotolysis(backard_euler_vector_2, 1e-3);
-  TestAnalyticalPhotolysis(backard_euler_vector_3, 1e-3);
   TestAnalyticalPhotolysis(backard_euler_vector_4, 1e-3);
-#endif
+  TestAnalyticalPhotolysis(backward_euler_vector_mozart_in_place_8, 1e-3);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
@@ -189,23 +154,15 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffPhotolysis(backward_euler, 1e-3);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalStiffPhotolysis(backard_euler_vector_1, 1e-3);
-  TestAnalyticalStiffPhotolysis(backard_euler_vector_2, 1e-3);
-  TestAnalyticalStiffPhotolysis(backard_euler_vector_3, 1e-3);
   TestAnalyticalStiffPhotolysis(backard_euler_vector_4, 1e-3);
-#endif
+  TestAnalyticalStiffPhotolysis(backward_euler_vector_mozart_in_place_8, 1e-3);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
   TestAnalyticalTernaryChemicalActivation(backward_euler, 1e-5);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_1, 1e-5);
-  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_2, 1e-5);
-  TestAnalyticalTernaryChemicalActivation(backard_euler_vector_3, 1e-5);
   TestAnalyticalTernaryChemicalActivation(backard_euler_vector_4, 1e-5);
-#endif
+  TestAnalyticalTernaryChemicalActivation(backward_euler_vector_mozart_in_place_8, 1e-5);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
@@ -219,23 +176,15 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffTernaryChemicalActivation(backward_euler, 1e-2);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_1, 1e-2);
-  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_2, 1e-2);
-  TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_3, 1e-2);
   TestAnalyticalStiffTernaryChemicalActivation(backard_euler_vector_4, 1e-2);
-#endif
+  TestAnalyticalStiffTernaryChemicalActivation(backward_euler_vector_mozart_in_place_8, 1e-2);
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
   TestAnalyticalTunneling(backward_euler, 1e-3);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalTunneling(backard_euler_vector_1, 1e-3);
-  TestAnalyticalTunneling(backard_euler_vector_2, 1e-3);
-  TestAnalyticalTunneling(backard_euler_vector_3, 1e-3);
   TestAnalyticalTunneling(backard_euler_vector_4, 1e-3);
-#endif
+  TestAnalyticalTunneling(backward_euler_vector_mozart_in_place_8, 1e-3);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
@@ -249,23 +198,15 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffTunneling(backward_euler, 1e-3);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalStiffTunneling(backard_euler_vector_1, 1e-3);
-  TestAnalyticalStiffTunneling(backard_euler_vector_2, 1e-3);
-  TestAnalyticalStiffTunneling(backard_euler_vector_3, 1e-3);
   TestAnalyticalStiffTunneling(backard_euler_vector_4, 1e-3);
-#endif
+  TestAnalyticalStiffTunneling(backward_euler_vector_mozart_in_place_8, 1e-3);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
   TestAnalyticalArrhenius(backward_euler, 1e-3);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalArrhenius(backard_euler_vector_1, 1e-3);
-  TestAnalyticalArrhenius(backard_euler_vector_2, 1e-3);
-  TestAnalyticalArrhenius(backard_euler_vector_3, 1e-3);
   TestAnalyticalArrhenius(backard_euler_vector_4, 1e-3);
-#endif
+  TestAnalyticalArrhenius(backward_euler_vector_mozart_in_place_8, 1e-3);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
@@ -279,23 +220,15 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffArrhenius(backward_euler, 1e-3);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalStiffArrhenius(backard_euler_vector_1, 1e-3);
-  TestAnalyticalStiffArrhenius(backard_euler_vector_2, 1e-3);
-  TestAnalyticalStiffArrhenius(backard_euler_vector_3, 1e-3);
   TestAnalyticalStiffArrhenius(backard_euler_vector_4, 1e-3);
-#endif
+  TestAnalyticalStiffArrhenius(backward_euler_vector_mozart_in_place_8, 1e-3);
 }
 
 TEST(AnalyticalExamples, Branched)
 {
   TestAnalyticalBranched(backward_euler, 1e-5);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalBranched(backard_euler_vector_1, 1e-5);
-  TestAnalyticalBranched(backard_euler_vector_2, 1e-5);
-  TestAnalyticalBranched(backard_euler_vector_3, 1e-5);
   TestAnalyticalBranched(backard_euler_vector_4, 1e-5);
-#endif
+  TestAnalyticalBranched(backward_euler_vector_mozart_in_place_8, 1e-5);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
@@ -309,40 +242,24 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   }
 
   TestAnalyticalStiffBranched(backward_euler, 1e-2);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalStiffBranched(backard_euler_vector_1, 1e-2);
-  TestAnalyticalStiffBranched(backard_euler_vector_2, 1e-2);
-  TestAnalyticalStiffBranched(backard_euler_vector_3, 1e-2);
   TestAnalyticalStiffBranched(backard_euler_vector_4, 1e-2);
-#endif
+  TestAnalyticalStiffBranched(backward_euler_vector_mozart_in_place_8, 1e-2);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
   TestAnalyticalSurfaceRxn(backward_euler, 0.05);
+  TestAnalyticalSurfaceRxn(backward_euler_vector_mozart_in_place_8, 0.05);
 }
 
 TEST(AnalyticalExamples, HIRES)
 {
   TestAnalyticalHires(backward_euler, 1e-1);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalHires(backard_euler_vector_1, 1e-1);
-  TestAnalyticalHires(backard_euler_vector_2, 1e-1);
-  TestAnalyticalHires(backard_euler_vector_3, 1e-1);
   TestAnalyticalHires(backard_euler_vector_4, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_doolittle_1, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_doolittle_2, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_doolittle_3, 1e-1);
   TestAnalyticalHires(backward_euler_vector_doolittle_4, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_mozart_1, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_mozart_2, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_mozart_3, 1e-1);
   TestAnalyticalHires(backward_euler_vector_mozart_4, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_mozart_in_place_1, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_mozart_in_place_2, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_mozart_in_place_3, 1e-1);
   TestAnalyticalHires(backward_euler_vector_mozart_in_place_4, 1e-1);
-#endif
+  TestAnalyticalHires(backward_euler_vector_mozart_in_place_8, 1e-1);
 }
 
 TEST(AnalyticalExamples, Oregonator)
@@ -355,24 +272,11 @@ TEST(AnalyticalExamples, Oregonator)
   constexpr micm::Index kOregonatorSubsteps = 18000;
 
   TestAnalyticalOregonator(backward_euler, 5e-3, kOregonatorSubsteps);
-#ifndef JUST_ONE_SOLVER
-  TestAnalyticalOregonator(backard_euler_vector_1, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backard_euler_vector_2, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backard_euler_vector_3, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backard_euler_vector_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_1, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_2, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_3, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_doolittle_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_1, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_2, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_3, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_mozart_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_1, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_2, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_3, 5e-3, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, 5e-3, kOregonatorSubsteps);
-#endif
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_8, 5e-3, kOregonatorSubsteps);
 }
 
 int main(int argc, char* argv[])

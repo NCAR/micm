@@ -1,104 +1,17 @@
+// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
+#include "../chapman_policy.hpp"
+
 #include <micm/Kokkos.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-#include <utility>
-#include <vector>
-
-using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
-
 TEST(ChapmanIntegration, CanBuildChapmanSystem)
 {
-  auto o = micm::Species("O");
-  auto o1d = micm::Species("O1D");
-  auto o2 = micm::Species("O2");
-  auto o3 = micm::Species("O3");
-  auto m = micm::Species("M");
-  auto ar = micm::Species("Ar");
-  auto n2 = micm::Species("N2");
-  auto h2o = micm::Species("H2O");
-  auto co2 = micm::Species("CO2");
-
-  micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ o, o1d, o2, o3, m, ar, n2, h2o, co2 } };
-
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ o1d, n2 })
-                         .SetProducts({ micm::StoichSpecies(o, 1), micm::StoichSpecies(n2, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 })
-                         .SetPhase(gas_phase)
-                         .Build();
-
-  micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ o1d, o2 })
-                         .SetProducts({ micm::StoichSpecies(o, 1), micm::StoichSpecies(o2, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 })
-                         .SetPhase(gas_phase)
-                         .Build();
-
-  micm::Process r3 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ o, o3 })
-                         .SetProducts({ micm::StoichSpecies(o2, 2) })
-                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .B_ = 0, .C_ = -2060 })
-                         .SetPhase(gas_phase)
-                         .Build();
-
-  micm::Process r4 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ o, o2, m })
-                         .SetProducts({ micm::StoichSpecies(o3, 1), micm::StoichSpecies(m, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 0, .C_ = 2.4 })
-                         .SetPhase(gas_phase)
-                         .Build();
-
-  micm::Process photo_1 = micm::ChemicalReactionBuilder()
-                              .SetReactants({ o2 })
-                              .SetProducts({ micm::StoichSpecies(o, 2) })
-                              .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "jO2" })
-                              .SetPhase(gas_phase)
-                              .Build();
-
-  micm::Process photo_2 = micm::ChemicalReactionBuilder()
-                              .SetReactants({ o3 })
-                              .SetProducts({ micm::StoichSpecies(o1d, 1), micm::StoichSpecies(o2, 1) })
-                              .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "jO3a" })
-                              .SetPhase(gas_phase)
-                              .Build();
-
-  micm::Process photo_3 = micm::ChemicalReactionBuilder()
-                              .SetReactants({ o3 })
-                              .SetProducts({ micm::StoichSpecies(o, 1), micm::StoichSpecies(o2, 1) })
-                              .SetRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "jO3b" })
-                              .SetPhase(gas_phase)
-                              .Build();
-
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-
-  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(gas_phase))
-                    .SetReactions({ r1, r2, r3, r4, photo_1, photo_2, photo_3 })
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
-
-  auto state = solver.GetState();
-
-  std::vector<micm::Real> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  state.variables_[0] = concentrations;
-  std::vector<micm::Real> photo_rates{ 0.1, 0.2, 0.3 };
-  state.custom_rate_parameters_[0] = photo_rates;
-  state.conditions_[0].temperature_ = 2;
-  state.conditions_[0].pressure_ = 3;
-  state.variables_.CopyToDevice();
-  state.custom_rate_parameters_.CopyToDevice();
-  state.conditions_.CopyToDevice();
-
-  for (micm::Index t{}; t < 100; ++t)
-  {
-    state.custom_rate_parameters_[0] = photo_rates;
-    state.custom_rate_parameters_.CopyToDevice();
-    solver.UpdateStateParameters(state);
-    auto result = solver.Solve(30.0, state);
-    // output state
-  }
+  TestChapmanSystem(micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options));
 }
 
 int main(int argc, char* argv[])
