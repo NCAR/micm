@@ -17,6 +17,12 @@
 // It is the ScalarType of both KokkosDenseMatrix and KokkosSparseMatrix, and the target that
 // KokkosSum / KokkosMax / KokkosLOr / KokkosLAnd reduce into.
 
+// Anything that launches a kernel lives in a free function rather than directly in the TEST
+// body. gtest expands TEST() into a class whose TestBody() is a *private* member function, and
+// nvcc rejects an extended __host__ __device__ lambda -- which is what KOKKOS_LAMBDA becomes
+// under CUDA -- inside a private or protected member function. A host-only Kokkos build
+// compiles either form, so this only shows up on the CUDA runner.
+
 static_assert(
     std::is_same_v<typename micm::KokkosScalarView<micm::Real>::value_type, micm::Real>,
     "value_type must be the element type");
@@ -77,7 +83,7 @@ TEST(KokkosScalarView, CopyToDeviceAndHost)
   EXPECT_EQ(scalar.HostValue(), micm::Real{ 5.0 });
 }
 
-TEST(KokkosScalarView, DeviceWriteIsVisibleAfterCopyToHost)
+void CheckDeviceWriteIsVisibleAfterCopyToHost()
 {
   micm::KokkosScalarView<micm::Real> scalar(0.0);
   scalar.CopyToDevice();
@@ -96,7 +102,12 @@ TEST(KokkosScalarView, DeviceWriteIsVisibleAfterCopyToHost)
   EXPECT_EQ(scalar.HostValue(), micm::Real{ 42.0 });
 }
 
-TEST(KokkosScalarView, DeviceReadSeesUploadedValue)
+TEST(KokkosScalarView, DeviceWriteIsVisibleAfterCopyToHost)
+{
+  CheckDeviceWriteIsVisibleAfterCopyToHost();
+}
+
+void CheckDeviceReadSeesUploadedValue()
 {
   micm::KokkosScalarView<micm::Real> scalar(7.25);
   scalar.CopyToDevice();
@@ -114,7 +125,12 @@ TEST(KokkosScalarView, DeviceReadSeesUploadedValue)
   EXPECT_EQ(observed_host(0), micm::Real{ 7.25 });
 }
 
-TEST(KokkosScalarView, CopyAssignmentCopiesTheHostValue)
+TEST(KokkosScalarView, DeviceReadSeesUploadedValue)
+{
+  CheckDeviceReadSeesUploadedValue();
+}
+
+void CheckCopyAssignmentCopiesTheHostValue()
 {
   micm::KokkosScalarView<micm::Real> source(11.0);
   micm::KokkosScalarView<micm::Real> target(0.0);
@@ -140,6 +156,11 @@ TEST(KokkosScalarView, CopyAssignmentCopiesTheHostValue)
   auto observed_host = Kokkos::create_mirror_view(observed);
   Kokkos::deep_copy(observed_host, observed);
   EXPECT_EQ(observed_host(0), micm::Real{ 11.0 });
+}
+
+TEST(KokkosScalarView, CopyAssignmentCopiesTheHostValue)
+{
+  CheckCopyAssignmentCopiesTheHostValue();
 }
 
 TEST(KokkosScalarView, IntegerSpecialisationRoundTrips)

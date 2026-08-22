@@ -81,15 +81,18 @@ namespace
     for (const auto& [name, index] : state.variable_map_)
     {
       std::vector<micm::Real> per_cell;
+      per_cell.reserve(state.variables_.NumRows());
       for (micm::Index cell = 0; cell < state.variables_.NumRows(); ++cell)
       {
         per_cell.push_back(state.variables_[cell][index]);
       }
       snapshot.variables_.emplace(name, std::move(per_cell));
     }
+    snapshot.rate_constants_.reserve(state.rate_constants_.NumRows());
     for (micm::Index cell = 0; cell < state.rate_constants_.NumRows(); ++cell)
     {
       std::vector<micm::Real> per_reaction;
+      per_reaction.reserve(state.rate_constants_.NumColumns());
       for (micm::Index i = 0; i < state.rate_constants_.NumColumns(); ++i)
       {
         per_reaction.push_back(state.rate_constants_[cell][i]);
@@ -117,8 +120,8 @@ namespace
     constexpr double rel_tol = std::is_same_v<micm::Real, double> ? 1.0e-10 : 1.0e-4;
     constexpr double abs_floor = std::is_same_v<micm::Real, double> ? 1.0e-18 : 1.0e-12;
 
-    const double a = static_cast<double>(cpu);
-    const double b = static_cast<double>(kokkos);
+    const auto a = static_cast<double>(cpu);
+    const auto b = static_cast<double>(kokkos);
     if (std::abs(a) > abs_floor)
     {
       g_max_relative_difference = std::max(g_max_relative_difference, std::abs(a - b) / std::abs(a));
@@ -136,7 +139,8 @@ namespace
     {
       const auto& c = cpu[step];
       const auto& k = kokkos[step];
-      const std::string where = label + " step " + std::to_string(step);
+      std::string where = label;
+      where.append(" step ").append(std::to_string(step));
 
       EXPECT_EQ(c.solver_state_, micm::SolverState::Converged)
           << where << ": CPU solver reported " << micm::SolverStateToString(c.solver_state_);
@@ -155,7 +159,9 @@ namespace
         ASSERT_EQ(cpu_cells.size(), it->second.size()) << where << ": cell count differs for " << name;
         for (std::size_t cell = 0; cell < cpu_cells.size(); ++cell)
         {
-          ExpectAgree(cpu_cells[cell], it->second[cell], where + ": " + name + " cell " + std::to_string(cell));
+          std::string cell_label = where;
+          cell_label.append(": ").append(name).append(" cell ").append(std::to_string(cell));
+          ExpectAgree(cpu_cells[cell], it->second[cell], cell_label);
         }
       }
 
@@ -166,10 +172,9 @@ namespace
             << where << ": rate-constant count differs in cell " << cell;
         for (std::size_t i = 0; i < c.rate_constants_[cell].size(); ++i)
         {
-          ExpectAgree(
-              c.rate_constants_[cell][i],
-              k.rate_constants_[cell][i],
-              where + ": rate constant " + std::to_string(i) + " cell " + std::to_string(cell));
+          std::string rate_label = where;
+          rate_label.append(": rate constant ").append(std::to_string(i)).append(" cell ").append(std::to_string(cell));
+          ExpectAgree(c.rate_constants_[cell][i], k.rate_constants_[cell][i], rate_label);
         }
       }
     }
@@ -428,7 +433,8 @@ namespace
     auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
     auto cpu = run(CpuBuilder<L>(options));
     auto kokkos = run(KokkosBuilder<L>(options));
-    const std::string tagged = label + " L=" + std::to_string(L);
+    std::string tagged = label;
+    tagged.append(" L=").append(std::to_string(L));
     ExpectEvolved(cpu, evolving_species, tagged + " (CPU)");
     ExpectEvolved(kokkos, evolving_species, tagged + " (Kokkos)");
     ExpectTrajectoriesAgree(cpu, kokkos, tagged);

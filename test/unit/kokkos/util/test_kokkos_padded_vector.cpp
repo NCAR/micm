@@ -19,6 +19,13 @@
 // This type is also not incidental to the backend: State::conditions_ is a
 // KokkosPaddedVector<Conditions, L>.
 
+// Anything that launches a kernel lives in a free function rather than directly in the TEST
+// body. gtest expands TEST() into a class whose TestBody() is a *private* member function, and
+// nvcc rejects an extended __host__ __device__ lambda -- which is what KOKKOS_LAMBDA becomes
+// under CUDA -- inside a private or protected member function. A host-only Kokkos build
+// compiles either form, so this only shows up on the CUDA runner. test_kokkos_dense_matrix.cpp
+// sidesteps the same restriction by delegating to the shared test_matrix_policy.hpp helpers.
+
 using IntVec4 = micm::KokkosPaddedVector<int, 4>;
 
 static_assert(micm::PaddedVectorLike<IntVec4>, "KokkosPaddedVector must satisfy PaddedVectorLike");
@@ -113,7 +120,7 @@ TEST(KokkosPaddedVector, CopyToDeviceAndHost)
   EXPECT_EQ(vec[2], 3);
 }
 
-TEST(KokkosPaddedVector, GetViewAddressesDeviceMemory)
+void CheckGetViewAddressesDeviceMemory()
 {
   IntVec4 vec(3, 0);
   vec[0] = 1;
@@ -140,7 +147,12 @@ TEST(KokkosPaddedVector, GetViewAddressesDeviceMemory)
   EXPECT_EQ(vec[2], 6);
 }
 
-TEST(KokkosPaddedVector, DeviceViewReportsLogicalSize)
+TEST(KokkosPaddedVector, GetViewAddressesDeviceMemory)
+{
+  CheckGetViewAddressesDeviceMemory();
+}
+
+void CheckDeviceViewReportsLogicalSize()
 {
   IntVec4 vec(3, 0);
   vec.CopyToDevice();
@@ -162,7 +174,12 @@ TEST(KokkosPaddedVector, DeviceViewReportsLogicalSize)
   EXPECT_EQ(observed_host(0), 3);
 }
 
-TEST(KokkosPaddedVector, ConstDeviceViewConversionKeepsSize)
+TEST(KokkosPaddedVector, DeviceViewReportsLogicalSize)
+{
+  CheckDeviceViewReportsLogicalSize();
+}
+
+void CheckConstDeviceViewConversionKeepsSize()
 {
   IntVec4 vec(3, 0);
   vec[0] = 5;
@@ -173,13 +190,31 @@ TEST(KokkosPaddedVector, ConstDeviceViewConversionKeepsSize)
   // logical size across, not just the underlying view.
   typename IntVec4::ViewType mutable_view = vec.GetView();
   typename IntVec4::ConstViewType const_view = mutable_view;
+
+  // size(), begin() and end() only read the size member and the view's pointer, so they are
+  // safe to call on the host. Dereferencing the view is not: under CUDA it addresses
+  // CudaSpace, so the element has to be read inside a kernel.
   EXPECT_EQ(const_view.size(), mutable_view.size());
   EXPECT_EQ(const_view.size(), 3);
-  EXPECT_EQ(const_view[0], 5);
   EXPECT_EQ(const_view.end() - const_view.begin(), 3);
+
+  Kokkos::View<int*> observed("observed", 1);
+  Kokkos::parallel_for(
+      "read_const_view",
+      1,
+      KOKKOS_LAMBDA(const micm::Index) { observed(0) = const_view[0]; });
+  Kokkos::fence();
+  auto observed_host = Kokkos::create_mirror_view(observed);
+  Kokkos::deep_copy(observed_host, observed);
+  EXPECT_EQ(observed_host(0), 5);
 }
 
-TEST(KokkosPaddedVector, CopyConstructorCopiesDeviceData)
+TEST(KokkosPaddedVector, ConstDeviceViewConversionKeepsSize)
+{
+  CheckConstDeviceViewConversionKeepsSize();
+}
+
+void CheckCopyConstructorCopiesDeviceData()
 {
   IntVec4 vec(3, 0);
   vec.CopyToDevice();
@@ -203,7 +238,12 @@ TEST(KokkosPaddedVector, CopyConstructorCopiesDeviceData)
   EXPECT_EQ(copy[2], 42);
 }
 
-TEST(KokkosPaddedVector, CopyAssignmentCopiesDeviceData)
+TEST(KokkosPaddedVector, CopyConstructorCopiesDeviceData)
+{
+  CheckCopyConstructorCopiesDeviceData();
+}
+
+void CheckCopyAssignmentCopiesDeviceData()
 {
   IntVec4 vec(3, 0);
   vec.CopyToDevice();
@@ -221,6 +261,11 @@ TEST(KokkosPaddedVector, CopyAssignmentCopiesDeviceData)
   EXPECT_EQ(other[0], 70);
   EXPECT_EQ(other[1], 71);
   EXPECT_EQ(other[2], 72);
+}
+
+TEST(KokkosPaddedVector, CopyAssignmentCopiesDeviceData)
+{
+  CheckCopyAssignmentCopiesDeviceData();
 }
 
 TEST(KokkosPaddedVector, MoveConstructorPreservesValues)
