@@ -6,7 +6,9 @@
 #include <micm/util/view_category.hpp>
 
 #include <Kokkos_Core.hpp>
+#include <algorithm>
 #include <initializer_list>
+#include <type_traits>
 #include <vector>
 
 namespace micm

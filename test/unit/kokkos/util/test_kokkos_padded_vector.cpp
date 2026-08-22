@@ -9,6 +9,7 @@
 
 #include <Kokkos_Core.hpp>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 // KokkosPaddedVector is not a wrapper around std::vector: it holds a host std::vector, an
