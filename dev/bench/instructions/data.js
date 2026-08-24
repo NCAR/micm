@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787345995965,
+  "lastUpdate": 1787600751267,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -617,6 +617,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/e2e21ed02e38f42a5368752a28f9ed32affc9b83"
         },
         "date": 1787345995211,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 530108298,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 525968252,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 364331696,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 276518978,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238027062,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 219474226,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3937e9db73329d459de09d44e7e8ffdd97a607d7",
+          "message": "Fix Kokkos tests (#1078)\n\n* update kokkos tests\n\n* fix broken kokkos ci tests\n\n* fix broken kokkos serial test\n\n* address matt's comments",
+          "timestamp": "2026-08-24T13:41:31-06:00",
+          "tree_id": "da20c7db603d64d1dac60d0dd069fd4468f10606",
+          "url": "https://github.com/NCAR/micm/commit/3937e9db73329d459de09d44e7e8ffdd97a607d7"
+        },
+        "date": 1787600750767,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
