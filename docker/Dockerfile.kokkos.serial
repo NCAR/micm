@@ -21,6 +21,7 @@ RUN mkdir /build \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_KOKKOS=TRUE \
         ../micm \
-      && ninja install -j 8
+      # -j 4 to prevent OOM on the Kokkos runner
+      && ninja install -j 4
 
 WORKDIR /build
