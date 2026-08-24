@@ -130,10 +130,8 @@ namespace
     EXPECT_NEAR(b, a, abs_floor + rel_tol * std::abs(a)) << what;
   }
 
-  void ExpectTrajectoriesAgree(
-      const std::vector<Snapshot>& cpu,
-      const std::vector<Snapshot>& kokkos,
-      const std::string& label)
+  void
+  ExpectTrajectoriesAgree(const std::vector<Snapshot>& cpu, const std::vector<Snapshot>& kokkos, const std::string& label)
   {
     ASSERT_EQ(cpu.size(), kokkos.size()) << label << ": different number of steps captured";
     for (std::size_t step = 0; step < cpu.size(); ++step)

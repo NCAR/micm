@@ -89,10 +89,7 @@ void CheckDeviceWriteIsVisibleAfterCopyToHost()
   scalar.CopyToDevice();
 
   auto device_view = scalar.GetDeviceView();
-  Kokkos::parallel_for(
-      "write_scalar",
-      1,
-      KOKKOS_LAMBDA(const micm::Index) { device_view(0) = micm::Real{ 42.0 }; });
+  Kokkos::parallel_for("write_scalar", 1, KOKKOS_LAMBDA(const micm::Index) { device_view(0) = micm::Real{ 42.0 }; });
   Kokkos::fence();
 
   // The host allocation is distinct, so it must not have moved yet.
@@ -114,10 +111,7 @@ void CheckDeviceReadSeesUploadedValue()
 
   auto device_view = scalar.GetDeviceView();
   Kokkos::View<micm::Real*> observed("observed", 1);
-  Kokkos::parallel_for(
-      "read_scalar",
-      1,
-      KOKKOS_LAMBDA(const micm::Index) { observed(0) = device_view(0); });
+  Kokkos::parallel_for("read_scalar", 1, KOKKOS_LAMBDA(const micm::Index) { observed(0) = device_view(0); });
   Kokkos::fence();
 
   auto observed_host = Kokkos::create_mirror_view(observed);
@@ -148,10 +142,7 @@ void CheckCopyAssignmentCopiesTheHostValue()
   target.CopyToDevice();
   auto device_view = target.GetDeviceView();
   Kokkos::View<micm::Real*> observed("observed", 1);
-  Kokkos::parallel_for(
-      "read_after_assign",
-      1,
-      KOKKOS_LAMBDA(const micm::Index) { observed(0) = device_view(0); });
+  Kokkos::parallel_for("read_after_assign", 1, KOKKOS_LAMBDA(const micm::Index) { observed(0) = device_view(0); });
   Kokkos::fence();
   auto observed_host = Kokkos::create_mirror_view(observed);
   Kokkos::deep_copy(observed_host, observed);

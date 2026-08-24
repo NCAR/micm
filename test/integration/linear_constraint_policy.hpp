@@ -174,11 +174,8 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
     EXPECT_REAL_REL(2.0 * cl2 + cl, total_chlorine_initial, 1.0e-6) << "chlorine not conserved after step " << i;
 
     // 3. Nothing may go negative or non-finite.
-    for (const auto& [name, value] : { std::pair{ "Cl2", cl2 },
-                                       std::pair{ "Cl", cl },
-                                       std::pair{ "A", a },
-                                       std::pair{ "B", b },
-                                       std::pair{ "C", c } })
+    for (const auto& [name, value] :
+         { std::pair{ "Cl2", cl2 }, std::pair{ "Cl", cl }, std::pair{ "A", a }, std::pair{ "B", b }, std::pair{ "C", c } })
     {
       EXPECT_TRUE(std::isfinite(static_cast<double>(value))) << name << " not finite at step " << i;
       EXPECT_GE(value, micm::Real{ 0.0 }) << name << " went negative at step " << i;

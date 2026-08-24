@@ -131,10 +131,7 @@ void CheckGetViewAddressesDeviceMemory()
 
   // Double every element through the device view.
   auto view = vec.GetView();
-  Kokkos::parallel_for(
-      "double_elements",
-      3,
-      KOKKOS_LAMBDA(const micm::Index i) { view[i] = view[i] * 2; });
+  Kokkos::parallel_for("double_elements", 3, KOKKOS_LAMBDA(const micm::Index i) { view[i] = view[i] * 2; });
   Kokkos::fence();
 
   // The host buffer is a separate allocation, so it must still hold the original values.
@@ -165,10 +162,7 @@ void CheckDeviceViewReportsLogicalSize()
 
   // ...and it must report the same value inside a kernel.
   Kokkos::View<micm::Index*> observed("observed", 1);
-  Kokkos::parallel_for(
-      "read_size",
-      1,
-      KOKKOS_LAMBDA(const micm::Index) { observed(0) = view.size(); });
+  Kokkos::parallel_for("read_size", 1, KOKKOS_LAMBDA(const micm::Index) { observed(0) = view.size(); });
   Kokkos::fence();
   auto observed_host = Kokkos::create_mirror_view(observed);
   Kokkos::deep_copy(observed_host, observed);
@@ -200,10 +194,7 @@ void CheckConstDeviceViewConversionKeepsSize()
   EXPECT_EQ(const_view.end() - const_view.begin(), 3);
 
   Kokkos::View<int*> observed("observed", 1);
-  Kokkos::parallel_for(
-      "read_const_view",
-      1,
-      KOKKOS_LAMBDA(const micm::Index) { observed(0) = const_view[0]; });
+  Kokkos::parallel_for("read_const_view", 1, KOKKOS_LAMBDA(const micm::Index) { observed(0) = const_view[0]; });
   Kokkos::fence();
   auto observed_host = Kokkos::create_mirror_view(observed);
   Kokkos::deep_copy(observed_host, observed);
@@ -223,10 +214,7 @@ void CheckCopyConstructorCopiesDeviceData()
   // Put a value on the device that does not exist in the host buffer, so the assertion below
   // can only pass if the copy constructor deep-copied the device view.
   auto view = vec.GetView();
-  Kokkos::parallel_for(
-      "seed_device",
-      3,
-      KOKKOS_LAMBDA(const micm::Index i) { view[i] = 40 + static_cast<int>(i); });
+  Kokkos::parallel_for("seed_device", 3, KOKKOS_LAMBDA(const micm::Index i) { view[i] = 40 + static_cast<int>(i); });
   Kokkos::fence();
 
   IntVec4 copy(vec);
@@ -249,10 +237,7 @@ void CheckCopyAssignmentCopiesDeviceData()
   IntVec4 vec(3, 0);
   vec.CopyToDevice();
   auto view = vec.GetView();
-  Kokkos::parallel_for(
-      "seed_device",
-      3,
-      KOKKOS_LAMBDA(const micm::Index i) { view[i] = 70 + static_cast<int>(i); });
+  Kokkos::parallel_for("seed_device", 3, KOKKOS_LAMBDA(const micm::Index i) { view[i] = 70 + static_cast<int>(i); });
   Kokkos::fence();
 
   IntVec4 other(1, 0);
