@@ -38,3 +38,4 @@ All of these tutorials are included in our automated tests. Each of them can be 
    solver_results
    openmp
    vectorized_matrix_solver
+   kokkos

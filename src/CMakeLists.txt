@@ -76,6 +76,16 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
 endif()
 
 if(MICM_ENABLE_KOKKOS)
+  # MICM_USE_KOKKOS switches MICM_LAMBDA, MICM_DEVICE_FUNCTION and MICM_CONSTEXPR for
+  # every micm header, so it has to be one state for the whole build.  Defining it only
+  # on micm_kokkos while micm also linked Kokkos let two translation units in the same
+  # binary compile the same header-only functions with different macro expansions --
+  # an ODR violation.  Carry both the link and the definition on micm itself.
+  target_link_libraries(micm INTERFACE Kokkos::kokkos)
+  target_compile_definitions(micm INTERFACE MICM_USE_KOKKOS)
+
+  # Retained so existing `musica::micm_kokkos` consumers keep working; micm already
+  # provides Kokkos and the macro, so this adds nothing beyond the name.
   add_library(micm_kokkos INTERFACE)
   add_library(musica::micm_kokkos ALIAS micm_kokkos)
   target_link_libraries(micm_kokkos INTERFACE micm Kokkos::kokkos)

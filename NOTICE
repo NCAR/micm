@@ -1,0 +1,43 @@
+MICM -- Model Independent Chemistry Module
+Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+
+This product is licensed under the Apache License, Version 2.0.  See the
+LICENSE file for the full text.
+
+================================================================================
+Third-party components
+================================================================================
+
+MICM does not vendor third-party source in this repository.  The components below
+are fetched at configure time by CMake (see cmake/dependencies.cmake) and are
+governed by their own licenses.  Redistributing a MICM build that includes them
+means redistributing those components, so their notices are reproduced by
+reference here.
+
+--------------------------------------------------------------------------------
+Kokkos
+--------------------------------------------------------------------------------
+Enabled by:   -DMICM_ENABLE_KOKKOS=ON
+Source:       https://github.com/kokkos/kokkos
+Version:      5.1.0
+License:      Apache License, Version 2.0, WITH LLVM Exceptions
+              SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+Full text:    https://github.com/kokkos/kokkos/blob/5.1.0/LICENSE
+Copyright:    National Technology & Engineering Solutions of Sandia, LLC (NTESS)
+
+Note that Kokkos carries the LLVM Exception in addition to Apache-2.0; MICM's own
+license does not.  Downstream redistributors should reproduce the Kokkos LICENSE
+file alongside any binary that links Kokkos.
+
+--------------------------------------------------------------------------------
+GoogleTest
+--------------------------------------------------------------------------------
+Enabled by:   -DMICM_ENABLE_TESTS=ON (default; test binaries only)
+Source:       https://github.com/google/googletest
+License:      BSD 3-Clause "New" or "Revised" License
+              SPDX-License-Identifier: BSD-3-Clause
+Full text:    https://github.com/google/googletest/blob/main/LICENSE
+Copyright:    Google Inc.
+
+GoogleTest is linked only into MICM's test executables and is not part of an
+installed MICM.

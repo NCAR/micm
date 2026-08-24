@@ -3,6 +3,9 @@
 
 # include things to copy
 !CMakeLists.txt
+# packaging/CMakeLists.txt installs these, so they must be in the build context
+!LICENSE
+!NOTICE
 !src/
 !docs/
 !libs/

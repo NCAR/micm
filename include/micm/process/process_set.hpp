@@ -526,10 +526,6 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
   {
-    // number_of_reactants_.size() is fixed once the ProcessSet is built, so it is just a
-    // host value captured by value into the kernel.  Routing it through a device scalar
-    // cost two Kokkos allocations plus a fencing 8-byte host-to-device copy on every call,
-    // and turned the loop bound into a device-global load.
     const Index n_rxn = number_of_reactants_.size();
     const auto& views = views_;
     const DenseMatrix& rate_constants = state.rate_constants_;
@@ -600,9 +596,7 @@ namespace micm
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    // No n_rxn here: this kernel iterates views.jacobian_process_info_, so the scalar that
-    // used to be built and uploaded at this point was never read -- a dead pair of Kokkos
-    // allocations and a fencing host-to-device copy on every Jacobian evaluation.
+    const Index n_rxn = number_of_reactants_.size();
     const auto& views = views_;
     const DenseMatrix& rate_constants = state.rate_constants_;
     SparseMatrixPolicy::Function(
