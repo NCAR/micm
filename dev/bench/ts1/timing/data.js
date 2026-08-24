@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787348830257,
+  "lastUpdate": 1787603807987,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -539,6 +539,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 44917.99,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3937e9db73329d459de09d44e7e8ffdd97a607d7",
+          "message": "Fix Kokkos tests (#1078)\n\n* update kokkos tests\n\n* fix broken kokkos ci tests\n\n* fix broken kokkos serial test\n\n* address matt's comments",
+          "timestamp": "2026-08-24T13:41:31-06:00",
+          "tree_id": "da20c7db603d64d1dac60d0dd069fd4468f10606",
+          "url": "https://github.com/NCAR/micm/commit/3937e9db73329d459de09d44e7e8ffdd97a607d7"
+        },
+        "date": 1787603807139,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 123505.96,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 121532.21,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 108220.61,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 87483.44,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 83197.41,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 49588.47,
             "unit": "ms"
           }
         ]
