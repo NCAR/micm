@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787349377717,
+  "lastUpdate": 1787608073842,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (Kokkos backend)": [
@@ -195,6 +195,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 224.65,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "92f00b12a364fa38aa06578a4e3a591ba37ccaa0",
+          "message": "Auto-format code changes (#1079)\n\nAuto-format code using Clang-Format\n\nCo-authored-by: GitHub Actions <actions@github.com>",
+          "timestamp": "2026-08-24T13:42:40-06:00",
+          "tree_id": "c59d49e5a010597c9540d86e8b9802cfda565163",
+          "url": "https://github.com/NCAR/micm/commit/92f00b12a364fa38aa06578a4e3a591ba37ccaa0"
+        },
+        "date": 1787608072865,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 722.72,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 409.03,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 264.17,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 197.99,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 223.65,
             "unit": "ms"
           }
         ]
