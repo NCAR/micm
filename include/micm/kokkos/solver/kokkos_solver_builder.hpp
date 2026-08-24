@@ -15,7 +15,7 @@ namespace micm
   /// @brief Builder of Kokkos-backed solvers
   /// @tparam SolverParametersPolicy Policy for the solver parameters struct
   /// @tparam L Vector dimension
-  template<class SolverParametersPolicy, Index L = MICM_DEFAULT_VECTOR_SIZE>
+  template<class SolverParametersPolicy, Index L = detail::MICM_KOKKOS_DEFAULT_TEAM_SIZE>
   using KokkosSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       KokkosDenseMatrix<Real, L>,

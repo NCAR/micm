@@ -30,11 +30,7 @@ namespace micm
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
     System system_;
-    std::vector<
-        std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>
-        update_state_parameters_functions_;
     RateConstantStore store_;
-    std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>> initialize_constraint_parameters_functions_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -50,52 +46,12 @@ namespace micm
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
         System system)
-        : Solver(std::move(solver), state_parameters, solver_parameters, std::move(processes), std::move(system), {})
-    {
-    }
-
-    Solver(
-        SolverPolicy&& solver,
-        StateParameters state_parameters,
-        SolverParametersType solver_parameters,
-        std::vector<micm::Process> processes,
-        System system,
-        const std::vector<
-            std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>&
-            update_state_parameters_functions)
         : solver_(std::move(solver)),
           state_parameters_(std::move(state_parameters)),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system)),
-          update_state_parameters_functions_(update_state_parameters_functions),
           store_(RateConstantStore::BuildFrom(processes_))
-    {
-      if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
-      {
-        solver_.rates_.BuildCudaStore(store_);
-      }
-    }
-
-    Solver(
-        SolverPolicy&& solver,
-        StateParameters state_parameters,
-        SolverParametersType solver_parameters,
-        std::vector<micm::Process> processes,
-        System system,
-        const std::vector<
-            std::function<void(const typename DenseMatrixType::template VectorType<micm::Conditions>&, DenseMatrixType&)>>&
-            update_state_parameters_functions,
-        const std::vector<std::function<void(const DenseMatrixType&, DenseMatrixType&)>>&
-            initialize_constraint_parameters_functions)
-        : solver_(std::move(solver)),
-          state_parameters_(std::move(state_parameters)),
-          solver_parameters_(solver_parameters),
-          processes_(std::move(processes)),
-          system_(std::move(system)),
-          update_state_parameters_functions_(update_state_parameters_functions),
-          store_(RateConstantStore::BuildFrom(processes_)),
-          initialize_constraint_parameters_functions_(initialize_constraint_parameters_functions)
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
       {
@@ -109,9 +65,7 @@ namespace micm
           state_parameters_(std::move(other.state_parameters_)),
           solver_parameters_(std::move(other.solver_parameters_)),
           system_(std::move(other.system_)),
-          update_state_parameters_functions_(std::move(other.update_state_parameters_functions_)),
-          store_(std::move(other.store_)),
-          initialize_constraint_parameters_functions_(std::move(other.initialize_constraint_parameters_functions_))
+          store_(std::move(other.store_))
     {
     }
 
@@ -124,17 +78,17 @@ namespace micm
       solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
       std::swap(this->system_, other.system_);
-      std::swap(this->update_state_parameters_functions_, other.update_state_parameters_functions_);
       std::swap(this->store_, other.store_);
-      std::swap(this->initialize_constraint_parameters_functions_, other.initialize_constraint_parameters_functions_);
       return *this;
     }
 
     SolverResult Solve(Real time_step, StatePolicy& state)
     {
-      for (const auto& init_func : initialize_constraint_parameters_functions_)
+      if constexpr (requires {
+                      solver_.constraints_.InitializeConstraintParameters(state.variables_, state.custom_rate_parameters_);
+                    })
       {
-        init_func(state.variables_, state.custom_rate_parameters_);
+        solver_.constraints_.InitializeConstraintParameters(state.variables_, state.custom_rate_parameters_);
       }
       auto result = solver_.Solve(time_step, state, solver_parameters_);
       PostSolveClamp(state);
@@ -145,9 +99,11 @@ namespace micm
     SolverResult Solve(Real time_step, StatePolicy& state, const SolverParametersType& params)
     {
       solver_parameters_ = params;
-      for (const auto& init_func : initialize_constraint_parameters_functions_)
+      if constexpr (requires {
+                      solver_.constraints_.InitializeConstraintParameters(state.variables_, state.custom_rate_parameters_);
+                    })
       {
-        init_func(state.variables_, state.custom_rate_parameters_);
+        solver_.constraints_.InitializeConstraintParameters(state.variables_, state.custom_rate_parameters_);
       }
       auto result = solver_.Solve(time_step, state, params);
       PostSolveClamp(state);
@@ -210,23 +166,21 @@ namespace micm
     }
 
     /// @brief Update state parameters based on current conditions (temperature, pressure, etc.)
-    ///        Invokes all registered parameter update functions for external models and constraints
-    ///        to recompute temperature-dependent values (e.g., aerosol rate constants, equilibrium constants)
-    ///        Should be called before solving if conditions have changed since the last solve
+    ///        Invokes rate-parameter updates registered by external models (via the RatesBundle)
+    ///        and constraint parameter updates (via the ConstraintBundle), then recomputes
+    ///        rate constants. Should be called before solving if conditions have changed.
     /// @param state State object containing conditions and custom_rate_parameters to be updated
     void UpdateStateParameters(StatePolicy& state)
     {
-      // External update functions must run first: they populate custom_rate_parameters_
-      // which user-defined and surface rate constants read during calculation.
-      for (const auto& update_func : update_state_parameters_functions_)
+      // External process-model parameter updates must run first: they populate
+      // custom_rate_parameters_ which user-defined and surface rate constants read.
+      if constexpr (requires {
+                      solver_.rates_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
+                    })
       {
-        update_func(state.conditions_, state.custom_rate_parameters_);
+        solver_.rates_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
       }
 
-      // Update constraint parameters (e.g. temperature-dependent K_eq) directly from
-      // the solver's own constraints_ member — avoids the dangling-this issue that
-      // arises when a lambda capturing the builder-local ConstraintSet is registered
-      // in update_state_parameters_functions_.
       if constexpr (requires {
                       solver_.constraints_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
                     })
@@ -234,8 +188,7 @@ namespace micm
         solver_.constraints_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
       }
 
-      // Dispatch to GPU path if the RatesPolicy (e.g. CudaProcessSet) exposes
-      // GpuCalculateRateConstants; otherwise use the CPU path.
+      // Dispatch to GPU path if the RatesPolicy exposes GpuCalculateRateConstants; otherwise CPU.
       if constexpr (requires { solver_.rates_.GpuCalculateRateConstants(store_, state); })
       {
         solver_.rates_.GpuCalculateRateConstants(store_, state);

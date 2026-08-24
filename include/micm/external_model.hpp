@@ -2,163 +2,161 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /// @file external_model.hpp
-/// @brief Defines structures to integrate external models into the MICM system
+/// @brief Interface and setup-time wrappers for integrating external models into MICM
 ///
 /// @section external_model_overview Overview
 ///
-/// External models provide a mechanism to incorporate additional physical processes and state variables
-/// into MICM that exist in separate codebases. Examples include aerosol models, cloud chemistry models,
-/// precipitation, and ice models. External models can contribute both state variables (e.g., particle
-/// number concentrations, condensed-phase species concentrations, droplet size distributions) and
-/// processes (e.g., gas-particle partitioning, aqueous chemistry, surface reactions, evaporation/condensation).
+/// External models provide a mechanism to incorporate additional physical processes and state
+/// variables into MICM that live in separate codebases (for treating aerosols, clouds, etc.).
+/// External models can contribute state variables (e.g., condensed-phase species, droplet number),
+/// state parameters (e.g., temperature-dependent rate constants), forcing/Jacobian terms, and
+/// algebraic constraints (DAE mode).
 ///
-/// @section external_model_requirements Requirements
+/// @section external_model_requirements Required interface
 ///
-/// To integrate an external model with MICM, the model class must implement the following interface:
+/// A model integrates by exposing member functions. The solver builder detects which capability
+/// groups are present with concepts and calls the corresponding methods directly at build time
+/// and solve time. The concepts are:
 ///
-/// **State Definition Methods:**
-/// - `std::tuple<std::size_t, std::size_t> StateSize() const`
-///   - Returns (number of state variables, number of state parameters)
+/// - `HasState`         - state variables and parameters
+/// - `HasProcesses`     - non-algebraic forcing and Jacobian contributions
+/// - `HasConstraints`   - algebraic constraints for DAE formulation
+/// - `HasInitializeConstraintParameters` - state-diagnosed constraint parameters (optional)
 ///
-/// - `std::set<std::string> StateVariableNames() const`
-///   - Returns unique names for all state variables (e.g., "AEROSOL.MODE1.SO4", "CLOUD.DROPLET_NUMBER") needed
-///     to describe the model's state within MICM and that will be included as ODE solver variables
+/// Every model must satisfy at least one of `HasProcesses` or `HasConstraints`. `HasState` is
+/// independent and adds state variables when present.
 ///
-/// - `std::set<std::string> StateParameterNames() const`
-///   - Returns unique names for all state parameters (e.g., rate constants, physical constants) needed to
-///     describe the model's state within MICM and that will be included as fixed parameters during ODE solves.
-///     State parameters are almost always temperature- or pressure-dependent properties that can change between
-///     solver steps but are not themselves solved for.
+/// #### State methods (satisfy `HasState`)
+/// ```cpp
+/// std::tuple<Index, Index> StateSize() const;
+/// std::set<std::string>    StateVariableNames() const;
+/// std::set<std::string>    StateParameterNames() const;
+/// ```
 ///
-/// **Process Definition Methods:**
-/// - `std::set<std::string> SpeciesUsed() const`
-///   - Returns names of all species (gas-phase and external model variables) used in the model's processes. This
-///     allows MICM to warn users if state variables are defined but not used in any processes.
+/// #### Process methods (satisfy `HasProcesses`)
 ///
-/// - `std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements(const std::unordered_map<std::string,
-/// std::size_t>& state_indices) const`
-///   - Returns (row, column) pairs identifying non-zero elements in the Jacobian matrix, based on the model processes. The
-///   returned
-///     pairs of indices are for dependent and independent variables, respectively. This allows MICM to efficiently allocate
-///     and populate the system Jacobian matrix as a sparse matrix that only stores non-zero elements.
+/// Build-time queries:
+/// ```cpp
+/// std::set<std::string>                       SpeciesUsed() const;
+/// std::set<std::pair<Index, Index>>           NonZeroJacobianElements(
+///     const std::unordered_map<std::string, Index>& state_indices) const;
+/// ```
 ///
-/// - `template<typename DenseMatrixPolicy> std::function<void(const typename DenseMatrixPolicy::template
-/// VectorType<micm::Conditions>&, DenseMatrixPolicy&)> UpdateStateParametersFunction(const std::unordered_map<std::string,
-/// std::size_t>& state_parameter_indices) const`
-///   - Returns a function that updates state parameters (e.g., temperature-dependent rate constants) before each solve
+/// Build-time finalization (called once after the parameter map, species map, and Jacobian
+/// sparsity are finalized so the model can cache flat indices):
+/// ```cpp
+/// template<class SparseMatrixPolicy>
+/// void FinalizeProcessSetup(
+///     const std::unordered_map<std::string, Index>& state_parameter_indices,
+///     const std::unordered_map<std::string, Index>& state_variable_indices,
+///     const SparseMatrixPolicy& jacobian);
+/// ```
 ///
-/// - `template<typename DenseMatrixPolicy> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&,
-/// DenseMatrixPolicy&)> ForcingFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices, const
-/// std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
-///   - Returns a function that calculates forcing terms (tendencies) for the model's processes
-///   - Function signature: `void(state_parameters, state_variables, forcing_terms)`
+/// Solve-time (called by the solver each step):
+/// ```cpp
+/// template<class DenseMatrixPolicy>
+/// void UpdateStateParameters(
+///     const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
+///     DenseMatrixPolicy& state_parameters) const;
 ///
-/// - `template<typename DenseMatrixPolicy, typename SparseMatrixPolicy> std::function<void(const DenseMatrixPolicy&, const
-/// DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(const std::unordered_map<std::string, std::size_t>&
-/// state_parameter_indices, const std::unordered_map<std::string, std::size_t>& state_variable_indices, const
-/// SparseMatrixPolicy& jacobian) const`
-///   - Returns a function that calculates the negative Jacobian contributions for the model's processes
-///   - Function signature: `void(state_parameters, state_variables, jacobian)`
-///   - Note: Each partial derivative matrix element should be subtracted from the Jacobian (i.e.,
-///   `jacobian[dependent][independent] -= value`)
+/// template<class DenseMatrixPolicy>
+/// void AddForcingTerms(
+///     const DenseMatrixPolicy& state_parameters,
+///     const DenseMatrixPolicy& state_variables,
+///     DenseMatrixPolicy& forcing) const;
 ///
-/// **Constraint Definition Methods (Optional — detected via HasConstraints concept):**
+/// template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+/// void SubtractJacobianTerms(
+///     const DenseMatrixPolicy& state_parameters,
+///     const DenseMatrixPolicy& state_variables,
+///     SparseMatrixPolicy& jacobian) const;
+/// ```
 ///
-/// External models can optionally provide algebraic constraints for DAE formulation. If a model
-/// implements the following methods, the `HasConstraints` concept is satisfied and constraints will
-/// be automatically detected and wrapped when `AddExternalModel()` is called.
+/// Each partial derivative element should be subtracted from the Jacobian (matches the solver's
+/// -J convention).
 ///
-/// Even when constraint methods are present, the model may return empty sets at runtime to disable
-/// constraint activation (e.g., based on constructor parameters).
+/// #### Constraint methods (satisfy `HasConstraints`)
 ///
-/// - `std::set<std::string> ConstraintAlgebraicVariableNames() const`
-///   - Returns names of state variables whose ODE rows are replaced by algebraic constraints.
-///     Return an empty set to indicate no constraints (pure ODE mode).
+/// Build-time queries:
+/// ```cpp
+/// std::set<std::string>                       ConstraintAlgebraicVariableNames() const;
+/// std::set<std::string>                       ConstraintSpeciesDependencies() const;
+/// std::set<std::pair<Index, Index>>           NonZeroConstraintJacobianElements(
+///     const std::unordered_map<std::string, Index>& state_indices) const;
+/// std::set<std::string>                       ConstraintStateParameterNames() const;
+/// ```
 ///
-/// - `std::set<std::string> ConstraintSpeciesDependencies() const`
-///   - Returns all species names the constraints depend on (for unused-species checking)
+/// A model may return an empty set from `ConstraintAlgebraicVariableNames()` to disable
+/// constraints for the current configuration; when it does, its constraint methods are not called.
 ///
-/// - `std::set<std::pair<std::size_t, std::size_t>> NonZeroConstraintJacobianElements(
-///     const std::unordered_map<std::string, std::size_t>& state_indices) const`
-///   - Returns (row, column) pairs for non-zero elements in the constraint Jacobian
+/// Build-time finalization:
+/// ```cpp
+/// template<class SparseMatrixPolicy>
+/// void FinalizeConstraintSetup(
+///     const std::unordered_map<std::string, Index>& state_parameter_indices,
+///     const std::unordered_map<std::string, Index>& state_variable_indices,
+///     const SparseMatrixPolicy& jacobian);
+/// ```
 ///
-/// - `std::set<std::string> ConstraintStateParameterNames() const`
-///   - Returns unique names for constraint-specific state parameters (e.g., temperature-dependent
-///     equilibrium constants). These are added to the global parameter map and updated before each
-///     solve step. Return an empty set if constraints have no parameters.
+/// Solve-time:
+/// ```cpp
+/// template<class DenseMatrixPolicy>
+/// void UpdateConstraintStateParameters(
+///     const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
+///     DenseMatrixPolicy& state_parameters) const;
 ///
-/// - `template<typename DenseMatrixPolicy> std::function<void(const typename DenseMatrixPolicy::template
-/// VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
-///   ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, std::size_t>&
-///   state_parameter_indices) const`
-///   - Returns a function that updates constraint parameters (e.g., temperature-dependent K_eq)
-///     based on environmental conditions before each solve step
+/// template<class DenseMatrixPolicy>
+/// void AddConstraintResidual(
+///     const DenseMatrixPolicy& state_parameters,
+///     const DenseMatrixPolicy& state_variables,
+///     DenseMatrixPolicy& forcing) const;
 ///
-/// - `template<typename DenseMatrixPolicy>
-///   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-///   ConstraintResidualFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-///     const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
-///   - Returns a function that computes constraint residuals G(y), where G(y) = 0 when satisfied
-///   - Function signature: `void(state_parameters, state_variables, forcing)`
+/// template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+/// void SubtractConstraintJacobian(
+///     const DenseMatrixPolicy& state_parameters,
+///     const DenseMatrixPolicy& state_variables,
+///     SparseMatrixPolicy& jacobian) const;
+/// ```
 ///
-/// - `template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-///   std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
-///   ConstraintJacobianFunction(const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-///     const std::unordered_map<std::string, std::size_t>& state_variable_indices,
-///     const SparseMatrixPolicy& jacobian) const`
-///   - Returns a function that subtracts ∂G/∂y entries (matching the solver's -J convention)
-///   - Function signature: `void(state_parameters, state_variables, jacobian)`
+/// #### Initialize constraint parameters (optional, satisfy `HasInitializeConstraintParameters`)
 ///
-/// **Constraint Initialization Methods (Optional — detected via HasInitializeConstraintParameters concept):**
+/// For constraints whose parameters are diagnosed from the current state at the start of each
+/// `Solve()` call (e.g., mass-conservation totals):
+/// ```cpp
+/// std::set<std::string> InitializeConstraintParameterNames() const;
 ///
-/// External models can optionally provide a function that diagnoses constraint parameters from the
-/// current state at the beginning of each solve step. This is used for constraints whose constants
-/// depend on the current state (e.g., mass conservation totals that must be recomputed each step
-/// to account for emissions, transport, or deposition between steps).
-///
-/// - `template<typename DenseMatrixPolicy>
-///   std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-///   InitializeConstraintParametersFunction(
-///     const std::unordered_map<std::string, std::size_t>& state_parameter_indices,
-///     const std::unordered_map<std::string, std::size_t>& state_variable_indices) const`
-///   - Returns a function that computes constraint parameters from the current state variables
-///   - Function signature: `void(state_variables, state_parameters)`
-///   - Called at the beginning of each Solve() before the internal time integration begins
-///   - Per grid cell: each row of state_parameters gets its own diagnosed value
+/// template<class DenseMatrixPolicy>
+/// void InitializeConstraintParameters(
+///     const DenseMatrixPolicy& state_variables,
+///     DenseMatrixPolicy& state_parameters) const;
+/// ```
 ///
 /// @section external_model_usage Usage
-///
-/// **1. Set up the external model:**
-/// ```cpp
-/// auto aerosol_model = MyAerosolModel(...);
-/// ```
-///
-/// **2. Add the external model to the solver:**
 /// ```cpp
 /// auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
-///   .SetSystem(system)
-///   .AddExternalModel(aerosol_model)  // registers state variables, processes, and constraints (optional)
-///   .Build();
-/// ```
+///     .SetSystem(system)
+///     .AddExternalModel(std::move(aerosol_model))
+///     .Build();
 ///
-/// **3. Access external model state variables:**
-/// ```cpp
 /// auto state = solver.GetState();
 /// state["AEROSOL.MODE1.SO4"] = initial_concentration;
-/// double droplet_number = state["CLOUD.DROPLET_NUMBER"];
 /// ```
 ///
-/// @section external_model_example Example
+/// @section external_model_lifetime Ownership and lifetime
 ///
-/// See `test/integration/stub_aerosol_1.hpp` and `test/integration/stub_aerosol_2.hpp` for complete
-/// example implementations demonstrating simplified gas-particle partitioning, inter-mode transfer,
-/// and the use of both constant and temperature-dependent rate parameters.
+/// `SolverBuilder::AddExternalModel(m)` consumes an rvalue and returns a new builder whose
+/// template parameter pack has been extended with `std::decay_t<decltype(m)>`. The concrete model
+/// is stored by value in a `std::tuple` that eventually moves into the built `Solver`. The solver
+/// invokes the model's solve-time methods directly (no `std::function` wrappers, no
+/// `std::shared_ptr` capture), enabling inlining and safe use in `__host__ __device__` contexts.
 ///
+
 #pragma once
 
 #include <micm/system/conditions.hpp>
 #include <micm/util/types.hpp>
 
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -172,213 +170,75 @@
 
 namespace micm
 {
-  /// @brief Wrapper for external model state information
+  /// @brief Type-erased build-time wrapper carrying an external model's state-definition queries
   ///
-  /// This struct encapsulates an external model's state definition (variables and parameters) and provides
-  /// a type-erased interface that MICM can use to query the model's state requirements. Instances are
-  /// constructed automatically when an external model is passed to `SolverBuilder::AddExternalModel()`.
-  ///
-  /// @note Users typically do not construct this directly; instead, pass external model instances to
-  ///       `SolverBuilder::AddExternalModel()` and they will be wrapped automatically.
+  /// Populated by `SolverBuilder::AddExternalModel()` for models that satisfy `HasState`. Only
+  /// build-time queries are wrapped here; solve-time work is dispatched directly on the concrete
+  /// model held in the builder / solver tuple.
   struct ExternalModelSystem
   {
-    /// @brief Type-erased function returning the state size (number of variables, number of parameters)
     std::function<std::tuple<Index, Index>()> state_size_func_;
-
-    /// @brief Type-erased function returning the set of state variable names
     std::function<std::set<std::string>()> variable_names_func_;
-
-    /// @brief Type-erased function returning the set of state parameter names
     std::function<std::set<std::string>()> parameter_names_func_;
 
-    /// @brief Default constructor is deleted (must construct from an external model instance)
     ExternalModelSystem() = delete;
 
-    /// @brief Constructs a type-erased wrapper from an external model instance
-    ///
-    /// This constructor captures the model instance and wraps its state definition methods in
-    /// std::function objects that can be called without knowledge of the original model type.
-    ///
-    /// @tparam ModelType Type of the external model (must implement the external model interface)
-    /// @param model External model instance (will be moved or copied into shared ownership)
     template<typename ModelType>
-    ExternalModelSystem(ModelType&& model)
+    ExternalModelSystem(const ModelType& model)
       requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelSystem>)
     {
-      auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
+      auto shared_model = std::make_shared<std::decay_t<ModelType>>(model);
       state_size_func_ = [shared_model]() -> std::tuple<Index, Index> { return shared_model->StateSize(); };
       variable_names_func_ = [shared_model]() -> std::set<std::string> { return shared_model->StateVariableNames(); };
       parameter_names_func_ = [shared_model]() -> std::set<std::string> { return shared_model->StateParameterNames(); };
     }
   };
 
-  /// @brief Wrapper for external model process information
+  /// @brief Type-erased build-time wrapper carrying an external model's process-definition queries
   ///
-  /// This struct encapsulates an external model's process definitions (forcing functions, Jacobian functions,
-  /// and state parameter updates) and provides a type-erased interface that MICM can use to incorporate the
-  /// model's processes into the ODE solver. Instances are constructed when `AddExternalModel()` is
-  /// called on a solver builder.
-  ///
-  /// The wrapped functions are used during the solve to:
-  /// - Update state parameters based on environmental conditions (temperature, pressure, etc.)
-  /// - Calculate forcing terms (tendencies) for the model's processes
-  /// - Calculate Jacobian contributions for implicit time integration
-  ///
-  /// @tparam DenseMatrixPolicy Policy for dense matrices (state variables, parameters, forcing)
-  /// @tparam SparseMatrixPolicy Policy for sparse matrices (Jacobian)
-  ///
-  /// @note Users typically do not construct this directly; instead, pass external model instances to
-  ///       solver builder's `AddExternalModel()` method.
+  /// Populated for models that satisfy `HasProcesses`. Only build-time queries (species used and
+  /// Jacobian sparsity) are wrapped here. solve-time forcing/Jacobian calls are made directly on
+  /// the concrete model held in the builder / solver tuple.
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   struct ExternalModelProcessSet
   {
-    /// @brief Type-erased function returning non-zero Jacobian element positions
     std::function<std::set<std::pair<Index, Index>>(const std::unordered_map<std::string, Index>&)>
         non_zero_jacobian_elements_func_;
-
-    /// @brief Type-erased function returning the set of species used by the model's processes
     std::function<std::set<std::string>()> species_used_func_;
 
-    /// @brief Type-erased function factory for state parameter updates
-    /// Returns a function that updates state parameters based on environmental conditions
-    std::function<
-        std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>(
-            const std::unordered_map<std::string, Index>& state_parameter_indices)>
-        update_state_parameters_function_;
-
-    /// @brief Type-erased function factory for forcing term calculation
-    /// Returns a function that computes forcing terms (tendencies) for the model's processes
-    std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, Index>& state_parameter_indices,
-        const std::unordered_map<std::string, Index>& state_variable_indices)>
-        get_forcing_function_;
-
-    /// @brief Type-erased function factory for Jacobian calculation
-    /// Returns a function that computes Jacobian contributions for the model's processes
-    std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
-        const std::unordered_map<std::string, Index>& state_parameter_indices,
-        const std::unordered_map<std::string, Index>& state_variable_indices,
-        const SparseMatrixPolicy& jacobian)>
-        get_jacobian_function_;
-
-    /// @brief Constructs a type-erased wrapper from an external model instance
-    ///
-    /// This constructor captures the model instance and wraps its process definition methods in
-    /// std::function objects. The wrapped functions can then be called by MICM's solver without
-    /// knowledge of the original model type, enabling seamless integration of external processes.
-    ///
-    /// @tparam ModelType Type of the external model (must implement the external model interface)
-    /// @param model External model instance (will be moved or copied into shared ownership)
     template<typename ModelType>
-    ExternalModelProcessSet(ModelType&& model)
+    ExternalModelProcessSet(const ModelType& model)
       requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelProcessSet>)
     {
-      auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
+      auto shared_model = std::make_shared<std::decay_t<ModelType>>(model);
       non_zero_jacobian_elements_func_ =
           [shared_model](const std::unordered_map<std::string, Index>& species_map) -> std::set<std::pair<Index, Index>>
       { return shared_model->NonZeroJacobianElements(species_map); };
       species_used_func_ = [shared_model]() -> std::set<std::string> { return shared_model->SpeciesUsed(); };
-      update_state_parameters_function_ =
-          [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
-          -> std::function<void(
-              const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
-      { return shared_model->template UpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
-      get_forcing_function_ = [shared_model](
-                                  const std::unordered_map<std::string, Index>& state_parameter_indices,
-                                  const std::unordered_map<std::string, Index>& state_variable_indices)
-          -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-      { return shared_model->template ForcingFunction<DenseMatrixPolicy>(state_parameter_indices, state_variable_indices); };
-      get_jacobian_function_ = [shared_model](
-                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
-                                   const std::unordered_map<std::string, Index>& state_variable_indices,
-                                   const SparseMatrixPolicy& jacobian)
-          -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
-      {
-        return shared_model->template JacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-            state_parameter_indices, state_variable_indices, jacobian);
-      };
     }
   };
 
-  /// @brief Concept to detect whether an external model provides constraint parameter initialization
+  /// @brief Type-erased build-time wrapper carrying an external model's constraint-definition queries
   ///
-  /// A model satisfies `HasInitializeConstraintParameters` if it provides
-  /// `InitializeConstraintParameterNames()`. This is used for constraints whose parameters
-  /// must be diagnosed from the current state at the beginning of each solve step
-  /// (e.g., mass conservation totals).
-  template<typename T>
-  concept HasInitializeConstraintParameters = requires(const T& m) {
-    { m.InitializeConstraintParameterNames() } -> std::same_as<std::set<std::string>>;
-  };
-
-  /// @brief Wrapper for external model constraint information
-  ///
-  /// This struct encapsulates an external model's constraint definitions (algebraic variables,
-  /// residual functions, Jacobian functions) and provides a type-erased interface that MICM
-  /// can use to incorporate the model's constraints into the DAE solver. Instances are constructed
-  /// when `AddExternalModel()` is called on a solver builder for a model satisfying `HasConstraints`.
-  ///
-  /// @tparam DenseMatrixPolicy Policy for dense matrices (state variables, forcing)
-  /// @tparam SparseMatrixPolicy Policy for sparse matrices (Jacobian)
+  /// Populated for models that satisfy `HasConstraints`. Only build-time queries are wrapped;
+  /// solve-time residual/Jacobian/update calls are made directly on the concrete model held in
+  /// the builder / solver tuple.
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   struct ExternalModelConstraintSet
   {
-    /// @brief Type-erased function returning names of algebraic variables (may be empty at runtime)
     std::function<std::set<std::string>()> algebraic_variable_names_func_;
-
-    /// @brief Type-erased function returning species dependencies for constraints
     std::function<std::set<std::string>()> species_dependencies_func_;
-
-    /// @brief Type-erased function returning non-zero constraint Jacobian element positions
     std::function<std::set<std::pair<Index, Index>>(const std::unordered_map<std::string, Index>&)>
         non_zero_jacobian_elements_func_;
-
-    /// @brief Type-erased function returning constraint state parameter names
     std::function<std::set<std::string>()> state_parameter_names_func_;
-
-    /// @brief Type-erased function factory for constraint state parameter updates
-    /// Returns a function that updates constraint parameters based on environmental conditions
-    std::function<
-        std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>(
-            const std::unordered_map<std::string, Index>& state_parameter_indices)>
-        update_state_parameters_function_;
-
-    /// @brief Type-erased function factory for constraint residual computation
-    /// Returns a function that computes G(y) for the constraint rows
-    std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, Index>& state_parameter_indices,
-        const std::unordered_map<std::string, Index>& state_variable_indices)>
-        get_residual_function_;
-
-    /// @brief Type-erased function factory for constraint Jacobian computation
-    /// Returns a function that computes ∂G/∂y for the constraint rows
-    std::function<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>(
-        const std::unordered_map<std::string, Index>& state_parameter_indices,
-        const std::unordered_map<std::string, Index>& state_variable_indices,
-        const SparseMatrixPolicy& jacobian)>
-        get_jacobian_function_;
-
-    /// @brief Type-erased function returning parameter names that need initialization from state
-    /// Returns an empty set if the model does not need state-diagnosed parameters
+    /// Empty when the model does not need state-diagnosed constraint parameters
     std::function<std::set<std::string>()> initialize_constraint_parameter_names_func_;
 
-    /// @brief Type-erased function factory for constraint parameter initialization from state
-    /// Returns a function that diagnoses constraint parameters from current state variables
-    /// at the beginning of each Solve() call
-    std::function<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>(
-        const std::unordered_map<std::string, Index>& state_parameter_indices,
-        const std::unordered_map<std::string, Index>& state_variable_indices)>
-        get_initialize_constraint_parameters_function_;
-
-    /// @brief Constructs a type-erased wrapper from an external model instance
-    ///
-    /// @tparam ModelType Type of the external model (must satisfy HasConstraints)
-    /// @param model External model instance
     template<typename ModelType>
-    ExternalModelConstraintSet(ModelType&& model)
+    ExternalModelConstraintSet(const ModelType& model)
       requires(!std::is_same_v<std::decay_t<ModelType>, ExternalModelConstraintSet>)
     {
-      auto shared_model = std::make_shared<std::decay_t<ModelType>>(std::forward<ModelType>(model));
+      auto shared_model = std::make_shared<std::decay_t<ModelType>>(model);
       algebraic_variable_names_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintAlgebraicVariableNames(); };
       species_dependencies_func_ = [shared_model]() -> std::set<std::string>
@@ -388,60 +248,20 @@ namespace micm
       { return shared_model->NonZeroConstraintJacobianElements(species_map); };
       state_parameter_names_func_ = [shared_model]() -> std::set<std::string>
       { return shared_model->ConstraintStateParameterNames(); };
-      update_state_parameters_function_ =
-          [shared_model](const std::unordered_map<std::string, Index>& state_parameter_indices)
-          -> std::function<void(
-              const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
-      { return shared_model->template ConstraintUpdateStateParametersFunction<DenseMatrixPolicy>(state_parameter_indices); };
-      get_residual_function_ = [shared_model](
-                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
-                                   const std::unordered_map<std::string, Index>& state_variable_indices)
-          -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-      {
-        return shared_model->template ConstraintResidualFunction<DenseMatrixPolicy>(
-            state_parameter_indices, state_variable_indices);
-      };
-      get_jacobian_function_ = [shared_model](
-                                   const std::unordered_map<std::string, Index>& state_parameter_indices,
-                                   const std::unordered_map<std::string, Index>& state_variable_indices,
-                                   const SparseMatrixPolicy& jacobian)
-          -> std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>
-      {
-        return shared_model->template ConstraintJacobianFunction<DenseMatrixPolicy, SparseMatrixPolicy>(
-            state_parameter_indices, state_variable_indices, jacobian);
-      };
 
-      // Wire initialize constraint parameters if the model provides them
-      if constexpr (HasInitializeConstraintParameters<std::decay_t<ModelType>>)
+      if constexpr (requires { shared_model->InitializeConstraintParameterNames(); })
       {
         initialize_constraint_parameter_names_func_ = [shared_model]() -> std::set<std::string>
         { return shared_model->InitializeConstraintParameterNames(); };
-        get_initialize_constraint_parameters_function_ =
-            [shared_model](
-                const std::unordered_map<std::string, Index>& state_parameter_indices,
-                const std::unordered_map<std::string, Index>& state_variable_indices)
-            -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-        {
-          return shared_model->template InitializeConstraintParametersFunction<DenseMatrixPolicy>(
-              state_parameter_indices, state_variable_indices);
-        };
       }
       else
       {
         initialize_constraint_parameter_names_func_ = []() -> std::set<std::string> { return {}; };
-        get_initialize_constraint_parameters_function_ = [](const std::unordered_map<std::string, Index>&,
-                                                            const std::unordered_map<std::string, Index>&)
-            -> std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>
-        { return [](const DenseMatrixPolicy&, DenseMatrixPolicy&) {}; };
       }
     }
   };
 
-  /// @brief Concept to detect whether an external model provides state variable/parameter information
-  ///
-  /// A model satisfies `HasState` if it provides `StateSize()`, `StateVariableNames()`, and
-  /// `StateParameterNames()`. Models satisfying this concept contribute additional state variables
-  /// to the solver when passed to `AddExternalModel()`.
+  /// @brief Model provides state variables and parameters
   template<typename T>
   concept HasState = requires(const T& m) {
     { m.StateSize() } -> std::same_as<std::tuple<Index, Index>>;
@@ -449,24 +269,23 @@ namespace micm
     { m.StateParameterNames() } -> std::same_as<std::set<std::string>>;
   };
 
-  /// @brief Concept to detect whether an external model provides process methods
-  ///
-  /// A model satisfies `HasProcesses` if it provides `SpeciesUsed()` and
-  /// `NonZeroJacobianElements()`.
+  /// @brief Model provides forcing/Jacobian process contributions
   template<typename T>
   concept HasProcesses = requires(const T& m, const std::unordered_map<std::string, Index>& map) {
     { m.SpeciesUsed() } -> std::same_as<std::set<std::string>>;
     { m.NonZeroJacobianElements(map) } -> std::same_as<std::set<std::pair<Index, Index>>>;
   };
 
-  /// @brief Concept to detect whether an external model provides constraint methods
-  ///
-  /// A model satisfies `HasConstraints` if it provides at least `ConstraintAlgebraicVariableNames()`
-  /// and `ConstraintSpeciesDependencies()`. At runtime, the model may return empty sets to indicate
-  /// that constraints are not active for a given configuration.
+  /// @brief Model provides algebraic constraint contributions
   template<typename T>
   concept HasConstraints = requires(const T& m) {
     { m.ConstraintAlgebraicVariableNames() } -> std::same_as<std::set<std::string>>;
     { m.ConstraintSpeciesDependencies() } -> std::same_as<std::set<std::string>>;
+  };
+
+  /// @brief Model provides state-diagnosed constraint parameters (called once per Solve())
+  template<typename T>
+  concept HasInitializeConstraintParameters = requires(const T& m) {
+    { m.InitializeConstraintParameterNames() } -> std::same_as<std::set<std::string>>;
   };
 }  // namespace micm

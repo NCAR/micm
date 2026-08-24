@@ -256,7 +256,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_equilibrium", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // Create state matrix with 1 grid cell and 3 species
   DenseMatrix state(1, 3);
@@ -340,7 +340,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
 
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_equilibrium", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // Create state matrix
   DenseMatrix state(1, 3);
@@ -407,7 +407,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "dissociation", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -466,7 +466,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "eq", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix variables(2, num_species, 0.0);
   variables[0][0] = 0.02;  // A
@@ -541,7 +541,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "dissociation", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 0.15;  // A

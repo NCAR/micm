@@ -1,9 +1,9 @@
 // Copyright (C) 2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#include "stub_aerosol_with_constraints.hpp"
+#include "../stub_aerosol_with_constraints.hpp"
 
-#include <micm/CPU.hpp>
+#include <micm/Kokkos.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
 #include <micm/util/jacobian_verification.hpp>
@@ -18,8 +18,8 @@
 
 using namespace micm;
 
-using DenseMatrix = Matrix<micm::Real>;
-using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+using DenseMatrix = KokkosDenseMatrix<micm::Real>;
+using StdSparseMatrix = KokkosSparseMatrix<micm::Real>;
 
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
 ///
@@ -382,8 +382,9 @@ class MassConservationModel
     using Vector = typename DenseMatrixPolicy::template VectorType<int>;
     const micm::Index i_ctrl = i_ctrl_;
     const micm::Real total = total_;
-    const Vector indices = indices_;
-    indices.CopyToDevice();
+    const Vector indices_data = indices_;
+    indices_data.CopyToDevice();
+    const auto indices = indices_data.GetView();
     DenseMatrixPolicy::Function(
         MICM_LAMBDA(
             const typename DenseMatrixPolicy::ViewType& forcing_view,
@@ -411,8 +412,9 @@ class MassConservationModel
       SparseMatrixPolicy& jacobian) const
   {
     using Vector = typename DenseMatrixPolicy::template VectorType<int>;
-    const Vector flat_ids = flat_ids_;
-    flat_ids.CopyToDevice();
+    const Vector flat_ids_data = flat_ids_;
+    flat_ids_data.CopyToDevice();
+    const auto flat_ids = flat_ids_data.GetView();
     SparseMatrixPolicy::Function(
         MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
           for (auto flat : flat_ids)
@@ -445,7 +447,7 @@ TEST(ExternalModelConstraints, AddExternalModelWithConstraints)
   auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -477,7 +479,7 @@ TEST(ExternalModelConstraints, AddExternalModelProcessOnly)
   auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -507,7 +509,7 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -570,7 +572,7 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
@@ -602,7 +604,7 @@ TEST(ExternalModelConstraints, AddExternalModelOnlyStandardRosenbrock)
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Add only processes (constraints are not enabled with standard Rosenbrock parameters)
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -625,7 +627,7 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
   auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -666,7 +668,7 @@ TEST(ExternalModelConstraints, MultiGridCell)
   auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -764,7 +766,7 @@ namespace
                                .Build();
 
     auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+    auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab, rxn_bc, rxn_cb })
                       .SetReorderState(false)
@@ -828,7 +830,7 @@ namespace
     {
       options.constraint_init_tolerance_ = 1.0e-5;
     }
-    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+    auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
                       .AddExternalModel(eq_model)
@@ -889,7 +891,7 @@ namespace
     {
       options.constraint_init_tolerance_ = 1.0e-5;
     }
-    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+    auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({ rxn_ab })
                       .AddExternalModel(eq_model)
@@ -1013,7 +1015,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   {
     options.constraint_init_tolerance_ = 1.0e-5;
   }
-  auto builtin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto builtin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                             .SetSystem(micm::System(gas_phase))
                             .SetReactions({ rxn_ab })
                             .SetConstraints(std::move(constraints))
@@ -1022,7 +1024,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 
   // External model constraint solver
   EquilibriumConstraintModel eq_model("B", "C", K_EQ);
-  auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto ext_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                         .SetSystem(micm::System(gas_phase))
                         .SetReactions({ rxn_ab })
                         .AddExternalModel(eq_model)
@@ -1141,7 +1143,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
                              .Build();
 
   auto kin_options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto kin_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(kin_options)
+  auto kin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(kin_options)
                         .SetSystem(system)
                         .SetReactions({ rxn_ab, rxn_bc, rxn_cb, rxn_bd, rxn_db })
                         .SetReorderState(false)
@@ -1161,7 +1163,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   {
     dae_options.constraint_init_tolerance_ = 1.0e-5;
   }
-  auto ext_solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
+  auto ext_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
                         .SetSystem(system)
                         .SetReactions({ rxn_ab })
                         .AddExternalModel(eq_bc)
@@ -1263,7 +1265,7 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
   // This Build() call would throw "Zero element access" without the fix
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(system)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
@@ -1302,8 +1304,8 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
 // Finite-Difference Jacobian Verification for External Models
 // ═══════════════════════════════════════════════════════════════
 
-using DenseMatrix = micm::Matrix<micm::Real>;
-using SparseMatrixFD = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+using FdDenseMatrix = micm::KokkosDenseMatrix<micm::Real>;
+using SparseMatrixFD = micm::KokkosSparseMatrix<micm::Real>;
 
 /// Verify StubAerosolWithConstraints process forcing/Jacobian
 TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
@@ -1325,29 +1327,29 @@ TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
   SparseMatrixFD analytical_jac{ builder };
   aerosol.FinalizeProcessSetup(param_map, var_map, analytical_jac);
 
-  DenseMatrix variables(2, num_species, 0.0);
+  FdDenseMatrix variables(2, num_species, 0.0);
   variables[0][0] = 0.8;
   variables[0][1] = 0.2;
   variables[1][0] = 0.3;
   variables[1][1] = 0.7;
 
-  DenseMatrix params(2, 0, 0.0);
+  FdDenseMatrix params(2, 0, 0.0);
 
   aerosol.SubtractJacobianTerms(params, variables, analytical_jac);
 
-  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  auto fd_wrapper = [&](const FdDenseMatrix& vars, FdDenseMatrix& forcing)
   { aerosol.AddForcingTerms(params, vars, forcing); };
 
-  auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+  auto fd_jac = micm::FiniteDifferenceJacobian<FdDenseMatrix>(fd_wrapper, variables, num_species);
 
   auto comparison =
-      micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+      micm::CompareJacobianToFiniteDifference<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Process Jacobian mismatch: block=" << comparison.worst_block_
                                   << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
                                   << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 
-  auto sparsity = micm::CheckJacobianSparsityCompleteness<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+  auto sparsity = micm::CheckJacobianSparsityCompleteness<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
 
   EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
                                 << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
@@ -1374,22 +1376,22 @@ TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
   SparseMatrixFD analytical_jac{ builder };
   aerosol.FinalizeConstraintSetup(param_map, var_map, analytical_jac);
 
-  DenseMatrix variables(2, num_species, 0.0);
+  FdDenseMatrix variables(2, num_species, 0.0);
   variables[0][0] = 0.6;
   variables[0][1] = 0.4;
   variables[1][0] = 0.2;
   variables[1][1] = 0.8;
-  DenseMatrix dummy_params(2, 1, 0.0);
+  FdDenseMatrix dummy_params(2, 1, 0.0);
 
   aerosol.SubtractConstraintJacobian(dummy_params, variables, analytical_jac);
 
-  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  auto fd_wrapper = [&](const FdDenseMatrix& vars, FdDenseMatrix& forcing)
   { aerosol.AddConstraintResidual(dummy_params, vars, forcing); };
 
-  auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+  auto fd_jac = micm::FiniteDifferenceJacobian<FdDenseMatrix>(fd_wrapper, variables, num_species);
 
   auto comparison =
-      micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+      micm::CompareJacobianToFiniteDifference<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "Constraint Jacobian mismatch: block=" << comparison.worst_block_
                                   << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
@@ -1416,26 +1418,26 @@ TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
   SparseMatrixFD analytical_jac{ builder };
   model.FinalizeConstraintSetup(param_map, var_map, analytical_jac);
 
-  DenseMatrix variables(1, num_species, 0.0);
+  FdDenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 3.0;
   variables[0][1] = 5.0;
-  DenseMatrix dummy_params(1, 1, 0.0);
+  FdDenseMatrix dummy_params(1, 1, 0.0);
 
   model.SubtractConstraintJacobian(dummy_params, variables, analytical_jac);
 
-  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
+  auto fd_wrapper = [&](const FdDenseMatrix& vars, FdDenseMatrix& forcing)
   { model.AddConstraintResidual(dummy_params, vars, forcing); };
 
-  auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
+  auto fd_jac = micm::FiniteDifferenceJacobian<FdDenseMatrix>(fd_wrapper, variables, num_species);
 
   auto comparison =
-      micm::CompareJacobianToFiniteDifference<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+      micm::CompareJacobianToFiniteDifference<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
 
   EXPECT_TRUE(comparison.passed_) << "EquilibriumConstraintModel Jacobian mismatch: block=" << comparison.worst_block_
                                   << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
                                   << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
 
-  auto sparsity = micm::CheckJacobianSparsityCompleteness<DenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+  auto sparsity = micm::CheckJacobianSparsityCompleteness<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
 
   EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
                                 << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
@@ -1631,7 +1633,7 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
   {
     options.constraint_init_tolerance_ = 1.0e-5;
   }
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(gas_phase))
                     .SetReactions({ rxn_ab })
                     .AddExternalModel(eq_model)
@@ -1696,4 +1698,13 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
     EXPECT_GT(K_eq_350, K_EQ_REF) << "K_eq should increase with temperature for positive delta_H";
     EXPECT_NEAR(C_val / B_val, K_eq_350, 1e-4) << "At T=350K, [C]/[B] should equal K_eq(350)";
   }
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

@@ -5,6 +5,7 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/external_model.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
@@ -23,7 +24,9 @@
 
 #include <memory>
 #include <sstream>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 
 namespace micm
 {
@@ -34,6 +37,7 @@ namespace micm
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Policy for the linear solver
+  /// @tparam ExternalModels Concrete external model types added via `AddExternalModel()`
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy,
@@ -41,9 +45,14 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
+      class StatePolicy,
+      class... ExternalModels>
   class SolverBuilder
   {
+    // Allow builders of any external-model pack to move state between specializations
+    template<class, class, class, class, class, class, class, class...>
+    friend class SolverBuilder;
+
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
@@ -61,6 +70,9 @@ namespace micm
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
     std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
 
+    /// Owning storage of concrete external models. Moved into the built `Solver` for direct dispatch.
+    std::tuple<ExternalModels...> external_models_;
+
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
     bool valid_system_ = false;
@@ -70,6 +82,7 @@ namespace micm
     virtual ~SolverBuilder() = default;
 
     SolverBuilder(const SolverParametersPolicy& options)
+      requires(sizeof...(ExternalModels) == 0)
         : options_(options)
     {
     }
@@ -78,6 +91,17 @@ namespace micm
     SolverBuilder& operator=(const SolverBuilder&) = default;
     SolverBuilder(SolverBuilder&&) = default;
     SolverBuilder& operator=(SolverBuilder&&) = default;
+
+   protected:
+    /// Rebind constructor used by `AddExternalModel()` to seed a new specialization with
+    /// state moved from a builder whose external-model pack is one element shorter.
+    SolverBuilder(const SolverParametersPolicy& options, std::tuple<ExternalModels...>&& models)
+        : options_(options),
+          external_models_(std::move(models))
+    {
+    }
+
+   public:
 
     /// @brief Set the chemical system
     /// @param system The chemical system
@@ -127,40 +151,59 @@ namespace micm
 
     /// @brief Add an external model (state variables, processes, and/or constraints)
     ///
-    /// If the model satisfies HasState, its state variables and parameters are registered with the solver.
-    /// The model must satisfy at least one of HasProcesses (process wrappers are created) or
-    /// HasConstraints (constraint wrappers are created).
-    /// @param model The external model (taken by value; caller decides whether to copy or move)
-    /// @return Updated SolverBuilder
+    /// Returns a new builder whose template parameter pack is extended with `ExternalModel`.
+    /// The concrete model is stored by value in a `std::tuple` that flows through `Build()`
+    /// into the constructed `Solver`, which invokes the model's solve-time methods directly.
+    ///
+    /// If the model satisfies `HasState`, its state variables and parameters are registered.
+    /// The model must satisfy at least one of `HasProcesses` or `HasConstraints`.
     template<class ExternalModel>
-    SolverBuilder& AddExternalModel(ExternalModel model)
+    auto AddExternalModel(ExternalModel model)
     {
       static_assert(
           HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,
           "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
 
+      using NextBuilder = SolverBuilder<
+          SolverParametersPolicy,
+          DenseMatrixPolicy,
+          SparseMatrixPolicy,
+          RatesPolicy,
+          LuDecompositionPolicy,
+          LinearSolverPolicy,
+          StatePolicy,
+          ExternalModels...,
+          ExternalModel>;
+      auto extended_models =
+          std::tuple_cat(std::move(external_models_), std::tuple<ExternalModel>(std::move(model)));
+      NextBuilder next(options_, std::move(extended_models));
+      next.system_ = std::move(system_);
+      next.reactions_ = std::move(reactions_);
+      next.constraints_ = std::move(constraints_);
+      next.external_systems_ = std::move(external_systems_);
+      next.external_process_sets_ = std::move(external_process_sets_);
+      next.external_constraints_ = std::move(external_constraints_);
+      next.ignore_unused_species_ = ignore_unused_species_;
+      next.reorder_state_ = reorder_state_;
+      next.valid_system_ = valid_system_;
+
+      const auto& appended = std::get<sizeof...(ExternalModels)>(next.external_models_);
       if constexpr (HasState<ExternalModel>)
       {
-        external_systems_.emplace_back(ExternalModelSystem{ model });
+        next.external_systems_.emplace_back(ExternalModelSystem{ appended });
+      }
+      if constexpr (HasProcesses<ExternalModel>)
+      {
+        next.external_process_sets_.emplace_back(
+            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
+      }
+      if constexpr (HasConstraints<ExternalModel>)
+      {
+        next.external_constraints_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
       }
 
-      if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
-      {
-        external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ model });
-        external_constraints_.emplace_back(
-            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      else if constexpr (HasProcesses<ExternalModel>)
-      {
-        external_process_sets_.emplace_back(
-            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      else
-      {
-        external_constraints_.emplace_back(
-            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      return *this;
+      return next;
     }
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver

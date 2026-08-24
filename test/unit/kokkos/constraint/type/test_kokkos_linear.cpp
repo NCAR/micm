@@ -153,7 +153,7 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // Create state matrix with 1 grid cell and 2 species
   DenseMatrix state(1, 2);
@@ -228,7 +228,7 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
 
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // Create state matrix
   DenseMatrix state(1, 2);
@@ -288,7 +288,7 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -368,7 +368,7 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix state(1, 3);
   DenseMatrix forcing(1, 3);
@@ -439,7 +439,7 @@ TEST(LinearConstraint, ZeroConstantResidual)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix state(1, 2);
   DenseMatrix forcing(1, 2);
@@ -508,7 +508,7 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix state(1, 2);
   DenseMatrix forcing(1, 2);
@@ -574,7 +574,7 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
 
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;  // Empty for linear constraints
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // Test at two different concentration points
   DenseMatrix state1(1, 2);
@@ -647,7 +647,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix variables(2, num_species, 0.0);
   variables[0][0] = 0.3;
@@ -719,7 +719,7 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   std::unordered_map<std::string, micm::Index> state_parameter_indices;
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix variables(1, num_species, 0.0);
   variables[0][0] = 1.5;

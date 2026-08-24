@@ -40,8 +40,8 @@
 #include <vector>
 
 using namespace micm;
-using DenseMatrix = KokkosDenseMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
-using StdSparseMatrix = KokkosSparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+using DenseMatrix = KokkosDenseMatrix<Real>;
+using StdSparseMatrix = KokkosSparseMatrix<Real>;
 
 namespace
 {
