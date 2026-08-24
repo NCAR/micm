@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787348827935,
+  "lastUpdate": 1787603805601,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -509,6 +509,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/e2e21ed02e38f42a5368752a28f9ed32affc9b83"
         },
         "date": 1787348822015,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41708627336,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41485941289,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29330761895,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21602766209,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17996594258,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14842982364,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3937e9db73329d459de09d44e7e8ffdd97a607d7",
+          "message": "Fix Kokkos tests (#1078)\n\n* update kokkos tests\n\n* fix broken kokkos ci tests\n\n* fix broken kokkos serial test\n\n* address matt's comments",
+          "timestamp": "2026-08-24T13:41:31-06:00",
+          "tree_id": "da20c7db603d64d1dac60d0dd069fd4468f10606",
+          "url": "https://github.com/NCAR/micm/commit/3937e9db73329d459de09d44e7e8ffdd97a607d7"
+        },
+        "date": 1787603804812,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
