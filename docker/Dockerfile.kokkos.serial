@@ -21,12 +21,7 @@ RUN mkdir /build \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_KOKKOS=TRUE \
         ../micm \
-      # -j 4 rather than -j 8: this is the only image that builds the Kokkos tests, and
-      # test_kokkos_analytical_rosenbrock.cpp / _backward_euler.cpp each instantiate the full
-      # solver matrix in a single translation unit, peaking around 2.5 GB per compiler process
-      # (more on Fedora's newer GCC). Eight of those at once exceeds the 16 GB the
-      # ubuntu-latest runner has, and the build gets OOM-killed -- which surfaces only as
-      # "exit code 143". The runner has 4 cores, so -j 8 was oversubscribed regardless.
+      # -j 4 to prevent OOM on the Kokkos runner
       && ninja install -j 4
 
 WORKDIR /build

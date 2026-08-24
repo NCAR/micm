@@ -11,13 +11,6 @@
 
 #include <type_traits>
 
-// This file deliberately instantiates the full matrix of solver variants, mirroring its CPU twin
-// test/integration/test_analytical_rosenbrock.cpp. A JUST_ONE_SOLVER macro used to live here and
-// compiled out everything but a single instance, which meant the Kokkos-native KokkosSolverBuilder
-// was never exercised at all - the only solver left standing was the CPU algorithm running over
-// Kokkos matrix types. Anyone re-adding such a shortcut would be switching off the coverage that is
-// the entire reason this file exists.
-
 using BuilderType = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>;
 using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
 template<micm::Index L>
@@ -87,17 +80,8 @@ using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilderInPlace<
 template<micm::Index L>
 using VectorStateTypeMozartInPlace = typename VectorRosenbrockMozartInPlace<L>::StatePolicyType;
 
-// Vector-width coverage note: each LU/ordering family below is instantiated at the default
-// vector width only, not at widths 1/2/3 as well. The widths exercise the padding and grouping
-// logic of the Kokkos matrices, and that is covered directly and far more cheaply by
-// test/unit/kokkos/util/test_kokkos_dense_matrix.cpp and test_kokkos_sparse_matrix.cpp (both
-// run every operation at L = 1, 2, 3, 4) and end-to-end through the solver by
-// test_kokkos_cpu_agreement.cpp (L = 1, 2, 4, 8, compared against the CPU backend). What this
-// file uniquely covers is each LU variant and sparse ordering driving the Kokkos matrices
-// against an analytical solution, and one width per family covers that.
-//
-// Instantiating all four widths cost 3.7 GB of compiler memory and ~30 min of single-core
-// compile time for this one translation unit, which OOM-killed the Fedora Docker CI job.
+// One vector width per LU/ordering family: the other widths are covered by the Kokkos matrix
+// unit tests and test_kokkos_cpu_agreement.cpp, and instantiating them all here OOMs CI.
 auto rosenbrock_2stage = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto rosenbrock_3stage = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(
@@ -127,9 +111,6 @@ auto rosenbrock_vector_doolittle_in_place_4 =
 
 auto rosenbrock_vector_mozart_in_place_4 =
     VectorRosenbrockMozartInPlace<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-// The vector length 8 instance is the CPU solver algorithm driving Kokkos matrix types, which is a
-// distinct code path from the Kokkos-native builders above and was historically the only solver this
-// file actually compiled, so it stays in every test body.
 auto rosenbrock_vector_mozart_in_place_8 =
     VectorRosenbrockMozartInPlace<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
