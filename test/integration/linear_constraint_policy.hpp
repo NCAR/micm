@@ -153,6 +153,13 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
     while (advanced < time_step)
     {
       auto result = solver.Solve(time_step - advanced, state);
+      // A solve that ends short returns only part of the interval it was given, so once what it
+      // returns falls under half an ulp of `advanced` the accumulator stops moving and this loop
+      // spins forever. See the same guard in TestAnalyticalOregonator's sub-step loop.
+      if (advanced + result.stats_.final_time_ == advanced)
+      {
+        break;
+      }
       advanced += result.stats_.final_time_;
     }
 
@@ -171,7 +178,8 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
 
     // 2. Total chlorine is conserved by the kinetics rather than by a constraint, so it is
     //    only held to the accuracy of the integration.
-    EXPECT_REAL_REL(2.0 * cl2 + cl, total_chlorine_initial, 1.0e-6) << "chlorine not conserved after step " << i;
+    EXPECT_REAL_SOLVE_REL(2.0 * cl2 + cl, total_chlorine_initial, 1.0e-6)
+        << "chlorine not conserved after step " << i;
 
     // 3. Nothing may go negative or non-finite.
     for (const auto& [name, value] :

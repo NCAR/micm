@@ -7,9 +7,11 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -1724,8 +1726,17 @@ void TestAnalyticalOregonator(
   // X, Y, and Z have very different scales, so each one needs its own absolute tolerance.
   // A single absolute tolerance for all of them limits the accuracy of the smallest, X.
   // P and Q are only produced. They never react, so their accuracy does not matter here.
-  state.SetRelativeTolerance(solver_relative_tolerance);
-  micm::Real tolerance_floor = solver_relative_tolerance * 1e-2;
+  // A relative tolerance below the working precision is unreachable: the Newton update cannot be
+  // driven below the last bit of the iterate it is applied to, so the convergence test never passes.
+  // Backward Euler answers that by exhausting its step-size reductions and accepting the step
+  // unconverged, which returns about 1/160th of the requested sub-step -- 160 solver calls to cover
+  // each of the 18000 sub-steps, at every one of the twelve output times and for every solver
+  // variant. That reads as a hang rather than a failure. The default 1e-9 asked for here sits below
+  // float epsilon (1.2e-07); in the double build 100 * epsilon is 2.2e-14, so the floor never binds.
+  const micm::Real achievable_relative_tolerance =
+      std::max(solver_relative_tolerance, micm::Real{ 100 } * std::numeric_limits<micm::Real>::epsilon());
+  state.SetRelativeTolerance(achievable_relative_tolerance);
+  micm::Real tolerance_floor = achievable_relative_tolerance * 1e-2;
   state.SetAbsoluteTolerances(
       { alpha_const * tolerance_floor, eta_const * tolerance_floor, rho_const * tolerance_floor, eta_const, eta_const });
 
@@ -1759,6 +1770,14 @@ void TestAnalyticalOregonator(
     {
       micm::Real dt = std::min(max_substep, time_step - actual_solve);
       auto result = solver.Solve(dt, state);
+      // A solve that ends unconverged returns only a fraction of the sub-step it was given, so
+      // final_time_ is not bounded below by an ulp of actual_solve the way dt is. Once it falls
+      // under half an ulp the accumulator stops moving and this loop spins forever. Break instead,
+      // and let the accuracy assertions below report what the short integration produced.
+      if (actual_solve + result.stats_.final_time_ == actual_solve)
+      {
+        break;
+      }
       actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);

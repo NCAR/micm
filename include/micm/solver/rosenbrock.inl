@@ -85,7 +85,15 @@ namespace micm
         break;
       }
 
-      if (((present_time + 0.1 * H) == present_time) || (H <= parameters.round_off_))
+      // Stagnation guard.  The first clause is the scale-relative test and does the work once
+      // present_time > 0; the second is its counterpart at present_time == 0, where no step is
+      // small enough to be absorbed.  Both are compared against a step size in seconds, so the
+      // floor has to be one too: round_off_ is dimensionless machine epsilon, ~2e-16 in double
+      // (far below any h_min, so the clause never fires) but ~1.2e-7 in single, where on its own
+      // it would abort every problem whose internal step has to go below a tenth of a
+      // microsecond -- h_min is the step floor the integrator actually works to, and steps at
+      // h_min are force-accepted below, so progress is guaranteed either way.
+      if (((present_time + 0.1 * H) == present_time) || (H <= std::min(parameters.round_off_, h_min)))
       {
         result.state_ = SolverState::StepSizeTooSmall;
         break;
