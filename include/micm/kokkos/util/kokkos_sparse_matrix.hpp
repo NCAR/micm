@@ -6,6 +6,7 @@
 #include <micm/kokkos/util/kokkos_padded_vector.hpp>
 #include <micm/kokkos/util/kokkos_reducers.hpp>
 #include <micm/kokkos/util/kokkos_scalar_view.hpp>
+#include <micm/kokkos/util/kokkos_team_policy.hpp>
 #include <micm/kokkos/util/kokkos_views.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -57,10 +58,6 @@ namespace micm
     KokkosViewType view_;
     /// Host view for copying to and from device
     Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>> host_view_;
-    /// Cached device copy of the diagonal elements' block-relative offsets, for
-    /// AddToDiagonal.  The sparsity pattern is fixed except on assignment, so this is
-    /// built once rather than rebuilt and re-uploaded on every call.  A default-
-    /// constructed View allocates nothing and is safe before Kokkos::initialize().
     Kokkos::View<Index*> diagonal_offsets_;
     bool diagonal_offsets_valid_ = false;
 
@@ -224,8 +221,9 @@ namespace micm
       template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(Index block, std::index_sequence<Is...>) const
       {
-        func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-            view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
+        func_(
+            KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
+                view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(Index block) const
@@ -251,8 +249,9 @@ namespace micm
             [&](const Index block_in_group)
             {
               const Index block = group * L + block_in_group;
-              func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                  view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
+              func_(
+                  KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
+                      view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
             });
       }
 
@@ -281,8 +280,9 @@ namespace micm
             [&](const Index block_in_group)
             {
               const Index block = num_complete_groups_ * L + block_in_group;
-              func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                  view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
+              func_(
+                  KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
+                      view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
             });
       }
 
@@ -291,27 +291,6 @@ namespace micm
         Dispatch(team, std::make_index_sequence<ArgsTuple::N>{});
       }
     };
-
-    /// @brief Team size for a launch whose intra-team work is TeamThreadRange(team, L).
-    ///
-    /// Kokkos::AUTO sizes a team from the functor's resource use, which is unrelated to L.
-    /// Since every intra-team loop here is TeamThreadRange(team, L), a team wider than L
-    /// has threads with no iterations to run -- on a GPU that is most of the block sitting
-    /// idle through the team's barriers.  Request L instead, clamped to what the backend
-    /// permits for this functor.  Cached per functor type: the query is a host-side
-    /// occupancy calculation whose answer does not change between launches.
-    template<typename Functor>
-    static int TeamSizeForL(const Functor& team_functor)
-    {
-      static const int team_size = [&team_functor]()
-      {
-        const int max_team_size = TeamPolicyType(1, Kokkos::AUTO).team_size_max(team_functor, Kokkos::ParallelForTag());
-        const int wanted = static_cast<int>(L);
-        const int clamped = wanted < max_team_size ? wanted : max_team_size;
-        return clamped > 0 ? clamped : 1;  // never hand TeamPolicy a team size of 0
-      }();
-      return team_size;
-    }
 
     KokkosSparseMatrix()
         : SparseMatrix<T, OrderingPolicy>()
@@ -328,7 +307,6 @@ namespace micm
     KokkosSparseMatrix& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
-      // The sparsity pattern changes here, so the cached diagonal offsets no longer apply.
       diagonal_offsets_ = Kokkos::View<Index*>();
       diagonal_offsets_valid_ = false;
       view_ = KokkosViewType("sparse_matrix", this->data_.size());
@@ -352,8 +330,6 @@ namespace micm
         return *this;
       }
       SparseMatrix<T, OrderingPolicy>::operator=(other);
-      // *this takes on other's sparsity pattern, so drop any cached diagonal offsets
-      // built for the old one.
       diagonal_offsets_ = Kokkos::View<Index*>();
       diagonal_offsets_valid_ = false;
       Kokkos::realloc(view_, other.view_.extent(0));
@@ -400,11 +376,6 @@ namespace micm
     }
 
     /// @brief Set every element on the device to a given value
-    ///
-    /// Uses parallel_for rather than the scalar deep_copy overload.  deep_copy(view, value)
-    /// fences the default execution space; Fill runs several times per attempted solver
-    /// step, so those fences serialize the step for no ordering benefit -- kernels on the
-    /// same execution space are already ordered with respect to each other.
     void Fill(T val)
     {
       KokkosViewType fill_view = view_;
@@ -423,12 +394,6 @@ namespace micm
     /// @brief Add a value to every diagonal element of every block, on-device.
     void AddToDiagonal(T value)
     {
-      // Every block shares the same sparsity pattern, so the diagonal's block-relative
-      // offsets only need to be computed once (from block 0) and then reused for every
-      // block-group.  They are cached across calls: AddToDiagonal runs once per Backward
-      // Euler iteration, and rebuilding the host table plus allocating and uploading a
-      // device View on every call put a device allocation and a fencing host-to-device
-      // copy inside the inner time-stepping loop.
       if (!diagonal_offsets_valid_)
       {
         const std::vector<Index> offsets = this->DiagonalIndices(0);
@@ -452,9 +417,6 @@ namespace micm
       const Index group_size = L * this->FlatBlockSize();
       const Index num_groups = (this->NumberOfBlocks() + L - 1) / L;
 
-      // block_in_group is the fastest-varying index, so consecutive threads touch
-      // consecutive addresses.  Walking it as a serial inner loop instead launched L times
-      // too few threads and gave each of them a strided, uncoalesced walk.
       Kokkos::parallel_for(
           "KokkosSparseMatrix::AddToDiagonal",
           Kokkos::RangePolicy<>(0, num_groups * num_diagonal_elements * L),
@@ -517,7 +479,7 @@ namespace micm
       if (num_complete_groups > 0)
       {
         const ForEachBlockTeamFunctor<std::decay_t<Func>, AT> team_functor{ func, view, flat_block_size, args_tuple };
-        TeamPolicyType policy(static_cast<int>(num_complete_groups), TeamSizeForL(team_functor));
+        TeamPolicyType policy(static_cast<int>(num_complete_groups), detail::TeamSizeForL<L>(team_functor));
         Kokkos::parallel_for("KokkosSparseMatrix::ForEachBlock", policy, team_functor);
       }
       if (remaining > 0)
@@ -525,7 +487,7 @@ namespace micm
         const ForEachBlockTailFunctor<std::decay_t<Func>, AT> team_functor{
           func, view, flat_block_size, args_tuple, num_complete_groups, remaining
         };
-        TeamPolicyType tail_policy(1, TeamSizeForL(team_functor));
+        TeamPolicyType tail_policy(1, detail::TeamSizeForL<L>(team_functor));
         Kokkos::parallel_for("KokkosSparseMatrix::ForEachBlock(tail)", tail_policy, team_functor);
       }
     }
@@ -858,7 +820,7 @@ namespace micm
         if (num_complete_groups > 0)
         {
           const FunctionMainFunctor<std::decay_t<decltype(func)>, DH> team_functor{ func, dev_handles };
-          TeamPolicyType policy(static_cast<int>(num_complete_groups), TeamSizeForL(team_functor));
+          TeamPolicyType policy(static_cast<int>(num_complete_groups), detail::TeamSizeForL<L>(team_functor));
           Kokkos::parallel_for("KokkosSparseMatrix::Function", policy, team_functor);
         }
         if (remaining > 0)
@@ -866,7 +828,7 @@ namespace micm
           const FunctionTailFunctor<std::decay_t<decltype(func)>, DH> team_functor{
             func, dev_handles, num_complete_groups, remaining
           };
-          TeamPolicyType tail_policy(1, TeamSizeForL(team_functor));
+          TeamPolicyType tail_policy(1, detail::TeamSizeForL<L>(team_functor));
           Kokkos::parallel_for("KokkosSparseMatrix::Function(tail)", tail_policy, team_functor);
         }
       };

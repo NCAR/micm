@@ -120,12 +120,6 @@ namespace micm::test
   EXPECT_NEAR((actual), (reference), micm::test::SolveTolerance((abs_tol), (reference)))
 
 // |actual - reference| <= max(rel_tol, integration floor) * |reference|
-//
-// The EXPECT_REAL_REL counterpart for a quantity carried through many solver steps -- a total the
-// kinetics conserve, say -- rather than one reconstructed by a few operations. Which floor applies
-// is a property of the quantity, not of the assertion's form: REAL_REL_FLOOR is a few epsilon and
-// is unreachable for anything the solver integrated. In a double build the floor is zero, so this
-// reduces exactly to EXPECT_REAL_REL.
 #define EXPECT_REAL_SOLVE_REL(actual, reference, rel_tol) \
   EXPECT_NEAR((actual), (reference), micm::test::SolveRelativeTolerance(rel_tol) * std::abs((double)(reference)))
 

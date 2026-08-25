@@ -84,16 +84,15 @@ if(MICM_ENABLE_KOKKOS)
   target_link_libraries(micm INTERFACE Kokkos::kokkos)
   target_compile_definitions(micm INTERFACE MICM_USE_KOKKOS)
 
+  if(NOT MICM_KOKKOS_DEFAULT_VECTOR_SIZE STREQUAL "")
+    target_compile_definitions(micm INTERFACE MICM_KOKKOS_DEFAULT_VECTOR_SIZE=${MICM_KOKKOS_DEFAULT_VECTOR_SIZE})
+  endif()
+
   # Retained so existing `musica::micm_kokkos` consumers keep working; micm already
   # provides Kokkos and the macro, so this adds nothing beyond the name.
   add_library(micm_kokkos INTERFACE)
   add_library(musica::micm_kokkos ALIAS micm_kokkos)
-  target_link_libraries(micm_kokkos INTERFACE micm Kokkos::kokkos)
-  target_compile_definitions(micm_kokkos INTERFACE MICM_USE_KOKKOS)
-  target_link_libraries(micm INTERFACE Kokkos::kokkos)
-  if(NOT MICM_KOKKOS_DEFAULT_VECTOR_SIZE STREQUAL "")
-    target_compile_definitions(micm INTERFACE MICM_KOKKOS_DEFAULT_VECTOR_SIZE=${MICM_KOKKOS_DEFAULT_VECTOR_SIZE})
-  endif()
+  target_link_libraries(micm_kokkos INTERFACE micm)
 endif()
 
 if (MICM_ENABLE_TESTS)

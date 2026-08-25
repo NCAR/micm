@@ -251,9 +251,6 @@ TEST(AnalyticalExamples, Oregonator)
   // manifold with O(H) first-order accuracy. The output interval is 30 * tau, so 30000
   // sub-steps give a step size of tau/1000, and a relative error of about 3e-3.
   constexpr micm::Index kOregonatorSubsteps = 18000;
-  // Single precision cannot hold the double-build bound here: over 200000 backward Euler steps its
-  // roundoff accumulates to 9.4e-3 in the worst case. Same reasoning as the CPU twin,
-  // test/integration/test_analytical_backward_euler.cpp, which carries the full note.
   constexpr micm::Real kOregonatorTolerance = std::is_same_v<micm::Real, double> ? 5e-3 : 1.5e-2;
 
   TestAnalyticalOregonator(backward_euler, kOregonatorTolerance, kOregonatorSubsteps);
