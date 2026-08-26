@@ -426,6 +426,89 @@ TEST(ConstraintInitialization, SolverStateToStringNewValue)
   EXPECT_EQ(SolverStateToString(SolverState::ConstraintInitializationFailed), "Constraint Initialization Failed");
 }
 
+/// @brief Projection-only system nonlinear in the algebraic variable: 2*[B] - [C]^2 = 0,
+///        so C = 1 when B = 0.5. One Newton update from a distant guess lands nowhere near it.
+auto BuildSquaredConstraintSolver(const RosenbrockSolverParameters& parameters)
+{
+  using DenseMatrix = StandardBuilder::DenseMatrixPolicyType;
+  using SparseMatrix = StandardBuilder::SparseMatrixPolicyType;
+
+  const auto B = Species("B");
+  const auto C = Species("C");
+  const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ B, C } };
+
+  std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, SparseMatrix>(
+      "squared",
+      C,
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 2.0 } },
+      { .K_HLC_ref_ = 2.0, .delta_H_ = 0.0 }));
+
+  return StandardBuilder(parameters)
+      .SetSystem(System(gas_phase))
+      .SetConstraints(std::move(constraints))
+      .SetReorderState(false)
+      .Build();
+}
+
+/// @brief A failed projection must leave the caller's state exactly as it was passed in.
+///        Otherwise the caller is handed a half-applied Newton iterate that is neither their
+///        input nor a solution, with nothing in the return value to say so.
+TEST(ConstraintInitialization, FailedInitializationRestoresCallerState)
+{
+  auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  parameters.constraint_init_max_iterations_ = 1;  // too few updates to reach C = 1 from C = 100
+
+  auto solver = BuildSquaredConstraintSolver(parameters);
+  auto state = solver.GetState(1);
+
+  const auto B_idx = state.variable_map_.at("B");
+  const auto C_idx = state.variable_map_.at("C");
+  constexpr micm::Real B_in = 0.5;
+  constexpr micm::Real C_in = 100.0;
+  state.variables_[0][B_idx] = B_in;
+  state.variables_[0][C_idx] = C_in;
+  state.conditions_[0].temperature_ = 298.15;
+  state.conditions_[0].pressure_ = 101325.0;
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  ASSERT_EQ(status, SolverState::ConstraintInitializationFailed);
+  EXPECT_EQ(state.variables_[0][C_idx], C_in);
+  EXPECT_EQ(state.variables_[0][B_idx], B_in);
+}
+
+/// @brief A converged projection still returns the corrected state, not the snapshot
+TEST(ConstraintInitialization, SuccessfulInitializationKeepsTheCorrection)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = BuildSquaredConstraintSolver(parameters);
+  auto state = solver.GetState(1);
+
+  const auto B_idx = state.variable_map_.at("B");
+  const auto C_idx = state.variable_map_.at("C");
+  state.variables_[0][B_idx] = 0.5;
+  state.variables_[0][C_idx] = 100.0;
+  state.conditions_[0].temperature_ = 298.15;
+  state.conditions_[0].pressure_ = 101325.0;
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  ASSERT_EQ(status, SolverState::Converged);
+  // Converged means the remaining correction is a tenth of the state-error scale, which with the
+  // default absolute tolerance of 1e-3 leaves C within ~1e-4 of the manifold, not within roundoff.
+  EXPECT_NEAR(state.variables_[0][C_idx], 1.0, 1.0e-3);
+}
+
 /// @brief The weighted Newton-correction measure is invariant to complete constraint-row scaling
 TEST(ConstraintInitialization, WeightedCorrectionIsInvariantToConstraintRowScaling)
 {

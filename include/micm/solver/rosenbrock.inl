@@ -418,8 +418,10 @@ namespace micm
     auto& diagonal = state.views_.upper_left_identity_diagonal_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    // Reuse initial_forcing_ as the residual/delta workspace
+    // Reuse initial_forcing_ as the residual/delta workspace, and K_[0] as the rollback
+    // buffer: no stage vector is read until the first stage of the integration loop below.
     auto& delta = derived_class_temporary_variables->initial_forcing_;
+    auto& original_variables = derived_class_temporary_variables->K_[0];
     auto& max_residual = derived_class_temporary_variables->max_residual_;
     auto& max_correction = derived_class_temporary_variables->max_correction_;
     auto& nan_detected = derived_class_temporary_variables->nan_detected_;
@@ -522,6 +524,19 @@ namespace micm
         Y,
         delta);
 
+    // Projection is transactional: a failure must not hand the caller a partially updated
+    // algebraic state, which is neither their input nor a solution. The snapshot is taken
+    // lazily, so a projection that converges without applying an update costs no copy.
+    bool variables_modified = false;
+    auto restore_and_return = [&](SolverState status)
+    {
+      if (variables_modified)
+      {
+        Y.Copy(original_variables);
+      }
+      return status;
+    };
+
     // One pass beyond the update limit measures the correction that remains after the final
     // permitted update, so a state that reaches the manifold on that update is not reported
     // as a failure.
@@ -547,11 +562,11 @@ namespace micm
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(SolverState::NaNDetected);
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return restore_and_return(SolverState::InfDetected);
       }
 
       stats.constraint_init_iterations_ += 1;
@@ -607,11 +622,11 @@ namespace micm
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(SolverState::NaNDetected);
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return restore_and_return(SolverState::InfDetected);
       }
 
       // 8. Converged once the remaining correction is a small fraction of the state-error
@@ -631,7 +646,12 @@ namespace micm
         break;
       }
 
-      // 9. Apply update only to algebraic variables
+      // 9. Apply update only to algebraic variables, snapshotting the caller's state first
+      if (!variables_modified)
+      {
+        original_variables.Copy(Y);
+        variables_modified = true;
+      }
       nan_detected = false;
       inf_detected = false;
       max_residual.CopyToDevice();
@@ -644,16 +664,16 @@ namespace micm
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(SolverState::NaNDetected);
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return restore_and_return(SolverState::InfDetected);
       }
     }
 
     // Did not converge within the permitted number of Newton updates
-    return SolverState::ConstraintInitializationFailed;
+    return restore_and_return(SolverState::ConstraintInitializationFailed);
   }
 
 }  // namespace micm
