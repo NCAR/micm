@@ -7,9 +7,11 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -1721,11 +1723,10 @@ void TestAnalyticalOregonator(
 
   auto state = solver.GetState(1);
 
-  // X, Y, and Z have very different scales, so each one needs its own absolute tolerance.
-  // A single absolute tolerance for all of them limits the accuracy of the smallest, X.
-  // P and Q are only produced. They never react, so their accuracy does not matter here.
-  state.SetRelativeTolerance(solver_relative_tolerance);
-  micm::Real tolerance_floor = solver_relative_tolerance * 1e-2;
+  const micm::Real achievable_relative_tolerance =
+      std::max(solver_relative_tolerance, micm::Real{ 100 } * std::numeric_limits<micm::Real>::epsilon());
+  state.SetRelativeTolerance(achievable_relative_tolerance);
+  micm::Real tolerance_floor = achievable_relative_tolerance * 1e-2;
   state.SetAbsoluteTolerances(
       { alpha_const * tolerance_floor, eta_const * tolerance_floor, rho_const * tolerance_floor, eta_const, eta_const });
 
@@ -1759,7 +1760,14 @@ void TestAnalyticalOregonator(
     {
       micm::Real dt = std::min(max_substep, time_step - actual_solve);
       auto result = solver.Solve(dt, state);
-      actual_solve += result.stats_.final_time_;
+      ASSERT_TRUE(
+          result.state_ == micm::SolverState::Converged || result.state_ == micm::SolverState::ConvergenceExceededMaxSteps)
+          << "solver returned " << micm::SolverStateToString(result.state_)
+          << " at t = " << (i_time * time_step + actual_solve);
+      const micm::Real advanced_to = actual_solve + result.stats_.final_time_;
+      ASSERT_GT(advanced_to, actual_solve)
+          << "solve advanced only " << result.stats_.final_time_ << " s at t = " << (i_time * time_step + actual_solve);
+      actual_solve = advanced_to;
     }
     postpare_for_solve(state);
 

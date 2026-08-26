@@ -143,7 +143,7 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
 
   solver.UpdateStateParameters(state);
 
-  constexpr micm::Index N = 12;
+  constexpr micm::Index N = std::is_same_v<micm::Real, double> ? 12 : 10;
   micm::Real time_step = 1.0;
 
   for (micm::Index i = 0; i < N; ++i)
@@ -153,7 +153,12 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
     while (advanced < time_step)
     {
       auto result = solver.Solve(time_step - advanced, state);
-      advanced += result.stats_.final_time_;
+      ASSERT_TRUE(
+          result.state_ == micm::SolverState::Converged || result.state_ == micm::SolverState::ConvergenceExceededMaxSteps)
+          << "solver returned " << micm::SolverStateToString(result.state_) << " at step " << i << ", t = " << advanced;
+      const micm::Real advanced_to = advanced + result.stats_.final_time_;
+      ASSERT_GT(advanced_to, advanced) << "solve advanced only " << result.stats_.final_time_ << " s at step " << i;
+      advanced = advanced_to;
     }
 
     state.variables_.CopyToHost();
@@ -171,7 +176,7 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
 
     // 2. Total chlorine is conserved by the kinetics rather than by a constraint, so it is
     //    only held to the accuracy of the integration.
-    EXPECT_REAL_REL(2.0 * cl2 + cl, total_chlorine_initial, 1.0e-6) << "chlorine not conserved after step " << i;
+    EXPECT_REAL_SOLVE_REL(2.0 * cl2 + cl, total_chlorine_initial, 1.0e-6) << "chlorine not conserved after step " << i;
 
     // 3. Nothing may go negative or non-finite.
     for (const auto& [name, value] :

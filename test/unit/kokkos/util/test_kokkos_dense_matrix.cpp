@@ -28,8 +28,8 @@ TEST(KokkosDenseMatrix, DimensionsConstructor)
   micm::KokkosDenseMatrix<double> matrix(3, 4);
   EXPECT_EQ(matrix.NumRows(), 3);
   EXPECT_EQ(matrix.NumColumns(), 4);
-  // Padding occurs for VectorMatrix with L=4, 3 rows becomes 1 group of 128
-  EXPECT_EQ(matrix.AsVector().size(), 512);
+  constexpr micm::Index kGroups = (3 + MICM_DEFAULT_VECTOR_SIZE - 1) / MICM_DEFAULT_VECTOR_SIZE;
+  EXPECT_EQ(matrix.AsVector().size(), kGroups * MICM_DEFAULT_VECTOR_SIZE * 4);
 }
 
 TEST(KokkosDenseMatrix, CopyToDeviceAndHost)

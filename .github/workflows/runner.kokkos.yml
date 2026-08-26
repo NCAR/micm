@@ -35,7 +35,7 @@ jobs:
 
       - name: Run Cmake
         # MICM_ENABLE_BENCHMARK defaults to OFF; the Build step needs it on.
-        run: cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE86=ON -DMICM_ENABLE_BENCHMARK=ON
+        run: cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE86=ON -DMICM_ENABLE_BENCHMARK=ON -DMICM_DEFAULT_VECTOR_SIZE=32
 
       - name: Build
         run: cmake --build build --parallel 6

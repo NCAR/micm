@@ -65,6 +65,12 @@ namespace micm::test
     return abs_tol + REAL_SOLVE_REL_FLOOR * std::abs(reference);
   }
 
+  /// @brief As RelativeTolerance, but floored at the accuracy an integrated result can reach.
+  inline double SolveRelativeTolerance(double rel_tol)
+  {
+    return std::max(rel_tol, REAL_SOLVE_REL_FLOOR);
+  }
+
   /// @brief Tolerance for two evaluations of the same closed-form expression.
   inline double FormulaTolerance(double reference)
   {
@@ -112,6 +118,10 @@ namespace micm::test
 // to EXPECT_NEAR(actual, reference, abs_tol).
 #define EXPECT_REAL_SOLVE_CLOSE(actual, reference, abs_tol) \
   EXPECT_NEAR((actual), (reference), micm::test::SolveTolerance((abs_tol), (reference)))
+
+// |actual - reference| <= max(rel_tol, integration floor) * |reference|
+#define EXPECT_REAL_SOLVE_REL(actual, reference, rel_tol) \
+  EXPECT_NEAR((actual), (reference), micm::test::SolveRelativeTolerance(rel_tol) * std::abs((double)(reference)))
 
 // Agreement between two evaluations of the same closed-form expression.
 //   double build -> EXPECT_DOUBLE_EQ, so double-precision tests keep the tolerance they had

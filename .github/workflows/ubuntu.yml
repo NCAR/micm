@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Cmake
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_ENABLE_KOKKOS=ON -D Kokkos_ENABLE_SERIAL=ON
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_ENABLE_KOKKOS=ON -D Kokkos_ENABLE_SERIAL=ON -D MICM_DEFAULT_VECTOR_SIZE=8
 
       - name: Build
         run: cmake --build build --parallel 10

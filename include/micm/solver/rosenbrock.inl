@@ -85,7 +85,7 @@ namespace micm
         break;
       }
 
-      if (((present_time + 0.1 * H) == present_time) || (H <= parameters.round_off_))
+      if (((present_time + 0.1 * H) == present_time) || (H <= std::min(parameters.round_off_, h_min)))
       {
         result.state_ = SolverState::StepSizeTooSmall;
         break;

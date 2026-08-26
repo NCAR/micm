@@ -22,9 +22,10 @@ Kokkos execution backend with Kokkos' own options:
   # host, OpenMP
   $ cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_OPENMP=ON
 
-  # NVIDIA GPU -- set the architecture for your device
+  # NVIDIA GPU -- set the architecture for your device, and widen the vector length
+  # (see "Choosing the vector width" below -- the default of 4 is far too narrow for a GPU)
   $ cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON \
-      -DKokkos_ARCH_AMPERE86=ON
+      -DKokkos_ARCH_AMPERE86=ON -DMICM_DEFAULT_VECTOR_SIZE=32
 
 If ``MICM_ENABLE_KOKKOS=ON`` and no Kokkos backend is requested, Kokkos falls back to
 Serial -- the build succeeds and runs on the host, so confirm the backend you asked for
@@ -127,7 +128,10 @@ Choosing the vector width
 
 Like the CPU vectorized solver (:ref:`Vectorized matrix solver`), the Kokkos matrices are
 blocked over ``L`` grid cells.  ``L`` is the second template parameter of
-``micm::KokkosSolverBuilder`` and defaults to ``MICM_DEFAULT_VECTOR_SIZE`` (4):
+``micm::KokkosSolverBuilder`` and defaults to ``MICM_DEFAULT_VECTOR_SIZE`` (4).  That single
+CMake cache variable sets the width for the CPU, CUDA and Kokkos matrix types alike -- there is
+no separate Kokkos vector-size variable -- and ``micm::KokkosDenseMatrix<T>`` and
+``micm::KokkosSparseMatrix<T>`` take the same default:
 
 .. code-block:: cpp
 
@@ -135,8 +139,11 @@ blocked over ``L`` grid cells.  ``L`` is the second template parameter of
   using WideBuilder = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters, 128>;
 
 ``L`` is also the width of the intra-team parallel loop, so on a GPU it sets how much of
-each team has work to do.  The default of 4 was chosen for CPU SIMD registers and leaves
-most of a CUDA block idle; a substantially larger ``L`` is appropriate for GPU runs.
+each team has work to do: the team size is ``min(L, team_size_max)``.  A default of 4 therefore
+means 4-thread CUDA blocks and leaves most of a warp idle, so a GPU build should raise it --
+``-DMICM_DEFAULT_VECTOR_SIZE=32`` is one warp and a reasonable starting point.  Because the same
+variable also sets the CPU width, note that ``docs/performance.md`` measures wider values as
+faster on the host too, so raising it is not purely a GPU concern.
 Note that per-thread temporaries in the solver scale with ``L``, so very large values
 trade occupancy for local-memory pressure.  Benchmark your mechanism and grid size --
 the best value is problem dependent.
@@ -152,7 +159,8 @@ you need bit-reproducible results, use the CPU or CUDA backend.
 Available types
 ---------------
 
-``micm/Kokkos.hpp`` exports the Kokkos equivalents of the CPU aliases:
+``micm/Kokkos.hpp`` exports the Kokkos equivalents of the CPU aliases.  Each one is blocked at
+``MICM_DEFAULT_VECTOR_SIZE``, the same width the CPU and CUDA aliases use:
 
 .. list-table::
    :header-rows: 1
