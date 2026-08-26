@@ -4,6 +4,7 @@
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/constraint/types/linear_constraint.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
@@ -179,6 +180,79 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
   micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
+}
+
+/// @brief Convergence must not depend on the units or row scale of a constraint equation.
+///        Multiplying a complete constraint row by a constant leaves the Newton correction,
+///        and so the projected state, unchanged. Only a raw-residual threshold is sensitive
+///        to it: small scales converge falsely, and large scales never converge at all.
+TEST(ConstraintInitialization, ConvergenceIsInvariantToConstraintRowScale)
+{
+  using DenseMatrix = StandardBuilder::DenseMatrixPolicyType;
+  using SparseMatrix = StandardBuilder::SparseMatrixPolicyType;
+
+  constexpr micm::Real TOTAL = 1.3;
+  constexpr micm::Real A0 = 0.7;
+  constexpr micm::Real B0 = 0.15;
+  constexpr micm::Real C_CONSISTENT = TOTAL - A0 - B0;
+
+  // A -> B with the conservation row A + B + C = TOTAL multiplied through by `scale`.
+  // A + B is conserved by the reaction, so C stays at C_CONSISTENT once projected.
+  auto solve_with_row_scale = [](micm::Real scale)
+  {
+    auto A = Species("A");
+    auto B = Species("B");
+    auto C = Species("C");
+
+    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+
+    Process rxn = ChemicalReactionBuilder()
+                      .SetReactants({ A })
+                      .SetProducts({ { B, 1 } })
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0, .C_ = 0 })
+                      .SetPhase(gas_phase)
+                      .Build();
+
+    std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+    constraints.emplace_back(LinearConstraint<DenseMatrix, SparseMatrix>(
+        "mass", C, std::vector<StoichSpecies>{ { A, scale }, { B, scale }, { C, scale } }, scale * TOTAL));
+
+    auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    if constexpr (!std::is_same_v<micm::Real, double>)
+    {
+      options.h_start_ = 1.0e-6;
+    }
+    auto solver = StandardBuilder(options)
+                      .SetSystem(System(gas_phase))
+                      .SetReactions({ rxn })
+                      .SetConstraints(std::move(constraints))
+                      .SetReorderState(false)
+                      .Build();
+
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = A0;
+    state.variables_[0][state.variable_map_.at("B")] = B0;
+    state.variables_[0][state.variable_map_.at("C")] = 5.0;  // far off the manifold
+    state.conditions_[0].temperature_ = 298.15;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    solver.UpdateStateParameters(state);
+
+    auto result = solver.Solve(0.001, state);
+    return std::make_pair(result.state_, state.variables_[0][state.variable_map_.at("C")]);
+  };
+
+  const auto reference = solve_with_row_scale(1.0);
+  EXPECT_EQ(reference.first, SolverState::Converged);
+  EXPECT_NEAR(reference.second, C_CONSISTENT, 1.0e-5 * C_CONSISTENT);
+
+  const micm::Real scales[] = { static_cast<micm::Real>(1.0e-12), static_cast<micm::Real>(1.0e12) };
+  for (micm::Real scale : scales)
+  {
+    const auto scaled = solve_with_row_scale(scale);
+    EXPECT_EQ(scaled.first, SolverState::Converged) << "constraint row scale " << scale;
+    EXPECT_NEAR(scaled.second, reference.second, 1.0e-5 * C_CONSISTENT) << "constraint row scale " << scale;
+  }
 }
 
 /// @brief Test pure ODE system (no constraints) is unaffected
