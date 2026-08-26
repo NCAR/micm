@@ -22,7 +22,7 @@ namespace micm
   /// Inherits from SparseMatrix (the MICM host-side data layout) and maintains
   /// a Kokkos::View as a device-side mirror. The caller must explicitly call
   /// CopyToDevice() / CopyToHost() to synchronize, matching the CUDA matrix pattern.
-  template<class T = double, class OrderingPolicy = SparseMatrixVectorOrdering<detail::MICM_KOKKOS_DEFAULT_TEAM_SIZE>>
+  template<class T = double, class OrderingPolicy = SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>
   class KokkosSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
    public:

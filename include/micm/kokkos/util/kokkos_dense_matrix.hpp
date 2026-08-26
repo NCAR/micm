@@ -15,14 +15,6 @@
 #include <Kokkos_Core.hpp>
 #include <vector>
 
-#ifndef MICM_KOKKOS_DEFAULT_VECTOR_SIZE
-  #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
-    #define MICM_KOKKOS_DEFAULT_VECTOR_SIZE 32
-  #else
-    #define MICM_KOKKOS_DEFAULT_VECTOR_SIZE MICM_DEFAULT_VECTOR_SIZE
-  #endif
-#endif
-
 namespace micm
 {
   namespace detail
@@ -81,8 +73,6 @@ namespace micm
       return DeviceTuple<std::decay_t<Ts>...>(std::forward<Ts>(ts)...);
     }
 
-    constexpr Index MICM_KOKKOS_DEFAULT_TEAM_SIZE = 128;
-
   }  // namespace detail
 
   /// @brief Provides a Kokkos implementation to the VectorMatrix functionality.
@@ -90,7 +80,7 @@ namespace micm
   /// Inherits from VectorMatrix (the MICM host-side data layout) and maintains
   /// a Kokkos::View as a device-side mirror. The caller must explicitly call
   /// CopyToDevice() / CopyToHost() to synchronize, matching the CUDA matrix pattern.
-  template<class T, Index L = detail::MICM_KOKKOS_DEFAULT_TEAM_SIZE>
+  template<class T, Index L = MICM_DEFAULT_VECTOR_SIZE>
   class KokkosDenseMatrix : public VectorMatrix<T, L>
   {
    public:

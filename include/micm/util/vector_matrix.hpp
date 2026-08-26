@@ -18,10 +18,6 @@
 #include <memory>
 #include <vector>
 
-#ifndef MICM_DEFAULT_VECTOR_SIZE
-  #define MICM_DEFAULT_VECTOR_SIZE 4
-#endif
-
 namespace micm
 {
 
