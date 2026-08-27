@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cuda_tests:
+  cuda_double_precision_tests:
     runs-on:
       group: CIRRUS-4x16-gpu
     container:
@@ -109,3 +109,36 @@ jobs:
             cuda_ts1_timing.json
             cuda_ts1_timing.txt
             pr-number.txt
+
+  cuda_single_precision_tests:
+    needs: cuda_double_precision_tests
+    runs-on:
+      group: CIRRUS-4x16-gpu
+    container:
+      image: nvcr.io/nvidia/nvhpc:25.9-devel-cuda13.0-ubuntu24.04
+      options: --gpus all
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mark workspace as git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install dependencies
+        run: |
+           apt update
+           apt install -y cmake g++
+
+      - name: Run Cmake
+        run: cmake -S . -B build -DMICM_GPU_TYPE="a10" -DMICM_USE_DOUBLE=OFF
+
+      - name: Copy cublas headers
+        run: |
+          cp -r /opt/nvidia/hpc_sdk/*/25.9/cuda/include/* /usr/include/
+
+      - name: Build
+        run: cmake --build build --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure . --verbose -j 10
