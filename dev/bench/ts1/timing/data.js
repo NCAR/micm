@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787603921800,
+  "lastUpdate": 1787846198837,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -647,6 +647,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 50333.59,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "692d465b9205a32548049c17a867cfdded331b8d",
+          "message": "Add a CI workflow for single precision (#1085)\n\nadd a CI test for single precision",
+          "timestamp": "2026-08-27T09:11:18-06:00",
+          "tree_id": "6b016a8afc77c488f042c521b82f220fd9cf85c8",
+          "url": "https://github.com/NCAR/micm/commit/692d465b9205a32548049c17a867cfdded331b8d"
+        },
+        "date": 1787846197755,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 109605.74,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 103988.73,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 88078.95,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 71689.57,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 67371.22,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 51807.75,
             "unit": "ms"
           }
         ]
