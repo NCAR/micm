@@ -221,9 +221,8 @@ namespace micm
       template<Index... Is>
       KOKKOS_INLINE_FUNCTION void Dispatch(Index block, std::index_sequence<Is...>) const
       {
-        func_(
-            KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
+        func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
+            view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
       }
 
       KOKKOS_INLINE_FUNCTION void operator()(Index block) const
@@ -249,9 +248,8 @@ namespace micm
             [&](const Index block_in_group)
             {
               const Index block = group * L + block_in_group;
-              func_(
-                  KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                      view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
+              func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
+                  view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
             });
       }
 
@@ -280,9 +278,8 @@ namespace micm
             [&](const Index block_in_group)
             {
               const Index block = num_complete_groups_ * L + block_in_group;
-              func_(
-                  KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
-                      view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
+              func_(KokkosSparseMatrix<T, OrderingPolicy>::GetTopLevelBlockElement(
+                  view_, flat_block_size_, block, detail::DeviceTupleGet<Is>(args_))...);
             });
       }
 
