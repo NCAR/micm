@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787843808654,
+  "lastUpdate": 1787935822692,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Wall-Clock Timing": [
@@ -863,6 +863,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 486.36,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c62ea7691ddbd816b06ee7622727d3a31840d66",
+          "message": "Fix the broken GPU benchmark PR comments (#1087)\n\nfix GPU pr comments",
+          "timestamp": "2026-08-28T10:45:48-06:00",
+          "tree_id": "daad4e7006aa865820e9778cf635a86b7ff8b681",
+          "url": "https://github.com/NCAR/micm/commit/7c62ea7691ddbd816b06ee7622727d3a31840d66"
+        },
+        "date": 1787935822250,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 1203.52,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 1226.39,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 796.41,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 549.71,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 480.31,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 443.49,
             "unit": "ms"
           }
         ]
