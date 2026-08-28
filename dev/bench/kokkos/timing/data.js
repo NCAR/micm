@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787939574852,
+  "lastUpdate": 1787941224806,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (Kokkos backend)": [
@@ -638,6 +638,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 33112.74,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c62ea7691ddbd816b06ee7622727d3a31840d66",
+          "message": "Fix the broken GPU benchmark PR comments (#1087)\n\nfix GPU pr comments",
+          "timestamp": "2026-08-28T10:45:48-06:00",
+          "tree_id": "daad4e7006aa865820e9778cf635a86b7ff8b681",
+          "url": "https://github.com/NCAR/micm/commit/7c62ea7691ddbd816b06ee7622727d3a31840d66"
+        },
+        "date": 1787941223852,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 198547.71,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 115515.98,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 68567.55,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 38372.31,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 33113.13,
             "unit": "ms"
           }
         ]
