@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787843805655,
+  "lastUpdate": 1787935820876,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -833,6 +833,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/0b489c8a6098665e03a5e129a3c2aedd22b06e1e"
         },
         "date": 1787843804386,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 525968988,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 525968344,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 364607823,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 276519040,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238027154,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 219493178,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c62ea7691ddbd816b06ee7622727d3a31840d66",
+          "message": "Fix the broken GPU benchmark PR comments (#1087)\n\nfix GPU pr comments",
+          "timestamp": "2026-08-28T10:45:48-06:00",
+          "tree_id": "daad4e7006aa865820e9778cf635a86b7ff8b681",
+          "url": "https://github.com/NCAR/micm/commit/7c62ea7691ddbd816b06ee7622727d3a31840d66"
+        },
+        "date": 1787935820374,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
