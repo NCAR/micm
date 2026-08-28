@@ -35,23 +35,55 @@ jobs:
       TRIGGER: ${{ github.event.workflow_run.name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # full history so gh-pages branch is available for comparison
 
       - name: Download benchmark artifacts from triggering run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           # Must match the upload step name in runner.yml and runner.kokkos.yml.
           name: micm-bench
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Retarget the event payload at the PR that produced these results
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+
+          pr=$(tr -d '[:space:]' < pr-number.txt)
+          case "$pr" in
+            '' | *[!0-9]*)
+              echo "::error::pr-number.txt from run $RUN_ID does not hold a PR number (got '$pr')"
+              exit 1
+              ;;
+          esac
+
+          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr" --jq .state 2>/dev/null || echo open)
+          if [ "$state" != "open" ]; then
+            echo "::notice::PR #$pr is $state; skipping the benchmark comment"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          jq --argjson pr "$pr" '. + {
+                pull_request: { number: $pr },
+                head_commit: (.workflow_run.head_commit // { id: .workflow_run.head_sha })
+              }' "$GITHUB_EVENT_PATH" > "$GITHUB_EVENT_PATH.retargeted"
+          mv -f "$GITHUB_EVENT_PATH.retargeted" "$GITHUB_EVENT_PATH"
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "Commenting on PR #$pr for commit $(jq -r .head_commit.id "$GITHUB_EVENT_PATH")"
+
       # The `name` and `benchmark-data-dir-path` must match the corresponding store
       # steps in runner.yml / runner.kokkos.yml exactly; the action keys its history by
       # both, and a mismatch yields no comparison while still reporting success.
       - name: Comment timing comparison on PR for CUDA
-        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers' && steps.target.outputs.skip == 'false'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Chapman Timing (GPU backend)
@@ -66,7 +98,7 @@ jobs:
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment TS1 timing comparison on PR for CUDA
-        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers' && steps.target.outputs.skip == 'false'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: TS1 Timing (GPU backend)
@@ -81,7 +113,7 @@ jobs:
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment timing comparison on PR for Kokkos
-        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers' && steps.target.outputs.skip == 'false'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Chapman Timing (Kokkos backend)
@@ -96,7 +128,7 @@ jobs:
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment TS1 timing comparison on PR for Kokkos
-        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers' && steps.target.outputs.skip == 'false'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: TS1 Timing (Kokkos backend)

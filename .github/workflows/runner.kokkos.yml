@@ -92,7 +92,10 @@ jobs:
           benchmark-data-dir-path: dev/bench/kokkos/timing
 
       - name: Save PR number for benchmark comment workflow
-        run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
+        if: always() && github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: echo "$PR_NUMBER" > pr-number.txt
 
       - name: Upload benchmark outputs
         if: always()
