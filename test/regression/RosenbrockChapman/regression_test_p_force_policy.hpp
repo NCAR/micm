@@ -5,7 +5,11 @@
 
 #include <micm/util/types.hpp>
 
+#include <cerrno>
+#include <cstdlib>
+#include <limits>
 #include <random>
+#include <string>
 #include <type_traits>
 
 template<class SolverPolicy>
@@ -46,8 +50,20 @@ void TestRateConstants(SolverPolicy& solver)
 template<class MatrixPolicy, class SolverPolicy>
 void TestForcing(SolverPolicy& solver)
 {
-  std::random_device rnd_device;
-  std::mt19937 engine{ rnd_device() };
+  unsigned int seed = 739;
+  if (const char* seed_env = std::getenv("MICM_TEST_SEED"))
+  {
+    char* end = nullptr;
+    errno = 0;
+    const unsigned long parsed = std::strtoul(seed_env, &end, 10);
+    ASSERT_TRUE(
+        end != seed_env && *end == '\0' && *seed_env != '-' && errno != ERANGE &&
+        parsed <= std::numeric_limits<unsigned int>::max())
+        << "MICM_TEST_SEED must be an unsigned 32-bit integer, got '" << seed_env << "'";
+    seed = static_cast<unsigned int>(parsed);
+  }
+  SCOPED_TRACE("MICM_TEST_SEED=" + std::to_string(seed));
+  std::mt19937 engine{ seed };
   std::lognormal_distribution dist(-2.0, 2.0);
 
   micm::ChapmanODESolver fixed_solver{};
