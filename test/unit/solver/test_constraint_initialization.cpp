@@ -592,3 +592,13 @@ TEST(ConstraintInitialization, WeightedCorrectionUsesStateTolerances)
   EXPECT_NEAR(tight_state.variables_[0][tight_Z], 1.0, tight_atol);
   EXPECT_EQ(tight_stats.constraint_init_iterations_, 2);  // one update applied
 }
+
+/// @brief The three line-search controls ship with the documented defaults, and 24 backtracks is a
+///        step length of 2^-24, below which a correction cannot move a double-precision iterate.
+TEST(ConstraintInitialization, LineSearchParameterDefaults)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  EXPECT_EQ(parameters.constraint_init_max_backtracks_, micm::Index(24));
+  EXPECT_EQ(parameters.constraint_init_backtrack_factor_, micm::Real(0.5));
+  EXPECT_EQ(parameters.constraint_init_sufficient_decrease_, micm::Real(1.0e-4));
+}

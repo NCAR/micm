@@ -42,6 +42,13 @@ namespace micm
 
     Index constraint_init_max_iterations_{ 10 };  // max Newton updates for constraint initialization
     Real constraint_init_tolerance_{ 0.1 };       // max weighted Newton correction, as a fraction of the state tolerance
+    // Zero disables the constraint-initialization line search entirely: the full Newton step is then
+    // applied unconditionally, reproducing the undamped update exactly. Any non-zero value also makes
+    // an exhausted line search a failure, so raising this from 0 to 1 can turn a projection that
+    // previously succeeded into ConstraintInitializationFailed.
+    Index constraint_init_max_backtracks_{ 24 };        // max line-search reductions per Newton update
+    Real constraint_init_backtrack_factor_{ 0.5 };      // line-search step reduction factor, in (0, 1)
+    Real constraint_init_sufficient_decrease_{ 1e-4 };  // required fractional decrease in the correction norm
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
@@ -103,6 +110,11 @@ namespace micm
     std::cout << "h_min: " << h_min_ << std::endl;
     std::cout << "h_max: " << h_max_ << std::endl;
     std::cout << "h_start: " << h_start_ << std::endl;
+    std::cout << "constraint_init_max_iterations: " << constraint_init_max_iterations_ << std::endl;
+    std::cout << "constraint_init_tolerance: " << constraint_init_tolerance_ << std::endl;
+    std::cout << "constraint_init_max_backtracks: " << constraint_init_max_backtracks_ << std::endl;
+    std::cout << "constraint_init_backtrack_factor: " << constraint_init_backtrack_factor_ << std::endl;
+    std::cout << "constraint_init_sufficient_decrease: " << constraint_init_sufficient_decrease_ << std::endl;
     std::cout << "new_function_evaluation: ";
     for (bool val : new_function_evaluation_)
     {
