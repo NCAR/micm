@@ -14,7 +14,12 @@
 
 #include <array>
 #include <cmath>
+#include <functional>
+#include <set>
+#include <string>
 #include <type_traits>
+#include <unordered_map>
+#include <utility>
 
 using namespace micm;
 
@@ -601,4 +606,159 @@ TEST(ConstraintInitialization, LineSearchParameterDefaults)
   EXPECT_EQ(parameters.constraint_init_max_backtracks_, micm::Index(24));
   EXPECT_EQ(parameters.constraint_init_backtrack_factor_, micm::Real(0.5));
   EXPECT_EQ(parameters.constraint_init_sufficient_decrease_, micm::Real(1.0e-4));
+}
+
+// ---------------------------------------------------------------------------
+// Damped-Newton (line-search) regression tests
+// ---------------------------------------------------------------------------
+
+/// @brief Constraint-only external model enforcing row_scale * ([Z]^2 - [X]) = 0, so the algebraic
+///        solution is Z = sqrt(X) for every row scale. The residual is nonlinear in the solved
+///        variable, so an undamped Newton step from a guess far below the root overshoots by
+///        1/(2*Z_0), which is what the line search exists to control. Multiplying the whole row by
+///        row_scale changes G and dG/dy together, so it must change no decision the projection makes.
+class ScaledSquareRootConstraintModel
+{
+ public:
+  ScaledSquareRootConstraintModel(std::string x, std::string z, micm::Real row_scale)
+      : x_(std::move(x)),
+        z_(std::move(z)),
+        row_scale_(row_scale)
+  {
+  }
+
+  std::set<std::string> ConstraintAlgebraicVariableNames() const
+  {
+    return { z_ };
+  }
+
+  std::set<std::string> ConstraintSpeciesDependencies() const
+  {
+    return { x_, z_ };
+  }
+
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
+  {
+    const auto i_x = state_indices.at(x_);
+    const auto i_z = state_indices.at(z_);
+    return { { i_z, i_x }, { i_z, i_z } };
+  }
+
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
+  ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>&) const
+  {
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
+  }
+
+  template<typename DenseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ConstraintResidualFunction(
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var) const
+  {
+    const auto i_x = var.at(x_);
+    const auto i_z = var.at(z_);
+    const micm::Real scale = row_scale_;
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, DenseMatrixPolicy& forcing)
+    {
+      for (micm::Index i = 0; i < state.NumRows(); ++i)
+      {
+        forcing[i][i_z] = scale * (state[i][i_z] * state[i][i_z] - state[i][i_x]);
+      }
+    };
+  }
+
+  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
+  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> ConstraintJacobianFunction(
+      const std::unordered_map<std::string, micm::Index>&,
+      const std::unordered_map<std::string, micm::Index>& var,
+      const SparseMatrixPolicy&) const
+  {
+    const auto i_x = var.at(x_);
+    const auto i_z = var.at(z_);
+    const micm::Real scale = row_scale_;
+    return [=](const DenseMatrixPolicy& state, const DenseMatrixPolicy&, SparseMatrixPolicy& jac)
+    {
+      for (micm::Index i = 0; i < jac.NumberOfBlocks(); ++i)
+      {
+        jac[i][i_z][i_z] -= 2.0 * scale * state[i][i_z];
+        jac[i][i_z][i_x] -= -scale;
+      }
+    };
+  }
+
+ private:
+  std::string x_;
+  std::string z_;
+  micm::Real row_scale_;
+};
+
+/// @brief Projection-only system nonlinear in the algebraic variable, with the whole constraint row
+///        multiplied by row_scale: row_scale * ([Z]^2 - [X]) = 0, so Z = sqrt(X).
+auto BuildScaledSquareRootSolver(const RosenbrockSolverParameters& parameters, micm::Real row_scale)
+{
+  const auto X = Species("X");
+  const auto Z = Species("Z");
+  const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ X, Z } };
+
+  return StandardBuilder(parameters)
+      .SetSystem(System(gas_phase))
+      .AddExternalModel(ScaledSquareRootConstraintModel("X", "Z", row_scale))
+      .SetReorderState(false)
+      .Build();
+}
+
+/// @brief Drive the projection directly and report status, the converged Z, and the iteration count.
+struct ProjectionOutcome
+{
+  SolverState status_;
+  micm::Real z_;
+  micm::Index iterations_;
+  micm::Index solves_;
+};
+
+ProjectionOutcome ProjectSquareRoot(const RosenbrockSolverParameters& parameters, micm::Real row_scale, micm::Real z_initial)
+{
+  auto solver = BuildScaledSquareRootSolver(parameters, row_scale);
+  auto state = solver.GetState(1);
+
+  constexpr micm::Real rtol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+  constexpr micm::Real atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-6;
+  state.SetRelativeTolerance(rtol);
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, atol));
+
+  state.variables_[0][state.variable_map_.at("X")] = 1.0;
+  state.variables_[0][state.variable_map_.at("Z")] = z_initial;
+  state.conditions_[0].temperature_ = 298.15;
+  state.conditions_[0].pressure_ = 101325.0;
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  return { status, state.variables_[0][state.variable_map_.at("Z")], stats.constraint_init_iterations_, stats.solves_ };
+}
+
+/// @brief Disabling the line search restores the undamped iteration exactly, so the change is
+///        opt-out and bisectable. Both directions are pinned: the cold start must FAIL with the
+///        search off, and the caller's state must come back untouched.
+TEST(ConstraintInitialization, DisablingBacktracksReproducesUndampedBehavior)
+{
+  auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  parameters.constraint_init_max_backtracks_ = 0;
+
+  const auto outcome = ProjectSquareRoot(parameters, 1.0, 1.0e-6);
+
+  EXPECT_EQ(outcome.status_, SolverState::ConstraintInitializationFailed);
+  EXPECT_EQ(outcome.z_, micm::Real(1.0e-6));  // exact restoration, not approximate
+  // No line-search solves were taken: one solve per Newton update and nothing more.
+  EXPECT_EQ(outcome.solves_, outcome.iterations_);
 }
