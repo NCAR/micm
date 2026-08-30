@@ -762,3 +762,23 @@ TEST(ConstraintInitialization, DisablingBacktracksReproducesUndampedBehavior)
   // No line-search solves were taken: one solve per Newton update and nothing more.
   EXPECT_EQ(outcome.solves_, outcome.iterations_);
 }
+
+/// @brief A cold start below the root of a quadratic constraint converges only when the Newton step
+///        is damped. From Z0 = 1e-6 toward Z = 1 the full step overshoots by 1/(2*Z0) ~ 5e5, and the
+///        undamped iteration spends its whole budget climbing back down. This is the musica#956
+///        Case-2 failure mode reduced to two species.
+TEST(ConstraintInitialization, BacktrackingConvergesFromColdStart)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  const auto damped = ProjectSquareRoot(parameters, 1.0, 1.0e-6);
+
+  ASSERT_EQ(damped.status_, SolverState::Converged);
+  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+  EXPECT_NEAR(damped.z_, micm::Real(1.0), tol);
+  EXPECT_LE(damped.iterations_, parameters.constraint_init_max_iterations_ + micm::Index(1));
+
+  auto undamped_parameters = parameters;
+  undamped_parameters.constraint_init_max_backtracks_ = 0;
+  const auto undamped = ProjectSquareRoot(undamped_parameters, 1.0, 1.0e-6);
+  EXPECT_EQ(undamped.status_, SolverState::ConstraintInitializationFailed);
+}
