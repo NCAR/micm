@@ -49,6 +49,22 @@ def read_csv(path):
         return list(csv.DictReader(handle))
 
 
+def linear_edges(values):
+    """Cell edges centered on monotonically increasing linearly spaced coordinates."""
+    if len(values) == 1:
+        return [values[0] - 0.5, values[0] + 0.5]
+    inner = [(left + right) / 2.0 for left, right in zip(values[:-1], values[1:])]
+    return [values[0] - (inner[0] - values[0]), *inner, values[-1] + (values[-1] - inner[-1])]
+
+
+def log_edges(values):
+    """Positive cell edges centered geometrically on log-scaled coordinates."""
+    if len(values) == 1:
+        return [values[0] / 10**0.5, values[0] * 10**0.5]
+    inner = [(left * right) ** 0.5 for left, right in zip(values[:-1], values[1:])]
+    return [values[0] ** 2 / inner[0], *inner, values[-1] ** 2 / inner[-1]]
+
+
 def plot_basin(rows, out_path):
     present = [v for v in VARIANTS if any(r["variant"] == v for r in rows)]
     if not present:
@@ -59,6 +75,8 @@ def plot_basin(rows, out_path):
     statuses = sorted({r["status"] for r in rows})
     palette = [STATUS_COLORS.get(s, UNKNOWN_COLOR) for s in statuses]
     index = {s: i for i, s in enumerate(statuses)}
+    temperature_edges = linear_edges(temperatures)
+    guess_edges = log_edges(guesses)
 
     fig, axes = plt.subplots(
         1, len(present), figsize=(4.6 * len(present), 4.4), sharex=True, sharey=True, squeeze=False
@@ -70,19 +88,21 @@ def plot_basin(rows, out_path):
             if r["variant"] == variant
         }
         grid = [[cell.get((t, g), -1) for t in temperatures] for g in guesses]
-        ax.imshow(
+        ax.pcolormesh(
+            temperature_edges,
+            guess_edges,
             grid,
-            aspect="auto",
-            origin="lower",
-            interpolation="nearest",
             cmap=ListedColormap(palette),
             vmin=-0.5,
             vmax=len(statuses) - 0.5,
+            shading="flat",
         )
-        ax.set_xticks(range(len(temperatures)))
+        ax.set_yscale("log")
+        ax.set_xticks(temperatures)
         ax.set_xticklabels([f"{t:.0f}" for t in temperatures], fontsize=7, rotation=90)
-        ax.set_yticks(range(len(guesses)))
-        ax.set_yticklabels([f"{g:g}" for g in guesses], fontsize=7)
+        log_ticks = [tick for tick in (1.0, 10.0, 100.0, 1000.0) if guess_edges[0] <= tick <= guess_edges[-1]]
+        ax.set_yticks(log_ticks)
+        ax.set_yticklabels([f"{g:g}" for g in log_ticks], fontsize=7)
         ax.set_title(VARIANT_TITLES.get(variant, variant), fontsize=10)
         ax.set_xlabel("temperature (K)", fontsize=9)
     axes[0][0].set_ylabel("initial [XM] guess", fontsize=9)
@@ -94,7 +114,7 @@ def plot_basin(rows, out_path):
         fontsize=8,
         frameon=False,
     )
-    fig.suptitle("DAE constraint-initialization basin: consistent-IC projection outcome", fontsize=11)
+    fig.suptitle("DAE constraint-initialization reach at the 10-update budget", fontsize=11)
     fig.tight_layout(rect=(0, 0.10, 1, 0.96))
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -105,7 +125,8 @@ def plot_cost(rows, out_path):
     starts = sorted({r["start"] for r in rows})
     variants = [v for v in VARIANTS if any(r["variant"] == v for r in rows)]
     metrics = [
-        ("constraint_init_iterations", "Newton updates"),
+        ("forcing_calls", "constraint residual evaluations"),
+        ("decompositions", "factorizations"),
         ("solves", "triangular solves"),
         ("median_us", "median wall time (us)"),
     ]
@@ -119,7 +140,12 @@ def plot_cost(rows, out_path):
                 match = [r for r in rows if r["variant"] == variant and r["start"] == start]
                 values.append(float(match[0][field]) if match else 0.0)
             offset = (i - (len(variants) - 1) / 2) * width
-            bars = ax.bar([x + offset for x in range(len(starts))], values, width, label=VARIANT_TITLES.get(variant, variant))
+            bars = ax.bar(
+                [x + offset for x in range(len(starts))],
+                values,
+                width,
+                label=VARIANT_TITLES.get(variant, variant),
+            )
             ax.bar_label(bars, fmt="%.3g", fontsize=7, padding=1)
         ax.set_xticks(range(len(starts)))
         ax.set_xticklabels(starts, fontsize=9)
@@ -127,7 +153,7 @@ def plot_cost(rows, out_path):
         ax.margins(y=0.18)
     axes[0][0].set_ylabel("per projection", fontsize=9)
     axes[0][-1].legend(fontsize=8, frameon=False)
-    fig.suptitle("Constraint-initialization cost: the line search is free on the consistent path", fontsize=11)
+    fig.suptitle("Constraint-initialization work and wall time by starting state", fontsize=11)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -155,8 +181,9 @@ def plot_trace(rows, out_path):
                     f"lambda={step:g}",
                     (int(r["update"]), float(r["weighted_correction_norm"])),
                     textcoords="offset points",
-                    xytext=(4, 6),
+                    xytext=(5, -8),
                     fontsize=7,
+                    va="top",
                 )
     ax.set_xlabel("Newton update", fontsize=9)
     ax.set_ylabel(r"$\|\delta\|_w$ (weighted Newton correction)", fontsize=9)
@@ -164,6 +191,7 @@ def plot_trace(rows, out_path):
     ax.grid(True, which="both", alpha=0.25)
     ax.legend(fontsize=8, frameon=False)
     fig.tight_layout()
+    fig.subplots_adjust(top=0.88)
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
     return out_path

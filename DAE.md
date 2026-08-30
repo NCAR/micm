@@ -1,10 +1,11 @@
 # DAE Rosenbrock Constraint Convergence
 
-This document describes the DAE constraint-convergence changes introduced in
-commit `d7bf2087` on the `dae-rosenbrock-benchmark` branch. The changes make
-consistent-initial-condition projection independent of constraint units and row
-scaling, improve nonlinear convergence, and preserve algebraic consistency when
-physical bounds are enforced after a solve.
+This document describes the consistent-initial-condition projection on
+`dae-init-damping`, stacked on `fix/dae-constraint-tolerance-measure`. The work
+makes projection independent of constraint units and row scaling, globalizes the
+Newton iteration, and restores the caller's state after initialization failure.
+It does not change integration error control or reproject after a post-solve
+physical-bound clamp; those are separate changes.
 
 ## DAE form used by MICM
 
@@ -209,9 +210,9 @@ is reachable inside `constraint_init_max_iterations_ = 10`. Below
 run with a raised iteration budget would converge; that floor is set by
 `constraint_init_max_backtracks_`.
 
-The musica#956 Case-2 mechanism (Henry's law feeding a quadratic aqueous
-dissociation, `P = 85000 Pa`), swept over 15 temperatures from 278 K to 292 K and
-9 initial guesses for the solved ion, is 135 projections per variant:
+The reduced Henry/dissociation reproducer inspired by musica#956 Case 2
+(`P = 85000 Pa`), swept over 15 temperatures from 278 K to 292 K and 9 initial
+guesses for the solved ion, is 135 projections per variant:
 
 | Variant | Converged | Warm start `XM = 900` | Cold start `XM = 1` |
 |---|---:|---:|---:|
@@ -250,18 +251,20 @@ norm falls quadratically.
 
 Median of 200 projections at `T = 286 K`:
 
-| Start | Variant | Newton updates | Solves | Median |
-|---|---|---:|---:|---:|
-| already consistent | undamped | 2 | 1 | 0.459 us |
-| already consistent | + line search | 2 | 1 | 0.542 us |
-| warm (`XM = 900`) | undamped | 4 | 4 | 1.125 us |
-| warm (`XM = 900`) | + line search | 4 | 7 | 1.625 us |
+| Start | Variant | Residual evaluations | Jacobians | Factorizations | Solves | Median |
+|---|---|---:|---:|---:|---:|---:|
+| already consistent | undamped | 1 | 0 | 0 | 0 | 0.208 us |
+| already consistent | + line search | 1 | 0 | 0 | 0 | 0.208 us |
+| warm (`XM = 900`) | undamped | 4 | 4 | 4 | 4 | 1.125 us |
+| warm (`XM = 900`) | + line search | 7 | 4 | 4 | 7 | 1.667 us |
 
-An already-consistent projection does **identical** work with the search enabled:
-the exactly-zero-residual short circuit returns before any factorization, so the
-line search is never entered. A warm start pays one extra triangular solve per
-Newton update, and no extra factorization, because every trial reuses the
-factorization taken at the current iterate.
+An exactly consistent projection does **identical algorithmic work** with the
+search enabled: one residual evaluation and no Jacobian, factorization, or
+solve. The measured median is also identical at this resolution. For the warm
+start, three applied updates add three candidate-residual evaluations and three
+triangular solves, with no extra factorization, because every trial reuses the
+factorization taken at the current iterate. Its measured median rises from
+1.125 us to 1.667 us (about 48%).
 
 ### Known limitation: heterogeneous batches
 
@@ -325,6 +328,7 @@ between calls would be a separate performance/API change.
 - `docs/superpowers/specs/2026-08-28-dae-init-cold-start-spec.md` and
   `docs/superpowers/plans/2026-08-29-dae-init-cold-start.md`: the spec this work
   implements and the plan it followed.
+- `FABLE_PLAN.md`: the updated Phase 0b roadmap status and upstream boundary.
 
 ## Reproducing the evidence
 

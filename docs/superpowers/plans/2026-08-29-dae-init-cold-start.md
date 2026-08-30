@@ -12,13 +12,22 @@
 
 > **Provenance.** The design below was not merely reasoned about. It was applied to a scratch checkout of `fix/dae-constraint-tolerance-measure` and compiled and run: the 12 existing `constraint_initialization` tests pass unmodified, the six constraint/DAE test binaries pass in double and float, the knife-edge reproducer was run at `%.17e` for warm and cold starts, and `VectorMatrix<Real,4>` multi-cell and singular-Jacobian probes were exercised. Measured numbers appear inline. Three plausible-looking alternatives were tried and rejected on evidence — see Design Rulings; one of them silently breaks the singular-Jacobian case.
 
+> **Execution outcome (2026-08-29).** All tasks below are complete. The final
+> audit added an exact-zero short-circuit regression, strengthened the singular
+> rollback test to require `InfDetected` and both variables unchanged, corrected
+> the D2 benchmark to start from the complete consistent algebraic vector, and
+> reconciled the spec, roadmap, and results note. Fresh final gates are double
+> 65/65, Kokkos serial 90/90, and float 6/6. D1 measures 135/135 damped
+> convergence with zero undamped-to-damped regressions; D2 measures one residual
+> evaluation and no matrix work on the exactly consistent path.
+
 ---
 
 ## Global Constraints
 
 - **Target branch:** work on a local branch `dae-init-damping` cut from `fix/dae-constraint-tolerance-measure` (NCAR/micm PR #1083). The PR-shape decision (fold into #1083 vs stacked PR) is **deferred until D1–D4 evidence exists** — see Task 9. Keep commits atomic and rebasable so either choice stays open.
 - **The working tree is checked out on `dae-rosenbrock-benchmark`, which is NOT the target.** That branch is the *reference*: it holds a host-only version of this line search whose loop bound, early return and pivot-ratio diagnostic must all **not** be copied. Read target-branch files with `git show fix/dae-constraint-tolerance-measure:<path>`.
-- **Iteration budget is unchanged.** `constraint_init_max_iterations_` stays `10` and keeps counting Newton updates. Do not add a forcing-evaluation cap. Cost is *measured* in D2, not capped. (Measured: warm-start init goes from 1.958 us to 3.330 us; see Task 8.)
+- **Iteration budget is unchanged.** `constraint_init_max_iterations_` stays `10` and keeps counting Newton updates. Do not add a forcing-evaluation cap. Cost is *measured* in D2, not capped. (Final measurement: warm-start init goes from 1.125 us to 1.667 us; see Task 8.)
 - **New parameter defaults, exactly:** `constraint_init_max_backtracks_` = `24` (`Index`), `constraint_init_backtrack_factor_` = `0.5` (`Real`), `constraint_init_sufficient_decrease_` = `1e-4` (`Real`).
 - **`constraint_init_max_backtracks_ = 0` must reproduce PR #1083 bit-for-bit** (spec R3).
 - **No new dense-matrix allocation** (spec R5). Reuse `initial_forcing_` (delta), `K_[0]` (rollback), `Ynew_` (candidate), `Yerror_` (candidate correction). One new 8-byte `Scalar<Real>` member is permitted and required — see Task 3.
@@ -76,7 +85,7 @@ Three independent designs were produced and disagreed. The rulings below were se
 2. **The line search does not `return Converged` early on acceptance.** The reference does, and it would fire on trial 0 of the tight case in `WeightedCorrectionUsesStateTolerances`, reporting `constraint_init_iterations_ == 1` where the test asserts `2`. Fall through instead; the next pass converges through the existing step-2 and step-8 tests.
 3. **The accepted candidate is written back with `Y.Copy(candidate)`.** Rejected: `Y.Swap(candidate)` (correct, but aliases `state.variables_` with `Ynew_` mid-solve for a copy that happens at most `max_iterations` times — a reasoning cost with no measurable payoff), and "scale `delta`, then reuse `apply_update`" (which **desynchronises `Y` from the measured candidate under FMA contraction**: `fma(lambda,d,y)` in the candidate kernel vs `y + fl(lambda*d)` in the write-back). `Copy` guarantees `Y` is exactly the state whose merit was accepted. Warm-start bit-identity was then confirmed by measurement, not assumed.
 4. **Candidate construction is a 2-arg accumulate — `candidate.Copy(Y)` then `candidate += step * delta` — inside the trial loop.** The kernel is then `apply_update` with one token changed, which is the lowest-risk thing to compile under nvhpc: no new 3-arg instantiation, no hoisting invariant to maintain. The extra `deep_copy` per trial is negligible beside `AddForcingTerms` (a `std::pow` per stoichiometry term) and a triangular solve.
-5. **The step-length scalar is a new `Scalar<Real> constraint_init_step_` member.** Rejected: reusing `error_` (provably dead here, but couples two features across a reordering nothing prevents). R5's "no new allocation" enumerates the four *dense workspace* buffers; one `shared_ptr<Real>` is not what it forbids, and PR #1083 itself added `max_correction_` the same way. Rejected: rebuilding the `Function` per backtrack — up to ~250 heap allocations per `Solve()` inside a `noexcept` function.
+5. **The step-length scalar is a new `Scalar<Real> constraint_init_step_` member.** Rejected: reusing `error_` (provably dead here, but couples two features across a reordering nothing prevents). R5's "no new dense-matrix allocation" enumerates the four *dense workspace* buffers; one `shared_ptr<Real>` is not what it forbids, and PR #1083 itself added `max_correction_` the same way. Rejected: rebuilding the `Function` per backtrack — up to ~250 heap allocations per `Solve()` inside a `noexcept` function.
 6. **No second reduction scalar is needed.** Step 8 has already reduced `‖delta(Y)‖_w` into `max_correction` and copied it to host, so `const Real current_correction_norm = max_correction;` costs nothing and frees the scalar for the per-trial merit.
 
 Two alternatives that look like improvements and are **wrong**:
@@ -100,7 +109,7 @@ A second, smaller inefficiency is **known and deliberately not fixed**: once the
 | `include/micm/solver/rosenbrock_temporary_variables.hpp` | Modify (+1) | `constraint_init_step_` scalar handle |
 | `include/micm/solver/rosenbrock.inl` | Modify (+194/-17) | One new `Function` (`set_candidate`); the step-9/10 restructure |
 | `test/unit/solver/test_constraint_initialization.cpp` | Modify (+275) | Scaffolding + six line-search regression tests |
-| `benchmark/dae_init_cold_start.cpp` + `benchmark/CMakeLists.txt` | Create | D1-D4; needs a new `add_executable` — the target branch has no top-level `benchmark/` |
+| `benchmark/dae_init_cold_start.cpp` + `benchmark/CMakeLists.txt` | Create | D1-D2; needs a new `add_executable` — the target branch has no top-level `benchmark/` |
 | `benchmark/plot_dae_init_cold_start.py` | Create | The repo's first plotting script |
 | `docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/` | Create | Committed CSVs + figures + results note |
 | `DAE.md` | Add + correct | D6. **Currently untracked and absent from the target branch** — Task 9 must decide whether it joins this branch or stays local |
@@ -121,13 +130,13 @@ Every spec requirement and deliverable, and the task that discharges it. An exec
 | **R2** Affine-covariant merit | simplified Newton correction under the **already-factored** Jacobian; accept on `<= tolerance_` OR `< (1 - sigma*lambda) * ‖delta(Y)‖_w` | Task 5, Step 5 (10c/10d); invariance proven in Task 6 |
 | **R3** Parameters + exact opt-out | three knobs at 24 / 0.5 / 1e-4; `max_backtracks_ = 0` bit-identical | Task 2 (knobs); Task 4 (anchor test); Task 5, Step 5 (the `continue` branch) |
 | **R4** Device-portable | written in #1083's `Function`/`MICM_LAMBDA` idiom; double, Kokkos and float all green | Task 5, Steps 4-5 and 7 |
-| **R5** Buffers, no new allocation | `initial_forcing_`, `K_[0]`, `Ynew_`, `Yerror_` | Task 5, Step 3 (+ one 8-byte scalar, Task 3) |
+| **R5** Buffers, no new dense allocation | `initial_forcing_`, `K_[0]`, `Ynew_`, `Yerror_` | Task 5, Step 3 (+ one 8-byte scalar, Task 3) |
 | **R6** Transactional failure | every failure through `restore_and_return`; `Y` unwritten until acceptance; non-finite backtracks rather than fails | Task 5, Step 5; asserted by `ExhaustedLineSearchRestoresCallerState` (Task 6) |
 | **R7** Cost on the common path | full step accepted first trial; zero-residual short circuit still precedes any factorization; **measured, not assumed** | Task 5, Step 5; measured in Task 7 `RunCost` |
 | **D1** Cold-start basin map | CSV + three-panel figure (main / #1083 / #1083+LS) | Task 7 (CSV), Task 8 (figure) |
 | **D2** Initialization cost | work counters, warm/consistent, both variants | Task 7 `RunCost`, Task 8 |
 | **D3** Row-scale invariance retained | no false convergence or false failure across row scales | Task 6 `BacktrackingIsInvariantToConstraintRowScaling` |
-| **D4** Convergence trace | `‖delta‖_w` per update, undamped vs damped | Task 7 `RunTrace`, Task 8 |
+| **D4** Convergence trace | `‖delta‖_w` per update, undamped vs damped | Task 7 scratch instrumentation, Task 8 |
 | **D5** Regression tests | in `test/unit/solver/test_constraint_initialization.cpp` | Tasks 2, 4, 5, 6 |
 | **D6** Doc corrections | `DAE.md` currently describes parameters the PR does not have | Task 9 |
 
@@ -145,7 +154,7 @@ Nothing in this tree evidences the spec's claimed green baseline. `build/` holds
 **Interfaces:**
 - Produces: three verified test counts that every later task's "still green" check compares against.
 
-- [ ] **Step 1: Cut the working branch**
+- [x] **Step 1: Cut the working branch**
 
 ```bash
 cd /Users/fillmore/EarthSystem/MICM
@@ -154,7 +163,7 @@ git checkout -b dae-init-damping fix/dae-constraint-tolerance-measure
 git log --oneline -1   # expect f72c25df or a descendant
 ```
 
-- [ ] **Step 2: Configure three FRESH build directories**
+- [x] **Step 2: Configure three FRESH build directories**
 
 Do not reuse `build/`, `build-float/`, `build-kokkos/` — they were configured on the reference branch, which has different CMake options and stale executables.
 
@@ -170,7 +179,7 @@ cmake -S . -B bld-kokkos -DCMAKE_BUILD_TYPE=Release \
 
 `FETCHCONTENT_TRY_FIND_PACKAGE_MODE=NEVER` is required. Homebrew GoogleTest 1.17.0 is installed and would otherwise be found; tests built against it abort at startup in this environment. Build gtest from source.
 
-- [ ] **Step 3: Build and run all three, recording exact counts**
+- [x] **Step 3: Build and run all three, recording exact counts**
 
 ```bash
 cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
@@ -183,11 +192,11 @@ cmake --build bld-float -j8 --target test_constraint_initialization test_equilib
 
 Expected: `bld-double` 65/65, `bld-kokkos` 90/90, `bld-float` 6/6. Note `-R 'constraint|dae'` would pick up a 7th test (`constraint_set`) and is **not** the R4 set.
 
-- [ ] **Step 4: Record the results verbatim**
+- [x] **Step 4: Record the results verbatim**
 
 Write `baseline.md` with the branch SHA, the three configure lines, and the literal ctest summary from each run. **If any configuration is not green, stop and report it** — that is a pre-existing failure the later gates need to know about rather than inherit silently.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/baseline.md
@@ -207,7 +216,7 @@ Nothing reads these yet, so behavior is unchanged and the full suite must stay g
 **Interfaces:**
 - Produces: `parameters.constraint_init_max_backtracks_` (`Index`, 24), `constraint_init_backtrack_factor_` (`Real`, 0.5), `constraint_init_sufficient_decrease_` (`Real`, 1e-4). Tasks 4 reads all three.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test/unit/solver/test_constraint_initialization.cpp`:
 
@@ -223,7 +232,7 @@ TEST(ConstraintInitialization, LineSearchParameterDefaults)
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 ```bash
 cmake --build bld-double -j8 --target test_constraint_initialization
@@ -231,7 +240,7 @@ cmake --build bld-double -j8 --target test_constraint_initialization
 
 Expected: **compile error**, `no member named 'constraint_init_max_backtracks_'`.
 
-- [ ] **Step 3: Add the members**
+- [x] **Step 3: Add the members**
 
 **FIND** (lines 43-44):
 
@@ -256,7 +265,7 @@ Expected: **compile error**, `no member named 'constraint_init_max_backtracks_'`
 
 `Real x{ 1e-4 }` is well-formed with `Real = float`: floating-to-narrower-floating from an in-range constant expression is not narrowing, and exactness is not required.
 
-- [ ] **Step 4: Add the `Print()` lines**
+- [x] **Step 4: Add the `Print()` lines**
 
 The target prints **none** of the `constraint_init_*` parameters today; adding only the new three would leave the dump half-contradicting the documentation. Add all five. `Print()` has zero call sites, so nothing can regress.
 
@@ -281,7 +290,7 @@ The target prints **none** of the `constraint_init_*` parameters today; adding o
 
 The pre-existing dangling `std::cout << "absolute_tolerance: ";` at line 149 is **not** part of this change; leave it.
 
-- [ ] **Step 5: Run the new test and the full suite**
+- [x] **Step 5: Run the new test and the full suite**
 
 ```bash
 cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
@@ -289,7 +298,7 @@ cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
 
 Expected: `LineSearchParameterDefaults` PASSES; 65/65 still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add include/micm/solver/rosenbrock_solver_parameters.hpp test/unit/solver/test_constraint_initialization.cpp
@@ -308,7 +317,7 @@ git commit -m "Add constraint-init line-search parameters (inert)"
 **Interfaces:**
 - Produces: `derived_class_temporary_variables->constraint_init_step_`, a `Scalar<Real>`. Task 4 writes it per trial and calls `.CopyToDevice()`.
 
-- [ ] **Step 1: Add the member**
+- [x] **Step 1: Add the member**
 
 After line 29 (`Scalar<Bool> inf_detected_;`) add:
 
@@ -321,11 +330,11 @@ After line 29 (`Scalar<Bool> inf_detected_;`) add:
 
 It is default-constructed like the other six scalars — do **not** add it to the constructor init-list.
 
-- [ ] **Step 2: Note the pre-existing `Clone()` caveat**
+- [x] **Step 2: Note the pre-existing `Clone()` caveat**
 
 All `Scalar<>` members are reference-semantic, and `Clone()` uses the defaulted copy constructor, so a clone *shares* scalar storage while dense members are deep-copied. This is pre-existing for the six existing scalars; a seventh changes nothing. Do not fix it here — out of scope.
 
-- [ ] **Step 3: Verify nothing broke**
+- [x] **Step 3: Verify nothing broke**
 
 ```bash
 cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
@@ -334,7 +343,7 @@ cmake --build bld-kokkos -j8 && (cd bld-kokkos && ctest --output-on-failure)
 
 Expected: 65/65 and 90/90. The Kokkos build is the gate — it is where `Scalar<Real>` is `KokkosScalarView` and where default construction of two extent-1 `Kokkos::View`s must work in this position.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add include/micm/solver/rosenbrock_temporary_variables.hpp
@@ -355,7 +364,7 @@ The existing `BuildScaledLinearConstraintSolver` is **not** sufficient for this.
 **Interfaces:**
 - Produces: `ScaledSquareRootConstraintModel`, `BuildScaledSquareRootSolver(parameters, row_scale)`, `struct ProjectionOutcome { SolverState status_; micm::Real z_; micm::Index iterations_; micm::Index solves_; }`, and `ProjectSquareRoot(parameters, row_scale, z_initial) -> ProjectionOutcome`. Tasks 5 and 6 use all of them.
 
-- [ ] **Step 1: Add the required includes**
+- [x] **Step 1: Add the required includes**
 
 The scaffolding needs four headers the file does not yet include. Add to the include block:
 
@@ -367,7 +376,7 @@ The scaffolding needs four headers the file does not yet include. Add to the inc
 #include <utility>
 ```
 
-- [ ] **Step 2: Add the scaffolding**
+- [x] **Step 2: Add the scaffolding**
 
 Append to `test/unit/solver/test_constraint_initialization.cpp`:
 
@@ -512,7 +521,7 @@ ProjectionOutcome ProjectSquareRoot(const RosenbrockSolverParameters& parameters
 }
 ```
 
-- [ ] **Step 3: Add the R3 anchor test**
+- [x] **Step 3: Add the R3 anchor test**
 
 ```cpp
 /// @brief Disabling the line search restores the undamped iteration exactly, so the change is
@@ -532,7 +541,7 @@ TEST(ConstraintInitialization, DisablingBacktracksReproducesUndampedBehavior)
 }
 ```
 
-- [ ] **Step 4: Run it — it must pass NOW, before any behavior change**
+- [x] **Step 4: Run it — it must pass NOW, before any behavior change**
 
 ```bash
 cmake --build bld-double -j8 --target test_constraint_initialization
@@ -541,7 +550,7 @@ cmake --build bld-double -j8 --target test_constraint_initialization
 
 Expected: PASS. It passes because `constraint_init_max_backtracks_` is currently ignored and the undamped iteration already fails this cold start. If it does **not** pass, the scaffolding does not reproduce the cold-start failure mode and Task 5's gate would be meaningless — fix that before continuing.
 
-- [ ] **Step 5: Run the full suite and commit**
+- [x] **Step 5: Run the full suite and commit**
 
 ```bash
 cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
@@ -563,7 +572,7 @@ The single behavior-changing commit. It lands with Task 4's opt-out test already
 - Consumes: the three parameters (Task 2), `constraint_init_step_` (Task 3), `ProjectSquareRoot` (Task 4).
 - Produces: converging cold starts. `stats.solves_` gains one increment per line-search trial; **no other stat changes**.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```cpp
 /// @brief A cold start below the root of a quadratic constraint converges only when the Newton step
@@ -587,7 +596,7 @@ TEST(ConstraintInitialization, BacktrackingConvergesFromColdStart)
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 ```bash
 cmake --build bld-double -j8 --target test_constraint_initialization
@@ -596,7 +605,7 @@ cmake --build bld-double -j8 --target test_constraint_initialization
 
 Expected: **FAIL**, `Actual: ConstraintInitializationFailed`. Do not proceed without a genuinely red test.
 
-- [ ] **Step 3: Extend the buffer and scalar aliases**
+- [x] **Step 3: Extend the buffer and scalar aliases**
 
 **FIND** (lines 421-428):
 
@@ -629,7 +638,7 @@ Expected: **FAIL**, `Actual: ConstraintInitializationFailed`. Do not proceed wit
     auto& step = derived_class_temporary_variables->constraint_init_step_;
 ```
 
-- [ ] **Step 4: Add the one new `Function` object**
+- [x] **Step 4: Add the one new `Function` object**
 
 Only one is needed. The existing `check_algebraic_values` and `check_weighted_correction` are reused on the candidate buffers: their bodies name only `diagonal`, the reduction scalars, `atol`, `rtol` and `n_vars` — never the matrices they were built with — and `Function`'s build phase captures only column counts, which match because every one of these buffers is `(grid_cells, species)`.
 
@@ -693,7 +702,7 @@ Only one is needed. The existing `check_algebraic_values` and `check_weighted_co
 
 Note it is **built** with `(Y, delta)` for column counts and **invoked** with `(candidate, delta)`.
 
-- [ ] **Step 5: Replace step 9 with step 9 + step 10**
+- [x] **Step 5: Replace step 9 with step 9 + step 10**
 
 **FIND** (lines 649-673, the whole of step 9 plus the Newton loop's closing brace):
 
@@ -904,7 +913,7 @@ Three details that look redundant and are not:
 - The **exact-zero candidate residual short circuit**. It is the guard against `0/0` when the algebraic block is singular, and it is free.
 - **`candidate_correction.Fill(0)` every trial.** `Solve` is in/out on its first argument, and `AddForcingTerms` never writes ODE rows.
 
-- [ ] **Step 6: Run the cold-start test**
+- [x] **Step 6: Run the cold-start test**
 
 ```bash
 cmake --build bld-double -j8 --target test_constraint_initialization
@@ -913,7 +922,7 @@ cmake --build bld-double -j8 --target test_constraint_initialization
 
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite in all three configurations**
+- [x] **Step 7: Run the full suite in all three configurations**
 
 ```bash
 cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
@@ -928,7 +937,7 @@ Expected: 65/65, 90/90, 6/6, matching Task 1's baseline. **No existing test may 
 
 Watch `EXPECT_EQ(loose_stats.constraint_init_iterations_, 1)` (:575) and `EXPECT_EQ(tight_stats.constraint_init_iterations_, 2)` (:593). If either fails, the line search is returning `Converged` early — re-read Design Ruling 2. A green double build proves nothing about device portability; the Kokkos build is what exercises the `KokkosScalarView` capture.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add include/micm/solver/rosenbrock.inl test/unit/solver/test_constraint_initialization.cpp
@@ -955,7 +964,7 @@ Four tests that pin the properties the line search must not break. All were veri
 **Interfaces:**
 - Consumes: `ProjectSquareRoot` and `BuildScaledSquareRootSolver` (Task 4); the line search (Task 5).
 
-- [ ] **Step 1: Add the tests**
+- [x] **Step 1: Add the tests**
 
 ```cpp
 /// @brief The merit function is the weighted norm of the simplified Newton correction, so scaling a
@@ -1041,11 +1050,11 @@ TEST(ConstraintInitialization, ExhaustedLineSearchRestoresCallerState)
 
 `FullStepIsAcceptedInsideTheConvergenceBasin` is the zero-perturbation gate: for starts already inside the basin, the final value and iteration count are `EXPECT_EQ`-identical with the search on and off, and the solve count is exactly `2 * undamped - 1` (one merit solve per update, none after the last).
 
-- [ ] **Step 2: Add the shape and singular coverage**
+- [x] **Step 2: Add the shape and singular coverage**
 
 Add a `VectorMatrix<micm::Real, 4>` / 3-grid-cell variant of the cold-start test (exercising padded cells and multiple cells at once), and a singular case `Z0 = 0` where `dG/dZ = 0`, asserting a named failure state and **exact** rollback of both variables. Both were exercised in the trial implementation: the multi-cell case converges per cell, and the singular case returns `InfDetected` with exact rollback under both the baseline and the line search.
 
-- [ ] **Step 3: Run everything and commit**
+- [x] **Step 3: Run everything and commit**
 
 ```bash
 cmake --build bld-double -j8 && (cd bld-double && ctest --output-on-failure)
@@ -1058,16 +1067,18 @@ git commit -m "Pin row-scale invariance, basin zero-perturbation and failure mod
 
 ## Task 7: Cold-start basin map benchmark (D1, D2, D4)
 
-The decisive experiment. One program, three CSVs.
+The decisive experiment. The committed benchmark emits the D1 and D2 CSVs;
+the D4 CSV comes from the scratch instrumentation required below.
 
 **Files:**
 - Create: `benchmark/dae_init_cold_start.cpp`, `benchmark/CMakeLists.txt`
 - Modify: top-level `CMakeLists.txt`
 
 **Interfaces:**
-- Produces: `dae_init_basin.csv`, `dae_init_cost.csv`, `dae_init_trace.csv` in the CWD.
+- Produces: `dae_init_basin.csv` and `dae_init_cost.csv` in the CWD. Scratch
+  instrumentation produces `dae_init_trace.csv` without widening `SolverStats`.
 
-- [ ] **Step 1: Read the existing reproducer for the physics**
+- [x] **Step 1: Read the existing reproducer for the physics**
 
 ```bash
 git show dae-rosenbrock-benchmark:benchmark/musica956_knife_edge_main_api.cpp
@@ -1075,7 +1086,7 @@ git show dae-rosenbrock-benchmark:benchmark/musica956_knife_edge_main_api.cpp
 
 It already expresses the musica#956 Case-2 chemistry against the templated constraint API the target branch has — Henry's law (Van't Hoff, `K_ref = 0.5`, `delta_H = -60000 J/mol`) feeding a quadratic aqueous dissociation, both as built-in `EquilibriumConstraint`s, `P = 85000 Pa`. Reuse its setup verbatim; do not re-derive the chemistry. **Change its `printf` to `%.17e`** — the committed version prints `%.6e`, which is too coarse to demonstrate bit-identity.
 
-- [ ] **Step 2: Add the benchmark plumbing**
+- [x] **Step 2: Add the benchmark plumbing**
 
 The target branch has **no top-level `benchmark/`**, and `MICM_ENABLE_BENCHMARK` (singular) is used by four CI workflows for `test/benchmark/micm_bench` — **do not repurpose it**. Add a separate gate mirroring the reference branch's:
 
@@ -1091,17 +1102,22 @@ add_executable(dae_init_cold_start dae_init_cold_start.cpp)
 target_link_libraries(dae_init_cold_start PUBLIC musica::micm)
 ```
 
-- [ ] **Step 3: Write the benchmark**
+- [x] **Step 3: Write the benchmark**
 
 Follow `conservation_audit.cpp:157-181` for the emission idiom: open the file, write a header, `csv << std::scientific << std::setprecision(17);`, write rows with `<<` and `','`, print `wrote <name>.csv`.
 
 - `RunBasinMap` -> `dae_init_basin.csv`, header `variant,temperature,initial_xm,status,final_aq,constraint_init_iterations,solves`. Sweep `T` over 278..292 K (15 values), `initial_xm` over `{1, 10, 100, 300, 600, 800, 900, 1200, 2000}`, `variant` over `{undamped, damped}` (`max_backtracks_` 0 and 24).
-- `RunCost` -> `dae_init_cost.csv`, header `variant,start,forcing_calls,jacobian_updates,decompositions,solves,constraint_init_iterations,median_us`. Warm (`XM = 900`) and consistent starts, both variants, median of 200 runs. This is D2. The trial implementation measured `1.958 us` -> `2.542 us` (backtracks=0) -> `3.330 us` (backtracks=24) at `T = 286 K`; your numbers should be the same order.
-- `RunTrace` -> `dae_init_trace.csv`, header `variant,update,weighted_correction_norm,accepted_step`. One cold-start case (`T = 284 K`, `XM = 1`), both variants. This is D4.
+- `RunCost` -> `dae_init_cost.csv`, with the full starting algebraic state,
+  status, residual-evaluation, Jacobian, factorization, solve, iteration, and
+  timing fields. Warm (`AQ = 1`, `XM = 900`) and independently verified exactly
+  consistent starts, both variants, median of 200 runs. This is D2.
+- Scratch trace instrumentation -> `dae_init_trace.csv`, header
+  `variant,update,weighted_correction_norm,accepted_step`. One cold-start case
+  (`T = 284 K`, `XM = 1`), both variants. This is D4.
 
 For the trace you need the per-update norm, which `SolverStats` does not expose. Do **not** add a stats field for a one-off measurement — that widens the reviewed surface. Print the values from a temporary `std::cerr` line in a scratch build, capture them, and **revert the instrumentation before committing**. Record in the results note that the trace came from an instrumented build.
 
-- [ ] **Step 4: Build and run**
+- [x] **Step 4: Build and run**
 
 ```bash
 cmake -S . -B bld-bench -DCMAKE_BUILD_TYPE=Release -DMICM_ENABLE_DAE_BENCHMARKS=ON \
@@ -1110,17 +1126,17 @@ cmake --build bld-bench -j8 --target dae_init_cold_start
 (cd bld-bench && ./dae_init_cold_start)
 ```
 
-- [ ] **Step 5: Produce the third basin panel from `origin/main`**
+- [x] **Step 5: Produce the third basin panel from `origin/main`**
 
 `origin/main` has neither the weighted-correction rule nor the line search, so the `constraint_init_max_backtracks_` references will not compile there. Copy the program aside, strip the variant loop, emit `variant=main` rows only, build against `origin/main`, and merge the rows into `dae_init_basin.csv`.
 
-- [ ] **Step 6: Check against the spec's predictions and the regression surface**
+- [x] **Step 6: Check against the spec's predictions and the regression surface**
 
 Spec §1.1 predicts `origin/main` fails at 284/287/290 K warm and everywhere cold; #1083 converges warm everywhere and fails cold everywhere; #1083 + line search converges everywhere. **The cold-start `damped` column must be `Converged` at all 15 temperatures — acceptance criterion 1.** The trial implementation measured exactly that, landing on the same `AQ` column as the warm start bit for bit.
 
 Then scan for any `(T, initial_xm)` cell that is `Converged` under `undamped` and `ConstraintInitializationFailed` under `damped`. **If any such cell exists, stop and escalate** — that is damping making things worse, and the contingency needs a decision before Task 9.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add benchmark/ CMakeLists.txt
@@ -1135,7 +1151,7 @@ git commit -m "Add cold-start basin map, cost and trace benchmark"
 - Create: `benchmark/plot_dae_init_cold_start.py`
 - Create: `docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/{*.csv,*.png}`
 
-- [ ] **Step 1: Write the plotting script**
+- [x] **Step 1: Write the plotting script**
 
 No plotting script exists anywhere in this repository, on any branch, in any commit — this is the first, so it defines the convention. Keep it dependency-light (matplotlib + `csv.DictReader`, no pandas), take input and output directories as `argv`, write PNG at 150 dpi.
 
@@ -1143,7 +1159,7 @@ No plotting script exists anywhere in this repository, on any branch, in any com
 - `dae_init_cost.png` — grouped bars, D2, warm and consistent starts, both variants.
 - `dae_init_trace.png` — D4, `weighted_correction_norm` vs Newton update, log y, one line per variant, accepted step annotated.
 
-- [ ] **Step 2: Generate and actually look at the figures**
+- [x] **Step 2: Generate and actually look at the figures**
 
 ```bash
 python3 benchmark/plot_dae_init_cold_start.py bld-bench docs/superpowers/notes/2026-08-29-dae-init-cold-start-results
@@ -1151,7 +1167,7 @@ python3 benchmark/plot_dae_init_cold_start.py bld-bench docs/superpowers/notes/2
 
 Open all three. A figure nobody looked at is not evidence. Check specifically that the `damped` cold-start column is uniformly converged and that `main`/`undamped` show the predicted failures.
 
-- [ ] **Step 3: Commit the CSVs and figures**
+- [x] **Step 3: Commit the CSVs and figures**
 
 ```bash
 cp bld-bench/dae_init_*.csv docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/
@@ -1171,11 +1187,11 @@ artifacts."
 - Add/modify: `DAE.md`, `FABLE_PLAN.md`
 - Create: `docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/results.md`
 
-- [ ] **Step 1: Decide what happens to `DAE.md`**
+- [x] **Step 1: Decide what happens to `DAE.md`**
 
 `DAE.md` is **untracked** and exists on neither the target branch nor `main`. It documents all five initialization parameters as if they shipped together, describing the reference branch's state. Decide explicitly, and say which in the commit: either add it to this branch (now that the line search makes it true) or leave it untracked and local. Do not silently `git add` a file that has never been in the repository without flagging it.
 
-- [ ] **Step 2: Reconcile it against the implementation**
+- [x] **Step 2: Reconcile it against the implementation**
 
 ```bash
 grep -n "constraint_init" DAE.md
@@ -1188,7 +1204,7 @@ Check every parameter's name, type, default and description against `rosenbrock_
 
 Also delete anything `DAE.md` claims about post-clamp reprojection and `SetAlgebraicErrors` — both are false on this branch and both are explicit spec non-goals.
 
-- [ ] **Step 3: Re-run all three configurations from clean**
+- [x] **Step 3: Re-run all three configurations from clean**
 
 ```bash
 rm -rf bld-double bld-float bld-kokkos
@@ -1196,7 +1212,7 @@ rm -rf bld-double bld-float bld-kokkos
 
 then repeat Task 1 Steps 2-3 exactly. Incremental builds of a header-only templated solver are the classic way to ship a change that only compiles against stale objects.
 
-- [ ] **Step 4: Confirm every spec acceptance criterion with evidence**
+- [x] **Step 4: Confirm every spec acceptance criterion with evidence**
 
 1. Cold start converges at all 15 T — `dae_init_basin.csv`, `variant=damped`, `initial_xm=1`.
 2. Warm start converges at all 15 T, post-init `AQ` bit-identical to #1083 — `dae_init_basin.csv` at `%.17e` plus `FullStepIsAcceptedInsideTheConvergenceBasin`.
@@ -1207,17 +1223,17 @@ then repeat Task 1 Steps 2-3 exactly. Incremental builds of a header-only templa
 
 Any criterion without evidence is **not met**. Report it as unmet rather than arguing it is probably fine.
 
-- [ ] **Step 5: Write the results note and update `FABLE_PLAN.md`**
+- [x] **Step 5: Write the results note and update `FABLE_PLAN.md`**
 
-`results.md`: the three-configuration results, the basin table (spec §1.1 extended with the new column), the D2 cost numbers, and an explicit statement that the D4 trace came from an instrumented scratch build whose instrumentation was reverted. Follow the table idiom in `docs/superpowers/notes/2026-07-26-musica956-knife-edge-repro.md`. Mark `FABLE_PLAN.md` Phase 0b complete and link the note.
+`results.md`: the three-configuration results, the basin table (spec §1.1 extended with the new column), the D2 cost numbers, and an explicit statement that the D4 trace came from an instrumented scratch build whose instrumentation was reverted. Follow the table idiom in `dae-rosenbrock-benchmark:docs/superpowers/notes/2026-07-26-musica956-knife-edge-repro.md`. Mark `FABLE_PLAN.md` Phase 0b complete and link the note.
 
-- [ ] **Step 6: Decide the PR shape and report**
+- [x] **Step 6: Decide the PR shape and report**
 
 Present to the user: the measured cold- and warm-start results, the D2 common-path cost, whether the basin map showed any `undamped`-converges / `damped`-fails cell, and the diff size against `fix/dae-constraint-tolerance-measure`.
 
 Recommend **stacked follow-up PR** unless D2 shows the added cost is negligible *and* the basin map is clean, in which case folding into #1083 gives maintainers one coherent change. **Do not open a PR without the user's decision** — this question was explicitly left open.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add DAE.md FABLE_PLAN.md docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/results.md

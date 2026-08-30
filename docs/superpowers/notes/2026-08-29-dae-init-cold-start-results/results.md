@@ -9,11 +9,12 @@
 ## Summary
 
 PR #1083 replaced the constraint-initialization acceptance rule with an
-affine-covariant weighted-correction test, which resolved the musica#956 Case-2
-knife edge but left the Newton iteration undamped, so cold starts still failed.
-This work adds the backtracking line search. Cold starts now converge, nothing
-that already converged is perturbed, and the already-consistent path costs
-nothing extra.
+affine-covariant weighted-correction test. This work adds the missing
+backtracking line search. In the reduced Henry/dissociation reproducer inspired
+by musica#956 Case 2, cold starts now converge, nothing that already converged is
+perturbed, and the exactly consistent path performs only its residual check.
+The reporter's actual Case 2 returns a different solver state and is not claimed
+as fixed; see the Q3 result below.
 
 ## Test results
 
@@ -23,7 +24,7 @@ nothing extra.
 | Kokkos serial | 90/90 | 90/90 |
 | float (6 constraint/DAE targets) | 6/6 | 6/6 |
 
-`constraint_initialization` grew from 12 to 21 gtest cases. **No pre-existing
+`constraint_initialization` grew from 12 to 22 gtest cases. **No pre-existing
 test was modified**: the diff to `test_constraint_initialization.cpp` is
 additions only. In particular the exact-count assertions
 `EXPECT_EQ(loose_stats.constraint_init_iterations_, 1)` and
@@ -43,9 +44,9 @@ what an early `return Converged` from inside the line search would have broken.
 > of convergence *rate*: the line search reaches the root in 4-5 updates where the
 > undamped iteration needs 14-48. See "Where the line search is worse" below.
 
-`dae_init_basin.csv`, `dae_init_basin.png`. The musica#956 Case-2 mechanism over
-15 temperatures (278-292 K) x 9 initial guesses for the solved ion = 135
-projections per variant.
+`dae_init_basin.csv`, `dae_init_basin.png`. The reduced Henry/dissociation
+reproducer inspired by musica#956 Case 2 covers 15 temperatures (278-292 K) x 9
+initial guesses for the solved ion = 135 projections per variant.
 
 | Variant | Converged | Warm `XM = 900` | Cold `XM = 1` |
 |---|---:|---:|---:|
@@ -69,19 +70,22 @@ Two properties beyond the counts:
 
 `dae_init_cost.csv`, `dae_init_cost.png`. Median of 200 projections, `T = 286 K`.
 
-| Start | Variant | Newton updates | Jacobians | Factorizations | Solves | Median |
+| Start | Variant | Residual evaluations | Jacobians | Factorizations | Solves | Median |
 |---|---|---:|---:|---:|---:|---:|
-| already consistent | undamped | 2 | 1 | 1 | 1 | 0.459 us |
-| already consistent | + line search | 2 | 1 | 1 | 1 | 0.542 us |
+| already consistent | undamped | 1 | 0 | 0 | 0 | 0.208 us |
+| already consistent | + line search | 1 | 0 | 0 | 0 | 0.208 us |
 | warm (`XM = 900`) | undamped | 4 | 4 | 4 | 4 | 1.125 us |
-| warm (`XM = 900`) | + line search | 4 | 4 | 4 | 7 | 1.625 us |
+| warm (`XM = 900`) | + line search | 7 | 4 | 4 | 7 | 1.667 us |
 
-This confirms spec R7 as a measurement rather than an assumption. The
-already-consistent path does **identical** work: the exactly-zero-residual short
-circuit returns before any factorization, so the line search is never entered.
-A warm start pays one extra triangular solve per Newton update and **no extra
+This confirms spec R7 as a measurement rather than an assumption. The exactly
+consistent path does **identical algorithmic work**: one residual evaluation
+and no Jacobian, factorization, or solve. Its measured median is also identical
+at this resolution. For the warm start, three applied updates add three
+candidate-residual evaluations and three triangular solves, with **no extra
 factorization**, because every trial reuses the factorization taken at the
-current iterate. That is the point of the simplified-Newton merit function.
+current iterate. The measured median rises from 1.125 us to 1.667 us (about
+48%). That is the bounded cost of the simplified-Newton merit function in this
+case.
 
 ## D3 — Row-scale invariance retained
 
@@ -199,8 +203,10 @@ mode of operation. It should be raised with maintainers as follow-on work.
 
 ## Spec open questions
 
-- **Q1 (PR shape)** — deferred by decision until this evidence existed. See the
-  recommendation in the final report.
+- **Q1 (PR shape)** — settled as a stacked follow-up. The basin sweep is clean,
+  but the warm common path adds one residual evaluation and simplified solve per
+  applied update, so folding new behavior into the already-reviewed PR #1083 is
+  not justified by negligible cost.
 - **Q2 (iteration budget)** — settled: unchanged at 10 Newton updates, with the
   cost measured in D2 rather than capped.
 - **Q3 (does the reporter's Case 2 actually return `ConstraintInitializationFailed`?)**

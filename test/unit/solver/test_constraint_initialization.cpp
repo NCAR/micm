@@ -654,7 +654,7 @@ class ScaledSquareRootConstraintModel
   std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
   ConstraintUpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>&) const
   {
-    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
+    return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) { };
   }
 
   template<typename DenseMatrixPolicy>
@@ -718,8 +718,11 @@ auto BuildScaledSquareRootSolver(const RosenbrockSolverParameters& parameters, m
 struct ProjectionOutcome
 {
   SolverState status_;
+  micm::Real x_;
   micm::Real z_;
   micm::Index iterations_;
+  micm::Index jacobians_;
+  micm::Index decompositions_;
   micm::Index solves_;
 };
 
@@ -744,7 +747,35 @@ ProjectionOutcome ProjectSquareRoot(const RosenbrockSolverParameters& parameters
   const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
   state.variables_.CopyToHost();
 
-  return { status, state.variables_[0][state.variable_map_.at("Z")], stats.constraint_init_iterations_, stats.solves_ };
+  return { status,
+           state.variables_[0][state.variable_map_.at("X")],
+           state.variables_[0][state.variable_map_.at("Z")],
+           stats.constraint_init_iterations_,
+           stats.jacobian_updates_,
+           stats.decompositions_,
+           stats.solves_ };
+}
+
+/// @brief An exactly consistent state returns after its residual check, before any matrix work,
+///        regardless of whether the line search is enabled.
+TEST(ConstraintInitialization, ExactZeroResidualShortCircuitsBeforeFactorization)
+{
+  auto damped_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto undamped_parameters = damped_parameters;
+  undamped_parameters.constraint_init_max_backtracks_ = 0;
+
+  for (const auto& parameters : { damped_parameters, undamped_parameters })
+  {
+    const auto outcome = ProjectSquareRoot(parameters, 1.0, 1.0);
+
+    EXPECT_EQ(outcome.status_, SolverState::Converged);
+    EXPECT_EQ(outcome.x_, micm::Real(1.0));
+    EXPECT_EQ(outcome.z_, micm::Real(1.0));
+    EXPECT_EQ(outcome.iterations_, micm::Index(1));
+    EXPECT_EQ(outcome.jacobians_, micm::Index(0));
+    EXPECT_EQ(outcome.decompositions_, micm::Index(0));
+    EXPECT_EQ(outcome.solves_, micm::Index(0));
+  }
 }
 
 /// @brief Disabling the line search restores the undamped iteration exactly, so the change is
@@ -921,11 +952,18 @@ TEST(ConstraintInitialization, ColdStartConvergesForPaddedMultiCellMatrices)
 ///        finiteness passes this case would exhaust the budget and report the wrong reason.
 TEST(ConstraintInitialization, SingularAlgebraicBlockFailsWithExactRollback)
 {
-  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  const auto outcome = ProjectSquareRoot(parameters, 1.0, 0.0);
+  auto damped_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto undamped_parameters = damped_parameters;
+  undamped_parameters.constraint_init_max_backtracks_ = 0;
 
-  EXPECT_NE(outcome.status_, SolverState::Converged);
-  EXPECT_EQ(outcome.z_, micm::Real(0.0));  // exact rollback, not merely close
+  for (const auto& parameters : { damped_parameters, undamped_parameters })
+  {
+    const auto outcome = ProjectSquareRoot(parameters, 1.0, 0.0);
+
+    EXPECT_EQ(outcome.status_, SolverState::InfDetected);
+    EXPECT_EQ(outcome.x_, micm::Real(1.0));  // exact rollback, not merely close
+    EXPECT_EQ(outcome.z_, micm::Real(0.0));
+  }
 }
 
 /// @brief A batch whose cells sit at very different distances from the root is NOT rescued by
