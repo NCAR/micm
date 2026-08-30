@@ -198,7 +198,16 @@ All numbers below were measured on this branch. The benchmark that produces them
 is `benchmark/dae_init_cold_start.cpp`; its CSV output and figures are committed
 under `docs/superpowers/notes/2026-08-29-dae-init-cold-start-results/`.
 
-### Cold-start basin
+### Cold-start reach at the default update budget
+
+This is deliberately not described as a widened basin of attraction. The undamped
+iteration converges from every depth tested here given enough Newton updates (48
+from `XM0/XM* = 1e-13`); it descends by halving. What the line search changes is
+the number of updates needed - 4 or 5 rather than 14 to 48 - and therefore what
+is reachable inside `constraint_init_max_iterations_ = 10`. Below
+`XM0/XM* ~ 2^-24` the damped path fails on its first update, where an undamped
+run with a raised iteration budget would converge; that floor is set by
+`constraint_init_max_backtracks_`.
 
 The musica#956 Case-2 mechanism (Henry's law feeding a quadratic aqueous
 dissociation, `P = 85000 Pa`), swept over 15 temperatures from 278 K to 292 K and
