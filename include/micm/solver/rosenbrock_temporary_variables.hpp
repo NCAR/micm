@@ -27,6 +27,10 @@ namespace micm
     Scalar<Real> max_correction_;
     Scalar<Bool> nan_detected_;
     Scalar<Bool> inf_detected_;
+    // Line-search step length for constraint initialization. This has to be a device-resident
+    // scalar handle rather than a plain Real: MICM_LAMBDA captures by value, so a Real named
+    // inside a Function built once outside the backtrack loop would be frozen at construction.
+    Scalar<Real> constraint_init_step_;
 
     RosenbrockTemporaryVariables() = default;
     RosenbrockTemporaryVariables(const RosenbrockTemporaryVariables& other) = default;
