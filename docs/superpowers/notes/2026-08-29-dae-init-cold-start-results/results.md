@@ -114,6 +114,19 @@ This trace was produced from a scratch copy of the tree (`git archive` of this
 branch) carrying a temporary `fprintf` in `InitializeConstraints`. The live tree
 was never instrumented and carries no trace code.
 
+The per-update *norm* above needs that instrumentation, but the per-update
+*iterate* — the algebraic variable's value after each Newton update — does not.
+`InitializeConstraints` reaches its `Converged` exit through a plain `return`
+rather than through `restore_and_return`, so a projection whose acceptance
+tolerance is loose enough to stop on pass `j` hands back exactly the iterate
+after `j` applied updates and reports `constraint_init_iterations_ == j + 1`.
+Bisecting on the tolerance therefore recovers the whole iterate path from a
+stock build. That path, before and after the fix, is plotted in the companion
+ODE repository (`src/dae_init_cold_start.cpp`,
+`scripts/plot_dae_init_cold_start.py`), and the driver cross-checks its harvest
+against a default-tolerance run so a divergence fails loudly rather than
+producing a plausible figure.
+
 ## Known limitation: heterogeneous batches
 
 Found while writing the multi-cell tests, and pinned by
