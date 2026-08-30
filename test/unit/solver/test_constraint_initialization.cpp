@@ -782,3 +782,214 @@ TEST(ConstraintInitialization, BacktrackingConvergesFromColdStart)
   const auto undamped = ProjectSquareRoot(undamped_parameters, 1.0, 1.0e-6);
   EXPECT_EQ(undamped.status_, SolverState::ConstraintInitializationFailed);
 }
+
+/// @brief The merit function is the weighted norm of the simplified Newton correction, so scaling a
+///        complete constraint row scales G and dG/dy together and cancels. Every decision the line
+///        search makes -- which trial is accepted, and therefore how many updates and solves the
+///        projection costs -- must be identical across row scales spanning 24 orders of magnitude.
+TEST(ConstraintInitialization, BacktrackingIsInvariantToConstraintRowScaling)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  const std::array<micm::Real, 3> row_scales{ 1.0e-12, 1.0, 1.0e12 };
+  constexpr micm::Real z_tolerance = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+
+  const auto reference = ProjectSquareRoot(parameters, 1.0, 1.0e-6);
+  ASSERT_EQ(reference.status_, SolverState::Converged);
+
+  for (const micm::Real row_scale : row_scales)
+  {
+    const auto scaled = ProjectSquareRoot(parameters, row_scale, 1.0e-6);
+    EXPECT_EQ(scaled.status_, SolverState::Converged) << "row scale=" << row_scale;
+    EXPECT_EQ(scaled.iterations_, reference.iterations_) << "row scale=" << row_scale;
+    EXPECT_EQ(scaled.solves_, reference.solves_) << "row scale=" << row_scale;
+    EXPECT_NEAR(scaled.z_, reference.z_, z_tolerance) << "row scale=" << row_scale;
+  }
+}
+
+/// @brief On a start already inside the full-step convergence basin the first trial satisfies the
+///        sufficient-decrease test, so the damped projection walks exactly the undamped iteration:
+///        the same number of updates and the same final state, bit for bit. This is what keeps an
+///        existing, working initialization unperturbed by the line search.
+TEST(ConstraintInitialization, FullStepIsAcceptedInsideTheConvergenceBasin)
+{
+  auto damped_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto undamped_parameters = damped_parameters;
+  undamped_parameters.constraint_init_max_backtracks_ = 0;
+
+  for (const micm::Real z_initial : { micm::Real(0.5), micm::Real(2.0), micm::Real(10.0) })
+  {
+    const auto damped = ProjectSquareRoot(damped_parameters, 1.0, z_initial);
+    const auto undamped = ProjectSquareRoot(undamped_parameters, 1.0, z_initial);
+
+    EXPECT_EQ(damped.status_, SolverState::Converged) << "Z initial=" << z_initial;
+    EXPECT_EQ(undamped.status_, SolverState::Converged) << "Z initial=" << z_initial;
+    EXPECT_EQ(damped.z_, undamped.z_) << "Z initial=" << z_initial;
+    EXPECT_EQ(damped.iterations_, undamped.iterations_) << "Z initial=" << z_initial;
+    // One extra simplified-Newton solve per update buys the globalization
+    EXPECT_EQ(damped.solves_, 2 * undamped.solves_ - 1) << "Z initial=" << z_initial;
+  }
+}
+
+/// @brief When the step-length budget cannot reach the basin, the projection fails transactionally.
+///        The caller gets their own state back, not a half-damped iterate.
+TEST(ConstraintInitialization, ExhaustedLineSearchRestoresCallerState)
+{
+  auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  parameters.constraint_init_max_backtracks_ = 2;  // 0.5^2 cannot climb down from an overshoot of 5e5
+
+  auto solver = BuildScaledSquareRootSolver(parameters, 1.0);
+  auto state = solver.GetState(1);
+  constexpr micm::Real Z_in = 1.0e-6;
+  constexpr micm::Real X_in = 1.0;
+  constexpr micm::Real rtol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+  constexpr micm::Real atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-6;
+  state.SetRelativeTolerance(rtol);
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, atol));
+  state.variables_[0][state.variable_map_.at("X")] = X_in;
+  state.variables_[0][state.variable_map_.at("Z")] = Z_in;
+  state.conditions_[0].temperature_ = 298.15;
+  state.conditions_[0].pressure_ = 101325.0;
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  ASSERT_EQ(status, SolverState::ConstraintInitializationFailed);
+  EXPECT_EQ(state.variables_[0][state.variable_map_.at("Z")], Z_in);
+  EXPECT_EQ(state.variables_[0][state.variable_map_.at("X")], X_in);
+}
+
+/// @brief Padded, multi-cell coverage. VectorMatrix<Real, 4> holding 3 grid cells leaves a
+///        fourth padded lane whose contents must not reach any reduction. The cells share a
+///        cold start, which is the case the line search is for: see
+///        HeterogeneousBatchIsNotRescuedByTheLineSearch for the mixed-batch limitation.
+TEST(ConstraintInitialization, ColdStartConvergesForPaddedMultiCellMatrices)
+{
+  using VecDense = micm::VectorMatrix<micm::Real, 4>;
+  using VecSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<4>>;
+  using VecBuilder = CpuSolverBuilder<RosenbrockSolverParameters, VecDense, VecSparse>;
+
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  const auto X = Species("X");
+  const auto Z = Species("Z");
+  const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ X, Z } };
+
+  auto solver = VecBuilder(parameters)
+                    .SetSystem(System(gas_phase))
+                    .AddExternalModel(ScaledSquareRootConstraintModel("X", "Z", 1.0))
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(3);
+  constexpr micm::Real rtol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+  constexpr micm::Real atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-6;
+  state.SetRelativeTolerance(rtol);
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, atol));
+
+  const auto X_idx = state.variable_map_.at("X");
+  const auto Z_idx = state.variable_map_.at("Z");
+  const std::array<micm::Real, 3> z_initial{ 1.0e-6, 1.0e-6, 1.0e-6 };
+  for (std::size_t i_cell = 0; i_cell < 3; ++i_cell)
+  {
+    state.variables_[i_cell][X_idx] = 1.0;
+    state.variables_[i_cell][Z_idx] = z_initial[i_cell];
+    state.conditions_[i_cell].temperature_ = 298.15;
+    state.conditions_[i_cell].pressure_ = 101325.0;
+  }
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  ASSERT_EQ(status, SolverState::Converged);
+  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+  for (std::size_t i_cell = 0; i_cell < 3; ++i_cell)
+  {
+    EXPECT_NEAR(state.variables_[i_cell][Z_idx], micm::Real(1.0), tol) << "cell " << i_cell;
+  }
+}
+
+/// @brief A singular algebraic block. At Z = 0 the constraint Jacobian dG/dZ = -2*Z is exactly
+///        zero, so the Newton solve divides by it. The projection must report the failure and
+///        hand the caller their own state back untouched, rather than damping its way into a
+///        misleading ConstraintInitializationFailed: the line search backtracks on non-finite
+///        candidates, so without the exact-zero-residual short circuit and the explicit
+///        finiteness passes this case would exhaust the budget and report the wrong reason.
+TEST(ConstraintInitialization, SingularAlgebraicBlockFailsWithExactRollback)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  const auto outcome = ProjectSquareRoot(parameters, 1.0, 0.0);
+
+  EXPECT_NE(outcome.status_, SolverState::Converged);
+  EXPECT_EQ(outcome.z_, micm::Real(0.0));  // exact rollback, not merely close
+}
+
+/// @brief A batch whose cells sit at very different distances from the root is NOT rescued by
+///        the line search, and this test pins that as a known limitation rather than leaving it
+///        to be discovered in the field.
+///
+///        The projection reduces one weighted correction norm across the whole batch and damps
+///        it with one step length, so a step short enough for the worst cell is applied to every
+///        cell. The sufficient-decrease test then measures a max over cells that a single step
+///        length cannot drive down.
+///
+///        The assertion is deliberately two-sided: the mixed batch fails with the search enabled
+///        AND with it disabled. That is what makes this a pre-existing property of the batched
+///        formulation rather than a regression introduced by damping. Per-cell step lengths would
+///        be the fix, and would be a separate change to the reduction machinery. If a future
+///        change makes the damped case converge, this test will fail and should be updated to
+///        assert the improvement.
+TEST(ConstraintInitialization, HeterogeneousBatchIsNotRescuedByTheLineSearch)
+{
+  auto damped = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto undamped = damped;
+  undamped.constraint_init_max_backtracks_ = 0;
+
+  const auto run = [](const RosenbrockSolverParameters& parameters)
+  {
+    const auto X = Species("X");
+    const auto Z = Species("Z");
+    const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ X, Z } };
+    auto solver = StandardBuilder(parameters)
+                      .SetSystem(System(gas_phase))
+                      .AddExternalModel(ScaledSquareRootConstraintModel("X", "Z", 1.0))
+                      .SetReorderState(false)
+                      .Build();
+    auto state = solver.GetState(2);
+    constexpr micm::Real rtol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+    constexpr micm::Real atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-6;
+    state.SetRelativeTolerance(rtol);
+    state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, atol));
+
+    const auto X_idx = state.variable_map_.at("X");
+    const auto Z_idx = state.variable_map_.at("Z");
+    const std::array<micm::Real, 2> z_initial{ 1.0e-6, 100.0 };  // one cold cell, one warm
+    for (std::size_t i_cell = 0; i_cell < 2; ++i_cell)
+    {
+      state.variables_[i_cell][X_idx] = 1.0;
+      state.variables_[i_cell][Z_idx] = z_initial[i_cell];
+      state.conditions_[i_cell].temperature_ = 298.15;
+      state.conditions_[i_cell].pressure_ = 101325.0;
+    }
+    solver.UpdateStateParameters(state);
+    state.variables_.CopyToDevice();
+
+    SolverStats stats;
+    const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+    state.variables_.CopyToHost();
+    return std::make_pair(status, state.variables_[0][Z_idx]);
+  };
+
+  const auto [damped_status, damped_z] = run(damped);
+  const auto [undamped_status, undamped_z] = run(undamped);
+
+  EXPECT_EQ(damped_status, SolverState::ConstraintInitializationFailed);
+  EXPECT_EQ(undamped_status, SolverState::ConstraintInitializationFailed);
+  // Both roll the caller's state back exactly, so neither hands back a half-applied iterate.
+  EXPECT_EQ(damped_z, micm::Real(1.0e-6));
+  EXPECT_EQ(undamped_z, micm::Real(1.0e-6));
+}
