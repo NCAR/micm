@@ -204,7 +204,31 @@ mode of operation. It should be raised with maintainers as follow-on work.
 - **Q2 (iteration budget)** — settled: unchanged at 10 Newton updates, with the
   cost measured in D2 rather than capped.
 - **Q3 (does the reporter's Case 2 actually return `ConstraintInitializationFailed`?)**
-  — **not addressed by this work.** It needs the reporter's configuration and
-  should be asked on musica#956. The reproducer here returns
-  `ConstraintInitializationFailed`, but that is this mechanism, not necessarily
-  theirs.
+  — **answered, and the answer is no.** The two screenshots in musica#956 were
+  retrieved and read:
+
+  | Reported case | Failure state | Time |
+  |---|---|---|
+  | Case 2 (`T = 286 K`, `P = 85000`, `LWC = 0.3e-3`) | `StepSizeTooSmall` | t = 0.0000 s |
+  | Case 4 (`T = 285 K`, `P = 85000`, `LWC = 0.03e-3`) | `ConvergenceExceededMaxSteps` | t = 7170 s |
+
+  Neither is `ConstraintInitializationFailed`. **This work therefore cannot be
+  said to fix the reported cases**, and no such claim should be made in the PR
+  description or the paper.
+
+  What is established is narrower: the reproducer matches the *phenomenology* of
+  Case 2 — a failure at t = 0 that flips with roughly 1 K of temperature at
+  `P = 85000 Pa` — and PR #1083 plus this line search resolve that. It does not
+  match the reported error state, and its failing temperatures (284, 287, 290 K)
+  are not the reporter's (286 K fails, 285 K and 280 K pass).
+
+  A plausible chain would connect them: on `main` the raw-residual acceptance
+  rule can report `Converged` for a state that is off the manifold, after which
+  the integrator cannot take a step and reports `StepSizeTooSmall` at t = 0. If
+  that is the mechanism, the weighted-correction rule in #1083 is the fix.
+  **This is untested.** Settling it needs the reporter's actual configuration
+  (mechanism, species, LWC, initial conditions) run against `main`, #1083, and
+  this branch, with the returned `SolverState` recorded in each.
+
+  Case 4 fails mid-integration and is not an initialization failure at all.
+  Nothing in this work addresses it.
