@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787937145268,
+  "lastUpdate": 1788191024048,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -604,6 +604,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 105.35,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bb291a5f284c23a5579e43d36ae4683bac27c614",
+          "message": "Fix the occasionally broken single-precision CI test (#1088)\n\nfix sp ci failure",
+          "timestamp": "2026-08-31T09:28:43-06:00",
+          "tree_id": "72dcbf43a2ace27e93cdae40f5cf3407ff6290de",
+          "url": "https://github.com/NCAR/micm/commit/bb291a5f284c23a5579e43d36ae4683bac27c614"
+        },
+        "date": 1788191023020,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 212.93,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 151.9,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 119.81,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 111.77,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 106.95,
             "unit": "ms"
           }
         ]
