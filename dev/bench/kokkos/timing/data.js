@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787941224806,
+  "lastUpdate": 1788193476481,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (Kokkos backend)": [
@@ -342,6 +342,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 547.37,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bb291a5f284c23a5579e43d36ae4683bac27c614",
+          "message": "Fix the occasionally broken single-precision CI test (#1088)\n\nfix sp ci failure",
+          "timestamp": "2026-08-31T09:28:43-06:00",
+          "tree_id": "72dcbf43a2ace27e93cdae40f5cf3407ff6290de",
+          "url": "https://github.com/NCAR/micm/commit/bb291a5f284c23a5579e43d36ae4683bac27c614"
+        },
+        "date": 1788193475537,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 2834.14,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 1533.24,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 869.64,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 500.85,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 547.52,
             "unit": "ms"
           }
         ]
