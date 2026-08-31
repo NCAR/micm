@@ -35,6 +35,36 @@ jobs:
           cd build
           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
 
+  gcc_single_precision:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Release]
+    env:
+      CC: gcc
+      CXX: g++
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Cmake
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -D MICM_USE_DOUBLE=OFF
+
+      - name: Build
+        run: cmake --build build --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest -C ${{ matrix.build_type }} --output-on-failure --verbose --no-tests=error --output-junit ctest-results.xml -j 10
+
+      - name: Upload ctest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-results-cpu-single
+          path: build/ctest-results.xml
+
   clang:
     runs-on: ubuntu-latest
     strategy:
