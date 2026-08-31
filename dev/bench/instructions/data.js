@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787935820876,
+  "lastUpdate": 1788190380138,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -887,6 +887,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/7c62ea7691ddbd816b06ee7622727d3a31840d66"
         },
         "date": 1787935820374,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 525968988,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 525968344,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 364607823,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 276519040,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238027154,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 219493178,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bb291a5f284c23a5579e43d36ae4683bac27c614",
+          "message": "Fix the occasionally broken single-precision CI test (#1088)\n\nfix sp ci failure",
+          "timestamp": "2026-08-31T09:28:43-06:00",
+          "tree_id": "72dcbf43a2ace27e93cdae40f5cf3407ff6290de",
+          "url": "https://github.com/NCAR/micm/commit/bb291a5f284c23a5579e43d36ae4683bac27c614"
+        },
+        "date": 1788190379390,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
