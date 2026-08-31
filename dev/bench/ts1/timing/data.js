@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787939021364,
+  "lastUpdate": 1788193373653,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -809,6 +809,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 51838.81,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bb291a5f284c23a5579e43d36ae4683bac27c614",
+          "message": "Fix the occasionally broken single-precision CI test (#1088)\n\nfix sp ci failure",
+          "timestamp": "2026-08-31T09:28:43-06:00",
+          "tree_id": "72dcbf43a2ace27e93cdae40f5cf3407ff6290de",
+          "url": "https://github.com/NCAR/micm/commit/bb291a5f284c23a5579e43d36ae4683bac27c614"
+        },
+        "date": 1788193372967,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 119195.03,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 121137.92,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 110617.41,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 89969.62,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 80235.27,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 46669.5,
             "unit": "ms"
           }
         ]
