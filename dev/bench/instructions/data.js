@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788269497222,
+  "lastUpdate": 1788295705416,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -995,6 +995,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/a585de2efa9616eaa5f6ddbfe6dc8c0c18c84f1b"
         },
         "date": 1788269496736,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 523345617,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 526932974,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 363917250,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 284058117,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238026224,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 218360972,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sunjian@ucar.edu",
+            "name": "Jian Sun",
+            "username": "sjsprecious"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "05be6e14dca6ae03cb9afd1f165842bf5d53a698",
+          "message": "Fix broken GPU PR benchmark comment (second time) (#1089)\n\nfix broken gpu pr comment",
+          "timestamp": "2026-09-01T14:43:43-06:00",
+          "tree_id": "60b3f4709d50da4ab829dd49af699813c6704a38",
+          "url": "https://github.com/NCAR/micm/commit/05be6e14dca6ae03cb9afd1f165842bf5d53a698"
+        },
+        "date": 1788295704590,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
