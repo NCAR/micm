@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788193373653,
+  "lastUpdate": 1788272573814,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -863,6 +863,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 46669.5,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "1524012+dwfncar@users.noreply.github.com",
+            "name": "David Fillmore",
+            "username": "dwfncar"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a585de2efa9616eaa5f6ddbfe6dc8c0c18c84f1b",
+          "message": "Fix/dae constraint tolerance measure (#1083)\n\n* Measure DAE constraint initialization in the weighted state space\n\nThe consistent-initial-condition projection stopped when the largest raw\nalgebraic residual fell below a fixed constant (1e-10). That test has no\ninvariant numerical meaning: a residual carries whatever units and scale its\nconstraint equation was written in, so multiplying a complete constraint row\nby a constant changed whether the same physical state was called converged.\nSmall row scales converged falsely; large row scales -- or simply species in\nnumber-density units, where cancellation floors |G| near eps*1e12 -- could\nnever converge, and Solve() returned ConstraintInitializationFailed.\n\nMeasure the Newton correction instead, in the same weighted state space that\ndefines integration accuracy:\n\n  scale_a = atol_a + rtol * max(|z_a|, |z_a + delta_a|)\n  q       = max_a |delta_a| / scale_a\n\nInitialization converges when q <= constraint_init_tolerance_, whose default\nbecomes 0.1: the remaining estimated algebraic correction must be no more than\na tenth of the state-error scale the caller configured. The measure is\ndimensionless and unchanged by any complete-row rescaling, since neither the\nNewton correction nor the state tolerance depends on it.\n\nAn exactly zero residual is still accepted without a factorization. The loop\nnow runs one pass beyond the update limit so that the correction remaining\nafter the final permitted update is measured, rather than reporting failure\nfor a state that reached the manifold on that update.\n\nconstraint_init_tolerance_ no longer denotes a raw residual threshold.\nApplications that set it explicitly should review the new dimensionless\nmeaning rather than carrying forward values such as 1e-10.\n\nThe float-precision workarounds in test_external_model_constraints.cpp existed\nonly to raise that threshold above the float residual floor, and are removed.\n\n* Reconcile with fix/dae-algebraic-error-measure\n\nBoth branches ported the same weighted-correction convergence test off main,\neach with something the other lacked. Take the union.\n\nFrom fix/dae-algebraic-error-measure:\n\n  - BuildScaledLinearConstraintSolver and two projection-level tests that call\n    InitializeConstraints directly rather than going through Solve(), so a\n    failure names the projection instead of the integrator.\n    WeightedCorrectionUsesStateTolerances pins the property neither branch\n    covered before: the same off-manifold state is already converged under\n    loose rtol/atol and needs a Newton update under tight ones, which is what\n    makes the tolerance a fraction of the caller's state-error scale rather\n    than a number of its own.\n  - The missing newline at the end of rosenbrock_solver_parameters.hpp.\n\nKept from this branch:\n\n  - Removal of the float-only constraint_init_tolerance_ = 1e-5 overrides in\n    test_external_model_constraints.cpp. Those raised the old raw-residual\n    threshold above the float roundoff floor; under the weighted measure 1e-5\n    is roughly four orders tighter than the 0.1 default and unreachable in\n    single precision. Left in place they fail 4 integration tests in a\n    MICM_USE_DOUBLE=OFF build.\n  - constraint_init_iterations_ counts iterations entered, preserving main's\n    original `iter + 1` meaning, so it tracks projection work (one residual\n    evaluation and, except when the residual is exactly zero, one\n    factorization each). The imported assertions are adjusted accordingly:\n    the count is one greater than the number of updates applied.\n\nAll three added tests fail against main's solver and pass here. Verified in\ndouble (65/65), Kokkos (90/90), and the constraint and DAE targets of a float\nbuild (38 tests).\n\n* Roll back a failed constraint projection to the caller's state\n\nInitializeConstraints applies Newton updates directly to state.variables_.\nWhen it gave up -- iteration limit exhausted, or a non-finite residual or\ncorrection -- it returned the failure status but left those updates in place.\nThe caller got back a half-applied Newton iterate that is neither the state\nthey passed in nor a solution, with nothing in the return value to say so.\n\nMeasured on the nonlinear constraint 2*[B] - [C]^2 = 0 (solution C = 1),\ncapped at one update: passing C = 100 returned ConstraintInitializationFailed\nwith C = 50.005 in the caller's state.\n\nSnapshot the variables and restore them on every failure path, so failure\nmeans the caller's state is untouched and they can retry or report against\ntheir original numbers. With several grid cells this also stops one bad cell\nfrom perturbing the algebraic variables of all the others.\n\nK_[0] is the buffer: no stage vector is read until the first stage of the\nintegration loop, which cannot start unless projection converged. The\nsnapshot is taken lazily, immediately before the first update, so the common\ncase -- a state still consistent from the previous Solve() -- converges with\nno copy at all.\n\nBoth added tests are pinned in the failing direction against the previous\ncommit. Verified in double (65/65), Kokkos (90/90), and the constraint and\nDAE targets of a float build (40 tests).",
+          "timestamp": "2026-09-01T08:27:02-05:00",
+          "tree_id": "f9fc664f24de50722286cbaff7382c0e8c6facb0",
+          "url": "https://github.com/NCAR/micm/commit/a585de2efa9616eaa5f6ddbfe6dc8c0c18c84f1b"
+        },
+        "date": 1788272573306,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 121922.14,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 123572.13,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 108471.22,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 89702.64,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 83656.16,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 49653.54,
             "unit": "ms"
           }
         ]
