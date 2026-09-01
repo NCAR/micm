@@ -418,14 +418,21 @@ namespace micm
     auto& diagonal = state.views_.upper_left_identity_diagonal_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    // Reuse initial_forcing_ as the residual/delta workspace
+    // Reuse initial_forcing_ as the residual/delta workspace, and K_[0] as the rollback
+    // buffer: no stage vector is read until the first stage of the integration loop below.
     auto& delta = derived_class_temporary_variables->initial_forcing_;
+    auto& original_variables = derived_class_temporary_variables->K_[0];
     auto& max_residual = derived_class_temporary_variables->max_residual_;
+    auto& max_correction = derived_class_temporary_variables->max_correction_;
     auto& nan_detected = derived_class_temporary_variables->nan_detected_;
     auto& inf_detected = derived_class_temporary_variables->inf_detected_;
+    const auto& atol = std::as_const(state.absolute_tolerance_).GetView();
+    const auto& rtol = state.relative_tolerance_;
+    const Index n_vars = Y.NumColumns();
 
     // Pre-build reusable Function objects outside the iteration loop
-    auto check_convergence = DenseMatrixPolicy::Function(
+    // ||.||_inf over the algebraic rows only, with non-finite values flagged
+    auto check_algebraic_values = DenseMatrixPolicy::Function(
         MICM_LAMBDA(const typename DenseMatrixPolicy::ConstViewType& delta_view) {
           for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
           {
@@ -453,6 +460,39 @@ namespace micm
             }
           }
         },
+        delta);
+
+    // Measure of the Newton correction in the same weighted state space that defines
+    // integration accuracy:
+    //   scale_a = atol_a + rtol * max(|z_a|, |z_a + delta_a|)
+    //   q = max_a |delta_a| / scale_a
+    // q is dimensionless, and scaling a complete constraint row leaves it unchanged.
+    auto check_weighted_correction = DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ConstViewType& y_view,
+            const typename DenseMatrixPolicy::ConstViewType& delta_view) {
+          for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
+          {
+            if (diagonal[i_var] == 0.0)
+            {
+              // exclude padded cells incase they are non-zero
+              y_view.ReduceStrict(
+                  MaxType{ max_correction },
+                  [&](const Real& z, const Real& correction, Real& acc)
+                  {
+                    Real corrected = z + correction;
+                    Real z_max = (std::abs(z) > std::abs(corrected) ? std::abs(z) : std::abs(corrected));
+                    Real scale = atol[i_var % n_vars] + rtol * z_max;
+                    Real q = scale > 0.0 ? std::abs(correction) / scale
+                                         : (correction == 0.0 ? 0.0 : std::numeric_limits<Real>::infinity());
+                    acc = (acc > q ? acc : q);
+                  },
+                  y_view.GetConstColumnView(i_var),
+                  delta_view.GetConstColumnView(i_var));
+            }
+          }
+        },
+        Y,
         delta);
 
     auto apply_update = DenseMatrixPolicy::Function(
@@ -484,36 +524,54 @@ namespace micm
         Y,
         delta);
 
-    for (Index iter = 0; iter < parameters.constraint_init_max_iterations_; ++iter)
+    // Projection is transactional: a failure must not hand the caller a partially updated
+    // algebraic state, which is neither their input nor a solution. The snapshot is taken
+    // lazily, so a projection that converges without applying an update costs no copy.
+    bool variables_modified = false;
+    auto restore_and_return = [&](SolverState status)
+    {
+      if (variables_modified)
+      {
+        Y.Copy(original_variables);
+      }
+      return status;
+    };
+
+    // One pass beyond the update limit measures the correction that remains after the final
+    // permitted update, so a state that reaches the manifold on that update is not reported
+    // as a failure.
+    for (Index update = 0; update <= parameters.constraint_init_max_iterations_; ++update)
     {
       // 1. Evaluate constraint residuals: G(y)
       delta.Fill(0);
       constraints_.AddForcingTerms(Y, state.custom_rate_parameters_, delta);
 
-      // 2. Check convergence: ||G||_inf over algebraic rows only
+      // 2. Reject non-finite residuals. A residual has whatever units and scale its constraint
+      //    equation was written in, so it cannot decide convergence; only an exactly zero
+      //    residual is already consistent and is accepted without a factorization.
       max_residual = 0;
       nan_detected = false;
       inf_detected = false;
       max_residual.CopyToDevice();
       nan_detected.CopyToDevice();
       inf_detected.CopyToDevice();
-      check_convergence(delta);
+      check_algebraic_values(delta);
       max_residual.CopyToHost();
       nan_detected.CopyToHost();
       inf_detected.CopyToHost();
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(SolverState::NaNDetected);
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return restore_and_return(SolverState::InfDetected);
       }
 
-      stats.constraint_init_iterations_ = iter + 1;
+      stats.constraint_init_iterations_ += 1;
 
-      if (max_residual < parameters.constraint_init_tolerance_)
+      if (max_residual == 0.0)
       {
         return SolverState::Converged;
       }
@@ -550,7 +608,50 @@ namespace micm
       }
       stats.solves_ += 1;
 
-      // 7. Apply update only to algebraic variables
+      // 7. Reject a non-finite Newton correction before it is measured or applied
+      max_residual = 0;
+      nan_detected = false;
+      inf_detected = false;
+      max_residual.CopyToDevice();
+      nan_detected.CopyToDevice();
+      inf_detected.CopyToDevice();
+      check_algebraic_values(delta);
+      max_residual.CopyToHost();
+      nan_detected.CopyToHost();
+      inf_detected.CopyToHost();
+
+      if (nan_detected)
+      {
+        return restore_and_return(SolverState::NaNDetected);
+      }
+      if (inf_detected)
+      {
+        return restore_and_return(SolverState::InfDetected);
+      }
+
+      // 8. Converged once the remaining correction is a small fraction of the state-error
+      //    scale set by the configured absolute and relative tolerances
+      max_correction = 0;
+      max_correction.CopyToDevice();
+      check_weighted_correction(Y, delta);
+      max_correction.CopyToHost();
+
+      if (max_correction <= parameters.constraint_init_tolerance_)
+      {
+        return SolverState::Converged;
+      }
+
+      if (update == parameters.constraint_init_max_iterations_)
+      {
+        break;
+      }
+
+      // 9. Apply update only to algebraic variables, snapshotting the caller's state first
+      if (!variables_modified)
+      {
+        original_variables.Copy(Y);
+        variables_modified = true;
+      }
       nan_detected = false;
       inf_detected = false;
       max_residual.CopyToDevice();
@@ -563,16 +664,16 @@ namespace micm
 
       if (nan_detected)
       {
-        return SolverState::NaNDetected;
+        return restore_and_return(SolverState::NaNDetected);
       }
       if (inf_detected)
       {
-        return SolverState::InfDetected;
+        return restore_and_return(SolverState::InfDetected);
       }
     }
 
-    // Did not converge within max iterations
-    return SolverState::ConstraintInitializationFailed;
+    // Did not converge within the permitted number of Newton updates
+    return restore_and_return(SolverState::ConstraintInitializationFailed);
   }
 
 }  // namespace micm
