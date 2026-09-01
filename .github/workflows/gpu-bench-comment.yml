@@ -21,12 +21,8 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     permissions:
-      # Naming `permissions` sets every unlisted scope to none, so the scopes
-      # actions/checkout and actions/download-artifact need must be spelled out:
-      # contents:read to check out, actions:read to reach another run's artifacts.
-      contents: read
+      contents: write
       actions: read
-      pull-requests: write
 
     env:
       # Which runner triggered us.  Each GPU workflow uploads only its own backend's
@@ -47,96 +43,69 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Retarget the event payload at the PR that produced these results
-        id: target
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          set -euo pipefail
-
-          pr=$(tr -d '[:space:]' < pr-number.txt)
-          case "$pr" in
-            '' | *[!0-9]*)
-              echo "::error::pr-number.txt from run $RUN_ID does not hold a PR number (got '$pr')"
-              exit 1
-              ;;
-          esac
-
-          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr" --jq .state 2>/dev/null || echo open)
-          if [ "$state" != "open" ]; then
-            echo "::notice::PR #$pr is $state; skipping the benchmark comment"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          jq --argjson pr "$pr" '. + {
-                pull_request: { number: $pr },
-                head_commit: (.workflow_run.head_commit // { id: .workflow_run.head_sha })
-              }' "$GITHUB_EVENT_PATH" > "$GITHUB_EVENT_PATH.retargeted"
-          mv -f "$GITHUB_EVENT_PATH.retargeted" "$GITHUB_EVENT_PATH"
-
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-          echo "Commenting on PR #$pr for commit $(jq -r .head_commit.id "$GITHUB_EVENT_PATH")"
-
-      # The `name` and `benchmark-data-dir-path` must match the corresponding store
-      # steps in runner.yml / runner.kokkos.yml exactly; the action keys its history by
-      # both, and a mismatch yields no comparison while still reporting success.
       - name: Comment timing comparison on PR for CUDA
-        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers' && steps.target.outputs.skip == 'false'
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Chapman Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/gpu/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment TS1 timing comparison on PR for CUDA
-        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers' && steps.target.outputs.skip == 'false'
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: TS1 Timing (GPU backend)
           tool: customSmallerIsBetter
           output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/gpu/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment timing comparison on PR for Kokkos
-        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers' && steps.target.outputs.skip == 'false'
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Chapman Timing (Kokkos backend)
           tool: customSmallerIsBetter
           output-file-path: kokkos_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/kokkos/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
           skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
 
       - name: Comment TS1 timing comparison on PR for Kokkos
-        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers' && steps.target.outputs.skip == 'false'
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: TS1 Timing (Kokkos backend)
           tool: customSmallerIsBetter
           output-file-path: kokkos_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/kokkos/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
