@@ -85,7 +85,7 @@ namespace micm
         break;
       }
 
-      if (((present_time + 0.1 * H) == present_time) || (H <= parameters.round_off_))
+      if (((present_time + 0.1 * H) == present_time) || (H <= std::min(parameters.round_off_, h_min)))
       {
         result.state_ = SolverState::StepSizeTooSmall;
         break;
@@ -418,19 +418,14 @@ namespace micm
     auto& diagonal = state.views_.upper_left_identity_diagonal_;
     auto derived_class_temporary_variables =
         static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
-    // Reuse initial_forcing_ as the residual/delta workspace, K_[0] as the rollback buffer, Ynew_ as
-    // the line-search candidate, and Yerror_ as the candidate's simplified Newton correction: no
-    // stage vector is read, and neither Ynew_ nor Yerror_ is read, until the first stage of the
-    // integration loop below.
+    // Reuse initial_forcing_ as the residual/delta workspace, and K_[0] as the rollback
+    // buffer: no stage vector is read until the first stage of the integration loop below.
     auto& delta = derived_class_temporary_variables->initial_forcing_;
     auto& original_variables = derived_class_temporary_variables->K_[0];
-    auto& candidate = derived_class_temporary_variables->Ynew_;
-    auto& candidate_correction = derived_class_temporary_variables->Yerror_;
     auto& max_residual = derived_class_temporary_variables->max_residual_;
     auto& max_correction = derived_class_temporary_variables->max_correction_;
     auto& nan_detected = derived_class_temporary_variables->nan_detected_;
     auto& inf_detected = derived_class_temporary_variables->inf_detected_;
-    auto& step = derived_class_temporary_variables->constraint_init_step_;
     const auto& atol = std::as_const(state.absolute_tolerance_).GetView();
     const auto& rtol = state.relative_tolerance_;
     const Index n_vars = Y.NumColumns();
@@ -522,36 +517,6 @@ namespace micm
                     }
                   },
                   y_view.GetColumnView(i_var),
-                  delta_view.GetConstColumnView(i_var));
-            }
-          }
-        },
-        Y,
-        delta);
-
-    // Line-search candidate: candidate += step * delta on the algebraic rows only. Identical to
-    // apply_update above apart from the step factor, so a damped candidate and an undamped update
-    // treat padded rows and non-finite corrections the same way. The step length has to be a
-    // device-resident scalar rather than a captured Real: MICM_LAMBDA captures by value, so a Real
-    // named here would be frozen at the value it held when this Function object was built. Same
-    // mechanism the stage loop uses for current_c_over_h_.
-    auto set_candidate = DenseMatrixPolicy::Function(
-        MICM_LAMBDA(
-            const typename DenseMatrixPolicy::ViewType& candidate_view,
-            const typename DenseMatrixPolicy::ConstViewType& delta_view) {
-          for (Index i_var = 0; i_var < diagonal.size(); ++i_var)
-          {
-            if (diagonal[i_var] == 0.0)
-            {
-              candidate_view.ForEachRow(
-                  [&](Real& c_val, const Real& d_val)
-                  {
-                    if (!std::isnan(d_val) && !std::isinf(d_val))
-                    {
-                      c_val += step * d_val;
-                    }
-                  },
-                  candidate_view.GetColumnView(i_var),
                   delta_view.GetConstColumnView(i_var));
             }
           }
@@ -687,166 +652,96 @@ namespace micm
         original_variables.Copy(Y);
         variables_modified = true;
       }
-
-      if (parameters.constraint_init_max_backtracks_ == 0)
+      if (parameters.constraint_init_max_backtracks_ > 0)
       {
-        // Line search disabled. Every statement in this block is unchanged from the undamped
-        // implementation, in the same order on the same data, so this path is bit-for-bit identical.
-        nan_detected = false;
-        inf_detected = false;
-        max_residual.CopyToDevice();
-        nan_detected.CopyToDevice();
-        inf_detected.CopyToDevice();
-        apply_update(Y, delta);
-        max_residual.CopyToHost();
-        nan_detected.CopyToHost();
-        inf_detected.CopyToHost();
-
-        if (nan_detected)
+        // Reuse free stage workspaces; each trial uses the current Jacobian's factorization.
+        auto& candidate = derived_class_temporary_variables->Ynew_;
+        auto& trial_delta = derived_class_temporary_variables->Yerror_;
+        auto finite = [&](const auto& values)
         {
-          return restore_and_return(SolverState::NaNDetected);
-        }
-        if (inf_detected)
+          max_residual = 0;
+          nan_detected = false;
+          inf_detected = false;
+          max_residual.CopyToDevice();
+          nan_detected.CopyToDevice();
+          inf_detected.CopyToDevice();
+          check_algebraic_values(values);
+          max_residual.CopyToHost();
+          nan_detected.CopyToHost();
+          inf_detected.CopyToHost();
+          return !nan_detected && !inf_detected;
+        };
+        const Real current_norm = max_correction;
+        Real step = 1.0;
+        for (Index backtrack = 0;; ++backtrack, step *= parameters.constraint_init_backtrack_factor_)
         {
-          return restore_and_return(SolverState::InfDetected);
+          if (backtrack > parameters.constraint_init_max_backtracks_)
+          {
+            return restore_and_return(SolverState::ConstraintInitializationFailed);
+          }
+          trial_delta.Fill(0);
+          trial_delta.Axpy(step, delta);
+          candidate.Copy(Y);
+          apply_update(candidate, trial_delta);
+          if (!finite(candidate))
+          {
+            continue;
+          }
+          trial_delta.Fill(0);
+          constraints_.AddForcingTerms(candidate, state.custom_rate_parameters_, trial_delta);
+          if (!finite(trial_delta))
+          {
+            continue;
+          }
+          if (max_residual == 0.0)
+          {
+            break;
+          }
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            linear_solver_.Solve(trial_delta, state.jacobian_);
+          }
+          else
+          {
+            linear_solver_.Solve(trial_delta, state.lower_matrix_, state.upper_matrix_);
+          }
+          stats.solves_ += 1;
+          if (!finite(trial_delta))
+          {
+            continue;
+          }
+          max_correction = 0;
+          max_correction.CopyToDevice();
+          check_weighted_correction(candidate, trial_delta);
+          max_correction.CopyToHost();
+          // The simplified correction preserves invariance to complete constraint-row scaling.
+          if (max_correction <= parameters.constraint_init_tolerance_ ||
+              max_correction < (1 - parameters.constraint_init_sufficient_decrease_ * step) * current_norm)
+          {
+            break;
+          }
         }
-        continue;
+        Y.Copy(candidate);
+        continue;  // Recheck convergence at the accepted state with a fresh Jacobian.
       }
+      nan_detected = false;
+      inf_detected = false;
+      max_residual.CopyToDevice();
+      nan_detected.CopyToDevice();
+      inf_detected.CopyToDevice();
+      apply_update(Y, delta);
+      max_residual.CopyToHost();
+      nan_detected.CopyToHost();
+      inf_detected.CopyToHost();
 
-      // 10. Damped update: a backtracking line search on the step length. The merit is the weighted
-      //     norm of the simplified Newton correction at the candidate -- the correction the Jacobian
-      //     already factored at step 5 produces for the candidate's residual. Scaling a complete
-      //     constraint row scales G and dG/dy together, so it leaves both corrections and therefore
-      //     every decision below unchanged, exactly as it leaves the step-8 test unchanged. Reusing
-      //     the factorization keeps a trial to one constraint forcing evaluation and one triangular
-      //     solve.
-      //
-      //     Step 8 has already reduced ||delta(Y)||_w into max_correction, so the sufficient-decrease
-      //     reference value costs no extra kernel and no extra device round trip. It is strictly
-      //     greater than constraint_init_tolerance_ here, which keeps the threshold below away from
-      //     denormals in any precision.
-      const Real current_correction_norm = max_correction;
-
-      Real step_length = 1.0;
-      bool update_accepted = false;
-      for (Index backtrack = 0; backtrack <= parameters.constraint_init_max_backtracks_; ++backtrack)
+      if (nan_detected)
       {
-        // 10a. Candidate iterate y + step * delta, algebraic rows only. Step 7 established that
-        //      delta is finite there, so a non-finite candidate means the sum overflowed. Reject it
-        //      here rather than downstream: the equilibrium residual clamps negative concentrations
-        //      to zero and would report a finite residual for an infinite candidate.
-        step = step_length;
-        step.CopyToDevice();
-        candidate.Copy(Y);
-        set_candidate(candidate, delta);
-
-        max_residual = 0;
-        nan_detected = false;
-        inf_detected = false;
-        max_residual.CopyToDevice();
-        nan_detected.CopyToDevice();
-        inf_detected.CopyToDevice();
-        check_algebraic_values(candidate);
-        max_residual.CopyToHost();
-        nan_detected.CopyToHost();
-        inf_detected.CopyToHost();
-
-        if (nan_detected || inf_detected)
-        {
-          step_length *= parameters.constraint_init_backtrack_factor_;
-          continue;
-        }
-
-        // 10b. Candidate residual G(y + step * delta)
-        candidate_correction.Fill(0);
-        constraints_.AddForcingTerms(candidate, state.custom_rate_parameters_, candidate_correction);
-
-        max_residual = 0;
-        nan_detected = false;
-        inf_detected = false;
-        max_residual.CopyToDevice();
-        nan_detected.CopyToDevice();
-        inf_detected.CopyToDevice();
-        check_algebraic_values(candidate_correction);
-        max_residual.CopyToHost();
-        nan_detected.CopyToHost();
-        inf_detected.CopyToHost();
-
-        if (nan_detected || inf_detected)
-        {
-          step_length *= parameters.constraint_init_backtrack_factor_;
-          continue;
-        }
-
-        // An exactly zero candidate residual is already consistent, by the same rule step 2 applies
-        // at Y. Accepting it here also keeps a singular factorization from turning an exactly zero
-        // right-hand side into 0/0 in the solve below.
-        if (max_residual == 0.0)
-        {
-          update_accepted = true;
-          break;
-        }
-
-        // 10c. Simplified Newton correction, reusing the factorization from step 5. Solve reads the
-        //      factors through a const view and never writes them, so one factorization serves every
-        //      trial.
-        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-        {
-          linear_solver_.Solve(candidate_correction, state.jacobian_);
-        }
-        else
-        {
-          linear_solver_.Solve(candidate_correction, state.lower_matrix_, state.upper_matrix_);
-        }
-        stats.solves_ += 1;
-
-        max_residual = 0;
-        nan_detected = false;
-        inf_detected = false;
-        max_residual.CopyToDevice();
-        nan_detected.CopyToDevice();
-        inf_detected.CopyToDevice();
-        check_algebraic_values(candidate_correction);
-        max_residual.CopyToHost();
-        nan_detected.CopyToHost();
-        inf_detected.CopyToHost();
-
-        if (nan_detected || inf_detected)
-        {
-          step_length *= parameters.constraint_init_backtrack_factor_;
-          continue;
-        }
-
-        // 10d. Accept when the candidate's remaining correction is converged, or when it decreases
-        //      the correction at Y by the required fraction.
-        max_correction = 0;
-        max_correction.CopyToDevice();
-        check_weighted_correction(candidate, candidate_correction);
-        max_correction.CopyToHost();
-
-        const Real candidate_correction_norm = max_correction;
-        const Real required_norm =
-            (Real{ 1.0 } - parameters.constraint_init_sufficient_decrease_ * step_length) * current_correction_norm;
-        if (candidate_correction_norm <= parameters.constraint_init_tolerance_ ||
-            candidate_correction_norm < required_norm)
-        {
-          update_accepted = true;
-          break;
-        }
-
-        step_length *= parameters.constraint_init_backtrack_factor_;
+        return restore_and_return(SolverState::NaNDetected);
       }
-
-      if (!update_accepted)
+      if (inf_detected)
       {
-        return restore_and_return(SolverState::ConstraintInitializationFailed);
+        return restore_and_return(SolverState::InfDetected);
       }
-
-      // Take the accepted candidate whole, so the state carried into the next update is exactly the
-      // one whose merit was measured. Convergence is deliberately not reported from inside the line
-      // search: the next pass re-evaluates the residual at the new state and decides through the
-      // step-2 and step-8 tests, which keeps the meaning of constraint_init_iterations_ unchanged.
-      Y.Copy(candidate);
     }
 
     // Did not converge within the permitted number of Newton updates

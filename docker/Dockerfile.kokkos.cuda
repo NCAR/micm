@@ -32,6 +32,7 @@ RUN mkdir /build \
         -D MICM_ENABLE_KOKKOS=TRUE \
         -D Kokkos_ENABLE_CUDA=ON \
         -D Kokkos_ARCH_BLACKWELL120=ON \
+        -D MICM_DEFAULT_VECTOR_SIZE=32 \
         ../micm \
       && ninja install -j 16
 

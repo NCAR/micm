@@ -1758,11 +1758,11 @@ void TestFill()
     matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 0.0);
-    EXPECT_EQ(matrix[0][1], 3.2);
+    EXPECT_EQ(matrix[0][1], static_cast<micm::Real>(3.2));
     EXPECT_EQ(matrix[1][0], 0.0);
-    EXPECT_EQ(matrix[1][1], 3.2);
+    EXPECT_EQ(matrix[1][1], static_cast<micm::Real>(3.2));
     EXPECT_EQ(matrix[2][0], 0.0);
-    EXPECT_EQ(matrix[2][1], 3.2);
+    EXPECT_EQ(matrix[2][1], static_cast<micm::Real>(3.2));
   }
 
   // Fill a caller-owned typename MatrixPolicy<micm::Real>::template VectorType with a scalar value.
@@ -1774,9 +1774,9 @@ void TestFill()
     func(matrix, vec);
     vec.CopyToHost();
 
-    EXPECT_EQ(vec[0], 3.2);
-    EXPECT_EQ(vec[1], 3.2);
-    EXPECT_EQ(vec[2], 3.2);
+    EXPECT_EQ(vec[0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(vec[1], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(vec[2], static_cast<micm::Real>(3.2));
   }
 
   // Fill a caller-owned row-variable temp with a scalar value.
@@ -1786,16 +1786,16 @@ void TestFill()
           auto tmp = m.GetRowVariable();
           m.Fill(tmp, 9.9);
           // Broadcast the temp into column 0 so we can observe it from outside.
-          m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(0), tmp);
+          m.ForEachRow([](micm::Real& c, const micm::Real& t) { c = t; }, m.GetColumnView(0), tmp);
         },
         matrix);
 
     func(matrix);
     matrix.CopyToHost();
 
-    EXPECT_EQ(matrix[0][0], 9.9);
-    EXPECT_EQ(matrix[1][0], 9.9);
-    EXPECT_EQ(matrix[2][0], 9.9);
+    EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(9.9));
+    EXPECT_EQ(matrix[1][0], static_cast<micm::Real>(9.9));
+    EXPECT_EQ(matrix[2][0], static_cast<micm::Real>(9.9));
   }
 }
 
@@ -1821,11 +1821,11 @@ void TestCopy()
     matrix.CopyToHost();
 
     EXPECT_EQ(matrix[0][0], 0.0);
-    EXPECT_EQ(matrix[0][1], 3.2);
+    EXPECT_EQ(matrix[0][1], static_cast<micm::Real>(3.2));
     EXPECT_EQ(matrix[1][0], 0.0);
-    EXPECT_EQ(matrix[1][1], 4.2);
+    EXPECT_EQ(matrix[1][1], static_cast<micm::Real>(4.2));
     EXPECT_EQ(matrix[2][0], 0.0);
-    EXPECT_EQ(matrix[2][1], 1.3);
+    EXPECT_EQ(matrix[2][1], static_cast<micm::Real>(1.3));
   }
 
   // Copy a const matrix column into a typename MatrixPolicy<micm::Real>::template VectorType.
@@ -1840,9 +1840,9 @@ void TestCopy()
     func(matrix, vec2);
     vec2.CopyToHost();
 
-    EXPECT_EQ(vec2[0], 3.2);
-    EXPECT_EQ(vec2[1], 4.2);
-    EXPECT_EQ(vec2[2], 1.3);
+    EXPECT_EQ(vec2[0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(vec2[1], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(vec2[2], static_cast<micm::Real>(1.3));
   }
 
   // Copy one matrix column into another (mutable-to-mutable).
@@ -1853,12 +1853,12 @@ void TestCopy()
     func(matrix);
     matrix.CopyToHost();
 
-    EXPECT_EQ(matrix[0][0], 3.2);
-    EXPECT_EQ(matrix[0][1], 3.2);
-    EXPECT_EQ(matrix[1][0], 4.2);
-    EXPECT_EQ(matrix[1][1], 4.2);
-    EXPECT_EQ(matrix[2][0], 1.3);
-    EXPECT_EQ(matrix[2][1], 1.3);
+    EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[0][1], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[1][0], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[1][1], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[2][0], static_cast<micm::Real>(1.3));
+    EXPECT_EQ(matrix[2][1], static_cast<micm::Real>(1.3));
   }
 
   // Copy one matrix column into another (const-to-mutable via GetConstColumnView).
@@ -1875,9 +1875,9 @@ void TestCopy()
     func(matrix);
     matrix.CopyToHost();
 
-    EXPECT_EQ(matrix[0][0], 3.2);
-    EXPECT_EQ(matrix[1][0], 4.2);
-    EXPECT_EQ(matrix[2][0], 1.3);
+    EXPECT_EQ(matrix[0][0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[1][0], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[2][0], static_cast<micm::Real>(1.3));
   }
 
   // Round-trip: matrix column -> row-variable temp -> matrix column.
@@ -1888,16 +1888,16 @@ void TestCopy()
           m.Copy(tmp, m.GetConstColumnView(1));
           // Zero column 1 first so the copy-back is observable.
           m.Fill(m.GetColumnView(1), 0.0);
-          m.ForEachRow([](double& c, const double& t) { c = t; }, m.GetColumnView(1), tmp);
+          m.ForEachRow([](micm::Real& c, const micm::Real& t) { c = t; }, m.GetColumnView(1), tmp);
         },
         matrix);
 
     func(matrix);
     matrix.CopyToHost();
 
-    EXPECT_EQ(matrix[0][1], 3.2);
-    EXPECT_EQ(matrix[1][1], 4.2);
-    EXPECT_EQ(matrix[2][1], 1.3);
+    EXPECT_EQ(matrix[0][1], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[1][1], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[2][1], static_cast<micm::Real>(1.3));
   }
 }
 
@@ -2168,9 +2168,9 @@ void TestVectorCapture()
       MICM_LAMBDA(typename Matrix::ViewType m) {
         for (auto v1 : vec1_view)
         {
-          m.ForEachRow([=](double& a) { a += vec2_view[v1]; }, m.GetColumnView(0));
+          m.ForEachRow([=](micm::Real& a) { a += vec2_view[v1]; }, m.GetColumnView(0));
         }
-        m.ForEachRow([=](double& a) { a += vec2_view[vec1_view[1]]; }, m.GetColumnView(1));
+        m.ForEachRow([=](micm::Real& a) { a += vec2_view[vec1_view[1]]; }, m.GetColumnView(1));
       },
       matrix);
   func(matrix);

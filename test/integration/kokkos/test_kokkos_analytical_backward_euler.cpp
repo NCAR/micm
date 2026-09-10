@@ -251,13 +251,14 @@ TEST(AnalyticalExamples, Oregonator)
   // manifold with O(H) first-order accuracy. The output interval is 30 * tau, so 30000
   // sub-steps give a step size of tau/1000, and a relative error of about 3e-3.
   constexpr micm::Index kOregonatorSubsteps = 18000;
+  constexpr micm::Real kOregonatorTolerance = std::is_same_v<micm::Real, double> ? 5e-3 : 1.5e-2;
 
-  TestAnalyticalOregonator(backward_euler, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backard_euler_vector_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, 5e-3, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_8, 5e-3, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler, kOregonatorTolerance, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backard_euler_vector_4, kOregonatorTolerance, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_doolittle_4, kOregonatorTolerance, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_4, kOregonatorTolerance, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, kOregonatorTolerance, kOregonatorSubsteps);
+  TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_8, kOregonatorTolerance, kOregonatorSubsteps);
 }
 
 int main(int argc, char* argv[])

@@ -21,12 +21,8 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     permissions:
-      # Naming `permissions` sets every unlisted scope to none, so the scopes
-      # actions/checkout and actions/download-artifact need must be spelled out:
-      # contents:read to check out, actions:read to reach another run's artifacts.
-      contents: read
+      contents: write
       actions: read
-      pull-requests: write
 
     env:
       # Which runner triggered us.  Each GPU workflow uploads only its own backend's
@@ -35,21 +31,18 @@ jobs:
       TRIGGER: ${{ github.event.workflow_run.name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # full history so gh-pages branch is available for comparison
 
       - name: Download benchmark artifacts from triggering run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           # Must match the upload step name in runner.yml and runner.kokkos.yml.
           name: micm-bench
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # The `name` and `benchmark-data-dir-path` must match the corresponding store
-      # steps in runner.yml / runner.kokkos.yml exactly; the action keys its history by
-      # both, and a mismatch yields no comparison while still reporting success.
       - name: Comment timing comparison on PR for CUDA
         if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
         uses: benchmark-action/github-action-benchmark@v1
@@ -58,8 +51,10 @@ jobs:
           tool: customSmallerIsBetter
           output-file-path: cuda_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/gpu/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
@@ -73,8 +68,10 @@ jobs:
           tool: customSmallerIsBetter
           output-file-path: cuda_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/gpu/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
@@ -88,8 +85,10 @@ jobs:
           tool: customSmallerIsBetter
           output-file-path: kokkos_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/kokkos/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false
@@ -103,8 +102,10 @@ jobs:
           tool: customSmallerIsBetter
           output-file-path: kokkos_ts1_timing.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           benchmark-data-dir-path: dev/bench/kokkos/timing
           comment-always: true
+          summary-always: true
           save-data-file: false
           alert-threshold: 120%
           fail-on-alert: false

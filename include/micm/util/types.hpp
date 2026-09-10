@@ -20,6 +20,10 @@
   #define MICM_INLINE_DEVICE_FUNCTION inline
 #endif
 
+#ifndef MICM_DEFAULT_VECTOR_SIZE
+  #define MICM_DEFAULT_VECTOR_SIZE 4
+#endif
+
 namespace micm
 {
 
