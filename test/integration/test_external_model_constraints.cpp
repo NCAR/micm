@@ -230,12 +230,7 @@ class ConservativeEquilibriumConstraintModel
             const typename DenseMatrixPolicy::ViewType& forcing_view,
             const typename DenseMatrixPolicy::ConstViewType& state_view) {
           forcing_view.ForEachRow(
-              [K, total](
-                  micm::Real& f_b,
-                  micm::Real& f_c,
-                  const micm::Real& a,
-                  const micm::Real& b,
-                  const micm::Real& c)
+              [K, total](micm::Real& f_b, micm::Real& f_c, const micm::Real& a, const micm::Real& b, const micm::Real& c)
               {
                 f_b = a + b + c - total;
                 f_c = K * b - c;
@@ -265,12 +260,7 @@ class ConservativeEquilibriumConstraintModel
     SparseMatrixPolicy::Function(
         MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
           jacobian_view.ForEachBlock(
-              [K](
-                  micm::Real& j_ba,
-                  micm::Real& j_bb,
-                  micm::Real& j_bc,
-                  micm::Real& j_cb,
-                  micm::Real& j_cc)
+              [K](micm::Real& j_ba, micm::Real& j_bb, micm::Real& j_bc, micm::Real& j_cb, micm::Real& j_cc)
               {
                 j_ba -= 1.0;
                 j_bb -= 1.0;
@@ -393,9 +383,7 @@ class MassConservationModel
           for (auto idx : indices)
           {
             state_view.ForEachRow(
-                [](micm::Real& s, const micm::Real& v) { s += v; },
-                sum,
-                state_view.GetConstColumnView(idx));
+                [](micm::Real& s, const micm::Real& v) { s += v; }, sum, state_view.GetConstColumnView(idx));
           }
           forcing_view.ForEachRow(
               [](micm::Real& f, const micm::Real& s) { f = s; }, forcing_view.GetColumnView(i_ctrl), sum);
@@ -417,8 +405,7 @@ class MassConservationModel
         MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
           for (auto flat : flat_ids)
           {
-            jacobian_view.ForEachBlock(
-                [](micm::Real& j) { j -= 1.0; }, jacobian_view.GetBlockView(flat));
+            jacobian_view.ForEachBlock([](micm::Real& j) { j -= 1.0; }, jacobian_view.GetBlockView(flat));
           }
         },
         jacobian)(jacobian);
@@ -1350,8 +1337,7 @@ TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
 
   aerosol.SubtractJacobianTerms(params, variables, analytical_jac);
 
-  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing)
-  { aerosol.AddForcingTerms(params, vars, forcing); };
+  auto fd_wrapper = [&](const DenseMatrix& vars, DenseMatrix& forcing) { aerosol.AddForcingTerms(params, vars, forcing); };
 
   auto fd_jac = micm::FiniteDifferenceJacobian<DenseMatrix>(fd_wrapper, variables, num_species);
 
@@ -1557,8 +1543,7 @@ class TemperatureDependentEquilibriumModel
             const typename DenseMatrixPolicy::ConstViewType& params_view,
             const typename DenseMatrixPolicy::ConstViewType& state_view) {
           forcing_view.ForEachRow(
-              [](micm::Real& f_p, const micm::Real& K, const micm::Real& r, const micm::Real& p)
-              { f_p = K * r - p; },
+              [](micm::Real& f_p, const micm::Real& K, const micm::Real& r, const micm::Real& p) { f_p = K * r - p; },
               forcing_view.GetColumnView(i_p),
               params_view.GetConstColumnView(i_K),
               state_view.GetConstColumnView(i_r),

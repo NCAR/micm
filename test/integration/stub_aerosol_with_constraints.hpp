@@ -82,9 +82,8 @@ class StubAerosolWithConstraints
   }
 
   template<class DenseMatrixPolicy>
-  void UpdateStateParameters(
-      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&,
-      DenseMatrixPolicy&) const
+  void UpdateStateParameters(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)
+      const
   {
   }
 
@@ -326,9 +325,8 @@ class StubAerosolWithSolvent
   }
 
   template<class DenseMatrixPolicy>
-  void UpdateStateParameters(
-      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&,
-      DenseMatrixPolicy&) const
+  void UpdateStateParameters(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)
+      const
   {
   }
 
@@ -347,11 +345,7 @@ class StubAerosolWithSolvent
             const typename DenseMatrixPolicy::ViewType& forcing_view,
             const typename DenseMatrixPolicy::ConstViewType& state_view) {
           forcing_view.ForEachRow(
-              [k](
-                  micm::Real& f_gas,
-                  micm::Real& f_aq,
-                  const micm::Real& gas_val,
-                  const micm::Real& s_val)
+              [k](micm::Real& f_gas, micm::Real& f_aq, const micm::Real& gas_val, const micm::Real& s_val)
               {
                 micm::Real rate = k * gas_val * s_val;
                 f_gas -= rate;
@@ -384,8 +378,7 @@ class StubAerosolWithSolvent
             const typename SparseMatrixPolicy::ViewType& jacobian_view,
             const typename DenseMatrixPolicy::ConstViewType& state_view) {
           jacobian_view.ForEachBlock(
-              [k](
-                  micm::Real& j_gg,
+              [k](micm::Real& j_gg,
                   micm::Real& j_gs,
                   micm::Real& j_ag,
                   micm::Real& j_as,

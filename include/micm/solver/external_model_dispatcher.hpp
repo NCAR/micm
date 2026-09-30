@@ -48,16 +48,14 @@ namespace micm
     void AddForcingTerms(const State& state, const DenseMatrixPolicy& Y, DenseMatrixPolicy& forcing) const
     {
       inner_.AddForcingTerms(state, Y, forcing);
-      InvokeProcesses([&](const auto& m)
-                      { m.AddForcingTerms(state.custom_rate_parameters_, Y, forcing); });
+      InvokeProcesses([&](const auto& m) { m.AddForcingTerms(state.custom_rate_parameters_, Y, forcing); });
     }
 
     template<class State, class DenseMatrixPolicy, class SparseMatrixPolicy>
     void SubtractJacobianTerms(const State& state, const DenseMatrixPolicy& Y, SparseMatrixPolicy& jacobian) const
     {
       inner_.SubtractJacobianTerms(state, Y, jacobian);
-      InvokeProcesses([&](const auto& m)
-                      { m.SubtractJacobianTerms(state.custom_rate_parameters_, Y, jacobian); });
+      InvokeProcesses([&](const auto& m) { m.SubtractJacobianTerms(state.custom_rate_parameters_, Y, jacobian); });
     }
 
     /// @brief Called before each solve to refresh temperature-/pressure-dependent parameters.
@@ -169,8 +167,7 @@ namespace micm
         SparseMatrixPolicy& jacobian) const
     {
       inner_.SubtractJacobianTerms(state_variables, state_parameters, jacobian);
-      InvokeConstraints([&](const auto& m)
-                        { m.SubtractConstraintJacobian(state_parameters, state_variables, jacobian); });
+      InvokeConstraints([&](const auto& m) { m.SubtractConstraintJacobian(state_parameters, state_variables, jacobian); });
     }
 
     template<class DenseMatrixPolicy>
