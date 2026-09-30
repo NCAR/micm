@@ -282,7 +282,7 @@ namespace micm
     }
 
     using InnerConstraintSet = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
-    using RatesBundleType = RatesBundle<RatesPolicy, ExternalModels...>;
+    using RatesBundleType = RatesBundle<RatesPolicy, DenseMatrixPolicy, SparseMatrixPolicy, ExternalModels...>;
     using ConstraintBundleType = ConstraintBundle<InnerConstraintSet, ExternalModels...>;
     using SolverPolicy =
         typename SolverParametersPolicy::template SolverType<RatesBundleType, LinearSolverPolicy, ConstraintBundleType>;
@@ -628,6 +628,24 @@ namespace micm
         *shared_models);
 
     RatesBundleType rates_bundle(std::move(rates), shared_models);
+
+    // The rates bundle sets the external process terms in algebraic rows to zero at solve time,
+    // so that these rows hold only the constraint terms.
+    if (!algebraic_variable_ids.empty())
+    {
+      std::set<Index> algebraic_jacobian_flat_ids;
+      for (const auto& ps : external_process_sets_)
+      {
+        for (const auto& [row, column] : ps.non_zero_jacobian_elements_func_(species_map))
+        {
+          if (algebraic_variable_ids.count(row) > 0)
+          {
+            algebraic_jacobian_flat_ids.insert(jacobian.VectorIndex(0, row, column));
+          }
+        }
+      }
+      rates_bundle.SetAlgebraicRows(algebraic_variable_ids, algebraic_jacobian_flat_ids);
+    }
     ConstraintBundleType constraint_bundle(std::move(constraint_set), shared_models, constraint_active_mask);
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
