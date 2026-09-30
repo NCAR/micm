@@ -199,8 +199,9 @@ namespace micm
       }
       if constexpr (HasConstraints<ExternalModel>)
       {
-        next.external_constraints_.emplace_back(
+        auto& constraint = next.external_constraints_.emplace_back(
             ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
+        constraint.model_index_ = sizeof...(ExternalModels);
       }
 
       return next;

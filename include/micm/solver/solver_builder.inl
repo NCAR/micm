@@ -410,15 +410,14 @@ namespace micm
     {
       std::set<std::string> seen_param_names;
       std::set<std::string> seen_init_names;
-      for (Index i = 0; i < external_constraints_.size(); ++i)
+      for (const auto& model : external_constraints_)
       {
-        const auto& model = external_constraints_[i];
         auto alg_names = model.algebraic_variable_names_func_();
         if (alg_names.empty())
         {
           continue;
         }
-        constraint_active_mask[i] = true;
+        constraint_active_mask[model.model_index_] = true;
 
         for (const auto& name : alg_names)
         {

@@ -233,6 +233,8 @@ namespace micm
     std::function<std::set<std::string>()> state_parameter_names_func_;
     /// Empty when the model does not need state-diagnosed constraint parameters
     std::function<std::set<std::string>()> initialize_constraint_parameter_names_func_;
+    /// Position of the source model in the builder's ExternalModels pack
+    std::size_t model_index_ = 0;
 
     template<typename ModelType>
     ExternalModelConstraintSet(const ModelType& model)

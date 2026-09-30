@@ -1697,3 +1697,157 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
     EXPECT_NEAR(C_val / B_val, K_eq_350, 1e-4) << "At T=350K, [C]/[B] should equal K_eq(350)";
   }
 }
+
+namespace
+{
+  /// @brief Process-only external model with no state, no Jacobian elements, and no forcing.
+  ///
+  /// The model satisfies HasProcesses but not HasConstraints. It lets a test put a
+  /// non-constraint model before a constraint model in the ExternalModels pack.
+  class NoOpProcessModel
+  {
+   public:
+    std::set<std::string> SpeciesUsed() const
+    {
+      return {};
+    }
+
+    std::set<std::pair<micm::Index, micm::Index>> NonZeroJacobianElements(
+        const std::unordered_map<std::string, micm::Index>& /*state_indices*/) const
+    {
+      return {};
+    }
+
+    template<class SparseMatrixPolicy>
+    void FinalizeProcessSetup(
+        const std::unordered_map<std::string, micm::Index>& /*state_parameter_indices*/,
+        const std::unordered_map<std::string, micm::Index>& /*state_variable_indices*/,
+        const SparseMatrixPolicy& /*jacobian*/)
+    {
+    }
+
+    template<class DenseMatrixPolicy>
+    void UpdateStateParameters(
+        const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& /*conditions*/,
+        DenseMatrixPolicy& /*state_parameters*/) const
+    {
+    }
+
+    template<class DenseMatrixPolicy>
+    void AddForcingTerms(
+        const DenseMatrixPolicy& /*state_parameters*/,
+        const DenseMatrixPolicy& /*state_variables*/,
+        DenseMatrixPolicy& /*forcing*/) const
+    {
+    }
+
+    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+    void SubtractJacobianTerms(
+        const DenseMatrixPolicy& /*state_parameters*/,
+        const DenseMatrixPolicy& /*state_variables*/,
+        SparseMatrixPolicy& /*jacobian*/) const
+    {
+    }
+  };
+
+  /// Helper: solve A -> B with the external constraint K_eq * [B] - [C] = 0.
+  /// When process_only_first is true, a NoOpProcessModel is added before the constraint model.
+  /// Returns (final_B, final_C)
+  template<bool process_only_first>
+  std::pair<micm::Real, micm::Real> SolveWithModelOrder()
+  {
+    auto A = micm::Species("A");
+    auto B = micm::Species("B");
+    auto C = micm::Species("C");
+    micm::Phase gas_phase{ "gas", { A, B, C } };
+
+    micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                               .SetReactants({ A })
+                               .SetProducts({ { B, 1 } })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+
+    EquilibriumConstraintModel eq_model("B", "C", K_EQ);
+    NoOpProcessModel no_op_model;
+
+    auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    if constexpr (!std::is_same_v<micm::Real, double>)
+    {
+      options.constraint_init_tolerance_ = 1.0e-5;
+    }
+    auto solver = [&]()
+    {
+      if constexpr (process_only_first)
+      {
+        return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+            .SetSystem(micm::System(gas_phase))
+            .SetReactions({ rxn_ab })
+            .SetReorderState(false)
+            .AddExternalModel(no_op_model)
+            .AddExternalModel(eq_model)
+            .Build();
+      }
+      else
+      {
+        return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+            .SetSystem(micm::System(gas_phase))
+            .SetReactions({ rxn_ab })
+            .SetReorderState(false)
+            .AddExternalModel(eq_model)
+            .AddExternalModel(no_op_model)
+            .Build();
+      }
+    }();
+
+    auto state = solver.GetState(1);
+    EXPECT_EQ(state.constraint_size_, 1);
+    EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[state.variable_map_.at("C")], 0.0);
+
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = 298.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 20; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged)
+          << "Solve failed at step " << step << " (process_only_first=" << process_only_first << ")";
+    }
+
+    return { state.variables_[0][state.variable_map_.at("B")], state.variables_[0][state.variable_map_.at("C")] };
+  }
+}  // anonymous namespace
+
+/// @brief The external constraint must be active when a process-only model comes before it.
+///
+/// The builder fills the constraint active mask with the index into the list of
+/// constraint models. The ConstraintBundle reads the mask with the index into the full
+/// ExternalModels pack. When a process-only model is first, these indices are different.
+/// The constraint model is then never called, so its algebraic row has no equation.
+TEST(ExternalModelConstraints, ConstraintActiveWhenProcessOnlyModelAddedFirst)
+{
+  constexpr micm::Real residual_tol = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-4;
+
+  auto [B_ref, C_ref] = SolveWithModelOrder<false>();
+  auto [B_val, C_val] = SolveWithModelOrder<true>();
+
+  // Control: the constraint model is first, so the mask index is correct.
+  EXPECT_GT(B_ref, 0.0);
+  EXPECT_NEAR(K_EQ * B_ref - C_ref, 0.0, residual_tol);
+
+  // The no-op model adds no work, so the model order must give bit-for-bit equal results.
+  EXPECT_GT(B_val, 0.0);
+  EXPECT_NEAR(K_EQ * B_val - C_val, 0.0, residual_tol) << "External constraint is not enforced";
+  EXPECT_EQ(B_val, B_ref);
+  EXPECT_EQ(C_val, C_ref);
+}
