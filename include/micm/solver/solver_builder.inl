@@ -520,7 +520,67 @@ namespace micm
       constraint_set.AddExternalAlgebraicVariableIds(external_algebraic_variable_ids);
     }
 
+    // Re-add external model process Jacobian elements for algebraic rows.
+    // Built-in ProcessSet is protected by is_algebraic_variable_ guards that skip
+    // algebraic rows, but external models pre-compute VectorIndex in FinalizeProcessSetup
+    // and need these elements to exist in the sparse matrix.
+    if (!algebraic_variable_ids.empty())
+    {
+      for (const auto& ps : external_process_sets_)
+      {
+        for (const auto& elem : ps.non_zero_jacobian_elements_func_(species_map))
+        {
+          if (algebraic_variable_ids.count(elem.first) > 0)
+          {
+            nonzero_elements.insert(elem);
+          }
+        }
+      }
+    }
+
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
+
+    // Verify that each element that an external model declares is in the sparsity pattern.
+    // External models call VectorIndex on these elements, and VectorIndex only asserts,
+    // so a missing element would abort in Debug builds and give a wrong index in Release builds.
+    {
+      auto species_name = [&](Index id) -> std::string
+      {
+        for (const auto& [name, index] : species_map)
+        {
+          if (index == id)
+          {
+            return name;
+          }
+        }
+        return std::to_string(id);
+      };
+      auto check_elements = [&](const std::set<std::pair<Index, Index>>& elements, const std::string& source)
+      {
+        for (const auto& [row, column] : elements)
+        {
+          if (jacobian.IsZero(row, column))
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_MATRIX,
+                MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+                "Jacobian element (" + species_name(row) + ", " + species_name(column) + ") declared by an external model " +
+                    source + " is missing from the sparsity pattern");
+          }
+        }
+      };
+      for (const auto& ps : external_process_sets_)
+      {
+        check_elements(ps.non_zero_jacobian_elements_func_(species_map), "process");
+      }
+      for (const auto& model : external_constraints_)
+      {
+        if (constraint_active_mask[model.model_index_])
+        {
+          check_elements(model.non_zero_jacobian_elements_func_(species_map), "constraint");
+        }
+      }
+    }
 
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
@@ -553,8 +613,9 @@ namespace micm
       constraint_set.FinalizeAlgebraicErrorFunction();
     }
 
-    // Move concrete external models into shared ownership; both bundles refer to the same tuple.
-    auto shared_models = std::make_shared<std::tuple<ExternalModels...>>(std::move(external_models_));
+    // Copy concrete external models into shared ownership; both bundles refer to the same tuple.
+    // The copy leaves the builder's models intact so that the builder can be used repeatedly.
+    auto shared_models = std::make_shared<std::tuple<ExternalModels...>>(external_models_);
 
     // Give each participating model its build-time indices and Jacobian sparsity handles.
     std::apply(

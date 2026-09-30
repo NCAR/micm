@@ -157,8 +157,11 @@ namespace micm
     ///
     /// If the model satisfies `HasState`, its state variables and parameters are registered.
     /// The model must satisfy at least one of `HasProcesses` or `HasConstraints`.
+    ///
+    /// The returned builder takes the configuration of this builder. Use the returned builder,
+    /// because this builder is left in a moved-from state.
     template<class ExternalModel>
-    auto AddExternalModel(ExternalModel model)
+    [[nodiscard]] auto AddExternalModel(ExternalModel model)
     {
       static_assert(
           HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,

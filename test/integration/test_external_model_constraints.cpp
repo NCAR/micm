@@ -1298,6 +1298,53 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   }
 }
 
+/// @brief External process Jacobian elements survive in a row that a built-in constraint makes algebraic.
+///
+/// StubAerosolWithConstraints (no total mass, so its own constraint is inactive) declares the
+/// process element (A_AQ, A_GAS). A built-in equilibrium constraint makes the A_AQ row algebraic
+/// and declares only (A_AQ, A_AQ) and (A_AQ, B). The builder erases all entries in built-in
+/// algebraic rows, so (A_AQ, A_GAS) must be added back for the external model. Without it,
+/// Build() throws MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS because the element is not in
+/// the sparsity pattern, and gtest reports the exception as a test failure.
+TEST(ExternalModelConstraints, ProcessJacobianElementInBuiltInAlgebraicRowSurvivesFiltering)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  auto B = micm::Species("B");
+  auto A_AQ = micm::Species("AEROSOL.A_AQ");
+  micm::Phase gas_phase{ "gas", { A_GAS, B } };
+
+  StubAerosolWithConstraints aerosol(0.1);
+
+  // Built-in constraint: K_eq * [B] - [A_AQ] = 0, with A_AQ as the algebraic species
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+      "B_AQ_eq",
+      A_AQ,
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { A_AQ, 1.0 } },
+      { 5.0, 0.0 }));
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(gas_phase))
+                    .SetReactions({})
+                    .SetConstraints(std::move(constraints))
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+  auto i_gas = state.variable_map_.at("A_GAS");
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+
+  // A_AQ is algebraic because of the built-in constraint, not the external model
+  EXPECT_EQ(state.constraint_size_, 1);
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 0.0);
+
+  // The external process element in the algebraic row must be in the sparsity pattern
+  EXPECT_FALSE(state.jacobian_.IsZero(i_aq, i_gas)) << "External process element (A_AQ, A_GAS) was erased";
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Finite-Difference Jacobian Verification for External Models
 // ═══════════════════════════════════════════════════════════════
