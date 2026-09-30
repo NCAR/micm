@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790798540966,
+  "lastUpdate": 1790798598243,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -1157,6 +1157,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/6339193f1b654cab7fb8f52fe7cd123771c399b8"
         },
         "date": 1790798540371,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 525689585,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 528081907,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 361016213,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 277248445,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 237264826,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 219642782,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "770f0e43da32ccb0fdd23b11f8a06de9c13b7031",
+          "message": "Auto-format code changes (#1096)\n\nAuto-format code using Clang-Format\n\nCo-authored-by: GitHub Actions <actions@github.com>",
+          "timestamp": "2026-09-30T14:59:53-05:00",
+          "tree_id": "b164e05819514f14cada45457424dd57f33f47e5",
+          "url": "https://github.com/NCAR/micm/commit/770f0e43da32ccb0fdd23b11f8a06de9c13b7031"
+        },
+        "date": 1790798597444,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
