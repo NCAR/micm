@@ -5,14 +5,13 @@
 /// @brief Stub aerosol model for integration testing
 #pragma once
 
+#include <micm/system/conditions.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
-#include <functional>
-#include <map>
 #include <set>
 #include <string>
 #include <tuple>
@@ -22,10 +21,7 @@
 
 // Second stubbed aerosol model implementation
 //
-// This model mimics a two-moment three-mode aerosol model
-// The first mode contains only the first phase, the second mode contains the second phase,
-// and the third mode contains both phases. For two-moment schemes, particle number concentration
-// is also included for each mode.
+// Mimics a two-moment three-mode aerosol model with temperature-dependent state parameters.
 class AnotherStubAerosolModel
 {
  public:
@@ -35,239 +31,232 @@ class AnotherStubAerosolModel
         phases_(phases)
   {
   }
+
+  // State definition
+
   std::tuple<micm::Index, micm::Index> StateSize() const
   {
     EXPECT_EQ(phases_.size(), 2);
-    // First mode: first phase only
-    // Second mode: second phase only
-    // Third mode: both phases
     micm::Index size = 0;
-    size += 1;                       // mode 1 number concentration
-    size += phases_[0].StateSize();  // mode 1 species
-    size += 1;                       // mode 2 number concentration
-    size += phases_[1].StateSize();  // mode 2 species
-    size += 1;                       // mode 3 number concentration
-    size += phases_[0].StateSize();  // mode 3, first phase species
-    size += phases_[1].StateSize();  // mode 3, second phase species
-    return { size, 2 };              // Return the number of state variables and parameters (2 for this stub model)
+    size += 1;
+    size += phases_[0].StateSize();
+    size += 1;
+    size += phases_[1].StateSize();
+    size += 1;
+    size += phases_[0].StateSize();
+    size += phases_[1].StateSize();
+    return { size, 2 };
   }
+
   std::set<std::string> StateVariableNames() const
   {
     std::set<std::string> names;
     EXPECT_EQ(phases_.size(), 2);
     auto phase1_names = phases_[0].UniqueNames();
     auto phase2_names = phases_[1].UniqueNames();
-    names.insert(name_ + ".MODE1.NUMBER");  // number concentration for mode 1
-    for (const auto& name : phase1_names)
+    names.insert(name_ + ".MODE1.NUMBER");
+    for (const auto& n : phase1_names)
     {
-      names.insert(name_ + ".MODE1." + name);
+      names.insert(name_ + ".MODE1." + n);
     }
-    names.insert(name_ + ".MODE2.NUMBER");  // number concentration for mode 2
-    for (const auto& name : phase2_names)
+    names.insert(name_ + ".MODE2.NUMBER");
+    for (const auto& n : phase2_names)
     {
-      names.insert(name_ + ".MODE2." + name);
+      names.insert(name_ + ".MODE2." + n);
     }
-    names.insert(name_ + ".MODE3.NUMBER");  // number concentration for mode 3
-    for (const auto& name : phase1_names)
+    names.insert(name_ + ".MODE3.NUMBER");
+    for (const auto& n : phase1_names)
     {
-      names.insert(name_ + ".MODE3." + name);
+      names.insert(name_ + ".MODE3." + n);
     }
-    for (const auto& name : phase2_names)
+    for (const auto& n : phase2_names)
     {
-      names.insert(name_ + ".MODE3." + name);
+      names.insert(name_ + ".MODE3." + n);
     }
     return names;
   }
+
   std::set<std::string> StateParameterNames() const
   {
     std::set<std::string> names;
-
-    // add parameters for the two rate constants used in the model processes
     names.insert(name_ + ".PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
     names.insert(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
     return names;
   }
+
   std::string Species(const micm::Index mode, const micm::Phase& phase, const micm::Species& species) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + "." + phase.name_ + "." + species.name_;
   }
+
   std::string Number(const micm::Index mode) const
   {
     return name_ + ".MODE" + std::to_string(mode + 1) + ".NUMBER";
   }
 
-  // We'll assume all the species in the aerosol model are involved in processes
+  // Process definition
+
   std::set<std::string> SpeciesUsed() const
   {
     return StateVariableNames();
   }
 
-  // We'll assume this model includes two processes:
-  // 1) conversion of FO2 to BAZ in mode 2 CORGE phase
-  // 2) conversion of BAZ to QUX in mode 3 QUUX phase
-
   std::set<std::pair<micm::Index, micm::Index>> NonZeroJacobianElements(
       const std::unordered_map<std::string, micm::Index>& state_indices) const
   {
     std::set<std::pair<micm::Index, micm::Index>> elements;
-    // FO2 to BAZ in mode 2 CORGE
-    auto fo2_mode2_index_it = state_indices.find("STUB2.MODE2.CORGE.FO2");
-    auto baz_mode2_index_it = state_indices.find("STUB2.MODE2.CORGE.BAZ");
-    if (fo2_mode2_index_it != state_indices.end() && baz_mode2_index_it != state_indices.end())
+    auto fo2_mode2_it = state_indices.find("STUB2.MODE2.CORGE.FO2");
+    auto baz_mode2_it = state_indices.find("STUB2.MODE2.CORGE.BAZ");
+    if (fo2_mode2_it != state_indices.end() && baz_mode2_it != state_indices.end())
     {
-      elements.insert({ baz_mode2_index_it->second, fo2_mode2_index_it->second });
+      elements.insert({ fo2_mode2_it->second, fo2_mode2_it->second });
+      elements.insert({ baz_mode2_it->second, fo2_mode2_it->second });
     }
-    // BAZ to QUX in mode 3 QUUX
-    auto baz_mode3_index_it = state_indices.find("STUB2.MODE3.QUUX.BAZ");
-    auto qux_mode3_index_it = state_indices.find("STUB2.MODE3.QUUX.QUX");
-    if (baz_mode3_index_it != state_indices.end() && qux_mode3_index_it != state_indices.end())
+    auto baz_mode3_it = state_indices.find("STUB2.MODE3.QUUX.BAZ");
+    auto qux_mode3_it = state_indices.find("STUB2.MODE3.QUUX.QUX");
+    if (baz_mode3_it != state_indices.end() && qux_mode3_it != state_indices.end())
     {
-      elements.insert({ qux_mode3_index_it->second, baz_mode3_index_it->second });
+      elements.insert({ baz_mode3_it->second, baz_mode3_it->second });
+      elements.insert({ qux_mode3_it->second, baz_mode3_it->second });
     }
     return elements;
   }
 
-  // We have parameters for this stub model, one of which we will update based on temperature
-  template<typename DenseMatrixPolicy>
-  std::function<void(const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&)>
-  UpdateStateParametersFunction(const std::unordered_map<std::string, micm::Index>& state_parameter_indices) const
-  {
-    // Create a function that updates the BAZ-to-QUX rate constant based on temperature for each grid cell
-    auto baz_to_qux_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
-    EXPECT_NE(baz_to_qux_param_it, state_parameter_indices.end());
-    if (baz_to_qux_param_it == state_parameter_indices.end())
-    {
-      // If the parameter is missing, return a no-op updater to avoid undefined behavior.
-      return [](const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&, DenseMatrixPolicy&) {};
-    }
-    micm::Index baz_to_qux_param_index = baz_to_qux_param_it->second;
-    return [baz_to_qux_param_index](
-               const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
-               DenseMatrixPolicy& state_parameters)
-    {
-      for (micm::Index cell = 0; cell < conditions.size(); ++cell)
-      {
-        // Simple linear dependence on temperature for this stub model
-        micm::Real temperature = conditions[cell].temperature_;
-        micm::Real rate_constant = 0.005 * temperature;  // simple function for testing
-        state_parameters[cell][baz_to_qux_param_index] = rate_constant;
-      }
-    };
-  }
-
-  template<typename DenseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ForcingFunction(
-      const std::unordered_map<std::string, micm::Index>& state_parameter_indices,
-      const std::unordered_map<std::string, micm::Index>& state_variable_indices) const
-  {
-    // We'll store the information needed to calculate the forcing terms in a vector of tuples
-    // Each tuple will include: reactant state variable index, product state variable index, and the index of the rate
-    // constant parameter
-    std::vector<std::tuple<micm::Index, micm::Index, micm::Index>> forcing_info;
-    auto fo2_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.FO2");
-    auto baz_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.BAZ");
-    auto fo2_to_baz_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
-    if (fo2_mode2_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end() &&
-        fo2_to_baz_param_it != state_parameter_indices.end())
-    {
-      forcing_info.emplace_back(fo2_mode2_index_it->second, baz_mode2_index_it->second, fo2_to_baz_param_it->second);
-    }
-    auto baz_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.BAZ");
-    auto qux_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.QUX");
-    auto baz_to_qux_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
-    if (baz_mode3_index_it != state_variable_indices.end() && qux_mode3_index_it != state_variable_indices.end() &&
-        baz_to_qux_param_it != state_parameter_indices.end())
-    {
-      forcing_info.emplace_back(baz_mode3_index_it->second, qux_mode3_index_it->second, baz_to_qux_param_it->second);
-    }
-
-    // copy capture the forcing_info vector in the lambda function that will calculate the forcing terms
-    return [forcing_info](
-               const DenseMatrixPolicy& state_parameters,
-               const DenseMatrixPolicy& state_variables,
-               DenseMatrixPolicy& forcing_terms)
-    {
-      // We'll naively assume the underlying forcing vector is column-major
-      // the square-bracket syntax is always [grid_cell][variable_index] regardless of the actual memory layout of the
-      // DenseMatrixPolicy
-      for (const auto& [reactant_index, product_index, rate_param_index] : forcing_info)
-      {
-        for (micm::Index i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
-        {
-          micm::Real rate_constant = state_parameters[i_cell][rate_param_index];
-          // Subtract from reactant
-          forcing_terms[i_cell][reactant_index] -= rate_constant * state_variables[i_cell][reactant_index];
-          // Add to product
-          forcing_terms[i_cell][product_index] += rate_constant * state_variables[i_cell][reactant_index];
-        }
-      }
-    };
-  }
-  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+  template<class SparseMatrixPolicy>
+  void FinalizeProcessSetup(
       const std::unordered_map<std::string, micm::Index>& state_parameter_indices,
       const std::unordered_map<std::string, micm::Index>& state_variable_indices,
-      const SparseMatrixPolicy& jacobian) const
+      const SparseMatrixPolicy& jacobian)
   {
-    // For this simple implementation, we'll use the dependent and independent variable indices with the square-bracket
-    // syntax of the jacobian matrix. In a real implementation, we should want to get the underlying vector indices of the
-    // jacobian elements, and iterate over blocks in the block diagonal sparse matrix in the most efficient way for the
-    // specific SparseMatrixPolicy.
-    std::vector<std::tuple<micm::Index, micm::Index, micm::Index, micm::Real>>
-        jacobian_info;  // (dependent id, independent id, rate param id, multiplier)
-    auto fo2_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.FO2");
-    auto baz_mode2_index_it = state_variable_indices.find("STUB2.MODE2.CORGE.BAZ");
-    auto fo2_to_baz_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
-    if (fo2_mode2_index_it != state_variable_indices.end() && baz_mode2_index_it != state_variable_indices.end() &&
-        fo2_to_baz_param_it != state_parameter_indices.end())
+    forcing_info_.clear();
+    auto add = [&](const std::string& r, const std::string& p, const std::string& param)
     {
-      jacobian_info.emplace_back(
-          fo2_mode2_index_it->second,
-          fo2_mode2_index_it->second,
-          fo2_to_baz_param_it->second,
-          -1.0);  // reactant partial derivative
-      jacobian_info.emplace_back(
-          baz_mode2_index_it->second,
-          fo2_mode2_index_it->second,
-          fo2_to_baz_param_it->second,
-          1.0);  // product partial derivative
-    }
-    auto baz_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.BAZ");
-    auto qux_mode3_index_it = state_variable_indices.find("STUB2.MODE3.QUUX.QUX");
-    auto baz_to_qux_param_it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
-    if (baz_mode3_index_it != state_variable_indices.end() && qux_mode3_index_it != state_variable_indices.end() &&
-        baz_to_qux_param_it != state_parameter_indices.end())
-    {
-      jacobian_info.emplace_back(
-          baz_mode3_index_it->second,
-          baz_mode3_index_it->second,
-          baz_to_qux_param_it->second,
-          -1.0);  // reactant partial derivative
-      jacobian_info.emplace_back(
-          qux_mode3_index_it->second,
-          baz_mode3_index_it->second,
-          baz_to_qux_param_it->second,
-          1.0);  // product partial derivative
-    }
-
-    // copy-capture the jacobian_info vector in the lambda function that will calculate the Jacobian terms
-    return [jacobian_info](
-               const DenseMatrixPolicy& state_parameters,
-               const DenseMatrixPolicy& state_variables,
-               SparseMatrixPolicy& jacobian)
-    {
-      for (micm::Index i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
+      auto ri = state_variable_indices.find(r);
+      auto pi = state_variable_indices.find(p);
+      auto pri = state_parameter_indices.find(param);
+      if (ri != state_variable_indices.end() && pi != state_variable_indices.end() &&
+          pri != state_parameter_indices.end())
       {
-        for (const auto& [dependent_id, independent_id, rate_param_id, multiplier] : jacobian_info)
-        {
-          micm::Real rate_constant = state_parameters[i_block][rate_param_id];
-          jacobian[i_block][dependent_id][independent_id] -= multiplier * rate_constant;
-        }
+        forcing_info_.push_back({ ri->second,
+                                  pi->second,
+                                  pri->second,
+                                  jacobian.VectorIndex(0, ri->second, ri->second),
+                                  jacobian.VectorIndex(0, pi->second, ri->second) });
       }
     };
+    add("STUB2.MODE2.CORGE.FO2", "STUB2.MODE2.CORGE.BAZ", name_ + ".PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");
+    add("STUB2.MODE3.QUUX.BAZ", "STUB2.MODE3.QUUX.QUX", name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
+
+    baz_to_qux_param_index_ = -1;
+    auto it = state_parameter_indices.find(name_ + ".PARAM.MODE3.QUUX.BAZ_TO_QUX_RATE_CONSTANT");
+    if (it != state_parameter_indices.end())
+    {
+      baz_to_qux_param_index_ = it->second;
+    }
+  }
+
+  template<class DenseMatrixPolicy>
+  void UpdateStateParameters(
+      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
+      DenseMatrixPolicy& state_parameters) const
+  {
+    if (baz_to_qux_param_index_ < 0)
+    {
+      return;
+    }
+    const micm::Index idx = baz_to_qux_param_index_;
+    DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::template VectorType<micm::Conditions>::ConstViewType& conditions_view,
+            const typename DenseMatrixPolicy::ViewType& state_param_view) {
+          state_param_view.ForEachRow(
+              [](const micm::Conditions& cond, micm::Real& rate) { rate = 0.005 * cond.temperature_; },
+              conditions_view,
+              state_param_view.GetColumnView(idx));
+        },
+        conditions,
+        state_parameters)(conditions, state_parameters);
+  }
+
+  template<class DenseMatrixPolicy>
+  void AddForcingTerms(
+      const DenseMatrixPolicy& state_parameters,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
+  {
+    for (const auto& info : forcing_info_)
+    {
+      const micm::Index reactant_idx = info.reactant_index_;
+      const micm::Index product_idx = info.product_index_;
+      const micm::Index param_idx = info.rate_param_index_;
+      DenseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename DenseMatrixPolicy::ViewType& forcing_view,
+              const typename DenseMatrixPolicy::ConstViewType& state_view,
+              const typename DenseMatrixPolicy::ConstViewType& param_view) {
+            forcing_view.ForEachRow(
+                [](micm::Real& f_reactant,
+                   micm::Real& f_product,
+                   const micm::Real& reactant,
+                   const micm::Real& rate_constant)
+                {
+                  micm::Real rate = rate_constant * reactant;
+                  f_reactant -= rate;
+                  f_product += rate;
+                },
+                forcing_view.GetColumnView(reactant_idx),
+                forcing_view.GetColumnView(product_idx),
+                state_view.GetConstColumnView(reactant_idx),
+                param_view.GetConstColumnView(param_idx));
+          },
+          forcing,
+          state_variables,
+          state_parameters)(forcing, state_variables, state_parameters);
+    }
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  void SubtractJacobianTerms(
+      const DenseMatrixPolicy& state_parameters,
+      const DenseMatrixPolicy& /*state_variables*/,
+      SparseMatrixPolicy& jacobian) const
+  {
+    for (const auto& info : forcing_info_)
+    {
+      const micm::Index param_idx = info.rate_param_index_;
+      const micm::Index reactant_flat = info.reactant_reactant_flat_;
+      const micm::Index product_flat = info.product_reactant_flat_;
+      SparseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename SparseMatrixPolicy::ViewType& jacobian_view,
+              const typename DenseMatrixPolicy::ConstViewType& param_view) {
+            jacobian_view.ForEachBlock(
+                [](micm::Real& j_reactant, micm::Real& j_product, const micm::Real& rate_constant)
+                {
+                  j_reactant -= -rate_constant;
+                  j_product -= rate_constant;
+                },
+                jacobian_view.GetBlockView(reactant_flat),
+                jacobian_view.GetBlockView(product_flat),
+                param_view.GetConstColumnView(param_idx));
+          },
+          jacobian,
+          state_parameters)(jacobian, state_parameters);
+    }
   }
 
  private:
+  struct ForcingInfo
+  {
+    micm::Index reactant_index_;
+    micm::Index product_index_;
+    micm::Index rate_param_index_;
+    micm::Index reactant_reactant_flat_;
+    micm::Index product_reactant_flat_;
+  };
+
   std::string name_;
   std::vector<micm::Phase> phases_;
+  std::vector<ForcingInfo> forcing_info_;
+  int baz_to_qux_param_index_ = -1;
 };

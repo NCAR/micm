@@ -180,7 +180,7 @@ void TestAddForcingTerms()
   set.SetJacobianFlatIds(jacobian);
 
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 2 grid cells
   DenseMatrixPolicy state(2, num_species);
@@ -246,7 +246,7 @@ void TestSubtractJacobianTerms()
   set.SetJacobianFlatIds(jacobian);
 
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 1 grid cell
   DenseMatrixPolicy state(1, num_species);
@@ -377,7 +377,7 @@ void TestThreeDStateOneConstraint()
   set.SetJacobianFlatIds(jacobian);
 
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "X_Y_eq", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 2 grid cells
   DenseMatrixPolicy state(2, num_species);
@@ -502,7 +502,7 @@ void TestFourDStateTwoConstraints()
   set.SetJacobianFlatIds(jacobian);
 
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "CD_A_eq", 1 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 3 grid cells
   DenseMatrixPolicy state(3, num_species);
@@ -655,7 +655,7 @@ void TestCoupledConstraintsSharedSpecies()
   set.SetJacobianFlatIds(jacobian);
 
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "A_C_eq", 1 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   // State at dual equilibrium: [B]/[A] = 3.3e-2, [C]/[A] = 3.3e-2
   DenseMatrixPolicy state(1, num_species);
@@ -733,7 +733,7 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   set.SetJacobianFlatIds(jacobian);
 
   std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
-  set.SetConstraintFunctions(variable_map, state_parameter_indices, jacobian);
+  set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrixPolicy state(3, num_species, 0.0);
   state[0] = { 0.01, 0.02, 0.05 };

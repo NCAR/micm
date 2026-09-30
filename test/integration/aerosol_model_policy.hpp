@@ -264,13 +264,16 @@ void TestSingleCellForcingWithStubAerosolModel(BuilderPolicy builder)
   state["STUB2.MODE1.NUMBER"] = 1000.0;
   state["STUB2.MODE2.NUMBER"] = 500.0;
 
-  // Calculate forcing terms using the first aerosol model's forcing function
+  // Calculate forcing terms via the first aerosol model directly.
   using DenseMatrixPolicyType = decltype(state.variables_);
-  auto forcing_function_1 =
-      aerosol_1.ForcingFunction<DenseMatrixPolicyType>(state.custom_rate_parameter_map_, state.variable_map_);
-  auto forcing_1 = state.variables_;  // make a forcing matrix of the same size as the state variable matrix
-  forcing_1 = 0.0;                    // initialize forcing terms to zero before calculation
-  forcing_function_1(state.custom_rate_parameters_, state.variables_, forcing_1);
+  using SparseMatrixPolicyType = decltype(state.jacobian_);
+  aerosol_1.FinalizeProcessSetup(state.custom_rate_parameter_map_, state.variable_map_, state.jacobian_);
+  auto forcing_1 = state.variables_;
+  state.custom_rate_parameters_.CopyToDevice();
+  state.variables_.CopyToDevice();
+  forcing_1.Fill(0.0);
+  aerosol_1.AddForcingTerms(state.custom_rate_parameters_, state.variables_, forcing_1);
+  forcing_1.CopyToHost();
 
   // For the FO2 gas to mode 2 CORGE partitioning, we expect a loss of FO2 in the gas phase and a corresponding gain of FO2
   // in the mode 2 CORGE phase, with values equal to the rate constant multiplied by the FO2 concentration
@@ -320,14 +323,16 @@ void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
   state["STUB2.MODE1.NUMBER"] = 1000.0;
   state["STUB2.MODE2.NUMBER"] = 500.0;
 
-  // Calculate Jacobian terms using the first aerosol model's Jacobian function
-  auto jacobian_1 = state.jacobian_;  // make a Jacobian matrix of the same size as the system Jacobian
-  jacobian_1 = 0.0;                   // initialize Jacobian terms to zero before calculation
+  // Calculate Jacobian terms via the first aerosol model directly.
+  auto jacobian_1 = state.jacobian_;
+  jacobian_1 = 0.0;
   using DenseMatrixPolicyType = decltype(state.variables_);
   using SparseMatrixPolicyType = decltype(state.jacobian_);
-  auto jacobian_function_1 = aerosol_1.JacobianFunction<DenseMatrixPolicyType, SparseMatrixPolicyType>(
-      state.custom_rate_parameter_map_, state.variable_map_, jacobian_1);
-  jacobian_function_1(state.custom_rate_parameters_, state.variables_, jacobian_1);
+  aerosol_1.FinalizeProcessSetup(state.custom_rate_parameter_map_, state.variable_map_, jacobian_1);
+  jacobian_1.CopyToDevice();
+  state.variables_.CopyToDevice();
+  aerosol_1.SubtractJacobianTerms(state.custom_rate_parameters_, state.variables_, jacobian_1);
+  jacobian_1.CopyToHost();
 
   // For the FO2 gas to mode 2 CORGE partitioning, we expect two non-zero Jacobian elements: a negative value equal to the
   // rate constant in the column corresponding to FO2 and row corresponding to FO2 (representing the partial derivative of
@@ -394,8 +399,13 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, micm::Real base_relat
   micm::Real stub1_rxn2_delta = baz_mode1_initial * (1.0 - std::exp(-STUB1_RATE_CONSTANT_BAZ_QUUX * time_step));
 
   // Solve the system for a single time step
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
   solver.UpdateStateParameters(state);
   auto results = solver.Solve(time_step, state);
+  state.variables_.CopyToHost();
+  state.rate_constants_.CopyToHost();
 
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
@@ -460,8 +470,13 @@ void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, micm::Real base_re
   micm::Real stub2_rxn2_delta = stub2_mode3_baz_initial * (1.0 - std::exp(-temperature * 0.005 * time_step));
 
   // Solve the system for a single time step
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
   solver.UpdateStateParameters(state);
   auto results = solver.Solve(time_step, state);
+  state.variables_.CopyToHost();
+  state.rate_constants_.CopyToHost();
 
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
@@ -534,8 +549,13 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, micm::Real b
   }
 
   // Solve the system for a single time step
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
   solver.UpdateStateParameters(state);
   auto results = solver.Solve(time_step, state);
+  state.variables_.CopyToHost();
+  state.rate_constants_.CopyToHost();
 
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
@@ -628,8 +648,13 @@ void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, micm::Rea
   }
 
   // Solve the system for a single time step
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
   solver.UpdateStateParameters(state);
   auto results = solver.Solve(time_step, state);
+  state.variables_.CopyToHost();
+  state.rate_constants_.CopyToHost();
 
   // Make sure the solver reports success
   EXPECT_EQ(results.state_, micm::SolverState::Converged);
