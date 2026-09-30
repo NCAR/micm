@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790801262243,
+  "lastUpdate": 1790801521026,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -1079,6 +1079,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 69626.25,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mattldawson@gmail.com",
+            "name": "Matt Dawson",
+            "username": "mattldawson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6339193f1b654cab7fb8f52fe7cd123771c399b8",
+          "message": "Add Kokkos support to external model API (#1080)\n\nExternal models now work with Kokkos matrices. The solver calls each\nmodel directly through new rates and constraint bundles, and the builder\nchecks that each declared Jacobian element is in the sparsity pattern.\n\nCo-authored-by: Kyle Shores <kshores@ucar.edu>\nCo-authored-by: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-09-30T14:57:54-05:00",
+          "tree_id": "4275a47d741a32ad60c7562806c8e58c2e0a3b16",
+          "url": "https://github.com/NCAR/micm/commit/6339193f1b654cab7fb8f52fe7cd123771c399b8"
+        },
+        "date": 1790801520428,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 121617.93,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 120478.85,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 106908.9,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 87184.57,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 83796.66,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 48658.79,
             "unit": "ms"
           }
         ]
