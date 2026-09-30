@@ -3,14 +3,15 @@
 //
 // Cloud chemistry test over the range of atmospheric conditions.
 //
-// StubCloudChemistry is an external model with a Henry's law equilibrium constraint in the
-// A_AQ row and an aqueous reaction A_AQ -> P_AQ that also writes into the A_AQ row. This is the
-// structure of gas-aqueous cloud chemistry (https://github.com/NCAR/musica/issues/956) and of
+// StubCloudChemistry is an external model in the total formulation. The total A_T is differential,
+// and two constraints divide it between A_G and A_AQ with a Henry's law equilibrium. The aqueous
+// reaction A_AQ -> P_AQ also writes into the algebraic A_AQ row. This is the structure of gas-aqueous
+// cloud chemistry (https://github.com/NCAR/musica/issues/956) and of
 // https://github.com/NCAR/micm/issues/1094.
 //
-// Because the equilibrium holds at all times, the total A = [A_G] + [A_AQ] has the exact solution
-//   A(t) = A0 * exp(-k * K_p / (1 + K_p) * t)
-// with [A_G] = A / (1 + K_p), [A_AQ] = A * K_p / (1 + K_p), and [P_AQ] = A0 - A.
+// Because the equilibrium holds at all times, the total has the exact solution
+//   A_T(t) = A0 * exp(-k * K_p / (1 + K_p) * t)
+// with [A_G] = A_T / (1 + K_p), [A_AQ] = A_T * K_p / (1 + K_p), and [P_AQ] = A0 - A_T.
 //
 // The test sweeps temperature, pressure, and liquid water content over the ranges in the musica
 // issue. The partition coefficient K_p then covers about eight orders of magnitude.
@@ -90,11 +91,13 @@ void TestCloudChemistryConditionSweep(BuilderFactory make_builder)
         state.SetRelativeTolerance(solver_rtol);
         state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, solver_atol_factor * a0));
 
+        const auto i_total = state.variable_map_.at("CLOUD.A_T");
         const auto i_gas = state.variable_map_.at("A_G");
         const auto i_aq = state.variable_map_.at("CLOUD.A_AQ");
         const auto i_p = state.variable_map_.at("CLOUD.P_AQ");
 
         // Start on the equilibrium manifold, so that the initialization does not move mass
+        state.variables_[0][i_total] = a0;
         state.variables_[0][i_gas] = a0 / (1.0 + k_p);
         state.variables_[0][i_aq] = a0 * k_p / (1.0 + k_p);
         state.variables_[0][i_p] = 0.0;
@@ -120,15 +123,18 @@ void TestCloudChemistryConditionSweep(BuilderFactory make_builder)
           const micm::Real exact_aq = total * k_p / (1.0 + k_p);
           const micm::Real exact_p = a0 - total;
 
+          const micm::Real total_value = state.variables_[0][i_total];
           const micm::Real gas = state.variables_[0][i_gas];
           const micm::Real aq = state.variables_[0][i_aq];
           const micm::Real p = state.variables_[0][i_p];
 
+          EXPECT_NEAR(total_value, total, compare_rtol * total + compare_atol) << "A_T at step " << step;
           EXPECT_NEAR(gas, exact_gas, compare_rtol * exact_gas + compare_atol) << "A_G at step " << step;
           EXPECT_NEAR(aq, exact_aq, compare_rtol * exact_aq + compare_atol) << "A_AQ at step " << step;
           EXPECT_NEAR(p, exact_p, compare_rtol * exact_p + compare_atol) << "P_AQ at step " << step;
           EXPECT_NEAR(k_p * gas - aq, 0.0, compare_rtol * aq + compare_atol) << "Equilibrium at step " << step;
           EXPECT_NEAR(gas + aq + p, a0, compare_rtol * a0) << "Mass at step " << step;
+          EXPECT_NEAR(total_value + p, a0, compare_rtol * a0) << "Total mass at step " << step;
         }
       }
     }
