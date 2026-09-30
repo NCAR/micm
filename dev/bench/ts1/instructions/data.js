@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790801260185,
+  "lastUpdate": 1790801518871,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -1049,6 +1049,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/770f0e43da32ccb0fdd23b11f8a06de9c13b7031"
         },
         "date": 1790801259523,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41646173587,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41572759916,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29296037359,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21663965557,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17965159975,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14860535091,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mattldawson@gmail.com",
+            "name": "Matt Dawson",
+            "username": "mattldawson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6339193f1b654cab7fb8f52fe7cd123771c399b8",
+          "message": "Add Kokkos support to external model API (#1080)\n\nExternal models now work with Kokkos matrices. The solver calls each\nmodel directly through new rates and constraint bundles, and the builder\nchecks that each declared Jacobian element is in the sparsity pattern.\n\nCo-authored-by: Kyle Shores <kshores@ucar.edu>\nCo-authored-by: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-09-30T14:57:54-05:00",
+          "tree_id": "4275a47d741a32ad60c7562806c8e58c2e0a3b16",
+          "url": "https://github.com/NCAR/micm/commit/6339193f1b654cab7fb8f52fe7cd123771c399b8"
+        },
+        "date": 1790801518117,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
