@@ -89,29 +89,9 @@ namespace micm
       }
     }
 
-    /// @brief Called before each solve to refresh temperature-/pressure-dependent parameters.
-    template<class ConditionsVector>
-    void UpdateStateParameters(const ConditionsVector& conditions, DenseMatrixPolicy& state_parameters) const
-    {
-      InvokeProcesses([&](const auto& m) { m.UpdateStateParameters(conditions, state_parameters); });
-    }
+    // These two methods are public because CUDA does not allow an extended __host__ __device__
+    // lambda in a private or protected member function.
 
-    /// @brief Forward CUDA store upload to the inner rates policy when it supports it.
-    template<class Store>
-    void BuildCudaStore(const Store& store)
-      requires requires(InnerRates& r) { r.BuildCudaStore(store); }
-    {
-      inner_.BuildCudaStore(store);
-    }
-
-    template<class Store, class State>
-    void GpuCalculateRateConstants(const Store& store, State& state)
-      requires requires(InnerRates& r) { r.GpuCalculateRateConstants(store, state); }
-    {
-      inner_.GpuCalculateRateConstants(store, state);
-    }
-
-   private:
     /// @brief Sets the forcing of each algebraic variable to zero. The constraints set these rows later.
     void ClearAlgebraicForcing(DenseMatrixPolicy& forcing) const
     {
@@ -148,6 +128,29 @@ namespace micm
           jacobian)(jacobian);
     }
 
+    /// @brief Called before each solve to refresh temperature-/pressure-dependent parameters.
+    template<class ConditionsVector>
+    void UpdateStateParameters(const ConditionsVector& conditions, DenseMatrixPolicy& state_parameters) const
+    {
+      InvokeProcesses([&](const auto& m) { m.UpdateStateParameters(conditions, state_parameters); });
+    }
+
+    /// @brief Forward CUDA store upload to the inner rates policy when it supports it.
+    template<class Store>
+    void BuildCudaStore(const Store& store)
+      requires requires(InnerRates& r) { r.BuildCudaStore(store); }
+    {
+      inner_.BuildCudaStore(store);
+    }
+
+    template<class Store, class State>
+    void GpuCalculateRateConstants(const Store& store, State& state)
+      requires requires(InnerRates& r) { r.GpuCalculateRateConstants(store, state); }
+    {
+      inner_.GpuCalculateRateConstants(store, state);
+    }
+
+   private:
     template<class F>
     void InvokeProcesses(F&& f) const
     {
