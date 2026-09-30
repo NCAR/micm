@@ -102,7 +102,6 @@ namespace micm
     }
 
    public:
-
     /// @brief Set the chemical system
     /// @param system The chemical system
     /// @return Updated SolverBuilder
@@ -177,8 +176,7 @@ namespace micm
           StatePolicy,
           ExternalModels...,
           ExternalModel>;
-      auto extended_models =
-          std::tuple_cat(std::move(external_models_), std::tuple<ExternalModel>(std::move(model)));
+      auto extended_models = std::tuple_cat(std::move(external_models_), std::tuple<ExternalModel>(std::move(model)));
       NextBuilder next(options_, std::move(extended_models));
       next.system_ = std::move(system_);
       next.reactions_ = std::move(reactions_);
@@ -197,8 +195,7 @@ namespace micm
       }
       if constexpr (HasProcesses<ExternalModel>)
       {
-        next.external_process_sets_.emplace_back(
-            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
+        next.external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
       }
       if constexpr (HasConstraints<ExternalModel>)
       {

@@ -134,8 +134,7 @@ class AnotherStubAerosolModel
       auto ri = state_variable_indices.find(r);
       auto pi = state_variable_indices.find(p);
       auto pri = state_parameter_indices.find(param);
-      if (ri != state_variable_indices.end() && pi != state_variable_indices.end() &&
-          pri != state_parameter_indices.end())
+      if (ri != state_variable_indices.end() && pi != state_variable_indices.end() && pri != state_parameter_indices.end())
       {
         forcing_info_.push_back({ ri->second,
                                   pi->second,

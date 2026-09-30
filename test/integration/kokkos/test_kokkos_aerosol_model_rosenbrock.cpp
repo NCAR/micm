@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "../aerosol_model_policy.hpp"
 
-#include <micm/util/types.hpp>
 #include <micm/Kokkos.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -45,7 +45,8 @@ using VectorRosenbrockMozartCSC = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::KokkosDenseMatrix<micm::Real, L>,
     micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
+    micm::LuDecompositionMozart<
+        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
 
 #ifdef JUST_ONE_SOLVER
 auto rosenbrock = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(

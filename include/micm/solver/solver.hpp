@@ -174,9 +174,7 @@ namespace micm
     {
       // External process-model parameter updates must run first: they populate
       // custom_rate_parameters_ which user-defined and surface rate constants read.
-      if constexpr (requires {
-                      solver_.rates_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
-                    })
+      if constexpr (requires { solver_.rates_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_); })
       {
         solver_.rates_.UpdateStateParameters(state.conditions_, state.custom_rate_parameters_);
       }
