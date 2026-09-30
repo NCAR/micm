@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788301167423,
+  "lastUpdate": 1790789279363,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (Kokkos backend)": [
@@ -489,6 +489,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 547.1,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bd1f011107fad36c148fba66ccebea6253c530e",
+          "message": "Add Compiler Explorer badge to README (#1093)\n\nAdd Compiler Explorer badge and link to README\n\nLink to a godbolt.org session that runs the README example with micm 3.13.0.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-30T11:29:37-05:00",
+          "tree_id": "042f9c6f1d352161e422717f7f3b6ffc48f2d2e4",
+          "url": "https://github.com/NCAR/micm/commit/8bd1f011107fad36c148fba66ccebea6253c530e"
+        },
+        "date": 1790789278377,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 2839.61,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 1535.29,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 873.18,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 501,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 548.88,
             "unit": "ms"
           }
         ]
