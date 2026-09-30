@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790786007376,
+  "lastUpdate": 1790798540966,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -1133,6 +1133,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 218360972,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mattldawson@gmail.com",
+            "name": "Matt Dawson",
+            "username": "mattldawson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6339193f1b654cab7fb8f52fe7cd123771c399b8",
+          "message": "Add Kokkos support to external model API (#1080)\n\nExternal models now work with Kokkos matrices. The solver calls each\nmodel directly through new rates and constraint bundles, and the builder\nchecks that each declared Jacobian element is in the sparsity pattern.\n\nCo-authored-by: Kyle Shores <kshores@ucar.edu>\nCo-authored-by: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-09-30T14:57:54-05:00",
+          "tree_id": "4275a47d741a32ad60c7562806c8e58c2e0a3b16",
+          "url": "https://github.com/NCAR/micm/commit/6339193f1b654cab7fb8f52fe7cd123771c399b8"
+        },
+        "date": 1790798540371,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 525689585,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 528081907,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 361016213,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 277248445,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 237264826,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 219642782,
             "unit": "instructions"
           }
         ]
