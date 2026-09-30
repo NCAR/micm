@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790788751796,
+  "lastUpdate": 1790801260185,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -1025,6 +1025,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 14825140733,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "770f0e43da32ccb0fdd23b11f8a06de9c13b7031",
+          "message": "Auto-format code changes (#1096)\n\nAuto-format code using Clang-Format\n\nCo-authored-by: GitHub Actions <actions@github.com>",
+          "timestamp": "2026-09-30T14:59:53-05:00",
+          "tree_id": "b164e05819514f14cada45457424dd57f33f47e5",
+          "url": "https://github.com/NCAR/micm/commit/770f0e43da32ccb0fdd23b11f8a06de9c13b7031"
+        },
+        "date": 1790801259523,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41646173587,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41572759916,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29296037359,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21663965557,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17965159975,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14860535091,
             "unit": "instructions"
           }
         ]
