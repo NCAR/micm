@@ -24,6 +24,7 @@ namespace micm
     Scalar<Real> current_c_over_h_;
     Scalar<Real> error_;
     Scalar<Real> max_residual_;
+    Scalar<Real> max_correction_;
     Scalar<Bool> nan_detected_;
     Scalar<Bool> inf_detected_;
 

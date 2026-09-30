@@ -2292,7 +2292,7 @@ void TestFill()
 
     for (micm::Index b = 0; b < matrix.NumberOfBlocks(); ++b)
     {
-      EXPECT_EQ(matrix[b][0][1], 3.2);
+      EXPECT_EQ(matrix[b][0][1], static_cast<micm::Real>(3.2));
       EXPECT_EQ(matrix[b][2][0], 0.0);  // Untouched
     }
   }
@@ -2308,7 +2308,7 @@ void TestFill()
 
     for (micm::Real b : vec)
     {
-      EXPECT_EQ(b, 3.2);
+      EXPECT_EQ(b, static_cast<micm::Real>(3.2));
     }
   }
 
@@ -2327,7 +2327,7 @@ void TestFill()
 
     for (micm::Index b = 0; b < matrix.NumberOfBlocks(); ++b)
     {
-      EXPECT_EQ(matrix[b][2][0], 9.9);
+      EXPECT_EQ(matrix[b][2][0], static_cast<micm::Real>(9.9));
     }
   }
 }
@@ -2403,9 +2403,9 @@ void TestCopy()
 
     func(matrix, vec);
 
-    EXPECT_EQ(vec[0], 3.2);
-    EXPECT_EQ(vec[1], 4.2);
-    EXPECT_EQ(vec[2], 1.3);
+    EXPECT_EQ(vec[0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(vec[1], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(vec[2], static_cast<micm::Real>(1.3));
   }
 
   // One sparse block into another (mutable-to-mutable).
@@ -2416,10 +2416,10 @@ void TestCopy()
 
     func(matrix);
 
-    EXPECT_EQ(matrix[0][2][0], 3.2);
-    EXPECT_EQ(matrix[1][2][0], 4.2);
-    EXPECT_EQ(matrix[2][2][0], 1.3);
-    EXPECT_EQ(matrix[0][0][1], 3.2);  // src unchanged
+    EXPECT_EQ(matrix[0][2][0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[1][2][0], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[2][2][0], static_cast<micm::Real>(1.3));
+    EXPECT_EQ(matrix[0][0][1], static_cast<micm::Real>(3.2));  // src unchanged
   }
 
   // One sparse block into another (const-to-mutable).
@@ -2431,9 +2431,9 @@ void TestCopy()
 
     func(matrix);
 
-    EXPECT_EQ(matrix[0][2][0], 3.2);
-    EXPECT_EQ(matrix[1][2][0], 4.2);
-    EXPECT_EQ(matrix[2][2][0], 1.3);
+    EXPECT_EQ(matrix[0][2][0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[1][2][0], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[2][2][0], static_cast<micm::Real>(1.3));
   }
 
   // Round-trip: sparse block -> BlockVariable temp -> sparse block.
@@ -2450,9 +2450,9 @@ void TestCopy()
 
     func(matrix);
 
-    EXPECT_EQ(matrix[0][0][1], 3.2);
-    EXPECT_EQ(matrix[1][0][1], 4.2);
-    EXPECT_EQ(matrix[2][0][1], 1.3);
+    EXPECT_EQ(matrix[0][0][1], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(matrix[1][0][1], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(matrix[2][0][1], static_cast<micm::Real>(1.3));
   }
 
   // Cross-type: dense column -> sparse block, driven from the sparse-view side
@@ -2516,9 +2516,9 @@ void TestCopy()
     sparse_to_scratch(matrix, scratch);
     scratch_to_dense(dense, scratch);
 
-    EXPECT_EQ(dense[0][0], 3.2);
-    EXPECT_EQ(dense[1][0], 4.2);
-    EXPECT_EQ(dense[2][0], 1.3);
+    EXPECT_EQ(dense[0][0], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(dense[1][0], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(dense[2][0], static_cast<micm::Real>(1.3));
   }
 
   // Cross-matrix: two sparse matrices (matching block counts, different sparsity).
@@ -2542,8 +2542,8 @@ void TestCopy()
 
     func(dst, src);
 
-    EXPECT_EQ(dst[0][1][2], 3.2);
-    EXPECT_EQ(dst[1][1][2], 4.2);
-    EXPECT_EQ(dst[2][1][2], 1.3);
+    EXPECT_EQ(dst[0][1][2], static_cast<micm::Real>(3.2));
+    EXPECT_EQ(dst[1][1][2], static_cast<micm::Real>(4.2));
+    EXPECT_EQ(dst[2][1][2], static_cast<micm::Real>(1.3));
   }
 }

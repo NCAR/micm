@@ -6,7 +6,9 @@
 #include <micm/util/view_category.hpp>
 
 #include <Kokkos_Core.hpp>
+#include <algorithm>
 #include <initializer_list>
+#include <type_traits>
 #include <vector>
 
 namespace micm
@@ -53,7 +55,7 @@ namespace micm
       template<class V = U, std::enable_if_t<!std::is_const_v<V>, int> = 0>
       KOKKOS_INLINE_FUNCTION operator DeviceView<const U>() const
       {
-        return { view_ };
+        return { view_, size_ };
       }
 
       KOKKOS_INLINE_FUNCTION const U* begin() const  // NOLINT(readability-identifier-naming)
@@ -122,6 +124,7 @@ namespace micm
         return *this;
       }
       data_ = other.data_;
+      size_ = other.size_;
       host_view_ = Kokkos::View<T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
           this->data_.data(), this->data_.size());
       Kokkos::realloc(device_view_, other.device_view_.extent(0));

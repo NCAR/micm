@@ -40,8 +40,8 @@ namespace micm
     };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
     Real h_start_{ 0.0 };  // step size start [s] (if zero, the solver will use DEFAULT_H_START * time_step)
 
-    Index constraint_init_max_iterations_{ 10 };  // max Newton iterations for constraint initialization
-    Real constraint_init_tolerance_{ 1e-10 };     // convergence tolerance for constraint initialization
+    Index constraint_init_max_iterations_{ 10 };  // max Newton updates for constraint initialization
+    Real constraint_init_tolerance_{ 0.1 };       // max weighted Newton correction, as a fraction of the state tolerance
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)

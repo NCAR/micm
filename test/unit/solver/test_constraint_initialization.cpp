@@ -4,6 +4,7 @@
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/constraint/types/linear_constraint.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
@@ -11,6 +12,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cmath>
 #include <type_traits>
 
@@ -60,6 +62,28 @@ struct SimpleConstrainedSystem
 
 using StandardBuilder =
     CpuSolverBuilder<RosenbrockSolverParameters, Matrix<micm::Real>, SparseMatrix<micm::Real, SparseMatrixStandardOrdering>>;
+
+/// @brief Projection-only system: Z is slaved to X by row_scale * (X - Z) = 0, so the
+///        algebraic solution is Z = X for every row scale.
+auto BuildScaledLinearConstraintSolver(const RosenbrockSolverParameters& parameters, micm::Real row_scale)
+{
+  using DenseMatrix = StandardBuilder::DenseMatrixPolicyType;
+  using SparseMatrix = StandardBuilder::SparseMatrixPolicyType;
+
+  const auto X = Species("X");
+  const auto Z = Species("Z");
+  const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ X, Z } };
+
+  std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, SparseMatrix>("scaled_copy", Z, { { X, row_scale }, { Z, -row_scale } }, 0.0));
+
+  return StandardBuilder(parameters)
+      .SetSystem(System(gas_phase))
+      .SetConstraints(std::move(constraints))
+      .SetReorderState(false)
+      .Build();
+}
 
 /// @brief Test that consistent initial conditions don't change state
 TEST(ConstraintInitialization, ConsistentICsUnchanged)
@@ -179,6 +203,78 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
   micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
+}
+
+/// @brief Row-scale invariance must survive the public Solve() path, not just the projection.
+///        A falsely converged projection hands the integrator a state off the manifold, which
+///        it reports as StepSizeTooSmall rather than as a constraint failure.
+TEST(ConstraintInitialization, ScaledConstraintRowsSolveIdenticallyThroughSolve)
+{
+  using DenseMatrix = StandardBuilder::DenseMatrixPolicyType;
+  using SparseMatrix = StandardBuilder::SparseMatrixPolicyType;
+
+  constexpr micm::Real TOTAL = 1.3;
+  constexpr micm::Real A0 = 0.7;
+  constexpr micm::Real B0 = 0.15;
+  constexpr micm::Real C_CONSISTENT = TOTAL - A0 - B0;
+
+  // A -> B with the conservation row A + B + C = TOTAL multiplied through by `scale`.
+  // A + B is conserved by the reaction, so C stays at C_CONSISTENT once projected.
+  auto solve_with_row_scale = [](micm::Real scale)
+  {
+    auto A = Species("A");
+    auto B = Species("B");
+    auto C = Species("C");
+
+    Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ A, B, C } };
+
+    Process rxn = ChemicalReactionBuilder()
+                      .SetReactants({ A })
+                      .SetProducts({ { B, 1 } })
+                      .SetRateConstant(ArrheniusRateConstantParameters{ .A_ = 0.5, .B_ = 0, .C_ = 0 })
+                      .SetPhase(gas_phase)
+                      .Build();
+
+    std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+    constraints.emplace_back(LinearConstraint<DenseMatrix, SparseMatrix>(
+        "mass", C, std::vector<StoichSpecies>{ { A, scale }, { B, scale }, { C, scale } }, scale * TOTAL));
+
+    auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    if constexpr (!std::is_same_v<micm::Real, double>)
+    {
+      options.h_start_ = 1.0e-6;
+    }
+    auto solver = StandardBuilder(options)
+                      .SetSystem(System(gas_phase))
+                      .SetReactions({ rxn })
+                      .SetConstraints(std::move(constraints))
+                      .SetReorderState(false)
+                      .Build();
+
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = A0;
+    state.variables_[0][state.variable_map_.at("B")] = B0;
+    state.variables_[0][state.variable_map_.at("C")] = 5.0;  // far off the manifold
+    state.conditions_[0].temperature_ = 298.15;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    solver.UpdateStateParameters(state);
+
+    auto result = solver.Solve(0.001, state);
+    return std::make_pair(result.state_, state.variables_[0][state.variable_map_.at("C")]);
+  };
+
+  const auto reference = solve_with_row_scale(1.0);
+  EXPECT_EQ(reference.first, SolverState::Converged);
+  EXPECT_NEAR(reference.second, C_CONSISTENT, 1.0e-5 * C_CONSISTENT);
+
+  const micm::Real scales[] = { static_cast<micm::Real>(1.0e-12), static_cast<micm::Real>(1.0e12) };
+  for (micm::Real scale : scales)
+  {
+    const auto scaled = solve_with_row_scale(scale);
+    EXPECT_EQ(scaled.first, SolverState::Converged) << "constraint row scale " << scale;
+    EXPECT_NEAR(scaled.second, reference.second, 1.0e-5 * C_CONSISTENT) << "constraint row scale " << scale;
+  }
 }
 
 /// @brief Test pure ODE system (no constraints) is unaffected
@@ -328,4 +424,171 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
 TEST(ConstraintInitialization, SolverStateToStringNewValue)
 {
   EXPECT_EQ(SolverStateToString(SolverState::ConstraintInitializationFailed), "Constraint Initialization Failed");
+}
+
+/// @brief Projection-only system nonlinear in the algebraic variable: 2*[B] - [C]^2 = 0,
+///        so C = 1 when B = 0.5. One Newton update from a distant guess lands nowhere near it.
+auto BuildSquaredConstraintSolver(const RosenbrockSolverParameters& parameters)
+{
+  using DenseMatrix = StandardBuilder::DenseMatrixPolicyType;
+  using SparseMatrix = StandardBuilder::SparseMatrixPolicyType;
+
+  const auto B = Species("B");
+  const auto C = Species("C");
+  const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ B, C } };
+
+  std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, SparseMatrix>(
+      "squared",
+      C,
+      std::vector<StoichSpecies>{ { B, 1.0 } },
+      std::vector<StoichSpecies>{ { C, 2.0 } },
+      { .K_HLC_ref_ = 2.0, .delta_H_ = 0.0 }));
+
+  return StandardBuilder(parameters)
+      .SetSystem(System(gas_phase))
+      .SetConstraints(std::move(constraints))
+      .SetReorderState(false)
+      .Build();
+}
+
+/// @brief A failed projection must leave the caller's state exactly as it was passed in.
+///        Otherwise the caller is handed a half-applied Newton iterate that is neither their
+///        input nor a solution, with nothing in the return value to say so.
+TEST(ConstraintInitialization, FailedInitializationRestoresCallerState)
+{
+  auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  parameters.constraint_init_max_iterations_ = 1;  // too few updates to reach C = 1 from C = 100
+
+  auto solver = BuildSquaredConstraintSolver(parameters);
+  auto state = solver.GetState(1);
+
+  const auto B_idx = state.variable_map_.at("B");
+  const auto C_idx = state.variable_map_.at("C");
+  constexpr micm::Real B_in = 0.5;
+  constexpr micm::Real C_in = 100.0;
+  state.variables_[0][B_idx] = B_in;
+  state.variables_[0][C_idx] = C_in;
+  state.conditions_[0].temperature_ = 298.15;
+  state.conditions_[0].pressure_ = 101325.0;
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  ASSERT_EQ(status, SolverState::ConstraintInitializationFailed);
+  EXPECT_EQ(state.variables_[0][C_idx], C_in);
+  EXPECT_EQ(state.variables_[0][B_idx], B_in);
+}
+
+/// @brief A converged projection still returns the corrected state, not the snapshot
+TEST(ConstraintInitialization, SuccessfulInitializationKeepsTheCorrection)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = BuildSquaredConstraintSolver(parameters);
+  auto state = solver.GetState(1);
+
+  const auto B_idx = state.variable_map_.at("B");
+  const auto C_idx = state.variable_map_.at("C");
+  state.variables_[0][B_idx] = 0.5;
+  state.variables_[0][C_idx] = 100.0;
+  state.conditions_[0].temperature_ = 298.15;
+  state.conditions_[0].pressure_ = 101325.0;
+  solver.UpdateStateParameters(state);
+  state.variables_.CopyToDevice();
+
+  SolverStats stats;
+  const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+  state.variables_.CopyToHost();
+
+  ASSERT_EQ(status, SolverState::Converged);
+  // Converged means the remaining correction is a tenth of the state-error scale, which with the
+  // default absolute tolerance of 1e-3 leaves C within ~1e-4 of the manifold, not within roundoff.
+  EXPECT_NEAR(state.variables_[0][C_idx], 1.0, 1.0e-3);
+}
+
+/// @brief The weighted Newton-correction measure is invariant to complete constraint-row scaling
+TEST(ConstraintInitialization, WeightedCorrectionIsInvariantToConstraintRowScaling)
+{
+  const std::array<micm::Real, 3> row_scales{ 1.0e-12, 1.0, 1.0e12 };
+
+  for (const micm::Real row_scale : row_scales)
+  {
+    const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+    auto solver = BuildScaledLinearConstraintSolver(parameters, row_scale);
+    auto state = solver.GetState(1);
+
+    constexpr micm::Real rtol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4;
+    constexpr micm::Real atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-6;
+    state.SetRelativeTolerance(rtol);
+    state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, atol));
+
+    const auto X = state.variable_map_.at("X");
+    const auto Z = state.variable_map_.at("Z");
+    state.variables_[0][X] = 1.0;
+    state.variables_[0][Z] = 4.0;
+    state.variables_.CopyToDevice();
+
+    SolverStats stats;
+    const auto status = solver.solver_.InitializeConstraints(state, parameters, stats);
+    state.variables_.CopyToHost();
+
+    EXPECT_EQ(status, SolverState::Converged) << "row scale=" << row_scale;
+    EXPECT_NEAR(state.variables_[0][Z], 1.0, atol) << "row scale=" << row_scale;
+  }
+}
+
+/// @brief constraint_init_tolerance is a dimensionless fraction of the state-error scale.
+///        The same off-manifold state is already converged under loose tolerances and needs a
+///        Newton update under tight ones. constraint_init_iterations_ counts iterations entered,
+///        so it is one greater than the number of updates applied.
+TEST(ConstraintInitialization, WeightedCorrectionUsesStateTolerances)
+{
+  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  EXPECT_EQ(parameters.constraint_init_tolerance_, micm::Real(0.1));
+
+  constexpr micm::Real deviation = std::is_same_v<micm::Real, double> ? 5.0e-8 : 5.0e-6;
+  constexpr micm::Real loose_rtol = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-4;
+  constexpr micm::Real loose_atol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-5;
+  constexpr micm::Real tight_rtol = std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-6;
+  constexpr micm::Real tight_atol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-8;
+
+  auto loose_solver = BuildScaledLinearConstraintSolver(parameters, 1.0);
+  auto loose_state = loose_solver.GetState(1);
+  loose_state.SetRelativeTolerance(loose_rtol);
+  loose_state.SetAbsoluteTolerances(std::vector<micm::Real>(loose_state.state_size_, loose_atol));
+  const auto loose_X = loose_state.variable_map_.at("X");
+  const auto loose_Z = loose_state.variable_map_.at("Z");
+  loose_state.variables_[0][loose_X] = 1.0;
+  loose_state.variables_[0][loose_Z] = 1.0 + deviation;
+  const micm::Real loose_initial_Z = loose_state.variables_[0][loose_Z];
+  loose_state.variables_.CopyToDevice();
+
+  SolverStats loose_stats;
+  const auto loose_status = loose_solver.solver_.InitializeConstraints(loose_state, parameters, loose_stats);
+  loose_state.variables_.CopyToHost();
+
+  EXPECT_EQ(loose_status, SolverState::Converged);
+  EXPECT_EQ(loose_state.variables_[0][loose_Z], loose_initial_Z);
+  EXPECT_EQ(loose_stats.constraint_init_iterations_, 1);  // no update applied
+
+  auto tight_solver = BuildScaledLinearConstraintSolver(parameters, 1.0);
+  auto tight_state = tight_solver.GetState(1);
+  tight_state.SetRelativeTolerance(tight_rtol);
+  tight_state.SetAbsoluteTolerances(std::vector<micm::Real>(tight_state.state_size_, tight_atol));
+  const auto tight_X = tight_state.variable_map_.at("X");
+  const auto tight_Z = tight_state.variable_map_.at("Z");
+  tight_state.variables_[0][tight_X] = 1.0;
+  tight_state.variables_[0][tight_Z] = 1.0 + deviation;
+  tight_state.variables_.CopyToDevice();
+
+  SolverStats tight_stats;
+  const auto tight_status = tight_solver.solver_.InitializeConstraints(tight_state, parameters, tight_stats);
+  tight_state.variables_.CopyToHost();
+
+  EXPECT_EQ(tight_status, SolverState::Converged);
+  EXPECT_NEAR(tight_state.variables_[0][tight_Z], 1.0, tight_atol);
+  EXPECT_EQ(tight_stats.constraint_init_iterations_, 2);  // one update applied
 }

@@ -35,7 +35,7 @@ jobs:
 
       - name: Run Cmake
         # MICM_ENABLE_BENCHMARK defaults to OFF; the Build step needs it on.
-        run: cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE86=ON -DMICM_ENABLE_BENCHMARK=ON
+        run: cmake -S . -B build -DMICM_ENABLE_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE86=ON -DMICM_ENABLE_BENCHMARK=ON -DMICM_DEFAULT_VECTOR_SIZE=32
 
       - name: Build
         run: cmake --build build --parallel 6
@@ -43,7 +43,14 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest --rerun-failed --output-on-failure . --verbose -j 10
+          ctest --output-on-failure --verbose --no-tests=error --output-junit ctest-results.xml -j 10
+
+      - name: Upload ctest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-results-kokkos
+          path: build/ctest-results.xml
 
       # The Kokkos backend registers no standard ordering, so name the vector ones.
       #
@@ -92,7 +99,10 @@ jobs:
           benchmark-data-dir-path: dev/bench/kokkos/timing
 
       - name: Save PR number for benchmark comment workflow
-        run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
+        if: always() && github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: echo "$PR_NUMBER" > pr-number.txt
 
       - name: Upload benchmark outputs
         if: always()
