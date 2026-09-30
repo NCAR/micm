@@ -368,7 +368,9 @@ namespace micm
 
     if (!constraints_.empty())
     {
-      constraint_set = InnerConstraintSet(std::move(constraints_), species_map);
+      // Copy the constraints so that the builder can be used repeatedly.
+      auto constraints = constraints_;
+      constraint_set = InnerConstraintSet(std::move(constraints), species_map);
 
       constraint_set.SetUniqueParameterNames();
       for (const auto& label : constraint_set.GetParameterNames())
@@ -487,29 +489,11 @@ namespace micm
         }
       }
 
+      // Kinetic entries in these rows stay in the sparsity pattern. The built-in ProcessSet skips
+      // algebraic rows, so these entries stay zero.
       for (const auto id : external_algebraic_variable_ids)
       {
         mass_matrix_diagonal[id] = 0.0;
-        // Purge any kinetic sparsity remnants for these newly-algebraic rows.
-        for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
-        {
-          if (it->first == id && algebraic_variable_ids.count(it->second) == 0
-              && it->second == id)  // keep diagonal
-          {
-            ++it;
-          }
-          else if (it->first == id)
-          {
-            // Row-column entry from external constraint: keep. Kinetic ODE contributions
-            // that shared this row are dropped below because they were added from the
-            // built-in ProcessSet (which now guards with is_algebraic_variable_).
-            ++it;
-          }
-          else
-          {
-            ++it;
-          }
-        }
       }
     }
 

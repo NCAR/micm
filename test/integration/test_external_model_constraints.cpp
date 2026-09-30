@@ -1758,9 +1758,9 @@ namespace
   };
 
   /// Helper: solve A -> B with the external constraint K_eq * [B] - [C] = 0.
-  /// When process_only_first is true, a NoOpProcessModel is added before the constraint model.
+  /// When ProcessOnlyFirst is true, a NoOpProcessModel is added before the constraint model.
   /// Returns (final_B, final_C)
-  template<bool process_only_first>
+  template<bool ProcessOnlyFirst>
   std::pair<micm::Real, micm::Real> SolveWithModelOrder()
   {
     auto A = micm::Species("A");
@@ -1781,7 +1781,7 @@ namespace
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = [&]()
     {
-      if constexpr (process_only_first)
+      if constexpr (ProcessOnlyFirst)
       {
         return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
             .SetSystem(micm::System(gas_phase))
@@ -1824,7 +1824,7 @@ namespace
       state.variables_.CopyToHost();
       state.rate_constants_.CopyToHost();
       EXPECT_EQ(result.state_, micm::SolverState::Converged)
-          << "Solve failed at step " << step << " (process_only_first=" << process_only_first << ")";
+          << "Solve failed at step " << step << " (ProcessOnlyFirst=" << ProcessOnlyFirst << ")";
     }
 
     return { state.variables_[0][state.variable_map_.at("B")], state.variables_[0][state.variable_map_.at("C")] };
@@ -1853,4 +1853,91 @@ TEST(ExternalModelConstraints, ConstraintActiveWhenProcessOnlyModelAddedFirst)
   EXPECT_NEAR(K_EQ * B_val - C_val, 0.0, residual_tol) << "External constraint is not enforced";
   EXPECT_EQ(B_val, B_ref);
   EXPECT_EQ(C_val, C_ref);
+}
+
+/// @brief Two Build() calls on one builder must give two solvers with the same behavior.
+///
+/// Build() must not move the external models or the built-in constraints out of the builder.
+/// EquilibriumConstraintModel has std::string members, so a moved-from copy has empty species
+/// names and fails in FinalizeConstraintSetup. A moved-from constraints_ vector gives a second
+/// solver without the built-in constraint.
+TEST(ExternalModelConstraints, BuilderCanBuildMultipleSolvers)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  auto D = micm::Species("D");
+  micm::Phase gas_phase{ "gas", { A, B, C, D } };
+
+  micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                             .SetReactants({ A })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+
+  // Built-in constraint: 2 * [A] - [D] = 0, with D as the algebraic species
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+      "A_D_eq",
+      D,
+      std::vector<micm::StoichSpecies>{ { A, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { D, 1.0 } },
+      { 2.0, 0.0 }));
+
+  // External constraint: K_EQ * [B] - [C] = 0, with C as the algebraic species
+  EquilibriumConstraintModel eq_model("B", "C", K_EQ);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                     .SetSystem(micm::System(gas_phase))
+                     .SetReactions({ rxn_ab })
+                     .SetConstraints(std::move(constraints))
+                     .SetReorderState(false)
+                     .AddExternalModel(eq_model);
+
+  auto first_solver = builder.Build();
+  auto second_solver = builder.Build();
+
+  auto solve = [](auto& solver)
+  {
+    auto state = solver.GetState(1);
+    EXPECT_EQ(state.constraint_size_, 2);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.variables_[0][state.variable_map_.at("D")] = 2.0;
+    state.conditions_[0].temperature_ = 298.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    for (micm::Index step = 0; step < 20; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(1.0, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Solve failed at step " << step;
+    }
+
+    std::vector<micm::Real> values;
+    for (const auto& name : { "A", "B", "C", "D" })
+    {
+      values.push_back(state.variables_[0][state.variable_map_.at(name)]);
+    }
+    return values;
+  };
+
+  auto first = solve(first_solver);
+  auto second = solve(second_solver);
+
+  // Both constraints must hold in the first solver
+  constexpr micm::Real residual_tol = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-4;
+  EXPECT_NEAR(2.0 * first[0] - first[3], 0.0, residual_tol);
+  EXPECT_NEAR(K_EQ * first[1] - first[2], 0.0, residual_tol);
+
+  // The two solvers come from the same configuration, so the results must be bit-for-bit equal
+  EXPECT_EQ(first, second);
 }

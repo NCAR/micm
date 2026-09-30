@@ -35,11 +35,11 @@ namespace micm
     RatesBundle(const RatesBundle&) = delete;
     RatesBundle& operator=(const RatesBundle&) = delete;
 
-    InnerRates& inner()
+    InnerRates& Inner()
     {
       return inner_;
     }
-    const InnerRates& inner() const
+    const InnerRates& Inner() const
     {
       return inner_;
     }
@@ -119,9 +119,9 @@ namespace micm
   class ConstraintBundle
   {
    public:
-    static constexpr std::size_t model_count = sizeof...(ExternalModels);
+    static constexpr std::size_t MODEL_COUNT = sizeof...(ExternalModels);
     using ModelsTuple = std::tuple<ExternalModels...>;
-    using ActiveMask = std::array<bool, model_count>;
+    using ActiveMask = std::array<bool, MODEL_COUNT>;
 
     ConstraintBundle() = default;
 
@@ -137,11 +137,11 @@ namespace micm
     ConstraintBundle(const ConstraintBundle&) = default;
     ConstraintBundle& operator=(const ConstraintBundle&) = default;
 
-    InnerConstraints& inner()
+    InnerConstraints& Inner()
     {
       return inner_;
     }
-    const InnerConstraints& inner() const
+    const InnerConstraints& Inner() const
     {
       return inner_;
     }
@@ -209,7 +209,7 @@ namespace micm
       {
         return;
       }
-      InvokeConstraintsImpl(std::forward<F>(f), std::make_index_sequence<model_count>{});
+      InvokeConstraintsImpl(std::forward<F>(f), std::make_index_sequence<MODEL_COUNT>{});
     }
 
     template<class F, std::size_t... I>
