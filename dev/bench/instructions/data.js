@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788295705416,
+  "lastUpdate": 1790786007376,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -1049,6 +1049,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/05be6e14dca6ae03cb9afd1f165842bf5d53a698"
         },
         "date": 1788295704590,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 523345617,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 526932974,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 363917250,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 284058117,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238026224,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 218360972,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bd1f011107fad36c148fba66ccebea6253c530e",
+          "message": "Add Compiler Explorer badge to README (#1093)\n\nAdd Compiler Explorer badge and link to README\n\nLink to a godbolt.org session that runs the README example with micm 3.13.0.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-30T11:29:37-05:00",
+          "tree_id": "042f9c6f1d352161e422717f7f3b6ffc48f2d2e4",
+          "url": "https://github.com/NCAR/micm/commit/8bd1f011107fad36c148fba66ccebea6253c530e"
+        },
+        "date": 1790786006580,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
