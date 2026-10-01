@@ -68,6 +68,9 @@ void TestCloudChemistryConditionSweep(BuilderFactory make_builder)
     StubCloudChemistry cloud(k, h_ref, dh_r, lwc);
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    // At the fastest points (k_eff near 10 s-1), the tight solver_rtol needs several hundred internal
+    // steps for each time step until A_T decays. Allow more than the default 1000 steps.
+    options.max_number_of_steps_ = 10000;
     auto solver = make_builder(options)
                       .SetSystem(micm::System(gas_phase))
                       .SetReactions({})
@@ -89,12 +92,21 @@ void TestCloudChemistryConditionSweep(BuilderFactory make_builder)
 
         auto state = solver.GetState(1);
         state.SetRelativeTolerance(solver_rtol);
-        state.SetAbsoluteTolerances(std::vector<micm::Real>(state.state_size_, solver_atol_factor * a0));
 
         const auto i_total = state.variable_map_.at("CLOUD.A_T");
         const auto i_gas = state.variable_map_.at("A_G");
         const auto i_aq = state.variable_map_.at("CLOUD.A_AQ");
         const auto i_p = state.variable_map_.at("CLOUD.P_AQ");
+
+        // The solver uses the step change of an algebraic variable as its error estimate. A_G and A_AQ
+        // change at the reaction rate, so a tight tolerance on them limits the step size to about
+        // rtol / k_eff, whatever the real accuracy is. A loose absolute tolerance on the algebraic
+        // variables removes that limit, and the differential variables control the step size.
+        // The comparison to the exact solution below still checks all of the species.
+        std::vector<micm::Real> absolute_tolerances(state.state_size_, solver_atol_factor * a0);
+        absolute_tolerances[i_gas] = 1.0e3 * a0;
+        absolute_tolerances[i_aq] = 1.0e3 * a0;
+        state.SetAbsoluteTolerances(absolute_tolerances);
 
         // Start on the equilibrium manifold, so that the initialization does not move mass
         state.variables_[0][i_total] = a0;
