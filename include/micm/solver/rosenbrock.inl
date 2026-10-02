@@ -225,29 +225,31 @@ namespace micm
 
         // Compute the normalized error
         static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state, error);
+        // Read the host value once. With C++23, nvc++ finds std::pow(ScalarView<Real>, Real) ambiguous.
+        const Real normalized_error = error;
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         Real fac = std::min(
             parameters.factor_max_,
             std::max(
                 parameters.factor_min_,
-                parameters.safety_factor_ / std::pow(error, 1 / parameters.estimator_of_local_order_)));
+                parameters.safety_factor_ / std::pow(normalized_error, 1 / parameters.estimator_of_local_order_)));
         Real Hnew = H * fac;
 
         result.stats_.number_of_steps_ += 1;
 
         // Check the error magnitude and adjust step size
-        if (std::isnan(error))
+        if (std::isnan(normalized_error))
         {
           result.state_ = SolverState::NaNDetected;
           break;
         }
-        if (std::isinf(error) == 1)
+        if (std::isinf(normalized_error) == 1)
         {
           result.state_ = SolverState::InfDetected;
           break;
         }
-        if ((error < 1) || (H < h_min))
+        if ((normalized_error < 1) || (H < h_min))
         {
           result.stats_.accepted_ += 1;
           present_time = present_time + H;
