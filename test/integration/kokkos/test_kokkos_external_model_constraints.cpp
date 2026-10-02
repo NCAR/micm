@@ -526,6 +526,64 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   }
 }
 
+/// @brief Algebraic rows hold only the constraint terms, not the external process terms.
+///
+/// StubAerosolWithConstraints has the process A_GAS -> A_AQ at rate k and the constraint
+/// [A_GAS] + [A_AQ] - total = 0 in the A_AQ row. The process also writes into the A_AQ row.
+/// After the rates and the constraints run in the Rosenbrock sequence, the A_AQ row must
+/// match the constraint only, and the A_GAS row must keep the process terms.
+TEST(ExternalModelConstraints, AlgebraicRowHoldsOnlyConstraintTerms)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  const micm::Real k = 10.0;
+  const micm::Real total = 1.0;
+  StubAerosolWithConstraints aerosol(k, total);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(gas_phase))
+                    .SetReactions({})
+                    .SetReorderState(false)
+                    .AddExternalModel(aerosol)
+                    .Build();
+
+  auto state = solver.GetState(1);
+  const auto i_gas = state.variable_map_.at("A_GAS");
+  const auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  const micm::Real gas = 0.7;
+  const micm::Real aq = 0.2;
+  state.variables_[0][i_gas] = gas;
+  state.variables_[0][i_aq] = aq;
+  state.variables_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
+  const auto& rates = solver.solver_.rates_;
+  const auto& constraints = solver.solver_.constraints_;
+  constexpr micm::Real tol = std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-6;
+
+  // Forcing
+  std::remove_cvref_t<decltype(state.variables_)> forcing(1, state.state_size_, 0.0);
+  forcing.Fill(0);
+  rates.AddForcingTerms(state, state.variables_, forcing);
+  constraints.AddForcingTerms(state.variables_, state.custom_rate_parameters_, forcing);
+  forcing.CopyToHost();
+
+  EXPECT_NEAR(forcing[0][i_gas], -k * gas, tol);
+  EXPECT_NEAR(forcing[0][i_aq], gas + aq - total, tol);
+
+  // Jacobian (the solver stores -J)
+  state.jacobian_.Fill(0);
+  rates.SubtractJacobianTerms(state, state.variables_, state.jacobian_);
+  constraints.SubtractJacobianTerms(state.variables_, state.custom_rate_parameters_, state.jacobian_);
+  state.jacobian_.CopyToHost();
+
+  EXPECT_NEAR(state.jacobian_[0][i_gas][i_gas], k, tol);
+  EXPECT_NEAR(state.jacobian_[0][i_aq][i_gas], -1.0, tol) << "External process term is still in the algebraic row";
+  EXPECT_NEAR(state.jacobian_[0][i_aq][i_aq], -1.0, tol);
+}
+
 /// @brief Verify that external model constraints combine with built-in SetConstraints
 TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
 {

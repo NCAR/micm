@@ -7,8 +7,10 @@
 
 #include <array>
 #include <memory>
+#include <set>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 namespace micm
 {
@@ -16,9 +18,18 @@ namespace micm
   ///
   /// Solve-time methods first delegate to the inner (built-in) rates policy, then dispatch
   /// directly on each external model that satisfies `HasProcesses`.
-  template<class InnerRates, class... ExternalModels>
+  ///
+  /// The built-in rates policy skips algebraic rows, but external models do not know which rows
+  /// are algebraic. After the external models run, the bundle sets their algebraic-row
+  /// contributions to zero, so that these rows hold only the constraint terms.
+  template<class InnerRates, class DenseMatrixPolicy, class SparseMatrixPolicy, class... ExternalModels>
   class RatesBundle
   {
+    template<class U>
+    using Vector = typename SparseMatrixPolicy::template VectorType<U>;
+
+    static constexpr bool HAS_EXTERNAL_PROCESSES = (HasProcesses<ExternalModels> || ...);
+
    public:
     using ModelsTuple = std::tuple<ExternalModels...>;
 
@@ -44,22 +55,81 @@ namespace micm
       return inner_;
     }
 
-    template<class State, class DenseMatrixPolicy>
+    /// @brief Records the algebraic rows that external process models must not contribute to.
+    /// @param algebraic_variable_ids Ids of all algebraic variables (built-in and external constraints)
+    /// @param algebraic_jacobian_flat_ids Flat ids of the external process Jacobian elements in algebraic rows
+    void SetAlgebraicRows(const std::set<Index>& algebraic_variable_ids, const std::set<Index>& algebraic_jacobian_flat_ids)
+    {
+      algebraic_variable_ids_ = std::vector<Index>(algebraic_variable_ids.begin(), algebraic_variable_ids.end());
+      algebraic_jacobian_flat_ids_ =
+          std::vector<Index>(algebraic_jacobian_flat_ids.begin(), algebraic_jacobian_flat_ids.end());
+      algebraic_variable_ids_.CopyToDevice();
+      algebraic_jacobian_flat_ids_.CopyToDevice();
+    }
+
+    template<class State>
     void AddForcingTerms(const State& state, const DenseMatrixPolicy& Y, DenseMatrixPolicy& forcing) const
     {
       inner_.AddForcingTerms(state, Y, forcing);
       InvokeProcesses([&](const auto& m) { m.AddForcingTerms(state.custom_rate_parameters_, Y, forcing); });
+      if constexpr (HAS_EXTERNAL_PROCESSES)
+      {
+        ClearAlgebraicForcing(forcing);
+      }
     }
 
-    template<class State, class DenseMatrixPolicy, class SparseMatrixPolicy>
+    template<class State>
     void SubtractJacobianTerms(const State& state, const DenseMatrixPolicy& Y, SparseMatrixPolicy& jacobian) const
     {
       inner_.SubtractJacobianTerms(state, Y, jacobian);
       InvokeProcesses([&](const auto& m) { m.SubtractJacobianTerms(state.custom_rate_parameters_, Y, jacobian); });
+      if constexpr (HAS_EXTERNAL_PROCESSES)
+      {
+        ClearAlgebraicJacobian(jacobian);
+      }
+    }
+
+    // These two methods are public because CUDA does not allow an extended __host__ __device__
+    // lambda in a private or protected member function.
+
+    /// @brief Sets the forcing of each algebraic variable to zero. The constraints set these rows later.
+    void ClearAlgebraicForcing(DenseMatrixPolicy& forcing) const
+    {
+      if (algebraic_variable_ids_.size() == 0)
+      {
+        return;
+      }
+      const auto rows = std::as_const(algebraic_variable_ids_).GetView();
+      DenseMatrixPolicy::Function(
+          MICM_LAMBDA(const typename DenseMatrixPolicy::ViewType& forcing_view) {
+            for (Index i = 0; i < rows.size(); ++i)
+            {
+              forcing_view.ForEachRow([](Real& f) { f = 0; }, forcing_view.GetColumnView(rows[i]));
+            }
+          },
+          forcing)(forcing);
+    }
+
+    /// @brief Sets the external process Jacobian elements in algebraic rows to zero.
+    void ClearAlgebraicJacobian(SparseMatrixPolicy& jacobian) const
+    {
+      if (algebraic_jacobian_flat_ids_.size() == 0)
+      {
+        return;
+      }
+      const auto flat_ids = std::as_const(algebraic_jacobian_flat_ids_).GetView();
+      SparseMatrixPolicy::Function(
+          MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
+            for (Index i = 0; i < flat_ids.size(); ++i)
+            {
+              jacobian_view.ForEachBlock([](Real& j) { j = 0; }, jacobian_view.GetBlockView(flat_ids[i]));
+            }
+          },
+          jacobian)(jacobian);
     }
 
     /// @brief Called before each solve to refresh temperature-/pressure-dependent parameters.
-    template<class ConditionsVector, class DenseMatrixPolicy>
+    template<class ConditionsVector>
     void UpdateStateParameters(const ConditionsVector& conditions, DenseMatrixPolicy& state_parameters) const
     {
       InvokeProcesses([&](const auto& m) { m.UpdateStateParameters(conditions, state_parameters); });
@@ -106,6 +176,8 @@ namespace micm
 
     InnerRates inner_{};
     std::shared_ptr<ModelsTuple> models_;
+    Vector<Index> algebraic_variable_ids_{};
+    Vector<Index> algebraic_jacobian_flat_ids_{};
   };
 
   /// @brief Wraps an inner constraint set and a shared tuple of concrete external models.
