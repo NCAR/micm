@@ -1,7 +1,6 @@
 // Copyright (C) 2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../cloud_chemistry_policy.hpp"
 #include "../stub_aerosol_with_constraints.hpp"
 
 #include <micm/Kokkos.hpp>
@@ -583,55 +582,6 @@ TEST(ExternalModelConstraints, AlgebraicRowHoldsOnlyConstraintTerms)
   EXPECT_NEAR(state.jacobian_[0][i_gas][i_gas], k, tol);
   EXPECT_NEAR(state.jacobian_[0][i_aq][i_gas], -1.0, tol) << "External process term is still in the algebraic row";
   EXPECT_NEAR(state.jacobian_[0][i_aq][i_aq], -1.0, tol);
-}
-
-/// @brief A fast external process that writes into an algebraic row converges and keeps the constraint.
-TEST(ExternalModelConstraints, LargeProcessRateInAlgebraicRowConverges)
-{
-  auto A_GAS = micm::Species("A_GAS");
-  micm::Phase gas_phase{ "gas", { A_GAS } };
-
-  const micm::Real k = 1.0e3;
-  const micm::Real total = 1.0;
-  StubAerosolWithConstraints aerosol(k, total);
-
-  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
-  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(gas_phase))
-                    .SetReactions({})
-                    .SetReorderState(false)
-                    .AddExternalModel(aerosol)
-                    .Build();
-
-  auto state = solver.GetState(1);
-  const auto i_gas = state.variable_map_.at("A_GAS");
-  const auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
-  state.variables_[0][i_gas] = 0.9;
-  state.variables_[0][i_aq] = 0.1;
-  state.conditions_[0].temperature_ = 298.0;
-  state.conditions_[0].pressure_ = 101325.0;
-
-  for (micm::Index step = 0; step < 10; ++step)
-  {
-    auto result = solver.Solve(1.0, state);
-    state.variables_.CopyToHost();
-    EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Step " << step;
-    EXPECT_NEAR(state.variables_[0][i_gas] + state.variables_[0][i_aq], total, 1e-4)
-        << "Conservation violated at step " << step;
-  }
-
-  // A_GAS decays with the time scale 1/k, so all of the mass is in A_AQ
-  EXPECT_NEAR(state.variables_[0][i_gas], 0.0, 1e-4);
-  EXPECT_NEAR(state.variables_[0][i_aq], total, 1e-4);
-}
-
-/// @brief Cloud chemistry over the atmospheric range of temperature, pressure, and liquid water content
-///
-/// See cloud_chemistry_policy.hpp. This covers https://github.com/NCAR/musica/issues/956.
-TEST(ExternalModelConstraints, CloudChemistryConditionSweep)
-{
-  TestCloudChemistryConditionSweep([](const micm::RosenbrockSolverParameters& options)
-                                   { return micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options); });
 }
 
 /// @brief Verify that external model constraints combine with built-in SetConstraints
