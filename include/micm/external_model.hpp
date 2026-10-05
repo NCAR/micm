@@ -45,12 +45,16 @@
 /// Build-time finalization (called once after the parameter map, species map, and Jacobian
 /// sparsity are finalized so the model can cache flat indices):
 /// ```cpp
-/// template<class SparseMatrixPolicy>
+/// template<class DenseMatrixPolicy, class SparseMatrixPolicy>
 /// void FinalizeProcessSetup(
 ///     const std::unordered_map<std::string, Index>& state_parameter_indices,
 ///     const std::unordered_map<std::string, Index>& state_variable_indices,
 ///     const SparseMatrixPolicy& jacobian);
 /// ```
+///
+/// The builder supplies the solver's `DenseMatrixPolicy` explicitly and deduces
+/// `SparseMatrixPolicy` from `jacobian`. A model that declares only
+/// `template<class SparseMatrixPolicy>` is still supported.
 ///
 /// Solve-time (called by the solver each step):
 /// ```cpp
@@ -91,12 +95,16 @@
 ///
 /// Build-time finalization:
 /// ```cpp
-/// template<class SparseMatrixPolicy>
+/// template<class DenseMatrixPolicy, class SparseMatrixPolicy>
 /// void FinalizeConstraintSetup(
 ///     const std::unordered_map<std::string, Index>& state_parameter_indices,
 ///     const std::unordered_map<std::string, Index>& state_variable_indices,
 ///     const SparseMatrixPolicy& jacobian);
 /// ```
+///
+/// The builder supplies the solver's `DenseMatrixPolicy` explicitly and deduces
+/// `SparseMatrixPolicy` from `jacobian`. A model that declares only
+/// `template<class SparseMatrixPolicy>` is still supported.
 ///
 /// Solve-time:
 /// ```cpp
