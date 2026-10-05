@@ -48,15 +48,15 @@ namespace
 
   struct FinalizeRecord
   {
-    std::type_index dense_type{ typeid(void) };
-    std::type_index sparse_type{ typeid(void) };
-    int calls{ 0 };
+    std::type_index dense_type_{ typeid(void) };
+    std::type_index sparse_type_{ typeid(void) };
+    int calls_{ 0 };
   };
 
   template<bool UseDenseMatrixPolicy>
   struct FinalizeRecorderModel
   {
-    std::shared_ptr<FinalizeRecord> record = std::make_shared<FinalizeRecord>();
+    std::shared_ptr<FinalizeRecord> record_ = std::make_shared<FinalizeRecord>();
 
     std::set<std::string> SpeciesUsed() const
     {
@@ -76,9 +76,9 @@ namespace
         const std::unordered_map<std::string, micm::Index>&,
         const SparseMatrixPolicy&)
     {
-      record->dense_type = typeid(DenseMatrixPolicy);
-      record->sparse_type = typeid(SparseMatrixPolicy);
-      ++record->calls;
+      record_->dense_type_ = typeid(DenseMatrixPolicy);
+      record_->sparse_type_ = typeid(SparseMatrixPolicy);
+      ++record_->calls_;
     }
 
     template<class SparseMatrixPolicy>
@@ -88,8 +88,8 @@ namespace
         const std::unordered_map<std::string, micm::Index>&,
         const SparseMatrixPolicy&)
     {
-      record->sparse_type = typeid(SparseMatrixPolicy);
-      ++record->calls;
+      record_->sparse_type_ = typeid(SparseMatrixPolicy);
+      ++record_->calls_;
     }
 
     template<class ConditionsVector, class DenseMatrixPolicy>
@@ -112,7 +112,7 @@ namespace
   std::shared_ptr<FinalizeRecord> BuildWithFinalizeRecorder()
   {
     FinalizeRecorderModel<UseDenseMatrixPolicy> model;
-    auto record = model.record;
+    auto record = model.record_;
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DenseMatrixPolicy, SparseMatrixPolicy>(
                       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                       .SetSystem(the_system)
@@ -267,14 +267,14 @@ TEST(SolverBuilder, FinalizeReceivesDenseMatrixPolicy)
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
   auto standard = BuildWithFinalizeRecorder<StandardDense, StandardSparse, true>();
-  EXPECT_EQ(standard->calls, 1);
-  EXPECT_EQ(standard->dense_type, std::type_index(typeid(StandardDense)));
-  EXPECT_EQ(standard->sparse_type, std::type_index(typeid(StandardSparse)));
+  EXPECT_EQ(standard->calls_, 1);
+  EXPECT_EQ(standard->dense_type_, std::type_index(typeid(StandardDense)));
+  EXPECT_EQ(standard->sparse_type_, std::type_index(typeid(StandardSparse)));
 
   auto vector = BuildWithFinalizeRecorder<VectorDense, VectorSparse, true>();
-  EXPECT_EQ(vector->calls, 1);
-  EXPECT_EQ(vector->dense_type, std::type_index(typeid(VectorDense)));
-  EXPECT_EQ(vector->sparse_type, std::type_index(typeid(VectorSparse)));
+  EXPECT_EQ(vector->calls_, 1);
+  EXPECT_EQ(vector->dense_type_, std::type_index(typeid(VectorDense)));
+  EXPECT_EQ(vector->sparse_type_, std::type_index(typeid(VectorSparse)));
 }
 
 TEST(SolverBuilder, FinalizeSupportsSparseOnlySignature)
@@ -283,7 +283,7 @@ TEST(SolverBuilder, FinalizeSupportsSparseOnlySignature)
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
   auto legacy = BuildWithFinalizeRecorder<VectorDense, VectorSparse, false>();
-  EXPECT_EQ(legacy->calls, 1);
-  EXPECT_EQ(legacy->dense_type, std::type_index(typeid(void)));
-  EXPECT_EQ(legacy->sparse_type, std::type_index(typeid(VectorSparse)));
+  EXPECT_EQ(legacy->calls_, 1);
+  EXPECT_EQ(legacy->dense_type_, std::type_index(typeid(void)));
+  EXPECT_EQ(legacy->sparse_type_, std::type_index(typeid(VectorSparse)));
 }
