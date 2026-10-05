@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/system/species.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -10,7 +11,7 @@ namespace micm
   struct StoichSpecies
   {
     Species species_;
-    double coefficient_{ 1.0 };
+    Real coefficient_{ 1.0 };
   };
 
   using Yield [[deprecated("micm::Yield has been renamed to micm::StoichSpecies; please use StoichSpecies instead")]] =

@@ -12,13 +12,16 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <cstddef>
+#include <initializer_list>
 #include <iomanip>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -28,32 +31,58 @@ namespace micm
   /// @brief Invariants that can be used to construct a state
   struct StateParameters
   {
-    std::size_t number_of_species_{ 0 };
-    std::size_t number_of_constraints_{ 0 };
-    std::size_t number_of_rate_constants_{ 0 };
+    Index number_of_species_{ 0 };
+    Index number_of_constraints_{ 0 };
+    Index number_of_rate_constants_{ 0 };
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
-    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
-    double relative_tolerance_{ 1e-06 };
-    std::vector<double> absolute_tolerance_{};
-    std::vector<double> mass_matrix_diagonal_{};
+    std::set<std::pair<Index, Index>> nonzero_jacobian_elements_{};
+    // Default relative tolerance is looser in single precision: 1e-6 is ~8x float epsilon (1.2e-7),
+    // which leaves the adaptive solver almost no headroom to drive the error norm below 1.
+    Real relative_tolerance_{ static_cast<Real>(std::is_same_v<Real, double> ? 1e-06 : 1e-05) };
+    std::vector<Real> absolute_tolerance_{};
+    std::vector<Real> mass_matrix_diagonal_{};
   };
 
   template<
       class DenseMatrixPolicy = StandardDenseMatrix,
       class SparseMatrixPolicy = StandardSparseMatrix,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   struct State
   {
+    template<class U>
+    using Vector = typename SparseMatrixPolicy::template VectorType<U>;
+    template<class U>
+    using VectorView = typename Vector<U>::ConstViewType;
+    template<class U>
+    using Scalar = typename SparseMatrixPolicy::template ScalarType<U>;
+
     /// Type of the DenseMatrixPolicy
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
     using LuDecompositionPolicyType = LuDecompositionPolicy;
 
+    struct Views
+    {
+      VectorView<Real> upper_left_identity_diagonal_;
+      VectorView<Index> jacobian_diagonal_elements_;
+      VectorView<Real> absolute_tolerance_;
+
+      Views() = default;
+
+      Views(
+          const Vector<Real>& upper_left_identity_diagonal,
+          const Vector<Index>& jacobian_diagonal_elements,
+          const Vector<Real>& absolute_tolerance)
+          : upper_left_identity_diagonal_(upper_left_identity_diagonal.GetView()),
+            jacobian_diagonal_elements_(jacobian_diagonal_elements.GetView()),
+            absolute_tolerance_(absolute_tolerance.GetView())
+      {
+      }
+    };
+
     /// @brief The number of grid cells stored in the state
-    std::size_t number_of_grid_cells_{ 1 };
+    Index number_of_grid_cells_{ 1 };
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;
     /// @brief Rate parameters particular to user-defined rate constants, may vary in time
@@ -61,59 +90,61 @@ namespace micm
     /// @brief The reaction rates, may vary in time
     DenseMatrixPolicy rate_constants_;
     /// @brief Atmospheric conditions, varies in time
-    std::vector<Conditions> conditions_;
+    typename DenseMatrixPolicy::template VectorType<Conditions> conditions_;
     /// @brief The block matrix with an upper left identity, zeros elsewhere
-    std::vector<double> upper_left_identity_diagonal_;
+    Vector<Real> upper_left_identity_diagonal_;
     /// @brief The jacobian structure, varies for each solve
     SparseMatrixPolicy jacobian_;
-    std::vector<std::size_t> jacobian_diagonal_elements_;
+    Vector<Index> jacobian_diagonal_elements_;
     /// @brief Immutable data required for the state
-    std::unordered_map<std::string, std::size_t> variable_map_;
-    std::unordered_map<std::string, std::size_t> custom_rate_parameter_map_;
+    std::unordered_map<std::string, Index> variable_map_;
+    std::unordered_map<std::string, Index> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
-    LMatrixPolicy lower_matrix_;
-    UMatrixPolicy upper_matrix_;
-    std::size_t state_size_;
-    std::size_t constraint_size_;
+    SparseMatrixPolicy lower_matrix_;
+    SparseMatrixPolicy upper_matrix_;
+    Index state_size_;
+    Index constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
-    double relative_tolerance_;
-    std::vector<double> absolute_tolerance_;
+    Real relative_tolerance_;
+    Vector<Real> absolute_tolerance_;
+
+    Views views_;
 
     class VariableProxy
     {
       State& state_;
-      std::size_t index_;
+      Index index_;
 
      public:
-      VariableProxy(State& state, std::size_t index)
+      VariableProxy(State& state, Index index)
           : state_(state),
             index_(index)
       {
       }
 
-      operator double() const;
+      operator Real() const;
 
-      VariableProxy& operator=(double value);
+      VariableProxy& operator=(Real value);
 
-      VariableProxy& operator=(const std::vector<double>& values);
+      VariableProxy& operator=(const std::vector<Real>& values);
 
       VariableProxy& operator=(const VariableProxy& other);
 
-      VariableProxy& operator+=(double value);
+      VariableProxy& operator+=(Real value);
 
-      VariableProxy& operator-=(double value);
+      VariableProxy& operator-=(Real value);
 
-      VariableProxy& operator*=(double value);
+      VariableProxy& operator*=(Real value);
 
-      VariableProxy& operator/=(double value);
+      VariableProxy& operator/=(Real value);
 
-      double& operator[](std::size_t grid_cell_index);
+      Real& operator[](Index grid_cell_index);
 
-      const double& operator[](std::size_t grid_cell_index) const;
+      const Real& operator[](Index grid_cell_index) const;
 
-      bool operator==(const std::vector<double>& other) const;
+      bool operator==(const std::vector<Real>& other) const;
 
-      friend bool operator==(const std::vector<double>& lhs, const VariableProxy& rhs)
+      friend bool operator==(const std::vector<Real>& lhs, const VariableProxy& rhs)
       {
         return rhs == lhs;
       }
@@ -122,22 +153,22 @@ namespace micm
     class ConstVariableProxy
     {
       const State& state_;
-      std::size_t index_;
+      Index index_;
 
      public:
-      ConstVariableProxy(const State& state, std::size_t index)
+      ConstVariableProxy(const State& state, Index index)
           : state_(state),
             index_(index)
       {
       }
 
-      operator double() const;
+      operator Real() const;
 
-      const double& operator[](std::size_t grid_cell_index) const;
+      const Real& operator[](Index grid_cell_index) const;
 
-      bool operator==(const std::vector<double>& other) const;
+      bool operator==(const std::vector<Real>& other) const;
 
-      friend bool operator==(const std::vector<double>& lhs, const ConstVariableProxy& rhs)
+      friend bool operator==(const std::vector<Real>& lhs, const ConstVariableProxy& rhs)
       {
         return rhs == lhs;
       }
@@ -150,7 +181,7 @@ namespace micm
 
     /// @brief Constructor with parameters
     /// @param parameters State dimension information
-    State(const StateParameters& parameters, const std::size_t number_of_grid_cells);
+    State(const StateParameters& parameters, const Index number_of_grid_cells);
 
     /// @brief Copy constructor
     /// @param other The state object to be copied
@@ -174,6 +205,7 @@ namespace micm
       temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
       relative_tolerance_ = other.relative_tolerance_;
       absolute_tolerance_ = other.absolute_tolerance_;
+      views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
     }
 
     /// @brief Assignment operator
@@ -201,6 +233,7 @@ namespace micm
         temporary_variables_ = other.temporary_variables_ ? other.temporary_variables_->Clone() : nullptr;
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = other.absolute_tolerance_;
+        views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
       }
       return *this;
     }
@@ -225,7 +258,8 @@ namespace micm
           number_of_grid_cells_(other.number_of_grid_cells_),
           temporary_variables_(std::move(other.temporary_variables_)),
           relative_tolerance_(other.relative_tolerance_),
-          absolute_tolerance_(std::move(other.absolute_tolerance_))
+          absolute_tolerance_(std::move(other.absolute_tolerance_)),
+          views_(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_)
     {
     }
 
@@ -254,6 +288,7 @@ namespace micm
         temporary_variables_ = std::move(other.temporary_variables_);
         relative_tolerance_ = other.relative_tolerance_;
         absolute_tolerance_ = std::move(other.absolute_tolerance_);
+        views_ = Views(upper_left_identity_diagonal_, jacobian_diagonal_elements_, absolute_tolerance_);
 
         other.state_size_ = 0;
         other.constraint_size_ = 0;
@@ -266,7 +301,7 @@ namespace micm
 
     /// @brief Get the number of grid cells
     /// @return The number of grid cells
-    std::size_t NumberOfGridCells() const
+    Index NumberOfGridCells() const
     {
       return number_of_grid_cells_;
     }
@@ -274,12 +309,12 @@ namespace micm
     /// @brief Square-bracket access operator for state variable index
     /// @param index The index of the variable to access
     /// @return Reference to the variable matrix column corresponding to the given index
-    VariableProxy operator[](std::size_t index);
+    VariableProxy operator[](Index index);
 
     /// @brief Square-bracket access operator for state variable index (const version)
     /// @param index The index of the variable to access
     /// @return Const reference to the variable matrix column corresponding to the given index
-    ConstVariableProxy operator[](std::size_t index) const;
+    ConstVariableProxy operator[](Index index) const;
 
     /// @brief Square-bracket access operator for unique variable name
     /// @param name The unique name of the variable to access
@@ -315,64 +350,69 @@ namespace micm
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration
-    void SetConcentrations(const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
+    void SetConcentrations(const std::unordered_map<std::string, std::vector<Real>>& species_to_concentration);
 
     /// @brief Set a single species concentration
     /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations,
     /// e.g., state[species] = concentration or state["species_name"] = concentration
     /// @param species the species to set the concentration for
     /// @param concentration concentration [mol m-3]
-    void SetConcentration(const Species& species, double concentration);
+    void SetConcentration(const Species& species, Real concentration);
 
     /// @brief Set concentrations for a single species across multiple grid cells
     /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations,
     /// e.g., state[species] = concentrations or state["species_name"] = concentrations
     /// @param species the species to set the concentrations for
     /// @param concentration vector of concentrations [mol m-3], one per grid cell
-    void SetConcentration(const Species& species, const std::vector<double>& concentration);
+    void SetConcentration(const Species& species, const std::vector<Real>& concentration);
 
     /// @brief Set the concentration for a named element (species or other variable)
     /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations,
     /// e.g., state[species] = concentration or state["species_name"] = concentration
     /// @param species the name of the element (can be a non-species variable, e.g., number_concentration)
     /// @param concentration concentration value [mol m-3]
-    void SetConcentration(const std::string& element, double concentration);
+    void SetConcentration(const std::string& element, Real concentration);
 
     /// @brief Set concentrations for a named element (species or other variable) across multiple grid cells
     /// @deprecated This method is deprecated in favor of using the operator[] with species or name to set concentrations,
     /// e.g., state[species] = concentrations or state["species_name"] = concentrations
     /// @param species the name of the element (can be a non-species variable, e.g., number_concentration)
     /// @param concentration vector of concentrations [mol m-3], one per grid cell
-    void SetConcentration(const std::string& element, const std::vector<double>& concentration);
+    void SetConcentration(const std::string& element, const std::vector<Real>& concentration);
 
     /// @brief Set custom parameters assuming the values are properly ordered
     /// @param parameters map of custom rate parameters
-    void UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters);
+    void UnsafelySetCustomRateParameters(const std::vector<std::vector<Real>>& parameters);
 
     /// @brief Set custom parameters for rate constant calculations by label
     /// @param parameters map of custom rate parameters
-    void SetCustomRateParameters(const std::unordered_map<std::string, std::vector<double>>& parameters);
+    void SetCustomRateParameters(const std::unordered_map<std::string, std::vector<Real>>& parameters);
 
     /// @brief Set a single custom rate constant parameter
     /// @param label parameter label
     /// @param value new parameter value
-    void SetCustomRateParameter(const std::string& label, double value);
-    void SetCustomRateParameter(const std::string& label, const std::vector<double>& values);
+    void SetCustomRateParameter(const std::string& label, Real value);
+    void SetCustomRateParameter(const std::string& label, const std::vector<Real>& values);
 
     /// @brief Set the relative tolerances
     /// @param relativeTolerance relative tolerance
-    void SetRelativeTolerance(double relativeTolerance);
+    void SetRelativeTolerance(Real relative_tolerance);
 
     /// @brief Set the absolute tolerances per species
     /// @param absoluteTolerance absolute tolerance
-    virtual void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance);
+    virtual void SetAbsoluteTolerances(const std::vector<Real>& absolute_tolerances);
+    virtual void SetAbsoluteTolerances(const Vector<Real>& absolute_tolerances);
+    void SetAbsoluteTolerances(std::initializer_list<Real> absolute_tolerances)
+    {
+      SetAbsoluteTolerances(std::vector<Real>(absolute_tolerances));
+    }
 
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();
 
     /// @brief Print state (concentrations) at the given time
     /// @param time solving time
-    void PrintState(double time);
+    void PrintState(Real time);
   };
 
 }  // namespace micm

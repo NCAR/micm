@@ -6,6 +6,7 @@
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -47,7 +48,7 @@ TEST(BackwardEuler, CanCallSolve)
                 .SetSystem(the_system)
                 .SetReactions(reactions)
                 .Build();
-  double time_step = 1.0;
+  micm::Real time_step = 1.0;
 
   auto state = be.GetState(1);
   state.SetAbsoluteTolerances({ 1e-6, 1e-6, 1e-6 });
@@ -64,7 +65,7 @@ TEST(BackwardEuler, CanCallSolve)
 template<class DenseMatrixPolicy>
 void CheckIsConverged()
 {
-  using LinearSolverPolicy = micm::LinearSolver<micm::StandardSparseMatrix>;
+  using LinearSolverPolicy = micm::LinearSolver<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using RatesPolicy = micm::ProcessSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using ConstraintSetPolicy = micm::ConstraintSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using BackwardEuler = micm::AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
@@ -72,32 +73,41 @@ void CheckIsConverged()
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };
   DenseMatrixPolicy Yn1{ 4, 3, 0.0 };
+  typename DenseMatrixPolicy::template ScalarType<micm::Bool> is_converged;
 
   parameters.small_ = 1e-6;
-  double relative_tolerance = 1e-3;
-  std::vector<double> absolute_tolerance = { 1e-6, 1e-6, 1e-6 };
+  micm::Real relative_tolerance = 1e-3;
+  typename DenseMatrixPolicy::template VectorType<micm::Real> absolute_tolerance_data = { 1e-6, 1e-6, 1e-6 };
+  auto absolute_tolerance = std::as_const(absolute_tolerance_data).GetView();
 
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
   residual[0][1] = 1e-5;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_FALSE(is_converged);
   parameters.small_ = 1e-4;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
   residual[3][2] = 1e-3;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_FALSE(is_converged);
   Yn1[3][2] = 10.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
   residual[3][2] = 1e-1;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
-  absolute_tolerance[2] = 1.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_FALSE(is_converged);
+  absolute_tolerance_data[2] = 1.0;
+  BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance, is_converged);
+  ASSERT_TRUE(is_converged);
 }
 
 TEST(BackwardEuler, IsConverged)
 {
-  CheckIsConverged<micm::Matrix<double>>();
-  CheckIsConverged<micm::VectorMatrix<double, 1>>();
-  CheckIsConverged<micm::VectorMatrix<double, 2>>();
-  CheckIsConverged<micm::VectorMatrix<double, 3>>();
-  CheckIsConverged<micm::VectorMatrix<double, 4>>();
-  CheckIsConverged<micm::VectorMatrix<double, 5>>();
+  CheckIsConverged<micm::Matrix<micm::Real>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 1>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 2>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 3>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 4>>();
+  CheckIsConverged<micm::VectorMatrix<micm::Real, 5>>();
 }

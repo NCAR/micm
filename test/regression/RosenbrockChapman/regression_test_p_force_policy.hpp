@@ -3,7 +3,14 @@
 #include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
+#include <micm/util/types.hpp>
+
+#include <cerrno>
+#include <cstdlib>
+#include <limits>
 #include <random>
+#include <string>
+#include <type_traits>
 
 template<class SolverPolicy>
 void TestRateConstants(SolverPolicy& solver)
@@ -12,9 +19,9 @@ void TestRateConstants(SolverPolicy& solver)
 
   auto state = solver.GetState(3);
   auto fixed_state = fixed_solver.GetState();
-  const std::vector<std::vector<double>> photo_rates{ { 1.0e-4, 1.0e-5, 1.0e-6 },
-                                                      { 3.2e-4, 7.3e-5, 3.2e-6 },
-                                                      { 5.2e-4, 8.2e-5, 4.6e-6 } };
+  const std::vector<std::vector<micm::Real>> photo_rates{ { 1.0e-4, 1.0e-5, 1.0e-6 },
+                                                          { 3.2e-4, 7.3e-5, 3.2e-6 },
+                                                          { 5.2e-4, 8.2e-5, 4.6e-6 } };
   state.custom_rate_parameters_ = photo_rates;
   state.conditions_[0].temperature_ = 284.19;  // [K]
   state.conditions_[0].pressure_ = 101245.0;   // [Pa]
@@ -25,7 +32,7 @@ void TestRateConstants(SolverPolicy& solver)
 
   solver.UpdateStateParameters(state);
 
-  for (size_t i{}; i < 3; ++i)
+  for (micm::Index i{}; i < 3; ++i)
   {
     fixed_state.conditions_[0].temperature_ = state.conditions_[i].temperature_;
     fixed_state.conditions_[0].pressure_ = state.conditions_[i].pressure_;
@@ -33,7 +40,7 @@ void TestRateConstants(SolverPolicy& solver)
     fixed_solver.UpdateState(fixed_state);
 
     EXPECT_EQ(state.rate_constants_.NumColumns(), fixed_state.rate_constants_.NumColumns());
-    for (size_t j{}; j < state.rate_constants_.NumColumns(); ++j)
+    for (micm::Index j{}; j < state.rate_constants_.NumColumns(); ++j)
     {
       EXPECT_EQ(state.rate_constants_[i][j], fixed_state.rate_constants_[0][j]);
     }
@@ -43,8 +50,20 @@ void TestRateConstants(SolverPolicy& solver)
 template<class MatrixPolicy, class SolverPolicy>
 void TestForcing(SolverPolicy& solver)
 {
-  std::random_device rnd_device;
-  std::mt19937 engine{ rnd_device() };
+  unsigned int seed = 739;
+  if (const char* seed_env = std::getenv("MICM_TEST_SEED"))
+  {
+    char* end = nullptr;
+    errno = 0;
+    const unsigned long parsed = std::strtoul(seed_env, &end, 10);
+    ASSERT_TRUE(
+        end != seed_env && *end == '\0' && *seed_env != '-' && errno != ERANGE &&
+        parsed <= std::numeric_limits<unsigned int>::max())
+        << "MICM_TEST_SEED must be an unsigned 32-bit integer, got '" << seed_env << "'";
+    seed = static_cast<unsigned int>(parsed);
+  }
+  SCOPED_TRACE("MICM_TEST_SEED=" + std::to_string(seed));
+  std::mt19937 engine{ seed };
   std::lognormal_distribution dist(-2.0, 2.0);
 
   micm::ChapmanODESolver fixed_solver{};
@@ -60,23 +79,23 @@ void TestForcing(SolverPolicy& solver)
   forcing.Fill(0.0);
   solver.solver_.rates_.AddForcingTerms(state, state.variables_, forcing);
 
-  for (std::size_t i{}; i < 3; ++i)
+  for (micm::Index i{}; i < 3; ++i)
   {
-    double number_density_air = 1.0;
-    std::vector<double> rate_constants = state.rate_constants_[i];
-    std::vector<double> variables(state.variables_.NumColumns());
-    for (std::size_t j{}; j < state.variables_.NumColumns(); ++j)
+    micm::Real number_density_air = 1.0;
+    std::vector<micm::Real> rate_constants = state.rate_constants_[i];
+    std::vector<micm::Real> variables(state.variables_.NumColumns());
+    for (micm::Index j{}; j < state.variables_.NumColumns(); ++j)
     {
       variables[j] = state.variables_[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
     }
-    std::vector<double> fixed_forcing = fixed_solver.Force(rate_constants, variables, number_density_air);
+    std::vector<micm::Real> fixed_forcing = fixed_solver.Force(rate_constants, variables, number_density_air);
 
     EXPECT_EQ(forcing.NumColumns(), fixed_forcing.size());
-    for (std::size_t j{}; j < fixed_forcing.size(); ++j)
+    for (micm::Index j{}; j < fixed_forcing.size(); ++j)
     {
-      double a = forcing[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
-      double b = fixed_forcing[j];
-      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + 1.0e-12);
+      micm::Real a = forcing[i][state.variable_map_[fixed_solver.SpeciesNames()[j]]];
+      micm::Real b = fixed_forcing[j];
+      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * (std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-4) + 1.0e-12);
     }
   }
 }

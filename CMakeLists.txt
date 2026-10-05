@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 # project and version must be on the same line so that the docs can extract it
-project(micm VERSION 3.13.0 LANGUAGES CXX)
+project(micm VERSION 3.14.0 LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -16,6 +16,7 @@ message(STATUS "CMake build configuration for micm(${CMAKE_BUILD_TYPE}) ${PROJEC
 ################################################################################
 # Projet wide setup options
 
+include(CMakeDependentOption)
 include(cmake/StaticAnalyzers.cmake)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -29,10 +30,18 @@ option(MICM_ENABLE_MPI "Enable MPI parallel support" OFF)
 option(MICM_ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
+option(MICM_ENABLE_KOKKOS "Enable Kokkos support" OFF)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
+# The benchmark carries the whole TS1 mechanism and registers no ctest. Only the
+# workflows that measure performance build it. See docs/performance.md.
+cmake_dependent_option(MICM_ENABLE_BENCHMARK "Build the performance benchmark" OFF "MICM_ENABLE_TESTS" OFF)
+option(MICM_USE_DOUBLE "Use double precision for the micm::Real floating-point type" ON)
 option(MICM_BUILD_SHARED_LIBS "Build micm_cuda as shared libraries" OFF)
-set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Vector length (grid cells per group) for the CPU, CUDA and Kokkos vectorizable matrix types")
+if(NOT MICM_DEFAULT_VECTOR_SIZE MATCHES "^[1-9][0-9]*$")
+  message(FATAL_ERROR "MICM_DEFAULT_VECTOR_SIZE must be a positive integer; got '${MICM_DEFAULT_VECTOR_SIZE}'")
+endif()
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 
 # on Windows with MSVC, add the /bigobj flag to allow for large object files
@@ -41,6 +50,10 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" S
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
 
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+  set(MICM_USE_CUDA ON)
+  add_compile_definitions(MICM_USE_CUDA)
+endif()
 ################################################################################
 # Dependencies
 

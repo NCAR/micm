@@ -10,6 +10,7 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/process/reaction_rate_store.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
@@ -26,39 +27,34 @@ namespace micm
     ProcessSetParam devstruct_;
 
     /// GPU-resident analytic rate constant parameter store (built once per solver build)
-    CudaReactionRateStore cuda_rate_store_;
+    CudaReactionRateStore<DenseMatrixPolicy> cuda_rate_store_;
 
     CudaProcessSet() = default;
 
     CudaProcessSet(const CudaProcessSet&) = delete;
     CudaProcessSet& operator=(const CudaProcessSet&) = delete;
-    CudaProcessSet(CudaProcessSet&& other)
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // members (devstruct_, cuda_rate_store_) untouched, so moving/swapping them out of `other`
+    // afterward is safe.
+    CudaProcessSet(CudaProcessSet&& other) noexcept
         : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other)),
           cuda_rate_store_(std::move(other.cuda_rate_store_))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
-    CudaProcessSet& operator=(CudaProcessSet&& other)
+    CudaProcessSet& operator=(CudaProcessSet&& other) noexcept
     {
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       cuda_rate_store_ = std::move(other.cuda_rate_store_);
       return *this;
     };
+    // NOLINTEND(bugprone-use-after-move)
 
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
-    CudaProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, std::size_t>& variable_map);
-
-    /// @brief Create a process set calculator for a given set of processes with external models
-    /// @param processes Processes to create calculator for
-    /// @param variable_map A mapping of species names to concentration index
-    /// @param external_models External models to include
-    CudaProcessSet(
-        const std::vector<Process>& processes,
-        const std::unordered_map<std::string, std::size_t>& variable_map,
-        const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models);
+    CudaProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, Index>& variable_map);
 
     ~CudaProcessSet()
     {
@@ -67,7 +63,7 @@ namespace micm
 
     /// @brief Upload all analytic parameter arrays from cpu_store to device memory.
     ///        Called once by Solver after ReactionRateConstantStore is built.
-    void BuildCudaStore(const ReactionRateConstantStore& cpu_store)
+    void BuildCudaStore(const ReactionRateConstantStore<DenseMatrixPolicy>& cpu_store)
     {
       cuda_rate_store_.BuildFrom(cpu_store);
     }
@@ -81,17 +77,15 @@ namespace micm
     ///
     /// After this call, device rate_constants_ is fully populated for the current step.
     template<class StatePolicy>
-    void GpuCalculateRateConstants(const ReactionRateConstantStore& cpu_store, StatePolicy& state)
-      requires(
-          CudaMatrix<typename StatePolicy::DenseMatrixPolicyType> &&
-          VectorizableDense<typename StatePolicy::DenseMatrixPolicyType>)
+    void GpuCalculateRateConstants(const ReactionRateConstantStore<DenseMatrixPolicy>& cpu_store, StatePolicy& state)
+      requires(CudaMatrix<typename StatePolicy::DenseMatrixPolicyType>)
     {
       using DM = typename StatePolicy::DenseMatrixPolicyType;
 
       // CPU lambda evaluation
       if (!cpu_store.lambda_entries_.empty())
       {
-        ReactionRateConstantStore::EvaluateCpuRateConstants(cpu_store, state);
+        ReactionRateConstantStore<DM>::CalculateCpuRateConstants(cpu_store, state);
         // Upload lambda values (analytic slots carry stale data; kernel overwrites them)
         state.rate_constants_.CopyToDevice();
       }
@@ -101,8 +95,7 @@ namespace micm
       state.custom_rate_parameters_.CopyToDevice();
 
       // Evaluate parameterized multipliers on CPU and upload in interleaved layout
-      const double* d_mult_vals =
-          cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
+      const Real* d_mult_vals = cuda_rate_store_.UploadMultiplierValues(cpu_store, state.conditions_, DM::GroupVectorSize());
 
       // GPU analytic calculation (includes multiplier application)
       auto rc_param = state.rate_constants_.AsDeviceParam();
@@ -121,14 +114,14 @@ namespace micm
     ///        If algebraic variable IDs are not set post-construction, then this function may not be
     ///        necessary.
     /// @param variable_ids Set of variable ids whose forcing/Jacobian rows should not receive kinetic contributions
-    void SetAlgebraicVariableIds(const std::set<std::size_t>& variable_ids);
+    void SetAlgebraicVariableIds(const std::set<Index>& variable_ids);
 
     void AddForcingTerms(const auto& state, const DenseMatrixPolicy& state_variables, DenseMatrixPolicy& forcing) const
-      requires(VectorizableDense<DenseMatrixPolicy>);
+      requires(CudaMatrix<DenseMatrixPolicy>);
 
     void SubtractJacobianTerms(const auto& state, const DenseMatrixPolicy& state_variables, SparseMatrixPolicy& jacobian)
         const
-      requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>);
+      requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>);
 
    private:
     void InitDevStruct();
@@ -158,24 +151,9 @@ namespace micm
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::CudaProcessSet(
       const std::vector<Process>& processes,
-      const std::unordered_map<std::string, std::size_t>& variable_map)
+      const std::unordered_map<std::string, Index>& variable_map)
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map)
   {
-    InitDevStruct();
-  }
-
-  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
-  inline CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::CudaProcessSet(
-      const std::vector<Process>& processes,
-      const std::unordered_map<std::string, std::size_t>& variable_map,
-      const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models)
-      : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map, external_models)
-  {
-    if (!external_models.empty())
-    {
-      throw std::runtime_error("CudaProcessSet does not currently support external models.");
-    }
     InitDevStruct();
   }
 
@@ -188,7 +166,7 @@ namespace micm
 
     ProcessSetParam hoststruct;
     std::vector<ProcessInfoParam> jacobian_process_info(this->jacobian_process_info_.size());
-    std::size_t i_process = 0;
+    Index i_process = 0;
     for (const auto& process_info : this->jacobian_process_info_)
     {
       jacobian_process_info[i_process].process_id_ = process_info.process_id_;
@@ -215,7 +193,7 @@ namespace micm
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
     requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   inline void CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(
-      const std::set<std::size_t>& variable_ids)
+      const std::set<Index>& variable_ids)
   {
     // Update the host-side is_algebraic_variable_ array
     ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetAlgebraicVariableIds(variable_ids);
@@ -235,7 +213,7 @@ namespace micm
       const auto& state,
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
-    requires(VectorizableDense<DenseMatrixPolicy>)
+    requires(CudaMatrix<DenseMatrixPolicy>)
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue
     micm::cuda::AddForcingTermsKernelDriver(
@@ -248,7 +226,7 @@ namespace micm
       const auto& state,
       const DenseMatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
-    requires(VectorizableDense<DenseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
   {
     auto jacobian_param =
         jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue

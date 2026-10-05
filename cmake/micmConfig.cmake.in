@@ -1,5 +1,14 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+# When micm is built with MICM_ENABLE_KOKKOS, the exported micm target names
+# Kokkos::kokkos in its INTERFACE_LINK_LIBRARIES.  Without re-finding Kokkos here,
+# a downstream find_package(micm) fails with "target Kokkos::kokkos not found".
+if(@MICM_ENABLE_KOKKOS@)
+  find_dependency(Kokkos)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@_Exports.cmake")
 
 check_required_components("@PROJECT_NAME@")

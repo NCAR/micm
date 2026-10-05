@@ -10,6 +10,8 @@
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 namespace
 {
   auto a = micm::Species("A");
@@ -53,7 +55,7 @@ TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
   state.conditions_[0].air_density_ = 1.0e6;
 
   solver.UpdateStateParameters(state);
-  EXPECT_NEAR(state.rate_constants_[0][0], 0.6, 1.0e-12);
+  EXPECT_NEAR(state.rate_constants_[0][0], 0.6, (std::is_same_v<micm::Real, double>) ? 1.0e-12 : 1.0e-5);
 
   EXPECT_NO_THROW({
     auto result = solver.Solve(1.0, state);

@@ -4,6 +4,7 @@
 #include <micm/process/rate_constant/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 #include <omp.h>
@@ -12,7 +13,7 @@ using namespace micm;
 
 TEST(OpenMP, OneSolverManyStates)
 {
-  constexpr size_t n_threads = 8;
+  constexpr micm::Index n_threads = 8;
 
   auto a = micm::Species("A");
   auto b = micm::Species("B");
@@ -44,7 +45,7 @@ TEST(OpenMP, OneSolverManyStates)
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
   auto chemical_system = micm::System(gas_phase);
 
-  std::vector<std::vector<double>> results(n_threads);
+  std::vector<std::vector<micm::Real>> results(n_threads);
 
   auto solver =
       CpuSolverBuilder<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
@@ -55,15 +56,15 @@ TEST(OpenMP, OneSolverManyStates)
 #pragma omp parallel num_threads(n_threads)
   {
     auto state = solver.GetState();
-    std::vector<double> result = run_solver_on_thread_with_own_state(solver, state);
+    std::vector<micm::Real> result = run_solver_on_thread_with_own_state(solver, state);
     results[omp_get_thread_num()] = result;
 #pragma omp barrier
   }
 
   // compare each thread to thread 1
-  for (int i = 1; i < n_threads; ++i)
+  for (micm::Index i = 1; i < n_threads; ++i)
   {
-    for (int j = 0; j < results[0].size(); ++j)
+    for (micm::Index j = 0; j < results[0].size(); ++j)
     {
       EXPECT_EQ(results[0][j], results[i][j]);
     }

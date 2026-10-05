@@ -17,7 +17,6 @@ jobs:
       - name: Check out code, run clang format, push changes
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Format code

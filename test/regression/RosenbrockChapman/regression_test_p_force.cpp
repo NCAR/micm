@@ -1,12 +1,14 @@
 #include "regression_test_p_force_policy.hpp"
 
+#include <micm/util/types.hpp>
+
 #include <gtest/gtest.h>
 
-template<std::size_t L>
+template<micm::Index L>
 using VectorBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::VectorMatrix<micm::Real, L>,
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
 TEST(RegressionRosenbrock, RateConstants)
 {
@@ -45,7 +47,7 @@ TEST(RegressionRosenbrock, Forcing)
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = GetChapmanSolver(builder);
-  TestForcing<micm::Matrix<double>>(solver);
+  TestForcing<micm::Matrix<micm::Real>>(solver);
 }
 
 TEST(RegressionRosenbrock, VectorForcing)
@@ -53,21 +55,21 @@ TEST(RegressionRosenbrock, VectorForcing)
   {
     auto builder = VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = GetChapmanSolver(builder);
-    TestForcing<micm::VectorMatrix<double, 1>>(solver);
+    TestForcing<micm::VectorMatrix<micm::Real, 1>>(solver);
   }
   {
     auto builder = VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = GetChapmanSolver(builder);
-    TestForcing<micm::VectorMatrix<double, 2>>(solver);
+    TestForcing<micm::VectorMatrix<micm::Real, 2>>(solver);
   }
   {
     auto builder = VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = GetChapmanSolver(builder);
-    TestForcing<micm::VectorMatrix<double, 3>>(solver);
+    TestForcing<micm::VectorMatrix<micm::Real, 3>>(solver);
   }
   {
     auto builder = VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
     auto solver = GetChapmanSolver(builder);
-    TestForcing<micm::VectorMatrix<double, 4>>(solver);
+    TestForcing<micm::VectorMatrix<micm::Real, 4>>(solver);
   }
 }

@@ -71,7 +71,7 @@ The following example solves the fictitious chemical system::
   foo + bar --k2--> baz
 
 The `k1` and `k2` rate constants are for Arrhenius reactions.
-See the `MICM documentation <https://ncar.github.io/micm/>`
+See the `MICM documentation <https://micm.readthedocs.io/en/latest/>`_
 for details on the types of reactions available in MICM and how to configure them.
 To solve this system save the following code in a file named `foo_chem.cpp`
 

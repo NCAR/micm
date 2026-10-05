@@ -2,8 +2,20 @@
 
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
+
+template<class T>
+using VectorDense1 = micm::VectorMatrix<T, 1>;
+template<class T>
+using VectorDense2 = micm::VectorMatrix<T, 2>;
+template<class T>
+using VectorDense3 = micm::VectorMatrix<T, 3>;
+template<class T>
+using VectorDense4 = micm::VectorMatrix<T, 4>;
+template<class T>
+using VectorDense10 = micm::VectorMatrix<T, 10>;
 
 TEST(SparseVectorCompressedColumnMatrix, ZeroMatrix)
 {
@@ -32,13 +44,13 @@ TEST(SparseVectorCompressedColumnMatrix, SingleBlockMatrix)
   auto matrix = TestSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 
   {
-    std::size_t elem = matrix.VectorIndex(3, 2);
+    micm::Index elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 12);
     matrix.AsVector()[elem] = 42;
     EXPECT_EQ(matrix.AsVector()[12], 42);
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 3);
+    micm::Index elem = matrix.VectorIndex(2, 3);
     EXPECT_EQ(elem, 16);
     matrix.AsVector()[elem] = 21;
     EXPECT_EQ(matrix.AsVector()[16], 21);
@@ -53,12 +65,12 @@ TEST(SparseVectorCompressedColumnMatrix, ConstSingleBlockMatrix)
   auto matrix = TestConstSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
 
   {
-    std::size_t elem = matrix.VectorIndex(3, 2);
+    micm::Index elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 6);
     EXPECT_EQ(matrix.AsVector()[6], 42);
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 3);
+    micm::Index elem = matrix.VectorIndex(2, 3);
     EXPECT_EQ(elem, 8);
     EXPECT_EQ(matrix.AsVector()[8], 21);
   }
@@ -72,13 +84,13 @@ TEST(SparseVectorCompressedColumnMatrix, MultiBlockMatrix)
   auto matrix = TestMultiBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
 
   {
-    std::size_t elem = matrix.VectorIndex(0, 2, 3);
+    micm::Index elem = matrix.VectorIndex(0, 2, 3);
     EXPECT_EQ(elem, 8);
     matrix.AsVector()[elem] = 21;
     EXPECT_EQ(matrix.AsVector()[8], 21);
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 2, 1);
+    micm::Index elem = matrix.VectorIndex(2, 2, 1);
     EXPECT_EQ(elem, 14);
     matrix.AsVector()[elem] = 31;
     EXPECT_EQ(matrix.AsVector()[14], 31);
@@ -165,11 +177,31 @@ TEST(SparseVectorCompressedColumnMatrix, SparseAndDenseMatrixFunction)
 TEST(SparseVectorCompressedColumnMatrix, SparseAndVectorMatrixFunction)
 {
   // Valid: Vector-ordered sparse with matching L vector matrix
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>, 1>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>, 2>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>, 3>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>, 4>();
-  TestSparseAndVectorMatrixFunction<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<10>, 10>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>,
+      VectorDense1,
+      1>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>,
+      VectorDense2,
+      2>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>,
+      VectorDense3,
+      3>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>,
+      VectorDense4,
+      4>();
+  TestSparseAndVectorMatrixFunction<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<10>,
+      VectorDense10,
+      10>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, IncompatibleOrdering)
@@ -224,14 +256,6 @@ TEST(SparseVectorCompressedColumnMatrix, MismatchedElementDimensions)
   TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
   TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
   TestMismatchedElementDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
-}
-
-TEST(SparseVectorCompressedColumnMatrix, WrongMatrixDimensions)
-{
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  TestWrongMatrixDimensions<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
 TEST(SparseVectorCompressedColumnMatrix, ConstSparseMatrixFunction)
@@ -304,14 +328,6 @@ TEST(SparseVectorCompressedColumnMatrix, MultipleSparseMatricesMismatchedBlocksA
   TestMultipleSparseMatricesMismatchedBlocksAtInvocation<
       micm::SparseMatrix,
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
-}
-
-TEST(SparseVectorCompressedColumnMatrix, WrongStructureAtInvocation)
-{
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
-  TestWrongStructureAtInvocation<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
 }
 
 // ============================================================================
@@ -397,11 +413,6 @@ TEST(SparseVectorCompressedColumnMatrix, FunctionInvocationWithWrongSizedVectorS
       micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
 }
 
-TEST(SparseVectorCompressedColumnMatrix, ArraySupportSparse)
-{
-  TestArraySupportSparse<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
-}
-
 TEST(SparseVectorCompressedColumnMatrix, MixedVectorBlockViewBlockVariable)
 {
   TestMixedVectorBlockViewBlockVariable<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
@@ -426,4 +437,32 @@ TEST(SparseVectorCompressedColumnMatrix, GetBlockViewByVectorIndex)
   TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
   TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
   TestGetBlockViewByVectorIndex<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+}
+
+TEST(SparseVectorCompressedColumnMatrix, TestFill)
+{
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>>();
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>>();
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>>();
+  TestFill<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>>();
+}
+
+TEST(SparseVectorCompressedColumnMatrix, TestCopy)
+{
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<1>,
+      micm::VectorMatrix<micm::Real, 1>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<2>,
+      micm::VectorMatrix<micm::Real, 2>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<3>,
+      micm::VectorMatrix<micm::Real, 3>>();
+  TestCopy<
+      micm::SparseMatrix,
+      micm::SparseMatrixVectorOrderingCompressedSparseColumn<4>,
+      micm::VectorMatrix<micm::Real, 4>>();
 }

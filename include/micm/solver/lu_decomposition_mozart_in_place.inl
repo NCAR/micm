@@ -1,87 +1,133 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
 
-  inline LuDecompositionMozartInPlace::LuDecompositionMozartInPlace()
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy>::LuDecompositionMozartInPlace() = default;
+
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy>::LuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix)
+  {
+    Initialize(matrix, typename SparseMatrixPolicy::value_type());
+  }
+
+  template<class SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy>::LuDecompositionMozartInPlace(
+      LuDecompositionMozartInPlace&& other) noexcept
+      : aii_nji_nki_(std::move(other.aii_nji_nki_)),
+        aji_(std::move(other.aji_)),
+        aik_njk_(std::move(other.aik_njk_)),
+        ajk_aji_(std::move(other.ajk_aji_)),
+        views_(aii_nji_nki_, aji_, aik_njk_, ajk_aji_)
   {
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionMozartInPlace::LuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy>& LuDecompositionMozartInPlace<SparseMatrixPolicy>::operator=(
+      LuDecompositionMozartInPlace&& other) noexcept
   {
-    Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    if (this != &other)
+    {
+      aii_nji_nki_ = std::move(other.aii_nji_nki_);
+      aji_ = std::move(other.aji_);
+      aik_njk_ = std::move(other.aik_njk_);
+      ajk_aji_ = std::move(other.ajk_aji_);
+      views_ = Views(aii_nji_nki_, aji_, aik_njk_, ajk_aji_);
+    }
+    return *this;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline LuDecompositionMozartInPlace LuDecompositionMozartInPlace::Create(const SparseMatrixPolicy& matrix)
+  inline LuDecompositionMozartInPlace<SparseMatrixPolicy> LuDecompositionMozartInPlace<SparseMatrixPolicy>::Create(
+      const SparseMatrixPolicy& matrix)
   {
-    LuDecompositionMozartInPlace lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    LuDecompositionMozartInPlace<SparseMatrixPolicy> lu_decomp{};
+    lu_decomp.Initialize(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline void LuDecompositionMozartInPlace::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
+  inline void LuDecompositionMozartInPlace<SparseMatrixPolicy>::Initialize(
+      const SparseMatrixPolicy& matrix,
+      auto initial_value)
   {
-    std::size_t n = matrix.NumRows();
-    auto ALU = GetLUMatrix<SparseMatrixPolicy>(matrix, initial_value, true);
-    for (std::size_t i = 0; i < n; ++i)
+    Index n = matrix.NumRows();
+    auto ALU = GetLUMatrix(matrix, initial_value, true);
+    std::vector<IndexTrio> aii_nji_nki_temp;
+    std::vector<Index> aji_temp;
+    std::vector<IndexPair> aik_njk_temp;
+    std::vector<IndexPair> ajk_aji_temp;
+    for (Index i = 0; i < n; ++i)
     {
       if (ALU.IsZero(i, i))
       {
         throw std::runtime_error("Diagonal element is zero in LU decomposition");
       }
-      std::tuple<std::size_t, std::size_t, std::size_t> aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
-      for (std::size_t j = i + 1; j < n; ++j)
+      IndexTrio aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
+      for (Index j = i + 1; j < n; ++j)
       {
         if (ALU.IsZero(j, i))
         {
           continue;
         }
-        aji_.push_back(ALU.VectorIndex(0, j, i));
-        ++(std::get<1>(aii_nji_nki));
+        aji_temp.push_back(ALU.VectorIndex(0, j, i));
+        ++(aii_nji_nki.second_);
       }
-      for (std::size_t k = i + 1; k < n; ++k)
+      for (Index k = i + 1; k < n; ++k)
       {
         if (ALU.IsZero(i, k))
         {
           continue;
         }
-        std::pair<std::size_t, std::size_t> aik_njk(ALU.VectorIndex(0, i, k), 0);
-        for (std::size_t j = i + 1; j < n; ++j)
+        IndexPair aik_njk(ALU.VectorIndex(0, i, k), 0);
+        for (Index j = i + 1; j < n; ++j)
         {
           if (ALU.IsZero(j, i))
           {
             continue;
           }
-          std::pair<std::size_t, std::size_t> ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
-          ajk_aji_.push_back(ajk_aji);
-          ++(std::get<1>(aik_njk));
+          IndexPair ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
+          ajk_aji_temp.push_back(ajk_aji);
+          ++(aik_njk.second_);
         }
-        aik_njk_.push_back(aik_njk);
-        ++(std::get<2>(aii_nji_nki));
+        aik_njk_temp.push_back(aik_njk);
+        ++(aii_nji_nki.third_);
       }
-      aii_nji_nki_.push_back(aii_nji_nki);
+      aii_nji_nki_temp.push_back(aii_nji_nki);
     }
+    aii_nji_nki_ = aii_nji_nki_temp;
+    aji_ = aji_temp;
+    aik_njk_ = aik_njk_temp;
+    ajk_aji_ = ajk_aji_temp;
+    aii_nji_nki_.CopyToDevice();
+    aji_.CopyToDevice();
+    aik_njk_.CopyToDevice();
+    ajk_aji_.CopyToDevice();
+    views_ = Views(aii_nji_nki_, aji_, aik_njk_, ajk_aji_);
   }
 
   template<class SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline SparseMatrixPolicy LuDecompositionMozartInPlace::GetLUMatrix(
+  inline SparseMatrixPolicy LuDecompositionMozartInPlace<SparseMatrixPolicy>::GetLUMatrix(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value,
       bool indexing_only)
   {
-    std::size_t n = A.NumRows();
-    std::set<std::pair<std::size_t, std::size_t>> ALU_ids;
-    for (std::size_t i = 0; i < n; ++i)
+    Index n = A.NumRows();
+    std::set<std::pair<Index, Index>> ALU_ids;
+    for (Index i = 0; i < n; ++i)
     {
-      for (std::size_t j = 0; j < n; ++j)
+      for (Index j = 0; j < n; ++j)
       {
         if (!A.IsZero(i, j))
         {
@@ -89,22 +135,22 @@ namespace micm
         }
       }
     }
-    for (std::size_t i = 0; i < n; ++i)
+    for (Index i = 0; i < n; ++i)
     {
-      for (std::size_t j = i + 1; j < n; ++j)
+      for (Index j = i + 1; j < n; ++j)
       {
-        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end())
+        if (ALU_ids.contains(std::make_pair(j, i)))
         {
           ALU_ids.insert(std::make_pair(j, i));
         }
       }
-      for (std::size_t k = i + 1; k < n; ++k)
+      for (Index k = i + 1; k < n; ++k)
       {
-        if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(i, k)) != ALU_ids.end())
+        if (ALU_ids.contains(std::make_pair(i, k)))
         {
-          for (std::size_t j = i + 1; j < n; ++j)
+          for (Index j = i + 1; j < n; ++j)
           {
-            if (std::find(ALU_ids.begin(), ALU_ids.end(), std::make_pair(j, i)) != ALU_ids.end())
+            if (ALU_ids.contains(std::make_pair(j, i)))
             {
               ALU_ids.insert(std::make_pair(j, k));
             }
@@ -121,94 +167,44 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy>)
-  inline void LuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline void LuDecompositionMozartInPlace<SparseMatrixPolicy>::Decompose(SparseMatrixPolicy& ALU) const
   {
-    const std::size_t n = ALU.NumRows();
-
-    // Loop over blocks
-    for (std::size_t i_block = 0; i_block < ALU.NumberOfBlocks(); ++i_block)
-    {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_block * ALU.FlatBlockSize());
-      auto aji = aji_.begin();
-      auto aik_njk = aik_njk_.begin();
-      auto ajk_aji = ajk_aji_.begin();
-
-      for (const auto& aii_nji_nki : aii_nji_nki_)
-      {
-        const typename SparseMatrixPolicy::value_type Aii_inverse = 1.0 / ALU_vector[std::get<0>(aii_nji_nki)];
-        for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
-        {
-          ALU_vector[*aji] *= Aii_inverse;
-          ++aji;
-        }
-        for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
-        {
-          const typename SparseMatrixPolicy::value_type Aik = ALU_vector[std::get<0>(*aik_njk)];
-          for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
+    const auto& views = views_;
+    SparseMatrixPolicy::Function(
+        MICM_LAMBDA(const typename SparseMatrix::ViewType& alu_view) {
+          auto aji = views.aji_.begin();
+          auto aik_njk = views.aik_njk_.begin();
+          auto ajk_aji = views.ajk_aji_.begin();
+          auto Aii_inverse = alu_view.GetBlockVariable();
+          for (const auto& aii_nji_nki : views.aii_nji_nki_)
           {
-            ALU_vector[ajk_aji->first] -= ALU_vector[ajk_aji->second] * Aik;
-            ++ajk_aji;
-          }
-          ++aik_njk;
-        }
-      }
-    }
-  }
-
-  template<class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy>)
-  inline void LuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
-  {
-    const std::size_t n = ALU.NumRows();
-    const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
-    constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
-    std::vector<double> Aii_inverse(ALU_GroupVectorSize);
-
-    // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
-    {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
-      const std::size_t n_cells = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
-      auto aji = aji_.begin();
-      auto aik_njk = aik_njk_.begin();
-      auto ajk_aji = ajk_aji_.begin();
-      for (const auto& aii_nji_nki : aii_nji_nki_)
-      {
-        auto Aii_inverse_it = Aii_inverse.begin();
-        auto ALU_vector_it = ALU_vector + std::get<0>(aii_nji_nki);
-        for (std::size_t i = 0; i < n_cells; ++i)
-        {
-          *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
-        }
-        for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
-        {
-          auto ALU_vector_it = ALU_vector + *aji;
-          auto Aii_inverse_it = Aii_inverse.begin();
-          for (std::size_t i = 0; i < n_cells; ++i)
-          {
-            *(ALU_vector_it++) *= *(Aii_inverse_it++);
-          }
-          ++aji;
-        }
-        for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
-        {
-          const std::size_t aik = std::get<0>(*aik_njk);
-          for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
-          {
-            auto ALU_vector_first_it = ALU_vector + ajk_aji->first;
-            auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
-            auto ALU_vector_aik_it = ALU_vector + aik;
-            for (std::size_t i = 0; i < n_cells; ++i)
+            alu_view.ForEachBlock(
+                [](Real& aii_inv, const Real& aii) { aii_inv = 1.0 / aii; },
+                Aii_inverse,
+                alu_view.GetConstBlockView(aii_nji_nki.first_));
+            for (Index ij = 0; ij < aii_nji_nki.second_; ++ij)
             {
-              *(ALU_vector_first_it++) -= *(ALU_vector_second_it++) * *(ALU_vector_aik_it++);
+              alu_view.ForEachBlock(
+                  [](Real& aji, const Real& aii_inv) { aji *= aii_inv; }, alu_view.GetBlockView(*aji), Aii_inverse);
+              ++aji;
             }
-            ++ajk_aji;
+            for (Index ik = 0; ik < aii_nji_nki.third_; ++ik)
+            {
+              auto aik_view = alu_view.GetBlockView((*aik_njk).first_);
+              for (Index ijk = 0; ijk < (*aik_njk).second_; ++ijk)
+              {
+                alu_view.ForEachBlock(
+                    [](Real& ajk, const Real& aji, const Real& aik) { ajk -= aji * aik; },
+                    alu_view.GetBlockView(ajk_aji->first_),
+                    alu_view.GetConstBlockView(ajk_aji->second_),
+                    aik_view);
+                ++ajk_aji;
+              }
+              ++aik_njk;
+            }
           }
-          ++aik_njk;
-        }
-      }
-    }
+        },
+        ALU)(ALU);
   }
 }  // namespace micm

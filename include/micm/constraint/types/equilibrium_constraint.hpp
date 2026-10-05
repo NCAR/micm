@@ -7,7 +7,9 @@
 #include <micm/system/stoich_species.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/types.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
@@ -17,22 +19,58 @@
 
 namespace micm
 {
-  /// @brief Define parameters for Van't Hoff equation
-  struct VantHoffParam
-  {
-    double K_HLC_ref_;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
-    double delta_H_;                      // Enthalpy of dissolution (J/mol)
-    double R_ = constants::GAS_CONSTANT;  // (J/mol·K)
-    double T_ref_ = 298.15;
-  };
 
   /// @brief Constraint for chemical equilibrium with temperature-dependent K_eq using Van't Hoff equation
   ///        For a reversible reaction: aA + bB <-> cC + dD
   ///        The equilibrium constraint is: G = K_eq(T) * [A]^a * [B]^b - [C]^c * [D]^d = 0
   ///        where K_eq(T) = K_HLC_ref * exp((delta_H / R) * (1/T - 1/T_ref))
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class EquilibriumConstraint
   {
+    using DenseMatrix = DenseMatrixPolicy;
+    using SparseMatrix = SparseMatrixPolicy;
+    template<class U>
+    using Vector = typename DenseMatrix::template VectorType<U>;
+    template<class U>
+    using VectorView = typename Vector<U>::ConstViewType;
+    template<class U>
+    using Scalar = typename DenseMatrix::template ScalarType<U>;
+
    public:
+    /// @brief Define parameters for Van't Hoff equation
+    struct VantHoffParam
+    {
+      Real K_HLC_ref_;                    // Henry’s Law constant at the reference temperature (typically 298.15K)
+      Real delta_H_;                      // Enthalpy of dissolution (J/mol)
+      Real R_ = constants::GAS_CONSTANT;  // (J/mol·K)
+      Real T_ref_ = 298.15;
+    };
+
+    struct Views
+    {
+      VectorView<Real> reactant_stoich_;
+      VectorView<Index> reactant_state_idx_;
+      VectorView<Real> product_stoich_;
+      VectorView<Index> product_state_idx_;
+      VectorView<Index> flat_ids_;
+
+      Views() = default;
+
+      Views(
+          const Vector<Real>& reactant_stoich,
+          const Vector<Index>& reactant_state_idx,
+          const Vector<Real>& product_stoich,
+          const Vector<Index>& product_state_idx,
+          const Vector<Index>& flat_ids)
+          : reactant_stoich_(reactant_stoich.GetView()),
+            reactant_state_idx_(reactant_state_idx.GetView()),
+            product_stoich_(product_stoich.GetView()),
+            product_state_idx_(product_state_idx.GetView()),
+            flat_ids_(flat_ids.GetView())
+      {
+      }
+    };
+
     /// @brief Name of the constraint, used when generating state parameter name
     std::string name_;
 
@@ -51,22 +89,111 @@ namespace micm
     /// @brief For equilibrium constraints, this contains a single parameter K_eq
     std::vector<std::string> parameters_;
 
-    /// @brief Temperature-dependent Henry’s Law Constant
-    std::function<double(const Conditions&)> equilibrium_constant_function_;
-
    private:
     /// @brief Van't Hoff equation parameter used to calculate Henry’s Law Constant
     VantHoffParam vant_hoff_param_;
 
     /// @brief Indices into the reactants_ vector for each species dependency
-    std::vector<std::size_t> reactant_dependency_indices_;
+    std::vector<Index> reactant_dependency_indices_;
 
     /// @brief Indices into the products_ vector for each species dependency
-    std::vector<std::size_t> product_dependency_indices_;
+    std::vector<Index> product_dependency_indices_;
+
+   protected:
+    Vector<Real> reactant_stoich_;
+    Vector<Index> reactant_state_idx_;
+    Vector<Real> product_stoich_;
+    Vector<Index> product_state_idx_;
+    Vector<Index> flat_ids_;
+    Views views_;
 
    public:
     /// @brief Default constructor
     EquilibriumConstraint() = default;
+
+    EquilibriumConstraint(const EquilibriumConstraint& other)
+        : name_(other.name_),
+          algebraic_species_(other.algebraic_species_),
+          species_dependencies_(other.species_dependencies_),
+          reactants_(other.reactants_),
+          products_(other.products_),
+          parameters_(other.parameters_),
+          vant_hoff_param_(other.vant_hoff_param_),
+          reactant_dependency_indices_(other.reactant_dependency_indices_),
+          product_dependency_indices_(other.product_dependency_indices_),
+          reactant_stoich_(other.reactant_stoich_),
+          reactant_state_idx_(other.reactant_state_idx_),
+          product_stoich_(other.product_stoich_),
+          product_state_idx_(other.product_state_idx_),
+          flat_ids_(other.flat_ids_),
+          views_(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_)
+    {
+    }
+
+    EquilibriumConstraint& operator=(const EquilibriumConstraint& other)
+    {
+      if (this != &other)
+      {
+        name_ = other.name_;
+        algebraic_species_ = other.algebraic_species_;
+        species_dependencies_ = other.species_dependencies_;
+        reactants_ = other.reactants_;
+        products_ = other.products_;
+        parameters_ = other.parameters_;
+        vant_hoff_param_ = other.vant_hoff_param_;
+        reactant_dependency_indices_ = other.reactant_dependency_indices_;
+        product_dependency_indices_ = other.product_dependency_indices_;
+        reactant_stoich_ = other.reactant_stoich_;
+        reactant_state_idx_ = other.reactant_state_idx_;
+        product_stoich_ = other.product_stoich_;
+        product_state_idx_ = other.product_state_idx_;
+        flat_ids_ = other.flat_ids_;
+        views_ = Views(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_);
+      }
+      return *this;
+    }
+
+    EquilibriumConstraint(EquilibriumConstraint&& other) noexcept
+        : name_(std::move(other.name_)),
+          algebraic_species_(other.algebraic_species_),  // Species is not move constructible
+          species_dependencies_(std::move(other.species_dependencies_)),
+          reactants_(std::move(other.reactants_)),
+          products_(std::move(other.products_)),
+          parameters_(std::move(other.parameters_)),
+          vant_hoff_param_(std::move(other.vant_hoff_param_)),
+          reactant_dependency_indices_(std::move(other.reactant_dependency_indices_)),
+          product_dependency_indices_(std::move(other.product_dependency_indices_)),
+          reactant_stoich_(std::move(other.reactant_stoich_)),
+          reactant_state_idx_(std::move(other.reactant_state_idx_)),
+          product_stoich_(std::move(other.product_stoich_)),
+          product_state_idx_(std::move(other.product_state_idx_)),
+          flat_ids_(std::move(other.flat_ids_)),
+          views_(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_)
+    {
+    }
+
+    EquilibriumConstraint& operator=(EquilibriumConstraint&& other) noexcept
+    {
+      if (this != &other)
+      {
+        name_ = std::move(other.name_);
+        algebraic_species_ = other.algebraic_species_;  // Speces is not move assignable
+        species_dependencies_ = std::move(other.species_dependencies_);
+        reactants_ = std::move(other.reactants_);
+        products_ = std::move(other.products_);
+        parameters_ = std::move(other.parameters_);
+        vant_hoff_param_ = std::move(other.vant_hoff_param_);
+        reactant_dependency_indices_ = std::move(other.reactant_dependency_indices_);
+        product_dependency_indices_ = std::move(other.product_dependency_indices_);
+        reactant_stoich_ = std::move(other.reactant_stoich_);
+        reactant_state_idx_ = std::move(other.reactant_state_idx_);
+        product_stoich_ = std::move(other.product_stoich_);
+        product_state_idx_ = std::move(other.product_state_idx_);
+        flat_ids_ = std::move(other.flat_ids_);
+        views_ = Views(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_);
+      }
+      return *this;
+    }
 
     /// @brief Construct an equilibrium constraint.
     ///        Validates that equilibrium constraint > 0.
@@ -134,7 +261,7 @@ namespace micm
       parameters_.push_back(name);
 
       // Build species dependencies list (reactants first, then products)
-      std::size_t idx = 0;
+      Index idx = 0;
       for (const auto& r : reactants_)
       {
         species_dependencies_.push_back(r.species_.name_);
@@ -145,12 +272,6 @@ namespace micm
         species_dependencies_.push_back(p.species_.name_);
         product_dependency_indices_.push_back(idx++);
       }
-
-      equilibrium_constant_function_ = [p = vant_hoff_param_](const Conditions& condition)
-      {
-        double T = condition.temperature_;
-        return p.K_HLC_ref_ * std::exp((p.delta_H_ / p.R_) * (1.0 / T - 1.0 / p.T_ref_));
-      };
     }
 
     /// @brief Returns the species whose row should be replaced by this algebraic constraint
@@ -160,239 +281,229 @@ namespace micm
       return algebraic_species_.name_;
     }
 
-    /// @brief Create function object to update temperature-dependent K_eq parameter
-    ///        Returns a function that computes K_eq(T) for each grid cell using Van't Hoff equation
-    ///        Called during solver's UpdateStateParameters phase before each solve
+    /// @brief Apply temperature-dependent K_eq parameter update for each grid cell
+    ///        Computes K_eq(T) using the Van't Hoff equation and writes to state_param[K_eq_idx].
+    ///        Called directly from ConstraintSet::UpdateStateParameters before each solve.
     /// @param info Constraint information including state parameter indices
-    /// @return Function object that takes (conditions, state_param) and writes K_eq(T) to state_param[K_eq_idx]
-    template<typename DenseMatrixPolicy>
-    std::function<void(const std::vector<Conditions>&, DenseMatrixPolicy&)> ConstraintParameterFunction(
-        const ConstraintInfo& info) const
+    /// @param conditions Per-grid-cell atmospheric conditions (temperature, pressure, etc.)
+    /// @param state_param State parameter matrix to update
+    void ApplyConstraintParameter(
+        const ConstraintInfo& info,
+        const typename DenseMatrixPolicy::template VectorType<Conditions>& conditions,
+        DenseMatrixPolicy& state_param) const
     {
-      std::size_t K_eq_idx = info.state_param_indices_[0];  // equilibrium constant index
+      Index K_eq_idx = info.state_param_indices_[0];
+      const VantHoffParam& param = vant_hoff_param_;
 
-      return [K_eq_idx, eq_func = equilibrium_constant_function_](
-                 const std::vector<Conditions>& conditions, DenseMatrixPolicy& state_param)
+      DenseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename Vector<Conditions>::ConstViewType& conditions_view,
+              const typename DenseMatrixPolicy::ViewType& state_param_view) {
+            state_param_view.ForEachRow(
+                [=](const Conditions& cond, Real& K_eq) {
+                  K_eq = param.K_HLC_ref_ *
+                         std::exp((param.delta_H_ / param.R_) * (1.0 / cond.temperature_ - 1.0 / param.T_ref_));
+                },
+                conditions_view,
+                state_param_view.GetColumnView(K_eq_idx));
+          },
+          conditions,
+          state_param)(conditions, state_param);
+    }
+
+    void SetStateIndices(const ConstraintInfo& info, auto& jacobian_flat_ids)
+    {
+      std::vector<Index> flat_ids_temp;
+      flat_ids_temp.reserve(reactants_.size() + products_.size());
+      for (Index i = 0; i < reactants_.size(); ++i)
       {
-        // For each grid cell, compute K_eq at current temperature
-        state_param.ForEachRow(
-            [eq_func](const Conditions& cond, double& K_eq) { K_eq = eq_func(cond); },
-            conditions,
-            state_param.GetColumnView(K_eq_idx));
-      };
+        flat_ids_temp.push_back(*jacobian_flat_ids++);
+      }
+      for (Index i = 0; i < products_.size(); ++i)
+      {
+        flat_ids_temp.push_back(*jacobian_flat_ids++);
+      }
+      flat_ids_ = flat_ids_temp;
+      flat_ids_.CopyToDevice();
+
+      std::vector<Real> reactant_stoich_temp;
+      std::vector<Index> reactant_state_idx_temp;
+      for (Index i = 0; i < this->reactants_.size(); ++i)
+      {
+        reactant_stoich_temp.push_back(this->reactants_[i].coefficient_);
+        reactant_state_idx_temp.push_back(info.state_indices_[reactant_dependency_indices_[i]]);
+      }
+      reactant_stoich_ = reactant_stoich_temp;
+      reactant_state_idx_ = reactant_state_idx_temp;
+      reactant_stoich_.CopyToDevice();
+      reactant_state_idx_.CopyToDevice();
+
+      std::vector<Real> product_stoich_temp;
+      std::vector<Index> product_state_idx_temp;
+      for (Index i = 0; i < this->products_.size(); ++i)
+      {
+        product_stoich_temp.push_back(this->products_[i].coefficient_);
+        product_state_idx_temp.push_back(info.state_indices_[product_dependency_indices_[i]]);
+      }
+      product_stoich_ = product_stoich_temp;
+      product_state_idx_ = product_state_idx_temp;
+      product_stoich_.CopyToDevice();
+      product_state_idx_.CopyToDevice();
+
+      views_ = Views(reactant_stoich_, reactant_state_idx_, product_stoich_, product_state_idx_, flat_ids_);
     }
 
     /// @brief Create function object to compute equilibrium constraint residual for all grid cells
     ///        Computes G = K_eq(T) * prod([reactants]^stoich) - prod([products]^stoich) for the algebraic constraint
     ///        Called during solver build (SetConstraintFunctions) to pre-compile residual computation
     /// @param info Constraint information including row index, species indices, and parameter indices
-    /// @param state_variable_indices Mapping of state variable names to column indices in state matrix
-    /// @param state_parameter_indices Mapping of state parameter names to column indices in state_param matrix
-    /// @return Function object that takes (state, state_param, forcing) and writes residual G to forcing[constraint_row]
-    template<typename DenseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)> ResidualFunction(
+    /// @brief Add equilibrium constraint residual G to forcing vector for all grid cells
+    ///        Computes G = K_eq(T) * prod([reactants]^stoich) - prod([products]^stoich)
+    ///        Called directly from ConstraintSet::AddForcingTerms.
+    /// @param info Constraint information including row index and parameter indices
+    /// @param state Current species concentrations
+    /// @param state_param Current state parameters (contains K_eq column)
+    /// @param forcing Forcing terms — constraint row is overwritten with residual G
+    void AddResidual(
         const ConstraintInfo& info,
-        const auto& state_variable_indices,
-        const auto& state_parameter_indices) const
+        const DenseMatrixPolicy& state,
+        const DenseMatrixPolicy& state_param,
+        DenseMatrixPolicy& forcing) const
     {
-      // Copy data to avoid issues when ConstraintSet is moved
-      std::vector<double> reactant_stoich;
-      std::vector<std::size_t> reactant_state_idx;
-      for (std::size_t i = 0; i < this->reactants_.size(); ++i)
-      {
-        reactant_stoich.push_back(this->reactants_[i].coefficient_);
-        reactant_state_idx.push_back(info.state_indices_[reactant_dependency_indices_[i]]);
-      }
-      std::vector<double> product_stoich;
-      std::vector<std::size_t> product_state_idx;
-      for (std::size_t i = 0; i < this->products_.size(); ++i)
-      {
-        product_stoich.push_back(this->products_[i].coefficient_);
-        product_state_idx.push_back(info.state_indices_[product_dependency_indices_[i]]);
-      }
-      std::size_t row_idx = info.row_index_;
-      std::size_t K_eq_idx = info.state_param_indices_[0];  // contains only one parameter (equilibrium constant)
+      Index row_idx = info.row_index_;
+      Index K_eq_idx = info.state_param_indices_[0];
 
-      DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
-      DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
+      const auto& views = views_;
+      DenseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename DenseMatrixPolicy::ConstViewType& state_view,
+              const typename DenseMatrixPolicy::ConstViewType& state_param_view,
+              const typename DenseMatrixPolicy::ViewType& force_view) {
+            auto reactant_product = force_view.GetRowVariable();
+            auto product_product = force_view.GetRowVariable();
 
-      return DenseMatrixPolicy::Function(
-          [=](auto&& state, auto&& state_param, auto&& force)
-          {
-            auto reactant_product = force.GetRowVariable();
-            auto product_product = force.GetRowVariable();
-
-            // Initialize reactant_product to K_eq and product_product to 1.0
-            state.ForEachRow(
-                [](const double& K_eq, double& rp, double& pp)
+            state_view.ForEachRow(
+                [=](const Real& K_eq, Real& rp, Real& pp)
                 {
                   rp = K_eq;
                   pp = 1.0;
                 },
-                state_param.GetConstColumnView(K_eq_idx),
+                state_param_view.GetConstColumnView(K_eq_idx),
                 reactant_product,
                 product_product);
 
-            // Multiply in each reactant concentration raised to its stoichiometry
-            for (std::size_t i = 0; i < reactant_stoich.size(); ++i)
+            for (Index i = 0; i < views.reactant_stoich_.size(); ++i)
             {
-              const double stoich = reactant_stoich[i];
-              const std::size_t species_idx = reactant_state_idx[i];
-
-              state.ForEachRow(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+              const Real stoich = views.reactant_stoich_[i];
+              const Index species_idx = views.reactant_state_idx_[i];
+              state_view.ForEachRow(
+                  [=](const Real& conc, Real& product) { product *= std::pow((conc > Real(0) ? conc : Real(0)), stoich); },
+                  state_view.GetConstColumnView(species_idx),
                   reactant_product);
             }
 
-            // Multiply in each product concentration raised to its stoichiometry
-            for (std::size_t i = 0; i < product_stoich.size(); ++i)
+            for (Index i = 0; i < views.product_stoich_.size(); ++i)
             {
-              const double stoich = product_stoich[i];
-              const std::size_t species_idx = product_state_idx[i];
-
-              state.ForEachRow(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+              const Real stoich = views.product_stoich_[i];
+              const Index species_idx = views.product_state_idx_[i];
+              state_view.ForEachRow(
+                  [=](const Real& conc, Real& product) { product *= std::pow((conc > Real(0) ? conc : Real(0)), stoich); },
+                  state_view.GetConstColumnView(species_idx),
                   product_product);
             }
 
-            // Write G = K_eq * [reactants]^stoich - [products]^stoich to the constraint row
-            state.ForEachRow(
-                [](const double& rp, const double& pp, double& forcing_term) { forcing_term = rp - pp; },
+            state_view.ForEachRow(
+                [=](const Real& rp, const Real& pp, Real& forcing_term) { forcing_term = rp - pp; },
                 reactant_product,
                 product_product,
-                force.GetColumnView(row_idx));
+                force_view.GetColumnView(row_idx));
           },
-          temp_state_variables,
-          temp_state_parameters,
-          temp_state_variables);
+          state,
+          state_param,
+          forcing)(state, state_param, forcing);
     }
 
-    /// @brief Create function object to compute Jacobian partial derivatives dG/d[species] for all grid cells
-    ///        For reactant R with stoichiometry n:
-    ///          dG/d[R] = K_eq(T) * n * [R]^(n-1) * prod([other_reactants]^stoich)
-    ///        For product P with stoichiometry m:
-    ///          dG/d[P] = -m * [P]^(m-1) * prod([other_products]^stoich)
-    ///        Called during solver build (SetConstraintFunctions) to pre-compile Jacobian computation
-    /// @param info Constraint information including row index, species indices, and parameter indices
-    /// @param state_variable_indices Mapping of state variable names to column indices in state matrix
-    /// @param state_parameter_indices Mapping of state parameter names to column indices in state_param matrix
-    /// @param jacobian_flat_ids Iterator to this constraint's flat Jacobian indices in sparse matrix storage
-    /// @param jacobian Sparse matrix reference (used for type information)
-    /// @return Function object that takes (state, state_param, jacobian_values) and writes partials to sparse Jacobian
-    template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)> JacobianFunction(
+    /// @brief Subtract Jacobian partial derivatives dG/d[species] from Jacobian matrix for all grid cells
+    ///        Called directly from ConstraintSet::SubtractJacobianTerms.
+    /// @param info Constraint information including row index and parameter indices
+    /// @param state Current species concentrations
+    /// @param state_param Current state parameters (contains K_eq column)
+    /// @param jacobian Sparse Jacobian matrix to update
+    void SubtractJacobian(
         const ConstraintInfo& info,
-        const auto& state_variable_indices,
-        const auto& state_parameter_indices,
-        auto jacobian_flat_ids,
+        const DenseMatrixPolicy& state,
+        const DenseMatrixPolicy& state_param,
         SparseMatrixPolicy& jacobian) const
     {
-      // Pre-compute flat IDs and store them in a vector
-      // This avoids iterator issues when the lambda is called multiple times (once per block)
-      std::vector<std::size_t> flat_ids;
-      flat_ids.reserve(reactants_.size() + products_.size());
-      for (std::size_t i = 0; i < reactants_.size(); ++i)
-      {
-        flat_ids.push_back(*jacobian_flat_ids++);
-      }
-      for (std::size_t i = 0; i < products_.size(); ++i)
-      {
-        flat_ids.push_back(*jacobian_flat_ids++);
-      }
+      Index K_eq_idx = info.state_param_indices_[0];
 
-      std::vector<double> reactant_stoich;
-      std::vector<std::size_t> reactant_state_idx;
-      for (std::size_t i = 0; i < this->reactants_.size(); ++i)
-      {
-        reactant_stoich.push_back(this->reactants_[i].coefficient_);
-        reactant_state_idx.push_back(info.state_indices_[reactant_dependency_indices_[i]]);
-      }
-      std::vector<double> product_stoich;
-      std::vector<std::size_t> product_state_idx;
-      for (std::size_t i = 0; i < this->products_.size(); ++i)
-      {
-        product_stoich.push_back(this->products_[i].coefficient_);
-        product_state_idx.push_back(info.state_indices_[product_dependency_indices_[i]]);
-      }
+      const auto& views = views_;
 
-      std::size_t K_eq_idx = info.state_param_indices_[0];  // contains only one parameter (equilibrium constant)
-
-      DenseMatrixPolicy temp_state_variables{ 1, state_variable_indices.size(), 0.0 };
-      DenseMatrixPolicy temp_state_parameters{ 1, state_parameter_indices.size(), 0.0 };
-
-      return SparseMatrixPolicy::Function(
-          [=](auto&& state, auto&& state_param, auto&& jacobian_values)
-          {
-            // Create temporary variables for computing partials
+      SparseMatrixPolicy::Function(
+          MICM_LAMBDA(
+              const typename DenseMatrix::ConstViewType& state_view,
+              const typename DenseMatrix::ConstViewType& state_param_view,
+              const typename SparseMatrix::ViewType& jacobian_values) {
             auto reactant_product = jacobian_values.GetBlockVariable();
             auto product_product = jacobian_values.GetBlockVariable();
             auto partial_derivative = jacobian_values.GetBlockVariable();
 
             jacobian_values.ForEachBlock(
-                [](const double& K_eq, double& rp, double& pp)
+                [=](const Real& K_eq, Real& rp, Real& pp)
                 {
                   rp = K_eq;
                   pp = 1.0;
                 },
-                state_param.GetConstColumnView(K_eq_idx),
+                state_param_view.GetConstColumnView(K_eq_idx),
                 reactant_product,
                 product_product);
 
-            for (std::size_t i = 0; i < reactant_stoich.size(); ++i)
+            for (Index i = 0; i < views.reactant_stoich_.size(); ++i)
             {
-              const double stoich = reactant_stoich[i];
-              const std::size_t species_idx = reactant_state_idx[i];
-
+              const Real stoich = views.reactant_stoich_[i];
+              const Index species_idx = views.reactant_state_idx_[i];
               jacobian_values.ForEachBlock(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+                  [=](const Real& conc, Real& product) { product *= std::pow((conc > Real(0) ? conc : Real(0)), stoich); },
+                  state_view.GetConstColumnView(species_idx),
                   reactant_product);
             }
 
-            for (std::size_t i = 0; i < product_stoich.size(); ++i)
+            for (Index i = 0; i < views.product_stoich_.size(); ++i)
             {
-              const double stoich = product_stoich[i];
-              const std::size_t species_idx = product_state_idx[i];
-
+              const Real stoich = views.product_stoich_[i];
+              const Index species_idx = views.product_state_idx_[i];
               jacobian_values.ForEachBlock(
-                  [stoich](const double& conc, double& product) { product *= std::pow(std::max(0.0, conc), stoich); },
-                  state.GetConstColumnView(species_idx),
+                  [=](const Real& conc, Real& product) { product *= std::pow((conc > Real(0) ? conc : Real(0)), stoich); },
+                  state_view.GetConstColumnView(species_idx),
                   product_product);
             }
 
-            // Compute Jacobian entries for each reactant: dG/d[R_i] = K_eq * stoich_i * prod([other_reactants]^stoich) *
-            // [R_i]^(stoich_i-1)
-            for (std::size_t i = 0; i < reactant_stoich.size(); ++i)
+            for (Index i = 0; i < views.reactant_stoich_.size(); ++i)
             {
-              const double stoich_i = reactant_stoich[i];
-              const std::size_t species_idx_i = reactant_state_idx[i];
+              const Real stoich_i = views.reactant_stoich_[i];
+              const Index species_idx_i = views.reactant_state_idx_[i];
 
-              // Compute product of K_eq * all reactants except R_i
               auto partial_product = jacobian_values.GetBlockVariable();
               jacobian_values.ForEachBlock(
-                  [](const double& K_eq, double& prod) { prod = K_eq; },
-                  state_param.GetConstColumnView(K_eq_idx),
+                  [=](const Real& K_eq, Real& prod) { prod = K_eq; },
+                  state_param_view.GetConstColumnView(K_eq_idx),
                   partial_product);
 
-              for (std::size_t j = 0; j < reactant_stoich.size(); ++j)
+              for (Index j = 0; j < views.reactant_stoich_.size(); ++j)
               {
-                if (j != i)  // Skip current species
+                if (j != i)
                 {
-                  const double stoich_j = reactant_stoich[j];
-                  const std::size_t species_idx_j = reactant_state_idx[j];
-
+                  const Real stoich_j = views.reactant_stoich_[j];
+                  const Index species_idx_j = views.reactant_state_idx_[j];
                   jacobian_values.ForEachBlock(
-                      [stoich_j](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
-                      state.GetConstColumnView(species_idx_j),
+                      [=](const Real& conc, Real& prod) { prod *= std::pow((conc > Real(0) ? conc : Real(0)), stoich_j); },
+                      state_view.GetConstColumnView(species_idx_j),
                       partial_product);
                 }
               }
 
-              // Multiply by stoich_i * [R_i]^(stoich_i-1)
               jacobian_values.ForEachBlock(
-                  [stoich_i](const double& conc, const double& prod, double& partial)
+                  [=](const Real& conc, const Real& prod, Real& partial)
                   {
                     if (stoich_i == 1.0)
                     {
@@ -407,46 +518,39 @@ namespace micm
                       partial = 0.0;
                     }
                   },
-                  state.GetConstColumnView(species_idx_i),
+                  state_view.GetConstColumnView(species_idx_i),
                   partial_product,
                   partial_derivative);
 
-              // Subtract partial from Jacobian (matching the SubtractJacobianTerms convention)
-              // Use pre-computed flat ID for this reactant
               jacobian_values.ForEachBlock(
-                  [](const double& partial, double& jac) { jac -= partial; },
+                  [=](const Real& partial, Real& jac) { jac -= partial; },
                   partial_derivative,
-                  jacobian_values.GetBlockView(flat_ids[i]));
+                  jacobian_values.GetBlockView(views.flat_ids_[i]));
             }
 
-            // Compute Jacobian entries for each product: dG/d[P_i] = -stoich_i * prod([other_products]^stoich) *
-            // [P_i]^(stoich_i-1)
-            for (std::size_t i = 0; i < product_stoich.size(); ++i)
+            for (Index i = 0; i < views.product_stoich_.size(); ++i)
             {
-              const double stoich_i = product_stoich[i];
-              const std::size_t species_idx_i = product_state_idx[i];
+              const Real stoich_i = views.product_stoich_[i];
+              const Index species_idx_i = views.product_state_idx_[i];
 
-              // Compute product of all products except P_i
               auto partial_product = jacobian_values.GetBlockVariable();
-              jacobian_values.ForEachBlock([](double& prod) { prod = 1.0; }, partial_product);
+              jacobian_values.ForEachBlock([=](Real& prod) { prod = 1.0; }, partial_product);
 
-              for (std::size_t j = 0; j < product_stoich.size(); ++j)
+              for (Index j = 0; j < views.product_stoich_.size(); ++j)
               {
-                if (j != i)  // Skip current species
+                if (j != i)
                 {
-                  const double stoich_j = product_stoich[j];
-                  const std::size_t species_idx_j = product_state_idx[j];
-
+                  const Real stoich_j = views.product_stoich_[j];
+                  const Index species_idx_j = views.product_state_idx_[j];
                   jacobian_values.ForEachBlock(
-                      [stoich_j](const double& conc, double& prod) { prod *= std::pow(std::max(0.0, conc), stoich_j); },
-                      state.GetConstColumnView(species_idx_j),
+                      [=](const Real& conc, Real& prod) { prod *= std::pow((conc > Real(0) ? conc : Real(0)), stoich_j); },
+                      state_view.GetConstColumnView(species_idx_j),
                       partial_product);
                 }
               }
 
-              // Multiply by stoich_i * [P_i]^(stoich_i-1)
               jacobian_values.ForEachBlock(
-                  [stoich_i](const double& conc, const double& prod, double& partial)
+                  [=](const Real& conc, const Real& prod, Real& partial)
                   {
                     if (stoich_i == 1.0)
                     {
@@ -461,21 +565,19 @@ namespace micm
                       partial = 0.0;
                     }
                   },
-                  state.GetConstColumnView(species_idx_i),
+                  state_view.GetConstColumnView(species_idx_i),
                   partial_product,
                   partial_derivative);
 
-              // Add partial to Jacobian (note: G = ... - [products], so derivative gets positive sign after subtraction)
-              // Use pre-computed flat ID for this product (products come after reactants in flat_ids)
               jacobian_values.ForEachBlock(
-                  [](const double& partial, double& jac) { jac += partial; },
+                  [=](const Real& partial, Real& jac) { jac += partial; },
                   partial_derivative,
-                  jacobian_values.GetBlockView(flat_ids[reactant_stoich.size() + i]));
+                  jacobian_values.GetBlockView(views.flat_ids_[views.reactant_stoich_.size() + i]));
             }
           },
-          temp_state_variables,
-          temp_state_parameters,
-          jacobian);
+          state,
+          state_param,
+          jacobian)(state, state_param, jacobian);
     }
   };
 

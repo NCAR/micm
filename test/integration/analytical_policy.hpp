@@ -1,49 +1,57 @@
 #pragma once
 
+#include "../precision_matchers.hpp"
+
 #include <micm/CPU.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-constexpr size_t NSTEPS = 1000;
-constexpr size_t NUM_CELLS = 3;
+constexpr micm::Index NSTEPS = 1000;
+constexpr micm::Index NUM_CELLS = 3;
 
 ///////////////////////////
 // Common test functions //
 ///////////////////////////
 
-double RelativeError(double a, double b)
+micm::Real RelativeError(micm::Real a, micm::Real b)
 {
   return abs(a - b) / abs(b);
 }
 
-double RelativeDifference(double a, double b)
+micm::Real RelativeDifference(micm::Real a, micm::Real b)
 {
   return abs(a - b) / ((a + b) / 2);
 }
 
-double CombinedError(double a, double b, double abs_tol)
+micm::Real CombinedError(micm::Real a, micm::Real b, micm::Real abs_tol)
 {
   return abs(a - b) * 2 / (abs(a) + abs(b) + abs_tol);
 }
 
+// Templated on the value type so the same writer serves both the model results (micm::Real) and the
+// analytical reference (always double -- see TestSimpleSystem).
+template<class ValueType>
 void WriteCsv(
     const std::string& filename,
     const std::vector<std::string>& header,
-    const std::vector<std::vector<double>>& data,
-    const std::vector<double>& times)
+    const std::vector<std::vector<ValueType>>& data,
+    const std::vector<micm::Real>& times)
 {
   std::ofstream file(filename);
   if (file.is_open())
   {
     // Write column headers
-    for (size_t i = 0; i < header.size(); ++i)
+    for (micm::Index i = 0; i < header.size(); ++i)
     {
       file << header[i];
       if (i < header.size() - 1)
@@ -54,10 +62,10 @@ void WriteCsv(
     file << "\n";
 
     // Write data rows
-    for (size_t i = 0; i < data.size(); ++i)
+    for (micm::Index i = 0; i < data.size(); ++i)
     {
       file << times[i] << ",";
-      for (size_t j = 0; j < data[i].size(); ++j)
+      for (micm::Index j = 0; j < data[i].size(); ++j)
       {
         file << data[i][j];
         if (j < data[i].size() - 1)
@@ -75,17 +83,18 @@ void WriteCsv(
   }
 }
 
+template<class ValueType>
 void WriteCsV2D(
     const std::string& filename,
     const std::vector<std::string>& header,
-    const std::vector<std::vector<std::vector<double>>>& data,
-    const std::vector<double>& times)
+    const std::vector<std::vector<std::vector<ValueType>>>& data,
+    const std::vector<micm::Real>& times)
 {
   std::ofstream file(filename);
   if (file.is_open())
   {
     // Write column headers
-    for (std::size_t i = 0; i < header.size(); ++i)
+    for (micm::Index i = 0; i < header.size(); ++i)
     {
       file << header[i];
       if (i < header.size() - 1)
@@ -96,12 +105,12 @@ void WriteCsV2D(
     file << "\n";
 
     // Write data rows
-    for (std::size_t i_time = 0; i_time < times.size(); ++i_time)
+    for (micm::Index i_time = 0; i_time < times.size(); ++i_time)
     {
-      for (std::size_t i_cell = 0; i_cell < data[i_time].size(); ++i_cell)
+      for (micm::Index i_cell = 0; i_cell < data[i_time].size(); ++i_cell)
       {
         file << times[i_time] << "," << i_cell << ",";
-        for (size_t j = 0; j < data[i_time][i_cell].size(); ++j)
+        for (micm::Index j = 0; j < data[i_time][i_cell].size(); ++j)
         {
           file << data[i_time][i_cell][j];
           if (j < data[i_time][i_cell].size() - 1)
@@ -120,64 +129,69 @@ void WriteCsV2D(
   }
 }
 
-double CalculateAirDensityMolM3(double pressure, double temperature)
+micm::Real CalculateAirDensityMolM3(micm::Real pressure, micm::Real temperature)
 {
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
 
-using SparseMatrixTest = micm::SparseMatrix<double>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
 
 // Test the analytical solution for a simple A -k1-> B -k2-> C system
 template<class BuilderPolicy>
 void TestSimpleSystem(
     const std::string& test_label,
     BuilderPolicy builder,
-    double absolute_tolerances,
-    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
-    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
-    std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
+    micm::Real absolute_tolerances,
+    const std::function<micm::Real(micm::Real temperature, micm::Real pressure, micm::Real air_density)>& calculate_k1,
+    const std::function<micm::Real(micm::Real temperature, micm::Real pressure, micm::Real air_density)>& calculate_k2,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve,
+    const std::unordered_map<std::string, std::vector<micm::Real>>& custom_parameters = {})
 {
   auto solver = builder.Build();
 
-  std::vector<double> temperatures = { 272.5, 254.7, 312.6 };
-  std::vector<double> pressures = { 101253.3, 100672.5, 101319.8 };
+  std::vector<micm::Real> temperatures = { 272.5, 254.7, 312.6 };
+  std::vector<micm::Real> pressures = { 101253.3, 100672.5, 101319.8 };
 
-  std::vector<double> k1(NUM_CELLS), k2(NUM_CELLS);
+  std::vector<micm::Real> k1(NUM_CELLS), k2(NUM_CELLS);
 
-  for (int i = 0; i < NUM_CELLS; ++i)
+  for (micm::Index i = 0; i < NUM_CELLS; ++i)
   {
-    double temperature = temperatures[i % temperatures.size()];
-    double pressure = pressures[i % pressures.size()];
-    double air_density = CalculateAirDensityMolM3(pressure, temperature);
+    micm::Real temperature = temperatures[i % temperatures.size()];
+    micm::Real pressure = pressures[i % pressures.size()];
+    micm::Real air_density = CalculateAirDensityMolM3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
   }
 
-  double time_step = 1.0;
+  micm::Real time_step = 1.0;
   auto state = solver.GetState(NUM_CELLS);
   auto map = state.variable_map_;
 
   state.SetCustomRateParameters(custom_parameters);
 
-  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+  micm::Index idx_A = 0, idx_B = 1, idx_C = 2;
 
-  size_t _a = map.at("A");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
+  micm::Index _a = map.at("A");
+  micm::Index _b = map.at("B");
+  micm::Index _c = map.at("C");
 
-  std::vector<std::vector<std::vector<double>>> model_concentrations(
-      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+  std::vector<std::vector<std::vector<micm::Real>>> model_concentrations(
+      NSTEPS, std::vector<std::vector<micm::Real>>(NUM_CELLS, std::vector<micm::Real>(3)));
+  // The reference solution is always evaluated in double, whatever the solver's working precision.
+  // Its closed form for species C differences two nearly equal exponentials, and in a float build
+  // that cancellation is large enough to make the "truth" itself wrong (it goes negative early on).
   std::vector<std::vector<std::vector<double>>> analytical_concentrations(
       NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
-  for (int i = 0; i < NUM_CELLS; ++i)
+  for (micm::Index i = 0; i < NUM_CELLS; ++i)
   {
-    model_concentrations[0][i][idx_A] = 1.0 - (double)i / (double)NUM_CELLS;
+    model_concentrations[0][i][idx_A] = 1.0 - (micm::Real)i / (micm::Real)NUM_CELLS;
     model_concentrations[0][i][idx_B] = 0.0;
     model_concentrations[0][i][idx_C] = 0.0;
-    analytical_concentrations[0][i] = model_concentrations[0][i];
+    analytical_concentrations[0][i] = { model_concentrations[0][i][idx_A],
+                                        model_concentrations[0][i][idx_B],
+                                        model_concentrations[0][i][idx_C] };
 
     state.variables_[i][_a] = model_concentrations[0][i][idx_A];
     state.variables_[i][_b] = model_concentrations[0][i][idx_B];
@@ -188,9 +202,13 @@ void TestSimpleSystem(
         CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
-  std::vector<double> times;
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
+  std::vector<micm::Real> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time < NSTEPS; ++i_time)
+  for (micm::Index i_time = 1; i_time < NSTEPS; ++i_time)
   {
     solver.UpdateStateParameters(state);
     prepare_for_solve(state);
@@ -198,28 +216,42 @@ void TestSimpleSystem(
     auto result = solver.Solve(time_step, state);
     postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
-    for (std::size_t i = 0; i < NUM_CELLS; ++i)
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
+    for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
-      EXPECT_NEAR(k1[i], state.rate_constants_[i][0], absolute_tolerances);
-      EXPECT_NEAR(k2[i], state.rate_constants_[i][1], absolute_tolerances);
+      // Rate constants are compared relatively, not against the concentration tolerance: they range
+      // up to ~1e6 here, so an absolute tolerance sized for concentrations of order 1 is a demand
+      // for accuracy finer than one ULP of the value being checked. The bound is a few tens of
+      // epsilon rather than an equality: the reference below and micm's own implementation evaluate
+      // the same formula by different routes, which in float costs more than the 4 ULP an equality
+      // macro allows. Use relative tolerance to handle both small and large rate constants.
+      EXPECT_REAL_REL(k1[i], state.rate_constants_[i][0], 1e-9);
+      EXPECT_REAL_REL(k2[i], state.rate_constants_[i][1], 1e-9);
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
       model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
     }
 
     // Analytical results
-    double time = i_time * time_step;
+    micm::Real time = i_time * time_step;
     times.push_back(time);
 
-    for (std::size_t i = 0; i < NUM_CELLS; ++i)
+    for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
-      double initial_A = analytical_concentrations[0][i][idx_A];
-      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-(k1[i]) * time);
+      // Widen to double for the closed form only. k1/k2 keep the values the solver itself was handed,
+      // so the reference stays consistent with the ODE actually being integrated; only the roundoff of
+      // evaluating the formula is removed.
+      const double initial_A = analytical_concentrations[0][i][idx_A];
+      const double kk1 = k1[i], kk2 = k2[i], t = time;
+      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-kk1 * t);
       analytical_concentrations[i_time][i][idx_B] =
-          initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
+          initial_A * (kk1 / (kk2 - kk1)) * (std::exp(-kk1 * t) - std::exp(-kk2 * t));
 
       analytical_concentrations[i_time][i][idx_C] =
-          initial_A * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
+          initial_A * (1.0 + (kk1 * std::exp(-kk2 * t) - kk2 * std::exp(-kk1 * t)) / (kk2 - kk1));
     }
   }
 
@@ -227,17 +259,17 @@ void TestSimpleSystem(
   WriteCsV2D(test_label + "_analytical_concentrations.csv", header, analytical_concentrations, times);
   WriteCsV2D(test_label + "_model_concentrations.csv", header, model_concentrations, times);
 
-  for (std::size_t i_time = 1; i_time < model_concentrations.size(); ++i_time)
+  for (micm::Index i_time = 1; i_time < model_concentrations.size(); ++i_time)
   {
-    for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
+    for (micm::Index i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
@@ -249,53 +281,56 @@ template<class BuilderPolicy>
 void TestSimpleStiffSystem(
     const std::string& test_label,
     BuilderPolicy builder,
-    double absolute_tolerances,
-    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k1,
-    const std::function<double(double temperature, double pressure, double air_density)>& calculate_k2,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
-    std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
+    micm::Real absolute_tolerances,
+    const std::function<micm::Real(micm::Real temperature, micm::Real pressure, micm::Real air_density)>& calculate_k1,
+    const std::function<micm::Real(micm::Real temperature, micm::Real pressure, micm::Real air_density)>& calculate_k2,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve,
+    const std::unordered_map<std::string, std::vector<micm::Real>>& custom_parameters = {})
 {
   auto solver = builder.Build();
 
-  std::vector<double> temperatures = { 272.5, 254.7, 312.6 };
-  std::vector<double> pressures = { 101253.3, 100672.5, 101319.8 };
+  std::vector<micm::Real> temperatures = { 272.5, 254.7, 312.6 };
+  std::vector<micm::Real> pressures = { 101253.3, 100672.5, 101319.8 };
 
-  std::vector<double> k1(NUM_CELLS), k2(NUM_CELLS);
+  std::vector<micm::Real> k1(NUM_CELLS), k2(NUM_CELLS);
 
-  for (int i = 0; i < NUM_CELLS; ++i)
+  for (micm::Index i = 0; i < NUM_CELLS; ++i)
   {
-    double temperature = temperatures[i % temperatures.size()];
-    double pressure = pressures[i % pressures.size()];
-    double air_density = CalculateAirDensityMolM3(pressure, temperature);
+    micm::Real temperature = temperatures[i % temperatures.size()];
+    micm::Real pressure = pressures[i % pressures.size()];
+    micm::Real air_density = CalculateAirDensityMolM3(pressure, temperature);
     k1[i] = calculate_k1(temperature, pressure, air_density);
     k2[i] = calculate_k2(temperature, pressure, air_density);
   }
 
-  double time_step = 1.0;
+  micm::Real time_step = 1.0;
   auto state = solver.GetState(NUM_CELLS);
   auto map = state.variable_map_;
 
   state.SetCustomRateParameters(custom_parameters);
 
-  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+  micm::Index idx_A = 0, idx_B = 1, idx_C = 2;
 
-  size_t _a1 = map.at("A1");
-  size_t _a2 = map.at("A2");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
+  micm::Index _a1 = map.at("A1");
+  micm::Index _a2 = map.at("A2");
+  micm::Index _b = map.at("B");
+  micm::Index _c = map.at("C");
 
-  std::vector<std::vector<std::vector<double>>> model_concentrations(
-      NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
+  std::vector<std::vector<std::vector<micm::Real>>> model_concentrations(
+      NSTEPS, std::vector<std::vector<micm::Real>>(NUM_CELLS, std::vector<micm::Real>(3)));
+  // Reference always in double -- see TestSimpleSystem.
   std::vector<std::vector<std::vector<double>>> analytical_concentrations(
       NSTEPS, std::vector<std::vector<double>>(NUM_CELLS, std::vector<double>(3)));
 
-  for (int i = 0; i < NUM_CELLS; ++i)
+  for (micm::Index i = 0; i < NUM_CELLS; ++i)
   {
-    model_concentrations[0][i][idx_A] = 1.0 - (double)i / (double)NUM_CELLS;
+    model_concentrations[0][i][idx_A] = 1.0 - (micm::Real)i / (micm::Real)NUM_CELLS;
     model_concentrations[0][i][idx_B] = 0.0;
     model_concentrations[0][i][idx_C] = 0.0;
-    analytical_concentrations[0][i] = model_concentrations[0][i];
+    analytical_concentrations[0][i] = { model_concentrations[0][i][idx_A],
+                                        model_concentrations[0][i][idx_B],
+                                        model_concentrations[0][i][idx_C] };
 
     state.variables_[i][_a1] = 0.5 * model_concentrations[0][i][idx_A];
     state.variables_[i][_a2] = 0.5 * model_concentrations[0][i][idx_A];
@@ -307,9 +342,13 @@ void TestSimpleStiffSystem(
         CalculateAirDensityMolM3(pressures[i % pressures.size()], temperatures[i % temperatures.size()]);
   }
 
-  std::vector<double> times;
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
+  std::vector<micm::Real> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time < NSTEPS; ++i_time)
+  for (micm::Index i_time = 1; i_time < NSTEPS; ++i_time)
   {
     solver.UpdateStateParameters(state);
     prepare_for_solve(state);
@@ -317,7 +356,11 @@ void TestSimpleStiffSystem(
     auto result = solver.Solve(time_step, state);
     postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
-    for (std::size_t i = 0; i < NUM_CELLS; ++i)
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
+    for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a1] + state.variables_[i][_a2];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
@@ -325,17 +368,18 @@ void TestSimpleStiffSystem(
     }
 
     // Analytical results
-    double time = i_time * time_step;
+    micm::Real time = i_time * time_step;
     times.push_back(time);
 
-    for (std::size_t i = 0; i < NUM_CELLS; ++i)
+    for (micm::Index i = 0; i < NUM_CELLS; ++i)
     {
-      double initial_A = analytical_concentrations[0][i][idx_A];
-      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-k1[i] * time);
+      const double initial_A = analytical_concentrations[0][i][idx_A];
+      const double kk1 = k1[i], kk2 = k2[i], t = time;
+      analytical_concentrations[i_time][i][idx_A] = initial_A * std::exp(-kk1 * t);
       analytical_concentrations[i_time][i][idx_B] =
-          initial_A * (k1[i] / (k2[i] - k1[i])) * (std::exp(-k1[i] * time) - std::exp(-k2[i] * time));
+          initial_A * (kk1 / (kk2 - kk1)) * (std::exp(-kk1 * t) - std::exp(-kk2 * t));
       analytical_concentrations[i_time][i][idx_C] =
-          initial_A * (1.0 + (k1[i] * std::exp(-k2[i] * time) - k2[i] * std::exp(-k1[i] * time)) / (k2[i] - k1[i]));
+          initial_A * (1.0 + (kk1 * std::exp(-kk2 * t) - kk2 * std::exp(-kk1 * t)) / (kk2 - kk1));
     }
   }
 
@@ -343,17 +387,17 @@ void TestSimpleStiffSystem(
   WriteCsV2D(test_label + "_stiff_model_concentrations.csv", header, model_concentrations, times);
   WriteCsV2D(test_label + "_stiff_analytical_concentrations.csv", header, analytical_concentrations, times);
 
-  for (std::size_t i_time = 1; i_time < model_concentrations.size(); ++i_time)
+  for (micm::Index i_time = 1; i_time < model_concentrations.size(); ++i_time)
   {
-    for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
+    for (micm::Index i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
-      EXPECT_NEAR(
+      EXPECT_REAL_SOLVE_CLOSE(
           model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
@@ -367,10 +411,10 @@ void TestSimpleStiffSystem(
 template<class BuilderPolicy>
 void TestAnalyticalTroe(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-10,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-10,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -414,19 +458,19 @@ void TestAnalyticalTroe(
       "troe",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k_0 = 4.0e-11;
-        double k_inf = 1;
+        micm::Real k_0 = 4.0e-11;
+        micm::Real k_inf = 1;
         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
-        double k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
+        micm::Real k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
+        micm::Real k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.9, 0.8 / (0.8 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
@@ -437,10 +481,10 @@ void TestAnalyticalTroe(
 template<class BuilderPolicy>
 void TestAnalyticalStiffTroe(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-5,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-5,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -508,19 +552,19 @@ void TestAnalyticalStiffTroe(
       "troe",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k_0 = 4.0e-11;
-        double k_inf = 1;
+        micm::Real k_0 = 4.0e-11;
+        micm::Real k_inf = 1;
         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
-        double k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
+        micm::Real k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
+        micm::Real k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
@@ -531,10 +575,10 @@ void TestAnalyticalStiffTroe(
 template<class BuilderPolicy>
 void TestAnalyticalPhotolysis(
     BuilderPolicy builder,
-    double absolute_tolerances = 2e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 2e-6,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -567,20 +611,20 @@ void TestAnalyticalPhotolysis(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  std::unordered_map<std::string, std::vector<double>> custom_parameters = {
-    { "photoA", std::vector<double>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
+  std::unordered_map<std::string, std::vector<micm::Real>> custom_parameters = {
+    { "photoA", std::vector<micm::Real>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<micm::Real>(NUM_CELLS, 3e-3) }
   };
 
   TestSimpleSystem<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
         return 2e-3;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
         return 3e-3;
@@ -593,10 +637,10 @@ void TestAnalyticalPhotolysis(
 template<class BuilderPolicy>
 void TestAnalyticalStiffPhotolysis(
     BuilderPolicy builder,
-    double absolute_tolerances = 2e-5,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 2e-5,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -653,22 +697,22 @@ void TestAnalyticalStiffPhotolysis(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
 
-  std::unordered_map<std::string, std::vector<double>> custom_parameters = {
-    { "photoA1B", std::vector<double>(NUM_CELLS, 2e-3) },
-    { "photoA2B", std::vector<double>(NUM_CELLS, 2e-3) },
-    { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
+  std::unordered_map<std::string, std::vector<micm::Real>> custom_parameters = {
+    { "photoA1B", std::vector<micm::Real>(NUM_CELLS, 2e-3) },
+    { "photoA2B", std::vector<micm::Real>(NUM_CELLS, 2e-3) },
+    { "photoB", std::vector<micm::Real>(NUM_CELLS, 3e-3) }
   };
 
   TestSimpleStiffSystem<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
         return 2e-3;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
         return 3e-3;
@@ -681,10 +725,10 @@ void TestAnalyticalStiffPhotolysis(
 template<class BuilderPolicy>
 void TestAnalyticalTernaryChemicalActivation(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-08,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-08,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -730,19 +774,19 @@ void TestAnalyticalTernaryChemicalActivation(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k_0 = 4.0e-5;
-        double k_inf = 1;
+        micm::Real k_0 = 4.0e-5;
+        micm::Real k_inf = 1;
         return k_0 / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
-        double k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
+        micm::Real k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
+        micm::Real k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
         return k_0 / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
@@ -753,10 +797,10 @@ void TestAnalyticalTernaryChemicalActivation(
 template<class BuilderPolicy>
 void TestAnalyticalStiffTernaryChemicalActivation(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-6,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -826,19 +870,19 @@ void TestAnalyticalStiffTernaryChemicalActivation(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k_0 = 4.0e-5;
-        double k_inf = 1;
+        micm::Real k_0 = 4.0e-5;
+        micm::Real k_inf = 1;
         return k_0 / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
-        double k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
+        micm::Real k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
+        micm::Real k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
         return k_0 / (1.0 + k_0 * air_density / k_inf) *
                std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
       },
@@ -849,10 +893,10 @@ void TestAnalyticalStiffTernaryChemicalActivation(
 template<class BuilderPolicy>
 void TestAnalyticalTunneling(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-8,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -890,16 +934,16 @@ void TestAnalyticalTunneling(
       "tunneling",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k1 = 4.0e-3;
+        micm::Real k1 = 4.0e-3;
         return k1;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
+        micm::Real k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
         return k2;
       },
       prepare_for_solve,
@@ -909,10 +953,10 @@ void TestAnalyticalTunneling(
 template<class BuilderPolicy>
 void TestAnalyticalStiffTunneling(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-6,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -973,16 +1017,16 @@ void TestAnalyticalStiffTunneling(
       "tunneling",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k1 = 4.0e-3;
+        micm::Real k1 = 4.0e-3;
         return k1;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
+        micm::Real k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
         return k2;
       },
       prepare_for_solve,
@@ -992,10 +1036,10 @@ void TestAnalyticalStiffTunneling(
 template<class BuilderPolicy>
 void TestAnalyticalArrhenius(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-9,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-9,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1032,16 +1076,16 @@ void TestAnalyticalArrhenius(
       "arrhenius",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k1 = 4.0e-3 * std::exp(50 / temperature);
+        micm::Real k1 = 4.0e-3 * std::exp(50 / temperature);
         return k1;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 7) * (1.0 + 0.5 * pressure);
+        micm::Real k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 7) * (1.0 + 0.5 * pressure);
         return k2;
       },
       prepare_for_solve,
@@ -1051,10 +1095,10 @@ void TestAnalyticalArrhenius(
 template<class BuilderPolicy>
 void TestAnalyticalStiffArrhenius(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-6,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1116,16 +1160,16 @@ void TestAnalyticalStiffArrhenius(
       "arrhenius",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double k1 = 4.0e-3 * std::exp(50 / temperature);
+        micm::Real k1 = 4.0e-3 * std::exp(50 / temperature);
         return k1;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 1.6) * (1.0 + 0.5 * pressure);
+        micm::Real k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 1.6) * (1.0 + 0.5 * pressure);
         return k2;
       },
       prepare_for_solve,
@@ -1135,10 +1179,10 @@ void TestAnalyticalStiffArrhenius(
 template<class BuilderPolicy>
 void TestAnalyticalBranched(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-13,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-13,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1185,34 +1229,34 @@ void TestAnalyticalBranched(
       "branched",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
-        double z =
+        micm::Real air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
+        micm::Real a_ = 2.0e-22 * std::exp(2) * 2.45e19;
+        micm::Real b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        micm::Real z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        micm::Real A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-        double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
+        micm::Real k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
         return k1;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
-        double z =
+        micm::Real air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
+        micm::Real a_ = 2.0e-22 * std::exp(2) * 2.45e19;
+        micm::Real b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        micm::Real z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        micm::Real A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-        double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
+        micm::Real k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
         return k2;
       },
       prepare_for_solve,
@@ -1222,10 +1266,10 @@ void TestAnalyticalBranched(
 template<class BuilderPolicy>
 void TestAnalyticalStiffBranched(
     BuilderPolicy builder,
-    double absolute_tolerances = 1e-6,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerances = 1e-6,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1301,34 +1345,34 @@ void TestAnalyticalStiffBranched(
       "branched",
       builder,
       absolute_tolerances,
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // A->B reaction rate
-        double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
-        double z =
+        micm::Real air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
+        micm::Real a_ = 2.0e-22 * std::exp(2) * 2.45e19;
+        micm::Real b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        micm::Real z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        micm::Real A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-        double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
+        micm::Real k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
         return k1;
       },
-      [](double temperature, double pressure, double air_density)
+      [](micm::Real temperature, micm::Real pressure, micm::Real air_density)
       {
         // B->C reaction rate
-        double air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
-        double a_ = 2.0e-22 * std::exp(2) * 2.45e19;
-        double b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
-        double z =
+        micm::Real air_dens_n_cm3 = air_density * micm::constants::AVOGADRO_CONSTANT * 1.0e-6;
+        micm::Real a_ = 2.0e-22 * std::exp(2) * 2.45e19;
+        micm::Real b_ = 0.43 * std::pow((293.0 / 298.0), -8.0);
+        micm::Real z =
             a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2))) * (1.0 - 1.0e-3) / 1.0e-3;
         a_ = 2.0e-22 * std::exp(2) * air_dens_n_cm3;
         b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
-        double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
+        micm::Real A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-        double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
+        micm::Real k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
         return k2;
       },
       prepare_for_solve,
@@ -1338,10 +1382,10 @@ void TestAnalyticalStiffBranched(
 template<class BuilderPolicy>
 void TestAnalyticalRobertson(
     BuilderPolicy builder,
-    double relative_tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real relative_tolerance = 1e-8,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1387,26 +1431,26 @@ void TestAnalyticalRobertson(
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
   auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
-  double temperature = 272.5;
-  double pressure = 101253.3;
-  double air_density = 1e6;
+  micm::Real temperature = 272.5;
+  micm::Real pressure = 101253.3;
+  micm::Real air_density = 1e6;
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1e-10);
-  state.SetAbsoluteTolerances(std::vector<double>(3, state.relative_tolerance_ * 1e-2));
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(3, state.relative_tolerance_ * 1e-2));
 
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
+  micm::Real k1 = 0.04;
+  micm::Real k2 = 3e7;
+  micm::Real k3 = 1e4;
 
   state.SetCustomRateParameter("r1", k1);
   state.SetCustomRateParameter("r2", k2);
   state.SetCustomRateParameter("r3", k3);
 
-  constexpr size_t N = 12;
+  constexpr micm::Index N = 12;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(3));
+  std::vector<std::vector<micm::Real>> model_concentrations(N + 1, std::vector<micm::Real>(3));
+  std::vector<std::vector<micm::Real>> analytical_concentrations(N + 1, std::vector<micm::Real>(3));
 
   model_concentrations[0] = { 1, 0, 0 };
 
@@ -1429,23 +1473,30 @@ void TestAnalyticalRobertson(
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
-  double target_time = 1.0;
-  double current_time = 0.0;
-  std::vector<double> times;
+  micm::Real target_time = 1.0;
+  micm::Real current_time = 0.0;
+  std::vector<micm::Real> times;
   times.push_back(0);
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    double delta_t = target_time - current_time;
+    micm::Real delta_t = target_time - current_time;
     times.push_back(target_time);
     prepare_for_solve(state);
+
     // Model results
-    double actual_solve = 0;
+    micm::Real actual_solve = 0;
     while (actual_solve < delta_t)
     {
       auto result = solver.Solve(delta_t - actual_solve, state);
       actual_solve += result.stats_.final_time_;
     }
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
     postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
     current_time = target_time;
@@ -1458,16 +1509,16 @@ void TestAnalyticalRobertson(
 
   auto map = state.variable_map_;
 
-  size_t _a = map.at("A");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
+  micm::Index _a = map.at("A");
+  micm::Index _b = map.at("B");
+  micm::Index _c = map.at("C");
 
   // average of the starting concentration *1e-3;
-  double absolute_tolerance = 0.3e-3;
-  for (size_t i = 1; i < model_concentrations.size(); ++i)
+  micm::Real absolute_tolerance = 0.3e-3;
+  for (micm::Index i = 1; i < model_concentrations.size(); ++i)
   {
-    double rel_error = RelativeError(model_concentrations[i][_a], analytical_concentrations[i][0]);
-    double abs_error = std::abs(model_concentrations[i][_a] - analytical_concentrations[i][0]);
+    micm::Real rel_error = RelativeError(model_concentrations[i][_a], analytical_concentrations[i][0]);
+    micm::Real abs_error = std::abs(model_concentrations[i][_a] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
@@ -1486,13 +1537,26 @@ void TestAnalyticalRobertson(
   }
 }
 
+/// @brief Solves the Oregonator problem and compares the result with the reference solution.
+/// @param builder The solver builder to test
+/// @param relative_tolerance The relative tolerance for the comparison
+/// @param substeps_per_output The number of equal sub-steps to take between two output times.
+///                            Use 1 for a solver that controls the step size itself, such as
+///                            Rosenbrock. A first-order solver, such as backward Euler, needs
+///                            many sub-steps to follow the limit cycle.
+/// @param solver_relative_tolerance The relative tolerance to give the solver. The error of an
+///                                  adaptive solver is proportional to this value.
+/// @param prepare_for_solve A function that runs before the solve loop
+/// @param postpare_for_solve A function that runs after each output step
 template<class BuilderPolicy>
 void TestAnalyticalOregonator(
     BuilderPolicy builder,
-    double relative_tolerance = 1e-4,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real relative_tolerance = 1e-6,
+    micm::Index substeps_per_output = 1,
+    micm::Real solver_relative_tolerance = 1e-9,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1522,6 +1586,35 @@ void TestAnalyticalOregonator(
    *
    * I don't understand the transfomrations. Multiplying the timestep by tau, and the concnetrations by the constants
    * in the paper give very similar values.
+   *
+   * -----------------------------------------------------------------------------------------------------------------
+   *
+   * Here is that transformation. The reference values below are copied from stiff/orego/res_exact_pic in the test set
+   * linked above. The file stiff/orego/equation.f produced them, and it holds the three-variable form that the paper
+   * simplifies to:
+   *
+   *   y1' = s * (y2 + y1 * (1 - q * y1 - y2))
+   *   y2' = (y3 - (1 + y1) * y2) / s
+   *   y3' = w * (y1 - y3)
+   *
+   * with s = 77.27, q = 8.375e-6, w = 0.161, y(0) = (1, 2, 3), and output at x = 30, 60, ..., 360.
+   *
+   * That system and the five reactions are related by
+   *
+   *   X = alpha * y1,  Y = eta * y2,  Z = rho * y3,  t = tau * x
+   *
+   * Substituting into the mass-action equations and matching every term against equation.f gives:
+   *
+   *   tau    = w / k5           alpha = k5 / (s * w * k2)
+   *   k1 * A = k5 / (s * w)     eta   = s * k5 / (w * k2)
+   *   k3 * B = s * k5 / w       rho   = k5 * k5 / (w * w * k2)
+   *   k4     = s * s * q * k2 / 2
+   *
+   * k2 and k5 stay free, so this test keeps the values k2 = 1.6e9 and k5 = 1 listed above. The other three follow from
+   * s, q, and w. They differ by less than 0.03 percent from the values listed above, because Hairer and Wanner rounded
+   * s and w when they wrote equation.f. Using the listed values instead makes this test compare against the solution of
+   * a slightly different problem, which is why the values were only ever "very similar". That limits the agreement to
+   * about 1e-2 no matter how accurate the solver is.
    */
 
   auto X = micm::Species("X");
@@ -1570,12 +1663,31 @@ void TestAnalyticalOregonator(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
-  double tau = 0.1610;
-  double time_step = 30 * tau;
-  size_t N = 12;
+  // The parameters of equation.f in the Hairer test set
+  constexpr micm::Real s_const = 77.27;
+  constexpr micm::Real q_const = 8.375e-6;
+  constexpr micm::Real w_const = 0.161;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(5));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(5));
+  // The two rate constants that s, q, and w leave free, at the Field and Noyes values
+  constexpr micm::Real k2_const = 1.6e9;
+  constexpr micm::Real k5_const = 1.0;
+
+  // The three rate constants that s, q, and w fix
+  constexpr micm::Real k1a_const = k5_const / (s_const * w_const);
+  constexpr micm::Real k3b_const = s_const * k5_const / w_const;
+  constexpr micm::Real k4_const = s_const * s_const * q_const * k2_const / 2.0;
+
+  // The scale of each dimensionless variable, and of the dimensionless time
+  constexpr micm::Real alpha_const = k5_const / (s_const * w_const * k2_const);
+  constexpr micm::Real eta_const = s_const * k5_const / (w_const * k2_const);
+  constexpr micm::Real rho_const = k5_const * k5_const / (w_const * w_const * k2_const);
+  constexpr micm::Real tau = w_const / k5_const;
+
+  micm::Real time_step = 30 * tau;
+  micm::Index N = 12;
+
+  std::vector<std::vector<micm::Real>> model_concentrations(N + 1, std::vector<micm::Real>(5));
+  std::vector<std::vector<micm::Real>> analytical_concentrations(N + 1, std::vector<micm::Real>(5));
 
   // ignore P and Q, the last two zeros
   // the initial concentrations given at https://www.unige.ch/~hairer/testset/testset.html
@@ -1583,9 +1695,6 @@ void TestAnalyticalOregonator(
   // X = alpha
   // Y = eta
   // Z = rho
-  double alpha_const = 5.025e-11;
-  double eta_const = 3e-7;
-  double rho_const = 2.412e-8;
   model_concentrations[0] = { 1 * alpha_const, 2 * eta_const, 3 * rho_const, 0, 0 };
 
   // ignore P and Q, the last two zeros
@@ -1614,45 +1723,65 @@ void TestAnalyticalOregonator(
 
   auto state = solver.GetState(1);
 
-  state.SetRelativeTolerance(1e-6);
-  state.SetAbsoluteTolerances(std::vector<double>(5, state.relative_tolerance_ * 1e-6));
+  const micm::Real achievable_relative_tolerance =
+      std::max(solver_relative_tolerance, micm::Real{ 100 } * std::numeric_limits<micm::Real>::epsilon());
+  state.SetRelativeTolerance(achievable_relative_tolerance);
+  micm::Real tolerance_floor = achievable_relative_tolerance * 1e-2;
+  state.SetAbsoluteTolerances(
+      { alpha_const * tolerance_floor, eta_const * tolerance_floor, rho_const * tolerance_floor, eta_const, eta_const });
 
-  state.SetCustomRateParameter("r1", 1.34 * 0.06);
-  state.SetCustomRateParameter("r2", 1.6e9);
-  state.SetCustomRateParameter("r3", 8e3 * 0.06);
-  state.SetCustomRateParameter("r4", 4e7);
-  state.SetCustomRateParameter("r5", 1);
+  state.SetCustomRateParameter("r1", k1a_const);
+  state.SetCustomRateParameter("r2", k2_const);
+  state.SetCustomRateParameter("r3", k3b_const);
+  state.SetCustomRateParameter("r4", k4_const);
+  state.SetCustomRateParameter("r5", k5_const);
 
   state.variables_[0] = model_concentrations[0];
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
-  std::vector<double> times;
+  std::vector<micm::Real> times;
   times.push_back(0);
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time * time_step;
+    micm::Real solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    // Model results: sub-step at tau/100 so backward Euler tracks the slow oscillation
-    // accurately. One large step (H=30*tau) converges Newton to the wrong attractor;
-    // smaller steps follow the limit cycle with O(H) first-order error.
-    double actual_solve = 0;
-    double max_substep = tau / 1000.0;
+    // Model results. A solver that controls its own step size takes the full output interval
+    // in one call. A first-order solver needs sub-steps: one large step (H = 30 * tau) makes
+    // the backward Euler Newton solver converge to the wrong attractor, but small steps follow
+    // the limit cycle with O(H) first-order error.
+    micm::Real actual_solve = 0;
+    micm::Real max_substep = time_step / substeps_per_output;
     while (actual_solve < time_step)
     {
-      double dt = std::min(max_substep, time_step - actual_solve);
+      micm::Real dt = std::min(max_substep, time_step - actual_solve);
       auto result = solver.Solve(dt, state);
-      actual_solve += result.stats_.final_time_;
+      ASSERT_TRUE(
+          result.state_ == micm::SolverState::Converged || result.state_ == micm::SolverState::ConvergenceExceededMaxSteps)
+          << "solver returned " << micm::SolverStateToString(result.state_)
+          << " at t = " << (i_time * time_step + actual_solve);
+      const micm::Real advanced_to = actual_solve + result.stats_.final_time_;
+      ASSERT_GT(advanced_to, actual_solve)
+          << "solve advanced only " << result.stats_.final_time_ << " s at t = " << (i_time * time_step + actual_solve);
+      actual_solve = advanced_to;
     }
     postpare_for_solve(state);
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     model_concentrations[i_time + 1] = state.variables_[0];
   }
 
   std::vector<std::string> header = { "time", "X", "Y", "Z", "P", "Q" };
   WriteCsv("oregonator_model_concentrations.csv", header, model_concentrations, times);
-  std::vector<double> an_times;
+  std::vector<micm::Real> an_times;
   an_times.push_back(0);
-  for (int i = 1; i <= 12; ++i)
+  for (micm::Index i = 1; i <= 12; ++i)
   {
     an_times.push_back(time_step * i);
   }
@@ -1660,44 +1789,31 @@ void TestAnalyticalOregonator(
 
   auto map = state.variable_map_;
 
-  size_t _x = map.at("X");
-  size_t _y = map.at("Y");
-  size_t _z = map.at("Z");
+  micm::Index _x = map.at("X");
+  micm::Index _y = map.at("Y");
+  micm::Index _z = map.at("Z");
 
-  // X, Y, Z span very different orders of magnitude (alpha ~5e-11, eta ~3e-7, rho ~2.4e-8),
-  // so a single absolute tolerance cannot meaningfully cover all three. Use per-species absolute
-  // floors (the initial scale of each species) with a relative tolerance as the primary check.
-  for (size_t i = 1; i < model_concentrations.size(); ++i)
+  // Every reference value is at least the scale of its own species, so a plain relative
+  // comparison is meaningful for all three. No absolute floor is needed.
+  const micm::Index indices[3] = { _x, _y, _z };
+  const char* names[3] = { "X", "Y", "Z" };
+  for (micm::Index i = 1; i < model_concentrations.size(); ++i)
   {
-    double rel_error_val, abs_error_val;
-
-    rel_error_val = RelativeError(model_concentrations[i][_x], analytical_concentrations[i][0]);
-    abs_error_val = std::abs(model_concentrations[i][_x] - analytical_concentrations[i][0]);
-    EXPECT_TRUE(abs_error_val < alpha_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", X) with relative error " << rel_error_val << " and absolute error "
-        << abs_error_val;
-
-    rel_error_val = RelativeError(model_concentrations[i][_y], analytical_concentrations[i][1]);
-    abs_error_val = std::abs(model_concentrations[i][_y] - analytical_concentrations[i][1]);
-    EXPECT_TRUE(abs_error_val < eta_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", Y) with relative error " << rel_error_val << " and absolute error "
-        << abs_error_val;
-
-    rel_error_val = RelativeError(model_concentrations[i][_z], analytical_concentrations[i][2]);
-    abs_error_val = std::abs(model_concentrations[i][_z] - analytical_concentrations[i][2]);
-    EXPECT_TRUE(abs_error_val < rho_const || rel_error_val < relative_tolerance)
-        << "Arrays differ at index (" << i << ", Z) with relative error " << rel_error_val << " and absolute error "
-        << abs_error_val;
+    for (micm::Index j = 0; j < 3; ++j)
+    {
+      micm::Real rel_error = RelativeError(model_concentrations[i][indices[j]], analytical_concentrations[i][j]);
+      EXPECT_LT(rel_error, relative_tolerance) << "Arrays differ at index (" << i << ", " << names[j] << ")";
+    }
   }
 }
 
 template<class BuilderPolicy>
 void TestAnalyticalHires(
     BuilderPolicy builder,
-    double absolute_tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real absolute_tolerance = 1e-8,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1798,9 +1914,9 @@ void TestAnalyticalHires(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9 };
   auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
-  size_t N = 2;
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(8));
+  micm::Index N = 2;
+  std::vector<std::vector<micm::Real>> model_concentrations(N + 1, std::vector<micm::Real>(8));
+  std::vector<std::vector<micm::Real>> analytical_concentrations(N + 1, std::vector<micm::Real>(8));
 
   model_concentrations[0] = { 1, 0, 0, 0, 0, 0, 0, 0.0057 };
 
@@ -1826,7 +1942,7 @@ void TestAnalyticalHires(
 
   auto state = solver.GetState(1);
   state.SetRelativeTolerance(1e-6);
-  state.SetAbsoluteTolerances(std::vector<double>(8, state.relative_tolerance_ * 1e-2));
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(8, state.relative_tolerance_ * 1e-2));
 
   state.SetCustomRateParameter("r1", 1.71);
   state.SetCustomRateParameter("r2", 8.75);
@@ -1839,25 +1955,34 @@ void TestAnalyticalHires(
   state.SetCustomRateParameter("r9", 280.0);
 
   state.variables_[0] = model_concentrations[0];
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
-  std::vector<double> times;
+  std::vector<micm::Real> times;
   times.push_back(0);
-  double time_step = 321.8122;
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  micm::Real time_step = 321.8122;
+  micm::Real current_time = 0.0;
+  for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
+    // The step size grows, so the output time is the running total, not a multiple of the step.
+    current_time += time_step;
+    times.push_back(current_time);
     // Model results
-    double actual_solve = 0;
+    micm::Real actual_solve = 0;
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
       actual_solve += result.stats_.final_time_;
-      ;
     }
     postpare_for_solve(state);
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     model_concentrations[i_time + 1] = state.variables_[0];
     time_step += 100;
   }
@@ -1868,16 +1993,16 @@ void TestAnalyticalHires(
 
   auto map = state.variable_map_;
 
-  size_t _y0 = map.at("Y0");
-  size_t _y1 = map.at("Y1");
-  size_t _y2 = map.at("Y2");
-  size_t _y3 = map.at("Y3");
-  size_t _y4 = map.at("Y4");
-  size_t _y5 = map.at("Y5");
-  size_t _y6 = map.at("Y6");
-  size_t _y7 = map.at("Y7");
+  micm::Index _y0 = map.at("Y0");
+  micm::Index _y1 = map.at("Y1");
+  micm::Index _y2 = map.at("Y2");
+  micm::Index _y3 = map.at("Y3");
+  micm::Index _y4 = map.at("Y4");
+  micm::Index _y5 = map.at("Y5");
+  micm::Index _y6 = map.at("Y6");
+  micm::Index _y7 = map.at("Y7");
 
-  for (size_t i = 1; i < model_concentrations.size(); ++i)
+  for (micm::Index i = 1; i < model_concentrations.size(); ++i)
   {
     EXPECT_NEAR(model_concentrations[i][_y0], analytical_concentrations[i][0], absolute_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
@@ -1901,10 +2026,10 @@ void TestAnalyticalHires(
 template<class BuilderPolicy>
 void TestAnalyticalE5(
     BuilderPolicy builder,
-    double relative_tolerance = 1e-8,
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+    micm::Real relative_tolerance = 1e-8,
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {},
-    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+    const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
         [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
@@ -1968,10 +2093,10 @@ void TestAnalyticalE5(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4 };
   auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
 
-  size_t N = 7;
+  micm::Index N = 7;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(6));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(6));
+  std::vector<std::vector<micm::Real>> model_concentrations(N + 1, std::vector<micm::Real>(6));
+  std::vector<std::vector<micm::Real>> analytical_concentrations(N + 1, std::vector<micm::Real>(6));
 
   model_concentrations[0] = { 1.76e-3, 0, 0, 0, 0, 0 };
 
@@ -1990,7 +2115,7 @@ void TestAnalyticalE5(
   auto state = solver.GetState(1);
 
   state.SetRelativeTolerance(1e-13);
-  state.SetAbsoluteTolerances(std::vector<double>(6, 1e-17));
+  state.SetAbsoluteTolerances(std::vector<micm::Real>(6, 1e-17));
   auto atol = state.absolute_tolerance_;
   atol[0] = 1e-7;
   atol[4] = 1e-7;
@@ -2003,25 +2128,33 @@ void TestAnalyticalE5(
   state.SetCustomRateParameter("r4", 1.13e3);
 
   state.variables_[0] = model_concentrations[0];
+  state.variables_.CopyToDevice();
+  state.conditions_.CopyToDevice();
+  state.custom_rate_parameters_.CopyToDevice();
+
   solver.UpdateStateParameters(state);
   prepare_for_solve(state);
 
-  std::vector<double> times;
+  std::vector<micm::Real> times;
   times.push_back(0);
-  double target_time = 10.0;
-  double current_time = 0.0;
-  for (size_t i_time = 0; i_time < N; ++i_time)
+  micm::Real target_time = 10.0;
+  micm::Real current_time = 0.0;
+  for (micm::Index i_time = 0; i_time < N; ++i_time)
   {
-    double delta_t = target_time - current_time;
+    micm::Real delta_t = target_time - current_time;
     times.push_back(target_time);
     // Model results
-    double actual_solve = 0;
+    micm::Real actual_solve = 0;
     while (actual_solve < delta_t)
     {
       auto result = solver.Solve(delta_t - actual_solve, state);
       actual_solve += result.stats_.final_time_;
     }
     postpare_for_solve(state);
+
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+
     model_concentrations[i_time + 1] = state.variables_[0];
     current_time = target_time;
     target_time *= 100;
@@ -2031,12 +2164,12 @@ void TestAnalyticalE5(
   WriteCsv("e5_model_concentrations.csv", header, model_concentrations, times);
   WriteCsv("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (micm::Index i = 0; i < model_concentrations.size(); ++i)
   {
     // ignore the concentration of A5 and A6
-    double absolute_tolerance = 1e-6;
-    double rel_error = RelativeError(model_concentrations[i][0], analytical_concentrations[i][0]);
-    double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
+    micm::Real absolute_tolerance = 1e-6;
+    micm::Real rel_error = RelativeError(model_concentrations[i][0], analytical_concentrations[i][0]);
+    micm::Real abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
     EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;

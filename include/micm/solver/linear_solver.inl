@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/util/types.hpp>
+
 #include <limits>
 #include <set>
 #include <vector>
@@ -25,15 +27,15 @@ namespace micm
   //
   // Returns perm where perm[new_index] = old_index.
   template<class MatrixPolicy>
-  inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy& matrix)
+  inline std::vector<Index> DiagonalMarkowitzReorder(const MatrixPolicy& matrix)
   {
-    const std::size_t order = matrix.NumRows();
+    const Index order = matrix.NumRows();
     assert(order == matrix.NumColumns() && "Markowitz reorder requires a square matrix");
     // output_neighbors[v] = { c : edge v->c }, incoming_neighbors[c] = { v : edge v->c }, over the remaining nodes.
-    std::vector<std::set<std::size_t>> output_neighbors(order), incoming_neighbors(order);
-    for (std::size_t i = 0; i < order; ++i)
+    std::vector<std::set<Index>> output_neighbors(order), incoming_neighbors(order);
+    for (Index i = 0; i < order; ++i)
     {
-      for (std::size_t j = 0; j < order; ++j)
+      for (Index j = 0; j < order; ++j)
       {
         if (matrix[i][j] != 0)
         {
@@ -42,28 +44,28 @@ namespace micm
         }
       }
     }
-    std::vector<std::size_t> row_deg(order), col_deg(order);
-    for (std::size_t v = 0; v < order; ++v)
+    std::vector<Index> row_deg(order), col_deg(order);
+    for (Index v = 0; v < order; ++v)
     {
       row_deg[v] = output_neighbors[v].size();
       col_deg[v] = incoming_neighbors[v].size();
     }
-    std::vector<char> alive(order, 1);
-    std::vector<std::size_t> perm;
+    std::vector<Bool> alive(order, 1);
+    std::vector<Index> perm;
     perm.reserve(order);
-    for (std::size_t step = 0; step < order; ++step)
+    for (Index step = 0; step < order; ++step)
     {
       // Select the remaining node with minimum Markowitz cost (row_deg-1)*(col_deg-1).
       // The diagonal keeps every live node's degrees >= 1, so the subtraction never underflows.
-      std::size_t pivot = order;
-      std::size_t best_cost = std::numeric_limits<std::size_t>::max();
-      for (std::size_t v = 0; v < order; ++v)
+      Index pivot = order;
+      Index best_cost = std::numeric_limits<Index>::max();
+      for (Index v = 0; v < order; ++v)
       {
         if (!alive[v])
         {
           continue;
         }
-        const std::size_t cost = (row_deg[v] - 1) * (col_deg[v] - 1);
+        const Index cost = (row_deg[v] - 1) * (col_deg[v] - 1);
         if (pivot == order || cost < best_cost)
         {
           best_cost = cost;
@@ -72,15 +74,15 @@ namespace micm
       }
       perm.push_back(pivot);
       alive[pivot] = 0;
-      std::vector<std::size_t> cols, ins;
-      for (std::size_t c : output_neighbors[pivot])
+      std::vector<Index> cols, ins;
+      for (Index c : output_neighbors[pivot])
       {
         if (c != pivot && alive[c])
         {
           cols.push_back(c);
         }
       }
-      for (std::size_t i : incoming_neighbors[pivot])
+      for (Index i : incoming_neighbors[pivot])
       {
         if (i != pivot && alive[i])
         {
@@ -94,9 +96,9 @@ namespace micm
       // fill step. insert(c).second is true only when the edge is genuinely new, so degrees are
       // bumped exactly once per introduced fill element -- keeping row_deg/col_deg exact without
       // any rescan.
-      for (std::size_t i : ins)
+      for (Index i : ins)
       {
-        for (std::size_t c : cols)
+        for (Index c : cols)
         {
           if (output_neighbors[i].insert(c).second)
           {
@@ -107,12 +109,12 @@ namespace micm
         }
       }
       // Drop the eliminated pivot from its live neighbors' degree counts.
-      for (std::size_t c : cols)
+      for (Index c : cols)
       {
         incoming_neighbors[c].erase(pivot);
         --col_deg[c];
       }
-      for (std::size_t i : ins)
+      for (Index i : ins)
       {
         output_neighbors[i].erase(pivot);
         --row_deg[i];
@@ -121,20 +123,48 @@ namespace micm
     return perm;
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value)
-      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>(
+      : LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
-            [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(m); })
+            [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy::Create(m); })
   {
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+      LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>&& other) noexcept
+      : nLij_Lii_(std::move(other.nLij_Lii_)),
+        Lij_yj_(std::move(other.Lij_yj_)),
+        nUij_Uii_(std::move(other.nUij_Uii_)),
+        Uij_xj_(std::move(other.Uij_xj_)),
+        views_(nLij_Lii_, Lij_yj_, nUij_Uii_, Uij_xj_),
+        lu_decomp_(std::move(other.lu_decomp_))
+  {
+  }
+
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>&
+  LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(
+      LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>&& other) noexcept
+  {
+    if (this != &other)
+    {
+      nLij_Lii_ = std::move(other.nLij_Lii_);
+      Lij_yj_ = std::move(other.Lij_yj_);
+      nUij_Uii_ = std::move(other.nUij_Uii_);
+      Uij_xj_ = std::move(other.Uij_xj_);
+      views_ = Views(nLij_Lii_, Lij_yj_, nUij_Uii_, Uij_xj_);
+      lu_decomp_ = std::move(other.lu_decomp_);
+    }
+    return *this;
+  }
+
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
       const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)>& create_lu_decomp)
@@ -142,175 +172,124 @@ namespace micm
         Lij_yj_(),
         nUij_Uii_(),
         Uij_xj_(),
+        views_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    auto lu =
-        lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value, true);
+    auto lu = lu_decomp_.GetLUMatrices(matrix, initial_value, true);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
-    for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)
+    std::vector<IndexPair> nLij_Lii_temp;
+    std::vector<IndexPair> Lij_yj_temp;
+    std::vector<IndexPair> nUij_Uii_temp;
+    std::vector<IndexPair> Uij_xj_temp;
+    for (Index i = 0; i < lower_matrix.NumRows(); ++i)
     {
-      std::size_t nLij = 0;
-      for (std::size_t j = 0; j < i; ++j)
+      Index nLij = 0;
+      for (Index j = 0; j < i; ++j)
       {
         if (lower_matrix.IsZero(i, j))
         {
           continue;
         }
-        Lij_yj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, i, j), j));
+        Lij_yj_temp.push_back({ lower_matrix.VectorIndex(0, i, j), j });
         ++nLij;
       }
       // There must always be a non-zero element on the diagonal
-      nLij_Lii_.push_back(std::make_pair(nLij, lower_matrix.VectorIndex(0, i, i)));
+      nLij_Lii_temp.push_back({ nLij, lower_matrix.VectorIndex(0, i, i) });
     }
-    for (std::size_t i = upper_matrix.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
+    for (Index i = upper_matrix.NumRows() - 1; i != static_cast<Index>(-1); --i)
     {
-      std::size_t nUij = 0;
-      for (std::size_t j = i + 1; j < upper_matrix.NumColumns(); ++j)
+      Index nUij = 0;
+      for (Index j = i + 1; j < upper_matrix.NumColumns(); ++j)
       {
         if (upper_matrix.IsZero(i, j))
         {
           continue;
         }
-        Uij_xj_.push_back(std::make_pair(upper_matrix.VectorIndex(0, i, j), j));
+        Uij_xj_temp.push_back({ upper_matrix.VectorIndex(0, i, j), j });
         ++nUij;
       }
       // There must always be a non-zero element on the diagonal
-      nUij_Uii_.push_back(std::make_pair(nUij, upper_matrix.VectorIndex(0, i, i)));
+      nUij_Uii_temp.push_back({ nUij, upper_matrix.VectorIndex(0, i, i) });
     }
+    nLij_Lii_ = nLij_Lii_temp;
+    Lij_yj_ = Lij_yj_temp;
+    nUij_Uii_ = nUij_Uii_temp;
+    Uij_xj_ = Uij_xj_temp;
+    nLij_Lii_.CopyToDevice();
+    Lij_yj_.CopyToDevice();
+    nUij_Uii_.CopyToDevice();
+    Uij_xj_.CopyToDevice();
+    views_ = Views(nLij_Lii_, Lij_yj_, nUij_Uii_, Uij_xj_);
   };
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Factor(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
-      LMatrixPolicy& lower_matrix,
-      UMatrixPolicy& upper_matrix) const
+      SparseMatrixPolicy& lower_matrix,
+      SparseMatrixPolicy& upper_matrix) const
   {
-    lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
+    lu_decomp_.Decompose(matrix, lower_matrix, upper_matrix);
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  template<class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+  template<class MatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy& x,
-      const LMatrixPolicy& lower_matrix,
-      const UMatrixPolicy& upper_matrix) const
+      const SparseMatrixPolicy& lower_matrix,
+      const SparseMatrixPolicy& upper_matrix) const
   {
-    for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
+    const auto& views = views_;
+    SparseMatrixPolicy::Function(
+        MICM_LAMBDA(const typename DenseMatrix::ViewType& x_view, const typename SparseMatrix::ConstViewType& lower_view, const typename SparseMatrix::ConstViewType& upper_view)
+        {
+          // Forward Substitution
+          // b values passed in as x; overwrites b values with y values
+          {
+            auto Lij_yj = views.Lij_yj_.begin();
+            Index i = 0;
+            for (const auto& nLij_Lii : views.nLij_Lii_)
+            {
+      auto x_col_i = x_view.GetColumnView(i);
+      for (Index k = 0; k < nLij_Lii.first_; ++k)
+      {
+        lower_view.ForEachBlock(
+            [](Real& yi, const Real& Lij, const Real& yj) { yi -= Lij * yj; },
+            x_col_i,
+            lower_view.GetConstBlockView((*Lij_yj).first_),
+            x_view.GetConstColumnView((*Lij_yj).second_));
+        ++Lij_yj;
+      }
+      lower_view.ForEachBlock(
+          [](Real& yi, const Real& Lii) { yi /= Lii; }, x_col_i, lower_view.GetConstBlockView(nLij_Lii.second_));
+      ++i;
+            }
+  }
+  // Backward Substitution
+  // overwrites y values with x values
+  {
+    auto Uij_xj = views.Uij_xj_.begin();
+    Index i = views.nUij_Uii_.size();
+    for (const auto& nUij_Uii : views.nUij_Uii_)
     {
-      auto x_cell = x[i_cell];
-      const std::size_t lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
-      const std::size_t upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
-      auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
-
-      // Forward Substitution
+      --i;
+      auto x_col_i = x_view.GetColumnView(i);
+      for (Index k = 0; k < nUij_Uii.first_; ++k)
       {
-        auto y_elem = y_cell.begin();
-        auto Lij_yj = Lij_yj_.begin();
-        for (const auto& nLij_Lii : nLij_Lii_)
-        {
-          for (std::size_t i = 0; i < nLij_Lii.first; ++i)
-          {
-            *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
-            ++Lij_yj;
-          }
-          *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
-        }
+        upper_view.ForEachBlock(
+            [](Real& xi, const Real& Uij, const Real& xj) { xi -= Uij * xj; },
+            x_col_i,
+            upper_view.GetConstBlockView((*Uij_xj).first_),
+            x_view.GetConstColumnView((*Uij_xj).second_));
+        ++Uij_xj;
       }
-
-      // Backward Substitution
-      {
-        auto x_elem = std::next(x_cell.end(), -1);
-        auto Uij_xj = Uij_xj_.begin();
-        for (const auto& nUij_Uii : nUij_Uii_)
-        {
-          // x_elem starts out as y_elem from the previous loop
-          for (std::size_t i = 0; i < nUij_Uii.first; ++i)
-          {
-            *x_elem -= upper_matrix.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
-            ++Uij_xj;
-          }
-
-          *(x_elem) /= upper_matrix.AsVector()[upper_grid_offset + nUij_Uii.second];
-          // don't iterate before the beginning of the vector
-          if (x_elem != x_cell.begin())
-          {
-            --x_elem;
-          }
-        }
-      }
+      upper_view.ForEachBlock(
+          [](Real& xi, const Real& Uii) { xi /= Uii; }, x_col_i, upper_view.GetConstBlockView(nUij_Uii.second_));
     }
   }
-
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  template<class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
-      MatrixPolicy& x,
-      const LMatrixPolicy& lower_matrix,
-      const UMatrixPolicy& upper_matrix) const
-  {
-    constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
-    // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
-    {
-      auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto L_group = std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
-      auto U_group = std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
-      // Forward Substitution
-      {
-        auto y_elem = x_group;
-        auto Lij_yj = Lij_yj_.begin();
-        for (const auto& nLij_Lii : nLij_Lii_)
-        {
-          for (std::size_t i = 0; i < nLij_Lii.first; ++i)
-          {
-            const std::size_t Lij_yj_first = (*Lij_yj).first;
-            const std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            {
-              y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
-            }
-            ++Lij_yj;
-          }
-          const std::size_t nLij_Lii_second = nLij_Lii.second;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            y_elem[i_cell] /= L_group[nLij_Lii_second + i_cell];
-          }
-          y_elem += n_cells;
-        }
-      }
-
-      // Backward Substitution
-      {
-        auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
-        auto Uij_xj = Uij_xj_.begin();
-        for (const auto& nUij_Uii : nUij_Uii_)
-        {
-          // x_elem starts out as y_elem from the previous loop
-          for (std::size_t i = 0; i < nUij_Uii.first; ++i)
-          {
-            const std::size_t Uij_xj_first = (*Uij_xj).first;
-            const std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            {
-              x_elem[i_cell] -= U_group[Uij_xj_first + i_cell] * x_group[Uij_xj_second_times_n_cells + i_cell];
-            }
-            ++Uij_xj;
-          }
-          const std::size_t nUij_Uii_second = nUij_Uii.second;
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            x_elem[i_cell] /= U_group[nUij_Uii_second + i_cell];
-          }
-
-          // don't iterate before the beginning of the vector
-          const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
-          x_elem -= std::min(n_cells, x_elem_distance);
-        }
-      }
-    }
-  }
+}  // namespace micm
+,
+        x,
+        lower_matrix,
+        upper_matrix)(x, lower_matrix, upper_matrix);
+}
 }  // namespace micm

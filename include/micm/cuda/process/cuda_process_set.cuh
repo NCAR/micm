@@ -4,42 +4,39 @@
 
 #include <micm/cuda/util/cuda_param.hpp>
 
-namespace micm
+namespace micm::cuda
 {
-  namespace cuda
-  {
-    /// This is the function that will copy the constant data
-    ///   members of class "ProcessSet" to the device, except
-    ///   for the "jacobian_flat_id" because it is unknown now
-    ProcessSetParam CopyConstData(ProcessSetParam& hoststruct);
+  /// This is the function that will copy the constant data
+  ///   members of class "ProcessSet" to the device, except
+  ///   for the "jacobian_flat_id" because it is unknown now
+  ProcessSetParam CopyConstData(ProcessSetParam& hoststruct);
 
-    /// This is the function that will delete the constant data
-    ///   members of class "CudaProcessSet" on the device
-    void FreeConstData(ProcessSetParam& devstruct);
+  /// This is the function that will delete the constant data
+  ///   members of class "CudaProcessSet" on the device
+  void FreeConstData(ProcessSetParam& devstruct);
 
-    /// This is the function that will copy the information needed
-    /// to calculated Jacobian terms to the device
-    void CopyJacobianParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
+  /// This is the function that will copy the information needed
+  /// to calculated Jacobian terms to the device
+  void CopyJacobianParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
 
-    /// @brief Copies algebraic variable data from host to device memory
-    /// @param hoststruct Host-side struct containing pointers to algebraic variable data
-    /// @param devstruct Device-side struct with pre-allocated memory for algebraic variables
-    void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
+  /// @brief Copies algebraic variable data from host to device memory
+  /// @param hoststruct Host-side struct containing pointers to algebraic variable data
+  /// @param devstruct Device-side struct with pre-allocated memory for algebraic variables
+  void CopyAlgebraicVariableParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
 
-    /// This is the host function that will call the CUDA kernel
-    ///   to calculate the forcing terms
-    void AddForcingTermsKernelDriver(
-        const CudaMatrixParam& rate_constants_param,
-        const CudaMatrixParam& state_variables_param,
-        CudaMatrixParam& forcing_param,
-        const ProcessSetParam& devstruct);
+  /// This is the host function that will call the CUDA kernel
+  ///   to calculate the forcing terms
+  void AddForcingTermsKernelDriver(
+      const CudaMatrixParam& rate_constants_param,
+      const CudaMatrixParam& state_variables_param,
+      CudaMatrixParam& forcing_param,
+      const ProcessSetParam& devstruct);
 
-    /// This is the host function that will call the CUDA kernel
-    ///   to form the negative Jacobian matrix (-J)
-    void SubtractJacobianTermsKernelDriver(
-        const CudaMatrixParam& rate_constants_param,
-        const CudaMatrixParam& state_variables_param,
-        CudaMatrixParam& jacobian_param,
-        const ProcessSetParam& devstruct);
-  }  // namespace cuda
-}  // namespace micm
+  /// This is the host function that will call the CUDA kernel
+  ///   to form the negative Jacobian matrix (-J)
+  void SubtractJacobianTermsKernelDriver(
+      const CudaMatrixParam& rate_constants_param,
+      const CudaMatrixParam& state_variables_param,
+      CudaMatrixParam& jacobian_param,
+      const ProcessSetParam& devstruct);
+}  // namespace micm::cuda

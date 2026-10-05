@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 #include <concepts>
 #include <type_traits>
 
@@ -22,8 +24,30 @@ namespace micm
   {
   };
 
+  /// @brief Tag for dense matrix column views obtained from a GroupView.
+  /// These carry a precomputed base pointer into the current group's slice of
+  /// the underlying storage, so element access reduces to `base[block_in_group]`
+  /// instead of recomputing `(group * y_dim + column) * L + block_in_group` per
+  /// element.
+  struct GroupedDenseMatrixColumnViewTag
+  {
+  };
+
+  /// @brief Tag for sparse matrix block views obtained from a GroupView.
+  /// Carry a precomputed base pointer to the current group's slice of the
+  /// sparse data vector, so element access is `group_base[block_offset_ +
+  /// block_in_group]`.
+  struct GroupedSparseMatrixBlockViewTag
+  {
+  };
+
   /// @brief Tag for block variables (vector-like data holders)
   struct BlockVariableTag
+  {
+  };
+
+  /// @brief Tag for padded vectors (size = ceil(N/L)*L)
+  struct PaddedVectorTag
   {
   };
 
@@ -103,6 +127,16 @@ namespace micm
   template<typename T>
   concept DenseMatrixColumnView = std::same_as<ViewCategory_t<T>, DenseMatrixColumnViewTag>;
 
+  /// @brief Dense matrix column view obtained from a GroupView (carries a
+  ///        precomputed group-relative base pointer).
+  template<typename T>
+  concept GroupedDenseMatrixColumnView = std::same_as<ViewCategory_t<T>, GroupedDenseMatrixColumnViewTag>;
+
+  /// @brief Sparse matrix block view obtained from a GroupView (carries a
+  ///        precomputed group-relative base pointer).
+  template<typename T>
+  concept GroupedSparseMatrixBlockView = std::same_as<ViewCategory_t<T>, GroupedSparseMatrixBlockViewTag>;
+
   /// @brief Block variable (vector-like data holder)
   template<typename T>
   concept BlockVariableView = std::same_as<ViewCategory_t<T>, BlockVariableTag>;
@@ -110,13 +144,24 @@ namespace micm
   /// @brief Vector-like type (has operator[] and size())
   /// Excludes Matrix types, view types, and proxy types to avoid ambiguity
   template<typename T>
-  concept VectorLike = requires(T t, std::size_t i) {
-    { t[i] };  // Can index with []
-    { t.size() } -> std::convertible_to<std::size_t>;
-  } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> && !requires(T t) {
-    t.NumRows();
-    t.NumColumns();
-  };  // Exclude matrix types
+  concept VectorLike =
+      requires(T t, Index i) {
+        { t[i] };  // Can index with []
+        { t.size() } -> std::convertible_to<Index>;
+      } && !DenseMatrixColumnView<T> && !BlockVariableView<T> && !SparseMatrixBlockView<T> &&
+      !GroupedDenseMatrixColumnView<T> && !GroupedSparseMatrixBlockView<T> && !requires(T t) {
+        t.NumRows();
+        t.NumColumns();
+      };  // Exclude matrix types
+
+  /// @brief Vector-like with padded cells for use in vector-ordered matrices
+  ///        Function() lambdas
+  template<typename T>
+  concept PaddedVectorLike = requires(T t, Index i) {
+    { t[i] };
+    { t.size() } -> std::convertible_to<Index>;
+    { t.PaddedSize() } -> std::convertible_to<Index>;
+  };
 
   // ============================================================================
   // Concepts for Grouping Strategies

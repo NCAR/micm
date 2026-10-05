@@ -1,0 +1,1658 @@
+// Copyright (C) 2026 University Corporation for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
+#include "../stub_aerosol_with_constraints.hpp"
+
+#include <micm/Kokkos.hpp>
+#include <micm/constraint/constraint.hpp>
+#include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/util/jacobian_verification.hpp>
+#include <micm/util/types.hpp>
+
+#include <gtest/gtest.h>
+
+#include <cmath>
+#include <limits>
+#include <type_traits>
+#include <utility>
+
+using namespace micm;
+
+using DenseMatrix = KokkosDenseMatrix<micm::Real>;
+using StdSparseMatrix = KokkosSparseMatrix<micm::Real>;
+
+/// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
+///
+/// This model contributes no state variables and no processes — only an algebraic
+/// equilibrium constraint. Used with AddExternalModel() to test that
+/// external model constraints produce results equivalent to kinetic systems and
+/// built-in EquilibriumConstraint.
+class EquilibriumConstraintModel
+{
+ public:
+  EquilibriumConstraintModel(std::string reactant, std::string product, micm::Real K_eq)
+      : reactant_(std::move(reactant)),
+        product_(std::move(product)),
+        K_eq_(K_eq)
+  {
+  }
+
+  // ──── Constraint methods (satisfies HasConstraints concept) ────
+
+  std::set<std::string> ConstraintAlgebraicVariableNames() const
+  {
+    return { product_ };
+  }
+
+  std::set<std::string> ConstraintSpeciesDependencies() const
+  {
+    return { reactant_, product_ };
+  }
+
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
+  {
+    auto i_r = state_indices.at(reactant_);
+    auto i_p = state_indices.at(product_);
+    return { { i_p, i_r }, { i_p, i_p } };
+  }
+
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
+  template<class SparseMatrixPolicy>
+  void FinalizeConstraintSetup(
+      const std::unordered_map<std::string, micm::Index>& /*state_parameter_indices*/,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
+      const SparseMatrixPolicy& jacobian)
+  {
+    i_r_ = state_variable_indices.at(reactant_);
+    i_p_ = state_variable_indices.at(product_);
+    pr_flat_ = jacobian.VectorIndex(0, i_p_, i_r_);
+    pp_flat_ = jacobian.VectorIndex(0, i_p_, i_p_);
+  }
+
+  template<class DenseMatrixPolicy>
+  void UpdateConstraintStateParameters(
+      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&,
+      DenseMatrixPolicy&) const
+  {
+  }
+
+  /// Residual: G = K_eq * [reactant] - [product]
+  template<class DenseMatrixPolicy>
+  void AddConstraintResidual(
+      const DenseMatrixPolicy& /*state_parameters*/,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
+  {
+    const micm::Index i_r = i_r_;
+    const micm::Index i_p = i_p_;
+    const micm::Real K = K_eq_;
+    DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ViewType& forcing_view,
+            const typename DenseMatrixPolicy::ConstViewType& state_view) {
+          forcing_view.ForEachRow(
+              [K](micm::Real& f_p, const micm::Real& r, const micm::Real& p) { f_p = K * r - p; },
+              forcing_view.GetColumnView(i_p),
+              state_view.GetConstColumnView(i_r),
+              state_view.GetConstColumnView(i_p));
+        },
+        forcing,
+        state_variables)(forcing, state_variables);
+  }
+
+  /// Subtract dG/dy from the Jacobian (solver convention).
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  void SubtractConstraintJacobian(
+      const DenseMatrixPolicy& /*state_parameters*/,
+      const DenseMatrixPolicy& /*state_variables*/,
+      SparseMatrixPolicy& jacobian) const
+  {
+    const micm::Real K = K_eq_;
+    const micm::Index pr = pr_flat_;
+    const micm::Index pp = pp_flat_;
+    SparseMatrixPolicy::Function(
+        MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
+          jacobian_view.ForEachBlock(
+              [K](micm::Real& j_pr, micm::Real& j_pp)
+              {
+                j_pr -= K;
+                j_pp -= -1.0;
+              },
+              jacobian_view.GetBlockView(pr),
+              jacobian_view.GetBlockView(pp));
+        },
+        jacobian)(jacobian);
+  }
+
+ private:
+  std::string reactant_;
+  std::string product_;
+  micm::Real K_eq_;
+  int i_r_ = -1;
+  int i_p_ = -1;
+  int pr_flat_ = -1;
+  int pp_flat_ = -1;
+};
+
+/// @brief Constraint-only external model providing BOTH equilibrium AND conservation constraints
+///
+/// For a system A → B with fast B ⇌ C equilibrium:
+///   - B row (conservation):  G_B = [A] + [B] + [C] - total = 0
+///   - C row (equilibrium):   G_C = K_eq * [B] - [C] = 0
+///
+/// Both B and C are algebraic. Only A evolves via ODE.
+/// This makes the constraint system equivalent to the kinetic system in steady state:
+///   [A]=0, [B]=total/(1+K_eq), [C]=K_eq*total/(1+K_eq)
+class ConservativeEquilibriumConstraintModel
+{
+ public:
+  ConservativeEquilibriumConstraintModel(std::string a, std::string b, std::string c, micm::Real K_eq, micm::Real total)
+      : species_a_(std::move(a)),
+        species_b_(std::move(b)),
+        species_c_(std::move(c)),
+        K_eq_(K_eq),
+        total_(total)
+  {
+  }
+
+  std::set<std::string> ConstraintAlgebraicVariableNames() const
+  {
+    return { species_b_, species_c_ };  // both algebraic
+  }
+
+  std::set<std::string> ConstraintSpeciesDependencies() const
+  {
+    return { species_a_, species_b_, species_c_ };
+  }
+
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
+  {
+    auto i_a = state_indices.at(species_a_);
+    auto i_b = state_indices.at(species_b_);
+    auto i_c = state_indices.at(species_c_);
+    return { // B row (conservation): dG_B/dA=1, dG_B/dB=1, dG_B/dC=1
+             { i_b, i_a },
+             { i_b, i_b },
+             { i_b, i_c },
+             // C row (equilibrium): dG_C/dB=K_eq, dG_C/dC=-1
+             { i_c, i_b },
+             { i_c, i_c }
+    };
+  }
+
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
+  template<class SparseMatrixPolicy>
+  void FinalizeConstraintSetup(
+      const std::unordered_map<std::string, micm::Index>& /*state_parameter_indices*/,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
+      const SparseMatrixPolicy& jacobian)
+  {
+    i_a_ = state_variable_indices.at(species_a_);
+    i_b_ = state_variable_indices.at(species_b_);
+    i_c_ = state_variable_indices.at(species_c_);
+    ba_flat_ = jacobian.VectorIndex(0, i_b_, i_a_);
+    bb_flat_ = jacobian.VectorIndex(0, i_b_, i_b_);
+    bc_flat_ = jacobian.VectorIndex(0, i_b_, i_c_);
+    cb_flat_ = jacobian.VectorIndex(0, i_c_, i_b_);
+    cc_flat_ = jacobian.VectorIndex(0, i_c_, i_c_);
+  }
+
+  template<class DenseMatrixPolicy>
+  void UpdateConstraintStateParameters(
+      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&,
+      DenseMatrixPolicy&) const
+  {
+  }
+
+  template<class DenseMatrixPolicy>
+  void AddConstraintResidual(
+      const DenseMatrixPolicy& /*state_parameters*/,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
+  {
+    const micm::Index i_a = i_a_;
+    const micm::Index i_b = i_b_;
+    const micm::Index i_c = i_c_;
+    const micm::Real K = K_eq_;
+    const micm::Real total = total_;
+    DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ViewType& forcing_view,
+            const typename DenseMatrixPolicy::ConstViewType& state_view) {
+          forcing_view.ForEachRow(
+              [K, total](micm::Real& f_b, micm::Real& f_c, const micm::Real& a, const micm::Real& b, const micm::Real& c)
+              {
+                f_b = a + b + c - total;
+                f_c = K * b - c;
+              },
+              forcing_view.GetColumnView(i_b),
+              forcing_view.GetColumnView(i_c),
+              state_view.GetConstColumnView(i_a),
+              state_view.GetConstColumnView(i_b),
+              state_view.GetConstColumnView(i_c));
+        },
+        forcing,
+        state_variables)(forcing, state_variables);
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  void SubtractConstraintJacobian(
+      const DenseMatrixPolicy& /*state_parameters*/,
+      const DenseMatrixPolicy& /*state_variables*/,
+      SparseMatrixPolicy& jacobian) const
+  {
+    const micm::Real K = K_eq_;
+    const micm::Index ba = ba_flat_;
+    const micm::Index bb = bb_flat_;
+    const micm::Index bc = bc_flat_;
+    const micm::Index cb = cb_flat_;
+    const micm::Index cc = cc_flat_;
+    SparseMatrixPolicy::Function(
+        MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
+          jacobian_view.ForEachBlock(
+              [K](micm::Real& j_ba, micm::Real& j_bb, micm::Real& j_bc, micm::Real& j_cb, micm::Real& j_cc)
+              {
+                j_ba -= 1.0;
+                j_bb -= 1.0;
+                j_bc -= 1.0;
+                j_cb -= K;
+                j_cc -= -1.0;
+              },
+              jacobian_view.GetBlockView(ba),
+              jacobian_view.GetBlockView(bb),
+              jacobian_view.GetBlockView(bc),
+              jacobian_view.GetBlockView(cb),
+              jacobian_view.GetBlockView(cc));
+        },
+        jacobian)(jacobian);
+  }
+
+ private:
+  std::string species_a_;
+  std::string species_b_;
+  std::string species_c_;
+  micm::Real K_eq_;
+  micm::Real total_;
+  int i_a_ = -1;
+  int i_b_ = -1;
+  int i_c_ = -1;
+  int ba_flat_ = -1;
+  int bb_flat_ = -1;
+  int bc_flat_ = -1;
+  int cb_flat_ = -1;
+  int cc_flat_ = -1;
+};
+
+/// @brief Constraint-only external model that enforces mass conservation for one species pool
+///
+/// Replaces the ODE row of `controlled_species_` with:
+///   G = sum([all species]) - total = 0
+///
+/// This is used alongside EquilibriumConstraintModels to compose conservative equilibrium
+/// systems from separate models (equilibrium ratio + mass conservation).
+class MassConservationModel
+{
+ public:
+  MassConservationModel(std::string controlled_species, const std::vector<std::string>& all_species, micm::Real total)
+      : controlled_species_(std::move(controlled_species)),
+        all_species_(all_species),
+        total_(total)
+  {
+  }
+
+  std::set<std::string> ConstraintAlgebraicVariableNames() const
+  {
+    return { controlled_species_ };
+  }
+
+  std::set<std::string> ConstraintSpeciesDependencies() const
+  {
+    return { all_species_.begin(), all_species_.end() };
+  }
+
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
+  {
+    auto i_ctrl = state_indices.at(controlled_species_);
+    std::set<std::pair<micm::Index, micm::Index>> elements;
+    for (const auto& sp : all_species_)
+    {
+      elements.insert({ i_ctrl, state_indices.at(sp) });
+    }
+    return elements;
+  }
+
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return {};
+  }
+
+  template<class SparseMatrixPolicy>
+  void FinalizeConstraintSetup(
+      const std::unordered_map<std::string, micm::Index>& /*state_parameter_indices*/,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
+      const SparseMatrixPolicy& jacobian)
+  {
+    i_ctrl_ = state_variable_indices.at(controlled_species_);
+    indices_.clear();
+    flat_ids_.clear();
+    indices_.reserve(all_species_.size());
+    flat_ids_.reserve(all_species_.size());
+    for (const auto& sp : all_species_)
+    {
+      micm::Index idx = state_variable_indices.at(sp);
+      indices_.push_back(idx);
+      flat_ids_.push_back(jacobian.VectorIndex(0, i_ctrl_, idx));
+    }
+  }
+
+  template<class DenseMatrixPolicy>
+  void UpdateConstraintStateParameters(
+      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>&,
+      DenseMatrixPolicy&) const
+  {
+  }
+
+  template<class DenseMatrixPolicy>
+  void AddConstraintResidual(
+      const DenseMatrixPolicy& /*state_parameters*/,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
+  {
+    using Vector = typename DenseMatrixPolicy::template VectorType<int>;
+    const micm::Index i_ctrl = i_ctrl_;
+    const micm::Real total = total_;
+    const Vector indices_data = indices_;
+    indices_data.CopyToDevice();
+    const auto indices = indices_data.GetView();
+    DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ViewType& forcing_view,
+            const typename DenseMatrixPolicy::ConstViewType& state_view) {
+          auto sum = forcing_view.GetRowVariable();
+          forcing_view.ForEachRow([total](micm::Real& s) { s = -total; }, sum);
+          for (auto idx : indices)
+          {
+            state_view.ForEachRow(
+                [](micm::Real& s, const micm::Real& v) { s += v; }, sum, state_view.GetConstColumnView(idx));
+          }
+          forcing_view.ForEachRow(
+              [](micm::Real& f, const micm::Real& s) { f = s; }, forcing_view.GetColumnView(i_ctrl), sum);
+        },
+        forcing,
+        state_variables)(forcing, state_variables);
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  void SubtractConstraintJacobian(
+      const DenseMatrixPolicy& /*state_parameters*/,
+      const DenseMatrixPolicy& /*state_variables*/,
+      SparseMatrixPolicy& jacobian) const
+  {
+    using Vector = typename DenseMatrixPolicy::template VectorType<int>;
+    const Vector flat_ids_data = flat_ids_;
+    flat_ids_data.CopyToDevice();
+    const auto flat_ids = flat_ids_data.GetView();
+    SparseMatrixPolicy::Function(
+        MICM_LAMBDA(const typename SparseMatrixPolicy::ViewType& jacobian_view) {
+          for (auto flat : flat_ids)
+          {
+            jacobian_view.ForEachBlock([](micm::Real& j) { j -= 1.0; }, jacobian_view.GetBlockView(flat));
+          }
+        },
+        jacobian)(jacobian);
+  }
+
+ private:
+  std::string controlled_species_;
+  std::vector<std::string> all_species_;
+  micm::Real total_;
+  int i_ctrl_ = -1;
+  std::vector<int> indices_;
+  std::vector<int> flat_ids_;
+};
+
+/// @brief Verify that AddExternalModel wraps both processes and constraints for a constrained model
+TEST(ExternalModelConstraints, AddExternalModelWithConstraints)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  micm::Real total = 1.0;
+  StubAerosolWithConstraints aerosol(0.01, total);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // Verify constraint metadata
+  EXPECT_EQ(state.state_size_, 2);       // A_GAS, AEROSOL.A_AQ
+  EXPECT_EQ(state.constraint_size_, 1);  // one algebraic constraint
+
+  // Verify mass matrix diagonal: A_AQ row should be algebraic (0.0)
+  auto i_gas = state.variable_map_.at("A_GAS");
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_gas], 1.0);
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 0.0);
+}
+
+/// @brief Verify that AddExternalModel works for a process-only model (no constraints)
+TEST(ExternalModelConstraints, AddExternalModelProcessOnly)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  // No total_mass → constraints disabled
+  StubAerosolWithConstraints aerosol(0.01);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // No constraints — pure ODE mode
+  EXPECT_EQ(state.constraint_size_, 0);
+  auto i_gas = state.variable_map_.at("A_GAS");
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_gas], 1.0);
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 1.0);
+}
+
+/// @brief Verify that the DAE solver enforces the mass conservation constraint
+TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  micm::Real total = 1.0;
+  micm::Real k = 0.1;
+  StubAerosolWithConstraints aerosol(k, total);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // Initialize: most mass in gas phase
+  state.variables_[0][state.variable_map_.at("A_GAS")] = 0.9;
+  state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")] = 0.1;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  // Solve several time steps and verify conservation
+  micm::Real dt = 10.0;
+  for (micm::Index step = 0; step < 20; ++step)
+  {
+    auto result = solver.Solve(dt, state);
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+    EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Step " << step;
+
+    micm::Real sum =
+        state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")];
+    EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated at step " << step;
+  }
+}
+
+/// @brief Verify that external model constraints combine with built-in SetConstraints
+TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  micm::Phase gas_phase{ "gas", { A_GAS, B, C } };
+
+  micm::Real total = 1.0;
+  StubAerosolWithConstraints aerosol(0.01, total);
+
+  // Built-in constraint: B <-> C equilibrium
+  micm::Real K_eq = 5.0;
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+      "B_C_eq",
+      C,
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      { K_eq, 0.0 }));
+
+  // Process: A_GAS -> B
+  micm::Real k_rxn = 0.05;
+  micm::Process rxn = micm::ChemicalReactionBuilder()
+                          .SetReactants({ A_GAS })
+                          .SetProducts({ { B, 1 } })
+                          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_rxn, .B_ = 0, .C_ = 0 })
+                          .SetPhase(gas_phase)
+                          .Build();
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({ rxn })
+                    .SetConstraints(std::move(constraints))
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // 2 algebraic variables: C (from built-in) and AEROSOL.A_AQ (from external)
+  EXPECT_EQ(state.constraint_size_, 2);
+
+  // Verify mass matrix diagonal
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  auto i_c = state.variable_map_.at("C");
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 0.0);
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_c], 0.0);
+}
+
+/// @brief Verify AddExternalModel() adds only processes when using standard Rosenbrock parameters
+TEST(ExternalModelConstraints, AddExternalModelOnlyStandardRosenbrock)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  StubAerosolWithConstraints aerosol(0.01);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  // Add only processes (constraints are not enabled with standard Rosenbrock parameters)
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+  EXPECT_EQ(state.constraint_size_, 0);
+}
+
+/// @brief Verify AddExternalModel() adds only constraints when model lacks processes
+TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  micm::Real total = 1.0;
+  StubAerosolWithConstraints aerosol(0.01, total);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // Constraint should be active
+  EXPECT_EQ(state.constraint_size_, 1);
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 0.0);
+
+  // Solve and verify conservation
+  state.variables_[0][state.variable_map_.at("A_GAS")] = 0.8;
+  state.variables_[0][i_aq] = 0.2;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  auto result = solver.Solve(50.0, state);
+  state.variables_.CopyToHost();
+  state.rate_constants_.CopyToHost();
+  EXPECT_EQ(result.state_, micm::SolverState::Converged);
+
+  micm::Real sum = state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][i_aq];
+  EXPECT_NEAR(sum, total, 1e-4);
+}
+
+/// @brief Verify multiple grid cells work with external model constraints
+TEST(ExternalModelConstraints, MultiGridCell)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  micm::Phase gas_phase{ "gas", { A_GAS } };
+
+  micm::Real total = 1.0;
+  StubAerosolWithConstraints aerosol(0.1, total);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  const micm::Index num_cells = 3;
+  auto state = solver.GetState(num_cells);
+
+  // Different initial conditions per cell
+  for (micm::Index c = 0; c < num_cells; ++c)
+  {
+    micm::Real gas_frac = 0.9 - 0.2 * c;
+    state.variables_[c][state.variable_map_.at("A_GAS")] = gas_frac;
+    state.variables_[c][state.variable_map_.at("AEROSOL.A_AQ")] = total - gas_frac;
+    state.conditions_[c].temperature_ = 298.0;
+    state.conditions_[c].pressure_ = 101325.0;
+  }
+
+  auto result = solver.Solve(50.0, state);
+  state.variables_.CopyToHost();
+  state.rate_constants_.CopyToHost();
+  EXPECT_EQ(result.state_, micm::SolverState::Converged);
+
+  for (micm::Index c = 0; c < num_cells; ++c)
+  {
+    micm::Real sum =
+        state.variables_[c][state.variable_map_.at("A_GAS")] + state.variables_[c][state.variable_map_.at("AEROSOL.A_AQ")];
+    EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated in cell " << c;
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Convergence tests: kinetic (process-only) vs constraint-based systems
+//
+// A single equilibrium constraint K_eq*[B]-[C]=0 enforces the equilibrium ratio
+// but does NOT conserve mass (C is created algebraically from B's value).
+// To get the same absolute concentrations as the kinetic system, the constraint
+// formulation must include BOTH equilibrium AND mass conservation constraints,
+// making B and C algebraic while A remains the only ODE variable.
+//
+// System: A → B (slow driver, k=0.1), B ⇌ C (fast, K_eq=5)
+// Kinetic (ODE):       A→B (k), B→C (k_f), C→B (k_b)  — mass conserved by construction
+// Constraint (DAE):    A→B (k), conservation + equilibrium constraints
+// Steady state: [A]≈0, [B]=1/(1+K_eq), [C]=K_eq/(1+K_eq)
+// ───────────────────────────────────────────────────────────────────────────────
+
+namespace
+{
+  // Shared parameters for convergence tests
+  constexpr micm::Real K_EQ = 5.0;            // equilibrium constant [C]/[B]
+  constexpr micm::Real K_DRIVE = 0.1;         // rate constant for A → B (slow driver)
+  constexpr micm::Real K_FWD = 10.0;          // rate constant for B → C (fast)
+  constexpr micm::Real K_BWD = K_FWD / K_EQ;  // rate constant for C → B
+
+  // Expected steady state for total=1.0
+  constexpr micm::Real EXPECTED_A = 0.0;
+  constexpr micm::Real EXPECTED_B = 1.0 / (1.0 + K_EQ);
+  constexpr micm::Real EXPECTED_C = K_EQ / (1.0 + K_EQ);
+
+  // Kinetic-ODE mass conservation is limited by accumulated float round-off over 200 steps: the sum
+  // of the O(1) species differs from 1.0 by tens of float ULPs. Double keeps the original 1e-6 bound.
+  constexpr micm::Real KINETIC_MASS_TOL = std::is_same_v<micm::Real, double> ? 1.0e-6 : 1.0e-5;
+  // The built-in and external DAE formulations are mathematically identical but their float round-off
+  // diverges as the solution grows over 100 steps (C reaches ~5, so the gap accumulates to ~1e-5;
+  // 1e-8 sits below the float epsilon of ~1.19e-7). Double keeps the original 1e-8 bound.
+  constexpr micm::Real DAE_FORMULATION_AGREEMENT_TOL = std::is_same_v<micm::Real, double> ? 1.0e-8 : 2.0e-5;
+
+  /// Helper: build and solve a kinetic (ODE) system with forward+backward reactions
+  /// Returns (final_A, final_B, final_C)
+  std::tuple<micm::Real, micm::Real, micm::Real> SolveKineticSystem()
+  {
+    auto A = micm::Species("A");
+    auto B = micm::Species("B");
+    auto C = micm::Species("C");
+    micm::Phase gas_phase{ "gas", { A, B, C } };
+
+    micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                               .SetReactants({ A })
+                               .SetProducts({ { B, 1 } })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+    micm::Process rxn_bc = micm::ChemicalReactionBuilder()
+                               .SetReactants({ B })
+                               .SetProducts({ { C, 1 } })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_FWD, .B_ = 0, .C_ = 0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+    micm::Process rxn_cb = micm::ChemicalReactionBuilder()
+                               .SetReactants({ C })
+                               .SetProducts({ { B, 1 } })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_BWD, .B_ = 0, .C_ = 0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+
+    auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+    auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                      .SetSystem(micm::System(gas_phase))
+                      .SetReactions({ rxn_ab, rxn_bc, rxn_cb })
+                      .SetReorderState(false)
+                      .Build();
+
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = 298.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    // Integrate well past all timescales:
+    //   A→B timescale ~1/k = 10, B⇌C timescale ~1/(k_f+k_b) ≈ 0.08
+    //   Total integration: 200 (20× the slowest timescale)
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Kinetic solve failed at step " << step;
+    }
+
+    return { state.variables_[0][state.variable_map_.at("A")],
+             state.variables_[0][state.variable_map_.at("B")],
+             state.variables_[0][state.variable_map_.at("C")] };
+  }
+
+  /// Helper: build and solve a DAE system using ConservativeEquilibriumConstraintModel
+  /// (equilibrium + conservation constraints, making B and C algebraic)
+  /// Returns (final_A, final_B, final_C)
+  std::tuple<micm::Real, micm::Real, micm::Real> SolveConservativeConstraintSystem()
+  {
+    auto A = micm::Species("A");
+    auto B = micm::Species("B");
+    auto C = micm::Species("C");
+    micm::Phase gas_phase{ "gas", { A, B, C } };
+
+    // Only the slow driver — equilibrium is captured by constraints
+    micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                               .SetReactants({ A })
+                               .SetProducts({ { B, 1 } })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+
+    // Conservation + equilibrium constraints (B and C are algebraic)
+    ConservativeEquilibriumConstraintModel eq_model("A", "B", "C", K_EQ, 1.0);
+
+    auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                      .SetSystem(micm::System(gas_phase))
+                      .SetReactions({ rxn_ab })
+                      .AddExternalModel(eq_model)
+                      .SetReorderState(false)
+                      .Build();
+
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = 298.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Conservative constraint solve failed at step " << step;
+    }
+
+    return { state.variables_[0][state.variable_map_.at("A")],
+             state.variables_[0][state.variable_map_.at("B")],
+             state.variables_[0][state.variable_map_.at("C")] };
+  }
+
+  /// Helper: build and solve a DAE system using the simple EquilibriumConstraintModel
+  /// (ratio constraint only — does NOT conserve mass)
+  /// Returns (final_A, final_B, final_C)
+  std::tuple<micm::Real, micm::Real, micm::Real> SolveSimpleConstraintSystem()
+  {
+    auto A = micm::Species("A");
+    auto B = micm::Species("B");
+    auto C = micm::Species("C");
+    micm::Phase gas_phase{ "gas", { A, B, C } };
+
+    micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                               .SetReactants({ A })
+                               .SetProducts({ { B, 1 } })
+                               .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                               .SetPhase(gas_phase)
+                               .Build();
+
+    // Simple ratio constraint: K_eq*[B] - [C] = 0 (C is algebraic, no conservation)
+    EquilibriumConstraintModel eq_model("B", "C", K_EQ);
+
+    auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+    auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                      .SetSystem(micm::System(gas_phase))
+                      .SetReactions({ rxn_ab })
+                      .AddExternalModel(eq_model)
+                      .SetReorderState(false)
+                      .Build();
+
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = 298.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Simple constraint solve failed at step " << step;
+    }
+
+    return { state.variables_[0][state.variable_map_.at("A")],
+             state.variables_[0][state.variable_map_.at("B")],
+             state.variables_[0][state.variable_map_.at("C")] };
+  }
+}  // anonymous namespace
+
+/// @brief Kinetic and conservative constraint systems converge to the same steady state.
+///
+/// The conservative constraint system uses both equilibrium (K_eq*[B]-[C]=0) and mass
+/// conservation ([A]+[B]+[C]-total=0) constraints, making B and C algebraic. This is
+/// the correct DAE formulation equivalent to the kinetic B⇌C exchange: both distribute
+/// mass identically at steady state.
+///
+/// System: A → B (k=0.1), B ⇌ C (K_eq=5)
+/// Integration: 200s at dt=1s (20× the slowest timescale 1/0.1=10s)
+/// Expected: [A]≈0, [B]≈1/6≈0.1667, [C]≈5/6≈0.8333
+TEST(ExternalModelConstraints, KineticVsConservativeConstraintConvergence)
+{
+  auto [kin_A, kin_B, kin_C] = SolveKineticSystem();
+  auto [con_A, con_B, con_C] = SolveConservativeConstraintSystem();
+
+  // Both near analytical steady state
+  EXPECT_NEAR(kin_A, EXPECTED_A, 1e-6);
+  EXPECT_NEAR(con_A, EXPECTED_A, 1e-6);
+  EXPECT_NEAR(kin_B, EXPECTED_B, 1e-3);
+  EXPECT_NEAR(con_B, EXPECTED_B, 1e-3);
+  EXPECT_NEAR(kin_C, EXPECTED_C, 1e-3);
+  EXPECT_NEAR(con_C, EXPECTED_C, 1e-3);
+
+  // The two systems agree with each other
+  EXPECT_NEAR(kin_A, con_A, 1e-6);
+  EXPECT_NEAR(kin_B, con_B, 1e-3);
+  EXPECT_NEAR(kin_C, con_C, 1e-3);
+
+  // Mass conservation in both
+  EXPECT_NEAR(kin_A + kin_B + kin_C, 1.0, KINETIC_MASS_TOL);
+  EXPECT_NEAR(con_A + con_B + con_C, 1.0, 1e-3);
+}
+
+/// @brief Simple equilibrium constraint preserves the ratio C/B = K_eq, but does NOT
+///        conserve total mass. The kinetic and constraint systems should agree on the
+///        equilibrium ratio, even though their absolute concentrations differ.
+///
+/// Without a conservation constraint, the algebraic C=K_eq*B creates mass: at steady
+/// state [A]+[B]+[C] = 1+K_eq rather than 1.0. This is the expected behaviour for a
+/// pure ratio constraint.
+TEST(ExternalModelConstraints, SimpleConstraintPreservesRatioNotMass)
+{
+  auto [kin_A, kin_B, kin_C] = SolveKineticSystem();
+  auto [sim_A, sim_B, sim_C] = SolveSimpleConstraintSystem();
+
+  // Both enforce the equilibrium ratio
+  EXPECT_NEAR(kin_C / kin_B, K_EQ, 1e-3);
+  EXPECT_NEAR(sim_C / sim_B, K_EQ, 1e-3);
+
+  // Kinetic system conserves mass
+  EXPECT_NEAR(kin_A + kin_B + kin_C, 1.0, KINETIC_MASS_TOL);
+
+  // Simple constraint system does NOT conserve total mass — C is created algebraically.
+  // At t→∞: A≈0, B≈1 (all A→B mass), C≈K_eq*1=5, so total≈1+K_eq=6
+  EXPECT_NEAR(sim_A + sim_B + sim_C, 1.0 + K_EQ, 0.1);
+}
+
+/// @brief Built-in EquilibriumConstraint and external model constraint are both DAE
+///        systems and should produce nearly identical results at every time step.
+TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  micm::Phase gas_phase{ "gas", { A, B, C } };
+
+  micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                             .SetReactants({ A })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+
+  // Built-in constraint solver
+  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+      "B_C_eq",
+      C,
+      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+      { K_EQ, 0.0 }));
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto builtin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                            .SetSystem(micm::System(gas_phase))
+                            .SetReactions({ rxn_ab })
+                            .SetConstraints(std::move(constraints))
+                            .SetReorderState(false)
+                            .Build();
+
+  // External model constraint solver
+  EquilibriumConstraintModel eq_model("B", "C", K_EQ);
+  auto ext_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                        .SetSystem(micm::System(gas_phase))
+                        .SetReactions({ rxn_ab })
+                        .AddExternalModel(eq_model)
+                        .SetReorderState(false)
+                        .Build();
+
+  auto state_bi = builtin_solver.GetState(1);
+  auto state_ext = ext_solver.GetState(1);
+
+  for (auto* s : { &state_bi, &state_ext })
+  {
+    s->variables_[0][s->variable_map_.at("A")] = 1.0;
+    s->variables_[0][s->variable_map_.at("B")] = 0.0;
+    s->variables_[0][s->variable_map_.at("C")] = 0.0;
+    s->conditions_[0].temperature_ = 298.0;
+    s->conditions_[0].pressure_ = 101325.0;
+  }
+
+  micm::Real dt = 0.5;
+  for (micm::Index step = 0; step < 100; ++step)
+  {
+    state_bi.variables_.CopyToDevice();
+    state_bi.conditions_.CopyToDevice();
+    state_bi.custom_rate_parameters_.CopyToDevice();
+    builtin_solver.UpdateStateParameters(state_bi);
+    state_ext.variables_.CopyToDevice();
+    state_ext.conditions_.CopyToDevice();
+    state_ext.custom_rate_parameters_.CopyToDevice();
+    ext_solver.UpdateStateParameters(state_ext);
+
+    auto res_bi = builtin_solver.Solve(dt, state_bi);
+    state_bi.variables_.CopyToHost();
+    state_bi.rate_constants_.CopyToHost();
+    auto res_ext = ext_solver.Solve(dt, state_ext);
+    state_ext.variables_.CopyToHost();
+    state_ext.rate_constants_.CopyToHost();
+
+    ASSERT_EQ(res_bi.state_, micm::SolverState::Converged) << "Built-in failed step " << step;
+    ASSERT_EQ(res_ext.state_, micm::SolverState::Converged) << "External failed step " << step;
+
+    micm::Real bi_A = state_bi.variables_[0][state_bi.variable_map_.at("A")];
+    micm::Real bi_B = state_bi.variables_[0][state_bi.variable_map_.at("B")];
+    micm::Real bi_C = state_bi.variables_[0][state_bi.variable_map_.at("C")];
+    micm::Real ext_A_val = state_ext.variables_[0][state_ext.variable_map_.at("A")];
+    micm::Real ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
+    micm::Real ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
+
+    EXPECT_NEAR(bi_A, ext_A_val, DAE_FORMULATION_AGREEMENT_TOL) << "A diverged at step " << step;
+    EXPECT_NEAR(bi_B, ext_B_val, DAE_FORMULATION_AGREEMENT_TOL) << "B diverged at step " << step;
+    EXPECT_NEAR(bi_C, ext_C_val, DAE_FORMULATION_AGREEMENT_TOL) << "C diverged at step " << step;
+
+    EXPECT_NEAR(K_EQ * bi_B - bi_C, 0.0, 1e-6) << "Built-in constraint violated at step " << step;
+    EXPECT_NEAR(K_EQ * ext_B_val - ext_C_val, 0.0, 1e-6) << "External constraint violated at step " << step;
+  }
+}
+
+/// @brief Two coupled equilibria using composed models: separate EquilibriumConstraintModels
+///        for each ratio constraint plus a MassConservationModel to enforce mass balance.
+///
+/// System: A → B (driver), B ⇌ C (K1=5), B ⇌ D (K2=3)
+/// Constraints: C=K1*B (equilibrium1), D=K2*B (equilibrium2), A+B+C+D=1 (conservation)
+/// This makes B, C, D all algebraic; A is the only ODE variable.
+/// Steady state: [A]=0, [B]=1/(1+K1+K2), [C]=K1/(1+K1+K2), [D]=K2/(1+K1+K2)
+TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
+{
+  constexpr micm::Real K1 = 5.0;
+  constexpr micm::Real K2 = 3.0;
+  constexpr micm::Real k_drive = 0.1;
+  constexpr micm::Real k_f1 = 10.0;
+  constexpr micm::Real k_b1 = k_f1 / K1;
+  constexpr micm::Real k_f2 = 8.0;
+  constexpr micm::Real k_b2 = k_f2 / K2;
+
+  micm::Real expected_B = 1.0 / (1.0 + K1 + K2);
+  micm::Real expected_C = K1 * expected_B;
+  micm::Real expected_D = K2 * expected_B;
+
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  auto D = micm::Species("D");
+  micm::Phase gas_phase{ "gas", { A, B, C, D } };
+
+  auto system = micm::System(gas_phase);
+
+  // ── Kinetic system ──
+  micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                             .SetReactants({ A })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_drive, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+  micm::Process rxn_bc = micm::ChemicalReactionBuilder()
+                             .SetReactants({ B })
+                             .SetProducts({ { C, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_f1, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+  micm::Process rxn_cb = micm::ChemicalReactionBuilder()
+                             .SetReactants({ C })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_b1, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+  micm::Process rxn_bd = micm::ChemicalReactionBuilder()
+                             .SetReactants({ B })
+                             .SetProducts({ { D, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_f2, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+  micm::Process rxn_db = micm::ChemicalReactionBuilder()
+                             .SetReactants({ D })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_b2, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+
+  auto kin_options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto kin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(kin_options)
+                        .SetSystem(system)
+                        .SetReactions({ rxn_ab, rxn_bc, rxn_cb, rxn_bd, rxn_db })
+                        .SetReorderState(false)
+                        .Build();
+
+  // ── Constraint system: 3 composed external models ──
+  EquilibriumConstraintModel eq_bc("B", "C", K1);                        // C row: K1*[B]-[C]=0
+  EquilibriumConstraintModel eq_bd("B", "D", K2);                        // D row: K2*[B]-[D]=0
+  MassConservationModel conservation("B", { "A", "B", "C", "D" }, 1.0);  // B row: A+B+C+D-1=0
+
+  auto dae_options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto ext_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
+                        .SetSystem(system)
+                        .SetReactions({ rxn_ab })
+                        .AddExternalModel(eq_bc)
+                        .AddExternalModel(eq_bd)
+                        .AddExternalModel(conservation)
+                        .SetReorderState(false)
+                        .Build();
+
+  // ── Solve both ──
+  auto state_kin = kin_solver.GetState(1);
+  auto state_ext = ext_solver.GetState(1);
+
+  for (auto* s : { &state_kin, &state_ext })
+  {
+    s->variables_[0][s->variable_map_.at("A")] = 1.0;
+    s->variables_[0][s->variable_map_.at("B")] = 0.0;
+    s->variables_[0][s->variable_map_.at("C")] = 0.0;
+    s->variables_[0][s->variable_map_.at("D")] = 0.0;
+    s->conditions_[0].temperature_ = 298.0;
+    s->conditions_[0].pressure_ = 101325.0;
+  }
+
+  micm::Real dt = 1.0;
+  for (micm::Index step = 0; step < 200; ++step)
+  {
+    state_kin.variables_.CopyToDevice();
+    state_kin.conditions_.CopyToDevice();
+    state_kin.custom_rate_parameters_.CopyToDevice();
+    kin_solver.UpdateStateParameters(state_kin);
+    state_ext.variables_.CopyToDevice();
+    state_ext.conditions_.CopyToDevice();
+    state_ext.custom_rate_parameters_.CopyToDevice();
+    ext_solver.UpdateStateParameters(state_ext);
+
+    auto res_kin = kin_solver.Solve(dt, state_kin);
+    state_kin.variables_.CopyToHost();
+    state_kin.rate_constants_.CopyToHost();
+    auto res_ext = ext_solver.Solve(dt, state_ext);
+    state_ext.variables_.CopyToHost();
+    state_ext.rate_constants_.CopyToHost();
+
+    EXPECT_EQ(res_kin.state_, micm::SolverState::Converged) << "Kinetic failed step " << step;
+    EXPECT_EQ(res_ext.state_, micm::SolverState::Converged) << "Constraint failed step " << step;
+  }
+
+  micm::Real kin_A = state_kin.variables_[0][state_kin.variable_map_.at("A")];
+  micm::Real kin_B = state_kin.variables_[0][state_kin.variable_map_.at("B")];
+  micm::Real kin_C = state_kin.variables_[0][state_kin.variable_map_.at("C")];
+  micm::Real kin_D = state_kin.variables_[0][state_kin.variable_map_.at("D")];
+
+  micm::Real ext_A_val = state_ext.variables_[0][state_ext.variable_map_.at("A")];
+  micm::Real ext_B_val = state_ext.variables_[0][state_ext.variable_map_.at("B")];
+  micm::Real ext_C_val = state_ext.variables_[0][state_ext.variable_map_.at("C")];
+  micm::Real ext_D_val = state_ext.variables_[0][state_ext.variable_map_.at("D")];
+
+  // Both near analytical steady state
+  EXPECT_NEAR(kin_A, 0.0, 1e-6);
+  EXPECT_NEAR(ext_A_val, 0.0, 1e-6);
+  EXPECT_NEAR(kin_B, expected_B, 1e-3);
+  EXPECT_NEAR(ext_B_val, expected_B, 1e-3);
+  EXPECT_NEAR(kin_C, expected_C, 1e-3);
+  EXPECT_NEAR(ext_C_val, expected_C, 1e-3);
+  EXPECT_NEAR(kin_D, expected_D, 1e-3);
+  EXPECT_NEAR(ext_D_val, expected_D, 1e-3);
+
+  // Kinetic and constraint systems agree
+  EXPECT_NEAR(kin_B, ext_B_val, 1e-3);
+  EXPECT_NEAR(kin_C, ext_C_val, 1e-3);
+  EXPECT_NEAR(kin_D, ext_D_val, 1e-3);
+
+  // Mass conservation
+  EXPECT_NEAR(kin_A + kin_B + kin_C + kin_D, 1.0, KINETIC_MASS_TOL);
+  EXPECT_NEAR(ext_A_val + ext_B_val + ext_C_val + ext_D_val, 1.0, 1e-3);
+
+  // Equilibrium constraints satisfied
+  EXPECT_NEAR(K1 * ext_B_val - ext_C_val, 0.0, 1e-6);
+  EXPECT_NEAR(K2 * ext_B_val - ext_D_val, 0.0, 1e-6);
+}
+
+/// @brief Verify that process Jacobian elements in algebraic rows not covered by constraints
+/// don't cause "Zero element access" exceptions.
+///
+/// StubAerosolWithSolvent declares process element (A_AQ, S) but the constraint only
+/// declares (A_AQ, A_GAS) and (A_AQ, A_AQ). Without the fix, (A_AQ, S) is filtered
+/// from the sparsity pattern because A_AQ is algebraic, and the external model's
+/// JacobianFunction closure throws when accessing jac[block][A_AQ][S].
+TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFiltering)
+{
+  auto A_GAS = micm::Species("A_GAS");
+  auto S = micm::Species("S");
+  micm::Phase gas_phase{ "gas", { A_GAS, S } };
+
+  micm::Real total = 1.0;
+  micm::Real k = 0.1;
+  StubAerosolWithSolvent aerosol(k, total);
+
+  auto system = micm::System(gas_phase);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+
+  // This Build() call would throw "Zero element access" without the fix
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(system)
+                    .SetReactions({})
+                    .AddExternalModel(aerosol)
+                    .SetReorderState(false)
+                    .Build();
+
+  auto state = solver.GetState(1);
+
+  // Verify A_AQ is algebraic
+  auto i_aq = state.variable_map_.at("AEROSOL.A_AQ");
+  EXPECT_DOUBLE_EQ(state.upper_left_identity_diagonal_[i_aq], 0.0);
+
+  // Initialize state
+  state.variables_[0][state.variable_map_.at("A_GAS")] = 0.9;
+  state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")] = 0.1;
+  state.variables_[0][state.variable_map_.at("S")] = 1.0;
+  state.conditions_[0].temperature_ = 298.0;
+  state.conditions_[0].pressure_ = 101325.0;
+
+  // Solve several steps — verifies no runtime exceptions from Jacobian access
+  micm::Real dt = 10.0;
+  for (micm::Index step = 0; step < 10; ++step)
+  {
+    auto result = solver.Solve(dt, state);
+    state.variables_.CopyToHost();
+    state.rate_constants_.CopyToHost();
+    EXPECT_EQ(result.state_, micm::SolverState::Converged) << "Step " << step;
+
+    micm::Real sum =
+        state.variables_[0][state.variable_map_.at("A_GAS")] + state.variables_[0][state.variable_map_.at("AEROSOL.A_AQ")];
+    EXPECT_NEAR(sum, total, 1e-4) << "Conservation violated at step " << step;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Finite-Difference Jacobian Verification for External Models
+// ═══════════════════════════════════════════════════════════════
+
+using FdDenseMatrix = micm::KokkosDenseMatrix<micm::Real>;
+using SparseMatrixFD = micm::KokkosSparseMatrix<micm::Real>;
+
+/// Verify StubAerosolWithConstraints process forcing/Jacobian
+TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
+{
+  micm::Real k = 3.5;
+  StubAerosolWithConstraints aerosol(k);
+
+  std::unordered_map<std::string, micm::Index> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
+  std::unordered_map<std::string, micm::Index> param_map;
+  const micm::Index num_species = 2;
+
+  auto nz_elements = aerosol.NonZeroJacobianElements(var_map);
+
+  auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (const auto& elem : nz_elements)
+  {
+    builder = builder.WithElement(elem.first, elem.second);
+  }
+  SparseMatrixFD analytical_jac{ builder };
+  aerosol.FinalizeProcessSetup(param_map, var_map, analytical_jac);
+
+  FdDenseMatrix variables(2, num_species, 0.0);
+  variables[0][0] = 0.8;
+  variables[0][1] = 0.2;
+  variables[1][0] = 0.3;
+  variables[1][1] = 0.7;
+
+  FdDenseMatrix params(2, 0, 0.0);
+
+  aerosol.SubtractJacobianTerms(params, variables, analytical_jac);
+
+  auto fd_wrapper = [&](const FdDenseMatrix& vars, FdDenseMatrix& forcing)
+  { aerosol.AddForcingTerms(params, vars, forcing); };
+
+  auto fd_jac = micm::FiniteDifferenceJacobian<FdDenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison =
+      micm::CompareJacobianToFiniteDifference<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed_) << "Process Jacobian mismatch: block=" << comparison.worst_block_
+                                  << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                  << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
+
+  auto sparsity =
+      micm::CheckJacobianSparsityCompleteness<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
+                                << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
+}
+
+/// Verify StubAerosolWithConstraints constraint residual/Jacobian
+TEST(ExternalModelFiniteDifferenceJacobian, ConstraintResidualJacobian)
+{
+  micm::Real k = 0.1;
+  micm::Real total = 1.0;
+  StubAerosolWithConstraints aerosol(k, total);
+
+  std::unordered_map<std::string, micm::Index> param_map;
+  std::unordered_map<std::string, micm::Index> var_map = { { "A_GAS", 0 }, { "AEROSOL.A_AQ", 1 } };
+  const micm::Index num_species = 2;
+
+  auto nz_elements = aerosol.NonZeroConstraintJacobianElements(var_map);
+
+  auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(2).InitialValue(0.0);
+  for (const auto& elem : nz_elements)
+  {
+    builder = builder.WithElement(elem.first, elem.second);
+  }
+  SparseMatrixFD analytical_jac{ builder };
+  aerosol.FinalizeConstraintSetup(param_map, var_map, analytical_jac);
+
+  FdDenseMatrix variables(2, num_species, 0.0);
+  variables[0][0] = 0.6;
+  variables[0][1] = 0.4;
+  variables[1][0] = 0.2;
+  variables[1][1] = 0.8;
+  FdDenseMatrix dummy_params(2, 1, 0.0);
+
+  aerosol.SubtractConstraintJacobian(dummy_params, variables, analytical_jac);
+
+  auto fd_wrapper = [&](const FdDenseMatrix& vars, FdDenseMatrix& forcing)
+  { aerosol.AddConstraintResidual(dummy_params, vars, forcing); };
+
+  auto fd_jac = micm::FiniteDifferenceJacobian<FdDenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison =
+      micm::CompareJacobianToFiniteDifference<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed_) << "Constraint Jacobian mismatch: block=" << comparison.worst_block_
+                                  << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                  << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
+}
+
+/// Verify EquilibriumConstraintModel constraint residual/Jacobian pair
+TEST(ExternalModelFiniteDifferenceJacobian, EquilibriumConstraintModelJacobian)
+{
+  micm::Real K_eq = 2.5;
+  EquilibriumConstraintModel model("A", "B", K_eq);
+
+  std::unordered_map<std::string, micm::Index> param_map;
+  std::unordered_map<std::string, micm::Index> var_map = { { "A", 0 }, { "B", 1 } };
+  const micm::Index num_species = 2;
+
+  auto nz_elements = model.NonZeroConstraintJacobianElements(var_map);
+
+  auto builder = SparseMatrixFD::Create(num_species).SetNumberOfBlocks(1).InitialValue(0.0);
+  for (const auto& elem : nz_elements)
+  {
+    builder = builder.WithElement(elem.first, elem.second);
+  }
+  SparseMatrixFD analytical_jac{ builder };
+  model.FinalizeConstraintSetup(param_map, var_map, analytical_jac);
+
+  FdDenseMatrix variables(1, num_species, 0.0);
+  variables[0][0] = 3.0;
+  variables[0][1] = 5.0;
+  FdDenseMatrix dummy_params(1, 1, 0.0);
+
+  model.SubtractConstraintJacobian(dummy_params, variables, analytical_jac);
+
+  auto fd_wrapper = [&](const FdDenseMatrix& vars, FdDenseMatrix& forcing)
+  { model.AddConstraintResidual(dummy_params, vars, forcing); };
+
+  auto fd_jac = micm::FiniteDifferenceJacobian<FdDenseMatrix>(fd_wrapper, variables, num_species);
+
+  auto comparison =
+      micm::CompareJacobianToFiniteDifference<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(comparison.passed_) << "EquilibriumConstraintModel Jacobian mismatch: block=" << comparison.worst_block_
+                                  << " row=" << comparison.worst_row_ << " col=" << comparison.worst_col_
+                                  << " analytical=" << comparison.worst_analytical_ << " fd=" << comparison.worst_fd_;
+
+  auto sparsity =
+      micm::CheckJacobianSparsityCompleteness<FdDenseMatrix, SparseMatrixFD>(analytical_jac, fd_jac, num_species);
+
+  EXPECT_TRUE(sparsity.passed_) << "Missing sparsity at block=" << sparsity.worst_block_ << " row=" << sparsity.worst_row_
+                                << " col=" << sparsity.worst_col_ << " fd_value=" << sparsity.worst_fd_;
+}
+
+/// @brief External model constraint with a temperature-dependent K_eq stored as a state parameter
+///
+/// Enforces: K_eq(T) * [reactant] - [product] = 0
+/// where K_eq(T) = K_eq_ref * exp(delta_H / R * (1/T_ref - 1/T))
+///
+/// This exercises the constraint state parameter pipeline: the model declares a parameter name,
+/// provides an update function that computes K_eq from temperature, and the residual/Jacobian
+/// functions read K_eq from the state parameter matrix.
+class TemperatureDependentEquilibriumModel
+{
+ public:
+  TemperatureDependentEquilibriumModel(
+      std::string reactant,
+      const std::string& product,
+      micm::Real K_eq_ref,
+      micm::Real delta_H_over_R,
+      micm::Real T_ref = 298.15)
+      : reactant_(std::move(reactant)),
+        product_(product),
+        K_eq_ref_(K_eq_ref),
+        delta_H_over_R_(delta_H_over_R),
+        T_ref_(T_ref),
+        param_name_(product + "_K_eq")
+  {
+  }
+
+  std::set<std::string> ConstraintAlgebraicVariableNames() const
+  {
+    return { product_ };
+  }
+
+  std::set<std::string> ConstraintSpeciesDependencies() const
+  {
+    return { reactant_, product_ };
+  }
+
+  std::set<std::pair<micm::Index, micm::Index>> NonZeroConstraintJacobianElements(
+      const std::unordered_map<std::string, micm::Index>& state_indices) const
+  {
+    auto i_r = state_indices.at(reactant_);
+    auto i_p = state_indices.at(product_);
+    return { { i_p, i_r }, { i_p, i_p } };
+  }
+
+  std::set<std::string> ConstraintStateParameterNames() const
+  {
+    return { param_name_ };
+  }
+
+  template<class SparseMatrixPolicy>
+  void FinalizeConstraintSetup(
+      const std::unordered_map<std::string, micm::Index>& state_parameter_indices,
+      const std::unordered_map<std::string, micm::Index>& state_variable_indices,
+      const SparseMatrixPolicy& jacobian)
+  {
+    i_r_ = state_variable_indices.at(reactant_);
+    i_p_ = state_variable_indices.at(product_);
+    i_K_ = state_parameter_indices.at(param_name_);
+    pr_flat_ = jacobian.VectorIndex(0, i_p_, i_r_);
+    pp_flat_ = jacobian.VectorIndex(0, i_p_, i_p_);
+  }
+
+  template<class DenseMatrixPolicy>
+  void UpdateConstraintStateParameters(
+      const typename DenseMatrixPolicy::template VectorType<micm::Conditions>& conditions,
+      DenseMatrixPolicy& params) const
+  {
+    const micm::Index i_K = i_K_;
+    const micm::Real K_ref = K_eq_ref_;
+    const micm::Real dH_R = delta_H_over_R_;
+    const micm::Real T_ref = T_ref_;
+    DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::template VectorType<micm::Conditions>::ConstViewType& conditions_view,
+            const typename DenseMatrixPolicy::ViewType& params_view) {
+          params_view.ForEachRow(
+              [K_ref, dH_R, T_ref](const micm::Conditions& cond, micm::Real& K)
+              { K = K_ref * std::exp(dH_R * (1.0 / T_ref - 1.0 / cond.temperature_)); },
+              conditions_view,
+              params_view.GetColumnView(i_K));
+        },
+        conditions,
+        params)(conditions, params);
+  }
+
+  /// Residual: G = K_eq(T) * [reactant] - [product]
+  template<class DenseMatrixPolicy>
+  void AddConstraintResidual(
+      const DenseMatrixPolicy& params,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
+  {
+    const micm::Index i_r = i_r_;
+    const micm::Index i_p = i_p_;
+    const micm::Index i_K = i_K_;
+    DenseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename DenseMatrixPolicy::ViewType& forcing_view,
+            const typename DenseMatrixPolicy::ConstViewType& params_view,
+            const typename DenseMatrixPolicy::ConstViewType& state_view) {
+          forcing_view.ForEachRow(
+              [](micm::Real& f_p, const micm::Real& K, const micm::Real& r, const micm::Real& p) { f_p = K * r - p; },
+              forcing_view.GetColumnView(i_p),
+              params_view.GetConstColumnView(i_K),
+              state_view.GetConstColumnView(i_r),
+              state_view.GetConstColumnView(i_p));
+        },
+        forcing,
+        params,
+        state_variables)(forcing, params, state_variables);
+  }
+
+  /// Subtract dG/dy from the Jacobian (solver convention).
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  void SubtractConstraintJacobian(
+      const DenseMatrixPolicy& params,
+      const DenseMatrixPolicy& /*state_variables*/,
+      SparseMatrixPolicy& jacobian) const
+  {
+    const micm::Index i_K = i_K_;
+    const micm::Index pr = pr_flat_;
+    const micm::Index pp = pp_flat_;
+    SparseMatrixPolicy::Function(
+        MICM_LAMBDA(
+            const typename SparseMatrixPolicy::ViewType& jacobian_view,
+            const typename DenseMatrixPolicy::ConstViewType& params_view) {
+          jacobian_view.ForEachBlock(
+              [](micm::Real& j_pr, micm::Real& j_pp, const micm::Real& K)
+              {
+                j_pr -= K;
+                j_pp -= -1.0;
+              },
+              jacobian_view.GetBlockView(pr),
+              jacobian_view.GetBlockView(pp),
+              params_view.GetConstColumnView(i_K));
+        },
+        jacobian,
+        params)(jacobian, params);
+  }
+
+ private:
+  std::string reactant_;
+  std::string product_;
+  micm::Real K_eq_ref_;
+  micm::Real delta_H_over_R_;
+  micm::Real T_ref_;
+  std::string param_name_;
+  int i_r_ = -1;
+  int i_p_ = -1;
+  int i_K_ = -1;
+  int pr_flat_ = -1;
+  int pp_flat_ = -1;
+};
+
+/// @brief Verify that external model constraints can use temperature-dependent state parameters
+///
+/// System: A → B (kinetic), K_eq(T) * [B] - [C] = 0 (algebraic)
+/// At T=298.15 K, K_eq = K_eq_ref. At T=350 K, K_eq shifts.
+/// The test solves at two temperatures and verifies that [C]/[B] = K_eq(T) at each.
+TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
+{
+  auto A = micm::Species("A");
+  auto B = micm::Species("B");
+  auto C = micm::Species("C");
+  micm::Phase gas_phase{ "gas", { A, B, C } };
+
+  const micm::Real K_DRIVE = 0.1;
+  const micm::Real K_EQ_REF = 2.0;
+  const micm::Real DELTA_H_OVER_R = 3000.0;  // Positive => K_eq increases with T
+  const micm::Real T_REF = 298.15;
+
+  micm::Process rxn_ab = micm::ChemicalReactionBuilder()
+                             .SetReactants({ A })
+                             .SetProducts({ { B, 1 } })
+                             .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = K_DRIVE, .B_ = 0, .C_ = 0 })
+                             .SetPhase(gas_phase)
+                             .Build();
+
+  TemperatureDependentEquilibriumModel eq_model("B", "C", K_EQ_REF, DELTA_H_OVER_R, T_REF);
+
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
+  auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(gas_phase))
+                    .SetReactions({ rxn_ab })
+                    .AddExternalModel(eq_model)
+                    .SetReorderState(false)
+                    .Build();
+
+  // Solve at T = 298.15 K  (K_eq = K_EQ_REF = 2.0)
+  {
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = T_REF;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "T=298 solve failed at step " << step;
+    }
+
+    micm::Real B_val = state.variables_[0][state.variable_map_.at("B")];
+    micm::Real C_val = state.variables_[0][state.variable_map_.at("C")];
+    micm::Real K_eq_expected = K_EQ_REF;
+    EXPECT_GT(B_val, 0.0);
+    EXPECT_NEAR(C_val / B_val, K_eq_expected, 1e-4) << "At T=298.15K, [C]/[B] should equal K_eq_ref";
+  }
+
+  // Solve at T = 350 K  (K_eq > K_EQ_REF due to positive delta_H)
+  {
+    auto state = solver.GetState(1);
+    state.variables_[0][state.variable_map_.at("A")] = 1.0;
+    state.variables_[0][state.variable_map_.at("B")] = 0.0;
+    state.variables_[0][state.variable_map_.at("C")] = 0.0;
+    state.conditions_[0].temperature_ = 350.0;
+    state.conditions_[0].pressure_ = 101325.0;
+
+    micm::Real dt = 1.0;
+    for (micm::Index step = 0; step < 200; ++step)
+    {
+      state.variables_.CopyToDevice();
+      state.conditions_.CopyToDevice();
+      state.custom_rate_parameters_.CopyToDevice();
+      solver.UpdateStateParameters(state);
+      auto result = solver.Solve(dt, state);
+      state.variables_.CopyToHost();
+      state.rate_constants_.CopyToHost();
+      EXPECT_EQ(result.state_, micm::SolverState::Converged) << "T=350 solve failed at step " << step;
+    }
+
+    micm::Real B_val = state.variables_[0][state.variable_map_.at("B")];
+    micm::Real C_val = state.variables_[0][state.variable_map_.at("C")];
+    micm::Real K_eq_350 = K_EQ_REF * std::exp(DELTA_H_OVER_R * (1.0 / T_REF - 1.0 / 350.0));
+    EXPECT_GT(B_val, 0.0);
+    EXPECT_GT(K_eq_350, K_EQ_REF) << "K_eq should increase with temperature for positive delta_H";
+    EXPECT_NEAR(C_val / B_val, K_eq_350, 1e-4) << "At T=350K, [C]/[B] should equal K_eq(350)";
+  }
+}
+
+int main(int argc, char* argv[])
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  Kokkos::initialize(argc, argv);
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
+}

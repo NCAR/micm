@@ -4,6 +4,7 @@
 #pragma once
 
 #include <micm/solver/temporary_variables.hpp>
+#include <micm/util/types.hpp>
 
 #include <vector>
 
@@ -12,11 +13,20 @@ namespace micm
   template<class DenseMatrixPolicy>
   class RosenbrockTemporaryVariables : public TemporaryVariables
   {
+    template<class U>
+    using Scalar = typename DenseMatrixPolicy::template ScalarType<U>;
+
    public:
     DenseMatrixPolicy Ynew_;
     DenseMatrixPolicy initial_forcing_;
     std::vector<DenseMatrixPolicy> K_;
     DenseMatrixPolicy Yerror_;
+    Scalar<Real> current_c_over_h_;
+    Scalar<Real> error_;
+    Scalar<Real> max_residual_;
+    Scalar<Real> max_correction_;
+    Scalar<Bool> nan_detected_;
+    Scalar<Bool> inf_detected_;
 
     RosenbrockTemporaryVariables() = default;
     RosenbrockTemporaryVariables(const RosenbrockTemporaryVariables& other) = default;
@@ -33,13 +43,13 @@ namespace micm
     RosenbrockTemporaryVariables(
         const auto& state_parameters,
         const auto& solver_parameters,
-        const std::size_t number_of_grid_cells)
+        const Index number_of_grid_cells)
         : Ynew_(number_of_grid_cells, state_parameters.number_of_species_),
           initial_forcing_(number_of_grid_cells, state_parameters.number_of_species_),
           Yerror_(number_of_grid_cells, state_parameters.number_of_species_)
     {
       K_.reserve(solver_parameters.stages_);
-      for (std::size_t i = 0; i < solver_parameters.stages_; ++i)
+      for (Index i = 0; i < solver_parameters.stages_; ++i)
       {
         K_.emplace_back(number_of_grid_cells, state_parameters.number_of_species_);
       }

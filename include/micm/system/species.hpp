@@ -5,11 +5,13 @@
 #include <micm/system/conditions.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/parameterized_function.hpp>
+#include <micm/util/types.hpp>
 
-#include <functional>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace micm
@@ -24,15 +26,19 @@ namespace micm
 
     /// @brief A list of properties of this species
     std::map<std::string, std::string> properties_string_;
-    std::map<std::string, double> properties_double_;
-    std::map<std::string, bool> properties_bool_;
+    std::map<std::string, Real> properties_double_;
+    std::map<std::string, Bool> properties_bool_;
     std::map<std::string, int> properties_int_;
 
-    /// @brief A function that if provided will be used to parameterize
+    /// @brief A parameterization that, if provided, is used to compute
     ///        the concentration of this species during solving.
-    ///        Species with this function defined will be excluded from
-    ///        the solver state.
-    std::function<double(const Conditions)> parameterize_{ nullptr };
+    ///        Species with this parameterization defined will be excluded
+    ///        from the solver state.
+    ///
+    ///        This is a POD (see ParameterizedFunction) so it can be copied
+    ///        to a CUDA/HIP device.  Set `has_value_ = true` and populate the
+    ///        c0_/c_T_/c_P_/c_rho_ coefficients to enable it.
+    ParameterizedFunction parameterize_{};
 
     /// @brief Default constructor
     Species() = default;
@@ -47,12 +53,12 @@ namespace micm
 
     /// @brief Construct a species by name only
     /// @param name The name of the species
-    Species(const std::string& name);
+    Species(std::string name);
 
     /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(const std::string& name, const std::map<std::string, double>& properties);
+    Species(std::string name, const std::map<std::string, Real>& properties);
 
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
@@ -89,41 +95,36 @@ namespace micm
   }
 
   inline Species::Species(const Species& other)
-      : name_(other.name_),
-        properties_string_(other.properties_string_),
-        properties_double_(other.properties_double_),
-        properties_int_(other.properties_int_),
-        properties_bool_(other.properties_bool_),
-        parameterize_(other.parameterize_){};
 
-  inline Species::Species(const std::string& name)
-      : name_(name){};
+      = default;
 
-  inline Species::Species(const std::string& name, const std::map<std::string, double>& properties)
-      : name_(name),
+  inline Species::Species(std::string name)
+      : name_(std::move(name)){};
+
+  inline Species::Species(std::string name, const std::map<std::string, Real>& properties)
+      : name_(std::move(name)),
         properties_double_(properties){};
 
   inline bool Species::IsParameterized() const
   {
-    return parameterize_ != nullptr;
+    return static_cast<bool>(parameterize_.HasValue());
   }
 
   inline bool Species::HasProperty(const std::string& key) const
   {
-    return properties_string_.find(key) != properties_string_.end() ||
-           properties_double_.find(key) != properties_double_.end() ||
-           properties_bool_.find(key) != properties_bool_.end() || properties_int_.find(key) != properties_int_.end();
+    return properties_string_.contains(key) || properties_double_.contains(key) || properties_bool_.contains(key) ||
+           properties_int_.contains(key);
   }
 
   inline void Species::SetThirdBody()
   {
-    parameterize_ = [](const Conditions& c) { return c.air_density_; };
+    parameterize_ = { .c_rho_ = 1.0, .has_value_ = static_cast<Bool>(true) };
   }
 
   template<class T>
   inline T Species::GetProperty(const std::string& key) const
   {
-    if constexpr (std::is_same<T, std::string>::value)
+    if constexpr (std::is_same_v<T, std::string>)
     {
       try
       {
@@ -137,7 +138,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same<T, double>::value)
+    else if constexpr (std::is_same_v<T, Real>)
     {
       try
       {
@@ -151,7 +152,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same<T, bool>::value)
+    else if constexpr (std::is_same_v<T, bool>)
     {
       try
       {
@@ -165,7 +166,7 @@ namespace micm
             "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
-    else if constexpr (std::is_same<T, int>::value)
+    else if constexpr (std::is_same_v<T, int>)
     {
       try
       {
@@ -189,19 +190,19 @@ namespace micm
   template<class T>
   inline void Species::SetProperty(const std::string& key, T value)
   {
-    if constexpr (std::is_same<T, std::string>::value || std::is_same<T, const char*>::value)
+    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, const char*>)
     {
       properties_string_[key] = value;
     }
-    else if constexpr (std::is_same<T, double>::value)
+    else if constexpr (std::is_same_v<T, Real>)
     {
       properties_double_[key] = value;
     }
-    else if constexpr (std::is_same<T, bool>::value)
+    else if constexpr (std::is_same_v<T, bool>)
     {
       properties_bool_[key] = value;
     }
-    else if constexpr (std::is_same<T, int>::value)
+    else if constexpr (std::is_same_v<T, int>)
     {
       properties_int_[key] = value;
     }

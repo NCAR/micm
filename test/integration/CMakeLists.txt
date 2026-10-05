@@ -17,3 +17,6 @@ create_standard_test(NAME dae_algebraic_error_insensitivity SOURCES test_dae_alg
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)
 endif()
+if(MICM_ENABLE_KOKKOS)
+  add_subdirectory(kokkos)
+endif()

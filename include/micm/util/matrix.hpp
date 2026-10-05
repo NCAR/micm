@@ -3,6 +3,10 @@
 #pragma once
 
 #include <micm/util/micm_exception.hpp>
+#include <micm/util/padded_vector.hpp>
+#include <micm/util/reducers.hpp>
+#include <micm/util/scalar_view.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
 #include <algorithm>
@@ -17,31 +21,39 @@
 namespace micm
 {
 
-  /// Concept for vectorizable matrices
-  template<typename T>
-  concept VectorizableDense = requires(T t) {
-    t.GroupSize();
-    t.GroupVectorSize();
-    t.NumberOfGroups();
-  };
-
   /// @brief A 2D array class with contiguous memory
-  template<class T = double>
+  template<class T = Real>
   class Matrix
   {
    public:
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = Matrix<int>;
     using value_type = T;
+    class GroupView;
+    class ConstGroupView;
+    using ViewType = GroupView;
+    using ConstViewType = ConstGroupView;
+    using HostGroupView = GroupView;
+    using ConstHostGroupView = ConstGroupView;
+    template<class VecT>
+    using VectorType = PaddedVector<VecT, 1>;
+    template<class ScaT>
+    using ScalarType = ScalarView<ScaT>;
+    template<class U>
+    using SumType = micm::Sum<U>;
+    template<class U>
+    using MaxType = micm::Max<U>;
+    using LOrType = micm::LOr;
+    using LAndType = micm::LAnd;
 
     /// @brief A lightweight descriptor for a const column in a matrix
     class ConstColumnView
     {
       friend class Matrix;
       const Matrix* matrix_;
-      std::size_t column_index_;
+      Index column_index_;
 
-      explicit ConstColumnView(const Matrix* matrix, std::size_t column_index)
+      explicit ConstColumnView(const Matrix* matrix, Index column_index)
           : matrix_(matrix),
             column_index_(column_index)
       {
@@ -49,7 +61,7 @@ namespace micm
 
      public:
       using category = DenseMatrixColumnViewTag;
-      std::size_t ColumnIndex() const
+      Index ColumnIndex() const
       {
         return column_index_;
       }
@@ -64,9 +76,9 @@ namespace micm
     {
       friend class Matrix;
       Matrix* matrix_;
-      std::size_t column_index_;
+      Index column_index_;
 
-      explicit ColumnView(Matrix* matrix, std::size_t column_index)
+      explicit ColumnView(Matrix* matrix, Index column_index)
           : matrix_(matrix),
             column_index_(column_index)
       {
@@ -74,7 +86,7 @@ namespace micm
 
      public:
       using category = DenseMatrixColumnViewTag;
-      std::size_t ColumnIndex() const
+      Index ColumnIndex() const
       {
         return column_index_;
       }
@@ -105,8 +117,8 @@ namespace micm
 
    private:
     std::vector<T> data_;
-    std::size_t x_dim_;
-    std::size_t y_dim_;
+    Index x_dim_;
+    Index y_dim_;
 
     friend class Proxy;
     friend class ConstProxy;
@@ -116,11 +128,11 @@ namespace micm
     class Proxy
     {
       Matrix& matrix_;
-      std::size_t offset_;
-      std::size_t y_dim_;
+      Index offset_;
+      Index y_dim_;
 
      public:
-      Proxy(Matrix& matrix, std::size_t offset, std::size_t y_dim)
+      Proxy(Matrix& matrix, Index offset, Index y_dim)
           : matrix_(matrix),
             offset_(offset),
             y_dim_(y_dim)
@@ -147,7 +159,7 @@ namespace micm
       {
         return std::vector<T>(this->begin(), this->end());
       }
-      std::size_t Size() const
+      Index Size() const
       {
         return y_dim_;
       }
@@ -167,7 +179,7 @@ namespace micm
       {
         return std::next(matrix_.data_.begin(), offset_ + y_dim_);
       }
-      T& operator[](std::size_t y)
+      T& operator[](Index y)
       {
         return matrix_.data_[offset_ + y];
       }
@@ -176,11 +188,11 @@ namespace micm
     class ConstProxy
     {
       const Matrix& matrix_;
-      std::size_t offset_;
-      std::size_t y_dim_;
+      Index offset_;
+      Index y_dim_;
 
      public:
-      ConstProxy(const Matrix& matrix, std::size_t offset, std::size_t y_dim)
+      ConstProxy(const Matrix& matrix, Index offset, Index y_dim)
           : matrix_(matrix),
             offset_(offset),
             y_dim_(y_dim)
@@ -190,7 +202,7 @@ namespace micm
       {
         return std::vector<T>(this->begin(), this->end());
       }
-      std::size_t Size() const
+      Index Size() const
       {
         return y_dim_;
       }
@@ -202,7 +214,7 @@ namespace micm
       {
         return std::next(matrix_.data_.begin(), offset_ + y_dim_);
       }
-      const T& operator[](std::size_t y) const
+      const T& operator[](Index y) const
       {
         return matrix_.data_[offset_ + y];
       }
@@ -216,14 +228,14 @@ namespace micm
     {
     }
 
-    Matrix(std::size_t x_dim, std::size_t y_dim)
+    Matrix(Index x_dim, Index y_dim)
         : x_dim_(x_dim),
           y_dim_(y_dim),
           data_(x_dim * y_dim)
     {
     }
 
-    Matrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
+    Matrix(Index x_dim, Index y_dim, T initial_value)
         : x_dim_(x_dim),
           y_dim_(y_dim),
           data_(x_dim * y_dim, initial_value)
@@ -232,19 +244,19 @@ namespace micm
 
     Matrix(const std::vector<std::vector<T>>& other)
         : x_dim_(other.size()),
-          y_dim_(other.size() == 0 ? 0 : other[0].size()),
+          y_dim_(other.empty() ? 0 : other[0].size()),
           data_(
               [&]() -> std::vector<T>
               {
-                std::size_t x_dim = other.size();
+                Index x_dim = other.size();
                 if (x_dim == 0)
                 {
                   return std::vector<T>(0);
                 }
-                std::size_t y_dim = other[0].size();
+                Index y_dim = other[0].size();
                 std::vector<T> data(x_dim * y_dim);
                 auto elem = data.begin();
-                for (std::size_t x{}; x < x_dim; ++x)
+                for (Index x{}; x < x_dim; ++x)
                 {
                   // check that this row matches the expected rectangular matrix dimensions
                   if (other[x].size() != y_dim)
@@ -253,7 +265,7 @@ namespace micm
                                       std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
                     throw MicmException(MICM_ERROR_CATEGORY_MATRIX, MICM_MATRIX_ERROR_CODE_INVALID_VECTOR, msg);
                   }
-                  for (std::size_t y{}; y < y_dim; ++y)
+                  for (Index y{}; y < y_dim; ++y)
                   {
                     *(elem++) = other[x][y];
                   }
@@ -263,12 +275,12 @@ namespace micm
     {
     }
 
-    std::size_t NumRows() const
+    Index NumRows() const
     {
       return x_dim_;
     }
 
-    std::size_t NumColumns() const
+    Index NumColumns() const
     {
       return y_dim_;
     }
@@ -277,7 +289,7 @@ namespace micm
     ///        adjacent rows for the same column
     /// @return The number of elements in the underlying vector between
     ///         adjacent rows for the same column
-    std::size_t RowStride() const
+    Index RowStride() const
     {
       return y_dim_;
     }
@@ -286,7 +298,7 @@ namespace micm
     ///        adjacent columns for the same row
     /// @return The number of elements in the underlying vector between
     ///         adjacent columns for the same row
-    std::size_t ColumnStride() const
+    Index ColumnStride() const
     {
       return 1;
     }
@@ -298,12 +310,46 @@ namespace micm
       std::fill(data_.begin(), data_.end(), val);
     }
 
-    ConstProxy operator[](std::size_t x) const
+    /// @brief No-op host-to-device sync hook.
+    ///
+    /// GPU-backed matrix policies (e.g. KokkosDenseMatrix, CudaDenseMatrix)
+    /// override this to copy host data to a device mirror. Defined here as a
+    /// no-op so shared MatrixPolicy tests and solver code can call it
+    /// unconditionally regardless of which matrix policy is in use.
+    void CopyToDevice() const
+    {
+    }
+
+    /// @brief No-op device-to-host sync hook. See CopyToDevice().
+    void CopyToHost() const
+    {
+    }
+
+    /// @brief Creates a vector usable with this matrix type in Function() lambdas
+    /// @param n vector size
+    /// @param init initial value for vector elements
+    /// @return vector usable in Function() lambdas
+    template<class VecT>
+    VectorType<VecT> CompatibleVector(Index n, VecT init = VecT{}) const
+    {
+      return VectorType<VecT>(n, init);
+    }
+
+    /// @brief Creates a scalar usable with this matrix type in Function lambda captures
+    /// @param init initial value for scalar
+    /// @return scalar usable in Function() lambda captures
+    template<class ScaT>
+    ScalarType<ScaT> CompatibleScalar(ScaT init = ScaT{}) const
+    {
+      return ScalarType<ScaT>(init);
+    }
+
+    ConstProxy operator[](Index x) const
     {
       return ConstProxy(*this, x * y_dim_, y_dim_);
     }
 
-    Proxy operator[](std::size_t x)
+    Proxy operator[](Index x)
     {
       return Proxy(*this, x * y_dim_, y_dim_);
     }
@@ -318,7 +364,7 @@ namespace micm
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the Matrix x
     /// @param x The input Matrix
-    void Axpy(const double& alpha, const Matrix& x)
+    void Axpy(const Real& alpha, const Matrix& x)
     {
       auto x_iter = x.AsVector().begin();
       for (auto& y : data_)
@@ -388,9 +434,9 @@ namespace micm
     // Print the matrix to the output stream
     friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix)
     {
-      for (std::size_t i = 0; i < matrix.x_dim_; ++i)
+      for (Index i = 0; i < matrix.x_dim_; ++i)
       {
-        for (std::size_t j = 0; j < matrix.y_dim_ - 1; ++j)
+        for (Index j = 0; j < matrix.y_dim_ - 1; ++j)
         {
           os << matrix[i][j] << ',';
         }
@@ -433,41 +479,19 @@ namespace micm
     /// @brief Create a const column view for accessing a column
     /// @param column_index The index of the column
     /// @return A ConstColumnView descriptor
-    ConstColumnView GetConstColumnView(std::size_t column_index) const
+    ConstColumnView GetConstColumnView(Index column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ConstColumnView(this, column_index);
     }
 
     /// @brief Create a mutable column view for accessing a column
     /// @param column_index The index of the column
     /// @return A ColumnView descriptor
-    ColumnView GetColumnView(std::size_t column_index)
+    ColumnView GetColumnView(Index column_index) const
     {
-      if (column_index >= y_dim_)
-      {
-        throw MicmException(
-            MICM_ERROR_CATEGORY_MATRIX,
-            MICM_MATRIX_ERROR_CODE_ELEMENT_OUT_OF_RANGE,
-            "Column index " + std::to_string(column_index) + " out of range for matrix with " + std::to_string(y_dim_) +
-                " columns");
-      }
+      assert(column_index < y_dim_ && "column index out of range");
       return ColumnView(this, column_index);
-    }
-
-    /// @brief Get a row variable with persistent storage for temporary values
-    /// @return A RowVariable with stack-allocated storage
-    RowVariable GetRowVariable()
-    {
-      return RowVariable();
     }
 
     /// @brief Get a row variable with persistent storage for temporary values (const version)
@@ -485,7 +509,7 @@ namespace micm
     template<typename Func, typename... Args>
     void ForEachRow(Func&& func, Args&&... args)
     {
-      for (std::size_t row = 0; row < x_dim_; ++row)
+      for (Index row = 0; row < x_dim_; ++row)
       {
         func(GetRowElement(row, args)...);
       }
@@ -499,7 +523,7 @@ namespace micm
     template<typename Func, typename... Args>
     void ForEachRow(Func&& func, Args&&... args) const
     {
-      for (std::size_t row = 0; row < x_dim_; ++row)
+      for (Index row = 0; row < x_dim_; ++row)
       {
         func(GetRowElement(row, args)...);
       }
@@ -508,9 +532,23 @@ namespace micm
     /// @brief ConstGroupView provides a const view of a single row (group of size 1) for iteration
     class ConstGroupView
     {
+     public:
+      /// @brief Enriched column view returned by GetConstColumnView on a ConstGroupView.
+      ///
+      /// Carries a precomputed base_ pointer into the group's slice of the underlying
+      /// storage. For standard-ordered matrices, `base_` points at the single element that
+      /// row_ intersects with column_index_. Element access via GetRowElement is then
+      /// `arg.base_[0]`, avoiding the `row_ * y_dim_ + column_index` recomputation the raw
+      /// Matrix::ConstColumnView requires.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       const Matrix& matrix_;
-      std::size_t row_;
+      Index row_;
 
       /// @brief Get a const element reference for the current row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
@@ -519,6 +557,14 @@ namespace micm
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
+      }
+
+      /// @brief Get a const element reference for the current row in this group (GroupedColumnView)
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Arg&& arg) const
+      {
+        return arg.base_[0];
       }
 
       /// @brief Get a const element reference for the current row in this group (RowVariable)
@@ -538,21 +584,57 @@ namespace micm
       }
 
      public:
-      ConstGroupView(const Matrix& matrix, std::size_t row)
+      ConstGroupView(const Matrix& matrix, Index row)
           : matrix_(matrix),
             row_(row)
       {
       }
 
-      auto GetConstColumnView(std::size_t column_index) const
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this ConstGroupView's row.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetConstColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
       }
 
       RowVariable GetRowVariable() const
       {
         // Stack-allocated single value
         return RowVariable();
+      }
+
+      /// @brief Assign value to the caller-owned row-variable temp.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        dst.Get() = value;
+      }
+
+      /// @brief Assign value to `vec[row_]` of an external vector.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        vec[row_] = value;
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        dst.Get() = src.base_[0];
+      }
+
+      /// @brief Copy src column into `vec[row_]` of an external vector.
+      ///        Inverse of Copy(GroupedColumnView, VectorLike).
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        vec[row_] = src.base_[0];
       }
 
       template<typename Func, typename... Args>
@@ -562,11 +644,39 @@ namespace micm
         func(GetRowElement(std::forward<Args>(args))...);
       }
 
-      std::size_t NumRows() const
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        For standard-ordered matrices, there is no padding, so this is
+      ///        identical to ForEachRow.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      /// @brief Apply a reduction to the single row in this group. The user's
+      ///        function receives its column-view/row-variable arguments plus a
+      ///        trailing reference to `reducer.Reference()` as an accumulator.
+      ///        For standard Matrix (L=1) this is just one function call.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows.
+      ///        For standard Matrix (L=1) there is no padding, so this is
+      ///        identical to Reduce.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
+      }
+
+      Index NumRows() const
       {
         return matrix_.NumRows();
       }
-      std::size_t NumColumns() const
+      Index NumColumns() const
       {
         return matrix_.NumColumns();
       }
@@ -575,23 +685,46 @@ namespace micm
     /// @brief GroupView provides a view of a single row (group of size 1) for iteration
     class GroupView
     {
+     public:
+      /// @brief Enriched mutable column view returned by GetColumnView on a GroupView.
+      ///        See ConstGroupView::GroupedConstColumnView for rationale.
+      struct GroupedColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        T* base_;
+      };
+      /// @brief Const variant, for GetConstColumnView on a mutable GroupView.
+      struct GroupedConstColumnView
+      {
+        using category = GroupedDenseMatrixColumnViewTag;
+        const T* base_;
+      };
+
      private:
       Matrix& matrix_;
-      std::size_t row_;
+      Index row_;
 
       /// @brief Get an element reference for the current row in this group (ColumnView)
       template<DenseMatrixColumnView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         auto* source_matrix = arg.GetMatrix();
         return source_matrix->data_[row_ * source_matrix->y_dim_ + arg.ColumnIndex()];
       }
 
+      /// @brief Get an element reference for the current row in this group (GroupedColumnView)
+      template<GroupedDenseMatrixColumnView Arg>
+      [[gnu::always_inline]]
+      decltype(auto) GetRowElement(Arg&& arg) const
+      {
+        return arg.base_[0];
+      }
+
       /// @brief Get an element reference for the current row in this group (RowVariable)
       template<BlockVariableView Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         return arg.Get();
       }
@@ -599,46 +732,137 @@ namespace micm
       /// @brief Get an element reference for the current row in this group (Vector-like)
       template<VectorLike Arg>
       [[gnu::always_inline]]
-      decltype(auto) GetRowElement(Arg&& arg)
+      decltype(auto) GetRowElement(Arg&& arg) const
       {
         return arg[row_];
       }
 
      public:
-      GroupView(Matrix& matrix, std::size_t row)
+      GroupView(Matrix& matrix, Index row)
           : matrix_(matrix),
             row_(row)
       {
       }
 
-      auto GetConstColumnView(std::size_t column_index) const
+      operator ConstGroupView() const
       {
-        return matrix_.GetConstColumnView(column_index);
+        return ConstGroupView(matrix_, row_);
       }
 
-      auto GetColumnView(std::size_t column_index)
+      /// @brief Returns a grouped const column view whose element base_ pointer is
+      ///        precomputed for this GroupView's row.
+      GroupedConstColumnView GetConstColumnView(Index column_index) const
       {
-        return matrix_.GetColumnView(column_index);
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
       }
 
-      RowVariable GetRowVariable()
+      /// @brief Returns a grouped mutable column view whose element base_ pointer is
+      ///        precomputed for this GroupView's row.
+      GroupedColumnView GetColumnView(Index column_index) const
+      {
+        assert(column_index < matrix_.y_dim_ && "column index out of range");
+        return { matrix_.data_.data() + row_ * matrix_.y_dim_ + column_index };
+      }
+
+      RowVariable GetRowVariable() const
       {
         // Stack-allocated single value
         return RowVariable();
       }
 
+      /// @brief Assign value to the (single) cell of the column within this group.
+      [[gnu::always_inline]]
+      void Fill(GroupedColumnView view, T value) const
+      {
+        view.base_[0] = value;
+      }
+
+      /// @brief Copy src column into dst column within this group.
+      template<GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst, Src&& src) const
+      {
+        dst.base_[0] = src.base_[0];
+      }
+
+      /// @brief Copy a per-row vector into dst column within this group.
+      template<VectorLike Src>
+      [[gnu::always_inline]]
+      void Copy(GroupedColumnView dst, Src&& src) const
+      {
+        dst.base_[0] = src[row_];
+      }
+
+      /// @brief Assign value to the caller-owned row-variable temp.
+      template<BlockVariableView Dst>
+      [[gnu::always_inline]]
+      void Fill(Dst&& dst, T value) const
+      {
+        dst.Get() = value;
+      }
+
+      /// @brief Assign value to `vec[row_]` of an external vector.
+      template<VectorLike Vec>
+      [[gnu::always_inline]]
+      void Fill(Vec& vec, T value) const
+      {
+        vec[row_] = value;
+      }
+
+      /// @brief Copy src column into the caller-owned row-variable temp.
+      template<BlockVariableView Dst, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Dst&& dst, Src&& src) const
+      {
+        dst.Get() = src.base_[0];
+      }
+
+      /// @brief Copy src column into `vec[row_]` of an external vector.
+      template<VectorLike Vec, GroupedDenseMatrixColumnView Src>
+      [[gnu::always_inline]]
+      void Copy(Vec& vec, Src&& src) const
+      {
+        vec[row_] = src.base_[0];
+      }
+
       template<typename Func, typename... Args>
-      void ForEachRow(Func&& func, Args&&... args)
+      void ForEachRow(Func&& func, Args&&... args) const
       {
         // For Matrix with L=1, just process the single row (no loop needed)
         func(GetRowElement(std::forward<Args>(args))...);
       }
 
-      std::size_t NumRows() const
+      /// @brief Same as ForEachRow but guaranteed to skip padding rows.
+      ///        For standard-ordered matrices there is no padding, so this is identical
+      ///        to ForEachRow. See ConstGroupView::ForEachRowStrict for details.
+      template<typename Func, typename... Args>
+      void ForEachRowStrict(Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))...);
+      }
+
+      /// @brief Apply a reduction to the single row in this group. See
+      ///        ConstGroupView::Reduce for details.
+      template<typename Reducer, typename Func, typename... Args>
+      void Reduce(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
+      }
+
+      /// @brief Same as Reduce but guaranteed to skip padding rows. For
+      ///        standard Matrix (L=1) this is identical to Reduce.
+      template<typename Reducer, typename Func, typename... Args>
+      void ReduceStrict(Reducer reducer, Func&& func, Args&&... args) const
+      {
+        func(GetRowElement(std::forward<Args>(args))..., reducer.Reference());
+      }
+
+      Index NumRows() const
       {
         return matrix_.NumRows();
       }
-      std::size_t NumColumns() const
+      Index NumColumns() const
       {
         return matrix_.NumColumns();
       }
@@ -666,15 +890,15 @@ namespace micm
     /// @throws std::system_error if column counts don't match at creation, vectors have wrong sizes
     ///         at creation, or if at invocation time: matrices/vectors have mismatched row counts,
     ///         column counts don't match creation, or column indices are out of bounds
-    template<typename Func, typename... Args>
+    template<bool UseView = true, typename Func, typename... Args>
     static auto Function(Func&& func, Args&... args)
     {
       // Capture column counts for matrices at creation time using helper
       // Row counts can differ between args at creation, but must match at invocation
       auto populate_cols = [](auto&... args_inner)
       {
-        std::vector<std::size_t> cols(sizeof...(args_inner));
-        std::size_t idx = 0;
+        std::vector<Index> cols(sizeof...(args_inner));
+        Index idx = 0;
         (
             [&](auto& arg)
             {
@@ -693,15 +917,15 @@ namespace micm
         return cols;
       };
 
-      std::vector<std::size_t> num_cols = populate_cols(args...);
+      std::vector<Index> num_cols = populate_cols(args...);
 
       // Store in variable to ensure fold expression completes before lambda construction
       auto result = [func = std::forward<Func>(func), num_cols = std::move(num_cols)](auto&&... invoked_args) mutable
       {
         // Validate dimensions and determine row count in a single pass
-        std::size_t num_rows = 0;
+        Index num_rows = 0;
         bool found_first = false;
-        std::size_t idx = 0;
+        Index idx = 0;
 
         (
             [&](auto& arg)
@@ -763,7 +987,7 @@ namespace micm
             ...);
 
         // Iterate over rows, treating each row as a group of size 1
-        for (std::size_t row = 0; row < num_rows; ++row)
+        for (Index row = 0; row < num_rows; ++row)
         {
           // Use ConstGroupView if matrix is const, otherwise use GroupView
           // For vectors, just pass them through
@@ -774,8 +998,14 @@ namespace micm
                 using ArgTypeNoConst = std::remove_const_t<ArgType>;
                 if constexpr (VectorLike<std::remove_cvref_t<ArgType>>)
                 {
-                  // Vector: just forward it
-                  return std::forward<decltype(arg)>(arg);
+                  if constexpr (UseView)
+                  {
+                    return std::forward<decltype(arg)>(arg).GetView();
+                  }
+                  else
+                  {
+                    return (std::forward<decltype(arg)>(arg));
+                  }
                 }
                 else
                 {
@@ -795,11 +1025,17 @@ namespace micm
       return result;
     }
 
+    template<typename Func, typename... Args>
+    static auto HostFunction(Func&& func, Args&&... args)
+    {
+      return Function<false>(std::forward<Func>(func), args...);
+    }
+
    private:
     /// @brief Get an element reference for a row (ColumnView)
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(Index row, Arg&& arg)
     {
       auto* source_matrix = arg.GetMatrix();
       return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -808,7 +1044,7 @@ namespace micm
     /// @brief Get an element reference for a row (RowVariable)
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(Index row, Arg&& arg)
     {
       return arg.Get();
     }
@@ -816,7 +1052,7 @@ namespace micm
     /// @brief Get an element reference for a row (Vector-like)
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg)
+    decltype(auto) GetRowElement(Index row, Arg&& arg)
     {
       return arg[row];
     }
@@ -824,7 +1060,7 @@ namespace micm
     /// @brief Get a const element reference for a row (ColumnView) - const version
     template<DenseMatrixColumnView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(Index row, Arg&& arg) const
     {
       auto* source_matrix = arg.GetMatrix();
       return source_matrix->data_[row * source_matrix->y_dim_ + arg.ColumnIndex()];
@@ -833,7 +1069,7 @@ namespace micm
     /// @brief Get a const element reference for a row (RowVariable) - const version
     template<BlockVariableView Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(Index row, Arg&& arg) const
     {
       return arg.Get();
     }
@@ -841,13 +1077,13 @@ namespace micm
     /// @brief Get a const element reference for a row (Vector-like) - const version
     template<VectorLike Arg>
     [[gnu::always_inline]]
-    decltype(auto) GetRowElement(std::size_t row, Arg&& arg) const
+    decltype(auto) GetRowElement(Index row, Arg&& arg) const
     {
       return arg[row];
     }
   };
 
-  using StandardDenseMatrix = Matrix<double>;
+  using StandardDenseMatrix = Matrix<Real>;
 
   // ============================================================================
   // Grouping Strategy Specialization

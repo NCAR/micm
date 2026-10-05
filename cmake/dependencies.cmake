@@ -123,6 +123,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   set(cuda_arch_map_b200 95)
   # Consumer grade GPUs
   set(cuda_arch_map_turing 75)
+  set(cuda_arch_map_rtx5060 120)
 
   set(cuda_arch_map_all_major all-major)
   # Setting CUDAARCHS does not override CMAKE_CUDA_ARCHITECTURES or CUDA_ARCHITECTURES
@@ -132,7 +133,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   if("$ENV{CUDAARCHS}" STREQUAL "")
     # dynamically create the current options
     set(arch_options "")
-    foreach(arch IN ITEMS a100 v100 h100 h200 b100 b200 turing)
+    foreach(arch IN ITEMS a100 v100 h100 h200 b100 b200 turing rtx5060)
       list(APPEND arch_options ${arch})
     endforeach()
     message(FATAL_ERROR "${MICM_GPU_TYPE_LOWER} unsupported, current options are ${arch_options}.")
@@ -150,4 +151,17 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
   set(CUDA_STANDARD_REQUIRED ON)
+endif()
+
+################################################################################
+# Kokkos
+
+if(MICM_ENABLE_KOKKOS)
+  FetchContent_Declare(kokkos
+    GIT_REPOSITORY https://github.com/kokkos/kokkos.git
+    GIT_TAG 5.1.0
+    FIND_PACKAGE_ARGS NAMES Kokkos
+  )
+  FetchContent_MakeAvailable(kokkos)
+  message(STATUS "Compiling with Kokkos support")
 endif()

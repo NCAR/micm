@@ -1,10 +1,13 @@
 FROM fedora:latest
 
+ARG BUILD_TYPE=release
+
 RUN dnf -y update \
     && dnf -y install \
         cmake \
         gcc-c++ \
         gdb \
+        ninja-build \
         git \
         make \
     && dnf clean all
@@ -16,9 +19,10 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake \
-        -D CMAKE_BUILD_TYPE=release \
+        -G Ninja \
+        -D CMAKE_BUILD_TYPE=${BUILD_TYPE} \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         ../micm \
-      && make install -j 8
+      && ninja install -j 8
 
 WORKDIR /build

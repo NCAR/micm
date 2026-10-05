@@ -7,5 +7,6 @@
 namespace micm
 {
   /// @brief Alias for the default CUDA LU decomposition algorithm
-  using CudaLuDecomposition = CudaLuDecompositionMozartInPlace;
+  template<class SparseMatrixPolicy>
+  using CudaLuDecomposition = CudaLuDecompositionMozartInPlace<SparseMatrixPolicy>;
 }  // namespace micm

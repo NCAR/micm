@@ -1,6 +1,9 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include <micm/solver/external_model_dispatcher.hpp>
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   template<
@@ -10,7 +13,8 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
+      class StatePolicy,
+      class... ExternalModels>
   inline void SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -18,7 +22,8 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::UnusedSpeciesCheck(const RatesPolicy& rates) const
+      StatePolicy,
+      ExternalModels...>::UnusedSpeciesCheck(const RatesPolicy& rates) const
   {
     if (ignore_unused_species_)
     {
@@ -26,7 +31,6 @@ namespace micm
     }
 
     auto used_species = rates.SpeciesUsed(reactions_);
-    // Include species referenced by constraints (dependencies and algebraic targets)
     for (const auto& constraint : constraints_)
     {
       for (const auto& dep : constraint.SpeciesDependencies())
@@ -35,7 +39,11 @@ namespace micm
       }
       used_species.insert(constraint.AlgebraicSpecies());
     }
-    // Include species referenced by external model constraints
+    for (const auto& ps : external_process_sets_)
+    {
+      auto ext = ps.species_used_func_();
+      used_species.insert(ext.begin(), ext.end());
+    }
     for (const auto& constraint : external_constraints_)
     {
       auto deps = constraint.species_dependencies_func_();
@@ -53,7 +61,7 @@ namespace micm
         used_species.begin(),
         used_species.end(),
         std::inserter(unused_species, unused_species.begin()));
-    if (unused_species.size() > 0)
+    if (!unused_species.empty())
     {
       std::string err_msg = "Unused species in chemical system:";
       for (const auto& species : unused_species)
@@ -72,18 +80,20 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
-  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
+      class StatePolicy,
+      class... ExternalModels>
+  inline std::unordered_map<std::string, Index> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::GetSpeciesMap() const
+      StatePolicy,
+      ExternalModels...>::GetSpeciesMap() const
   {
-    std::unordered_map<std::string, std::size_t> species_map;
-    std::size_t index = 0;
+    std::unordered_map<std::string, Index> species_map;
+    Index index = 0;
 
     auto all_names = this->MergedUniqueNames();
     for (auto& name : all_names)
@@ -93,9 +103,13 @@ namespace micm
 
     if (reorder_state_)
     {
-      // get unsorted Jacobian non-zero elements
-      auto unsorted_rates = RatesPolicy(reactions_, species_map, external_process_sets_);
+      auto unsorted_rates = RatesPolicy(reactions_, species_map);
       auto unsorted_jac_elements = unsorted_rates.NonZeroJacobianElements();
+      for (const auto& ps : external_process_sets_)
+      {
+        auto ext = ps.non_zero_jacobian_elements_func_(species_map);
+        unsorted_jac_elements.insert(ext.begin(), ext.end());
+      }
 
       using Matrix = typename DenseMatrixPolicy::IntMatrix;
       const auto n = this->MergedStateSize();
@@ -107,7 +121,7 @@ namespace micm
       auto reorder_map = DiagonalMarkowitzReorder<Matrix>(unsorted_jac_non_zeros);
 
       index = 0;
-      for (std::size_t i = 0; i < all_names.size(); ++i)
+      for (Index i = 0; i < all_names.size(); ++i)
       {
         species_map[all_names[reorder_map[i]]] = index++;
       }
@@ -123,17 +137,19 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
-  inline std::unordered_map<std::string, std::size_t> SolverBuilder<
+      class StatePolicy,
+      class... ExternalModels>
+  inline std::unordered_map<std::string, Index> SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::GetCustomParameterMap() const
+      StatePolicy,
+      ExternalModels...>::GetCustomParameterMap() const
   {
-    std::unordered_map<std::string, std::size_t> params{};
+    std::unordered_map<std::string, Index> params{};
     std::vector<std::string> duplicates;
 
     auto add_param = [&params, &duplicates](const std::string& label, const std::string& source)
@@ -145,7 +161,6 @@ namespace micm
       }
     };
 
-    // Include custom parameter labels from chemical reactions
     for (const auto& reaction : reactions_)
     {
       const auto& process = reaction.process_;
@@ -160,7 +175,6 @@ namespace micm
       }
     }
 
-    // Include custom parameter labels from external models
     for (const auto& sys : external_systems_)
     {
       auto param_names = sys.parameter_names_func_();
@@ -192,7 +206,8 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
+      class StatePolicy,
+      class... ExternalModels>
   inline void SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -200,17 +215,17 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::
-      SetAbsoluteTolerances(std::vector<double>& tolerances, const std::unordered_map<std::string, std::size_t>& species_map)
-          const
+      StatePolicy,
+      ExternalModels...>::
+      SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map) const
   {
-    tolerances = std::vector<double>(species_map.size(), 1e-3);
+    tolerances = std::vector<Real>(species_map.size(), 1e-3);
     for (const auto& phase_species : system_.gas_phase_.phase_species_)
     {
       const auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
       {
-        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
+        tolerances[species_map.at(species.name_)] = species.template GetProperty<Real>("absolute tolerance");
       }
     }
   }
@@ -222,7 +237,8 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
+      class StatePolicy,
+      class... ExternalModels>
   inline auto SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
@@ -230,7 +246,8 @@ namespace micm
       RatesPolicy,
       LuDecompositionPolicy,
       LinearSolverPolicy,
-      StatePolicy>::Build()
+      StatePolicy,
+      ExternalModels...>::Build()
   {
     if (!valid_system_)
     {
@@ -238,7 +255,7 @@ namespace micm
           MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
     }
 
-    std::size_t number_of_species = this->MergedStateSize();
+    Index number_of_species = this->MergedStateSize();
     if (number_of_species == 0)
     {
       throw MicmException(
@@ -251,6 +268,7 @@ namespace micm
     constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {
       m.CopyToDevice();
       m.CopyToHost();
+      m.AsDeviceParam();
     };
     if constexpr (is_cuda_policy)
     {
@@ -263,9 +281,11 @@ namespace micm
       }
     }
 
-    using ConstraintSetPolicy = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
+    using InnerConstraintSet = ConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>;
+    using RatesBundleType = RatesBundle<RatesPolicy, ExternalModels...>;
+    using ConstraintBundleType = ConstraintBundle<InnerConstraintSet, ExternalModels...>;
     using SolverPolicy =
-        typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;
+        typename SolverParametersPolicy::template SolverType<RatesBundleType, LinearSolverPolicy, ConstraintBundleType>;
 
     // Sort reactions by rate constant type so ReactionRateConstantStore and ProcessSet
     // share a consistent ordering and each type occupies a contiguous block.
@@ -326,32 +346,32 @@ namespace micm
           return type_order(a) < type_order(b);
         });
 
-    // Build ProcessSet
     auto species_map = this->GetSpeciesMap();
-    RatesPolicy rates(reactions_, species_map, external_process_sets_);
+    RatesPolicy rates(reactions_, species_map);
     this->UnusedSpeciesCheck(rates);
+
+    // Build the ODE Jacobian sparsity, including contributions from external process models.
     auto nonzero_elements = rates.NonZeroJacobianElements();
+    for (const auto& ps : external_process_sets_)
+    {
+      auto ext = ps.non_zero_jacobian_elements_func_(species_map);
+      nonzero_elements.insert(ext.begin(), ext.end());
+    }
 
     auto params_map = this->GetCustomParameterMap();
 
-    // Create vector of functions to update external model state parameters
-    // (compiled after all params are added to params_map — see below)
-    std::vector<std::function<void(const std::vector<micm::Conditions>&, DenseMatrixPolicy&)>> update_state_param_funcs;
-
-    // Build constraint set
-    ConstraintSetPolicy constraint_set;
+    InnerConstraintSet constraint_set;
 
     // Build mass-matrix diagonal: species rows default to ODE (1), rows replaced by constraints are algebraic (0).
-    std::vector<double> mass_matrix_diagonal(number_of_species, 1.0);
-    std::set<std::size_t> algebraic_variable_ids;
+    std::vector<Real> mass_matrix_diagonal(number_of_species, 1.0);
+    std::set<Index> algebraic_variable_ids;
 
     if (!constraints_.empty())
     {
-      // Constraints replace selected species rows in the mass-matrix DAE formulation.
-      // Pass species_map so constraints can resolve dependencies.
-      constraint_set = ConstraintSetPolicy(std::move(constraints_), species_map);
+      // Copy the constraints so that the builder can be used repeatedly.
+      auto constraints = constraints_;
+      constraint_set = InnerConstraintSet(std::move(constraints), species_map);
 
-      // Set and add constraint parameters with their unique names
       constraint_set.SetUniqueParameterNames();
       for (const auto& label : constraint_set.GetParameterNames())
       {
@@ -364,13 +384,11 @@ namespace micm
       }
 
       algebraic_variable_ids = constraint_set.AlgebraicVariableIds();
-      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
       for (const auto variable_id : algebraic_variable_ids)
       {
         mass_matrix_diagonal[variable_id] = 0.0;
       }
 
-      // Filter kinetic sparsity entries from algebraic rows (they will be entirely replaced by constraints)
       for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
       {
         if (algebraic_variable_ids.count(it->first) > 0)
@@ -383,78 +401,118 @@ namespace micm
         }
       }
 
-      // Merge constraint Jacobian elements with ODE Jacobian elements
       auto constraint_jac_elements = constraint_set.NonZeroJacobianElements();
       nonzero_elements.insert(constraint_jac_elements.begin(), constraint_jac_elements.end());
     }
 
-    // Resolve external model constraints (runtime activation)
+    // Resolve external constraint models: determine which are active and collect their contributions.
+    std::array<bool, sizeof...(ExternalModels)> constraint_active_mask{};
+    std::set<Index> external_algebraic_variable_ids;
     if (!external_constraints_.empty())
     {
-      auto external_constraints_copy = external_constraints_;
-      constraint_set.SetExternalConstraintModels(std::move(external_constraints_copy));
-      constraint_set.ResolveExternalConstraints(species_map);
-
-      // Add external constraint parameter names to the params map
-      for (const auto& label : constraint_set.ExternalConstraintParameterNames())
+      std::set<std::string> seen_param_names;
+      std::set<std::string> seen_init_names;
+      for (const auto& model : external_constraints_)
       {
-        if (params_map.count(label) > 0)
+        auto alg_names = model.algebraic_variable_names_func_();
+        if (alg_names.empty())
         {
-          throw MicmException(
-              MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
+          continue;
         }
-        params_map.emplace(label, params_map.size());
-      }
+        constraint_active_mask[model.model_index_] = true;
 
-      // Add initialize constraint parameter names to the params map
-      for (const auto& label : constraint_set.ExternalInitializeConstraintParameterNames())
-      {
-        if (params_map.count(label) > 0)
+        for (const auto& name : alg_names)
         {
-          throw MicmException(
-              MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER, "Duplicate parameter name: " + label);
-        }
-        params_map.emplace(label, params_map.size());
-      }
-
-      auto ext_algebraic_ids = constraint_set.AlgebraicVariableIds();
-      // Find newly added algebraic IDs from external models
-      for (const auto& id : ext_algebraic_ids)
-      {
-        if (algebraic_variable_ids.insert(id).second)
-        {
-          // Filter kinetic sparsity entries from this new algebraic row
-          for (auto it = nonzero_elements.begin(); it != nonzero_elements.end();)
+          auto it = species_map.find(name);
+          if (it == species_map.end())
           {
-            if (it->first == id)
-            {
-              it = nonzero_elements.erase(it);
-            }
-            else
-            {
-              ++it;
-            }
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_UNKNOWN_SPECIES,
+                "External model constraint targets unknown algebraic species '" + name + "'");
           }
-          mass_matrix_diagonal[id] = 0.0;
+          if (algebraic_variable_ids.count(it->second) > 0)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_ALGEBRAIC_SPECIES,
+                "Multiple constraints map to the same algebraic species row '" + name + "'");
+          }
+          external_algebraic_variable_ids.insert(it->second);
+          algebraic_variable_ids.insert(it->second);
+        }
+
+        for (const auto& label : model.state_parameter_names_func_())
+        {
+          if (!seen_param_names.insert(label).second)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate external constraint parameter name across models: " + label);
+          }
+          if (params_map.count(label) > 0)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_SOLVER,
+                MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate parameter name: " + label);
+          }
+          params_map.emplace(label, params_map.size());
+        }
+
+        for (const auto& label : model.initialize_constraint_parameter_names_func_())
+        {
+          if (!seen_init_names.insert(label).second)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_CONSTRAINT,
+                MICM_CONSTRAINT_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate external initialize constraint parameter name across models: " + label);
+          }
+          if (params_map.count(label) > 0)
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_SOLVER,
+                MICM_SOLVER_ERROR_CODE_DUPLICATE_PARAMETER,
+                "Duplicate parameter name: " + label);
+          }
+          params_map.emplace(label, params_map.size());
+        }
+
+        auto ext_jac_elements = model.non_zero_jacobian_elements_func_(species_map);
+        nonzero_elements.insert(ext_jac_elements.begin(), ext_jac_elements.end());
+        for (const auto& name : alg_names)
+        {
+          auto row = species_map.at(name);
+          nonzero_elements.insert(std::make_pair(row, row));
         }
       }
-      rates.SetAlgebraicVariableIds(algebraic_variable_ids);
 
-      // Merge external constraint Jacobian sparsity
-      auto ext_jac_elements = constraint_set.ExternalNonZeroJacobianElements(species_map);
-      nonzero_elements.insert(ext_jac_elements.begin(), ext_jac_elements.end());
+      // Kinetic entries in these rows stay in the sparsity pattern. The built-in ProcessSet skips
+      // algebraic rows, so these entries stay zero.
+      for (const auto id : external_algebraic_variable_ids)
+      {
+        mass_matrix_diagonal[id] = 0.0;
+      }
+    }
+
+    // Push the merged algebraic-variable set into the inner rates + constraint set.
+    rates.SetAlgebraicVariableIds(algebraic_variable_ids);
+    if (!external_algebraic_variable_ids.empty())
+    {
+      constraint_set.AddExternalAlgebraicVariableIds(external_algebraic_variable_ids);
     }
 
     // Re-add external model process Jacobian elements for algebraic rows.
     // Built-in ProcessSet is protected by is_algebraic_variable_ guards that skip
-    // algebraic rows, but external models' JacobianFunction closures pre-compute
-    // VectorIndex at setup time and need these elements to exist in the sparse matrix.
+    // algebraic rows, but external models pre-compute VectorIndex in FinalizeProcessSetup
+    // and need these elements to exist in the sparse matrix.
     if (!algebraic_variable_ids.empty())
     {
-      for (const auto& process_set : external_process_sets_)
+      for (const auto& ps : external_process_sets_)
       {
-        auto ext_process_elements = process_set.non_zero_jacobian_elements_func_(species_map);
-        for (const auto& elem : ext_process_elements)
+        for (const auto& elem : ps.non_zero_jacobian_elements_func_(species_map))
         {
           if (algebraic_variable_ids.count(elem.first) > 0)
           {
@@ -466,65 +524,114 @@ namespace micm
 
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, 1, number_of_species, true);
 
+    // Verify that each element that an external model declares is in the sparsity pattern.
+    // External models call VectorIndex on these elements, and VectorIndex only asserts,
+    // so a missing element would abort in Debug builds and give a wrong index in Release builds.
+    {
+      auto species_name = [&](Index id) -> std::string
+      {
+        for (const auto& [name, index] : species_map)
+        {
+          if (index == id)
+          {
+            return name;
+          }
+        }
+        return std::to_string(id);
+      };
+      auto check_elements = [&](const std::set<std::pair<Index, Index>>& elements, const std::string& source)
+      {
+        for (const auto& [row, column] : elements)
+        {
+          if (jacobian.IsZero(row, column))
+          {
+            throw MicmException(
+                MICM_ERROR_CATEGORY_MATRIX,
+                MICM_MATRIX_ERROR_CODE_ZERO_ELEMENT_ACCESS,
+                "Jacobian element (" + species_name(row) + ", " + species_name(column) + ") declared by an external model " +
+                    source + " is missing from the sparsity pattern");
+          }
+        }
+      };
+      for (const auto& ps : external_process_sets_)
+      {
+        check_elements(ps.non_zero_jacobian_elements_func_(species_map), "process");
+      }
+      for (const auto& model : external_constraints_)
+      {
+        if (constraint_active_mask[model.model_index_])
+        {
+          check_elements(model.non_zero_jacobian_elements_func_(species_map), "constraint");
+        }
+      }
+    }
+
     LinearSolverPolicy linear_solver(jacobian, 0);
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
-      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0, true);
+      auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian, 0, true);
       jacobian = std::move(lu);
     }
 
-    std::vector<std::string> variable_names{ number_of_species };
+    std::vector<std::string> variable_names(number_of_species);
     for (auto& species_pair : species_map)
     {
       variable_names[species_pair.second] = species_pair.first;
     }
 
-    // Build the params map after the constraint set is created,
-    // since it adds its parameters to the map.
-    std::vector<std::string> labels{ params_map.size() };
+    std::vector<std::string> labels(params_map.size());
     for (auto& param_pair : params_map)
     {
       labels[param_pair.second] = param_pair.first;
     }
 
     rates.SetJacobianFlatIds(jacobian);
-    rates.SetExternalModelFunctions(params_map, species_map, jacobian);
 
-    // Compile external process set update functions now that params_map is finalized
-    for (const auto& process_set : external_process_sets_)
+    if (constraint_set.Size() > 0 || !external_algebraic_variable_ids.empty())
     {
-      update_state_param_funcs.push_back(process_set.update_state_parameters_function_(params_map));
+      if (constraint_set.Size() > 0)
+      {
+        constraint_set.SetJacobianFlatIds(jacobian);
+        constraint_set.SetConstraintFunctions(params_map);
+      }
+      constraint_set.FinalizeAlgebraicErrorFunction();
     }
 
-    std::vector<std::function<void(const DenseMatrixPolicy&, DenseMatrixPolicy&)>> init_constraint_param_funcs;
+    // Copy concrete external models into shared ownership; both bundles refer to the same tuple.
+    // The copy leaves the builder's models intact so that the builder can be used repeatedly.
+    auto shared_models = std::make_shared<std::tuple<ExternalModels...>>(external_models_);
 
-    if (constraint_set.Size() > 0)
-    {
-      constraint_set.SetJacobianFlatIds(jacobian);
+    // Give each participating model its build-time indices and Jacobian sparsity handles.
+    std::apply(
+        [&](auto&... m)
+        {
+          auto finalize = [&](auto& model)
+          {
+            using M = std::decay_t<decltype(model)>;
+            if constexpr (HasProcesses<M>)
+            {
+              if constexpr (requires { model.FinalizeProcessSetup(params_map, species_map, jacobian); })
+              {
+                model.FinalizeProcessSetup(params_map, species_map, jacobian);
+              }
+            }
+            if constexpr (HasConstraints<M>)
+            {
+              if constexpr (requires { model.FinalizeConstraintSetup(params_map, species_map, jacobian); })
+              {
+                model.FinalizeConstraintSetup(params_map, species_map, jacobian);
+              }
+            }
+          };
+          (finalize(m), ...);
+        },
+        *shared_models);
 
-      // Set forcing, jacobian, updating state param functions
-      // The species map and parameter map are used to set indices in the state variables
-      // and custom parameters.
-      constraint_set.SetConstraintFunctions(species_map, params_map, jacobian);
-      constraint_set.SetExternalModelConstraintFunctions(params_map, species_map, jacobian);
-
-      // Add functions that update state parameters when temperature changes
-      auto constraint_param_funcs = constraint_set.GetUpdateStateParamFunctions();
-      update_state_param_funcs.insert(
-          update_state_param_funcs.end(), constraint_param_funcs.begin(), constraint_param_funcs.end());
-
-      // Collect constraint parameter initialization functions
-      auto ext_init_funcs = constraint_set.GetExternalInitializeConstraintParamFunctions();
-      init_constraint_param_funcs.insert(init_constraint_param_funcs.end(), ext_init_funcs.begin(), ext_init_funcs.end());
-
-      // Add external constraint parameter update functions to the pipeline
-      auto ext_constraint_param_funcs = constraint_set.GetExternalUpdateStateParamFunctions();
-      update_state_param_funcs.insert(
-          update_state_param_funcs.end(), ext_constraint_param_funcs.begin(), ext_constraint_param_funcs.end());
-    }
+    RatesBundleType rates_bundle(std::move(rates), shared_models);
+    ConstraintBundleType constraint_bundle(std::move(constraint_set), shared_models, constraint_active_mask);
 
     StateParameters state_parameters = { .number_of_species_ = number_of_species,
-                                         .number_of_constraints_ = constraint_set.Size(),
+                                         .number_of_constraints_ = constraint_bundle.Size(),
                                          .number_of_rate_constants_ = this->reactions_.size(),
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
@@ -533,18 +640,14 @@ namespace micm
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
-    // make a copy of the options so that the builder can be used repeatedly
-    // this matters because the absolute tolerances must be set to match the system size, and that may change
     auto options = this->options_;
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(std::move(linear_solver), std::move(rates), std::move(constraint_set)),
+        SolverPolicy(std::move(linear_solver), std::move(rates_bundle), std::move(constraint_bundle)),
         state_parameters,
         options,
         reactions_,
-        system_,
-        update_state_param_funcs,
-        init_constraint_param_funcs);
+        system_);
   }
 
 }  // namespace micm

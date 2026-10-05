@@ -2,13 +2,14 @@
 #include <micm/Process.hpp>
 #include <micm/Solver.hpp>
 #include <micm/Util.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
 #include <algorithm>
 #include <random>
 
-template<std::size_t L>
+template<micm::Index L>
 using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
 namespace
@@ -38,7 +39,7 @@ namespace
 
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
-  constexpr std::size_t L = 4;
+  constexpr micm::Index L = 4;
   auto cuda_rosenbrock = GpuBuilder<L>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)

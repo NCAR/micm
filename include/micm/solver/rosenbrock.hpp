@@ -21,6 +21,7 @@
 #include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -48,13 +49,17 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy, class Derived>
   class AbstractRosenbrockSolver
   {
+    using SparseMatrix = typename LinearSolverPolicy::SparseMatrixType;
+    using DenseMatrix = typename LinearSolverPolicy::DenseMatrixType;
+    using LuDecomposition = typename LinearSolverPolicy::LuDecompositionType;
+
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
     ConstraintSetPolicy constraints_;
 
-    static constexpr double DEFAULT_H_MIN = 1.0e-15;   // Minimum internal time step relative to overall time step
-    static constexpr double DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
+    static constexpr Real DEFAULT_H_MIN = 1.0e-15;   // Minimum internal time step relative to overall time step
+    static constexpr Real DEFAULT_H_START = 1.0e-6;  // Default initial time step relative to overall time step
 
     /// @brief Solver parameters typename
     using ParametersType = RosenbrockSolverParameters;
@@ -81,52 +86,44 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, auto& state, const RosenbrockSolverParameters& parameters) const noexcept;
+    template<class StatePolicy>
+    SolverResult Solve(Real time_step, StatePolicy& state, const RosenbrockSolverParameters& parameters) const noexcept;
 
     /// @brief Newton-iterate algebraic variables to satisfy G(y) = 0 before time integration
     /// @param state The solver state
     /// @param parameters Solver parameters (provides max iterations and tolerance)
     /// @param stats Solver stats to update with iteration counts
     /// @return SolverState::Converged on success, or an error state on failure
-    SolverState InitializeConstraints(auto& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
+    template<class StatePolicy>
+    SolverState InitializeConstraints(StatePolicy& state, const RosenbrockSolverParameters& parameters, SolverStats& stats)
         const noexcept;
 
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
-    template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy>);
-    template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(auto& state, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy>);
+    template<class SparseMatrixPolicy, class StatePolicy>
+    void AlphaMinusJacobian(StatePolicy& state, const Real& alpha) const;
 
     /// @brief Perform the LU decomposition of the matrix
     /// @param alpha The alpha value
     /// @param number_densities The number densities
     /// @param stats The solver stats
     /// @param state The state
-    void LinearFactor(const double alpha, SolverStats& stats, auto& state) const;
+    template<class StatePolicy>
+    void LinearFactor(const Real alpha, SolverStats& stats, StatePolicy& state) const;
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return
-    template<class DenseMatrixPolicy>
-    double NormalizedError(
+    template<class DenseMatrixPolicy, class StatePolicy>
+    void NormalizedError(
         const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& Ynew,
         const DenseMatrixPolicy& errors,
-        auto& state) const
-      requires(!VectorizableDense<DenseMatrixPolicy>);
-    template<class DenseMatrixPolicy>
-    double NormalizedError(
-        const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& y_new,
-        const DenseMatrixPolicy& errors,
-        auto& state) const
-      requires(VectorizableDense<DenseMatrixPolicy>);
+        const StatePolicy& state,
+        typename DenseMatrixPolicy::template ScalarType<Real>& error) const;
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy, class ConstraintSetPolicy>

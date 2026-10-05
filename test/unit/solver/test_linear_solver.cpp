@@ -4,30 +4,31 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 #include <functional>
 
-using FloatingPointType = double;
+using FloatingPointType = micm::Real;
 
 using DenseMatrixTest = micm::Matrix<FloatingPointType>;
 using SparseMatrixTest = micm::SparseMatrix<FloatingPointType>;
 
 TEST(LinearSolver, DenseMatrixStandardOrdering)
 {
-  TestDenseMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>();
+  TestDenseMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<DenseMatrixTest, SparseMatrixTest>>();
 }
 
 TEST(LinearSolver, RandomMatrixStandardOrdering)
 {
-  TestRandomMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5);
+  TestRandomMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<DenseMatrixTest, SparseMatrixTest>>(5);
 }
 
 TEST(LinearSolver, DiagonalMatrixStandardOrdering)
 {
-  TestDiagonalMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5);
+  TestDiagonalMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<DenseMatrixTest, SparseMatrixTest>>(5);
 }
 
 TEST(LinearSolver, DiagonalMarkowitzReorder)
@@ -37,10 +38,11 @@ TEST(LinearSolver, DiagonalMarkowitzReorder)
 
 TEST(LinearSolver, StandardOrderingAgnosticToInitialValue)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
   {
-    TestExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5, initial_value);
+    TestExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<DenseMatrixTest, SparseMatrixTest>>(
+        5, initial_value);
   }
 }
 
@@ -56,42 +58,86 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::Spa
 
 TEST(LinearSolver, DenseMatrixVectorOrdering)
 {
-  TestDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>();
-  TestDenseMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>();
-  TestDenseMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>();
-  TestDenseMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>();
+  TestDenseMatrix<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::LinearSolver<Group1VectorMatrix, Group1SparseVectorMatrix>>();
+  TestDenseMatrix<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      micm::LinearSolver<Group2VectorMatrix, Group2SparseVectorMatrix>>();
+  TestDenseMatrix<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      micm::LinearSolver<Group3VectorMatrix, Group3SparseVectorMatrix>>();
+  TestDenseMatrix<
+      Group4VectorMatrix,
+      Group4SparseVectorMatrix,
+      micm::LinearSolver<Group4VectorMatrix, Group4SparseVectorMatrix>>();
 }
 
 TEST(LinearSolver, RandomMatrixVectorOrdering)
 {
-  TestRandomMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(5);
-  TestRandomMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(5);
-  TestRandomMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5);
-  TestRandomMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5);
+  TestRandomMatrix<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::LinearSolver<Group1VectorMatrix, Group1SparseVectorMatrix>>(5);
+  TestRandomMatrix<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      micm::LinearSolver<Group2VectorMatrix, Group2SparseVectorMatrix>>(5);
+  TestRandomMatrix<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      micm::LinearSolver<Group3VectorMatrix, Group3SparseVectorMatrix>>(5);
+  TestRandomMatrix<
+      Group4VectorMatrix,
+      Group4SparseVectorMatrix,
+      micm::LinearSolver<Group4VectorMatrix, Group4SparseVectorMatrix>>(5);
 }
 
 TEST(LinearSolver, VectorOrderingAgnosticToInitialValue)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)
   {
-    TestExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(
-        1, initial_value);
-    TestExtremeInitialValue<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(
-        2, initial_value);
-    TestExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(
-        5, initial_value);
-    TestExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(
-        5, initial_value);
+    TestExtremeInitialValue<
+        Group1VectorMatrix,
+        Group1SparseVectorMatrix,
+        micm::LinearSolver<Group1VectorMatrix, Group1SparseVectorMatrix>>(1, initial_value);
+    TestExtremeInitialValue<
+        Group2VectorMatrix,
+        Group2SparseVectorMatrix,
+        micm::LinearSolver<Group2VectorMatrix, Group2SparseVectorMatrix>>(2, initial_value);
+    TestExtremeInitialValue<
+        Group3VectorMatrix,
+        Group3SparseVectorMatrix,
+        micm::LinearSolver<Group3VectorMatrix, Group3SparseVectorMatrix>>(5, initial_value);
+    TestExtremeInitialValue<
+        Group4VectorMatrix,
+        Group4SparseVectorMatrix,
+        micm::LinearSolver<Group4VectorMatrix, Group4SparseVectorMatrix>>(5, initial_value);
   }
 }
 
 TEST(LinearSolver, DiagonalMatrixVectorOrdering)
 {
-  TestDiagonalMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(5);
-  TestDiagonalMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(5);
-  TestDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5);
-  TestDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5);
+  TestDiagonalMatrix<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::LinearSolver<Group1VectorMatrix, Group1SparseVectorMatrix>>(5);
+  TestDiagonalMatrix<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      micm::LinearSolver<Group2VectorMatrix, Group2SparseVectorMatrix>>(5);
+  TestDiagonalMatrix<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      micm::LinearSolver<Group3VectorMatrix, Group3SparseVectorMatrix>>(5);
+  TestDiagonalMatrix<
+      Group4VectorMatrix,
+      Group4SparseVectorMatrix,
+      micm::LinearSolver<Group4VectorMatrix, Group4SparseVectorMatrix>>(5);
 }
 
 TEST(LinearSolver, VectorDiagonalMarkowitzReordering)

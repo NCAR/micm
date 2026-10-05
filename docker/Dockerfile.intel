@@ -16,6 +16,7 @@ RUN apt update \
       libcurl4-openssl-dev \
       libhdf5-dev \
       m4 \
+      ninja-build \
       vim \
       zlib1g-dev \
     && apt clean 
@@ -32,8 +33,9 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \ 
       && cmake \
+        -G Ninja \
         -D CMAKE_BUILD_TYPE=release \
         ../micm \
-      && make -j 8 install
+      && ninja install -j 0
 
 WORKDIR /build

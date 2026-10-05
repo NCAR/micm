@@ -7,6 +7,7 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <cuda_runtime.h>
 
@@ -22,7 +23,7 @@ namespace micm
     using IntMatrix = CudaSparseMatrix<int, OrderingPolicy>;
     using value_type = T;
     // Access vector length via OrderingPolicy::GroupVectorSize()
-    static constexpr std::size_t VECTOR_LENGTH = OrderingPolicy::GroupVectorSize();
+    static constexpr Index VECTOR_LENGTH = OrderingPolicy::GroupVectorSize();
 
    private:
     CudaMatrixParam param_;
@@ -66,15 +67,22 @@ namespace micm
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member param_ untouched, so swapping it out of `other` afterward is safe.
     CudaSparseMatrix(CudaSparseMatrix&& other) noexcept
-        : SparseMatrix<T, OrderingPolicy>(other)
+        : SparseMatrix<T, OrderingPolicy>(std::move(other))
     {
       this->param_.d_data_ = nullptr;
       std::swap(this->param_, other.param_);
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     CudaSparseMatrix& operator=(const CudaSparseMatrix& other)
     {
+      if (this == &other)
+      {
+        return *this;
+      }
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
@@ -83,6 +91,8 @@ namespace micm
       return *this;
     }
 
+    // NOLINTBEGIN(bugprone-use-after-move): moving the base subobject leaves the derived-class
+    // member param_ untouched, so swapping it out of `other` afterward is safe.
     CudaSparseMatrix& operator=(CudaSparseMatrix&& other) noexcept
     {
       if (this != &other)
@@ -92,6 +102,7 @@ namespace micm
       }
       return *this;
     }
+    // NOLINTEND(bugprone-use-after-move)
 
     ~CudaSparseMatrix()
     {

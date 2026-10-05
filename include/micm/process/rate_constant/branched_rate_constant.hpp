@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/types.hpp>
+
 namespace micm
 {
   struct BranchedRateConstantParameters
@@ -14,18 +16,18 @@ namespace micm
     /// @brief reaction branch
     Branch branch_;
     /// @brief pre-exponential factor
-    double X_;
+    Real X_;
     /// @brief exponential factor
-    double Y_;
+    Real Y_;
     /// @brief branching factor
-    double a0_;
+    Real a0_;
     /// @brief number of heavy atoms in the RO2 reacting species (excluding the peroxy moiety)
-    int n_;
+    Index n_;
     /// @brief Precomputed low-pressure rate factor: 2e-22 * N_A * 1e-6 * exp(n_)
     ///        Set by ReactionRateConstantStore::BuildFrom; do not set manually.
-    double k0_{ 0.0 };
+    Real k0_{ 0.0 };
     /// @brief Precomputed branching ratio factor: A(293, [M]_ref) * (1 - a0_) / a0_
     ///        Set by ReactionRateConstantStore::BuildFrom; do not set manually.
-    double z_{ 0.0 };
+    Real z_{ 0.0 };
   };
 }  // namespace micm

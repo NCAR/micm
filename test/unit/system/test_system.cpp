@@ -1,6 +1,7 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
 
@@ -39,7 +40,7 @@ TEST(System, ConstructorWithParameterizedSpecies)
 
   // Parameterized species
   Species param_species = Species("paramSpecies");
-  param_species.parameterize_ = [](const Conditions& c) { return 64.2; };
+  param_species.parameterize_ = { .c0_ = 64.2, .has_value_ = micm::Bool(true) };
   PhaseSpecies gas_param_species(param_species);
 
   Phase gas_phase("gas", std::vector<PhaseSpecies>({ gas_foo, gas_bar, gas_param_species }));
@@ -56,8 +57,8 @@ TEST(System, ConstructorWithParameterizedSpecies)
   EXPECT_EQ(names.size(), expected.size());
   EXPECT_EQ(name_set, expected_set);
 
-  std::vector<int> reorder{ 1, 0 };
-  auto reordered_names = system.UniqueNames([&](const std::vector<std::string>& variables, const std::size_t i)
+  std::vector<micm::Index> reorder{ 1, 0 };
+  auto reordered_names = system.UniqueNames([&](const std::vector<std::string>& variables, const micm::Index i)
                                             { return variables[reorder[i]]; });
   EXPECT_EQ(reordered_names.size(), 2);
   EXPECT_EQ(reordered_names[0], names[1]);

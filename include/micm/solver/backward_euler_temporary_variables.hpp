@@ -4,15 +4,22 @@
 #pragma once
 
 #include <micm/solver/temporary_variables.hpp>
+#include <micm/util/types.hpp>
 
 namespace micm
 {
   template<class DenseMatrixPolicy>
   class BackwardEulerTemporaryVariables : public TemporaryVariables
   {
+    template<class U>
+    using Scalar = typename DenseMatrixPolicy::template ScalarType<U>;
+
    public:
     DenseMatrixPolicy Yn_;
     DenseMatrixPolicy forcing_;
+    Scalar<Bool> is_nan_;
+    Scalar<Bool> is_inf_;
+    Scalar<Bool> is_converged_;
 
     BackwardEulerTemporaryVariables() = default;
     BackwardEulerTemporaryVariables(const BackwardEulerTemporaryVariables& other) = default;
@@ -26,7 +33,7 @@ namespace micm
       return std::make_unique<BackwardEulerTemporaryVariables>(*this);
     }
 
-    BackwardEulerTemporaryVariables(const auto& state_parameters, const std::size_t number_of_grid_cells)
+    BackwardEulerTemporaryVariables(const auto& state_parameters, const Index number_of_grid_cells)
         : Yn_(number_of_grid_cells, state_parameters.number_of_species_),
           forcing_(number_of_grid_cells, state_parameters.number_of_species_)
     {

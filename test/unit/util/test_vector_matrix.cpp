@@ -1,5 +1,6 @@
 #include "test_matrix_policy.hpp"
 
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -17,30 +18,30 @@ TEST(VectorMatrix, SmallVectorMatrix)
 {
   auto matrix = TestSmallMatrix<Group2MatrixAlias>();
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 2);
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
-  EXPECT_EQ(data[1 + 2 * 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 + 2 * 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(VectorMatrix, SmallConstVectorMatrix)
 {
   auto matrix = TestSmallConstMatrix<Group4MatrixAlias>();
 
-  const std::vector<double>& data = matrix.AsVector();
+  const std::vector<micm::Real>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 1);
   EXPECT_EQ(matrix.GroupVectorSize(), 4);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 + 4 * 4], 102.3);
-  EXPECT_EQ(data[1 + 4 * 3], 64.7);
+  EXPECT_EQ(data[0], static_cast<micm::Real>(41.2));
+  EXPECT_EQ(data[2 + 4 * 4], static_cast<micm::Real>(102.3));
+  EXPECT_EQ(data[1 + 4 * 3], static_cast<micm::Real>(64.7));
 }
 
 TEST(VectorMatrix, InitializeVectorMatrix)
@@ -383,14 +384,6 @@ TEST(VectorMatrix, FunctionInvocationWithWrongSizedVector)
   TestFunctionInvocationWithWrongSizedVector<Group4MatrixAlias>();
 }
 
-TEST(VectorMatrix, ArraySupport)
-{
-  TestArraySupport<Group1MatrixAlias>();
-  TestArraySupport<Group2MatrixAlias>();
-  TestArraySupport<Group3MatrixAlias>();
-  TestArraySupport<Group4MatrixAlias>();
-}
-
 TEST(VectorMatrix, MixedVectorColumnViewRowVariable)
 {
   TestMixedVectorColumnViewRowVariable<Group1MatrixAlias>();
@@ -413,4 +406,68 @@ TEST(VectorMatrix, FunctionWithConstSignature)
   TestFunctionWithConstSignature<Group2MatrixAlias>();
   TestFunctionWithConstSignature<Group3MatrixAlias>();
   TestFunctionWithConstSignature<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, TestFill)
+{
+  TestFill<Group1MatrixAlias>();
+  TestFill<Group2MatrixAlias>();
+  TestFill<Group3MatrixAlias>();
+  TestFill<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, TestCopy)
+{
+  TestCopy<Group1MatrixAlias>();
+  TestCopy<Group2MatrixAlias>();
+  TestCopy<Group3MatrixAlias>();
+  TestCopy<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceSum)
+{
+  TestReduceSum<Group1MatrixAlias>();
+  TestReduceSum<Group2MatrixAlias>();
+  TestReduceSum<Group3MatrixAlias>();
+  TestReduceSum<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceMax)
+{
+  TestReduceMax<Group1MatrixAlias>();
+  TestReduceMax<Group2MatrixAlias>();
+  TestReduceMax<Group3MatrixAlias>();
+  TestReduceMax<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceLOr)
+{
+  TestReduceLOr<Group1MatrixAlias>();
+  TestReduceLOr<Group2MatrixAlias>();
+  TestReduceLOr<Group3MatrixAlias>();
+  TestReduceLOr<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceLAnd)
+{
+  TestReduceLAnd<Group1MatrixAlias>();
+  TestReduceLAnd<Group2MatrixAlias>();
+  TestReduceLAnd<Group3MatrixAlias>();
+  TestReduceLAnd<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, ReduceStrict)
+{
+  TestReduceStrict<Group1MatrixAlias>();
+  TestReduceStrict<Group2MatrixAlias>();
+  TestReduceStrict<Group3MatrixAlias>();
+  TestReduceStrict<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, VectorCapture)
+{
+  TestVectorCapture<Group1MatrixAlias>();
+  TestVectorCapture<Group2MatrixAlias>();
+  TestVectorCapture<Group3MatrixAlias>();
+  TestVectorCapture<Group4MatrixAlias>();
 }

@@ -1,0 +1,112 @@
+name: GPU Benchmark PR Comment
+
+# Runs in the base-repo context after a GPU runner workflow completes.  Because this
+# is a workflow_run trigger (not pull_request), the GITHUB_TOKEN has write access even
+# when the PR comes from a fork.
+
+on:
+  workflow_run:
+    workflows: [
+      "Designated GPU Runner for CUDA Solvers",
+      "Designated GPU Runner for Kokkos Solvers"
+    ]
+    types: [completed]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    # Only run when the triggering workflow was itself triggered by a PR and
+    # it succeeded.  No point commenting on a broken run.
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: write
+      actions: read
+
+    env:
+      # Which runner triggered us.  Each GPU workflow uploads only its own backend's
+      # json, so the comment steps below have to be gated on this -- otherwise half of
+      # them fail on a missing output-file-path.
+      TRIGGER: ${{ github.event.workflow_run.name }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # full history so gh-pages branch is available for comparison
+
+      - name: Download benchmark artifacts from triggering run
+        uses: actions/download-artifact@v7
+        with:
+          # Must match the upload step name in runner.yml and runner.kokkos.yml.
+          name: micm-bench
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment timing comparison on PR for CUDA
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing (GPU backend)
+          tool: customSmallerIsBetter
+          output-file-path: cuda_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          benchmark-data-dir-path: dev/bench/gpu/timing
+          comment-always: true
+          summary-always: true
+          save-data-file: false
+          alert-threshold: 120%
+          fail-on-alert: false
+          skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
+
+      - name: Comment TS1 timing comparison on PR for CUDA
+        if: env.TRIGGER == 'Designated GPU Runner for CUDA Solvers'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Timing (GPU backend)
+          tool: customSmallerIsBetter
+          output-file-path: cuda_ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          benchmark-data-dir-path: dev/bench/gpu/timing
+          comment-always: true
+          summary-always: true
+          save-data-file: false
+          alert-threshold: 120%
+          fail-on-alert: false
+          skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
+
+      - name: Comment timing comparison on PR for Kokkos
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing (Kokkos backend)
+          tool: customSmallerIsBetter
+          output-file-path: kokkos_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          benchmark-data-dir-path: dev/bench/kokkos/timing
+          comment-always: true
+          summary-always: true
+          save-data-file: false
+          alert-threshold: 120%
+          fail-on-alert: false
+          skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0
+
+      - name: Comment TS1 timing comparison on PR for Kokkos
+        if: env.TRIGGER == 'Designated GPU Runner for Kokkos Solvers'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: TS1 Timing (Kokkos backend)
+          tool: customSmallerIsBetter
+          output-file-path: kokkos_ts1_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          benchmark-data-dir-path: dev/bench/kokkos/timing
+          comment-always: true
+          summary-always: true
+          save-data-file: false
+          alert-threshold: 120%
+          fail-on-alert: false
+          skip-fetch-gh-pages: true   # gh-pages already available via fetch-depth: 0

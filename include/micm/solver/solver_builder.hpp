@@ -5,6 +5,7 @@
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
+#include <micm/external_model.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
@@ -18,11 +19,14 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <memory>
 #include <sstream>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 
 namespace micm
 {
@@ -33,6 +37,7 @@ namespace micm
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Policy for the linear solver
+  /// @tparam ExternalModels Concrete external model types added via `AddExternalModel()`
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy,
@@ -40,9 +45,14 @@ namespace micm
       class RatesPolicy,
       class LuDecompositionPolicy,
       class LinearSolverPolicy,
-      class StatePolicy>
+      class StatePolicy,
+      class... ExternalModels>
   class SolverBuilder
   {
+    // Allow builders of any external-model pack to move state between specializations
+    template<class, class, class, class, class, class, class, class...>
+    friend class SolverBuilder;
+
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
@@ -54,11 +64,14 @@ namespace micm
     SolverParametersPolicy options_;
     System system_;
     std::vector<Process> reactions_;
-    std::vector<Constraint> constraints_;
+    std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints_;
 
     std::vector<ExternalModelSystem> external_systems_;
     std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
     std::vector<ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_constraints_;
+
+    /// Owning storage of concrete external models. Moved into the built `Solver` for direct dispatch.
+    std::tuple<ExternalModels...> external_models_;
 
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
@@ -69,6 +82,7 @@ namespace micm
     virtual ~SolverBuilder() = default;
 
     SolverBuilder(const SolverParametersPolicy& options)
+      requires(sizeof...(ExternalModels) == 0)
         : options_(options)
     {
     }
@@ -78,6 +92,16 @@ namespace micm
     SolverBuilder(SolverBuilder&&) = default;
     SolverBuilder& operator=(SolverBuilder&&) = default;
 
+   protected:
+    /// Rebind constructor used by `AddExternalModel()` to seed a new specialization with
+    /// state moved from a builder whose external-model pack is one element shorter.
+    SolverBuilder(const SolverParametersPolicy& options, std::tuple<ExternalModels...>&& models)
+        : options_(options),
+          external_models_(std::move(models))
+    {
+    }
+
+   public:
     /// @brief Set the chemical system
     /// @param system The chemical system
     /// @return Updated SolverBuilder
@@ -100,7 +124,7 @@ namespace micm
     /// @brief Set algebraic constraints for DAE solving
     /// @param constraints Vector of constraints
     /// @return Updated SolverBuilder
-    SolverBuilder& SetConstraints(std::vector<Constraint>&& constraints)
+    SolverBuilder& SetConstraints(std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>>&& constraints)
     {
       constraints_ = std::move(constraints);
       return *this;
@@ -126,40 +150,61 @@ namespace micm
 
     /// @brief Add an external model (state variables, processes, and/or constraints)
     ///
-    /// If the model satisfies HasState, its state variables and parameters are registered with the solver.
-    /// The model must satisfy at least one of HasProcesses (process wrappers are created) or
-    /// HasConstraints (constraint wrappers are created).
-    /// @param model The external model (taken by value; caller decides whether to copy or move)
-    /// @return Updated SolverBuilder
+    /// Returns a new builder whose template parameter pack is extended with `ExternalModel`.
+    /// The concrete model is stored by value in a `std::tuple` that flows through `Build()`
+    /// into the constructed `Solver`, which invokes the model's solve-time methods directly.
+    ///
+    /// If the model satisfies `HasState`, its state variables and parameters are registered.
+    /// The model must satisfy at least one of `HasProcesses` or `HasConstraints`.
+    ///
+    /// The returned builder takes the configuration of this builder. Use the returned builder,
+    /// because this builder is left in a moved-from state.
     template<class ExternalModel>
-    SolverBuilder& AddExternalModel(ExternalModel model)
+    [[nodiscard]] auto AddExternalModel(ExternalModel model)
     {
       static_assert(
           HasProcesses<ExternalModel> || HasConstraints<ExternalModel>,
           "External model passed to AddExternalModel() must satisfy at least HasProcesses or HasConstraints");
 
+      using NextBuilder = SolverBuilder<
+          SolverParametersPolicy,
+          DenseMatrixPolicy,
+          SparseMatrixPolicy,
+          RatesPolicy,
+          LuDecompositionPolicy,
+          LinearSolverPolicy,
+          StatePolicy,
+          ExternalModels...,
+          ExternalModel>;
+      auto extended_models = std::tuple_cat(std::move(external_models_), std::tuple<ExternalModel>(std::move(model)));
+      NextBuilder next(options_, std::move(extended_models));
+      next.system_ = std::move(system_);
+      next.reactions_ = std::move(reactions_);
+      next.constraints_ = std::move(constraints_);
+      next.external_systems_ = std::move(external_systems_);
+      next.external_process_sets_ = std::move(external_process_sets_);
+      next.external_constraints_ = std::move(external_constraints_);
+      next.ignore_unused_species_ = ignore_unused_species_;
+      next.reorder_state_ = reorder_state_;
+      next.valid_system_ = valid_system_;
+
+      const auto& appended = std::get<sizeof...(ExternalModels)>(next.external_models_);
       if constexpr (HasState<ExternalModel>)
       {
-        external_systems_.emplace_back(ExternalModelSystem{ model });
+        next.external_systems_.emplace_back(ExternalModelSystem{ appended });
+      }
+      if constexpr (HasProcesses<ExternalModel>)
+      {
+        next.external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
+      }
+      if constexpr (HasConstraints<ExternalModel>)
+      {
+        auto& constraint = next.external_constraints_.emplace_back(
+            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ appended });
+        constraint.model_index_ = sizeof...(ExternalModels);
       }
 
-      if constexpr (HasProcesses<ExternalModel> && HasConstraints<ExternalModel>)
-      {
-        external_process_sets_.emplace_back(ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ model });
-        external_constraints_.emplace_back(
-            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      else if constexpr (HasProcesses<ExternalModel>)
-      {
-        external_process_sets_.emplace_back(
-            ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      else
-      {
-        external_constraints_.emplace_back(
-            ExternalModelConstraintSet<DenseMatrixPolicy, SparseMatrixPolicy>{ std::move(model) });
-      }
-      return *this;
+      return next;
     }
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
@@ -168,9 +213,9 @@ namespace micm
 
    protected:
     /// @brief Returns the total state size: gas phase + all external model state variables
-    std::size_t MergedStateSize() const
+    Index MergedStateSize() const
     {
-      std::size_t n = system_.StateSize();
+      Index n = system_.StateSize();
       for (const auto& m : external_systems_)
       {
         n += std::get<0>(m.state_size_func_());
@@ -197,7 +242,7 @@ namespace micm
 
     /// @brief Gets a map of species to their index
     /// @return The species map
-    std::unordered_map<std::string, std::size_t> GetSpeciesMap() const;
+    std::unordered_map<std::string, Index> GetSpeciesMap() const;
 
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
@@ -206,14 +251,13 @@ namespace micm
     ///        collecting parameters from reactions, external models, and constraints.
     /// @throws MicmException if duplicate parameter labels are found.
     /// @return An unordered_map mapping each unique parameter label to its index.
-    std::unordered_map<std::string, std::size_t> GetCustomParameterMap() const;
+    std::unordered_map<std::string, Index> GetCustomParameterMap() const;
 
     /// @brief Sets the absolute tolerances per species
     /// @param parameters
     /// @param species_map
-    void SetAbsoluteTolerances(
-        std::vector<double>& tolerances,
-        const std::unordered_map<std::string, std::size_t>& species_map) const;
+    void SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map)
+        const;
   };
 
   /// @brief Builder of CPU-based general solvers
@@ -221,23 +265,19 @@ namespace micm
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam LuDecompositionPolicy Policy for the LU decomposition
-  /// @tparam LMatrixPolicy Policy for the Lower matrix
-  /// @tparam UMatrixPolicy Policy for the Upper matrix
   template<
       class SolverParametersPolicy,
-      class DenseMatrixPolicy = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition,
-      class LMatrixPolicy = SparseMatrixPolicy,
-      class UMatrixPolicy = SparseMatrixPolicy>
+      class DenseMatrixPolicy = Matrix<Real>,
+      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
+      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
+      LinearSolver<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
   /// @brief Builder of CPU-based general solvers with in-place LU decomposition
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
@@ -246,16 +286,16 @@ namespace micm
   /// @tparam LuDecompositionPolicy Policy for the LU decomposition
   template<
       class SolverParametersPolicy,
-      class DenseMatrix = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecompositionInPlace>
+      class DenseMatrix = Matrix<Real>,
+      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   using CpuSolverBuilderInPlace = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrix,
       SparseMatrixPolicy,
       ProcessSet<DenseMatrix, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>,
+      LinearSolverInPlace<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>,
       State<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
 }  // namespace micm

@@ -1,0 +1,6 @@
+if(MICM_ENABLE_KOKKOS)
+  add_subdirectory(constraint)
+  add_subdirectory(process)
+  add_subdirectory(solver)
+  add_subdirectory(util)
+endif()

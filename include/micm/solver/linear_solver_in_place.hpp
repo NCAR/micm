@@ -5,6 +5,7 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/types.hpp>
 
 #include <cmath>
 #include <functional>
@@ -15,9 +16,45 @@ namespace micm
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
   /// The L and U matrices are decomposed in-place over the original A matrix.
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecompositionInPlace>
+  template<
+      class MatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   class LinearSolverInPlace
   {
+    using SparseMatrix = SparseMatrixPolicy;
+    using DenseMatrix = MatrixPolicy;
+    template<class U>
+    using Vector = typename SparseMatrix::template VectorType<U>;
+    template<class U>
+    using VectorView = typename SparseMatrix::template VectorType<U>::ConstViewType;
+
+   public:
+    using DenseMatrixType = MatrixPolicy;
+    using SparseMatrixType = SparseMatrixPolicy;
+    using LuDecompositionType = LuDecompositionPolicy;
+    struct Views
+    {
+      VectorView<Index> nLij_;
+      VectorView<IndexPair> Lij_yj_;
+      VectorView<IndexPair> nUij_Uii_;
+      VectorView<IndexPair> Uij_xj_;
+
+      Views() = default;
+
+      Views(
+          const Vector<Index>& nLij,
+          const Vector<IndexPair>& Lij_yj,
+          const Vector<IndexPair>& nUij_Uii,
+          const Vector<IndexPair>& Uij_xj)
+          : nLij_(nLij.GetView()),
+            Lij_yj_(Lij_yj.GetView()),
+            nUij_Uii_(nUij_Uii.GetView()),
+            Uij_xj_(Uij_xj.GetView())
+      {
+      }
+    };
+
    protected:
     // Parameters needed to calculate L (U x) = b
     //
@@ -32,25 +69,27 @@ namespace micm
     // x_i = 1 / U_ii * [ y_i - sum( j = i+1...N ){ U_ij * x_j } ] i = N-1...1
 
     // Number of non-zero elements (excluding the diagonal) for each row in L
-    std::vector<std::size_t> nLij_;
+    Vector<Index> nLij_;
     // Indices of non-zero combinations of L_ij and y_j
-    std::vector<std::pair<std::size_t, std::size_t>> Lij_yj_;
+    Vector<IndexPair> Lij_yj_;
     // Number of non-zero elements (exluding the diagonal) and the index of the diagonal
     // element for each row in U (in reverse order)
-    std::vector<std::pair<std::size_t, std::size_t>> nUij_Uii_;
+    Vector<IndexPair> nUij_Uii_;
     // Indices of non-zero combinations of U_ij and x_j
-    std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
+    Vector<IndexPair> Uij_xj_;
+    // MICM_LAMBDA compatible views of the index vectors
+    Views views_;
 
     LuDecompositionPolicy lu_decomp_;
 
    public:
     /// @brief default constructor
-    LinearSolverInPlace(){};
+    LinearSolverInPlace() = default;
 
     LinearSolverInPlace(const LinearSolverInPlace&) = delete;
     LinearSolverInPlace& operator=(const LinearSolverInPlace&) = delete;
-    LinearSolverInPlace(LinearSolverInPlace&&) = default;
-    LinearSolverInPlace& operator=(LinearSolverInPlace&&) = default;
+    LinearSolverInPlace(LinearSolverInPlace&&) noexcept;
+    LinearSolverInPlace& operator=(LinearSolverInPlace&&) noexcept;
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
@@ -75,11 +114,6 @@ namespace micm
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     /// @param x The solution vector
     /// @param LU The LU decomposition of the matrix as a square sparse matrix
-    template<class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
-    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
-    template<class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
   };
 

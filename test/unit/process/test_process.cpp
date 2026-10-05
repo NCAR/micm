@@ -9,6 +9,7 @@
 #include <micm/process/reaction_rate_store.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -17,7 +18,7 @@
 #include <random>
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
@@ -100,13 +101,13 @@ static std::vector<std::string> CustomParamLabels(const Process& proc)
 }
 
 template<class DenseMatrixPolicy>
-void TestProcessUpdateState(const std::size_t number_of_grid_cells)
+void TestProcessUpdateState(const micm::Index number_of_grid_cells)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 } });
   Species bar("bar");
-  bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
+  bar.parameterize_ = { .c_rho_ = 0.82, .has_value_ = true };
 
-  double foo_diff_coeff = 2.3e2;
+  micm::Real foo_diff_coeff = 2.3e2;
   PhaseSpecies gas_foo(foo, foo_diff_coeff);
   PhaseSpecies gas_bar(bar);
   Phase gas_phase{ "gas", { gas_foo, gas_bar } };
@@ -132,7 +133,7 @@ void TestProcessUpdateState(const std::size_t number_of_grid_cells)
   }
 
   // Build the ReactionRateConstantStore
-  auto store = ReactionRateConstantStore::BuildFrom(processes);
+  auto store = ReactionRateConstantStore<DenseMatrixPolicy>::BuildFrom(processes);
 
   State<DenseMatrixPolicy> state{ StateParameters{
                                       .number_of_rate_constants_ = processes.size(),
@@ -143,15 +144,15 @@ void TestProcessUpdateState(const std::size_t number_of_grid_cells)
 
   auto get_double = std::bind(std::lognormal_distribution(0.0, 0.01), std::default_random_engine());
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     state.conditions_[i_cell].temperature_ = get_double() * 285.0;
     state.conditions_[i_cell].pressure_ = get_double() * 101100.0;
     state.conditions_[i_cell].air_density_ = get_double() * 10.0;
 
-    double user_rate = get_double() * 1.0e-2;
-    double radius = get_double() * 1.0e-8;
-    double num_conc = get_double() * 1.0e5;
+    micm::Real user_rate = get_double() * 1.0e-2;
+    micm::Real radius = get_double() * 1.0e-8;
+    micm::Real num_conc = get_double() * 1.0e5;
 
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = user_rate;
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]] = radius;
@@ -160,33 +161,42 @@ void TestProcessUpdateState(const std::size_t number_of_grid_cells)
         num_conc;
   }
 
-  ReactionRateConstantStore::EvaluateCpuRateConstants(store, state);
-  ReactionRateConstantStore::CpuCalculateRateConstants(store, state);
+  ReactionRateConstantStore<DenseMatrixPolicy>::CalculateRateConstants(store, state);
 
-  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  for (micm::Index i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     const auto& cond = state.conditions_[i_cell];
-    double user_rate = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]];
-    double radius = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]];
-    double num_conc =
+    micm::Real user_rate = state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]];
+    micm::Real radius =
+        state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["foo_surf.effective radius [m]"]];
+    micm::Real num_conc =
         state.custom_rate_parameters_[i_cell]
                                      [state.custom_rate_parameter_map_["foo_surf.particle number concentration [# m-3]"]];
 
     // r1 (Arrhenius) at rc_index 0; bar is parameterized: air_density * 0.82
-    double expected_arr = CalculateArrhenius(rc1_params, cond.temperature_, cond.pressure_);
+    micm::Real expected_arr = CalculateArrhenius(rc1_params, cond.temperature_, cond.pressure_);
     expected_arr *= (cond.air_density_ * 0.82);
-    EXPECT_NEAR(state.rate_constants_[i_cell][0], expected_arr, 1.0e-12 * expected_arr)
+    EXPECT_NEAR(
+        state.rate_constants_[i_cell][0],
+        expected_arr,
+        (std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-5) * expected_arr)
         << "grid cell " << i_cell << "; Arrhenius reaction";
 
     // r3 (UserDefined) at rc_index = user_defined_offset; bar is parameterized
-    double expected_ud = user_rate * (cond.air_density_ * 0.82);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.UserDefinedOffset()], expected_ud, 1.0e-12 * expected_ud)
+    micm::Real expected_ud = user_rate * (cond.air_density_ * 0.82);
+    EXPECT_NEAR(
+        state.rate_constants_[i_cell][store.UserDefinedOffset()],
+        expected_ud,
+        (std::is_same_v<micm::Real, double> ? 1.0e-12 : 1.0e-5) * expected_ud)
         << "grid cell " << i_cell << "; UserDefined reaction";
 
     // r2 (Surface) at rc_index = surface_offset; foo is not parameterized
-    double mean_free_speed = std::sqrt(8.0 * constants::GAS_CONSTANT / (M_PI * 0.025) * cond.temperature_);
-    double expected_surf = 4.0 * num_conc * M_PI * radius * radius / (radius / foo_diff_coeff + 4.0 / mean_free_speed);
-    EXPECT_NEAR(state.rate_constants_[i_cell][store.SurfaceOffset()], expected_surf, 1.0e-10 * expected_surf)
+    micm::Real mean_free_speed = std::sqrt(8.0 * constants::GAS_CONSTANT / (M_PI * 0.025) * cond.temperature_);
+    micm::Real expected_surf = 4.0 * num_conc * M_PI * radius * radius / (radius / foo_diff_coeff + 4.0 / mean_free_speed);
+    EXPECT_NEAR(
+        state.rate_constants_[i_cell][store.SurfaceOffset()],
+        expected_surf,
+        (std::is_same_v<micm::Real, double> ? 1.0e-10 : 1.0e-5) * expected_surf)
         << "grid cell " << i_cell << "; Surface reaction";
   }
 }
@@ -202,15 +212,15 @@ using Group4VectorMatrix = VectorMatrix<T, 4>;
 
 TEST(Process, Matrix)
 {
-  TestProcessUpdateState<Matrix<double>>(5);
+  TestProcessUpdateState<Matrix<micm::Real>>(5);
 }
 
 TEST(Process, VectorMatrix)
 {
-  TestProcessUpdateState<Group1VectorMatrix<double>>(5);
-  TestProcessUpdateState<Group2VectorMatrix<double>>(5);
-  TestProcessUpdateState<Group3VectorMatrix<double>>(5);
-  TestProcessUpdateState<Group4VectorMatrix<double>>(5);
+  TestProcessUpdateState<Group1VectorMatrix<micm::Real>>(5);
+  TestProcessUpdateState<Group2VectorMatrix<micm::Real>>(5);
+  TestProcessUpdateState<Group3VectorMatrix<micm::Real>>(5);
+  TestProcessUpdateState<Group4VectorMatrix<micm::Real>>(5);
 }
 
 TEST(Process, BuildsChemicalReaction)
@@ -240,7 +250,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
 {
   Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
   Species bar("bar");
-  bar.parameterize_ = [](const Conditions& c) { return c.air_density_ * 0.82; };
+  bar.parameterize_ = { .c_rho_ = 0.82, .has_value_ = micm::Bool(true) };
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar } };
 
@@ -251,7 +261,7 @@ TEST(Process, ChemicalReactionCopyAssignmentSucceeds)
                          .Build();
 
   // Assign original to copy
-  Process copy_reaction = reaction;
+  const Process& copy_reaction = reaction;
 
   const auto& copy = copy_reaction.process_;
   const auto& original = reaction.process_;

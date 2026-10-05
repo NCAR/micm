@@ -12,6 +12,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8377911.svg)](https://doi.org/10.5281/zenodo.8377911)
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
+[![Try it on Compiler Explorer](https://img.shields.io/badge/try%20it%20on-Compiler%20Explorer-67c52a?logo=compilerexplorer)](https://godbolt.org/z/Khjoa8zbn)
 
 <p align="center">
   <img style="border-radius: 100%" src="docs/source/_static/icons/micm.png">
@@ -51,9 +52,15 @@ If you would later like to uninstall MICM, you can run
 ## Options
 
 There are multiple options for running micm. You can use our
-solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
-Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
+solvers on CPUs, [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs,
+or [Kokkos](https://kokkos.org)-based solvers for performance portability across CPUs and GPUs
+(`-DMICM_ENABLE_KOKKOS=ON`; see the
+[Kokkos guide](https://micm.readthedocs.io/en/latest/user_guide/kokkos.html)).
+Please [read our docs](https://micm.readthedocs.io/en/latest/getting_started.html) 
 to learn how to enable these options.
+
+Third-party components fetched at build time (Kokkos, GoogleTest) are listed in
+[NOTICE](NOTICE) along with their licenses.
 
 ## Running a MICM Docker container
 
@@ -89,7 +96,7 @@ The following example solves the fictitious chemical system:
 foo       --k1--> 0.8 bar + 0.2 baz
 foo + bar --k2--> baz
 ```
-The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM documentation](https://ncar.github.io/micm/) for details on the types of reactions available in MICM and how to configure them.
+The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM documentation](https://micm.readthedocs.io/en/latest/) for details on the types of reactions available in MICM and how to configure them.
 
 To solve this system save the following code in a file named `foo_chem.cpp`:
 
@@ -154,6 +161,8 @@ int main(const int argc, const char *argv[])
 }
 ```
 
+You can also [run this example on Compiler Explorer](https://godbolt.org/z/Khjoa8zbn).
+
 To build and run the example using GNU (assuming the default install location):
 ```
 g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.13.0/include -std=c++20
@@ -174,6 +183,33 @@ Output:
  4000,   1.11e-01,   1.27e+01,   5.39e+00
  4500,   6.13e-02,   1.28e+01,   5.41e+00
 ```
+# Performance
+
+Every push to `main` records the benchmark and publishes the history as a chart.
+Instruction counts come from callgrind and are deterministic, so they show a
+hot-path change even when the wall-clock time is noisy.
+
+Two mechanisms run. Chapman has 7 reactions and shows per-call overhead. TS1 has
+547 reactions and shows how the solver scales with mechanism size.
+
+| chart | mechanism | backend | grid cells | steps | machine |
+| --- | --- | --- | --- | --- | --- |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/instructions/) | Chapman | CPU | 2000 | 5 | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/timing/) | Chapman | CPU | 10000 | 30 | `ubuntu-latest` |
+| [Instruction counts](https://ncar.github.io/micm/dev/bench/ts1/instructions/) | TS1 | CPU | 2000 | 5 | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/ts1/timing/) | TS1 | CPU | 10000 | 30 | `ubuntu-latest` |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/gpu/timing/) | Chapman and TS1 | CUDA | 10000 | 30 | CIRRUS a10 GPU runner |
+| [Wall-clock timing](https://ncar.github.io/micm/dev/bench/kokkos/timing/) | Chapman and TS1 | Kokkos | 10000 | 30 | CIRRUS a10 GPU runner |
+
+Every step advances the solver by `30 s`. The callgrind charts use a smaller
+grid and fewer steps, because valgrind runs far slower than a native run. The
+`vector128` ordering pads its last group, so it solves 2048 cells rather than
+2000, and 10112 rather than 10000.
+
+Each pull request also gets a commit comment that compares its Chapman numbers
+against the latest `main` values. See [docs/performance.md](docs/performance.md)
+to run the benchmark yourself.
+
 # Citation
 
 MICM is part of the MUSICA project and can be cited by reference to the MUSICA vision paper. The BibTeX entry below can be used to generate a citation for this.
@@ -203,12 +239,12 @@ cutting edge science.
   - Anyone interested in scientific collaboration
 which would add new software functionality should read the [MUSICA software development plan](https://github.com/NCAR/musica/blob/main/docs/Software%20Development%20Plan.pdf).
 
-- [Contributor's guide](https://ncar.github.io/micm/contributing/index.html)
+- [Contributor's guide](https://micm.readthedocs.io/en/latest/contributing/index.html)
   - Before submiitting a PR, please thouroughly read this to you understand our expectations. We reserve the right to reject any PR not meeting our guidelines.
 
 
 # Documentation
-Please see the [MICM documentation](https://ncar.github.io/micm/) for detailed
+Please see the [MICM documentation](https://micm.readthedocs.io/en/latest/) for detailed
 installation and usage instructions.
 
 # License

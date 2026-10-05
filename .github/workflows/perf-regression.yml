@@ -1,0 +1,197 @@
+name: Performance Regression
+
+# Runs the micm micro-benchmark under callgrind on both the PR head and the
+# base branch, and warns if the PR adds instructions to the Rosenbrock Solve()
+# function for any matrix ordering (standard, vector1,2,4,8,128). Both the
+# chapman and the ts1 mechanism run.
+#
+# The job keeps the id "chapman" so any required-check setting still matches.
+#
+# See docs/performance.md for how to reproduce this locally.
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chapman:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CC: gcc
+      CXX: g++
+      # Both mechanisms use these, so the two runs differ only in the mechanism.
+      # CELLS/STEPS drive the callgrind profiles; BENCH_* drive the wall-clock
+      # runs, which are logged but never gate.
+      CELLS: 2000
+      STEPS: 5
+      BENCH_CELLS: 10000
+      BENCH_STEPS: 30
+    steps:
+      - name: Install valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Checkout (for benchmark action git context)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so gh-pages branch is available
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          path: pr
+
+      - name: Checkout base (${{ github.base_ref }})
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Overlay PR's benchmark harness onto base
+        # The PR is the source of truth for the benchmark, so both revisions run
+        # the same workload. Every step below runs pr/scripts/, so only the
+        # harness needs an overlay. Snapshot base's own harness first so we
+        # can fall back to it if the overlay fails to build against base.
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/base-bench-orig
+          mkdir -p /tmp/base-bench-orig
+          if [ -d base/test/benchmark ]; then
+            cp -R base/test/benchmark /tmp/base-bench-orig/benchmark
+          fi
+          cp base/test/CMakeLists.txt /tmp/base-bench-orig/CMakeLists.txt
+          # Replace the whole directory. The benchmark spans several headers, and
+          # naming them one by one leaves the base building a stale mixture.
+          rm -rf base/test/benchmark
+          mkdir -p base/test
+          cp -R pr/test/benchmark base/test/
+          if ! grep -q "add_subdirectory(benchmark)" base/test/CMakeLists.txt; then
+            printf '\nadd_subdirectory(benchmark)\n' >> base/test/CMakeLists.txt
+          fi
+
+      # One build configuration on both sides, so the two revisions cannot differ
+      # in what they compiled.
+      - name: Build PR (micm_bench)
+        run: |
+          cmake -S pr -B pr/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
+          cmake --build pr/build --target micm_bench --parallel
+
+      - name: Build base (micm_bench)
+        # First try to build base with the PR's harness overlaid (apples-to-apples
+        # comparison). If the PR harness depends on APIs not in base, fall back
+        # to base's own harness so we can still compare something. The compare
+        # steps below then measure whatever workload both sides could build.
+        run: |
+          set -eo pipefail
+          if cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON \
+              && cmake --build base/build --target micm_bench --parallel; then
+            exit 0
+          fi
+          echo "::warning::PR benchmark harness failed to build against base; falling back to base's own harness"
+          rm -rf base/test/benchmark base/build
+          if [ -d /tmp/base-bench-orig/benchmark ]; then
+            cp -R /tmp/base-bench-orig/benchmark base/test/benchmark
+          fi
+          cp /tmp/base-bench-orig/CMakeLists.txt base/test/CMakeLists.txt
+          if ! grep -q "add_subdirectory(benchmark)" base/test/CMakeLists.txt; then
+            printf '\nadd_subdirectory(benchmark)\n' >> base/test/CMakeLists.txt
+          fi
+          cmake -S base -B base/build -D CMAKE_BUILD_TYPE=Release -D MICM_ENABLE_BENCHMARK=ON
+          cmake --build base/build --target micm_bench --parallel
+
+        # Run the benchmarks (timing) for the base and PR branch, just so they
+        # appear in the action logs. Doesn't affect pass/fail
+      - name: Benchmark PR
+        run: pr/scripts/bench_micm.sh pr/build "$BENCH_CELLS" "$BENCH_STEPS" cpu in-place mozart chapman
+
+      - name: Benchmark base
+        run: pr/scripts/bench_micm.sh base/build "$BENCH_CELLS" "$BENCH_STEPS" cpu in-place mozart chapman
+
+      # OUT keeps the two sides' raw callgrind files apart. The script names them
+      # by mechanism and ordering, which is the same on both sides.
+      - name: Profile PR
+        run: |
+          OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" \
+            cpu in-place mozart chapman | tee pr.txt
+
+      - name: Profile base
+        run: |
+          OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" \
+            cpu in-place mozart chapman | tee base.txt
+
+      # Both sides already hold TS1, so profile it too. Chapman shows per-call
+      # overhead; TS1 shows how the solver scales with mechanism size, and a
+      # change can move one without moving the other.
+      - name: Profile PR (TS1)
+        run: |
+          OUT=/tmp/cg-pr pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" \
+            cpu in-place mozart ts1 | tee pr_ts1.txt
+
+      - name: Profile base (TS1)
+        run: |
+          OUT=/tmp/cg-base pr/scripts/profile_micm.sh base/build "$CELLS" "$STEPS" \
+            cpu in-place mozart ts1 | tee base_ts1.txt
+
+      # continue-on-error: the comparison reports, it does not gate.
+      - name: Compare instruction counts
+        run: pr/scripts/compare_micm.py base.txt pr.txt
+        continue-on-error: true
+
+      - name: Compare instruction counts (TS1)
+        run: pr/scripts/compare_micm.py base_ts1.txt pr_ts1.txt
+        continue-on-error: true
+
+      - name: Profile PR timing (for benchmark action)
+        run: |
+          pr/scripts/bench_micm.sh pr/build "$BENCH_CELLS" "$BENCH_STEPS" cpu in-place mozart chapman \
+            | python3 pr/scripts/to_benchmark_json.py --unit ms --value-type float \
+            > pr_timing.json
+
+      - name: Profile PR instructions (for benchmark action)
+        run: |
+          pr/scripts/profile_micm.sh pr/build "$CELLS" "$STEPS" cpu in-place mozart chapman \
+            | python3 pr/scripts/to_benchmark_json.py --unit instructions --value-type int \
+            > pr_instructions.json
+
+      - name: Comment benchmark timing comparison on PR
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Timing
+          tool: customSmallerIsBetter
+          output-file-path: pr_timing.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 120%   # comment turns into a warning at +20%
+          fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
+
+      - name: Comment benchmark instruction comparison on PR
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Chapman Instruction Counts
+          tool: customSmallerIsBetter
+          output-file-path: pr_instructions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-always: true    # posts a commit comment visible in the PR timeline
+          save-data-file: false   # never write to gh-pages from PR context
+          alert-threshold: 105%   # comment turns into a warning at +5%
+          fail-on-alert: false    # just warn of possible regression
+          skip-fetch-gh-pages: true
+
+      - name: Upload profile outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chapman-profile
+          path: |
+            base.txt
+            pr.txt
