@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790801521026,
+  "lastUpdate": 1791229612411,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -1133,6 +1133,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 48658.79,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0bac86ac15aa136632ec55b7d51207ef94a1c6b7",
+          "message": "Update the version to 3.14.0 (#1100)\n\nupdate the version to 3.14.0",
+          "timestamp": "2026-10-05T13:08:26-06:00",
+          "tree_id": "0a2d63eb810292a3f9da85f1600cb0f0c0f562d2",
+          "url": "https://github.com/NCAR/micm/commit/0bac86ac15aa136632ec55b7d51207ef94a1c6b7"
+        },
+        "date": 1791229611817,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 88652.55,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 85656.3,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 81710.63,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 65191.91,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 64776.29,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 36174.33,
             "unit": "ms"
           }
         ]
