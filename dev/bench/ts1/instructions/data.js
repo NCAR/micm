@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790801518871,
+  "lastUpdate": 1791229610460,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -1103,6 +1103,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/6339193f1b654cab7fb8f52fe7cd123771c399b8"
         },
         "date": 1790801518117,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41646173587,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41572759916,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29296037359,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21663965557,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17965159975,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14860535091,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0bac86ac15aa136632ec55b7d51207ef94a1c6b7",
+          "message": "Update the version to 3.14.0 (#1100)\n\nupdate the version to 3.14.0",
+          "timestamp": "2026-10-05T13:08:26-06:00",
+          "tree_id": "0a2d63eb810292a3f9da85f1600cb0f0c0f562d2",
+          "url": "https://github.com/NCAR/micm/commit/0bac86ac15aa136632ec55b7d51207ef94a1c6b7"
+        },
+        "date": 1791229609689,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
