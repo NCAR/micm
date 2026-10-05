@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791231512138,
+  "lastUpdate": 1791233159871,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (Kokkos backend)": [
@@ -1226,6 +1226,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 33131.49,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0bac86ac15aa136632ec55b7d51207ef94a1c6b7",
+          "message": "Update the version to 3.14.0 (#1100)\n\nupdate the version to 3.14.0",
+          "timestamp": "2026-10-05T13:08:26-06:00",
+          "tree_id": "0a2d63eb810292a3f9da85f1600cb0f0c0f562d2",
+          "url": "https://github.com/NCAR/micm/commit/0bac86ac15aa136632ec55b7d51207ef94a1c6b7"
+        },
+        "date": 1791233159282,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 198567.52,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 115552.33,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 68585.62,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 38416.92,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 33095.08,
             "unit": "ms"
           }
         ]
