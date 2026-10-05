@@ -10,7 +10,7 @@ extern "C" {
 
   inline const char* GetMicmVersion()
   {
-    return "3.13.0";
+    return "3.14.0";
   }
   inline unsigned GetMicmVersionMajor()
   {
@@ -18,7 +18,7 @@ extern "C" {
   }
   inline unsigned GetMicmVersionMinor()
   {
-    return 13+0;
+    return 14+0;
   }
   inline unsigned GetMicmVersionPatch()
   {
