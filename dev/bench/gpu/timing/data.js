@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791228208648,
+  "lastUpdate": 1791229018559,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -1586,6 +1586,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 10878.99,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0bac86ac15aa136632ec55b7d51207ef94a1c6b7",
+          "message": "Update the version to 3.14.0 (#1100)\n\nupdate the version to 3.14.0",
+          "timestamp": "2026-10-05T13:08:26-06:00",
+          "tree_id": "0a2d63eb810292a3f9da85f1600cb0f0c0f562d2",
+          "url": "https://github.com/NCAR/micm/commit/0bac86ac15aa136632ec55b7d51207ef94a1c6b7"
+        },
+        "date": 1791229017942,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 119952.41,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 51492.57,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 25164.67,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 13679.54,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 9484.32,
             "unit": "ms"
           }
         ]
