@@ -231,7 +231,7 @@ namespace micm
             parameters.factor_max_,
             std::max(
                 parameters.factor_min_,
-                parameters.safety_factor_ / std::pow(error, 1 / parameters.estimator_of_local_order_)));
+                parameters.safety_factor_ / std::pow(static_cast<Real>(error), 1 / parameters.estimator_of_local_order_)));
         Real Hnew = H * fac;
 
         result.stats_.number_of_steps_ += 1;
