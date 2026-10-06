@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791229612411,
+  "lastUpdate": 1791319541198,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -1187,6 +1187,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 36174.33,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f2b7b0ae27f1465f8ce145a52fe2dd5630836185",
+          "message": "Fix NVHPC compiler error (#1101)\n\nfix nvc issue",
+          "timestamp": "2026-10-06T13:57:33-06:00",
+          "tree_id": "fc770065c58db3cbc9c420b04f99623c3e2685ca",
+          "url": "https://github.com/NCAR/micm/commit/f2b7b0ae27f1465f8ce145a52fe2dd5630836185"
+        },
+        "date": 1791319540720,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 118779.33,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 116503.63,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 95820.1,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 83805.56,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 81147.06,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 69115.59,
             "unit": "ms"
           }
         ]
