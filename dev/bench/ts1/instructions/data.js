@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791229610460,
+  "lastUpdate": 1791319539486,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -1157,6 +1157,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/0bac86ac15aa136632ec55b7d51207ef94a1c6b7"
         },
         "date": 1791229609689,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41646173587,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41572759916,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29296037359,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21663965557,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17965159975,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14860535091,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f2b7b0ae27f1465f8ce145a52fe2dd5630836185",
+          "message": "Fix NVHPC compiler error (#1101)\n\nfix nvc issue",
+          "timestamp": "2026-10-06T13:57:33-06:00",
+          "tree_id": "fc770065c58db3cbc9c420b04f99623c3e2685ca",
+          "url": "https://github.com/NCAR/micm/commit/f2b7b0ae27f1465f8ce145a52fe2dd5630836185"
+        },
+        "date": 1791319538752,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
