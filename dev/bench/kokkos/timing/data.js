@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791233159871,
+  "lastUpdate": 1791323433843,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (Kokkos backend)": [
@@ -636,6 +636,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 549.31,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f2b7b0ae27f1465f8ce145a52fe2dd5630836185",
+          "message": "Fix NVHPC compiler error (#1101)\n\nfix nvc issue",
+          "timestamp": "2026-10-06T13:57:33-06:00",
+          "tree_id": "fc770065c58db3cbc9c420b04f99623c3e2685ca",
+          "url": "https://github.com/NCAR/micm/commit/f2b7b0ae27f1465f8ce145a52fe2dd5630836185"
+        },
+        "date": 1791323432958,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 2845.85,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 1534.27,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 871.6,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 500.45,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 549.22,
             "unit": "ms"
           }
         ]
