@@ -610,14 +610,26 @@ namespace micm
             using M = std::decay_t<decltype(model)>;
             if constexpr (HasProcesses<M>)
             {
-              if constexpr (requires { model.FinalizeProcessSetup(params_map, species_map, jacobian); })
+              if constexpr (requires {
+                              model.template FinalizeProcessSetup<DenseMatrixPolicy>(params_map, species_map, jacobian);
+                            })
+              {
+                model.template FinalizeProcessSetup<DenseMatrixPolicy>(params_map, species_map, jacobian);
+              }
+              else if constexpr (requires { model.FinalizeProcessSetup(params_map, species_map, jacobian); })
               {
                 model.FinalizeProcessSetup(params_map, species_map, jacobian);
               }
             }
             if constexpr (HasConstraints<M>)
             {
-              if constexpr (requires { model.FinalizeConstraintSetup(params_map, species_map, jacobian); })
+              if constexpr (requires {
+                              model.template FinalizeConstraintSetup<DenseMatrixPolicy>(params_map, species_map, jacobian);
+                            })
+              {
+                model.template FinalizeConstraintSetup<DenseMatrixPolicy>(params_map, species_map, jacobian);
+              }
+              else if constexpr (requires { model.FinalizeConstraintSetup(params_map, species_map, jacobian); })
               {
                 model.FinalizeConstraintSetup(params_map, species_map, jacobian);
               }
