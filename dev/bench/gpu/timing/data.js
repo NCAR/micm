@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791471733010,
+  "lastUpdate": 1791472533874,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -1782,6 +1782,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 9489.68,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "28d84c04e27517ab6ec27da5b701e27192e6f40a",
+          "message": "Correct external process algebraic rows jacobian (#1095)\n\nStop adding the process jacobian terms to algebraic jacobian terms\n\n---------\n\nCo-authored-by: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-08T09:49:06-05:00",
+          "tree_id": "017eaec0672e58de6d4777582b5658682f48a1b3",
+          "url": "https://github.com/NCAR/micm/commit/28d84c04e27517ab6ec27da5b701e27192e6f40a"
+        },
+        "date": 1791472533003,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 113188.37,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 51562.73,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 25167.53,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 13684.09,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 9465.57,
             "unit": "ms"
           }
         ]
