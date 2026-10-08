@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791319539486,
+  "lastUpdate": 1791473376735,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Instruction Counts": [
@@ -1211,6 +1211,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/f2b7b0ae27f1465f8ce145a52fe2dd5630836185"
         },
         "date": 1791319538752,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 41646173587,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 41572759916,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 29296037359,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 21663965557,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 17965159975,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 14860535091,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "28d84c04e27517ab6ec27da5b701e27192e6f40a",
+          "message": "Correct external process algebraic rows jacobian (#1095)\n\nStop adding the process jacobian terms to algebraic jacobian terms\n\n---------\n\nCo-authored-by: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-08T09:49:06-05:00",
+          "tree_id": "017eaec0672e58de6d4777582b5658682f48a1b3",
+          "url": "https://github.com/NCAR/micm/commit/28d84c04e27517ab6ec27da5b701e27192e6f40a"
+        },
+        "date": 1791473376122,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
