@@ -652,6 +652,78 @@ namespace micm
         original_variables.Copy(Y);
         variables_modified = true;
       }
+      if (parameters.constraint_init_max_backtracks_ > 0)
+      {
+        // Reuse free stage workspaces; each trial uses the current Jacobian's factorization.
+        auto& candidate = derived_class_temporary_variables->Ynew_;
+        auto& trial_delta = derived_class_temporary_variables->Yerror_;
+        auto finite = [&](const auto& values)
+        {
+          max_residual = 0;
+          nan_detected = false;
+          inf_detected = false;
+          max_residual.CopyToDevice();
+          nan_detected.CopyToDevice();
+          inf_detected.CopyToDevice();
+          check_algebraic_values(values);
+          max_residual.CopyToHost();
+          nan_detected.CopyToHost();
+          inf_detected.CopyToHost();
+          return !nan_detected && !inf_detected;
+        };
+        const Real current_norm = max_correction;
+        Real step = 1.0;
+        for (Index backtrack = 0;; ++backtrack, step *= parameters.constraint_init_backtrack_factor_)
+        {
+          if (backtrack > parameters.constraint_init_max_backtracks_)
+          {
+            return restore_and_return(SolverState::ConstraintInitializationFailed);
+          }
+          trial_delta.Fill(0);
+          trial_delta.Axpy(step, delta);
+          candidate.Copy(Y);
+          apply_update(candidate, trial_delta);
+          if (!finite(candidate))
+          {
+            continue;
+          }
+          trial_delta.Fill(0);
+          constraints_.AddForcingTerms(candidate, state.custom_rate_parameters_, trial_delta);
+          if (!finite(trial_delta))
+          {
+            continue;
+          }
+          if (max_residual == 0.0)
+          {
+            break;
+          }
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            linear_solver_.Solve(trial_delta, state.jacobian_);
+          }
+          else
+          {
+            linear_solver_.Solve(trial_delta, state.lower_matrix_, state.upper_matrix_);
+          }
+          stats.solves_ += 1;
+          if (!finite(trial_delta))
+          {
+            continue;
+          }
+          max_correction = 0;
+          max_correction.CopyToDevice();
+          check_weighted_correction(candidate, trial_delta);
+          max_correction.CopyToHost();
+          // The simplified correction preserves invariance to complete constraint-row scaling.
+          if (max_correction <= parameters.constraint_init_tolerance_ ||
+              max_correction < (1 - parameters.constraint_init_sufficient_decrease_ * step) * current_norm)
+          {
+            break;
+          }
+        }
+        Y.Copy(candidate);
+        continue;  // Recheck convergence at the accepted state with a fresh Jacobian.
+      }
       nan_detected = false;
       inf_detected = false;
       max_residual.CopyToDevice();
