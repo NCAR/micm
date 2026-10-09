@@ -32,6 +32,7 @@ namespace micm
     ArrheniusRateConstantParameters* d_arrhenius_ = nullptr;
     TroeRateConstantParameters* d_troe_ = nullptr;
     TernaryChemicalActivationRateConstantParameters* d_ternary_ = nullptr;
+    TernaryChemicalActivationJPL19Parameters* d_ternary_jpl19_ = nullptr;
     BranchedRateConstantParameters* d_branched_ = nullptr;
     TunnelingRateConstantParameters* d_tunneling_ = nullptr;
     TaylorSeriesRateConstantParameters* d_taylor_ = nullptr;
@@ -87,6 +88,7 @@ namespace micm
       FreeDevice(d_arrhenius_);
       FreeDevice(d_troe_);
       FreeDevice(d_ternary_);
+      FreeDevice(d_ternary_jpl19_);
       FreeDevice(d_branched_);
       FreeDevice(d_tunneling_);
       FreeDevice(d_taylor_);
@@ -110,6 +112,7 @@ namespace micm
         : d_arrhenius_(std::exchange(other.d_arrhenius_, nullptr)),
           d_troe_(std::exchange(other.d_troe_, nullptr)),
           d_ternary_(std::exchange(other.d_ternary_, nullptr)),
+          d_ternary_jpl19_(std::exchange(other.d_ternary_jpl19_, nullptr)),
           d_branched_(std::exchange(other.d_branched_, nullptr)),
           d_tunneling_(std::exchange(other.d_tunneling_, nullptr)),
           d_taylor_(std::exchange(other.d_taylor_, nullptr)),
@@ -149,6 +152,7 @@ namespace micm
       ReallocAndUpload(d_arrhenius_, cpu_store.arrhenius_);
       ReallocAndUpload(d_troe_, cpu_store.troe_);
       ReallocAndUpload(d_ternary_, cpu_store.ternary_);
+      ReallocAndUpload(d_ternary_jpl19_, cpu_store.ternary_jpl19_);
       ReallocAndUpload(d_branched_, cpu_store.branched_);
       ReallocAndUpload(d_tunneling_, cpu_store.tunneling_);
       ReallocAndUpload(d_taylor_, cpu_store.taylor_);
@@ -160,6 +164,7 @@ namespace micm
       param_.d_arrhenius_ = d_arrhenius_;
       param_.d_troe_ = d_troe_;
       param_.d_ternary_ = d_ternary_;
+      param_.d_ternary_jpl19_ = d_ternary_jpl19_;
       param_.d_branched_ = d_branched_;
       param_.d_tunneling_ = d_tunneling_;
       param_.d_taylor_ = d_taylor_;
@@ -170,6 +175,7 @@ namespace micm
       param_.n_arrhenius_ = cpu_store.arrhenius_.size();
       param_.n_troe_ = cpu_store.troe_.size();
       param_.n_ternary_ = cpu_store.ternary_.size();
+      param_.n_ternary_jpl19_ = cpu_store.ternary_jpl19_.size();
       param_.n_branched_ = cpu_store.branched_.size();
       param_.n_tunneling_ = cpu_store.tunneling_.size();
       param_.n_taylor_ = cpu_store.taylor_.size();
@@ -179,6 +185,7 @@ namespace micm
 
       param_.troe_offset_ = cpu_store.TroeOffset();
       param_.ternary_offset_ = cpu_store.TernaryOffset();
+      param_.ternary_jpl19_offset_ = cpu_store.TernaryJPL19Offset();
       param_.branched_offset_ = cpu_store.BranchedOffset();
       param_.tunneling_offset_ = cpu_store.TunnelingOffset();
       param_.taylor_offset_ = cpu_store.TaylorOffset();

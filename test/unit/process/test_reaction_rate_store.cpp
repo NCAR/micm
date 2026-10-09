@@ -65,33 +65,37 @@ namespace
             {
               return 2;
             }
-            else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
+            else if constexpr (std::is_same_v<T, TernaryChemicalActivationJPL19Parameters>)
             {
               return 3;
             }
-            else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
+            else if constexpr (std::is_same_v<T, BranchedRateConstantParameters>)
             {
               return 4;
             }
-            else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
+            else if constexpr (std::is_same_v<T, TunnelingRateConstantParameters>)
             {
               return 5;
             }
-            else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
+            else if constexpr (std::is_same_v<T, TaylorSeriesRateConstantParameters>)
             {
               return 6;
             }
-            else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
+            else if constexpr (std::is_same_v<T, ReversibleRateConstantParameters>)
             {
               return 7;
             }
-            else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
+            else if constexpr (std::is_same_v<T, UserDefinedRateConstantParameters>)
             {
               return 8;
             }
-            else
+            else if constexpr (std::is_same_v<T, SurfaceRateConstantParameters>)
             {
               return 9;
+            }
+            else
+            {
+              return 10;
             }
           },
           p.process_.rate_constant_);
@@ -167,6 +171,7 @@ TEST(ReactionRateConstantStore, OffsetsAreContiguousCumulativeSizes)
   // Verify cumulative offsets
   EXPECT_EQ(store.TroeOffset(), 2u);
   EXPECT_EQ(store.TernaryOffset(), 3u);
+  EXPECT_EQ(store.TernaryJPL19Offset(), 3u);
   EXPECT_EQ(store.BranchedOffset(), 3u);
   EXPECT_EQ(store.TunnelingOffset(), 3u);
   EXPECT_EQ(store.TaylorOffset(), 4u);
