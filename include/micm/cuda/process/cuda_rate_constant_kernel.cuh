@@ -27,6 +27,7 @@ struct CudaReactionRateStoreParam
   const micm::ArrheniusRateConstantParameters* d_arrhenius_ = nullptr;
   const micm::TroeRateConstantParameters* d_troe_ = nullptr;
   const micm::TernaryChemicalActivationRateConstantParameters* d_ternary_ = nullptr;
+  const micm::TernaryChemicalActivationJPL19Parameters* d_ternary_jpl19_ = nullptr;
   const micm::BranchedRateConstantParameters* d_branched_ = nullptr;
   const micm::TunnelingRateConstantParameters* d_tunneling_ = nullptr;
   const micm::TaylorSeriesRateConstantParameters* d_taylor_ = nullptr;
@@ -38,6 +39,7 @@ struct CudaReactionRateStoreParam
   micm::Index n_arrhenius_ = 0;
   micm::Index n_troe_ = 0;
   micm::Index n_ternary_ = 0;
+  micm::Index n_ternary_jpl19_ = 0;
   micm::Index n_branched_ = 0;
   micm::Index n_tunneling_ = 0;
   micm::Index n_taylor_ = 0;
@@ -48,6 +50,7 @@ struct CudaReactionRateStoreParam
   // Offsets into rate_constants_[cell] (cumulative type counts)
   micm::Index troe_offset_ = 0;
   micm::Index ternary_offset_ = 0;
+  micm::Index ternary_jpl19_offset_ = 0;
   micm::Index branched_offset_ = 0;
   micm::Index tunneling_offset_ = 0;
   micm::Index taylor_offset_ = 0;

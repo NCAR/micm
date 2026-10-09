@@ -81,6 +81,7 @@ namespace micm
     Vector<ArrheniusRateConstantParameters> arrhenius_;
     Vector<TroeRateConstantParameters> troe_;
     Vector<TernaryChemicalActivationRateConstantParameters> ternary_;
+    Vector<TernaryChemicalActivationJPL19Parameters> ternary_jpl19_;
     Vector<BranchedRateConstantParameters> branched_;
     Vector<TunnelingRateConstantParameters> tunneling_;
     Vector<TaylorSeriesRateConstantParameters> taylor_;
@@ -97,6 +98,7 @@ namespace micm
       VectorView<ArrheniusRateConstantParameters> arrhenius_;
       VectorView<TroeRateConstantParameters> troe_;
       VectorView<TernaryChemicalActivationRateConstantParameters> ternary_;
+      VectorView<TernaryChemicalActivationJPL19Parameters> ternary_jpl19_;
       VectorView<BranchedRateConstantParameters> branched_;
       VectorView<TunnelingRateConstantParameters> tunneling_;
       VectorView<TaylorSeriesRateConstantParameters> taylor_;
@@ -111,6 +113,7 @@ namespace micm
           const Vector<ArrheniusRateConstantParameters>& arr,
           const Vector<TroeRateConstantParameters>& troe,
           const Vector<TernaryChemicalActivationRateConstantParameters>& tern,
+          const Vector<TernaryChemicalActivationJPL19Parameters>& tern19,
           const Vector<BranchedRateConstantParameters>& bran,
           const Vector<TunnelingRateConstantParameters>& tunn,
           const Vector<TaylorSeriesRateConstantParameters>& tayl,
@@ -121,6 +124,7 @@ namespace micm
           : arrhenius_(arr.GetView()),
             troe_(troe.GetView()),
             ternary_(tern.GetView()),
+            ternary_jpl19_(tern19.GetView()),
             branched_(bran.GetView()),
             tunneling_(tunn.GetView()),
             taylor_(tayl.GetView()),
@@ -138,6 +142,7 @@ namespace micm
       arrhenius_.CopyToDevice();
       troe_.CopyToDevice();
       ternary_.CopyToDevice();
+      ternary_jpl19_.CopyToDevice();
       branched_.CopyToDevice();
       tunneling_.CopyToDevice();
       taylor_.CopyToDevice();
@@ -149,6 +154,7 @@ namespace micm
           arrhenius_,
           troe_,
           ternary_,
+          ternary_jpl19_,
           branched_,
           tunneling_,
           taylor_,
@@ -161,7 +167,7 @@ namespace micm
     // ----------------------------------------------------------------
     // Precomputed contiguous-block offsets into state.rate_constants_[cell]
     // ----------------------------------------------------------------
-    Index off_troe_{ 0 }, off_tern_{ 0 }, off_bran_{ 0 }, off_tunn_{ 0 }, off_tayl_{ 0 }, off_rev_{ 0 }, off_ud_{ 0 },
+    Index off_troe_{ 0 }, off_tern_{ 0 }, off_tern19_{ 0 }, off_bran_{ 0 }, off_tunn_{ 0 }, off_tayl_{ 0 }, off_rev_{ 0 }, off_ud_{ 0 },
         off_surf_{ 0 }, off_lambda_{ 0 };
 
     Index TroeOffset() const
@@ -171,6 +177,10 @@ namespace micm
     Index TernaryOffset() const
     {
       return off_tern_;
+    }
+    Index TernaryJPL19Offset() const
+    {
+      return off_tern19_;
     }
     Index BranchedOffset() const
     {
@@ -225,6 +235,7 @@ namespace micm
       std::vector<ArrheniusRateConstantParameters> arrhenius_tmp;
       std::vector<TroeRateConstantParameters> troe_tmp;
       std::vector<TernaryChemicalActivationRateConstantParameters> ternary_tmp;
+      std::vector<TernaryChemicalActivationJPL19Parameters> ternary_jpl19_tmp;
       std::vector<BranchedRateConstantParameters> branched_tmp;
       std::vector<TunnelingRateConstantParameters> tunneling_tmp;
       std::vector<TaylorSeriesRateConstantParameters> taylor_tmp;
@@ -280,6 +291,10 @@ namespace micm
         else if (auto* p = std::get_if<TernaryChemicalActivationRateConstantParameters>(&rc))
         {
           ternary_tmp.push_back(*p);
+        }
+        else if (auto* p = std::get_if<TernaryChemicalActivationJPL19Parameters>(&rc))
+        {
+          ternary_jpl19_tmp.push_back(*p);
         }
         else if (auto* p = std::get_if<BranchedRateConstantParameters>(&rc))
         {
@@ -344,6 +359,7 @@ namespace micm
       store.arrhenius_ = Vector<ArrheniusRateConstantParameters>(arrhenius_tmp);
       store.troe_ = Vector<TroeRateConstantParameters>(troe_tmp);
       store.ternary_ = Vector<TernaryChemicalActivationRateConstantParameters>(ternary_tmp);
+      store.ternary_jpl19_ = Vector<TernaryChemicalActivationJPL19Parameters>(ternary_jpl19_tmp);
       store.branched_ = Vector<BranchedRateConstantParameters>(branched_tmp);
       store.tunneling_ = Vector<TunnelingRateConstantParameters>(tunneling_tmp);
       store.taylor_ = Vector<TaylorSeriesRateConstantParameters>(taylor_tmp);
@@ -355,7 +371,8 @@ namespace micm
       // Precompute offsets
       store.off_troe_ = static_cast<Index>(arrhenius_tmp.size());
       store.off_tern_ = store.off_troe_ + static_cast<Index>(troe_tmp.size());
-      store.off_bran_ = store.off_tern_ + static_cast<Index>(ternary_tmp.size());
+      store.off_tern19_ = store.off_tern_ + static_cast<Index>(ternary_tmp.size());
+      store.off_bran_ = store.off_tern19_ + static_cast<Index>(ternary_jpl19_tmp.size());
       store.off_tunn_ = store.off_bran_ + static_cast<Index>(branched_tmp.size());
       store.off_tayl_ = store.off_tunn_ + static_cast<Index>(tunneling_tmp.size());
       store.off_rev_ = store.off_tayl_ + static_cast<Index>(taylor_tmp.size());
@@ -412,6 +429,7 @@ namespace micm
       const auto n_arr = static_cast<Index>(v.arrhenius_.size());
       const auto n_troe = static_cast<Index>(v.troe_.size());
       const auto n_tern = static_cast<Index>(v.ternary_.size());
+      const auto n_tern19 = static_cast<Index>(v.ternary_jpl19_.size());
       const auto n_bran = static_cast<Index>(v.branched_.size());
       const auto n_tunn = static_cast<Index>(v.tunneling_.size());
       const auto n_tayl = static_cast<Index>(v.taylor_.size());
@@ -419,7 +437,7 @@ namespace micm
       const auto n_ud = static_cast<Index>(v.user_defined_.size());
       const auto n_surf = static_cast<Index>(v.surface_.size());
       const auto n_mult = static_cast<Index>(v.parameterized_multipliers_.size());
-      const Index off_troe = store.off_troe_, off_tern = store.off_tern_, off_bran = store.off_bran_,
+      const Index off_troe = store.off_troe_, off_tern = store.off_tern_, off_tern19 = store.off_tern19_, off_bran = store.off_bran_,
                   off_tunn = store.off_tunn_, off_tayl = store.off_tayl_, off_rev = store.off_rev_, off_ud = store.off_ud_,
                   off_surf = store.off_surf_;
       DenseMatrix::Function(
@@ -452,6 +470,15 @@ namespace micm
                   [=](Real& out, const Conditions& conditions)
                   { out = CalculateTernaryChemicalActivation(p, conditions.temperature_, conditions.air_density_); },
                   rate_constants.GetColumnView(off_tern + i),
+                  conditions);
+            }
+            for (Index i = 0; i < n_tern19; ++i)
+            {
+              const auto& p = v.ternary_jpl19_[i];
+              rate_constants.ForEachRow(
+                  [=](Real& out, const Conditions& conditions)
+                  { out = CalculateTernaryChemicalActivationJPL19(p, conditions.temperature_, conditions.air_density_); },
+                  rate_constants.GetColumnView(off_tern19 + i),
                   conditions);
             }
             for (Index i = 0; i < n_bran; ++i)
