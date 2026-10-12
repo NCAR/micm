@@ -42,6 +42,9 @@ namespace micm
 
     Index constraint_init_max_iterations_{ 10 };  // max Newton updates for constraint initialization
     Real constraint_init_tolerance_{ 0.1 };       // max weighted Newton correction, as a fraction of the state tolerance
+    Index constraint_init_max_backtracks_{ 24 };  // zero disables the initialization line search
+    Real constraint_init_backtrack_factor_{ 0.5 };
+    Real constraint_init_sufficient_decrease_{ 1e-4 };
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)

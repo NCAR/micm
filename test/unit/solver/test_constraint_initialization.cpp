@@ -483,17 +483,17 @@ TEST(ConstraintInitialization, FailedInitializationRestoresCallerState)
   EXPECT_EQ(state.variables_[0][B_idx], B_in);
 }
 
-/// @brief A converged projection still returns the corrected state, not the snapshot
+/// @brief A cold start needs damping to converge within the default Newton-update budget.
 TEST(ConstraintInitialization, SuccessfulInitializationKeepsTheCorrection)
 {
-  const auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = BuildSquaredConstraintSolver(parameters);
   auto state = solver.GetState(1);
 
   const auto B_idx = state.variable_map_.at("B");
   const auto C_idx = state.variable_map_.at("C");
   state.variables_[0][B_idx] = 0.5;
-  state.variables_[0][C_idx] = 100.0;
+  state.variables_[0][C_idx] = 1.0e-6;
   state.conditions_[0].temperature_ = 298.15;
   state.conditions_[0].pressure_ = 101325.0;
   solver.UpdateStateParameters(state);
@@ -507,6 +507,17 @@ TEST(ConstraintInitialization, SuccessfulInitializationKeepsTheCorrection)
   // Converged means the remaining correction is a tenth of the state-error scale, which with the
   // default absolute tolerance of 1e-3 leaves C within ~1e-4 of the manifold, not within roundoff.
   EXPECT_NEAR(state.variables_[0][C_idx], 1.0, 1.0e-3);
+  for (const micm::Index backtracks : { 0, 2 })
+  {
+    parameters.constraint_init_max_backtracks_ = backtracks;
+    state.variables_[0][C_idx] = 1.0e-6;
+    state.variables_.CopyToDevice();
+    stats = {};
+    EXPECT_EQ(solver.solver_.InitializeConstraints(state, parameters, stats), SolverState::ConstraintInitializationFailed);
+    state.variables_.CopyToHost();
+    EXPECT_EQ(state.variables_[0][B_idx], micm::Real(0.5));
+    EXPECT_EQ(state.variables_[0][C_idx], micm::Real(1.0e-6));
+  }
 }
 
 /// @brief The weighted Newton-correction measure is invariant to complete constraint-row scaling
