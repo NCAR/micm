@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791837619918,
+  "lastUpdate": 1791844085019,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -1349,6 +1349,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 43924.29,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f020eefb2013e8de8fb0e669beec622b8c58f702",
+          "message": "JPL-19 Ternary Chemical Activation rate constant (#1103)\n\n* add jpl tenerary definitions\n\n* add test, andn cuda",
+          "timestamp": "2026-10-12T15:31:13-06:00",
+          "tree_id": "f391bdf6e3340fba2981d5f5b58ccdea068f5891",
+          "url": "https://github.com/NCAR/micm/commit/f020eefb2013e8de8fb0e669beec622b8c58f702"
+        },
+        "date": 1791844084542,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 135387.35,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 133827.94,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 112138.99,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 98856.72,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 92148.7,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 71117.28,
             "unit": "ms"
           }
         ]
