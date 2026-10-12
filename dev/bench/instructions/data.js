@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791471401971,
+  "lastUpdate": 1791834998613,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -1403,6 +1403,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 219642782,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "1524012+dwfncar@users.noreply.github.com",
+            "name": "David Fillmore",
+            "username": "dwfncar"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "22a0e1ee8c7ebbc472307ad4052ba97c57749217",
+          "message": "Improve DAE Constraint Initialization (#1091)\n\nAdd a damped Newton backtracking line search to the DAE constraint\ninitialization. The solver holds the differential concentrations fixed\nand adjusts the algebraic guesses before the first time step.\n\n- Add constraint_init_max_backtracks_ (default 24, zero disables it)\n   and constraint_init_backtrack_factor_ (default 0.5)\n- Reject non-finite trial steps and restore the caller state on failure\n- Extend the cold-start test: the default succeeds, and disabled or\n   limited backtracking fails with the input restored\n\n  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-12T14:52:31-05:00",
+          "tree_id": "798f5ea28cdd766390779fc3e354d33a129b90f4",
+          "url": "https://github.com/NCAR/micm/commit/22a0e1ee8c7ebbc472307ad4052ba97c57749217"
+        },
+        "date": 1791834997878,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 528863345,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 528817769,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 361618435,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 283254261,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238545420,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 221645372,
             "unit": "instructions"
           }
         ]
