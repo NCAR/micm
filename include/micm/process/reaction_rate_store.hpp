@@ -167,8 +167,8 @@ namespace micm
     // ----------------------------------------------------------------
     // Precomputed contiguous-block offsets into state.rate_constants_[cell]
     // ----------------------------------------------------------------
-    Index off_troe_{ 0 }, off_tern_{ 0 }, off_tern19_{ 0 }, off_bran_{ 0 }, off_tunn_{ 0 }, off_tayl_{ 0 }, off_rev_{ 0 }, off_ud_{ 0 },
-        off_surf_{ 0 }, off_lambda_{ 0 };
+    Index off_troe_{ 0 }, off_tern_{ 0 }, off_tern19_{ 0 }, off_bran_{ 0 }, off_tunn_{ 0 }, off_tayl_{ 0 }, off_rev_{ 0 },
+        off_ud_{ 0 }, off_surf_{ 0 }, off_lambda_{ 0 };
 
     Index TroeOffset() const
     {
@@ -437,9 +437,9 @@ namespace micm
       const auto n_ud = static_cast<Index>(v.user_defined_.size());
       const auto n_surf = static_cast<Index>(v.surface_.size());
       const auto n_mult = static_cast<Index>(v.parameterized_multipliers_.size());
-      const Index off_troe = store.off_troe_, off_tern = store.off_tern_, off_tern19 = store.off_tern19_, off_bran = store.off_bran_,
-                  off_tunn = store.off_tunn_, off_tayl = store.off_tayl_, off_rev = store.off_rev_, off_ud = store.off_ud_,
-                  off_surf = store.off_surf_;
+      const Index off_troe = store.off_troe_, off_tern = store.off_tern_, off_tern19 = store.off_tern19_,
+                  off_bran = store.off_bran_, off_tunn = store.off_tunn_, off_tayl = store.off_tayl_,
+                  off_rev = store.off_rev_, off_ud = store.off_ud_, off_surf = store.off_surf_;
       DenseMatrix::Function(
           MICM_LAMBDA(
               const typename DenseMatrix::ViewType& rate_constants,
