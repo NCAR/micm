@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/external_model.hpp>
 #include <micm/process/process.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/matrix.hpp>
@@ -99,12 +98,6 @@ namespace micm
 
     std::unordered_map<std::string, Index> variable_map_;
 
-    std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>> external_process_sets_;
-    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, DenseMatrixPolicy&)>>
-        external_forcing_functions_;
-    std::vector<std::function<void(const DenseMatrixPolicy&, const DenseMatrixPolicy&, SparseMatrixPolicy&)>>
-        external_jacobian_functions_;
-
    public:
     /// @brief Default constructor
     ProcessSet() = default;
@@ -120,21 +113,6 @@ namespace micm
     /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
     ProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, Index>& variable_map);
 
-    /// @brief Constructs a ProcessSet as above, but also includes contributions from external models
-    /// @param processes A list of processes, each with reactants and products
-    /// @param variable_map A map from species names to their corresponding index in the solver's state
-    /// @param external_process_sets A list of external process sets that provide additional processes and Jacobian
-    /// contributions
-    /// @throws std::system_error If a reactant or product name in a process is not found in variable_map
-    ProcessSet(
-        const std::vector<Process>& processes,
-        const std::unordered_map<std::string, Index>& variable_map,
-        const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_process_sets)
-        : ProcessSet(processes, variable_map)
-    {
-      external_process_sets_ = external_process_sets;
-    }
-
     virtual ~ProcessSet() = default;
 
     /// @brief Returns the positions of all non-zero Jacobian elements
@@ -149,15 +127,6 @@ namespace micm
     /// @brief Marks species rows that should be treated as algebraic (constraints replace ODE rows)
     /// @param variable_ids Set of variable ids whose forcing/Jacobian rows should not receive kinetic contributions
     void SetAlgebraicVariableIds(const std::set<Index>& variable_ids);
-
-    /// @brief Sets external model functions for forcing terms and Jacobian contributions
-    /// @param state_parameter_indices Map of state parameter names to their indices
-    /// @param state_variable_indices Map of state variable names to their indices
-    /// @param jacobian The sparse Jacobian matrix used by the solver
-    void SetExternalModelFunctions(
-        const std::unordered_map<std::string, Index>& state_parameter_indices,
-        const std::unordered_map<std::string, Index>& state_variable_indices,
-        const SparseMatrixPolicy& jacobian);
 
     /// @brief Adds forcing terms for the set of processes for the current conditions
     /// @param state Current state containing rate constants and other relevant data
@@ -208,10 +177,7 @@ namespace micm
             jacobian_yields_,
             jacobian_flat_ids_,
             is_algebraic_variable_),
-        variable_map_(std::move(other.variable_map_)),
-        external_process_sets_(std::move(other.external_process_sets_)),
-        external_forcing_functions_(std::move(other.external_forcing_functions_)),
-        external_jacobian_functions_(std::move(other.external_jacobian_functions_))
+        variable_map_(std::move(other.variable_map_))
   {
   }
 
@@ -245,9 +211,6 @@ namespace micm
           jacobian_flat_ids_,
           is_algebraic_variable_);
       variable_map_ = std::move(other.variable_map_);
-      external_process_sets_ = std::move(other.external_process_sets_);
-      external_forcing_functions_ = std::move(other.external_forcing_functions_);
-      external_jacobian_functions_ = std::move(other.external_jacobian_functions_);
     }
     return *this;
   }
@@ -446,13 +409,6 @@ namespace micm
       react_id += number_of_reactants_[i_rxn];
       prod_id += number_of_products_[i_rxn];
     }
-
-    // Add Jacobian elements from external process sets
-    for (const auto& process_set : external_process_sets_)
-    {
-      auto external_jac_elements = process_set.non_zero_jacobian_elements_func_(variable_map_);
-      ids.insert(external_jac_elements.begin(), external_jac_elements.end());
-    }
     return ids;
   }
 
@@ -500,23 +456,6 @@ namespace micm
       is_algebraic_variable_[variable_id] = micm::Bool(true);
     }
     is_algebraic_variable_.CopyToDevice();
-  }
-
-  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::SetExternalModelFunctions(
-      const std::unordered_map<std::string, Index>& state_parameter_indices,
-      const std::unordered_map<std::string, Index>& state_variable_indices,
-      const SparseMatrixPolicy& jacobian)
-  {
-    external_forcing_functions_.clear();
-    external_jacobian_functions_.clear();
-    for (const auto& process_set : external_process_sets_)
-    {
-      external_forcing_functions_.push_back(
-          process_set.get_forcing_function_(state_parameter_indices, state_variable_indices));
-      external_jacobian_functions_.push_back(
-          process_set.get_jacobian_function_(state_parameter_indices, state_variable_indices, jacobian));
-    }
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
@@ -581,12 +520,6 @@ namespace micm
         forcing,
         state_variables,
         rate_constants)(forcing, state_variables, rate_constants);
-
-    // Add forcing contributions from external models
-    for (const auto& add_forcing_function : external_forcing_functions_)
-    {
-      add_forcing_function(state.custom_rate_parameters_, state_variables, forcing);
-    }
   };
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
@@ -661,12 +594,6 @@ namespace micm
         jacobian,
         state_variables,
         rate_constants)(jacobian, state_variables, rate_constants);
-
-    // Add Jacobian contributions from external models
-    for (const auto& add_jacobian_function : external_jacobian_functions_)
-    {
-      add_jacobian_function(state.custom_rate_parameters_, state_variables, jacobian);
-    }
   }
 
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
@@ -685,13 +612,6 @@ namespace micm
       {
         used_species.insert(product.species_.name_);
       }
-    }
-
-    // Include species used in external process sets
-    for (const auto& process_set : external_process_sets_)
-    {
-      auto external_species_used = process_set.species_used_func_();
-      used_species.insert(external_species_used.begin(), external_species_used.end());
     }
 
     return used_species;

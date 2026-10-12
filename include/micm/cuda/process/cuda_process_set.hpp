@@ -56,15 +56,6 @@ namespace micm
     /// @param variable_map A mapping of species names to concentration index
     CudaProcessSet(const std::vector<Process>& processes, const std::unordered_map<std::string, Index>& variable_map);
 
-    /// @brief Create a process set calculator for a given set of processes with external models
-    /// @param processes Processes to create calculator for
-    /// @param variable_map A mapping of species names to concentration index
-    /// @param external_models External models to include
-    CudaProcessSet(
-        const std::vector<Process>& processes,
-        const std::unordered_map<std::string, Index>& variable_map,
-        const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models);
-
     ~CudaProcessSet()
     {
       micm::cuda::FreeConstData(this->devstruct_);
@@ -163,21 +154,6 @@ namespace micm
       const std::unordered_map<std::string, Index>& variable_map)
       : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map)
   {
-    InitDevStruct();
-  }
-
-  template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
-    requires(CudaMatrix<DenseMatrixPolicy> && CudaMatrix<SparseMatrixPolicy>)
-  inline CudaProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::CudaProcessSet(
-      const std::vector<Process>& processes,
-      const std::unordered_map<std::string, Index>& variable_map,
-      const std::vector<ExternalModelProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>>& external_models)
-      : ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>(processes, variable_map, external_models)
-  {
-    if (!external_models.empty())
-    {
-      throw std::runtime_error("CudaProcessSet does not currently support external models.");
-    }
     InitDevStruct();
   }
 

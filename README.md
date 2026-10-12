@@ -12,6 +12,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8377911.svg)](https://doi.org/10.5281/zenodo.8377911)
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
+[![Try it on Compiler Explorer](https://img.shields.io/badge/try%20it%20on-Compiler%20Explorer-67c52a?logo=compilerexplorer)](https://godbolt.org/z/Khjoa8zbn)
 
 <p align="center">
   <img style="border-radius: 100%" src="docs/source/_static/icons/micm.png">
@@ -159,6 +160,8 @@ int main(const int argc, const char *argv[])
   return 0;
 }
 ```
+
+You can also [run this example on Compiler Explorer](https://godbolt.org/z/Khjoa8zbn).
 
 To build and run the example using GNU (assuming the default install location):
 ```

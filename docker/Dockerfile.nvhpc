@@ -46,7 +46,7 @@ RUN mkdir /build \
       && cmake \
         -G Ninja \
         -D CMAKE_BUILD_TYPE=Debug \
-        -D MICM_GPU_TYPE="a100" \
+        -D MICM_GPU_TYPE="rtx5060" \
         -D CMAKE_CUDA_COMPILER=nvcc \
         -D CMAKE_CXX_FLAGS="--diag_suppress not_used_in_template_function_params,nodiscard_return_type" \
         ../micm \
