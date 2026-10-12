@@ -79,6 +79,22 @@ namespace micm
     return FalloffKernel(p, temperature, air_density, 1.0);
   }
 
+  /// @brief Calculate JPL-19 Ternary Chemical Activation rate constant.
+  ///        k_total = k_f + k_int * (1 - k_f / k_inf), where k_f is the Troe falloff rate constant.
+  MICM_CONSTEXPR Real CalculateTernaryChemicalActivationJPL19(
+      const TernaryChemicalActivationJPL19Parameters& p,
+      Real temperature,
+      Real air_density)
+  {
+    Real k0 = p.k0_A_ * std::exp(p.k0_C_ / temperature) * std::pow(temperature / p.k0_D_, p.k0_B_);
+    Real kinf = p.kinf_A_ * std::exp(p.kinf_C_ / temperature) * std::pow(temperature / p.kinf_D_, p.kinf_B_);
+    Real kint = p.kint_A_ * std::exp(p.kint_C_ / temperature) * std::pow(temperature / p.kint_D_, p.kint_B_);
+    Real k0_M = k0 * air_density;
+    Real ratio = k0_M / kinf;
+    Real k_f = k0_M / (1.0 + ratio) * std::pow(p.Fc_, p.N_ / (p.N_ + std::pow(std::log10(ratio), 2.0)));
+    return k_f + kint * (1.0 - k_f / kinf);
+  }
+
   /// @brief Calculate Tunneling rate constant.
   ///        k = A * exp(-B/T + C/T^3)
   MICM_CONSTEXPR Real CalculateTunneling(const TunnelingRateConstantParameters& p, Real temperature)

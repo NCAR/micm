@@ -54,6 +54,11 @@ namespace micm::cuda
       *out(store.ternary_offset_, i) =
           micm::CalculateTernaryChemicalActivation(store.d_ternary_[i], temperature, air_density);
     }
+    for (Index i = 0; i < store.n_ternary_jpl19_; ++i)
+    {
+      *out(store.ternary_jpl19_offset_, i) =
+          micm::CalculateTernaryChemicalActivationJPL19(store.d_ternary_jpl19_[i], temperature, air_density);
+    }
     for (Index i = 0; i < store.n_branched_; ++i)
     {
       *out(store.branched_offset_, i) = micm::CalculateBranched(store.d_branched_[i], temperature, air_density);

@@ -30,6 +30,7 @@ namespace micm
       ArrheniusRateConstantParameters,
       TroeRateConstantParameters,
       TernaryChemicalActivationRateConstantParameters,
+      TernaryChemicalActivationJPL19Parameters,
       BranchedRateConstantParameters,
       TunnelingRateConstantParameters,
       TaylorSeriesRateConstantParameters,
