@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791844085019,
+  "lastUpdate": 1791906734414,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "TS1 Wall-Clock Timing": [
@@ -1403,6 +1403,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 71117.28,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ab6628c194542cf4e4241f9fbbc2a3c4c30448fd",
+          "message": "Auto-format code changes (#1104)\n\nAuto-format code using Clang-Format\n\nCo-authored-by: GitHub Actions <actions@github.com>",
+          "timestamp": "2026-10-13T09:58:14-05:00",
+          "tree_id": "cbb6f8099d7c9b5c52d944528052b04aedd926cd",
+          "url": "https://github.com/NCAR/micm/commit/ab6628c194542cf4e4241f9fbbc2a3c4c30448fd"
+        },
+        "date": 1791906732531,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 121400,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 119585.45,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 106167.44,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 87741.09,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 79567.75,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 47331.06,
             "unit": "ms"
           }
         ]
