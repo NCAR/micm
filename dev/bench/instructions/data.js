@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791903766752,
+  "lastUpdate": 1791905431660,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Instruction Counts": [
@@ -1535,6 +1535,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/NCAR/micm/commit/ab6628c194542cf4e4241f9fbbc2a3c4c30448fd"
         },
         "date": 1791903766293,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 528863345,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector1",
+            "value": 528817769,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector2",
+            "value": 361618435,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector4",
+            "value": 283254261,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector8",
+            "value": 238545420,
+            "unit": "instructions"
+          },
+          {
+            "name": "vector128",
+            "value": 221645372,
+            "unit": "instructions"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e15898ce482a979594397144c76258e1ada6b79d",
+          "message": "handling more templated cases for miam (#1098)\n\n* handling more templated cases for miam\n* Add trailing underscores to test member names for clang-tidy\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-13T10:26:24-05:00",
+          "tree_id": "887d3515ee9050a665390ab9413be161bcb2431b",
+          "url": "https://github.com/NCAR/micm/commit/e15898ce482a979594397144c76258e1ada6b79d"
+        },
+        "date": 1791905430951,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
