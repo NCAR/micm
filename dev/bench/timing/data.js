@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791903768785,
+  "lastUpdate": 1791905433823,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Wall-Clock Timing": [
@@ -1565,6 +1565,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 431.91,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kyle.shores44@gmail.com",
+            "name": "Kyle Shores",
+            "username": "K20shores"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e15898ce482a979594397144c76258e1ada6b79d",
+          "message": "handling more templated cases for miam (#1098)\n\n* handling more templated cases for miam\n* Add trailing underscores to test member names for clang-tidy\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-13T10:26:24-05:00",
+          "tree_id": "887d3515ee9050a665390ab9413be161bcb2431b",
+          "url": "https://github.com/NCAR/micm/commit/e15898ce482a979594397144c76258e1ada6b79d"
+        },
+        "date": 1791905433193,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 959.2,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 955.77,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 632.15,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 451.67,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 376.6,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 343.86,
             "unit": "ms"
           }
         ]
