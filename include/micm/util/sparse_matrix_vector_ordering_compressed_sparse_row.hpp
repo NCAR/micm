@@ -99,10 +99,11 @@ namespace micm
         for (const auto& i : diagonal_ids_)
         {
           auto elem = std::next(data.begin(), i_group * row_ids_.size() + i);
-          for (Index i_block = 0; i_block < L; ++i_block)
-          {
-            elem[i_block] += value;
-          }
+          VectorLoop<L>(
+              [&](const Index i_block)
+              {
+                elem[i_block] += value;
+              });
         }
       }
     }
@@ -317,10 +318,11 @@ namespace micm
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
         {
-          for (Index i = 0; i < L; ++i)
-          {
-            storage[i] = value;
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                storage[i] = value;
+              });
         }
         else
         {
@@ -337,10 +339,11 @@ namespace micm
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
         {
-          for (Index i = 0; i < L; ++i)
-          {
-            storage[i] = src.group_base_[src.block_offset_ + i];
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                storage[i] = src.group_base_[src.block_offset_ + i];
+              });
         }
         else
         {
@@ -355,10 +358,11 @@ namespace micm
       void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = value;
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = value;
+            });
       }
 
       /// @brief Copy a sparse-block into `vec`.
@@ -367,10 +371,11 @@ namespace micm
       void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = src.group_base_[src.block_offset_ + i];
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = src.group_base_[src.block_offset_ + i];
+            });
       }
 
       /// @brief Execute a function for every block in the matrix
@@ -381,10 +386,11 @@ namespace micm
       void ForEachBlock(Func&& func, Args&&... args) const
       {
         // Fast path: L is a compile-time constant so the compiler fully unrolls / vectorizes.
-        for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
-        {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-        }
+        VectorLoop<L>(
+            [&](const Index block_in_group)
+            {
+              func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+            });
       }
 
       /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.
@@ -581,10 +587,11 @@ namespace micm
         else
         {
           T* dst = view.group_base_ + view.block_offset_;
-          for (Index i = 0; i < L; ++i)
-          {
-            dst[i] = value;
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                dst[i] = value;
+              });
         }
       }
 
@@ -604,10 +611,11 @@ namespace micm
         {
           T* dst = dst_view.group_base_ + dst_view.block_offset_;
           const T* src = src_view.group_base_ + src_view.block_offset_;
-          for (Index i = 0; i < L; ++i)
-          {
-            dst[i] = src[i];
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                dst[i] = src[i];
+              });
         }
       }
 
@@ -618,10 +626,11 @@ namespace micm
       {
         T* dst = dst_view.group_base_ + dst_view.block_offset_;
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          dst[i] = src[start + i];
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              dst[i] = src[start + i];
+            });
       }
 
       /// @brief Assign value to every cell of the caller-owned block-variable temp.
@@ -633,10 +642,11 @@ namespace micm
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
         {
-          for (Index i = 0; i < L; ++i)
-          {
-            storage[i] = value;
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                storage[i] = value;
+              });
         }
         else
         {
@@ -653,10 +663,11 @@ namespace micm
         auto& storage = dst.Get();
         if constexpr (requires(Index i) { storage[i]; })
         {
-          for (Index i = 0; i < L; ++i)
-          {
-            storage[i] = src.group_base_[src.block_offset_ + i];
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                storage[i] = src.group_base_[src.block_offset_ + i];
+              });
         }
         else
         {
@@ -671,10 +682,11 @@ namespace micm
       void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = value;
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = value;
+            });
       }
 
       /// @brief Copy a sparse-block into `vec`.
@@ -683,20 +695,22 @@ namespace micm
       void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = src.group_base_[src.block_offset_ + i];
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = src.group_base_[src.block_offset_ + i];
+            });
       }
 
       /// @brief Execute a function for every block in the matrix
       template<typename Func, typename... Args>
       void ForEachBlock(Func&& func, Args&&... args) const
       {
-        for (Index block_in_group = 0; block_in_group < L; ++block_in_group)
-        {
-          func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-        }
+        VectorLoop<L>(
+            [&](const Index block_in_group)
+            {
+              func(GetBlockElement(block_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+            });
       }
 
       /// @brief Same as ForEachBlock but guaranteed to skip padding blocks.

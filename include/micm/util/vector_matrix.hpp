@@ -575,11 +575,12 @@ namespace micm
       Index num_groups = x_dim_ / L;
       for (Index group = 0; group < num_groups; ++group)
       {
-        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-        {
-          Index row = group * L + row_in_group;
-          func(GetRowElement(row, group, row_in_group, args)...);
-        }
+        VectorLoop<L>(
+            [&](const Index row_in_group)
+            {
+              Index row = group * L + row_in_group;
+              func(GetRowElement(row, group, row_in_group, args)...);
+            });
       }
 
       // Process remaining rows (if x_dim_ is not a multiple of L)
@@ -607,11 +608,12 @@ namespace micm
       Index num_groups = x_dim_ / L;
       for (Index group = 0; group < num_groups; ++group)
       {
-        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-        {
-          Index row = group * L + row_in_group;
-          func(GetRowElement(row, group, row_in_group, args)...);
-        }
+        VectorLoop<L>(
+            [&](const Index row_in_group)
+            {
+              Index row = group * L + row_in_group;
+              func(GetRowElement(row, group, row_in_group, args)...);
+            });
       }
 
       // Process remaining rows (if x_dim_ is not a multiple of L)
@@ -750,10 +752,11 @@ namespace micm
           }
           else
           {
-            for (Index i = 0; i < L; ++i)
-            {
-              storage[i] = value;
-            }
+            VectorLoop<L>(
+                [&](const Index i)
+                {
+                  storage[i] = value;
+                });
           }
         }
         else
@@ -778,10 +781,11 @@ namespace micm
           }
           else
           {
-            for (Index i = 0; i < L; ++i)
-            {
-              storage[i] = src.base_[i];
-            }
+            VectorLoop<L>(
+                [&](const Index i)
+                {
+                  storage[i] = src.base_[i];
+                });
           }
         }
         else
@@ -797,10 +801,11 @@ namespace micm
       void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = value;
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = value;
+            });
       }
 
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
@@ -809,20 +814,22 @@ namespace micm
       void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = src.base_[i];
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = src.base_[i];
+            });
       }
 
       /// @brief Calls a lambda function for every row in the group (including padded rows)
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
-        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-        {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-        }
+        VectorLoop<L>(
+            [&](const Index row_in_group)
+            {
+              func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+            });
       }
 
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
@@ -845,10 +852,11 @@ namespace micm
       void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         auto& acc = reducer.Reference();
-        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-        {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
-        }
+        VectorLoop<L>(
+            [&](const Index row_in_group)
+            {
+              func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+            });
       }
 
       /// @brief Same as Reduce but guaranteed to skip padding rows.
@@ -996,10 +1004,11 @@ namespace micm
         else
         {
           T* dst = view.base_;
-          for (Index i = 0; i < L; ++i)
-          {
-            dst[i] = value;
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                dst[i] = value;
+              });
         }
       }
 
@@ -1015,10 +1024,11 @@ namespace micm
         {
           T* dst = dst_view.base_;
           const T* src = src_view.base_;
-          for (Index i = 0; i < L; ++i)
-          {
-            dst[i] = src[i];
-          }
+          VectorLoop<L>(
+              [&](const Index i)
+              {
+                dst[i] = src[i];
+              });
         }
       }
 
@@ -1051,10 +1061,11 @@ namespace micm
           }
           else
           {
-            for (Index i = 0; i < L; ++i)
-            {
-              storage[i] = value;
-            }
+            VectorLoop<L>(
+                [&](const Index i)
+                {
+                  storage[i] = value;
+                });
           }
         }
         else
@@ -1080,10 +1091,11 @@ namespace micm
           }
           else
           {
-            for (Index i = 0; i < L; ++i)
-            {
-              storage[i] = src.base_[i];
-            }
+            VectorLoop<L>(
+                [&](const Index i)
+                {
+                  storage[i] = src.base_[i];
+                });
           }
         }
         else
@@ -1099,10 +1111,11 @@ namespace micm
       void Fill(Vec& vec, T value) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = value;
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = value;
+            });
       }
 
       /// @brief Copy src column into `vec[group_*L .. group_*L + num_rows_in_group_)`.
@@ -1111,19 +1124,21 @@ namespace micm
       void Copy(Vec& vec, Src&& src) const
       {
         const Index start = group_ * L;
-        for (Index i = 0; i < L; ++i)
-        {
-          vec[start + i] = src.base_[i];
-        }
+        VectorLoop<L>(
+            [&](const Index i)
+            {
+              vec[start + i] = src.base_[i];
+            });
       }
 
       template<typename Func, typename... Args>
       void ForEachRow(Func&& func, Args&&... args) const
       {
-        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-        {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
-        }
+        VectorLoop<L>(
+            [&](const Index row_in_group)
+            {
+              func(GetRowElement(row_in_group, std::forward<Args>(args))...);  // NOLINT(bugprone-use-after-move)
+            });
       }
 
       /// @brief Same as ForEachRow but guaranteed to skip padding rows.
@@ -1143,10 +1158,11 @@ namespace micm
       void Reduce(Reducer reducer, Func&& func, Args&&... args) const
       {
         auto& acc = reducer.Reference();
-        for (Index row_in_group = 0; row_in_group < L; ++row_in_group)
-        {
-          func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
-        }
+        VectorLoop<L>(
+            [&](const Index row_in_group)
+            {
+              func(GetRowElement(row_in_group, std::forward<Args>(args))..., acc);  // NOLINT(bugprone-use-after-move)
+            });
       }
 
       /// @brief Same as Reduce but guaranteed to skip padding rows.

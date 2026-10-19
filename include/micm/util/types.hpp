@@ -20,6 +20,15 @@
   #define MICM_INLINE_DEVICE_FUNCTION inline
 #endif
 
+// MICM_NO_UNROLL stops GCC from unrolling (and completely peeling) the loop that follows it.
+// micm::VectorLoop uses it. The loop is still vectorized.
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_LLVM_COMPILER) && !defined(__NVCOMPILER) && \
+    !defined(__CUDACC__)
+  #define MICM_NO_UNROLL _Pragma("GCC unroll 1")
+#else
+  #define MICM_NO_UNROLL
+#endif
+
 #ifndef MICM_DEFAULT_VECTOR_SIZE
   #define MICM_DEFAULT_VECTOR_SIZE 4
 #endif
@@ -45,6 +54,32 @@ namespace micm
   // needed: std::vector<Bool> is a bit-packed specialization, so it offers no data() pointer to hand
   // to a CUDA memcpy or to index from device code.
   using Bool = std::uint8_t;
+
+  /// @brief Calls body(i) for each i in [0, L), for the L grid cells of a vector-ordered group
+  ///
+  /// GCC completely peels a loop of up to 16 vector iterations (max-completely-peel-times). For vector
+  /// lengths 16 to 32 on aarch64, the peeled code ran 3 to 4 times slower than a loop, so for L >= 16 this
+  /// keeps the loop. For L < 16, the complete unrolling is faster, so the loop is a plain loop.
+  /// A pragma cannot depend on a template argument, so `if constexpr` selects the loop.
+  template<Index L, typename Body>
+  [[gnu::always_inline]] inline void VectorLoop(Body&& body)
+  {
+    if constexpr (L >= 16)
+    {
+      MICM_NO_UNROLL
+      for (Index i = 0; i < L; ++i)
+      {
+        body(i);
+      }
+    }
+    else
+    {
+      for (Index i = 0; i < L; ++i)
+      {
+        body(i);
+      }
+    }
+  }
 
   /// @brief A device-compatible struct for holding three indices
   struct IndexTrio
