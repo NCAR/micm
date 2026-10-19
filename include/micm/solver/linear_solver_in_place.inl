@@ -118,6 +118,44 @@ namespace micm
     SparseMatrixPolicy::Function(
         MICM_LAMBDA(const typename DenseMatrix::ViewType& x_view, const typename SparseMatrix::ConstViewType& lu_view)
         {
+          // For small vector lengths, the sums go into a temporary of L values that can stay in registers. The x
+          // columns are in the same matrix, so the compiler cannot keep x_i in registers while it reads the other
+          // x_j columns. On aarch64 with GCC 13, the temporary made the solve 1.4 times faster for L = 4, but 2 times
+          // slower for L = 8 and L = 128, so for L > 4 the sums go directly into x_i.
+          constexpr bool sum_in_registers = GROUP_VECTOR_SIZE_V<MatrixPolicy> <= 4;
+          auto sum = lu_view.GetBlockVariable();
+
+          // Subtracts count terms a_ij * x_j from x_i, with the iterator over the (a_ij, j) pairs
+          auto subtract_terms = [&](auto& x_col_i, auto& a_x, const Index count)
+          {
+            if constexpr (sum_in_registers)
+            {
+              lu_view.ForEachBlock([](Real& xi_sum, const Real& xi) { xi_sum = xi; }, sum, x_col_i);
+              for (Index k = 0; k < count; ++k)
+              {
+                lu_view.ForEachBlock(
+                    [](Real& xi_sum, const Real& aij, const Real& xj) { xi_sum -= aij * xj; },
+                    sum,
+                    lu_view.GetConstBlockView((*a_x).first_),
+                    x_view.GetConstColumnView((*a_x).second_));
+                ++a_x;
+              }
+              lu_view.ForEachBlock([](Real& xi, const Real& xi_sum) { xi = xi_sum; }, x_col_i, sum);
+            }
+            else
+            {
+              for (Index k = 0; k < count; ++k)
+              {
+                lu_view.ForEachBlock(
+                    [](Real& xi, const Real& aij, const Real& xj) { xi -= aij * xj; },
+                    x_col_i,
+                    lu_view.GetConstBlockView((*a_x).first_),
+                    x_view.GetConstColumnView((*a_x).second_));
+                ++a_x;
+              }
+            }
+          };
+
           // Forward substitution
           // b values passed in as x; overwrites b with y values
           {
@@ -125,43 +163,29 @@ namespace micm
             Index i = 0;
             for (const auto& nLij : views.nLij_)
             {
-      auto x_col_i = x_view.GetColumnView(i);
-      for (Index k = 0; k < nLij; ++k)
-      {
-        lu_view.ForEachBlock(
-            [](Real& yi, const Real& Lij, const Real& yj) { yi -= Lij * yj; },
-            x_col_i,
-            lu_view.GetConstBlockView((*Lij_yj).first_),
-            x_view.GetConstColumnView((*Lij_yj).second_));
-        ++Lij_yj;
-      }
-      ++i;
+              if (nLij > 0)
+              {
+                auto x_col_i = x_view.GetColumnView(i);
+                subtract_terms(x_col_i, Lij_yj, nLij);
+              }
+              ++i;
             }
-  }
-  // Backward substitution
-  // overwrites y values with x values
-  {
-    auto Uij_xj = views.Uij_xj_.begin();
-    Index i = views.nUij_Uii_.size();
-    for (const auto& nUij_Uii : views.nUij_Uii_)
-    {
-      --i;
-      auto x_col_i = x_view.GetColumnView(i);
-      for (Index k = 0; k < nUij_Uii.first_; ++k)
-      {
-        lu_view.ForEachBlock(
-            [](Real& xi, const Real& Uij, const Real& xj) { xi -= Uij * xj; },
-            x_col_i,
-            lu_view.GetConstBlockView((*Uij_xj).first_),
-            x_view.GetConstColumnView((*Uij_xj).second_));
-        ++Uij_xj;
-      }
-      lu_view.ForEachBlock(
-          [](Real& xi, const Real& Uii) { xi /= Uii; }, x_col_i, lu_view.GetConstBlockView(nUij_Uii.second_));
-    }
-  }
-}  // namespace micm
-,
+          }
+          // Backward substitution
+          // overwrites y values with x values
+          {
+            auto Uij_xj = views.Uij_xj_.begin();
+            Index i = views.nUij_Uii_.size();
+            for (const auto& nUij_Uii : views.nUij_Uii_)
+            {
+              --i;
+              auto x_col_i = x_view.GetColumnView(i);
+              subtract_terms(x_col_i, Uij_xj, nUij_Uii.first_);
+              lu_view.ForEachBlock(
+                  [](Real& xi, const Real& Uii) { xi /= Uii; }, x_col_i, lu_view.GetConstBlockView(nUij_Uii.second_));
+            }
+          }
+        },
         x,
         lu_matrix)(x, lu_matrix);
 }
