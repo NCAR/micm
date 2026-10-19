@@ -45,14 +45,32 @@
 namespace micm
 {
 
+  /// @brief Calculate A * exp(C / T) * (T / D)^B
+  ///        Most mechanisms have B = 0 (TS1: 360 of 361 Arrhenius reactions) or C = 0, and then a factor is exactly 1,
+  ///        so the function skips it. The multiplications keep their order, so the result is identical to the full
+  ///        expression. The terms depend only on the reaction, so the branches are the same for all grid cells.
+  MICM_CONSTEXPR Real ArrheniusTerm(Real A, Real B, Real C, Real D, Real temperature)
+  {
+    Real k = A;
+    if (C != 0.0)
+    {
+      k *= std::exp(C / temperature);
+    }
+    if (B != 0.0)
+    {
+      k *= std::pow(temperature / D, B);
+    }
+    return k;
+  }
+
   /// @brief Shared falloff kernel for Troe and TernaryChemicalActivation.
   ///        result = k0 * numerator_scale / (1 + ratio) * Fc^(N/(N + log10(ratio)^2))
   ///        Troe passes air_density as numerator_scale; Ternary passes 1.0.
   template<class FalloffParams>
   MICM_CONSTEXPR Real FalloffKernel(const FalloffParams& p, Real temperature, Real air_density, Real numerator_scale)
   {
-    Real k0 = p.k0_A_ * std::exp(p.k0_C_ / temperature) * std::pow(temperature / 300.0, p.k0_B_);
-    Real kinf = p.kinf_A_ * std::exp(p.kinf_C_ / temperature) * std::pow(temperature / 300.0, p.kinf_B_);
+    Real k0 = ArrheniusTerm(p.k0_A_, p.k0_B_, p.k0_C_, 300.0, temperature);
+    Real kinf = ArrheniusTerm(p.kinf_A_, p.kinf_B_, p.kinf_C_, 300.0, temperature);
     Real ratio = k0 * air_density / kinf;
     return k0 * numerator_scale / (1.0 + ratio) * std::pow(p.Fc_, p.N_ / (p.N_ + std::pow(std::log10(ratio), 2.0)));
   }
@@ -61,7 +79,7 @@ namespace micm
   ///        k = A * exp(C/T) * (T/D)^B * (1 + E*P)
   MICM_CONSTEXPR Real CalculateArrhenius(const ArrheniusRateConstantParameters& p, Real temperature, Real pressure)
   {
-    return p.A_ * std::exp(p.C_ / temperature) * std::pow(temperature / p.D_, p.B_) * (1.0 + p.E_ * pressure);
+    return ArrheniusTerm(p.A_, p.B_, p.C_, p.D_, temperature) * (1.0 + p.E_ * pressure);
   }
 
   /// @brief Calculate Troe rate constant.
@@ -86,9 +104,9 @@ namespace micm
       Real temperature,
       Real air_density)
   {
-    Real k0 = p.k0_A_ * std::exp(p.k0_C_ / temperature) * std::pow(temperature / p.k0_D_, p.k0_B_);
-    Real kinf = p.kinf_A_ * std::exp(p.kinf_C_ / temperature) * std::pow(temperature / p.kinf_D_, p.kinf_B_);
-    Real kint = p.kint_A_ * std::exp(p.kint_C_ / temperature) * std::pow(temperature / p.kint_D_, p.kint_B_);
+    Real k0 = ArrheniusTerm(p.k0_A_, p.k0_B_, p.k0_C_, p.k0_D_, temperature);
+    Real kinf = ArrheniusTerm(p.kinf_A_, p.kinf_B_, p.kinf_C_, p.kinf_D_, temperature);
+    Real kint = ArrheniusTerm(p.kint_A_, p.kint_B_, p.kint_C_, p.kint_D_, temperature);
     Real k0_M = k0 * air_density;
     Real ratio = k0_M / kinf;
     Real k_f = k0_M / (1.0 + ratio) * std::pow(p.Fc_, p.N_ / (p.N_ + std::pow(std::log10(ratio), 2.0)));
@@ -124,7 +142,7 @@ namespace micm
     {
       poly += p.coefficients_[j] * t_pow;
     }
-    return poly * p.A_ * std::exp(p.C_ / temperature) * std::pow(temperature / p.D_, p.B_) * (1.0 + p.E_ * pressure);
+    return ArrheniusTerm(poly * p.A_, p.B_, p.C_, p.D_, temperature) * (1.0 + p.E_ * pressure);
   }
 
   /// @brief Calculate Reversible rate constant.
