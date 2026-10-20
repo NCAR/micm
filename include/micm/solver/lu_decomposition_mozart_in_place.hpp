@@ -44,18 +44,18 @@ namespace micm
    public:
     struct Views
     {
-      VectorView<IndexTrio> aii_nji_nki_;
-      VectorView<Index> aji_;
-      VectorView<IndexPair> aik_njk_;
-      VectorView<IndexPair> ajk_aji_;
+      VectorView<CompactIndexTrio> aii_nji_nki_;
+      VectorView<CompactIndex> aji_;
+      VectorView<CompactIndexPair> aik_njk_;
+      VectorView<CompactIndexPair> ajk_aji_;
 
       Views() = default;
 
       Views(
-          const Vector<IndexTrio>& aii_nji_nki,
-          const Vector<Index>& aji,
-          const Vector<IndexPair>& aik_njk,
-          const Vector<IndexPair>& ajk_aji)
+          const Vector<CompactIndexTrio>& aii_nji_nki,
+          const Vector<CompactIndex>& aji,
+          const Vector<CompactIndexPair>& aik_njk,
+          const Vector<CompactIndexPair>& ajk_aji)
           : aii_nji_nki_(aii_nji_nki.GetView()),
             aji_(aji.GetView()),
             aik_njk_(aik_njk.GetView()),
@@ -68,15 +68,15 @@ namespace micm
     /// Index in A.data_ for all diagonal elements, the number of iterations of the inner (j) loop
     /// for each (i) used to set A[j][i], and the number of iterations of the middle (k) loop for
     /// each (i) used to set A[j][k]
-    Vector<IndexTrio> aii_nji_nki_;
+    Vector<CompactIndexTrio> aii_nji_nki_;
     /// Index in A.data_ for A[j][i] for each iteration of the inner (j) loop
     /// used to set the value of A[j][i]
-    Vector<Index> aji_;
+    Vector<CompactIndex> aji_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop,
     /// and the number of iterations of the inner (j) loop for each (k) used to set A[j][k]
-    Vector<IndexPair> aik_njk_;
+    Vector<CompactIndexPair> aik_njk_;
     /// Index in A.data_ for A[j][k] and A[j][i] for each iteration of the inner (j) loop
-    Vector<IndexPair> ajk_aji_;
+    Vector<CompactIndexPair> ajk_aji_;
     /// MICM_LAMBDA compatible views of the index vectors
     Views views_;
 

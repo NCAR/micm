@@ -13,10 +13,10 @@ namespace micm::cuda
     Index tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
     // Local device variables
-    const IndexTrio* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
-    const Index* __restrict__ d_aji = devstruct.aji_;
-    const IndexPair* __restrict__ d_aik_njk = devstruct.aik_njk_;
-    const IndexPair* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
+    const CompactIndexTrio* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
+    const CompactIndex* __restrict__ d_aji = devstruct.aji_;
+    const CompactIndexPair* __restrict__ d_aik_njk = devstruct.aik_njk_;
+    const CompactIndexPair* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
     const Index d_aii_nji_nki_size = devstruct.aii_nji_nki_size_;
 
     Real* __restrict__ d_ALU = ALU_param.d_data_;
@@ -64,10 +64,10 @@ namespace micm::cuda
   LuDecomposeMozartInPlaceParam CopyConstData(LuDecomposeMozartInPlaceParam& hoststruct)
   {
     /// Calculate the memory space of each constant data member
-    Index aii_nji_nki_bytes = sizeof(std::tuple<Index, Index, Index>) * hoststruct.aii_nji_nki_size_;
-    Index aji_bytes = sizeof(Index) * hoststruct.aji_size_;
-    Index aik_njk_bytes = sizeof(std::pair<Index, Index>) * hoststruct.aik_njk_size_;
-    Index ajk_aji_bytes = sizeof(std::pair<Index, Index>) * hoststruct.ajk_aji_size_;
+    Index aii_nji_nki_bytes = sizeof(CompactIndexTrio) * hoststruct.aii_nji_nki_size_;
+    Index aji_bytes = sizeof(CompactIndex) * hoststruct.aji_size_;
+    Index aik_njk_bytes = sizeof(CompactIndexPair) * hoststruct.aik_njk_size_;
+    Index ajk_aji_bytes = sizeof(CompactIndexPair) * hoststruct.ajk_aji_size_;
 
     /// Create a struct whose members contain the addresses in the device memory.
     LuDecomposeParam devstruct;

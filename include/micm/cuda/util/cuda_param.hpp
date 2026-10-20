@@ -54,10 +54,11 @@ struct ProcessSetParam
 /// This struct could be allocated on the host or device;
 struct LuDecomposeMozartInPlaceParam
 {
-  micm::IndexTrio* aii_nji_nki_ = nullptr;
-  micm::Index* aji_ = nullptr;
-  micm::IndexPair* aik_njk_ = nullptr;
-  micm::IndexPair* ajk_aji_ = nullptr;
+  // 32-bit offsets, the same types as the index lists of LuDecompositionMozartInPlace
+  micm::CompactIndexTrio* aii_nji_nki_ = nullptr;
+  micm::CompactIndex* aji_ = nullptr;
+  micm::CompactIndexPair* aik_njk_ = nullptr;
+  micm::CompactIndexPair* ajk_aji_ = nullptr;
   micm::Index aii_nji_nki_size_;
   micm::Index aji_size_;
   micm::Index aik_njk_size_;

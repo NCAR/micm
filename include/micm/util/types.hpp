@@ -96,4 +96,25 @@ namespace micm
     Index second_;
   };
 
+  /// @brief A 32-bit index for the large index lists of the solver kernels
+  ///        The index lists of the in-place Mozart LU decomposition hold offsets inside one group of the sparse
+  ///        matrix, which fit in 32 bits for any practical mechanism. With half the size, a kernel at a small vector
+  ///        length loads half the index bytes for each multiply-add.
+  using CompactIndex = std::uint32_t;
+
+  /// @brief A device-compatible struct for holding three 32-bit indices
+  struct CompactIndexTrio
+  {
+    CompactIndex first_;
+    CompactIndex second_;
+    CompactIndex third_;
+  };
+
+  /// @brief A device-compatible struct for holding pairs of 32-bit indices
+  struct CompactIndexPair
+  {
+    CompactIndex first_;
+    CompactIndex second_;
+  };
+
 }  // namespace micm

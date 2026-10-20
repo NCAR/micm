@@ -3,6 +3,9 @@
 
 #include <micm/util/types.hpp>
 
+#include <limits>
+#include <stdexcept>
+
 namespace micm
 {
 
@@ -63,24 +66,33 @@ namespace micm
   {
     Index n = matrix.NumRows();
     auto ALU = GetLUMatrix(matrix, initial_value, true);
-    std::vector<IndexTrio> aii_nji_nki_temp;
-    std::vector<Index> aji_temp;
-    std::vector<IndexPair> aik_njk_temp;
-    std::vector<IndexPair> ajk_aji_temp;
+    std::vector<CompactIndexTrio> aii_nji_nki_temp;
+    std::vector<CompactIndex> aji_temp;
+    std::vector<CompactIndexPair> aik_njk_temp;
+    std::vector<CompactIndexPair> ajk_aji_temp;
+    // The offsets are inside one group of the LU matrix. Check that each one fits in a CompactIndex.
+    auto compact = [](Index index)
+    {
+      if (index > std::numeric_limits<CompactIndex>::max())
+      {
+        throw std::runtime_error("LU matrix offset does not fit in a 32-bit index");
+      }
+      return static_cast<CompactIndex>(index);
+    };
     for (Index i = 0; i < n; ++i)
     {
       if (ALU.IsZero(i, i))
       {
         throw std::runtime_error("Diagonal element is zero in LU decomposition");
       }
-      IndexTrio aii_nji_nki(ALU.VectorIndex(0, i, i), 0, 0);
+      CompactIndexTrio aii_nji_nki(compact(ALU.VectorIndex(0, i, i)), 0, 0);
       for (Index j = i + 1; j < n; ++j)
       {
         if (ALU.IsZero(j, i))
         {
           continue;
         }
-        aji_temp.push_back(ALU.VectorIndex(0, j, i));
+        aji_temp.push_back(compact(ALU.VectorIndex(0, j, i)));
         ++(aii_nji_nki.second_);
       }
       for (Index k = i + 1; k < n; ++k)
@@ -89,14 +101,14 @@ namespace micm
         {
           continue;
         }
-        IndexPair aik_njk(ALU.VectorIndex(0, i, k), 0);
+        CompactIndexPair aik_njk(compact(ALU.VectorIndex(0, i, k)), 0);
         for (Index j = i + 1; j < n; ++j)
         {
           if (ALU.IsZero(j, i))
           {
             continue;
           }
-          IndexPair ajk_aji(ALU.VectorIndex(0, j, k), ALU.VectorIndex(0, j, i));
+          CompactIndexPair ajk_aji(compact(ALU.VectorIndex(0, j, k)), compact(ALU.VectorIndex(0, j, i)));
           ajk_aji_temp.push_back(ajk_aji);
           ++(aik_njk.second_);
         }
