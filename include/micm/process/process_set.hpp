@@ -458,9 +458,11 @@ namespace micm
     is_algebraic_variable_.CopyToDevice();
   }
 
+  // The solver calls this function from two places. GCC can inline it into one of them, and the inlined copy runs
+  // more instructions than the separate function, so keep it separate.
   template<typename DenseMatrixPolicy, typename SparseMatrixPolicy>
   template<class StatePolicy>
-  inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
+  [[gnu::noinline]] inline void ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>::AddForcingTerms(
       const StatePolicy& state,
       const DenseMatrixPolicy& state_variables,
       DenseMatrixPolicy& forcing) const
