@@ -134,7 +134,7 @@ micm::Real CalculateAirDensityMolM3(micm::Real pressure, micm::Real temperature)
   return pressure / (micm::constants::GAS_CONSTANT * temperature);
 }
 
-using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 // Test the analytical solution for a simple A -k1-> B -k2-> C system
 template<class BuilderPolicy>

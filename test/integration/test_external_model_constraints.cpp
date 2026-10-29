@@ -18,8 +18,9 @@
 
 using namespace micm;
 
-using DenseMatrix = Matrix<micm::Real>;
-using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+// The types that the default CpuSolverBuilder uses
+using SolverDenseMatrix = VectorMatrix<micm::Real, MICM_DEFAULT_VECTOR_SIZE>;
+using SolverSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
 /// @brief Constraint-only external model that enforces K_eq * [reactant] - [product] = 0
 ///
@@ -595,8 +596,8 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
 
   // Built-in constraint: B <-> C equilibrium
   micm::Real K_eq = 5.0;
-  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+  std::vector<Constraint<SolverDenseMatrix, SolverSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<SolverDenseMatrix, SolverSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
@@ -1025,8 +1026,8 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
                              .Build();
 
   // Built-in constraint solver
-  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+  std::vector<Constraint<SolverDenseMatrix, SolverSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<SolverDenseMatrix, SolverSparseMatrix>(
       "B_C_eq",
       C,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
@@ -1329,8 +1330,8 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInBuiltInAlgebraicRowSurviv
   StubAerosolWithConstraints aerosol(0.1);
 
   // Built-in constraint: K_eq * [B] - [A_AQ] = 0, with A_AQ as the algebraic species
-  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+  std::vector<Constraint<SolverDenseMatrix, SolverSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<SolverDenseMatrix, SolverSparseMatrix>(
       "B_AQ_eq",
       A_AQ,
       std::vector<micm::StoichSpecies>{ { B, 1.0 } },
@@ -1363,7 +1364,7 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInBuiltInAlgebraicRowSurviv
 // ═══════════════════════════════════════════════════════════════
 
 using DenseMatrix = micm::Matrix<micm::Real>;
-using SparseMatrixFD = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+using SparseMatrixFD = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 /// Verify StubAerosolWithConstraints process forcing/Jacobian
 TEST(ExternalModelFiniteDifferenceJacobian, ProcessForcingJacobian)
@@ -1920,8 +1921,8 @@ TEST(ExternalModelConstraints, BuilderCanBuildMultipleSolvers)
                              .Build();
 
   // Built-in constraint: 2 * [A] - [D] = 0, with D as the algebraic species
-  std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+  std::vector<Constraint<SolverDenseMatrix, SolverSparseMatrix>> constraints;
+  constraints.emplace_back(EquilibriumConstraint<SolverDenseMatrix, SolverSparseMatrix>(
       "A_D_eq",
       D,
       std::vector<micm::StoichSpecies>{ { A, 1.0 } },

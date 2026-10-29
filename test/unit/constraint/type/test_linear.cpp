@@ -9,7 +9,7 @@
 #include <micm/util/jacobian_verification.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -22,7 +22,7 @@
 
 using namespace micm;
 using DenseMatrix = Matrix<Real>;
-using StdSparseMatrix = SparseMatrix<micm::Real, SparseMatrixStandardOrdering>;
+using StdSparseMatrix = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 TEST(LinearConstraint, Construction)
 {

@@ -6,7 +6,6 @@
 #include <micm/CPU.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>

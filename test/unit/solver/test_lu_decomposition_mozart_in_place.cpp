@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 using Group1SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 using Group2SparseVectorMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<2>>;
@@ -20,23 +20,23 @@ using LUVector2 = micm::LuDecompositionMozartInPlace<Group2SparseVectorMatrix>;
 using LUVector3 = micm::LuDecompositionMozartInPlace<Group3SparseVectorMatrix>;
 using LUVector4 = micm::LuDecompositionMozartInPlace<Group4SparseVectorMatrix>;
 
-TEST(LuDecompositionMozartInPlace, DenseMatrixStandardOrdering)
+TEST(LuDecompositionMozartInPlace, DenseMatrixVectorLength1)
 {
   TestDenseMatrix<SparseMatrixTest, LUStandard>();
 }
 
-TEST(LuDecompositionMozartInPlace, RandomMatrixStandardOrdering)
+TEST(LuDecompositionMozartInPlace, RandomMatrixVectorLength1)
 {
   TestRandomMatrix<SparseMatrixTest, LUStandard>(1);
   TestRandomMatrix<SparseMatrixTest, LUStandard>(5);
 }
 
-TEST(LuDecompositionMozartInPlace, DiagonalMatrixStandardOrdering)
+TEST(LuDecompositionMozartInPlace, DiagonalMatrixVectorLength1)
 {
   TestDiagonalMatrix<SparseMatrixTest, LUStandard>(5);
 }
 
-TEST(LuDecompositionMozartInPlace, AgnosticToInitialValueStandardOrdering)
+TEST(LuDecompositionMozartInPlace, AgnosticToInitialValueVectorLength1)
 {
   micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)

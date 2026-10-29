@@ -47,7 +47,7 @@ TEST(RegressionRosenbrock, Forcing)
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = GetChapmanSolver(builder);
-  TestForcing<micm::Matrix<micm::Real>>(solver);
+  TestForcing<micm::VectorMatrix<micm::Real, MICM_DEFAULT_VECTOR_SIZE>>(solver);
 }
 
 TEST(RegressionRosenbrock, VectorForcing)

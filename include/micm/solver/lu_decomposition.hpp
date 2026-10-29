@@ -18,9 +18,6 @@ namespace micm
     { t.Decompose(std::declval<SparseMatrixPolicy&>()) };
   };
   static_assert(
-      LuDecompositionInPlaceConcept<LuDecompositionMozartInPlace<StandardSparseMatrix>, StandardSparseMatrix>,
-      "LuDecompositionMozartInPlace does not meet the LuDecompositionInPlaceConcept requirements");
-  static_assert(
       LuDecompositionInPlaceConcept<
           LuDecompositionMozartInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,

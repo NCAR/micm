@@ -61,7 +61,7 @@ struct SimpleConstrainedSystem
 };
 
 using StandardBuilder =
-    CpuSolverBuilder<RosenbrockSolverParameters, Matrix<micm::Real>, SparseMatrix<micm::Real, SparseMatrixStandardOrdering>>;
+    CpuSolverBuilder<RosenbrockSolverParameters, Matrix<micm::Real>, SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>>;
 
 /// @brief Projection-only system: Z is slaved to X by row_scale * (X - Z) = 0, so the
 ///        algebraic solution is Z = X for every row scale.

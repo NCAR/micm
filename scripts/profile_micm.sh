@@ -29,7 +29,7 @@
 #   LU_TYPE      = in-place (the only value)
 #   LU_ALGORITHM = mozart (the only value)
 #   MECHANISM    = chapman (other option: ts1)
-#   MATRIX       = standard vector1 vector2 vector4 vector8 vector128
+#   MATRIX       = vector1 vector2 vector4 vector8 vector128
 #
 # CI runs both mechanisms at the same CELLS and STEPS, so the two differ only in
 # the mechanism. ts1 has 547 reactions against Chapman's 7, and callgrind
@@ -60,7 +60,7 @@ mechanism="${7:-chapman}"
 shift $(( $# > 7 ? 7 : $# )) || true
 kinds=("$@")
 if [[ ${#kinds[@]} -eq 0 ]]; then
-  kinds=(standard vector1 vector2 vector4 vector8 vector128)
+  kinds=(vector1 vector2 vector4 vector8 vector128)
 fi
 
 bin="${build}/micm_bench"

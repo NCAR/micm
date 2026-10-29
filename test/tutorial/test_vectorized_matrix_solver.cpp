@@ -82,7 +82,13 @@ int main()
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const micm::Index number_of_grid_cells = 3;
 
-  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetSystem(system).SetReactions(reactions).Build();
+  auto solver = CpuSolverBuilder<
+                    RosenbrockSolverParameters,
+                    VectorMatrix<micm::Real, 1>,
+                    SparseMatrix<micm::Real, SparseMatrixVectorOrdering<1>>>(params)
+                    .SetSystem(system)
+                    .SetReactions(reactions)
+                    .Build();
 
   auto state = solver.GetState(number_of_grid_cells);
 
@@ -138,12 +144,14 @@ int main()
     std::cout << std::endl;
   }
 
-  micm::SparseMatrix<std::string> sparse_matrix{ micm::SparseMatrix<std::string>::Create(4)
-                                                     .WithElement(0, 1)
-                                                     .WithElement(2, 1)
-                                                     .WithElement(2, 3)
-                                                     .WithElement(3, 2)
-                                                     .SetNumberOfBlocks(3) };
+  micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<1>> sparse_matrix{
+    micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<1>>::Create(4)
+        .WithElement(0, 1)
+        .WithElement(2, 1)
+        .WithElement(2, 3)
+        .WithElement(3, 2)
+        .SetNumberOfBlocks(3)
+  };
 
   micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>> sparse_vector_matrix{
     micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::Create(4)
@@ -167,12 +175,12 @@ int main()
   sparse_matrix[2][2][3] = sparse_vector_matrix[2][2][3] = "2.2.3";
   sparse_matrix[2][3][2] = sparse_vector_matrix[2][3][2] = "2.3.2";
 
-  std::cout << std::endl << "Sparse matrix standard ordering elements" << std::endl;
+  std::cout << std::endl << "Sparse matrix elements, vector length 1" << std::endl;
   for (auto& elem : sparse_matrix.AsVector())
   {
     std::cout << elem << std::endl;
   }
-  std::cout << std::endl << "Sparse matrix vector ordering elements" << std::endl;
+  std::cout << std::endl << "Sparse matrix elements, vector length 3" << std::endl;
   for (auto& elem : sparse_vector_matrix.AsVector())
   {
     std::cout << elem << std::endl;

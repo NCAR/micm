@@ -5,6 +5,7 @@
 
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/util/view_category.hpp>
@@ -50,12 +51,12 @@ TEST(ViewCategorySFINAE, MatrixViews)
 TEST(ViewCategorySFINAE, SparseMatrixViews)
 {
   // Sparse matrix block views should have SparseMatrixBlockViewTag
-  using SparseBlockView = SparseMatrix<micm::Real>::BlockView;
+  using SparseBlockView = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>::BlockView;
   static_assert(std::same_as<ViewCategory_t<SparseBlockView>, SparseMatrixBlockViewTag>);
   static_assert(SparseMatrixBlockView<SparseBlockView>);
   static_assert(!VectorLike<SparseBlockView>);
 
-  using SparseConstBlockView = SparseMatrix<micm::Real>::ConstBlockView;
+  using SparseConstBlockView = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>::ConstBlockView;
   static_assert(std::same_as<ViewCategory_t<SparseConstBlockView>, SparseMatrixBlockViewTag>);
   static_assert(SparseMatrixBlockView<SparseConstBlockView>);
   static_assert(!VectorLike<SparseConstBlockView>);
@@ -66,7 +67,7 @@ TEST(ViewCategorySFINAE, MatrixTypesExcluded)
   // Matrix types themselves should be excluded from VectorLike
   static_assert(!VectorLike<Matrix<micm::Real>>);
   static_assert(!VectorLike<VectorMatrix<micm::Real, 4>>);
-  static_assert(!VectorLike<SparseMatrix<micm::Real>>);
+  static_assert(!VectorLike<SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>>);
 }
 
 TEST(ViewCategorySFINAE, RuntimeVectorUse)

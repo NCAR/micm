@@ -1321,7 +1321,7 @@ void TestIncompatibleOrdering()
     auto sparseBuilder = SparseMatrix::Create(4).WithElement(0, 1).WithElement(1, 2).SetNumberOfBlocks(3);
     SparseMatrixPolicy<micm::Real, OrderingPolicy> sparseMatrix{ sparseBuilder };
 
-    // Dense matrix with standard ordering (L = 1)
+    // Dense matrix with no vector grouping (L = 1)
     DenseMatrix denseMatrix{ 3, 4, 0.0 };
 
     // This should throw during validation (before lambda execution)

@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 TEST(ChapmanIntegration, CanBuildChapmanSystem)
 {

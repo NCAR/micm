@@ -3,7 +3,6 @@
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -12,7 +11,7 @@
 
 #include <random>
 
-using SparseMatrixTest = micm::SparseMatrix<micm::Real>;
+using SparseMatrixTest = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 using Group1VectorMatrix = micm::VectorMatrix<micm::Real, 1>;
 using Group2VectorMatrix = micm::VectorMatrix<micm::Real, 2>;

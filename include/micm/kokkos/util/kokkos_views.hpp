@@ -176,7 +176,7 @@ namespace micm
   /// @brief A block-local temporary variable with its own device-callable storage.
   ///
   /// Mirrors the ordering policy's `BlockVariable`: a `Kokkos::Array<T, L>` when
-  /// blocks are grouped (`L > 1`), or a bare scalar `T` for standard ordering
+  /// blocks are grouped (`L > 1`), or a bare scalar `T` for vector length 1
   /// (`L == 1`). Accessors are `KOKKOS_INLINE_FUNCTION` so instances can be
   /// constructed and used inside a `KOKKOS_LAMBDA`.
   template<class T, Index L>

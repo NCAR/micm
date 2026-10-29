@@ -19,15 +19,14 @@
 //      grouped tag are dispatched to (verified by relying on their behaviour
 //      for a mixed dense + sparse call, which the fallback overloads compute
 //      via different arithmetic paths).
-//   4. That the L=1 degenerate case (plain Matrix, VectorMatrix<1>, standard-
-//      ordered SparseMatrix) works identically to L>1.
+//   4. That the L=1 degenerate case (plain Matrix, VectorMatrix<1>, vector-length-1
+//      SparseMatrix) works identically to L>1.
 //   5. That the const variant of a mutable GroupView also produces a grouped
 //      view (via GetConstColumnView / GetConstBlockView on a mutable GroupView).
 
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_row.hpp>
-#include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -59,7 +58,7 @@ TEST(GroupedView, CategoryTagsAreDistinct)
   static_assert(!GroupedSparseMatrixBlockView<GCV>);
   static_assert(!VectorLike<GCV>);
 
-  using GBV = SparseMatrix<micm::Real>::GroupView::GroupedBlockView;
+  using GBV = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>::GroupView::GroupedBlockView;
   static_assert(GroupedSparseMatrixBlockView<GBV>);
   static_assert(!SparseMatrixBlockView<GBV>);
   static_assert(!DenseMatrixColumnView<GBV>);
@@ -265,8 +264,8 @@ TEST(GroupedView, PlainMatrixGroupedRoundTrip)
 TEST(GroupedView, SparseStandardBlockViewRoundTrip)
 {
   auto builder =
-      SparseMatrix<micm::Real>::Create(3).WithElement(0, 1).WithElement(1, 2).WithElement(2, 2).SetNumberOfBlocks(2);
-  SparseMatrix<micm::Real> matrix{ builder };
+      SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>::Create(3).WithElement(0, 1).WithElement(1, 2).WithElement(2, 2).SetNumberOfBlocks(2);
+  SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
   matrix[0][0][1] = 1.0;
   matrix[0][1][2] = 2.0;
   matrix[0][2][2] = 3.0;
@@ -274,15 +273,15 @@ TEST(GroupedView, SparseStandardBlockViewRoundTrip)
   matrix[1][1][2] = 20.0;
   matrix[1][2][2] = 30.0;
 
-  // Group 1 = block 1 for standard ordering (L=1).
-  SparseMatrix<micm::Real>::GroupView group1(matrix, 1);
+  // Group 1 = block 1 for vector length 1 (L=1).
+  SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>::GroupView group1(matrix, 1);
   auto v01_mut = group1.GetBlockView(matrix.VectorIndex(0, 0, 1));
   auto v12_const = group1.GetConstBlockView(matrix.VectorIndex(0, 1, 2));
   static_assert(GroupedSparseMatrixBlockView<decltype(v01_mut)>);
   static_assert(GroupedSparseMatrixBlockView<decltype(v12_const)>);
 
   // group_base_ points at the start of block 1's data slice; offset picks the
-  // right non-zero element. For standard ordering block_in_group is always 0.
+  // right non-zero element. For vector length 1, block_in_group is always 0.
   EXPECT_EQ(v01_mut.group_base_[v01_mut.block_offset_], 10.0);
   EXPECT_EQ(v12_const.group_base_[v12_const.block_offset_], 20.0);
 
@@ -563,7 +562,7 @@ namespace
 
 TEST(GroupedView, FillAndCopySparseStandardCSR)
 {
-  using SM = SparseMatrix<micm::Real, SparseMatrixStandardOrderingCompressedSparseRow>;
+  using SM = SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>;
   // Standard ordering: L=1 (one "group" per block).
   auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(2);
   SM matrix{ builder };

@@ -53,8 +53,9 @@ Matrix types in micm
 ``micm`` has its own matrix types. These provide dense matrices (for species concentrations, reaction rates, etc.),
 and sparse matrices (for the Jacobian matrix).
 The elements of these matrices are placed in a contiguous vector, in an effort to minimize cache misses.
-Both dense and sparse matrices also have two strategies for element ordering available: standard and vector.
-The vector-ordering strategy is intented to encourage vectorization of the solver code.
+The solvers use the vector ordering. The vector length ``L`` is the number of grid cells in each group.
+The cells of a group are contiguous in memory, so that the compiler can vectorize the solver code.
+With ``L = 1``, the elements are in the same order as in a standard row-by-row matrix.
 
 Dense and sparse matrix types are described in more detail below.
 
@@ -64,29 +65,30 @@ Dense matrix
    :alt: dense matrix ordering
    :figclass: transparent-image
 
-   Element ordering for standard (left) and vector (right) ordered dense matrices.
+   Element ordering for vector length 1 (left) and a larger vector length (right) in dense matrices.
 
 
-* :cpp:class:`micm::Matrix`, a dense matrix, what you probably think of when you think of a matrix, with the caveat that all rows and columns live in one long array
+* :cpp:class:`micm::VectorMatrix`, the dense matrix that the solvers use. In each group of ``L`` rows (grid cells), the data is ordered such that columns, rather than rows, are contiguous in memory.
 
-* :cpp:class:`micm::VectorMatrix`, the same as :cpp:class:`micm::Matrix`, except that the data is ordered such that columns, rather than rows, are contiguous in memory.
+* :cpp:class:`micm::Matrix`, a general dense matrix with all rows and columns in one long array. The solvers do not use it.
 
 
-Dense matrix: standard ordering
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dense matrix: vector length 1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solvers like this:
+First, we create a solver with a vector length of 1, so each group holds one grid cell:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 87-91
+  :lines: 85-91
 
-The empty angle brackets ``<>`` tell the compiler to use the default template paramters. The first two are most important and
-denote the ``MatrixPolicy`` and ``SparseMatrixPolicy`` to be used when we solve. By default, these are :cpp:class:`micm::Matrix`
-and :cpp:class:`micm::SparseMatrix`. The most visible data affected by these paratemeters is the state's 
-:cpp:member:`micm::State::variables_` parameter, representing the concnetration of each of the species. 
+The template arguments after the solver parameters are the ``DenseMatrixPolicy`` and the ``SparseMatrixPolicy``.
+If you leave them out, the solver uses :cpp:class:`micm::VectorMatrix` and :cpp:class:`micm::SparseMatrix`
+with the vector length ``MICM_DEFAULT_VECTOR_SIZE``.
+The most visible data affected by these parameters is the state's :cpp:member:`micm::State::variables_` parameter,
+representing the concentration of each of the species.
 
-After we created that first ``solver``, if we get a state and set the concentration of the species and then print them,
+If we get a state from this ``solver``, set the concentration of the species, and then print them,
 they are printed in order of grid cell (columns) first and then species (rows).
 Here, when setting the species, read the double as ``grid cell.species``.
 
@@ -106,18 +108,15 @@ Here, when setting the species, read the double as ``grid cell.species``.
   3.2
   3.3
 
-Dense matrix: vector ordering
+Dense matrix: vector length 3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-But, if we create a vectorized solver, set the same concentrations and print out the state variables, we see that it is organized
-first by species (rows) and then by grid cell (columns).
-Note that we needed to set some partial template specializations at the top of the file to create these.
-
-To create a vectorized solver, we must pass the appropriate templates as the template arguments to the Rosenbrock solver class.
+But, if we create a solver with a vector length of 3, set the same concentrations and print out the state variables,
+we see that it is organized first by species (rows) and then by grid cell (columns).
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 106-114
+  :lines: 106-125
 
 .. code-block:: bash
 
@@ -137,7 +136,7 @@ solver, each operation will use the same ordering for all of the data structures
 It's important to note that regardless of the ordering policy, matrix elements can always be accessed using
 standard square-bracket notation: ``matrix[column][row]``.
 It's only when accessing the underlying data vector directly that you need to pay attention to the ordering strategy.
-In fact, you can use the vectorized solver just as you would the regular solver, and the same output is produced.
+In fact, both solvers produce the same output.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
@@ -174,29 +173,23 @@ diagonal has the same sparsity structure.
    :alt: sparse matrix ordering
    :figclass: transparent-image
 
-   Element ordering for standard (left) and vector (right) ordered block-diagonal sparse matrices.
+   Element ordering for vector length 1 (left) and a larger vector length (right) in block-diagonal sparse matrices.
 
 
 * :cpp:class:`micm::SparseMatrix`, a `sparse matrix <https://en.wikipedia.org/wiki/Sparse_matrix>`_ data structure
 
-   * The sparse matrix allows you to select the standard or vector ordering by applying a ordering policy to the :cpp:class:`micm::SparseMatrix` type.
-
-      * :cpp:class:`micm::SparseMatrixStandardOrderingCompressedSparseRow`
-
-      * :cpp:class:`micm::SparseMatrixVectorOrderingCompressedSparseRow`
+   * The ordering policy is :cpp:class:`micm::SparseMatrixVectorOrderingCompressedSparseRow`, with the alias ``micm::SparseMatrixVectorOrdering<L>``.
 
 
-To demonstrate the effects of the ordering policy on sparse matrix objects, we create the same sparse matrix
-using each ordering policy:
+To demonstrate the effects of the vector length on sparse matrix objects, we create the same sparse matrix
+with vector lengths 1 and 3:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 136-152
+  :lines: 147-163
 
-Standard ordering is the default, and thus does not have to be specified as a template parameter.
-When creating vector-ordered matrices, specify the second template argument using
-``micm::SparseMatrixVectorOrdering<L>`` where ``L`` is the number of blocks (i.e. grid cells) in the
-block diagonal matrix.
+The ordering has no default, so specify the second template argument as
+``micm::SparseMatrixVectorOrdering<L>``, where ``L`` is the number of blocks (that is, grid cells) in each group.
 
 Just like the dense matrix, the square bracket notation is always used as ``matrix[block][column][row]``.
 We use this syntax to set the same values for each element of our two sparse matrices.
@@ -204,17 +197,17 @@ We created matrices of strings so the values can be set as ``block.column.row``:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 147-161
+  :lines: 165-176
 
 We can again see the effects of the ordering policy by accessing the underlying data vector directly:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 163-185
+  :lines: 178-187
 
 .. code-block:: bash
 
-  Sparse matrix standard ordering elements
+  Sparse matrix elements, vector length 1
   0.0.1
   0.2.1
   0.2.3
@@ -228,7 +221,7 @@ We can again see the effects of the ordering policy by accessing the underlying 
   2.2.3
   2.3.2
   
-  Sparse matrix vector ordering elements
+  Sparse matrix elements, vector length 3
   0.0.1
   1.0.1
   2.0.1

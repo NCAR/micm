@@ -52,7 +52,7 @@ jobs:
           name: ctest-results-kokkos
           path: build/ctest-results.xml
 
-      # The Kokkos backend registers no standard ordering, so name the vector ones.
+      # The benchmark has only vector kinds. Name the kinds that this backend runs.
       #
       # Write to a file, then convert. This container runs steps under `sh -e`,
       # which has no pipefail, so a pipeline would hide a script failure.

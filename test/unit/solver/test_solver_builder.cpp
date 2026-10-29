@@ -170,7 +170,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           .Build();
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
-  EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
+  EXPECT_EQ(backward_euler.MaximumNumberOfGridCells(), MICM_DEFAULT_VECTOR_SIZE);
   EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
 }
 
@@ -193,7 +193,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
 
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
-  EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
+  EXPECT_EQ(rosenbrock.MaximumNumberOfGridCells(), MICM_DEFAULT_VECTOR_SIZE);
   EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);
 }
 
@@ -262,7 +262,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 TEST(SolverBuilder, FinalizeReceivesDenseMatrixPolicy)
 {
   using StandardDense = micm::Matrix<micm::Real>;
-  using StandardSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+  using StandardSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
   using VectorDense = micm::VectorMatrix<micm::Real, L>;
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 

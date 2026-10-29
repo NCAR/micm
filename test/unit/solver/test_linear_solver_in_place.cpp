@@ -14,19 +14,19 @@
 using FloatingPointType = micm::Real;
 
 using DenseMatrixTest = micm::Matrix<FloatingPointType>;
-using SparseMatrixTest = micm::SparseMatrix<FloatingPointType>;
+using SparseMatrixTest = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
 
-TEST(LinearSolverInPlace, DenseMatrixStandardOrdering)
+TEST(LinearSolverInPlace, DenseMatrixVectorLength1)
 {
   TestDenseMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolverInPlace<DenseMatrixTest, SparseMatrixTest>>();
 }
 
-TEST(LinearSolverInPlace, RandomMatrixStandardOrdering)
+TEST(LinearSolverInPlace, RandomMatrixVectorLength1)
 {
   TestRandomMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolverInPlace<DenseMatrixTest, SparseMatrixTest>>(5);
 }
 
-TEST(LinearSolverInPlace, DiagonalMatrixStandardOrdering)
+TEST(LinearSolverInPlace, DiagonalMatrixVectorLength1)
 {
   TestDiagonalMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolverInPlace<DenseMatrixTest, SparseMatrixTest>>(5);
 }
@@ -36,7 +36,7 @@ TEST(LinearSolverInPlace, DiagonalMarkowitzReorder)
   TestMarkowitzReordering<micm::Matrix<int>, SparseMatrixTest>();
 }
 
-TEST(LinearSolverInPlace, StandardOrderingAgnosticToInitialValue)
+TEST(LinearSolverInPlace, VectorLength1AgnosticToInitialValue)
 {
   micm::Real initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto initial_value : initial_values)

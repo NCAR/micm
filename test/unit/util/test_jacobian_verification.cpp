@@ -4,7 +4,7 @@
 #include <micm/util/jacobian_verification.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_row.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 
 #include <gtest/gtest.h>
@@ -12,7 +12,7 @@
 #include <type_traits>
 
 using DenseMatrix = micm::Matrix<micm::Real>;
-using SparseMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
+using SparseMatrix = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>;
 
 // Finite differences lose accuracy at lower precision, so the agreement tolerance scales with Real.
 constexpr micm::Real kFdTolerance = std::is_same_v<micm::Real, double> ? 1e-5 : 1e-2;

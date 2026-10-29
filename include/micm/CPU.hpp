@@ -16,17 +16,10 @@ namespace micm
   using DenseMatrixVector = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>;
   using SparseMatrixVector = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  using DenseMatrixStandard = Matrix<Real>;
-  using SparseMatrixStandard = SparseMatrix<Real, SparseMatrixStandardOrdering>;
-
   using LuDecompositionVector = LuDecompositionMozartInPlace<SparseMatrixVector>;
   using LinearSolverVector = LinearSolverInPlace<DenseMatrixVector, SparseMatrixVector, LuDecompositionVector>;
 
   using VectorState = State<DenseMatrixVector, SparseMatrixVector, LuDecompositionVector>;
-  using LuDecompositionStandard = LuDecompositionInPlace<SparseMatrixStandard>;
-  using LinearSolverStandard = LinearSolverInPlace<DenseMatrixStandard, SparseMatrixStandard, LuDecompositionStandard>;
-
-  using StandardState = State<DenseMatrixStandard, SparseMatrixStandard, LuDecompositionStandard>;
 
   using RosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<
       ProcessSet<DenseMatrixVector, SparseMatrixVector>,
@@ -34,23 +27,11 @@ namespace micm
       ConstraintSet<DenseMatrixVector, SparseMatrixVector>>;
   using Rosenbrock = Solver<RosenbrockVectorType, VectorState>;
 
-  using RosenbrockStandardType = typename RosenbrockSolverParameters::template SolverType<
-      ProcessSet<DenseMatrixStandard, SparseMatrixStandard>,
-      LinearSolverStandard,
-      ConstraintSet<DenseMatrixStandard, SparseMatrixStandard>>;
-  using RosenbrockStandard = Solver<RosenbrockStandardType, StandardState>;
-
   using BackwardEulerVectorType = typename BackwardEulerSolverParameters::template SolverType<
       ProcessSet<DenseMatrixVector, SparseMatrixVector>,
       LinearSolverVector,
       ConstraintSet<DenseMatrixVector, SparseMatrixVector>>;
   using BackwardEuler = Solver<BackwardEulerVectorType, VectorState>;
-
-  using BackwardEulerStandardType = typename BackwardEulerSolverParameters::template SolverType<
-      ProcessSet<DenseMatrixStandard, SparseMatrixStandard>,
-      LinearSolverStandard,
-      ConstraintSet<DenseMatrixStandard, SparseMatrixStandard>>;
-  using BackwardEulerStandard = Solver<BackwardEulerStandardType, StandardState>;
 
   using RosenbrockThreeStageBuilder =
       CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrixVector, SparseMatrixVector, LuDecompositionVector>;

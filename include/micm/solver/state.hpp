@@ -12,7 +12,9 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -45,8 +47,8 @@ namespace micm
   };
 
   template<
-      class DenseMatrixPolicy = StandardDenseMatrix,
-      class SparseMatrixPolicy = StandardSparseMatrix,
+      class DenseMatrixPolicy = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>,
+      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>,
       class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   struct State
   {

@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2026 University Corporation for Atmospheric Research
+// Copyright (C) 023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
 // Standalone benchmark for measuring solver performance.
@@ -8,7 +8,7 @@
 //
 // Usage: micm_bench [num_cells] [num_steps] [dt_seconds] [backend] [matrix] [lu_type] [lu_algorithm] [mechanism]
 //   backend:      "cpu" (default) or "gpu|kokkos"
-//   matrix:       "standard" (default) or "vector1|2|4|8|128"
+//   matrix:       "vector4" (default) or "vector1|2|8|128"
 //   lu_type:      "in-place" (the only value)
 //   lu_algorithm: "mozart" (the only value)
 //   mechanism:    "chapman" (default) or "ts1"
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
       .num_steps_ = (argc > 2) ? static_cast<micm::Index>(std::stoul(argv[2])) : micm::Index{ 100 },
       .dt_ = (argc > 3) ? static_cast<micm::Real>(std::stod(argv[3])) : static_cast<micm::Real>(30.0),
       .backend_ = (argc > 4) ? argv[4] : "cpu",
-      .matrix_ = (argc > 5) ? argv[5] : "standard",
+      .matrix_ = (argc > 5) ? argv[5] : "vector4",
       .lu_matrix_ = (argc > 6) ? argv[6] : "in-place",
       .lu_ = (argc > 7) ? argv[7] : "mozart",
       .mechanism_ = (argc > 8) ? argv[8] : "chapman",

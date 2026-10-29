@@ -40,7 +40,7 @@ same checks the CI uses.
 - `scripts/profile_micm.sh` — callgrind driver that produces deterministic
   instruction counts (used by CI regression gates).
 - `scripts/compare_micm.py` — diffs two profile outputs and exits non-zero when
-  the PR adds instructions for any matrix ordering (standard, vector1,2,4,8,128).
+  the PR adds instructions for any matrix ordering (vector1,2,4,8,128).
 - `.github/workflows/perf-regression.yml` — CI workflow that runs the
   profile against `main` on every PR.
 
@@ -112,7 +112,6 @@ Sample output:
 mechanism = chapman; backend = cpu; LU = mozart / in-place
 # mechanism=chapman
 kind         best_ms
-standard      676.85
 vector1       676.51
 vector2       428.13
 vector4       354.28
@@ -142,7 +141,6 @@ Sample output (TSV — copy into a spreadsheet if you like):
 mechanism = chapman; backend = cpu; LU = mozart / in-place
 # mechanism=chapman
 kind              instructions
-standard             611346438
 vector1              613011430
 vector2              406257254
 vector4              314970571
@@ -185,7 +183,6 @@ Output:
 mechanism: chapman
 
 kind                 base              pr           delta   delta%
-standard      510,009,297     611,346,438    +101,337,141  +19.87%  <-- regression
 vector1       627,328,869     613,011,430     -14,317,439   -2.28%
 vector128     227,174,334     220,045,464      -7,128,870   -3.14%
 vector2       457,832,087     406,257,254     -51,574,833  -11.27%
@@ -193,7 +190,7 @@ vector4       344,510,309     314,970,571     -29,539,738   -8.57%
 vector8       276,683,770     263,484,576     -13,199,194   -4.77%
 ...
 
-FAIL: PR adds instructions to the hot path for: standard
+OK: PR does not increase the hot-path instruction count.
 ```
 
 Exit code is 0 when nothing regressed and 1 otherwise. Use `--tolerance N`

@@ -267,8 +267,8 @@ namespace micm
   /// @tparam LuDecompositionPolicy Policy for the in-place LU decomposition
   template<
       class SolverParametersPolicy,
-      class DenseMatrixPolicy = Matrix<Real>,
-      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
+      class DenseMatrixPolicy = VectorMatrix<Real, MICM_DEFAULT_VECTOR_SIZE>,
+      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>,
       class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,

@@ -158,10 +158,8 @@ namespace bench
   using Runner = double (*)(const Config&);
   using Registry = std::map<std::string, Runner>;
 
-  using StandardDense = micm::Matrix<micm::Real>;
   template<micm::Index L>
   using VectorDense = micm::VectorMatrix<micm::Real, L>;
-  using StandardSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>;
   template<micm::Index L>
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
@@ -209,7 +207,6 @@ namespace bench
   template<class Mechanism, micm::Index... Ls>
   void Register(Registry& registry, std::integer_sequence<micm::Index, Ls...>)
   {
-    RegisterCpu<Mechanism, StandardDense, StandardSparse>(registry, "standard");
     (RegisterVector<Mechanism, Ls>(registry), ...);
   }
 

@@ -204,7 +204,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, dforce_dy_times_vector)
 
 void TestSolve(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
+  auto state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -238,7 +238,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 
 void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
+  auto state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -250,9 +250,9 @@ void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
   micm::Real time_start = 0;
   micm::Real time_end = 1;
 
-  for (auto& elem : state.variables_[0])
+  for (std::size_t i = 0; i < state.variables_.NumColumns(); ++i)
   {
-    elem *= 10;
+    state.variables_[0][i] *= 10;
   }
 
   solver.UpdateState(state);
@@ -276,7 +276,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 
 void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
+  auto state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -288,9 +288,9 @@ void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
   micm::Real time_start = 0;
   micm::Real time_end = 1;
 
-  for (auto& elem : state.variables_[0])
+  for (std::size_t i = 0; i < state.variables_.NumColumns(); ++i)
   {
-    elem /= 10;
+    state.variables_[0][i] /= 10;
   }
 
   solver.UpdateState(state);
@@ -314,7 +314,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 
 void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
 {
-  micm::State<micm::Matrix<micm::Real>> state = solver.GetState();
+  auto state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   state.conditions_[0].air_density_ = 2.7e19;
@@ -327,7 +327,10 @@ void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
   std::default_random_engine generator;
   std::uniform_real_distribution<float> distribution(0.0, 1.0);
 
-  std::generate(state.variables_[0].begin(), state.variables_[0].end(), [&] { return distribution(generator); });
+  for (std::size_t i = 0; i < state.variables_.NumColumns(); ++i)
+  {
+    state.variables_[0][i] = distribution(generator);
+  }
 
   solver.UpdateState(state);
 

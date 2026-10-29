@@ -2,7 +2,7 @@ name: Performance Regression
 
 # Runs the micm micro-benchmark under callgrind on both the PR head and the
 # base branch, and warns if the PR adds instructions to the Rosenbrock Solve()
-# function for any matrix ordering (standard, vector1,2,4,8,128). Both the
+# function for any matrix ordering (vector1,2,4,8,128). Both the
 # chapman and the ts1 mechanism run.
 #
 # The job keeps the id "chapman" so any required-check setting still matches.

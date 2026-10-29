@@ -5,7 +5,6 @@
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/reducers.hpp>
 #include <micm/util/scalar_view.hpp>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/view_category.hpp>
 
@@ -50,10 +49,9 @@ namespace micm
   template<class T, class OrderingPolicy>
   class SparseMatrixBuilder;
 
-  template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
+  // The ordering has no default: name it, for example SparseMatrixVectorOrdering<L>
+  template<class T, class OrderingPolicy>
   class SparseMatrix;
-
-  using StandardSparseMatrix = SparseMatrix<Real, SparseMatrixStandardOrdering>;
 
   /// @brief A sparse block-diagonal 2D matrix class with contiguous memory
   ///
@@ -61,7 +59,7 @@ namespace micm
   ///
   /// The template parameters are the type of the matrix elements and a class that
   /// defines the sizing and ordering of the data elements
-  template<class T = Real, class OrderingPolicy>
+  template<class T, class OrderingPolicy>
   class SparseMatrix : public OrderingPolicy
   {
    public:
@@ -614,8 +612,8 @@ namespace micm
             ...);
 
         // Get the group vector size from the OrderingPolicy (compile-time constant)
-        // For standard ordering: L = 1
-        // For vector ordering: L > 1
+        // For vector length 1: L = 1
+        // For larger vector lengths: L > 1
         constexpr Index L = OrderingPolicy::GroupVectorSize();
 
         // Iterate over groups, processing L blocks at a time
@@ -692,7 +690,7 @@ namespace micm
     }
   };
 
-  template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
+  template<class T, class OrderingPolicy>
   class SparseMatrixBuilder
   {
     Index number_of_blocks_{ 1 };

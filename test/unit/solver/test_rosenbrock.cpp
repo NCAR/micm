@@ -131,7 +131,7 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
 using StandardBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::Matrix<micm::Real>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>;
+    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<1>>>;
 template<micm::Index L>
 using VectorBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
