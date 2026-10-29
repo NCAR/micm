@@ -11,12 +11,12 @@
 // This test runs the same mechanism, the same initial conditions and the same solver
 // parameters through both backends and compares the trajectories step by step.
 //
-// The CPU side is deliberately built with CpuSolverBuilderInPlace over
+// The CPU side is deliberately built with CpuSolverBuilder over
 // LuDecompositionMozartInPlace, because micm::KokkosSolverBuilder expands to
 //   SolverBuilder<Params, KokkosDenseMatrix<Real,L>, KokkosSparseMatrix<Real, vector ordering>,
 //                 ProcessSet<...>, LuDecompositionMozartInPlace<...>,
 //                 LinearSolverInPlace<...>, State<...>>
-// (see include/micm/kokkos/solver/kokkos_solver_builder.hpp) and CpuSolverBuilderInPlace
+// (see include/micm/kokkos/solver/kokkos_solver_builder.hpp) and CpuSolverBuilder
 // expands to the identical shape over VectorMatrix / SparseMatrix. Matching every policy is
 // the point: the two solvers then perform the same operations in the same order, so any
 // difference is attributable to the Kokkos matrix implementation rather than to a different
@@ -54,7 +54,7 @@ namespace
   using CpuSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
   template<micm::Index L>
-  using CpuBuilder = micm::CpuSolverBuilderInPlace<
+  using CpuBuilder = micm::CpuSolverBuilder<
       micm::RosenbrockSolverParameters,
       micm::VectorMatrix<micm::Real, L>,
       CpuSparse<L>,

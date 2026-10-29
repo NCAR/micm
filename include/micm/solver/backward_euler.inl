@@ -76,14 +76,7 @@ namespace micm
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
         // try to find the root by factoring and solving the linear system
-        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-        {
-          linear_solver_.Factor(state.jacobian_);
-        }
-        else
-        {
-          linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
-        }
+        linear_solver_.Factor(state.jacobian_);
         result.stats_.decompositions_++;
 
         // forcing_blk in camchem
@@ -93,14 +86,7 @@ namespace micm
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
-        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-        {
-          linear_solver_.Solve(forcing, state.jacobian_);
-        }
-        else
-        {
-          linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
-        }
+        linear_solver_.Solve(forcing, state.jacobian_);
         result.stats_.solves_++;
 
         // solution_blk in camchem

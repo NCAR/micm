@@ -26,8 +26,8 @@
 #   CELLS        = 2000
 #   STEPS        = 5
 #   BACKEND      = cpu (other option: gpu)
-#   LU_TYPE      = in-place (other option: separate)
-#   LU_ALGORITHM = mozart (other option: doolittle)
+#   LU_TYPE      = in-place (the only value)
+#   LU_ALGORITHM = mozart (the only value)
 #   MECHANISM    = chapman (other option: ts1)
 #   MATRIX       = standard vector1 vector2 vector4 vector8 vector128
 #

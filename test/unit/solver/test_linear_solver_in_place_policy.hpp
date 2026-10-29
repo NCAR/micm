@@ -1,6 +1,6 @@
 #include "../../precision_matchers.hpp"
 
-#include <micm/solver/linear_solver.hpp>
+#include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 

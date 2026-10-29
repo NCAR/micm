@@ -16,35 +16,12 @@ using VectorRosenbrock = micm::CpuSolverBuilder<
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
-using StandardRosenbrockDoolittle = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::Matrix<micm::Real>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
-using StandardStateTypeDoolittle = micm::State<
-    micm::Matrix<micm::Real>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
-
-template<micm::Index L>
-using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
-
-template<micm::Index L>
-using VectorStateTypeDoolittle = micm::State<
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
-
 template<micm::Index L>
 using VectorStateType =
     micm::State<micm::VectorMatrix<micm::Real, L>, micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
 template<micm::Index L>
-using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilderInPlace<
+using VectorRosenbrockMozartInPlace = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
@@ -69,17 +46,6 @@ auto rosenbrock_vector_2 = VectorRosenbrock<2>(micm::RosenbrockSolverParameters:
 auto rosenbrock_vector_3 = VectorRosenbrock<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto rosenbrock_vector_4 = VectorRosenbrock<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
-auto rosenbrock_standard_doolittle =
-    StandardRosenbrockDoolittle(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_1 =
-    VectorRosenbrockDoolittle<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_2 =
-    VectorRosenbrockDoolittle<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_3 =
-    VectorRosenbrockDoolittle<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_4 =
-    VectorRosenbrockDoolittle<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-
 auto rosenbrock_vector_mozart_in_place_1 =
     VectorRosenbrockMozartInPlace<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto rosenbrock_vector_mozart_in_place_2 =
@@ -100,11 +66,6 @@ TEST(AnalyticalExamples, Troe)
   TestAnalyticalTroe(rosenbrock_vector_2);
   TestAnalyticalTroe(rosenbrock_vector_3);
   TestAnalyticalTroe(rosenbrock_vector_4);
-  TestAnalyticalTroe(rosenbrock_standard_doolittle);
-  TestAnalyticalTroe(rosenbrock_vector_doolittle_1);
-  TestAnalyticalTroe(rosenbrock_vector_doolittle_2);
-  TestAnalyticalTroe(rosenbrock_vector_doolittle_3);
-  TestAnalyticalTroe(rosenbrock_vector_doolittle_4);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_1);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_2);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_3);
@@ -349,10 +310,6 @@ TEST(AnalyticalExamples, Robertson)
   TestAnalyticalRobertson(rosenbrock_4stage, 1e-6);
   TestAnalyticalRobertson(rosenbrock_4stage_da, 1e-6);
   TestAnalyticalRobertson(rosenbrock_6stage_da, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_doolittle_1, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_doolittle_2, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_doolittle_3, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_doolittle_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_1, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_2, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_3, 1e-6);
@@ -371,10 +328,6 @@ TEST(AnalyticalExamples, E5)
   TestAnalyticalE5(rosenbrock_4stage, 1e-10);
   TestAnalyticalE5(rosenbrock_4stage_da, 1e-10);
   TestAnalyticalE5(rosenbrock_6stage_da, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_doolittle_1, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_doolittle_2, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_doolittle_3, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_doolittle_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_1, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_2, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_3, 1e-10);
@@ -394,10 +347,6 @@ TEST(AnalyticalExamples, Oregonator)
   TestAnalyticalOregonator(rosenbrock_4stage, rel_tol);
   TestAnalyticalOregonator(rosenbrock_4stage_da, rel_tol);
   TestAnalyticalOregonator(rosenbrock_6stage_da, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_doolittle_1, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_doolittle_2, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_doolittle_3, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_doolittle_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_1, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_2, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_3, rel_tol);
@@ -416,14 +365,6 @@ TEST(AnalyticalExamples, HIRES)
   TestAnalyticalHires(rosenbrock_4stage, 1e-7);
   TestAnalyticalHires(rosenbrock_4stage_da, 1e-6);
   TestAnalyticalHires(rosenbrock_6stage_da, 1e-6);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_1, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_2, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_3, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_4, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_1, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_2, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_3, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_1, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_2, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_3, 1e-7);

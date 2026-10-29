@@ -10,7 +10,7 @@
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/linear_solver.hpp>
+#include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
@@ -264,39 +264,20 @@ namespace micm
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
-  /// @tparam LuDecompositionPolicy Policy for the LU decomposition
+  /// @tparam LuDecompositionPolicy Policy for the in-place LU decomposition
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<Real>,
       class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet<DenseMatrixPolicy, SparseMatrixPolicy>,
       LuDecompositionPolicy,
-      LinearSolver<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>,
+      LinearSolverInPlace<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
-
-  /// @brief Builder of CPU-based general solvers with in-place LU decomposition
-  /// @tparam SolverParametersPolicy Parameters for the ODE solver
-  /// @tparam DenseMatrixPolicy Policy for dense matrices
-  /// @tparam SparseMatrixPolicy Policy for sparse matrices
-  /// @tparam LuDecompositionPolicy Policy for the LU decomposition
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrix = Matrix<Real>,
-      class SparseMatrixPolicy = SparseMatrix<Real, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
-  using CpuSolverBuilderInPlace = SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrix,
-      SparseMatrixPolicy,
-      ProcessSet<DenseMatrix, SparseMatrixPolicy>,
-      LuDecompositionPolicy,
-      LinearSolverInPlace<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>,
-      State<DenseMatrix, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
 }  // namespace micm
 

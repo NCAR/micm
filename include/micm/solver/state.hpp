@@ -47,7 +47,7 @@ namespace micm
   template<
       class DenseMatrixPolicy = StandardDenseMatrix,
       class SparseMatrixPolicy = StandardSparseMatrix,
-      class LuDecompositionPolicy = LuDecomposition<SparseMatrixPolicy>>
+      class LuDecompositionPolicy = LuDecompositionInPlace<SparseMatrixPolicy>>
   struct State
   {
     template<class U>
@@ -100,8 +100,6 @@ namespace micm
     std::unordered_map<std::string, Index> variable_map_;
     std::unordered_map<std::string, Index> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
-    SparseMatrixPolicy lower_matrix_;
-    SparseMatrixPolicy upper_matrix_;
     Index state_size_;
     Index constraint_size_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
@@ -197,8 +195,6 @@ namespace micm
       variable_map_ = other.variable_map_;
       custom_rate_parameter_map_ = other.custom_rate_parameter_map_;
       variable_names_ = other.variable_names_;
-      lower_matrix_ = other.lower_matrix_;
-      upper_matrix_ = other.upper_matrix_;
       state_size_ = other.state_size_;
       constraint_size_ = other.constraint_size_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
@@ -225,8 +221,6 @@ namespace micm
         variable_map_ = other.variable_map_;
         custom_rate_parameter_map_ = other.custom_rate_parameter_map_;
         variable_names_ = other.variable_names_;
-        lower_matrix_ = other.lower_matrix_;
-        upper_matrix_ = other.upper_matrix_;
         state_size_ = other.state_size_;
         constraint_size_ = other.constraint_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
@@ -251,8 +245,6 @@ namespace micm
           variable_map_(std::move(other.variable_map_)),
           custom_rate_parameter_map_(std::move(other.custom_rate_parameter_map_)),
           variable_names_(std::move(other.variable_names_)),
-          lower_matrix_(std::move(other.lower_matrix_)),
-          upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
           constraint_size_(other.constraint_size_),
           number_of_grid_cells_(other.number_of_grid_cells_),
@@ -280,8 +272,6 @@ namespace micm
         variable_map_ = std::move(other.variable_map_);
         custom_rate_parameter_map_ = std::move(other.custom_rate_parameter_map_);
         variable_names_ = std::move(other.variable_names_);
-        lower_matrix_ = std::move(other.lower_matrix_);
-        upper_matrix_ = std::move(other.upper_matrix_);
         state_size_ = other.state_size_;
         constraint_size_ = other.constraint_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;

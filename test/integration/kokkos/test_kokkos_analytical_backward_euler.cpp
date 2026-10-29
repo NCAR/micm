@@ -21,14 +21,7 @@ template<micm::Index L>
 using Sparse = micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
 template<micm::Index L>
-using VectorBackwardEulerDoolittle = micm::
-    CpuSolverBuilder<micm::BackwardEulerSolverParameters, Dense<L>, Sparse<L>, micm::LuDecompositionDoolittle<Sparse<L>>>;
-
-template<micm::Index L>
-using VectorStateTypeDoolittle = typename VectorBackwardEulerDoolittle<L>::StatePolicyType;
-
-template<micm::Index L>
-using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
+using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     Dense<L>,
     Sparse<L>,
@@ -42,7 +35,6 @@ using VectorStateTypeMozartInPlace = typename VectorBackwardEulerMozartInPlace<L
 auto backward_euler = micm::KokkosSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_4 = VectorBackwardEuler<4>(micm::BackwardEulerSolverParameters());
 
-auto backward_euler_vector_doolittle_4 = VectorBackwardEulerDoolittle<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_8 = VectorBackwardEulerMozartInPlace<8>(micm::BackwardEulerSolverParameters());
 
@@ -50,7 +42,6 @@ TEST(AnalyticalExamples, Troe)
 {
   TestAnalyticalTroe(backward_euler, 1e-6);
   TestAnalyticalTroe(backard_euler_vector_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_4, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_4, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_8, 1e-6);
 }
@@ -190,7 +181,6 @@ TEST(AnalyticalExamples, HIRES)
 {
   TestAnalyticalHires(backward_euler, 1e-1);
   TestAnalyticalHires(backard_euler_vector_4, 1e-1);
-  TestAnalyticalHires(backward_euler_vector_doolittle_4, 1e-1);
   TestAnalyticalHires(backward_euler_vector_mozart_in_place_4, 1e-1);
   TestAnalyticalHires(backward_euler_vector_mozart_in_place_8, 1e-1);
 }
@@ -207,7 +197,6 @@ TEST(AnalyticalExamples, Oregonator)
 
   TestAnalyticalOregonator(backward_euler, kOregonatorTolerance, kOregonatorSubsteps);
   TestAnalyticalOregonator(backard_euler_vector_4, kOregonatorTolerance, kOregonatorSubsteps);
-  TestAnalyticalOregonator(backward_euler_vector_doolittle_4, kOregonatorTolerance, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_4, kOregonatorTolerance, kOregonatorSubsteps);
   TestAnalyticalOregonator(backward_euler_vector_mozart_in_place_8, kOregonatorTolerance, kOregonatorSubsteps);
 }

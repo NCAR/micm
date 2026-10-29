@@ -5,7 +5,7 @@
 #include <micm/process/process_set.hpp>
 #include <micm/process/rate_constant/arrhenius_rate_constant.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/linear_solver.hpp>
+#include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -66,7 +66,7 @@ TEST(BackwardEuler, CanCallSolve)
 template<class DenseMatrixPolicy>
 void CheckIsConverged()
 {
-  using LinearSolverPolicy = micm::LinearSolver<DenseMatrixPolicy, micm::StandardSparseMatrix>;
+  using LinearSolverPolicy = micm::LinearSolverInPlace<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using RatesPolicy = micm::ProcessSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using ConstraintSetPolicy = micm::ConstraintSet<DenseMatrixPolicy, micm::StandardSparseMatrix>;
   using BackwardEuler = micm::AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy, ConstraintSetPolicy>;

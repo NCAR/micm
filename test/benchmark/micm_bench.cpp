@@ -9,11 +9,11 @@
 // Usage: micm_bench [num_cells] [num_steps] [dt_seconds] [backend] [matrix] [lu_type] [lu_algorithm] [mechanism]
 //   backend:      "cpu" (default) or "gpu|kokkos"
 //   matrix:       "standard" (default) or "vector1|2|4|8|128"
-//   lu_type:      "in-place" (default) or "separate"
-//   lu_algorithm: "mozart" (default) or "doolittle"
+//   lu_type:      "in-place" (the only value)
+//   lu_algorithm: "mozart" (the only value)
 //   mechanism:    "chapman" (default) or "ts1"
 //
-//   Note that "gpu" backend must use "mozart"/"in-place" LU and "vector1|2|4|8|128" matrix
+//   Note that "gpu" backend must use the "vector1|2|4|8|128" matrix
 //
 // Pass "list" as the first argument to print every valid combination.
 //

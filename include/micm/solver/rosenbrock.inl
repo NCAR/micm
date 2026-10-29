@@ -117,21 +117,11 @@ namespace micm
       result.stats_.jacobian_updates_ += 1;
 
       bool accepted = false;
-      Real last_alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
         // Compute alpha for AlphaMinusJacobian function
         Real alpha = 1.0 / (H * parameters.gamma_[0]);
-        if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-        {
-          // The Jacobian retains the alpha shift applied on earlier attempts of
-          // this step, so shift by the difference only. last_alpha must hold the
-          // cumulative shift now present in the matrix, not the per-attempt delta.
-          const double cumulative_alpha = alpha;
-          alpha -= last_alpha;
-          last_alpha = cumulative_alpha;
-        }
 
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(alpha, result.stats_, state);
@@ -183,14 +173,7 @@ namespace micm
               mass_coupling(K[stage], K[j]);
             }
           }
-          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-          {
-            linear_solver_.Solve(K[stage], state.jacobian_);
-          }
-          else
-          {
-            linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
-          }
+          linear_solver_.Solve(K[stage], state.jacobian_);
           result.stats_.solves_ += 1;
         }
 
@@ -277,18 +260,15 @@ namespace micm
           {
             result.stats_.rejected_ += 1;
           }
-          // Re-generate the Jacobian matrix for the inline LU algorithm
-          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          // Re-generate the Jacobian matrix, because the in-place LU decomposition overwrote it
+          state.jacobian_.Fill(0);
+          rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
+          // Subtract constraint Jacobian terms (for DAE systems)
+          if (has_constraints)
           {
-            state.jacobian_.Fill(0);
-            rates_.SubtractJacobianTerms(state, Y, state.jacobian_);
-            // Subtract constraint Jacobian terms (for DAE systems)
-            if (has_constraints)
-            {
-              constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
-            }
-            result.stats_.jacobian_updates_ += 1;
+            constraints_.SubtractJacobianTerms(Y, state.custom_rate_parameters_, state.jacobian_);
           }
+          result.stats_.jacobian_updates_ += 1;
         }
       }
     }
@@ -337,14 +317,7 @@ namespace micm
 
     static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, alpha);
 
-    if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-    {
-      linear_solver_.Factor(state.jacobian_);
-    }
-    else
-    {
-      linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
-    }
+    linear_solver_.Factor(state.jacobian_);
     stats.decompositions_ += 1;
   }
 
@@ -587,25 +560,11 @@ namespace micm
       static_cast<const Derived*>(this)->template AlphaMinusJacobian<SparseMatrixPolicy>(state, 1.0);
 
       // 5. Factor the system matrix
-      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-      {
-        linear_solver_.Factor(state.jacobian_);
-      }
-      else
-      {
-        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
-      }
+      linear_solver_.Factor(state.jacobian_);
       stats.decompositions_ += 1;
 
       // 6. Solve: -J * delta = G  =>  delta = -J^{-1} * G
-      if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-      {
-        linear_solver_.Solve(delta, state.jacobian_);
-      }
-      else
-      {
-        linear_solver_.Solve(delta, state.lower_matrix_, state.upper_matrix_);
-      }
+      linear_solver_.Solve(delta, state.jacobian_);
       stats.solves_ += 1;
 
       // 7. Reject a non-finite Newton correction before it is measured or applied
@@ -697,14 +656,7 @@ namespace micm
           {
             break;
           }
-          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-          {
-            linear_solver_.Solve(trial_delta, state.jacobian_);
-          }
-          else
-          {
-            linear_solver_.Solve(trial_delta, state.lower_matrix_, state.upper_matrix_);
-          }
+          linear_solver_.Solve(trial_delta, state.jacobian_);
           stats.solves_ += 1;
           if (!finite(trial_delta))
           {

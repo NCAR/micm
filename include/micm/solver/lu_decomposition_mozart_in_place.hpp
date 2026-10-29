@@ -27,7 +27,7 @@ namespace micm
   /// several arrays during construction. These arrays are iterated through during
   /// calls to Decompose to do the actual decomposition.
   ///
-  /// The GetLUMatrices function creates a new sparse matrix that includes the superset
+  /// The GetLUMatrix function creates a new sparse matrix that includes the superset
   /// of the non-zero elements in the L and U matrices. It is expected that the elements
   /// of the L and U matrices that are zero in the A matrix will be set to zero before the
   /// combined matrix is passed to the decomposition function.

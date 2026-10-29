@@ -261,7 +261,7 @@ TEST(RosenbrockSolver, RejectedStepAlphaMatchesInPlaceSolver)
   };
 
   const auto standard = run(StandardBuilder(options));
-  const auto in_place = run(micm::CpuSolverBuilderInPlace<micm::RosenbrockSolverParameters>(options));
+  const auto in_place = run(micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options));
   EXPECT_EQ(standard.number_of_steps_, in_place.number_of_steps_);
   EXPECT_EQ(standard.accepted_, in_place.accepted_);
   EXPECT_EQ(standard.rejected_, in_place.rejected_);

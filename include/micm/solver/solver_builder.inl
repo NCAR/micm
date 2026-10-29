@@ -571,11 +571,8 @@ namespace micm
     }
 
     LinearSolverPolicy linear_solver(jacobian, 0);
-    if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
-    {
-      auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian, 0, true);
-      jacobian = std::move(lu);
-    }
+    auto lu = LuDecompositionPolicy::GetLUMatrix(jacobian, 0, true);
+    jacobian = std::move(lu);
 
     std::vector<std::string> variable_names(number_of_species);
     for (auto& species_pair : species_map)

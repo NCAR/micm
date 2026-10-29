@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include "lu_decomposition_doolittle.hpp"
 #include "lu_decomposition_mozart_in_place.hpp"
 
 #include <micm/util/sparse_matrix.hpp>
@@ -26,10 +25,6 @@ namespace micm
           LuDecompositionMozartInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LuDecompositionMozartInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
-
-  /// @brief Alias for the default LU decomposition algorithm
-  template<class SparseMatrixPolicy>
-  using LuDecomposition = LuDecompositionDoolittle<SparseMatrixPolicy>;
 
   /// @brief Alias for the default in-place LU decomposition algorithm
   template<class SparseMatrixPolicy>

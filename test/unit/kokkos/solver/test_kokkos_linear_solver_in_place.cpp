@@ -2,7 +2,7 @@
 
 #include <micm/kokkos/util/kokkos_dense_matrix.hpp>
 #include <micm/kokkos/util/kokkos_sparse_matrix.hpp>
-#include <micm/solver/linear_solver.hpp>
+#include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>

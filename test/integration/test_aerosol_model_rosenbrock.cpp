@@ -15,19 +15,6 @@ using VectorRosenbrock = micm::CpuSolverBuilder<
     micm::VectorMatrix<micm::Real, L>,
     micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>;
 
-using StandardRosenbrockDoolittle = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::Matrix<micm::Real>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixStandardOrdering>>>;
-
-template<micm::Index L>
-using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
-
 auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto rosenbrock_3stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
@@ -44,17 +31,6 @@ auto rosenbrock_vector_2 = VectorRosenbrock<2>(micm::RosenbrockSolverParameters:
 auto rosenbrock_vector_3 = VectorRosenbrock<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto rosenbrock_vector_4 = VectorRosenbrock<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
-auto rosenbrock_standard_doolittle =
-    StandardRosenbrockDoolittle(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_1 =
-    VectorRosenbrockDoolittle<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_2 =
-    VectorRosenbrockDoolittle<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_3 =
-    VectorRosenbrockDoolittle<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_4 =
-    VectorRosenbrockDoolittle<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-
 TEST(AerosolModelIntegration, StateIncludesStubAerosolModel)
 {
   TestStateIncludesStubAerosolModel(rosenbrock_2stage);
@@ -66,11 +42,6 @@ TEST(AerosolModelIntegration, StateIncludesStubAerosolModel)
   TestStateIncludesStubAerosolModel(rosenbrock_vector_2);
   TestStateIncludesStubAerosolModel(rosenbrock_vector_3);
   TestStateIncludesStubAerosolModel(rosenbrock_vector_4);
-  TestStateIncludesStubAerosolModel(rosenbrock_standard_doolittle);
-  TestStateIncludesStubAerosolModel(rosenbrock_vector_doolittle_1);
-  TestStateIncludesStubAerosolModel(rosenbrock_vector_doolittle_2);
-  TestStateIncludesStubAerosolModel(rosenbrock_vector_doolittle_3);
-  TestStateIncludesStubAerosolModel(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
@@ -84,11 +55,6 @@ TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
   TestUpdateStateWithStubAerosolModel(rosenbrock_vector_2);
   TestUpdateStateWithStubAerosolModel(rosenbrock_vector_3);
   TestUpdateStateWithStubAerosolModel(rosenbrock_vector_4);
-  TestUpdateStateWithStubAerosolModel(rosenbrock_standard_doolittle);
-  TestUpdateStateWithStubAerosolModel(rosenbrock_vector_doolittle_1);
-  TestUpdateStateWithStubAerosolModel(rosenbrock_vector_doolittle_2);
-  TestUpdateStateWithStubAerosolModel(rosenbrock_vector_doolittle_3);
-  TestUpdateStateWithStubAerosolModel(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
@@ -102,11 +68,6 @@ TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
   TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_2);
   TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_3);
   TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_4);
-  TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_standard_doolittle);
-  TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_doolittle_1);
-  TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_doolittle_2);
-  TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_doolittle_3);
-  TestUpdateMultiCellStateWithStubAerosolModel(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolModel)
@@ -120,11 +81,6 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolMo
   TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_2);
   TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_3);
   TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_4);
-  TestSingleCellForcingWithStubAerosolModel(rosenbrock_standard_doolittle);
-  TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_doolittle_1);
-  TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_doolittle_2);
-  TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_doolittle_3);
-  TestSingleCellForcingWithStubAerosolModel(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolModel)
@@ -138,11 +94,6 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolM
   TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_2);
   TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_3);
   TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_4);
-  TestSingleCellJacobianWithStubAerosolModel(rosenbrock_standard_doolittle);
-  TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_doolittle_1);
-  TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_doolittle_2);
-  TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_doolittle_3);
-  TestSingleCellJacobianWithStubAerosolModel(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModel1)
@@ -156,11 +107,6 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModel1)
   TestSolveWithStubAerosolModel1(rosenbrock_vector_2);
   TestSolveWithStubAerosolModel1(rosenbrock_vector_3);
   TestSolveWithStubAerosolModel1(rosenbrock_vector_4);
-  TestSolveWithStubAerosolModel1(rosenbrock_standard_doolittle);
-  TestSolveWithStubAerosolModel1(rosenbrock_vector_doolittle_1);
-  TestSolveWithStubAerosolModel1(rosenbrock_vector_doolittle_2);
-  TestSolveWithStubAerosolModel1(rosenbrock_vector_doolittle_3);
-  TestSolveWithStubAerosolModel1(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
@@ -174,11 +120,6 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
   TestSolveWithTwoStubAerosolModels(rosenbrock_vector_2);
   TestSolveWithTwoStubAerosolModels(rosenbrock_vector_3);
   TestSolveWithTwoStubAerosolModels(rosenbrock_vector_4);
-  TestSolveWithTwoStubAerosolModels(rosenbrock_standard_doolittle);
-  TestSolveWithTwoStubAerosolModels(rosenbrock_vector_doolittle_1);
-  TestSolveWithTwoStubAerosolModels(rosenbrock_vector_doolittle_2);
-  TestSolveWithTwoStubAerosolModels(rosenbrock_vector_doolittle_3);
-  TestSolveWithTwoStubAerosolModels(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanSolveMultiGridCellWithStubAerosolModel1)
@@ -192,11 +133,6 @@ TEST(AerosolModelIntegration, CanSolveMultiGridCellWithStubAerosolModel1)
   TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_2);
   TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_3);
   TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_4);
-  TestSolveWithStubAerosolModel1MultiCell(rosenbrock_standard_doolittle);
-  TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_doolittle_1);
-  TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_doolittle_2);
-  TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_doolittle_3);
-  TestSolveWithStubAerosolModel1MultiCell(rosenbrock_vector_doolittle_4);
 }
 
 TEST(AerosolModelIntegration, CanSolveMultiGridCellWithTwoStubAerosolModels)
@@ -210,9 +146,4 @@ TEST(AerosolModelIntegration, CanSolveMultiGridCellWithTwoStubAerosolModels)
   TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_2);
   TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_3);
   TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_4);
-  TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_standard_doolittle);
-  TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_doolittle_1);
-  TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_doolittle_2);
-  TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_doolittle_3);
-  TestSolveWithTwoStubAerosolModelsMultiCell(rosenbrock_vector_doolittle_4);
 }

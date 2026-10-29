@@ -1,6 +1,6 @@
 #include "test_linear_solver_in_place_policy.hpp"
 
-#include <micm/solver/linear_solver.hpp>
+#include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>

@@ -166,14 +166,10 @@ namespace bench
   using VectorSparse = micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>;
 
   template<class SM>
-  using DooLU = micm::LuDecompositionDoolittle<SM>;
-  template<class SM>
   using MozLUInPlace = micm::LuDecompositionMozartInPlace<SM>;
 
   template<class DM, class SM, class LU>
-  using CpuRosen = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DM, SM, LU>;
-  template<class DM, class SM, class LU>
-  using CpuRosenInPlace = micm::CpuSolverBuilderInPlace<micm::RosenbrockSolverParameters, DM, SM, LU>;
+  using CpuRosenInPlace = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DM, SM, LU>;
 #ifdef MICM_USE_CUDA
   template<micm::Index L>
   using CudaRosen = micm::CudaSolverBuilderInPlace<micm::RosenbrockSolverParameters, L>;
@@ -183,14 +179,13 @@ namespace bench
   using KokkosRosen = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters, L>;
 #endif
 
-  /// @brief Register the four CPU LU combinations for one matrix ordering.
+  /// @brief Register the CPU solver (in-place Mozart LU) for one matrix ordering.
   template<class Mechanism, class DM, class SM>
   void RegisterCpu(Registry& registry, const std::string& matrix)
   {
     const std::string mechanism{ Mechanism::kName };
     registry[Key(mechanism, "cpu", matrix, "in-place", "mozart")] =
         &RunCase<Mechanism, CpuRosenInPlace<DM, SM, MozLUInPlace<SM>>>;
-    registry[Key(mechanism, "cpu", matrix, "separate", "doolittle")] = &RunCase<Mechanism, CpuRosen<DM, SM, DooLU<SM>>>;
   }
 
   /// @brief Register every configuration that a single vector width supports.
