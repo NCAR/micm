@@ -26,7 +26,6 @@
 
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_column.hpp>
 #include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_row.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -582,27 +581,6 @@ TEST(GroupedView, FillAndCopySparseStandardCSR)
 
   gv0.Copy(gv0.GetBlockView(matrix.VectorIndex(0, 2, 0)), gv0.GetConstBlockView(matrix.VectorIndex(0, 0, 1)));
   EXPECT_DOUBLE_EQ(matrix[0][2][0], 42.0);
-}
-
-TEST(GroupedView, FillAndCopySparseStandardCSC)
-{
-  using SM = SparseMatrix<micm::Real, SparseMatrixStandardOrderingCompressedSparseColumn>;
-  auto builder = SM::Create(3).WithElement(0, 1).WithElement(2, 0).SetNumberOfBlocks(2);
-  SM matrix{ builder };
-  for (micm::Index b = 0; b < 2; ++b)
-  {
-    matrix[b][0][1] = static_cast<micm::Real>(b + 1);
-    matrix[b][2][0] = static_cast<micm::Real>(100 + b);
-  }
-
-  SM::GroupView gv1(matrix, 1);
-  gv1.Fill(gv1.GetBlockView(matrix.VectorIndex(0, 0, 1)), 9.0);
-  EXPECT_DOUBLE_EQ(matrix[1][0][1], 9.0);
-  EXPECT_DOUBLE_EQ(matrix[0][0][1], 1.0);  // other group untouched
-  EXPECT_DOUBLE_EQ(matrix[1][2][0], 101.0);
-
-  gv1.Copy(gv1.GetBlockView(matrix.VectorIndex(0, 2, 0)), gv1.GetConstBlockView(matrix.VectorIndex(0, 0, 1)));
-  EXPECT_DOUBLE_EQ(matrix[1][2][0], 9.0);
 }
 
 TEST(GroupedView, FillAndCopySparseVectorCSR_L4)

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include "sparse_matrix_standard_ordering_compressed_sparse_column.hpp"
 #include "sparse_matrix_standard_ordering_compressed_sparse_row.hpp"
 #include "view_category.hpp"
 

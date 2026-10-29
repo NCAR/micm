@@ -13,7 +13,6 @@
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
-#include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_column.hpp>
 #include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_row.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
