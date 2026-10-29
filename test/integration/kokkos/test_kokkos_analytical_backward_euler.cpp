@@ -35,16 +35,6 @@ template<micm::Index L>
 using VectorStateTypeMozart = typename VectorBackwardEulerMozart<L>::StatePolicyType;
 
 template<micm::Index L>
-using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
-    micm::BackwardEulerSolverParameters,
-    Dense<L>,
-    Sparse<L>,
-    micm::LuDecompositionDoolittleInPlace<Sparse<L>>>;
-
-template<micm::Index L>
-using VectorStateTypeDoolittleInPlace = typename VectorBackwardEulerDoolittleInPlace<L>::StatePolicyType;
-
-template<micm::Index L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
     Dense<L>,
@@ -61,8 +51,6 @@ auto backard_euler_vector_4 = VectorBackwardEuler<4>(micm::BackwardEulerSolverPa
 
 auto backward_euler_vector_doolittle_4 = VectorBackwardEulerDoolittle<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_4 = VectorBackwardEulerMozart<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_4 =
-    VectorBackwardEulerDoolittleInPlace<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_8 = VectorBackwardEulerMozartInPlace<8>(micm::BackwardEulerSolverParameters());
 

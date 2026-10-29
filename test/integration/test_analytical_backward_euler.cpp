@@ -36,16 +36,6 @@ template<micm::Index L>
 using VectorStateTypeMozart = typename VectorBackwardEulerMozart<L>::StatePolicyType;
 
 template<micm::Index L>
-using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
-    micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittleInPlace<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
-
-template<micm::Index L>
-using VectorStateTypeDoolittleInPlace = typename VectorBackwardEulerDoolittleInPlace<L>::StatePolicyType;
-
-template<micm::Index L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
@@ -69,14 +59,6 @@ auto backward_euler_vector_mozart_1 = VectorBackwardEulerMozart<1>(micm::Backwar
 auto backward_euler_vector_mozart_2 = VectorBackwardEulerMozart<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_3 = VectorBackwardEulerMozart<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_4 = VectorBackwardEulerMozart<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_1 =
-    VectorBackwardEulerDoolittleInPlace<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_2 =
-    VectorBackwardEulerDoolittleInPlace<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_3 =
-    VectorBackwardEulerDoolittleInPlace<3>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_4 =
-    VectorBackwardEulerDoolittleInPlace<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_1 = VectorBackwardEulerMozartInPlace<1>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_2 = VectorBackwardEulerMozartInPlace<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_3 = VectorBackwardEulerMozartInPlace<3>(micm::BackwardEulerSolverParameters());

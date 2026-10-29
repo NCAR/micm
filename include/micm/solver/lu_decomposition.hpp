@@ -3,7 +3,6 @@
 #pragma once
 
 #include "lu_decomposition_doolittle.hpp"
-#include "lu_decomposition_doolittle_in_place.hpp"
 #include "lu_decomposition_mozart.hpp"
 #include "lu_decomposition_mozart_in_place.hpp"
 
@@ -28,14 +27,6 @@ namespace micm
           LuDecompositionMozartInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
           SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
       "LuDecompositionMozartInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
-  static_assert(
-      LuDecompositionInPlaceConcept<LuDecompositionDoolittleInPlace<StandardSparseMatrix>, StandardSparseMatrix>,
-      "LuDecompositionDoolittleInPlace does not meet the LuDecompositionInPlaceConcept requirements");
-  static_assert(
-      LuDecompositionInPlaceConcept<
-          LuDecompositionDoolittleInPlace<SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
-          SparseMatrix<Real, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
-      "LuDecompositionDoolittleInPlace for vector matrices does not meet the LuDecompositionInPlaceConcept requirements");
 
   /// @brief Alias for the default LU decomposition algorithm
   template<class SparseMatrixPolicy>
