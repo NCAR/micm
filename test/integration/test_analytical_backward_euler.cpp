@@ -26,17 +26,6 @@ template<micm::Index L>
 using VectorStateTypeDoolittle = typename VectorBackwardEulerDoolittle<L>::StatePolicyType;
 
 template<micm::Index L>
-using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
-    micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle<
-        micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
-
-template<micm::Index L>
-using VectorStateTypeDoolittleCSC = typename VectorBackwardEulerDolittleCSC<L>::StatePolicyType;
-
-template<micm::Index L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<micm::Real, L>,
@@ -45,16 +34,6 @@ using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
 
 template<micm::Index L>
 using VectorStateTypeMozart = typename VectorBackwardEulerMozart<L>::StatePolicyType;
-
-template<micm::Index L>
-using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
-    micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<micm::Real, L>,
-    micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart<micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
-
-template<micm::Index L>
-using VectorStateTypeMozartCSC = typename VectorBackwardEulerMozartCSC<L>::StatePolicyType;
 
 template<micm::Index L>
 using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
@@ -86,18 +65,10 @@ auto backward_euler_vector_doolittle_1 = VectorBackwardEulerDoolittle<1>(micm::B
 auto backward_euler_vector_doolittle_2 = VectorBackwardEulerDoolittle<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_3 = VectorBackwardEulerDoolittle<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_4 = VectorBackwardEulerDoolittle<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_1 = VectorBackwardEulerDolittleCSC<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_2 = VectorBackwardEulerDolittleCSC<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_3 = VectorBackwardEulerDolittleCSC<3>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_csc_4 = VectorBackwardEulerDolittleCSC<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_1 = VectorBackwardEulerMozart<1>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_2 = VectorBackwardEulerMozart<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_3 = VectorBackwardEulerMozart<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_4 = VectorBackwardEulerMozart<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_1 = VectorBackwardEulerMozartCSC<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_2 = VectorBackwardEulerMozartCSC<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_3 = VectorBackwardEulerMozartCSC<3>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_csc_4 = VectorBackwardEulerMozartCSC<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_in_place_1 =
     VectorBackwardEulerDoolittleInPlace<1>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_in_place_2 =
@@ -122,18 +93,10 @@ TEST(AnalyticalExamples, Troe)
   TestAnalyticalTroe(backward_euler_vector_doolittle_2, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_doolittle_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_doolittle_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_3, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_doolittle_csc_4, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_1, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_2, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_3, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_4, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_1, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_2, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_3, 1e-6);
-  TestAnalyticalTroe(backward_euler_vector_mozart_csc_4, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_1, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_2, 1e-6);
   TestAnalyticalTroe(backward_euler_vector_mozart_in_place_3, 1e-6);

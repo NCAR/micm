@@ -39,28 +39,6 @@ template<micm::Index L>
 using VectorStateType = micm::State<Dense<L>, Sparse<L>>;
 
 template<micm::Index L>
-using VectorRosenbrockDolittleCSC = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    Dense<L>,
-    micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle<
-        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
-
-template<micm::Index L>
-using VectorStateTypeDoolittleCSC = typename VectorRosenbrockDolittleCSC<L>::StatePolicyType;
-
-template<micm::Index L>
-using VectorRosenbrockMozartCSC = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    Dense<L>,
-    micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart<
-        micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>>>;
-
-template<micm::Index L>
-using VectorStateTypeMozartCSC = typename VectorRosenbrockMozartCSC<L>::StatePolicyType;
-
-template<micm::Index L>
 using VectorRosenbrockDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::RosenbrockSolverParameters,
     Dense<L>,
@@ -100,12 +78,6 @@ auto rosenbrock_vector_doolittle_4 =
 auto rosenbrock_vector_mozart_4 =
     VectorRosenbrockMozart<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
-auto rosenbrock_vector_doolittle_csc_4 =
-    VectorRosenbrockDolittleCSC<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-
-auto rosenbrock_vector_mozart_csc_4 =
-    VectorRosenbrockMozartCSC<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-
 auto rosenbrock_vector_doolittle_in_place_4 =
     VectorRosenbrockDoolittleInPlace<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
@@ -124,8 +96,6 @@ TEST(AnalyticalExamples, Troe)
   TestAnalyticalTroe(rosenbrock_vector_4);
   TestAnalyticalTroe(rosenbrock_vector_doolittle_4);
   TestAnalyticalTroe(rosenbrock_vector_mozart_4);
-  TestAnalyticalTroe(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalTroe(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalTroe(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_8);
@@ -144,8 +114,6 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   TestAnalyticalStiffTroe(rosenbrock_4stage_da);
   TestAnalyticalStiffTroe(rosenbrock_6stage_da);
   TestAnalyticalStiffTroe(rosenbrock_vector_4);
-  TestAnalyticalStiffTroe(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalStiffTroe(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalStiffTroe(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalStiffTroe(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalStiffTroe(rosenbrock_vector_mozart_in_place_8);
@@ -159,8 +127,6 @@ TEST(AnalyticalExamples, Photolysis)
   TestAnalyticalPhotolysis(rosenbrock_4stage_da);
   TestAnalyticalPhotolysis(rosenbrock_6stage_da);
   TestAnalyticalPhotolysis(rosenbrock_vector_4);
-  TestAnalyticalPhotolysis(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalPhotolysis(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalPhotolysis(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalPhotolysis(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalPhotolysis(rosenbrock_vector_mozart_in_place_8);
@@ -179,8 +145,6 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   TestAnalyticalStiffPhotolysis(rosenbrock_4stage_da);
   TestAnalyticalStiffPhotolysis(rosenbrock_6stage_da);
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_4);
-  TestAnalyticalStiffPhotolysis(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalStiffPhotolysis(rosenbrock_vector_mozart_in_place_8);
@@ -194,8 +158,6 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
   TestAnalyticalTernaryChemicalActivation(rosenbrock_4stage_da);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_6stage_da);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_4);
-  TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_8);
@@ -214,8 +176,6 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_4stage_da, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_6stage_da, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_4, 2e-3);
-  TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_doolittle_csc_4, 2e-3);
-  TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_csc_4, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_doolittle_in_place_4, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_4, 2e-3);
   TestAnalyticalStiffTernaryChemicalActivation(rosenbrock_vector_mozart_in_place_8, 2e-3);
@@ -229,8 +189,6 @@ TEST(AnalyticalExamples, Tunneling)
   TestAnalyticalTunneling(rosenbrock_4stage_da);
   TestAnalyticalTunneling(rosenbrock_6stage_da);
   TestAnalyticalTunneling(rosenbrock_vector_4);
-  TestAnalyticalTunneling(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalTunneling(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalTunneling(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalTunneling(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalTunneling(rosenbrock_vector_mozart_in_place_8);
@@ -249,8 +207,6 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   TestAnalyticalStiffTunneling(rosenbrock_4stage_da, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_6stage_da, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_vector_4, 1e-4);
-  TestAnalyticalStiffTunneling(rosenbrock_vector_doolittle_csc_4, 1e-4);
-  TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_csc_4, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_vector_doolittle_in_place_4, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_in_place_4, 1e-4);
   TestAnalyticalStiffTunneling(rosenbrock_vector_mozart_in_place_8, 1e-4);
@@ -264,8 +220,6 @@ TEST(AnalyticalExamples, Arrhenius)
   TestAnalyticalArrhenius(rosenbrock_4stage_da);
   TestAnalyticalArrhenius(rosenbrock_6stage_da);
   TestAnalyticalArrhenius(rosenbrock_vector_4);
-  TestAnalyticalArrhenius(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalArrhenius(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalArrhenius(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalArrhenius(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalArrhenius(rosenbrock_vector_mozart_in_place_8);
@@ -284,8 +238,6 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   TestAnalyticalStiffArrhenius(rosenbrock_4stage_da, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_6stage_da, 1e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_vector_4, 2e-5);
-  TestAnalyticalStiffArrhenius(rosenbrock_vector_doolittle_csc_4, 2e-5);
-  TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_csc_4, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_vector_doolittle_in_place_4, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_in_place_4, 2e-5);
   TestAnalyticalStiffArrhenius(rosenbrock_vector_mozart_in_place_8, 2e-5);
@@ -299,8 +251,6 @@ TEST(AnalyticalExamples, Branched)
   TestAnalyticalBranched(rosenbrock_4stage_da);
   TestAnalyticalBranched(rosenbrock_6stage_da);
   TestAnalyticalBranched(rosenbrock_vector_4);
-  TestAnalyticalBranched(rosenbrock_vector_doolittle_csc_4);
-  TestAnalyticalBranched(rosenbrock_vector_mozart_csc_4);
   TestAnalyticalBranched(rosenbrock_vector_doolittle_in_place_4);
   TestAnalyticalBranched(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalBranched(rosenbrock_vector_mozart_in_place_8);
@@ -319,8 +269,6 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   TestAnalyticalStiffBranched(rosenbrock_4stage_da, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_6stage_da, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_vector_4, 2e-3);
-  TestAnalyticalStiffBranched(rosenbrock_vector_doolittle_csc_4, 2e-3);
-  TestAnalyticalStiffBranched(rosenbrock_vector_mozart_csc_4, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_vector_doolittle_in_place_4, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_vector_mozart_in_place_4, 2e-3);
   TestAnalyticalStiffBranched(rosenbrock_vector_mozart_in_place_8, 2e-3);
@@ -350,8 +298,6 @@ TEST(AnalyticalExamples, Robertson)
   TestAnalyticalRobertson(rosenbrock_6stage_da, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_doolittle_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_4, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_doolittle_csc_4, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_mozart_csc_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_doolittle_in_place_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_8, 1e-6);
@@ -371,8 +317,6 @@ TEST(AnalyticalExamples, E5)
   TestAnalyticalE5(rosenbrock_6stage_da, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_doolittle_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_4, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_doolittle_csc_4, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_mozart_csc_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_doolittle_in_place_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_8, 1e-10);
@@ -393,8 +337,6 @@ TEST(AnalyticalExamples, Oregonator)
   TestAnalyticalOregonator(rosenbrock_6stage_da, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_doolittle_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_4, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_doolittle_csc_4, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_mozart_csc_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_doolittle_in_place_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_8, rel_tol);
@@ -416,8 +358,6 @@ TEST(AnalyticalExamples, HIRES)
   TestAnalyticalHires(rosenbrock_vector_mozart_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_doolittle_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_4, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_doolittle_csc_4, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_mozart_csc_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_doolittle_in_place_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_8, 1e-7);

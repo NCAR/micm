@@ -28,7 +28,6 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_column.hpp>
 #include <micm/util/sparse_matrix_standard_ordering_compressed_sparse_row.hpp>
-#include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_column.hpp>
 #include <micm/util/sparse_matrix_vector_ordering_compressed_sparse_row.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/util/view_category.hpp>
@@ -609,11 +608,6 @@ TEST(GroupedView, FillAndCopySparseStandardCSC)
 TEST(GroupedView, FillAndCopySparseVectorCSR_L4)
 {
   RunSparseFillCopyTest<SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseRow<4>>, 4>();
-}
-
-TEST(GroupedView, FillAndCopySparseVectorCSC_L4)
-{
-  RunSparseFillCopyTest<SparseMatrix<micm::Real, SparseMatrixVectorOrderingCompressedSparseColumn<4>>, 4>();
 }
 
 TEST(GroupedView, FillAndCopySparseVectorCSR_L8)
