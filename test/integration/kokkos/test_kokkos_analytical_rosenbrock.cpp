@@ -29,13 +29,6 @@ template<micm::Index L>
 using VectorStateTypeDoolittle = micm::State<Dense<L>, Sparse<L>, micm::LuDecompositionDoolittle<Sparse<L>>>;
 
 template<micm::Index L>
-using VectorRosenbrockMozart =
-    micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, Dense<L>, Sparse<L>, micm::LuDecompositionMozart<Sparse<L>>>;
-
-template<micm::Index L>
-using VectorStateTypeMozart = micm::State<Dense<L>, Sparse<L>, micm::LuDecompositionMozart<Sparse<L>>>;
-
-template<micm::Index L>
 using VectorStateType = micm::State<Dense<L>, Sparse<L>>;
 
 template<micm::Index L>
@@ -65,8 +58,6 @@ auto rosenbrock_vector_4 = VectorRosenbrock<4>(micm::RosenbrockSolverParameters:
 
 auto rosenbrock_vector_doolittle_4 =
     VectorRosenbrockDoolittle<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_mozart_4 =
-    VectorRosenbrockMozart<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
 auto rosenbrock_vector_mozart_in_place_4 =
     VectorRosenbrockMozartInPlace<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
@@ -82,7 +73,6 @@ TEST(AnalyticalExamples, Troe)
   TestAnalyticalTroe(rosenbrock_6stage_da);
   TestAnalyticalTroe(rosenbrock_vector_4);
   TestAnalyticalTroe(rosenbrock_vector_doolittle_4);
-  TestAnalyticalTroe(rosenbrock_vector_mozart_4);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_4);
   TestAnalyticalTroe(rosenbrock_vector_mozart_in_place_8);
 }
@@ -272,7 +262,6 @@ TEST(AnalyticalExamples, Robertson)
   TestAnalyticalRobertson(rosenbrock_4stage_da, 1e-6);
   TestAnalyticalRobertson(rosenbrock_6stage_da, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_doolittle_4, 1e-6);
-  TestAnalyticalRobertson(rosenbrock_vector_mozart_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_4, 1e-6);
   TestAnalyticalRobertson(rosenbrock_vector_mozart_in_place_8, 1e-6);
 }
@@ -290,7 +279,6 @@ TEST(AnalyticalExamples, E5)
   TestAnalyticalE5(rosenbrock_4stage_da, 1e-10);
   TestAnalyticalE5(rosenbrock_6stage_da, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_doolittle_4, 1e-10);
-  TestAnalyticalE5(rosenbrock_vector_mozart_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_4, 1e-10);
   TestAnalyticalE5(rosenbrock_vector_mozart_in_place_8, 1e-10);
 }
@@ -309,7 +297,6 @@ TEST(AnalyticalExamples, Oregonator)
   TestAnalyticalOregonator(rosenbrock_4stage_da, rel_tol);
   TestAnalyticalOregonator(rosenbrock_6stage_da, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_doolittle_4, rel_tol);
-  TestAnalyticalOregonator(rosenbrock_vector_mozart_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_4, rel_tol);
   TestAnalyticalOregonator(rosenbrock_vector_mozart_in_place_8, rel_tol);
 }
@@ -327,9 +314,7 @@ TEST(AnalyticalExamples, HIRES)
   TestAnalyticalHires(rosenbrock_4stage_da, 1e-6);
   TestAnalyticalHires(rosenbrock_6stage_da, 1e-6);
   TestAnalyticalHires(rosenbrock_vector_doolittle_4, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_mozart_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_doolittle_4, 1e-7);
-  TestAnalyticalHires(rosenbrock_vector_mozart_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_4, 1e-7);
   TestAnalyticalHires(rosenbrock_vector_mozart_in_place_8, 1e-7);
 }

@@ -10,7 +10,6 @@
 #include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/lu_decomposition_doolittle.hpp>
-#include <micm/solver/lu_decomposition_mozart.hpp>
 #include <micm/solver/lu_decomposition_mozart_in_place.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>

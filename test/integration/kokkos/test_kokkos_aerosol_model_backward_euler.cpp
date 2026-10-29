@@ -26,13 +26,6 @@ using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::LuDecompositionDoolittle<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
 
 template<micm::Index L>
-using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
-    micm::BackwardEulerSolverParameters,
-    micm::KokkosDenseMatrix<micm::Real, L>,
-    micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozart<micm::KokkosSparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>>;
-
-template<micm::Index L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
     micm::KokkosDenseMatrix<micm::Real, L>,
@@ -52,11 +45,6 @@ auto backward_euler_vector_doolittle_2 = VectorBackwardEulerDoolittle<2>(micm::B
 auto backward_euler_vector_doolittle_3 = VectorBackwardEulerDoolittle<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_doolittle_4 = VectorBackwardEulerDoolittle<4>(micm::BackwardEulerSolverParameters());
 
-auto backward_euler_vector_mozart_1 = VectorBackwardEulerMozart<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_2 = VectorBackwardEulerMozart<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_3 = VectorBackwardEulerMozart<3>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_mozart_4 = VectorBackwardEulerMozart<4>(micm::BackwardEulerSolverParameters());
-
 auto backward_euler_vector_mozart_in_place_1 = VectorBackwardEulerMozartInPlace<1>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_2 = VectorBackwardEulerMozartInPlace<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_3 = VectorBackwardEulerMozartInPlace<3>(micm::BackwardEulerSolverParameters());
@@ -75,10 +63,6 @@ TEST(AerosolModelIntegration, StateIncludesStubAerosolModel)
   TestStateIncludesStubAerosolModel(backward_euler_vector_doolittle_2);
   TestStateIncludesStubAerosolModel(backward_euler_vector_doolittle_3);
   TestStateIncludesStubAerosolModel(backward_euler_vector_doolittle_4);
-  TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_1);
-  TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_2);
-  TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_3);
-  TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_4);
   TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_in_place_1);
   TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_in_place_2);
   TestStateIncludesStubAerosolModel(backward_euler_vector_mozart_in_place_3);
@@ -98,10 +82,6 @@ TEST(AerosolModelIntegration, CanUpdateStateWithStubAerosolModel)
   TestUpdateStateWithStubAerosolModel(backward_euler_vector_doolittle_2);
   TestUpdateStateWithStubAerosolModel(backward_euler_vector_doolittle_3);
   TestUpdateStateWithStubAerosolModel(backward_euler_vector_doolittle_4);
-  TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_1);
-  TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_2);
-  TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_3);
-  TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_4);
   TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_in_place_1);
   TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_in_place_2);
   TestUpdateStateWithStubAerosolModel(backward_euler_vector_mozart_in_place_3);
@@ -121,10 +101,6 @@ TEST(AerosolModelIntegration, CanUpdateMultiCellStateWithStubAerosolModel)
   TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_doolittle_2);
   TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_doolittle_3);
   TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_doolittle_4);
-  TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_1);
-  TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_2);
-  TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_3);
-  TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_4);
   TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_in_place_1);
   TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_in_place_2);
   TestUpdateMultiCellStateWithStubAerosolModel(backward_euler_vector_mozart_in_place_3);
@@ -144,10 +120,6 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellForcingWithStubAerosolMo
   TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_doolittle_2);
   TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_doolittle_3);
   TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_doolittle_4);
-  TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_1);
-  TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_2);
-  TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_3);
-  TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_4);
   TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_in_place_1);
   TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_in_place_2);
   TestSingleCellForcingWithStubAerosolModel(backward_euler_vector_mozart_in_place_3);
@@ -167,10 +139,6 @@ TEST(AerosolModelIntegration, CanCalculateSingleGridCellJacobianWithStubAerosolM
   TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_doolittle_2);
   TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_doolittle_3);
   TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_doolittle_4);
-  TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_1);
-  TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_2);
-  TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_3);
-  TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_4);
   TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_in_place_1);
   TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_in_place_2);
   TestSingleCellJacobianWithStubAerosolModel(backward_euler_vector_mozart_in_place_3);
@@ -190,10 +158,6 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithStubAerosolModel1)
   TestSolveWithStubAerosolModel1(backward_euler_vector_doolittle_2, 2e-4);
   TestSolveWithStubAerosolModel1(backward_euler_vector_doolittle_3, 2e-4);
   TestSolveWithStubAerosolModel1(backward_euler_vector_doolittle_4, 2e-4);
-  TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_1, 2e-4);
-  TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_2, 2e-4);
-  TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_3, 2e-4);
-  TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_4, 2e-4);
   TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_in_place_1, 2e-4);
   TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_in_place_2, 2e-4);
   TestSolveWithStubAerosolModel1(backward_euler_vector_mozart_in_place_3, 2e-4);
@@ -213,10 +177,6 @@ TEST(AerosolModelIntegration, CanSolveSingleGridCellWithTwoStubAerosolModels)
   TestSolveWithTwoStubAerosolModels(backward_euler_vector_doolittle_2, 1e-1);
   TestSolveWithTwoStubAerosolModels(backward_euler_vector_doolittle_3, 1e-1);
   TestSolveWithTwoStubAerosolModels(backward_euler_vector_doolittle_4, 1e-1);
-  TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_1, 1e-1);
-  TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_2, 1e-1);
-  TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_3, 1e-1);
-  TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_4, 1e-1);
   TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_in_place_1, 1e-1);
   TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_in_place_2, 1e-1);
   TestSolveWithTwoStubAerosolModels(backward_euler_vector_mozart_in_place_3, 1e-1);
@@ -236,10 +196,6 @@ TEST(AerosolModelIntegration, CanSolveMultiGridCellWithStubAerosolModel1)
   TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_doolittle_2, 2e-4);
   TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_doolittle_3, 2e-4);
   TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_doolittle_4, 2e-4);
-  TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_1, 2e-4);
-  TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_2, 2e-4);
-  TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_3, 2e-4);
-  TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_4, 2e-4);
   TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_in_place_1, 2e-4);
   TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_in_place_2, 2e-4);
   TestSolveWithStubAerosolModel1MultiCell(backward_euler_vector_mozart_in_place_3, 2e-4);
@@ -259,10 +215,6 @@ TEST(AerosolModelIntegration, CanSolveMultiGridCellWithTwoStubAerosolModels)
   TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_doolittle_2, 1e-1);
   TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_doolittle_3, 1e-1);
   TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_doolittle_4, 1e-1);
-  TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_1, 1e-1);
-  TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_2, 1e-1);
-  TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_3, 1e-1);
-  TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_4, 1e-1);
   TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_in_place_1, 1e-1);
   TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_in_place_2, 1e-1);
   TestSolveWithTwoStubAerosolModelsMultiCell(backward_euler_vector_mozart_in_place_3, 1e-1);
