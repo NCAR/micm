@@ -138,10 +138,17 @@ namespace micm
           {
             if (parameters.new_function_evaluation_[stage])
             {
-              Ynew.Copy(Y);
-              for (Index j = 0; j < stage; ++j)
+              if constexpr (HAS_HOST_LINEAR_COMBINATION_V<DenseMatrixPolicy>)
               {
-                Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
+                LinearCombination(Ynew, Y, &parameters.a_[stage_combinations], K, stage);
+              }
+              else
+              {
+                Ynew.Copy(Y);
+                for (Index j = 0; j < stage; ++j)
+                {
+                  Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
+                }
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state, Ynew, K[stage]);
@@ -156,19 +163,33 @@ namespace micm
           {
             K[stage + 1].Copy(K[stage]);
           }
-          for (Index j = 0; j < stage; ++j)
+          if (!has_constraints && stage > 0)
           {
-            Real c_over_h = parameters.c_[stage_combinations + j] / H;
-            if (!has_constraints)
+            if constexpr (HAS_HOST_LINEAR_COMBINATION_V<DenseMatrixPolicy>)
             {
-              K[stage].Axpy(c_over_h, K[j]);
+              std::array<Real, detail::MAX_LINEAR_COMBINATION_TERMS> c_over_h{};
+              for (Index j = 0; j < stage; ++j)
+              {
+                c_over_h[j] = parameters.c_[stage_combinations + j] / H;
+              }
+              LinearCombination(K[stage], K[stage], c_over_h.data(), K, stage);
             }
             else
+            {
+              for (Index j = 0; j < stage; ++j)
+              {
+                K[stage].Axpy(parameters.c_[stage_combinations + j] / H, K[j]);
+              }
+            }
+          }
+          else if (has_constraints)
+          {
+            for (Index j = 0; j < stage; ++j)
             {
               // DAE path: scale by mass matrix diagonal element-wise.
               // For ODE variables (diagonal = 1), accumulate c/H * K[j].
               // For algebraic variables (diagonal = 0), the coupling is zero.
-              current_c_over_h = c_over_h;
+              current_c_over_h = parameters.c_[stage_combinations + j] / H;
               current_c_over_h.CopyToDevice();
               mass_coupling(K[stage], K[j]);
             }
@@ -177,16 +198,23 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        Ynew.Copy(Y);
-        for (Index stage = 0; stage < parameters.stages_; ++stage)
+        if constexpr (HAS_HOST_LINEAR_COMBINATION_V<DenseMatrixPolicy>)
         {
-          Ynew.Axpy(parameters.m_[stage], K[stage]);
+          LinearCombination2(Ynew, Y, parameters.m_.data(), Yerror, parameters.e_.data(), K, parameters.stages_);
         }
-
-        Yerror.Fill(0);
-        for (Index stage = 0; stage < parameters.stages_; ++stage)
+        else
         {
-          Yerror.Axpy(parameters.e_[stage], K[stage]);
+          Ynew.Copy(Y);
+          for (Index stage = 0; stage < parameters.stages_; ++stage)
+          {
+            Ynew.Axpy(parameters.m_[stage], K[stage]);
+          }
+
+          Yerror.Fill(0);
+          for (Index stage = 0; stage < parameters.stages_; ++stage)
+          {
+            Yerror.Axpy(parameters.e_[stage], K[stage]);
+          }
         }
 
         // For DAE systems, replace the near-zero algebraic error estimates with step changes.
