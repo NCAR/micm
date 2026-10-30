@@ -198,22 +198,46 @@ namespace micm
           result.stats_.solves_ += 1;
         }
 
-        if constexpr (HAS_HOST_LINEAR_COMBINATION_V<DenseMatrixPolicy>)
+        bool error_is_calculated = false;
+        if constexpr (IsHostVectorMatrix<DenseMatrixPolicy>::value)
         {
-          LinearCombination2(Ynew, Y, parameters.m_.data(), Yerror, parameters.e_.data(), K, parameters.stages_);
-        }
-        else
-        {
-          Ynew.Copy(Y);
-          for (Index stage = 0; stage < parameters.stages_; ++stage)
+          if (!has_constraints)
           {
-            Ynew.Axpy(parameters.m_[stage], K[stage]);
+            // Calculate the normalized error in the same pass, so that the solver does not store or read Yerror
+            const Real sum = LinearCombination2Error(
+                Ynew,
+                Y,
+                parameters.m_.data(),
+                parameters.e_.data(),
+                K,
+                parameters.stages_,
+                std::as_const(state.absolute_tolerance_).GetView(),
+                state.relative_tolerance_);
+            constexpr Real error_min = 1.0e-10;
+            const Index N = std::max<Index>(1, Y.NumRows() * Y.NumColumns());
+            error = std::max(std::sqrt(sum / N), error_min);
+            error_is_calculated = true;
           }
-
-          Yerror.Fill(0);
-          for (Index stage = 0; stage < parameters.stages_; ++stage)
+        }
+        if (!error_is_calculated)
+        {
+          if constexpr (HAS_HOST_LINEAR_COMBINATION_V<DenseMatrixPolicy>)
           {
-            Yerror.Axpy(parameters.e_[stage], K[stage]);
+            LinearCombination2(Ynew, Y, parameters.m_.data(), Yerror, parameters.e_.data(), K, parameters.stages_);
+          }
+          else
+          {
+            Ynew.Copy(Y);
+            for (Index stage = 0; stage < parameters.stages_; ++stage)
+            {
+              Ynew.Axpy(parameters.m_[stage], K[stage]);
+            }
+
+            Yerror.Fill(0);
+            for (Index stage = 0; stage < parameters.stages_; ++stage)
+            {
+              Yerror.Axpy(parameters.e_[stage], K[stage]);
+            }
           }
         }
 
@@ -235,7 +259,10 @@ namespace micm
         }
 
         // Compute the normalized error
-        static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state, error);
+        if (!error_is_calculated)
+        {
+          static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state, error);
+        }
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         Real fac = std::min(

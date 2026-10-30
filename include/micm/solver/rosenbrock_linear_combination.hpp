@@ -13,7 +13,9 @@
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
@@ -176,5 +178,108 @@ namespace micm
               detail::Pointers<N>(x),
               out_a.AsVector().size());
         });
+  }
+
+  /// @brief True when the dense matrix is a host VectorMatrix, so that the solver can calculate the error in the final
+  ///        linear combination
+  template<class DenseMatrixPolicy>
+  struct IsHostVectorMatrix : std::false_type
+  {
+  };
+  template<class T, Index L>
+  struct IsHostVectorMatrix<VectorMatrix<T, L>> : std::true_type
+  {
+  };
+
+  namespace detail
+  {
+    template<Index N, Index L, class T, class ToleranceView>
+    Real LinearCombination2Error(
+        T* out,
+        const T* base,
+        const Real* coefficients_a,
+        const Real* coefficients_b,
+        const std::array<const T*, N>& x,
+        const ToleranceView& atol,
+        const Real rtol,
+        const Index n_rows,
+        const Index n_columns)
+    {
+      std::array<Real, N> c_a{};
+      std::array<Real, N> c_b{};
+      for (Index j = 0; j < N; ++j)
+      {
+        c_a[j] = coefficients_a[j];
+        c_b[j] = coefficients_b[j];
+      }
+      Real error = 0;
+      const Index n_groups = (n_rows + L - 1) / L;
+      for (Index group = 0; group < n_groups; ++group)
+      {
+        const Index rows_in_group = std::min(L, n_rows - group * L);
+        for (Index column = 0; column < n_columns; ++column)
+        {
+          const Index offset = (group * n_columns + column) * L;
+          const Real atol_column = atol[column];
+          std::array<Real, L> scaled_errors;
+          for (Index row = 0; row < L; ++row)
+          {
+            const Index i = offset + row;
+            const T y = base[i];
+            T sum_a = y;
+            T sum_b{};
+            for (Index j = 0; j < N; ++j)
+            {
+              const T xj = x[j][i];
+              sum_a += c_a[j] * xj;
+              sum_b += c_b[j] * xj;
+            }
+            out[i] = sum_a;
+            Real ymax = (std::abs(y) > std::abs(sum_a) ? std::abs(y) : std::abs(sum_a));
+            scaled_errors[row] = sum_b / (atol_column + rtol * ymax);
+          }
+          // Add the terms in the same order and form as NormalizedError(), and skip the padding rows
+          for (Index row = 0; row < rows_in_group; ++row)
+          {
+            error += scaled_errors[row] * scaled_errors[row];
+          }
+        }
+      }
+      return error;
+    }
+  }  // namespace detail
+
+  /// @brief Calculates out = base + sum of coefficients_a[j] * x[j] for j < count, and returns the sum of the squares
+  ///        of the scaled error sum of coefficients_b[j] * x[j]. The function does not store the error.
+  ///        The sum has the same order as NormalizedError(), so the result is the same.
+  template<class T, Index L, class ToleranceView>
+  Real LinearCombination2Error(
+      VectorMatrix<T, L>& out,
+      const VectorMatrix<T, L>& base,
+      const Real* coefficients_a,
+      const Real* coefficients_b,
+      const std::vector<VectorMatrix<T, L>>& x,
+      const Index count,
+      const ToleranceView& atol,
+      const Real rtol)
+  {
+    Real error = 0;
+    detail::DispatchTermCount(
+        count,
+        [&](auto n)
+        {
+          constexpr Index N = decltype(n)::value;
+          error = detail::LinearCombination2Error<N, L>(
+              out.AsVector().data(),
+              base.AsVector().data(),
+              coefficients_a,
+              coefficients_b,
+              detail::Pointers<N>(x),
+              atol,
+              rtol,
+              out.NumRows(),
+              out.NumColumns());
+        });
+    return error;
   }
 }  // namespace micm
