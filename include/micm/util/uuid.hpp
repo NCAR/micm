@@ -15,9 +15,7 @@ namespace micm
   /// @return UUID string in the form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx, where y is one of 8, 9, a, b
   inline std::string GenerateUuid()
   {
-    // One engine per thread, seeded once from several random_device draws. Re-seeding on every
-    // call from a single 32-bit draw caps the entropy at 32 bits (less where random_device is weak)
-    // and produced duplicate UUIDs in practice.
+    // One engine per thread, seeded once from several random_device draws.
     thread_local std::mt19937_64 gen = []
     {
       std::random_device rd;
