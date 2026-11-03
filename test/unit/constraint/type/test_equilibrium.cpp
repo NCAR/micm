@@ -79,7 +79,7 @@ TEST(EquilibriumConstraint, ParameterNameIsUniquePerConstraint)
   EXPECT_NE(constraint_1.parameters_[0], constraint_2.parameters_[0]);
 
   // Copies keep the same parameter name
-  auto copy = constraint_1;
+  auto copy = constraint_1;  // NOLINT(performance-unnecessary-copy-initialization): checks copy behavior
   EXPECT_EQ(copy.parameters_[0], constraint_1.parameters_[0]);
 }
 
