@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include "../../../constraint_parameter_helpers.hpp"
+
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
@@ -48,6 +50,37 @@ TEST(EquilibriumConstraint, Construction)
   EXPECT_EQ(constraint.species_dependencies_[2], "AB");
   EXPECT_EQ(constraint.reactants_.size(), 2);
   EXPECT_EQ(constraint.products_.size(), 1);
+}
+
+TEST(EquilibriumConstraint, ParameterNameIsUniquePerConstraint)
+{
+  // Constraints with the same name must still get distinct K_eq parameter names
+
+  auto A = Species("A");
+  auto B = Species("B");
+  auto AB = Species("AB");
+  auto make_constraint = [&]()
+  {
+    return EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+        "A_B_equilibrium",
+        AB,
+        std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+        std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+        { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 });
+  };
+  auto constraint_1 = make_constraint();
+  auto constraint_2 = make_constraint();
+
+  ASSERT_EQ(constraint_1.parameters_.size(), 1);
+  ASSERT_EQ(constraint_2.parameters_.size(), 1);
+  const std::string& label = constraint_1.parameters_[0];
+  EXPECT_EQ(label.rfind("A_B_equilibrium.", 0), 0);
+  EXPECT_EQ(label.substr(label.size() - 5), ".K_eq");
+  EXPECT_NE(constraint_1.parameters_[0], constraint_2.parameters_[0]);
+
+  // Copies keep the same parameter name
+  auto copy = constraint_1;
+  EXPECT_EQ(copy.parameters_[0], constraint_1.parameters_[0]);
 }
 
 TEST(EquilibriumConstraint, AlgebraicSpecies)
@@ -237,6 +270,7 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
 
   micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
@@ -255,7 +289,6 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
 
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_equilibrium", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // Create state matrix with 1 grid cell and 3 species
@@ -312,6 +345,7 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
 
   micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for Jacobian using builder
@@ -331,7 +365,6 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   StdSparseMatrix jacobian{ builder };
 
   set.SetJacobianFlatIds(jacobian);
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_equilibrium", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // Create state matrix
@@ -376,6 +409,7 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
 
   micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   // Create sparse matrix for constraint setup
@@ -394,7 +428,6 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
 
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "dissociation", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix state(1, 3);
@@ -435,6 +468,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
   const micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -449,7 +483,6 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   }
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "eq", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix variables(2, num_species, 0.0);
@@ -503,6 +536,7 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
   const micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSet<DenseMatrix, StdSparseMatrix> set{ std::move(constraints), variable_map };
 
   auto non_zero_elements = set.NonZeroJacobianElements();
@@ -517,7 +551,6 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   }
   StdSparseMatrix jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "dissociation", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrix variables(1, num_species, 0.0);

@@ -8,6 +8,7 @@
 #include <micm/util/constants.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/types.hpp>
+#include <micm/util/uuid.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -86,7 +87,8 @@ namespace micm
     /// @brief Product species and their stoichiometric coefficients
     std::vector<StoichSpecies> products_;
 
-    /// @brief For equilibrium constraints, this contains a single parameter K_eq
+    /// @brief For equilibrium constraints, this contains a single parameter K_eq,
+    ///        named "<name>.<uuid>.K_eq" so it is unique across constraints and models
     std::vector<std::string> parameters_;
 
    private:
@@ -258,7 +260,7 @@ namespace micm
             MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT,
             "Henry’s Law constant (K_HLC_ref) must be positive");
       }
-      parameters_.push_back(name);
+      parameters_.push_back(name + "." + GenerateUuid() + ".K_eq");
 
       // Build species dependencies list (reactants first, then products)
       Index idx = 0;

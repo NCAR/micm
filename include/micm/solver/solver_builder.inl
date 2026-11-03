@@ -376,7 +376,6 @@ namespace micm
       auto constraints = constraints_;
       constraint_set = InnerConstraintSet(std::move(constraints), species_map);
 
-      constraint_set.SetUniqueParameterNames();
       for (const auto& label : constraint_set.GetParameterNames())
       {
         if (params_map.count(label) > 0)

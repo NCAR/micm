@@ -19,6 +19,8 @@
 // identical to the originals without leaking the directive into every translation unit that
 // includes this header.
 
+#include "../constraint_parameter_helpers.hpp"
+
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/constraint_set.hpp>
@@ -90,7 +92,7 @@ void TestSetConstraintsAPIWorks(BuilderFactory make_builder)
   ASSERT_TRUE(state.variable_map_.contains("A"));
   ASSERT_TRUE(state.variable_map_.contains("B"));
   ASSERT_TRUE(state.variable_map_.contains("C"));
-  ASSERT_TRUE(state.custom_rate_parameter_map_.contains("B_C_eq"));
+  ASSERT_NO_THROW(FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"));
 
   // Verify mass-matrix diagonal.
   // Size is species only; constrained species rows are algebraic (0), others are ODE (1).
@@ -103,7 +105,8 @@ void TestSetConstraintsAPIWorks(BuilderFactory make_builder)
   micm::Index A_idx = state.variable_map_.at("A");
   micm::Index B_idx = state.variable_map_.at("B");
   micm::Index C_idx = state.variable_map_.at("C");
-  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index B_C_eq_idx =
+      state.custom_rate_parameter_map_.at(FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"));
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.1;
@@ -222,10 +225,15 @@ void TestSetConstraintsAPIMultipleConstraints(BuilderFactory make_builder)
   micm::Real expected_K_eq1 = ComputeEquilibriumConstant(K_eq1, delta_H1, current_temp);
   micm::Real expected_K_eq2 = ComputeEquilibriumConstant(K_eq2, delta_H2, current_temp);
 
-  EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq1, 1e-10);
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+          FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"))],
+      expected_K_eq1,
+      1e-10);
   // Scale the tolerance by machine epsilon so double keeps ~1e-16 strictness while float passes.
   EXPECT_NEAR(
-      state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("E_F_eq")],
+      state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+          FindConstraintParameter(state.custom_rate_parameter_map_, "E_F_eq"))],
       expected_K_eq2,
       std::abs(expected_K_eq2) * 1e2 * std::numeric_limits<micm::Real>::epsilon());
 }
@@ -286,7 +294,8 @@ void TestDAESolveWithConstraint(BuilderFactory make_builder)
   micm::Index A_idx = state.variable_map_.at("A");
   micm::Index B_idx = state.variable_map_.at("B");
   micm::Index C_idx = state.variable_map_.at("C");
-  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index B_C_eq_idx =
+      state.custom_rate_parameter_map_.at(FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"));
 
   // Initial conditions: A=1, B=0, C=0
   state.variables_[0][A_idx] = 1.0;
@@ -411,7 +420,8 @@ void TestDAESolveWithConstraintAndReorderState(BuilderFactory make_builder)
   micm::Index A_idx = state.variable_map_.at("A");
   micm::Index B_idx = state.variable_map_.at("B");
   micm::Index C_idx = state.variable_map_.at("C");
-  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
+  micm::Index B_C_eq_idx =
+      state.custom_rate_parameter_map_.at(FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"));
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.0;
@@ -428,7 +438,11 @@ void TestDAESolveWithConstraintAndReorderState(BuilderFactory make_builder)
   state.custom_rate_parameters_.CopyToHost();
 
   micm::Real expected_K_eq = ComputeEquilibriumConstant(K_eq, -2400.0, 400.0);
-  EXPECT_NEAR(state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")], expected_K_eq, 1e-10);
+  EXPECT_NEAR(
+      state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+          FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"))],
+      expected_K_eq,
+      1e-10);
 
   micm::Real dt = 0.001;
   micm::Real total_time = 0.1;
@@ -516,8 +530,10 @@ void TestDAESolveWithTwoCoupledConstraints(BuilderFactory make_builder)
   micm::Index B_idx = state.variable_map_.at("B");
   micm::Index C_idx = state.variable_map_.at("C");
   micm::Index D_idx = state.variable_map_.at("D");
-  micm::Index B_C_eq_idx = state.custom_rate_parameter_map_.at("B_C_eq");
-  micm::Index B_D_eq_idx = state.custom_rate_parameter_map_.at("B_D_eq");
+  micm::Index B_C_eq_idx =
+      state.custom_rate_parameter_map_.at(FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"));
+  micm::Index B_D_eq_idx =
+      state.custom_rate_parameter_map_.at(FindConstraintParameter(state.custom_rate_parameter_map_, "B_D_eq"));
 
   state.variables_[0][A_idx] = 1.0;
   state.variables_[0][B_idx] = 0.0;
@@ -623,7 +639,8 @@ void TestDAESolveWithNonUnitStoichiometry(BuilderFactory make_builder)
   micm::Index A_idx = state.variable_map_.at("A");
   micm::Index B_idx = state.variable_map_.at("B");
   micm::Index C_idx = state.variable_map_.at("C");
-  micm::Index A2_B_eq_idx = state.custom_rate_parameter_map_.at("A2_B_eq");
+  micm::Index A2_B_eq_idx =
+      state.custom_rate_parameter_map_.at(FindConstraintParameter(state.custom_rate_parameter_map_, "A2_B_eq"));
 
   // Start with some A so the constraint has something to work with
   state.variables_[0][A_idx] = 0.1;

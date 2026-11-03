@@ -147,43 +147,6 @@ namespace micm
       return algebraic_variable_ids_;
     }
 
-    /// @brief Deduplicates parameter names across all constraints in the set
-    ///        Ensures all constraint parameters have globally unique names by appending
-    ///        numeric suffixes (_1, _2, etc.) to duplicates.
-    ///        This should be called immediately after construction so that parameter
-    ///        names are finalized before the solver builder creates the parameter map.
-    ///        This logic is not part of the constructor because it mutates the constraint
-    ///        parameters, which is considered beyond the scope of construction.
-    void SetUniqueParameterNames()
-    {
-      std::unordered_set<std::string> used_names;
-      std::unordered_map<std::string, Index> name_counts;
-
-      for (auto& each : constraints_)
-      {
-        std::visit(
-            [&](auto& c)
-            {
-              for (auto& label : c.parameters_)
-              {
-                const std::string original = label;
-
-                if (used_names.count(label) > 0)
-                {
-                  auto& count = name_counts[original];
-                  do
-                  {
-                    count++;
-                    label = original + "_" + std::to_string(count);
-                  } while (used_names.count(label) > 0);
-                }
-                used_names.insert(label);
-              }
-            },
-            each.constraint_);
-      }
-    }
-
     /// @brief Returns all unique parameter names from all constraints in the set
     /// @return Set of parameter names
     std::unordered_set<std::string> GetParameterNames() const
