@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include "../../constraint_parameter_helpers.hpp"
 #include "../../precision_matchers.hpp"
 
 #include <micm/constraint/constraint.hpp>
@@ -163,6 +164,7 @@ void TestAddForcingTerms()
 
   micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   // Build sparse Jacobian for SetConstraintFunctions
@@ -179,7 +181,6 @@ void TestAddForcingTerms()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 2 grid cells
@@ -224,6 +225,7 @@ void TestSubtractJacobianTerms()
 
   micm::Index num_species = 3;
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   // Get non-zero elements and build sparse Jacobian
@@ -245,7 +247,6 @@ void TestSubtractJacobianTerms()
 
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 1 grid cell
@@ -347,6 +348,7 @@ void TestThreeDStateOneConstraint()
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   EXPECT_EQ(set.Size(), 1);
@@ -376,7 +378,6 @@ void TestThreeDStateOneConstraint()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "X_Y_eq", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 2 grid cells
@@ -465,6 +466,7 @@ void TestFourDStateTwoConstraints()
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   EXPECT_EQ(set.Size(), 2);
@@ -501,7 +503,6 @@ void TestFourDStateTwoConstraints()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "CD_A_eq", 1 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // State with 3 grid cells
@@ -622,6 +623,7 @@ void TestCoupledConstraintsSharedSpecies()
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
 
   EXPECT_EQ(set.Size(), 2);
@@ -654,7 +656,6 @@ void TestCoupledConstraintsSharedSpecies()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 }, { "A_C_eq", 1 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   // State at dual equilibrium: [B]/[A] = 3.3e-2, [C]/[A] = 3.3e-2
@@ -715,6 +716,7 @@ void TestVectorizedMatricesRespectGridCellIndexing()
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
+  auto state_parameter_indices = KEqParameterIndices(constraints);
   ConstraintSetPolicy set{ std::move(constraints), variable_map };
   auto non_zero_elements = set.NonZeroJacobianElements();
 
@@ -732,7 +734,6 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
 
-  std::unordered_map<std::string, micm::Index> state_parameter_indices = { { "A_B_eq", 0 } };
   set.SetConstraintFunctions(state_parameter_indices);
 
   DenseMatrixPolicy state(3, num_species, 0.0);

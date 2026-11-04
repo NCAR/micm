@@ -1,6 +1,8 @@
 // Copyright (C) 2023-2026 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#include "../../constraint_parameter_helpers.hpp"
+
 #include <micm/CPU.hpp>
 #include <micm/constraint/constraint.hpp>
 #include <micm/constraint/types/equilibrium_constraint.hpp>
@@ -163,7 +165,8 @@ TEST(ConstraintInitialization, MildlyInconsistentICsCorrected)
   EXPECT_GT(result.stats_.constraint_init_iterations_, micm::Bool(false));
 
   // After solve, the constraint should be satisfied: C ≈ K_eq * B
-  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+      FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"))];
   micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
@@ -200,7 +203,8 @@ TEST(ConstraintInitialization, SeverelyInconsistentICsConverge)
   EXPECT_EQ(result.state_, SolverState::Converged);
 
   // Constraint should be satisfied after initialization + solve
-  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+      FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"))];
   micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
@@ -369,7 +373,8 @@ TEST(ConstraintInitialization, MultiCellSystems)
   EXPECT_EQ(result.state_, SolverState::Converged);
 
   // Verify constraint satisfied in all cells after solve
-  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+      FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"))];
   for (micm::Index i = 0; i < 3; ++i)
   {
     micm::Real residual = K_eq_actual * state.variables_[i][B_idx] - state.variables_[i][C_idx];
@@ -415,7 +420,8 @@ TEST(ConstraintInitialization, SubsequentSolveCallsReinitialize)
   EXPECT_EQ(result2.state_, SolverState::Converged);
 
   // Constraint should be re-satisfied after second solve
-  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at("B_C_eq")];
+  micm::Real K_eq_actual = state.custom_rate_parameters_[0][state.custom_rate_parameter_map_.at(
+      FindConstraintParameter(state.custom_rate_parameter_map_, "B_C_eq"))];
   micm::Real residual = K_eq_actual * state.variables_[0][B_idx] - state.variables_[0][C_idx];
   EXPECT_NEAR(residual, 0.0, 1.0e-6);
 }
