@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-// Equilibrium constraint parameters are named "<constraint name>.<uuid>.K_eq", so tests
+// Equilibrium constraint parameters are named "<constraint name>.<uuid>.k_eq", so tests
 // cannot spell them out and must look them up instead.
 
 /// @brief Maps each constraint's parameter names to consecutive state parameter columns, in constraint order

@@ -75,7 +75,7 @@ TEST(EquilibriumConstraint, ParameterNameIsUniquePerConstraint)
   ASSERT_EQ(constraint_2.parameters_.size(), 1);
   const std::string& label = constraint_1.parameters_[0];
   EXPECT_EQ(label.rfind("A_B_equilibrium.", 0), 0);
-  EXPECT_EQ(label.substr(label.size() - 5), ".K_eq");
+  EXPECT_EQ(label.substr(label.size() - 5), ".k_eq");
   EXPECT_NE(constraint_1.parameters_[0], constraint_2.parameters_[0]);
 
   // Copies keep the same parameter name

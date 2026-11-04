@@ -88,7 +88,7 @@ namespace micm
     std::vector<StoichSpecies> products_;
 
     /// @brief For equilibrium constraints, this contains a single parameter K_eq,
-    ///        named "<name>.<uuid>.K_eq" so it is unique across constraints and models
+    ///        named "<name>.<uuid>.k_eq" so it is unique across constraints and models
     std::vector<std::string> parameters_;
 
    private:
@@ -260,7 +260,7 @@ namespace micm
             MICM_CONSTRAINT_ERROR_CODE_INVALID_EQUILIBRIUM_CONSTANT,
             "Henry’s Law constant (K_HLC_ref) must be positive");
       }
-      parameters_.push_back(name + "." + GenerateUuid() + ".K_eq");
+      parameters_.push_back(name + "." + GenerateUuid() + ".k_eq");
 
       // Build species dependencies list (reactants first, then products)
       Index idx = 0;
