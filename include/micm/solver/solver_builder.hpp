@@ -14,12 +14,14 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
+#include <micm/system/conditions.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <memory>
 
 #include <sstream>
 #include <tuple>

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/types.hpp>
+#include <cstddef>
 
 #include <set>
 #include <utility>

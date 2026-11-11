@@ -161,11 +161,13 @@
 
 #pragma once
 
+#include <micm/system/conditions.hpp>
 #include <micm/util/types.hpp>
 
 #include <concepts>
 #include <cstddef>
 #include <functional>
+#include <memory>
 #include <set>
 #include <string>
 #include <tuple>

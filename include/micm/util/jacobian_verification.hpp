@@ -6,6 +6,8 @@
 #include <micm/util/types.hpp>
 
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <type_traits>
