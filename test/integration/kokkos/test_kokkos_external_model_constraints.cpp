@@ -431,11 +431,10 @@ TEST(ExternalModelConstraints, AddExternalModelWithConstraints)
   micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -463,11 +462,10 @@ TEST(ExternalModelConstraints, AddExternalModelProcessOnly)
   // No total_mass → constraints disabled
   StubAerosolWithConstraints aerosol(0.01);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -493,11 +491,10 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   micm::Real k = 0.1;
   StubAerosolWithConstraints aerosol(k, total);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -543,7 +540,7 @@ TEST(ExternalModelConstraints, AlgebraicRowHoldsOnlyConstraintTerms)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .SetReorderState(false)
                     .AddExternalModel(aerosol)
@@ -614,11 +611,10 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
                           .SetPhase(gas_phase)
                           .Build();
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .AddExternalModel(aerosol)
@@ -645,12 +641,11 @@ TEST(ExternalModelConstraints, AddExternalModelOnlyStandardRosenbrock)
 
   StubAerosolWithConstraints aerosol(0.01);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Add only processes (constraints are not enabled with standard Rosenbrock parameters)
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -669,11 +664,10 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
   micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -710,11 +704,10 @@ TEST(ExternalModelConstraints, MultiGridCell)
   micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.1, total);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -812,7 +805,7 @@ namespace
 
     auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
     auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                      .SetSystem(micm::System(gas_phase))
+                      .SetGasPhase(gas_phase)
                       .SetReactions({ rxn_ab, rxn_bc, rxn_cb })
                       .SetReorderState(false)
                       .Build();
@@ -868,7 +861,7 @@ namespace
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                      .SetSystem(micm::System(gas_phase))
+                      .SetGasPhase(gas_phase)
                       .SetReactions({ rxn_ab })
                       .AddExternalModel(eq_model)
                       .SetReorderState(false)
@@ -921,7 +914,7 @@ namespace
 
     auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                      .SetSystem(micm::System(gas_phase))
+                      .SetGasPhase(gas_phase)
                       .SetReactions({ rxn_ab })
                       .AddExternalModel(eq_model)
                       .SetReorderState(false)
@@ -1037,7 +1030,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto builtin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                            .SetSystem(micm::System(gas_phase))
+                            .SetGasPhase(gas_phase)
                             .SetReactions({ rxn_ab })
                             .SetConstraints(std::move(constraints))
                             .SetReorderState(false)
@@ -1046,7 +1039,7 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
   // External model constraint solver
   EquilibriumConstraintModel eq_model("B", "C", K_EQ);
   auto ext_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                        .SetSystem(micm::System(gas_phase))
+                        .SetGasPhase(gas_phase)
                         .SetReactions({ rxn_ab })
                         .AddExternalModel(eq_model)
                         .SetReorderState(false)
@@ -1129,7 +1122,6 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   auto D = micm::Species("D");
   micm::Phase gas_phase{ "gas", { A, B, C, D } };
 
-  auto system = micm::System(gas_phase);
 
   // ── Kinetic system ──
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
@@ -1165,7 +1157,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
 
   auto kin_options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto kin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(kin_options)
-                        .SetSystem(system)
+                        .SetGasPhase(gas_phase)
                         .SetReactions({ rxn_ab, rxn_bc, rxn_cb, rxn_bd, rxn_db })
                         .SetReorderState(false)
                         .Build();
@@ -1177,7 +1169,7 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
 
   auto dae_options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto ext_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(dae_options)
-                        .SetSystem(system)
+                        .SetGasPhase(gas_phase)
                         .SetReactions({ rxn_ab })
                         .AddExternalModel(eq_bc)
                         .AddExternalModel(eq_bd)
@@ -1273,13 +1265,12 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   micm::Real k = 0.1;
   StubAerosolWithSolvent aerosol(k, total);
 
-  auto system = micm::System(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 
   // This Build() call would throw "Zero element access" without the fix
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({})
                     .AddExternalModel(aerosol)
                     .SetReorderState(false)
@@ -1640,7 +1631,7 @@ TEST(ExternalModelConstraints, TemperatureDependentConstraintParameter)
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn_ab })
                     .AddExternalModel(eq_model)
                     .SetReorderState(false)

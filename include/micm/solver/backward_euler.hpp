@@ -8,7 +8,6 @@
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
-#include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>
 

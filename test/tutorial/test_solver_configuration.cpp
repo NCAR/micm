@@ -117,36 +117,35 @@ int main()
                    .SetPhase(gas_phase)
                    .Build();
 
-  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
   auto two_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                        micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
-                       .SetSystem(system)
+                       .SetGasPhase(gas_phase)
                        .SetReactions(reactions)
                        .Build();
 
   auto three_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                          micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                         .SetSystem(system)
+                         .SetGasPhase(gas_phase)
                          .SetReactions(reactions)
                          .Build();
 
   auto four_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                         micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
-                        .SetSystem(system)
+                        .SetGasPhase(gas_phase)
                         .SetReactions(reactions)
                         .Build();
 
   auto four_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                            micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
-                           .SetSystem(system)
+                           .SetGasPhase(gas_phase)
                            .SetReactions(reactions)
                            .Build();
 
   auto six_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                           micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
-                          .SetSystem(system)
+                          .SetGasPhase(gas_phase)
                           .SetReactions(reactions)
                           .Build();
 

@@ -142,7 +142,7 @@
 /// @section external_model_usage Usage
 /// ```cpp
 /// auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
-///     .SetSystem(system)
+///     .SetGasPhase(gas_phase)
 ///     .AddExternalModel(std::move(aerosol_model))
 ///     .Build();
 ///

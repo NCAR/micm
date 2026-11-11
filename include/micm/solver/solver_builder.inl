@@ -4,8 +4,51 @@
 #include <micm/solver/external_model_dispatcher.hpp>
 #include <micm/util/types.hpp>
 
+#include <set>
+#include <string>
+
 namespace micm
 {
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy,
+      class... ExternalModels>
+  inline void SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy,
+      ExternalModels...>::DuplicateSpeciesCheck() const
+  {
+    std::set<std::string> seen;
+    std::set<std::string> duplicates;
+    for (const auto& name : this->MergedUniqueNames())
+    {
+      if (!seen.insert(name).second)
+      {
+        duplicates.insert(name);
+      }
+    }
+    if (!duplicates.empty())
+    {
+      std::string err_msg = "Duplicate species in chemical system:";
+      for (const auto& species : duplicates)
+      {
+        err_msg += " '" + species + "'";
+      }
+      err_msg += ".";
+      throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_SPECIES, err_msg);
+    }
+  }
+
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy,
@@ -220,7 +263,7 @@ namespace micm
       SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map) const
   {
     tolerances = std::vector<Real>(species_map.size(), 1e-3);
-    for (const auto& phase_species : system_.gas_phase_.phase_species_)
+    for (const auto& phase_species : gas_phase_.phase_species_)
     {
       const auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
@@ -249,12 +292,6 @@ namespace micm
       StatePolicy,
       ExternalModels...>::Build()
   {
-    if (!valid_system_)
-    {
-      throw MicmException(
-          MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
-    }
-
     Index number_of_species = this->MergedStateSize();
     if (number_of_species == 0)
     {
@@ -263,6 +300,8 @@ namespace micm
           MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES,
           "Provided chemical system contains no species.");
     }
+
+    this->DuplicateSpeciesCheck();
 
     // Constraints are not supported with CUDA matrix policies
     constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {
@@ -680,7 +719,7 @@ namespace micm
         state_parameters,
         options,
         reactions_,
-        system_);
+        gas_phase_);
   }
 
 }  // namespace micm

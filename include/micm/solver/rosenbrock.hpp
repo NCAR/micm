@@ -18,7 +18,6 @@
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
-#include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>

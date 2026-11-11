@@ -78,11 +78,10 @@ int main()
                    .Build();
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  auto system = System(gas_phase );
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const micm::Index number_of_grid_cells = 3;
 
-  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetSystem(system).SetReactions(reactions).Build();
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params).SetGasPhase(gas_phase).SetReactions(reactions).Build();
 
   auto state = solver.GetState(number_of_grid_cells);
 
@@ -101,7 +100,7 @@ int main()
                                RosenbrockSolverParameters,
                                VectorMatrix<micm::Real, 3>,
                                SparseMatrix<micm::Real, SparseMatrixVectorOrdering<3>>>(params)
-                               .SetSystem(system)
+                               .SetGasPhase(gas_phase)
                                .SetReactions(reactions)
                                .Build();
 
@@ -126,7 +125,7 @@ int main()
     std::cout << "Cell " << cell << std::endl;
     std::cout << std::setw(10) << "Species" << std::setw(20) << "Regular" << std::setw(20) << "Vectorized" << std::endl;
 
-    for (auto& species : system.UniqueNames())
+    for (auto& species : gas_phase.SpeciesNames())
     {
       auto regular_idx = state.variable_map_[species];
       auto vectorized_idx = vectorized_state.variable_map_[species];

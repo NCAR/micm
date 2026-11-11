@@ -4,7 +4,7 @@
 #include <micm/process/rate_constant/rate_constant_functions.hpp>
 #include <micm/process/rate_constant/surface_rate_constant.hpp>
 #include <micm/process/reaction_rate_store.hpp>
-#include <micm/system/system.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>

@@ -4,7 +4,7 @@
 #include <micm/process/rate_constant/lambda_rate_constant.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/solver_builder.hpp>
-#include <micm/system/system.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
@@ -37,10 +37,9 @@ TEST(Solver, GetLambdaRateConstantByNameCanOverrideLambda)
                                .SetPhase(gas_phase)
                                .Build();
 
-  auto system = micm::System(gas_phase);
 
   auto solver = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
-                    .SetSystem(system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ reaction })
                     .Build();
 

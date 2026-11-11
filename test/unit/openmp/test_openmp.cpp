@@ -43,13 +43,12 @@ TEST(OpenMP, OneSolverManyStates)
                          .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
-  auto chemical_system = micm::System(gas_phase);
 
   std::vector<std::vector<micm::Real>> results(n_threads);
 
   auto solver =
       CpuSolverBuilder<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-          .SetSystem(chemical_system)
+          .SetGasPhase(gas_phase)
           .SetReactions(reactions)
           .Build();
 

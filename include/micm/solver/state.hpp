@@ -6,8 +6,8 @@
 #include <micm/solver/temporary_variables.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/system.hpp>
 #include <micm/util/error.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/micm_exception.hpp>

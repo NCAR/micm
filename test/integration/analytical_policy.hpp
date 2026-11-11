@@ -452,7 +452,7 @@ void TestAnalyticalTroe(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleSystem<BuilderPolicy>(
       "troe",
@@ -546,7 +546,7 @@ void TestAnalyticalStiffTroe(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleStiffSystem<BuilderPolicy>(
       "troe",
@@ -609,7 +609,7 @@ void TestAnalyticalPhotolysis(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<micm::Real>> custom_parameters = {
     { "photoA", std::vector<micm::Real>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<micm::Real>(NUM_CELLS, 3e-3) }
@@ -695,7 +695,7 @@ void TestAnalyticalStiffPhotolysis(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<micm::Real>> custom_parameters = {
     { "photoA1B", std::vector<micm::Real>(NUM_CELLS, 2e-3) },
@@ -768,7 +768,7 @@ void TestAnalyticalTernaryChemicalActivation(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleSystem<BuilderPolicy>(
       "ternary_chemical_activation",
@@ -864,7 +864,7 @@ void TestAnalyticalStiffTernaryChemicalActivation(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleStiffSystem<BuilderPolicy>(
       "ternary_chemical_activation",
@@ -928,7 +928,7 @@ void TestAnalyticalTunneling(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleSystem<BuilderPolicy>(
       "tunneling",
@@ -1011,7 +1011,7 @@ void TestAnalyticalStiffTunneling(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleStiffSystem<BuilderPolicy>(
       "tunneling",
@@ -1070,7 +1070,7 @@ void TestAnalyticalArrhenius(
           .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleSystem<BuilderPolicy>(
       "arrhenius",
@@ -1154,7 +1154,7 @@ void TestAnalyticalStiffArrhenius(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleStiffSystem<BuilderPolicy>(
       "arrhenius",
@@ -1223,7 +1223,7 @@ void TestAnalyticalBranched(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleSystem<BuilderPolicy>(
       "branched",
@@ -1339,7 +1339,7 @@ void TestAnalyticalStiffBranched(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  builder.SetSystem(micm::System(gas_phase)).SetReactions(processes);
+  builder.SetGasPhase(gas_phase).SetReactions(processes);
 
   TestSimpleStiffSystem<BuilderPolicy>(
       "branched",
@@ -1429,7 +1429,7 @@ void TestAnalyticalRobertson(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
-  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
+  auto solver = builder.SetReorderState(false).SetGasPhase(gas_phase).SetReactions(processes).Build();
 
   micm::Real temperature = 272.5;
   micm::Real pressure = 101253.3;
@@ -1661,7 +1661,7 @@ void TestAnalyticalOregonator(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
-  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
+  auto solver = builder.SetReorderState(false).SetGasPhase(gas_phase).SetReactions(processes).Build();
 
   // The parameters of equation.f in the Hairer test set
   constexpr micm::Real s_const = 77.27;
@@ -1912,7 +1912,7 @@ void TestAnalyticalHires(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9 };
-  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
+  auto solver = builder.SetReorderState(false).SetGasPhase(gas_phase).SetReactions(processes).Build();
 
   micm::Index N = 2;
   std::vector<std::vector<micm::Real>> model_concentrations(N + 1, std::vector<micm::Real>(8));
@@ -2091,7 +2091,7 @@ void TestAnalyticalE5(
                          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4 };
-  auto solver = builder.SetReorderState(false).SetSystem(micm::System(gas_phase)).SetReactions(processes).Build();
+  auto solver = builder.SetReorderState(false).SetGasPhase(gas_phase).SetReactions(processes).Build();
 
   micm::Index N = 7;
 

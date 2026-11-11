@@ -17,9 +17,9 @@
 #include <vector>
 
 /// @brief  Helper function to create a system with two stub aerosol models
-/// @return A tuple containing the system, the first stub aerosol model, the second stub aerosol model, and a map of phase
+/// @return A tuple containing the gas phase, the first stub aerosol model, the second stub aerosol model, and a map of phase
 /// names to Phase objects
-inline std::tuple<micm::System, StubAerosolModel, AnotherStubAerosolModel, std::map<std::string, micm::Phase>>
+inline std::tuple<micm::Phase, StubAerosolModel, AnotherStubAerosolModel, std::map<std::string, micm::Phase>>
 CreateSystemWithStubAerosolModels()
 {
   // Create a simple chemical system
@@ -40,27 +40,25 @@ CreateSystemWithStubAerosolModels()
   auto aerosol_1 = StubAerosolModel("STUB1", std::vector<micm::Phase>({ quux, corge }), rate_constants);
   auto aerosol_2 = AnotherStubAerosolModel("STUB2", std::vector<micm::Phase>({ quux, corge }));
 
-  // Create a system containing the gas phase (external model state is registered via AddExternalModel)
-  auto system = micm::System(gas);
-
-  return { system, aerosol_1, aerosol_2, phases };
+  // External model state is registered via AddExternalModel
+  return { gas, aerosol_1, aerosol_2, phases };
 }
 
 /// @brief Test that state includes stub aerosol model variables
 template<class BuilderPolicy>
 void TestStateIncludesStubAerosolModel(BuilderPolicy builder)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and ensure that the size and labels match expectations
   auto state = solver.GetState();
   EXPECT_EQ(
       state.variable_map_.size(),
-      system.gas_phase_.UniqueNames().size() + aerosol_1.StateVariableNames().size() +
+      gas_phase.UniqueNames().size() + aerosol_1.StateVariableNames().size() +
           aerosol_2.StateVariableNames().size());
   EXPECT_EQ(std::get<0>(aerosol_1.StateSize()), aerosol_1.StateVariableNames().size());
   EXPECT_EQ(std::get<0>(aerosol_2.StateSize()), aerosol_2.StateVariableNames().size());
@@ -69,7 +67,7 @@ void TestStateIncludesStubAerosolModel(BuilderPolicy builder)
 
   // Assemble the full list of expected variable names
   std::vector<std::string> expected_names;
-  auto gas_names = system.gas_phase_.SpeciesNames();
+  auto gas_names = gas_phase.SpeciesNames();
   expected_names.insert(expected_names.end(), gas_names.begin(), gas_names.end());
   auto aerosol1_names = aerosol_1.StateVariableNames();
   expected_names.insert(expected_names.end(), aerosol1_names.begin(), aerosol1_names.end());
@@ -94,11 +92,11 @@ void TestStateIncludesStubAerosolModel(BuilderPolicy builder)
 template<class BuilderPolicy>
 void TestUpdateStateWithStubAerosolModel(BuilderPolicy builder)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -166,11 +164,11 @@ void TestUpdateStateWithStubAerosolModel(BuilderPolicy builder)
 template<class BuilderPolicy>
 void TestUpdateMultiCellStateWithStubAerosolModel(BuilderPolicy builder)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system (without processes for simplicity)
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   const micm::Index num_cells = 3;
 
@@ -247,11 +245,11 @@ void TestUpdateMultiCellStateWithStubAerosolModel(BuilderPolicy builder)
 template<class BuilderPolicy>
 void TestSingleCellForcingWithStubAerosolModel(BuilderPolicy builder)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -306,11 +304,11 @@ void TestSingleCellForcingWithStubAerosolModel(BuilderPolicy builder)
 template<class BuilderPolicy>
 void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some values
   auto state = solver.GetState();
@@ -372,11 +370,11 @@ void TestSingleCellJacobianWithStubAerosolModel(BuilderPolicy builder)
 template<class BuilderPolicy>
 void TestSolveWithStubAerosolModel1(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with both aerosol models
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some initial values
   auto state = solver.GetState();
@@ -427,11 +425,11 @@ void TestSolveWithStubAerosolModel1(BuilderPolicy builder, micm::Real base_relat
 template<class BuilderPolicy>
 void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   // Get a state and set some initial values
   auto state = solver.GetState();
@@ -512,11 +510,11 @@ void TestSolveWithTwoStubAerosolModels(BuilderPolicy builder, micm::Real base_re
 template<class BuilderPolicy>
 void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with both aerosol models
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   const micm::Index num_cells = 3;
 
@@ -590,11 +588,11 @@ void TestSolveWithStubAerosolModel1MultiCell(BuilderPolicy builder, micm::Real b
 template<class BuilderPolicy>
 void TestSolveWithTwoStubAerosolModelsMultiCell(BuilderPolicy builder, micm::Real base_relative_tolerance = 5e-5)
 {
-  auto [system, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
+  auto [gas_phase, aerosol_1, aerosol_2, phases] = CreateSystemWithStubAerosolModels();
 
   // Create a solver for the system with processes that use the aerosol models
   auto solver =
-      builder.SetSystem(system).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
+      builder.SetGasPhase(gas_phase).AddExternalModel(aerosol_1).AddExternalModel(aerosol_2).SetIgnoreUnusedSpecies(true).Build();
 
   const micm::Index num_cells = 3;
 

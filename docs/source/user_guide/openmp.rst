@@ -49,7 +49,7 @@ with three threads. The function defined above is called on each thread.
 
 .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
   :language: cpp
-  :lines: 71-116
+  :lines: 71-115
 
 Running this program should give an output similar to this:
 

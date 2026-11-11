@@ -246,7 +246,7 @@ namespace
                                 .SetPhase(gas_phase)
                                 .Build();
 
-    auto solver = builder.SetSystem(micm::System(gas_phase))
+    auto solver = builder.SetGasPhase(gas_phase)
                       .SetReactions({ r1, r2, r3, photo_1, photo_2, photo_3 })
                       .SetIgnoreUnusedSpecies(true)
                       .Build();
@@ -328,7 +328,7 @@ namespace
                            .Build();
 
     auto solver =
-        builder.SetSystem(micm::System(gas_phase)).SetReactions({ r1, r2, r3 }).SetIgnoreUnusedSpecies(true).Build();
+        builder.SetGasPhase(gas_phase).SetReactions({ r1, r2, r3 }).SetIgnoreUnusedSpecies(true).Build();
     auto state = solver.GetState(NUM_CELLS);
     state.SetRelativeTolerance(micm::Real{ std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-5 });
 
@@ -390,7 +390,7 @@ namespace
     constraints.emplace_back(micm::LinearConstraint<DenseMatrix, SparseMatrix>(
         "mass_conservation", c, { { a, 1.0 }, { b, 1.0 }, { c, 1.0 } }, total));
 
-    auto solver = builder.SetSystem(micm::System(gas_phase))
+    auto solver = builder.SetGasPhase(gas_phase)
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetIgnoreUnusedSpecies(true)

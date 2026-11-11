@@ -6096,7 +6096,7 @@ namespace bench
     static auto Build(Builder builder)
     {
       auto gas_phase = ts1::CreateGasPhase();
-      return builder.SetSystem(micm::System(gas_phase))
+      return builder.SetGasPhase(gas_phase)
           .SetReactions(ts1::CreateProcesses(gas_phase))
           .SetIgnoreUnusedSpecies(true)
           .Build();

@@ -15,14 +15,14 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/system/conditions.hpp>
-#include <micm/system/system.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
-
 #include <memory>
+
 #include <sstream>
 #include <tuple>
 #include <unordered_map>
@@ -62,7 +62,7 @@ namespace micm
 
    protected:
     SolverParametersPolicy options_;
-    System system_;
+    Phase gas_phase_;
     std::vector<Process> reactions_;
     std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints_;
 
@@ -75,7 +75,6 @@ namespace micm
 
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
-    bool valid_system_ = false;
 
    public:
     SolverBuilder() = delete;
@@ -102,13 +101,13 @@ namespace micm
     }
 
    public:
-    /// @brief Set the chemical system
-    /// @param system The chemical system
+    /// @brief Set the gas phase (optional; defaults to an empty gas phase, e.g. when all
+    ///        state variables are provided by external models)
+    /// @param gas_phase The gas phase defining the gas-phase species
     /// @return Updated SolverBuilder
-    SolverBuilder& SetSystem(const System& system)
+    SolverBuilder& SetGasPhase(const Phase& gas_phase)
     {
-      system_ = system;
-      valid_system_ = true;
+      gas_phase_ = gas_phase;
       return *this;
     }
 
@@ -178,7 +177,7 @@ namespace micm
           ExternalModel>;
       auto extended_models = std::tuple_cat(std::move(external_models_), std::tuple<ExternalModel>(std::move(model)));
       NextBuilder next(options_, std::move(extended_models));
-      next.system_ = std::move(system_);
+      next.gas_phase_ = std::move(gas_phase_);
       next.reactions_ = std::move(reactions_);
       next.constraints_ = std::move(constraints_);
       next.external_systems_ = std::move(external_systems_);
@@ -186,7 +185,6 @@ namespace micm
       next.external_constraints_ = std::move(external_constraints_);
       next.ignore_unused_species_ = ignore_unused_species_;
       next.reorder_state_ = reorder_state_;
-      next.valid_system_ = valid_system_;
 
       const auto& appended = std::get<sizeof...(ExternalModels)>(next.external_models_);
       if constexpr (HasState<ExternalModel>)
@@ -215,7 +213,7 @@ namespace micm
     /// @brief Returns the total state size: gas phase + all external model state variables
     Index MergedStateSize() const
     {
-      Index n = system_.StateSize();
+      Index n = gas_phase_.StateSize();
       for (const auto& m : external_systems_)
       {
         n += std::get<0>(m.state_size_func_());
@@ -226,7 +224,7 @@ namespace micm
     /// @brief Returns all unique species names: gas phase first, then external model variables
     std::vector<std::string> MergedUniqueNames() const
     {
-      auto names = system_.UniqueNames();
+      auto names = gas_phase_.SpeciesNames();
       for (const auto& m : external_systems_)
       {
         auto model_names = m.variable_names_func_();
@@ -234,6 +232,10 @@ namespace micm
       }
       return names;
     }
+
+    /// @brief Checks that every state variable name (gas-phase species and external model variables) is unique
+    /// @throws MicmException if a duplicate name is found
+    void DuplicateSpeciesCheck() const;
 
     /// @brief Checks for unused species
     /// @param rates The rates policy instance containing information about processes
