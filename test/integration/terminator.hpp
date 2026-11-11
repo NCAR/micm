@@ -43,8 +43,7 @@ void TestTerminator(BuilderPolicy& builder, micm::Index number_of_grid_cells)
                              .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k2 })
                              .Build();
 
-  auto solver =
-      builder.SetGasPhase(gas_phase).SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 }).Build();
+  auto solver = builder.SetGasPhase(gas_phase).SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 }).Build();
   auto state = solver.GetState(number_of_grid_cells);
   // 1e-8 is below float epsilon (1.2e-7), so in a single-precision build the adaptive error norm can
   // never fall below 1 and the step size collapses to StepSizeTooSmall. Track the working precision,

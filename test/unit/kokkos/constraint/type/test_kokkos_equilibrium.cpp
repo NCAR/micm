@@ -228,12 +228,13 @@ TEST(EquilibriumConstraint, ResidualComputationThroughConstraintSet)
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "A_B_equilibrium",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "A_B_equilibrium",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -311,12 +312,13 @@ TEST(EquilibriumConstraint, JacobianComputationThroughConstraintSet)
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "A_B_equilibrium",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "A_B_equilibrium",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 1000.0, .delta_H_ = -2400.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -379,12 +381,13 @@ TEST(EquilibriumConstraint, ComplexStoichiometryResidual)
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "dissociation",
-      B,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
-      { .K_HLC_ref_ = 100.0, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "dissociation",
+          B,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
+          { .K_HLC_ref_ = 100.0, .delta_H_ = -2400.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
@@ -443,12 +446,13 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianSimple)
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 1000.0, .delta_H_ = 0.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 1000.0, .delta_H_ = 0.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
   const micm::Index num_species = 3;
@@ -518,12 +522,13 @@ TEST(EquilibriumConstraint, FiniteDifferenceJacobianComplexStoichiometry)
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "dissociation",
-      B,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
-      { .K_HLC_ref_ = 100.0, .delta_H_ = 0.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "dissociation",
+          B,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 2.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
+          { .K_HLC_ref_ = 100.0, .delta_H_ = 0.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
   const micm::Index num_species = 3;

@@ -136,11 +136,12 @@ class AnotherStubAerosolModel
       auto pri = state_parameter_indices.find(param);
       if (ri != state_variable_indices.end() && pi != state_variable_indices.end() && pri != state_parameter_indices.end())
       {
-        forcing_info_.push_back({ ri->second,
-                                  pi->second,
-                                  pri->second,
-                                  jacobian.VectorIndex(0, ri->second, ri->second),
-                                  jacobian.VectorIndex(0, pi->second, ri->second) });
+        forcing_info_.push_back(
+            { ri->second,
+              pi->second,
+              pri->second,
+              jacobian.VectorIndex(0, ri->second, ri->second),
+              jacobian.VectorIndex(0, pi->second, ri->second) });
       }
     };
     add("STUB2.MODE2.CORGE.FO2", "STUB2.MODE2.CORGE.BAZ", name_ + ".PARAM.MODE2.CORGE.FO2_TO_BAZ_RATE_CONSTANT");

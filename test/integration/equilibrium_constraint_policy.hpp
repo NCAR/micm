@@ -68,12 +68,13 @@ void TestSetConstraintsAPIWorks(BuilderFactory make_builder)
   // C is an algebraic variable (not in any kinetic reaction)
   micm::Real K_eq = 0.034;
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { C, 1.0 } },
+          { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
@@ -167,18 +168,20 @@ void TestSetConstraintsAPIMultipleConstraints(BuilderFactory make_builder)
   micm::Real delta_H2 = -2000.0;
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      { .K_HLC_ref_ = K_eq1, .delta_H_ = delta_H1 }));
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "E_F_eq",
-      F,
-      std::vector<StoichSpecies>{ { E, 1.0 } },
-      std::vector<StoichSpecies>{ { F, 1.0 } },
-      { .K_HLC_ref_ = K_eq2, .delta_H_ = delta_H2 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { C, 1.0 } },
+          { .K_HLC_ref_ = K_eq1, .delta_H_ = delta_H1 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "E_F_eq",
+          F,
+          std::vector<StoichSpecies>{ { E, 1.0 } },
+          std::vector<StoichSpecies>{ { F, 1.0 } },
+          { .K_HLC_ref_ = K_eq2, .delta_H_ = delta_H2 }));
 
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -267,12 +270,13 @@ void TestDAESolveWithConstraint(BuilderFactory make_builder)
   micm::Real K_eq = 2.0;
   micm::Real delta_H = -2400.0;
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      { .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { C, 1.0 } },
+          { .K_HLC_ref_ = K_eq, .delta_H_ = delta_H }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
@@ -393,12 +397,13 @@ void TestDAESolveWithConstraintAndReorderState(BuilderFactory make_builder)
   // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
   micm::Real K_eq = 2.0;
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { C, 1.0 } },
+          { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
@@ -496,18 +501,20 @@ void TestDAESolveWithTwoCoupledConstraints(BuilderFactory make_builder)
   micm::Real K_eq1 = 3.0;
   micm::Real K_eq2 = 5.0;
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 1.0 } },
-      { .K_HLC_ref_ = K_eq1, .delta_H_ = -2400.0 }));
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_D_eq",
-      D,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { D, 1.0 } },
-      { .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { C, 1.0 } },
+          { .K_HLC_ref_ = K_eq1, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_D_eq",
+          D,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { D, 1.0 } },
+          { .K_HLC_ref_ = K_eq2, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)
@@ -612,12 +619,13 @@ void TestDAESolveWithNonUnitStoichiometry(BuilderFactory make_builder)
   // Equilibrium constraint: K_eq * [A]^2 - [B] = 0
   micm::Real K_eq = 10.0;
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "A2_B_eq",
-      B,
-      std::vector<StoichSpecies>{ { A, 2.0 } },
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "A2_B_eq",
+          B,
+          std::vector<StoichSpecies>{ { A, 2.0 } },
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          { .K_HLC_ref_ = K_eq, .delta_H_ = -2400.0 }));
 
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Float precision cannot advance the default initial internal step (DEFAULT_H_START * time_step)

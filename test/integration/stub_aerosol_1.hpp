@@ -128,11 +128,12 @@ class StubAerosolModel
       auto pi = state_variable_indices.find(p);
       if (ri != state_variable_indices.end() && pi != state_variable_indices.end())
       {
-        forcing_info_.push_back({ ri->second,
-                                  pi->second,
-                                  k,
-                                  jacobian.VectorIndex(0, ri->second, ri->second),
-                                  jacobian.VectorIndex(0, pi->second, ri->second) });
+        forcing_info_.push_back(
+            { ri->second,
+              pi->second,
+              k,
+              jacobian.VectorIndex(0, ri->second, ri->second),
+              jacobian.VectorIndex(0, pi->second, ri->second) });
       }
     };
     add("FO2", "STUB1.MODE2.CORGE.FO2", rate_constants_.fo2_gas_to_mode2_corge_);

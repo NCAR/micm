@@ -32,12 +32,13 @@ void TestConstruction()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -52,12 +53,13 @@ void TestReplaceStateRowsMapsToAlgebraicSpecies()
   auto B = Species("B");
   auto C = Species("C");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "B_C_eq",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "B_C_eq",
+          C,
+          std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
@@ -80,12 +82,13 @@ void TestNonZeroJacobianElements()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -111,18 +114,20 @@ void TestMultipleConstraints()
   auto C = Species("C");
   auto D = Species("D");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "C_D_eq",
-      D,
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(D, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "C_D_eq",
+          D,
+          std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(D, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = {
     { "A", 0 }, { "B", 1 }, { "AB", 2 }, { "C", 3 }, { "D", 4 }
@@ -153,12 +158,13 @@ void TestAddForcingTerms()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -214,12 +220,13 @@ void TestSubtractJacobianTerms()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 
@@ -316,12 +323,13 @@ void TestUnknownSpeciesThrows()
   auto Y = Species("Y");
   auto XY = Species("XY");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "invalid",
-      XY,
-      std::vector<StoichSpecies>{ StoichSpecies(X, 1.0), StoichSpecies(Y, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(XY, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "invalid",
+          XY,
+          std::vector<StoichSpecies>{ StoichSpecies(X, 1.0), StoichSpecies(Y, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(XY, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -339,12 +347,13 @@ void TestThreeDStateOneConstraint()
   auto X = Species("X");
   auto Y = Species("Y");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "X_Y_eq",
-      Y,
-      std::vector<StoichSpecies>{ StoichSpecies(X, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(Y, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "X_Y_eq",
+          Y,
+          std::vector<StoichSpecies>{ StoichSpecies(X, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(Y, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "X", 0 }, { "Y", 1 }, { "Z", 2 } };
 
@@ -449,20 +458,22 @@ void TestFourDStateTwoConstraints()
   auto B = Species("B");
   auto C = Species("C");
   auto D = Species("D");
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      B,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          B,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   // Constraint 2: C + D <-> A with K_eq2 = 3.3e-2, algebraic species = A (row 0)
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "CD_A_eq",
-      A,
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0), StoichSpecies(D, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "CD_A_eq",
+          A,
+          std::vector<StoichSpecies>{ StoichSpecies(C, 1.0), StoichSpecies(D, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 }, { "D", 3 } };
 
@@ -607,19 +618,21 @@ void TestCoupledConstraintsSharedSpecies()
   auto A = Species("A");
   auto B = Species("B");
   auto C = Species("C");
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      B,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          B,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(B, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_C_eq",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_C_eq",
+          C,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(C, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
@@ -707,12 +720,13 @@ void TestVectorizedMatricesRespectGridCellIndexing()
   auto B = Species("B");
   auto AB = Species("AB");
   std::vector<Constraint<DenseMatrixPolicy, SparseMatrixPolicy>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
-      "A_B_eq",
-      AB,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
-      std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
-      { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrixPolicy, SparseMatrixPolicy>(
+          "A_B_eq",
+          AB,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) },
+          std::vector<StoichSpecies>{ StoichSpecies(AB, 1.0) },
+          { .K_HLC_ref_ = 3.3e-2, .delta_H_ = -24000.0 }));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "AB", 2 } };
 

@@ -127,8 +127,9 @@ TEST(LinearConstraint, ResidualComputationThroughConstraintSet)
   auto B = Species("B");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -193,8 +194,9 @@ TEST(LinearConstraint, JacobianComputationThroughConstraintSet)
   auto B = Species("B");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "A_B_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -247,11 +249,12 @@ TEST(LinearConstraint, WeightedSumResidualAndJacobian)
   auto C = Species("C");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "weighted_sum",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
-      5.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "weighted_sum",
+          C,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
+          5.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
@@ -319,11 +322,12 @@ TEST(LinearConstraint, ThreeSpeciesConservationResidual)
   auto C = Species("C");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "ABC_total",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
-      10.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "ABC_total",
+          C,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0), StoichSpecies(C, 1.0) },
+          10.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
 
@@ -385,8 +389,9 @@ TEST(LinearConstraint, ZeroConstantResidual)
   auto B = Species("B");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "A_equals_B", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) }, 0.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "A_equals_B", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, -1.0) }, 0.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -446,8 +451,9 @@ TEST(LinearConstraint, FractionalCoefficientsResidualAndJacobian)
   auto B = Species("B");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "fractional_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 0.5), StoichSpecies(B, 1.5) }, 2.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "fractional_conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 0.5), StoichSpecies(B, 1.5) }, 2.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -504,8 +510,9 @@ TEST(LinearConstraint, JacobianIndependentOfConcentrations)
   auto B = Species("B");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "A_B_sum", B, std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0) }, 1.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "A_B_sum", B, std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0) }, 1.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
 
@@ -574,8 +581,9 @@ TEST(LinearConstraint, FiniteDifferenceJacobianSimpleConservation)
   auto B = Species("B");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "conservation", B, std::vector<StoichSpecies>{ StoichSpecies(A, 1.0), StoichSpecies(B, 1.0) }, 1.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 } };
   const micm::Index num_species = 2;
@@ -636,11 +644,12 @@ TEST(LinearConstraint, FiniteDifferenceJacobianWeightedSum)
   auto C = Species("C");
 
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "weighted",
-      C,
-      std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
-      5.0));
+  constraints.emplace_back(
+      LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "weighted",
+          C,
+          std::vector<StoichSpecies>{ StoichSpecies(A, 2.0), StoichSpecies(B, 3.0), StoichSpecies(C, -1.0) },
+          5.0));
 
   std::unordered_map<std::string, micm::Index> variable_map = { { "A", 0 }, { "B", 1 }, { "C", 2 } };
   const micm::Index num_species = 3;

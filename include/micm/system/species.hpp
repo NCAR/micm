@@ -99,11 +99,11 @@ namespace micm
       = default;
 
   inline Species::Species(std::string name)
-      : name_(std::move(name)){};
+      : name_(std::move(name)) { };
 
   inline Species::Species(std::string name, const std::map<std::string, Real>& properties)
       : name_(std::move(name)),
-        properties_double_(properties){};
+        properties_double_(properties) { };
 
   inline bool Species::IsParameterized() const
   {

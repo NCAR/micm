@@ -76,8 +76,9 @@ void TestAlgebraicVariableStaysNonNegative(BuilderPolicy builder)
   micm::Real C_total = 1.0e-6;
 
   std::vector<micm::Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+  constraints.emplace_back(
+      micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
   auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
@@ -174,16 +175,18 @@ void TestEquilibriumPlusConservation(BuilderPolicy builder)
   std::vector<micm::Constraint<DenseMatrix, StdSparseMatrix>> constraints;
 
   // Equilibrium: K_eq * A_gas = A_aq  (A_aq is the explicitly set algebraic species)
-  constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "gas_aq_eq",
-      A_aq,
-      std::vector<micm::StoichSpecies>{ { A_gas, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
-      { .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
+  constraints.emplace_back(
+      micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "gas_aq_eq",
+          A_aq,
+          std::vector<micm::StoichSpecies>{ { A_gas, 1.0 } },
+          std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
+          { .K_HLC_ref_ = K_eq, .delta_H_ = 0.0 }));
 
   // Conservation: A_gas + A_aq + P = C_total  (A_gas is the algebraic balance variable)
-  constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+  constraints.emplace_back(
+      micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
   auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
@@ -286,8 +289,9 @@ void TestAllRosenbrockOrdersConstrained(BuilderFactory make_builder)
 
     constexpr micm::Real C_total = 1.0e-6;
     std::vector<micm::Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-    constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
-        "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
+    constraints.emplace_back(
+        micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
+            "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
     auto solver = make_builder(options)
                       .SetGasPhase(gas_phase)

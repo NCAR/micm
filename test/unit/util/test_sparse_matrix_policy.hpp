@@ -1336,11 +1336,9 @@ void TestIncompatibleOrdering()
 
 /// @brief Test valid combinations of sparse and vector matrices with matching L
 template<
-    template<class, class>
-    class SparseMatrixPolicy,
+    template<class, class> class SparseMatrixPolicy,
     class OrderingPolicy,
-    template<class>
-    class DenseMatrixPolicy,
+    template<class> class DenseMatrixPolicy,
     micm::Index L>
 std::tuple<SparseMatrixPolicy<micm::Real, OrderingPolicy>, DenseMatrixPolicy<micm::Real>> TestSparseAndVectorMatrixFunction()
 {

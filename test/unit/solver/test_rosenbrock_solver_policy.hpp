@@ -54,9 +54,7 @@ SolverBuilderPolicy GetSolver(SolverBuilderPolicy builder)
                          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.5e-6 })
                          .Build();
 
-  return builder.SetGasPhase(gas_phase)
-      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
-      .SetReorderState(false);
+  return builder.SetGasPhase(gas_phase).SetReactions(std::vector<micm::Process>{ r1, r2, r3 }).SetReorderState(false);
 }
 
 template<class SolverBuilderPolicy>
