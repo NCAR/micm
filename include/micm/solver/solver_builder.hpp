@@ -233,6 +233,10 @@ namespace micm
       return names;
     }
 
+    /// @brief Checks that every state variable name (gas-phase species and external model variables) is unique
+    /// @throws MicmException if a duplicate name is found
+    void DuplicateSpeciesCheck() const;
+
     /// @brief Checks for unused species
     /// @param rates The rates policy instance containing information about processes
     /// @throws std::system_error if an unused species is found

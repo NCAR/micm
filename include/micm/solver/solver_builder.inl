@@ -4,8 +4,51 @@
 #include <micm/solver/external_model_dispatcher.hpp>
 #include <micm/util/types.hpp>
 
+#include <set>
+#include <string>
+
 namespace micm
 {
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LuDecompositionPolicy,
+      class LinearSolverPolicy,
+      class StatePolicy,
+      class... ExternalModels>
+  inline void SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LuDecompositionPolicy,
+      LinearSolverPolicy,
+      StatePolicy,
+      ExternalModels...>::DuplicateSpeciesCheck() const
+  {
+    std::set<std::string> seen;
+    std::set<std::string> duplicates;
+    for (const auto& name : this->MergedUniqueNames())
+    {
+      if (!seen.insert(name).second)
+      {
+        duplicates.insert(name);
+      }
+    }
+    if (!duplicates.empty())
+    {
+      std::string err_msg = "Duplicate species in chemical system:";
+      for (const auto& species : duplicates)
+      {
+        err_msg += " '" + species + "'";
+      }
+      err_msg += ".";
+      throw MicmException(MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_DUPLICATE_SPECIES, err_msg);
+    }
+  }
+
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy,
@@ -257,6 +300,8 @@ namespace micm
           MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SPECIES,
           "Provided chemical system contains no species.");
     }
+
+    this->DuplicateSpeciesCheck();
 
     // Constraints are not supported with CUDA matrix policies
     constexpr bool is_cuda_policy = requires(DenseMatrixPolicy m) {

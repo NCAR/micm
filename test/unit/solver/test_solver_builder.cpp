@@ -151,6 +151,27 @@ TEST(SolverBuilder, ThrowsUnusedSpecies)
   }
 }
 
+TEST(SolverBuilder, ThrowsDuplicateSpecies)
+{
+  micm::Phase phase_with_duplicate{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, micm::Species("B") } };
+
+  try
+  {
+    micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+        micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+        .SetGasPhase(phase_with_duplicate)
+        .SetReactions(reactions)
+        .Build();
+    FAIL() << "Expected micm::MicmException to be thrown";
+  }
+  catch (const micm::MicmException& e)
+  {
+    EXPECT_STREQ(e.Category(), MICM_ERROR_CATEGORY_SOLVER);
+    EXPECT_EQ(e.Code(), MICM_SOLVER_ERROR_CODE_DUPLICATE_SPECIES);
+    EXPECT_NE(std::string(e.what()).find("'B'"), std::string::npos);
+  }
+}
+
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
   auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
