@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793823724624,
+  "lastUpdate": 1794439521965,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Wall-Clock Timing": [
@@ -1673,6 +1673,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 438.05,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c2b13875f0f8e027bbcd5412803a6d261a90fa11",
+          "message": "Remove `System` class (#1121)\n\n* remove system and uses gas phase\n\n* add headers back\n\n* pin the ubuntu version for precision failure\n\n* lower the tolerance\n\n* add species duplicate check",
+          "timestamp": "2026-11-11T16:20:08-07:00",
+          "tree_id": "35d0279afeea86038bc43b67420c156b1f64b5f3",
+          "url": "https://github.com/NCAR/micm/commit/c2b13875f0f8e027bbcd5412803a6d261a90fa11"
+        },
+        "date": 1794439521583,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "standard",
+            "value": 1000.95,
+            "unit": "ms"
+          },
+          {
+            "name": "vector1",
+            "value": 990.41,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 651.92,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 428.85,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 364.54,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 245.76,
             "unit": "ms"
           }
         ]
