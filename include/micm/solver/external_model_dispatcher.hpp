@@ -6,7 +6,6 @@
 #include <micm/util/types.hpp>
 
 #include <array>
-#include <memory>
 #include <set>
 #include <tuple>
 #include <utility>

@@ -56,7 +56,6 @@ void TestAnalyticalSurfaceRxn(
   micm::Phase gas_phase{ "gas", { gas_foo, gas_bar, gas_baz } };
 
   // System
-  micm::System chemical_system = micm::System(gas_phase);
 
   // Rate
   micm::SurfaceRateConstantParameters surface{ .label_ = "foo",
@@ -75,7 +74,7 @@ void TestAnalyticalSurfaceRxn(
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
-  auto solver = builder.SetSystem(chemical_system).SetReactions(reactions).Build();
+  auto solver = builder.SetGasPhase(gas_phase).SetReactions(reactions).Build();
 
   // State
   auto state = solver.GetState();

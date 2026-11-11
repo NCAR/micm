@@ -93,7 +93,7 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
       std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
       { .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
 
-  auto solver = builder.SetSystem(micm::System(gas_phase))
+  auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions({ reaction })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -170,7 +170,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
   {
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                      .SetSystem(micm::System(gas_phase))
+                      .SetGasPhase(gas_phase)
                       .SetReactions(std::vector<micm::Process>{ r1 })
                       .Build();
     auto state = solver.GetState(number_of_grid_cells);

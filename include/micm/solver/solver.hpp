@@ -10,6 +10,7 @@
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>
 
@@ -29,7 +30,7 @@ namespace micm
 
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
-    System system_;
+    Phase gas_phase_;
     RateConstantStore store_;
 
    public:
@@ -45,12 +46,12 @@ namespace micm
         StateParameters state_parameters,
         SolverParametersType solver_parameters,
         std::vector<micm::Process> processes,
-        System system)
+        Phase gas_phase)
         : solver_(std::move(solver)),
           state_parameters_(std::move(state_parameters)),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
-          system_(std::move(system)),
+          gas_phase_(std::move(gas_phase)),
           store_(RateConstantStore::BuildFrom(processes_))
     {
       if constexpr (requires { solver_.rates_.BuildCudaStore(store_); })
@@ -64,7 +65,7 @@ namespace micm
           processes_(std::move(other.processes_)),
           state_parameters_(std::move(other.state_parameters_)),
           solver_parameters_(std::move(other.solver_parameters_)),
-          system_(std::move(other.system_)),
+          gas_phase_(std::move(other.gas_phase_)),
           store_(std::move(other.store_))
     {
     }
@@ -77,7 +78,7 @@ namespace micm
       state_parameters_ = other.state_parameters_;
       solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
-      std::swap(this->system_, other.system_);
+      std::swap(this->gas_phase_, other.gas_phase_);
       std::swap(this->store_, other.store_);
       return *this;
     }
@@ -150,9 +151,10 @@ namespace micm
       return state;
     }
 
-    const System& GetSystem()
+    /// @brief Returns the gas phase used to build this solver
+    const Phase& GetGasPhase() const
     {
-      return system_;
+      return gas_phase_;
     }
 
     std::vector<micm::Process> GetProcesses() const

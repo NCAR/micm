@@ -41,7 +41,7 @@ int main()
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(System(gas_phase ))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ r1, r2, r3 })
                     .Build();
 

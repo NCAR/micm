@@ -105,7 +105,7 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
   // Solver
   // ---------------------------------------------------------------------------
 
-  auto solver = builder.SetSystem(micm::System(gas_phase))
+  auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions(processes)
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)

@@ -43,7 +43,6 @@ namespace
                          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 })
                          .SetPhase(gas_phase)
                          .Build();
-  micm::System the_system = micm::System(gas_phase);
   std::vector<micm::Process> reactions = { r1, r2 };
 
   struct FinalizeRecord
@@ -115,7 +114,7 @@ namespace
     auto record = model.record_;
     auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DenseMatrixPolicy, SparseMatrixPolicy>(
                       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                      .SetSystem(the_system)
+                      .SetGasPhase(gas_phase)
                       .SetReactions(reactions)
                       .AddExternalModel(model)
                       .Build();
@@ -134,13 +133,12 @@ TEST(SolverBuilder, ThrowsUnusedSpecies)
 {
   auto d = micm::Species("D");
   micm::Phase phase_with_unused{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c, d } };
-  micm::System system_with_unused = micm::System(phase_with_unused);
 
   try
   {
     micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
         micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-        .SetSystem(system_with_unused)
+        .SetGasPhase(phase_with_unused)
         .SetReactions(reactions)
         .SetIgnoreUnusedSpecies(false)
         .Build();
@@ -156,7 +154,7 @@ TEST(SolverBuilder, ThrowsUnusedSpecies)
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
   auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
-                            .SetSystem(the_system)
+                            .SetGasPhase(gas_phase)
                             .SetReactions(reactions)
                             .Build();
 
@@ -165,11 +163,11 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           micm::BackwardEulerSolverParameters,
           micm::VectorMatrix<micm::Real, L>,
           micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>(micm::BackwardEulerSolverParameters{})
-          .SetSystem(the_system)
+          .SetGasPhase(gas_phase)
           .SetReactions(reactions)
           .Build();
-  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
-  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
+  EXPECT_EQ(backward_euler_vector.GetGasPhase().name_, gas_phase.name_);
+  EXPECT_EQ(backward_euler_vector.GetGasPhase().phase_species_.size(), gas_phase.phase_species_.size());
   EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
 }
@@ -178,7 +176,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
 {
   auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                         micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                        .SetSystem(the_system)
+                        .SetGasPhase(gas_phase)
                         .SetReactions(reactions)
                         .Build();
 
@@ -187,12 +185,12 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                micm::VectorMatrix<micm::Real, L>,
                                micm::SparseMatrix<micm::Real, micm::SparseMatrixVectorOrdering<L>>>(
                                micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                               .SetSystem(the_system)
+                               .SetGasPhase(gas_phase)
                                .SetReactions(reactions)
                                .Build();
 
-  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
-  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.phase_species_.size(), the_system.gas_phase_.phase_species_.size());
+  EXPECT_EQ(rosenbrock_vector.GetGasPhase().name_, gas_phase.name_);
+  EXPECT_EQ(rosenbrock_vector.GetGasPhase().phase_species_.size(), gas_phase.phase_species_.size());
   EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);
 }
@@ -200,7 +198,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
 TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
 {
   auto solver = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
-                    .SetSystem(the_system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions(reactions)
                     .Build();
   auto state = solver.GetState(1);
@@ -229,7 +227,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 {
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(the_system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions(reactions)
                     .Build();
   auto state = solver.GetState(1);

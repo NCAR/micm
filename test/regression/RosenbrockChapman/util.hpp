@@ -87,5 +87,5 @@ auto GetChapmanSolver(SolverBuilderPolicy& builder)
   micm::Phase gas_phase = CreateGasPhase();
   std::vector<micm::Process> processes = CreateProcesses(gas_phase);
 
-  return builder.SetSystem(micm::System(gas_phase)).SetReactions(std::move(processes)).Build();
+  return builder.SetGasPhase(gas_phase).SetReactions(std::move(processes)).Build();
 }

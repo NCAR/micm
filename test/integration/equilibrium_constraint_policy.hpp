@@ -78,7 +78,7 @@ void TestSetConstraintsAPIWorks(BuilderFactory make_builder)
   // Build solver with constraints
   auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = make_builder(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -183,7 +183,7 @@ void TestSetConstraintsAPIMultipleConstraints(BuilderFactory make_builder)
   // Build solver with multiple constraints
   auto options = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = make_builder(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn1, rxn2 })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -283,7 +283,7 @@ void TestDAESolveWithConstraint(BuilderFactory make_builder)
     options.h_start_ = 1.0e-6;
   }
   auto solver = make_builder(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -409,7 +409,7 @@ void TestDAESolveWithConstraintAndReorderState(BuilderFactory make_builder)
     options.h_start_ = 1.0e-6;
   }
   auto solver = make_builder(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(true)
@@ -518,7 +518,7 @@ void TestDAESolveWithTwoCoupledConstraints(BuilderFactory make_builder)
     options.h_start_ = 1.0e-6;
   }
   auto solver = make_builder(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -628,7 +628,7 @@ void TestDAESolveWithNonUnitStoichiometry(BuilderFactory make_builder)
     options.h_start_ = 1.0e-6;
   }
   auto solver = make_builder(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)

@@ -220,7 +220,7 @@ namespace micm
       SetAbsoluteTolerances(std::vector<Real>& tolerances, const std::unordered_map<std::string, Index>& species_map) const
   {
     tolerances = std::vector<Real>(species_map.size(), 1e-3);
-    for (const auto& phase_species : system_.gas_phase_.phase_species_)
+    for (const auto& phase_species : gas_phase_.phase_species_)
     {
       const auto& species = phase_species.species_;
       if (species.HasProperty("absolute tolerance"))
@@ -249,12 +249,6 @@ namespace micm
       StatePolicy,
       ExternalModels...>::Build()
   {
-    if (!valid_system_)
-    {
-      throw MicmException(
-          MICM_ERROR_CATEGORY_SOLVER, MICM_SOLVER_ERROR_CODE_MISSING_CHEMICAL_SYSTEM, "Missing chemical system.");
-    }
-
     Index number_of_species = this->MergedStateSize();
     if (number_of_species == 0)
     {
@@ -680,7 +674,7 @@ namespace micm
         state_parameters,
         options,
         reactions_,
-        system_);
+        gas_phase_);
   }
 
 }  // namespace micm

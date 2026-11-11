@@ -83,7 +83,7 @@ namespace bench
                                   .SetPhase(gas_phase)
                                   .Build();
 
-      return builder.SetSystem(micm::System(gas_phase))
+      return builder.SetGasPhase(gas_phase)
           .SetReactions({ r1, r2, r3, r4, photo_1, photo_2, photo_3 })
           .SetIgnoreUnusedSpecies(true)
           .Build();

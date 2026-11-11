@@ -33,7 +33,6 @@ namespace
                          .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 })
                          .SetPhase(gas_phase)
                          .Build();
-  micm::System the_system = micm::System(gas_phase);
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
@@ -41,7 +40,7 @@ TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr micm::Index L = 4;
   auto cuda_rosenbrock = GpuBuilder<L>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                             .SetSystem(the_system)
+                             .SetGasPhase(gas_phase)
                              .SetReactions(reactions)
                              .Build();
   auto state = cuda_rosenbrock.GetState(L);

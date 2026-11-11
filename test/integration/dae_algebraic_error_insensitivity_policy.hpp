@@ -99,7 +99,7 @@ namespace
     constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
         "mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
-    auto solver = builder.SetSystem(micm::System(gas_phase))
+    auto solver = builder.SetGasPhase(gas_phase)
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/system/conditions.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/micm_exception.hpp>
 #include <micm/util/parameterized_function.hpp>

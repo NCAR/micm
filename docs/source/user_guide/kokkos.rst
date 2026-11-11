@@ -100,7 +100,7 @@ Worked example
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(micm::System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ r1, r2, r3, r4 })
                     .Build();
 

@@ -37,7 +37,6 @@ namespace
                          .SetPhase(gas_phase)
                          .Build();
 
-  auto the_system = micm::System(gas_phase);
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
@@ -46,7 +45,7 @@ TEST(BackwardEuler, CanCallSolve)
   auto params = micm::BackwardEulerSolverParameters();
 
   auto be = micm::KokkosSolverBuilder<micm::BackwardEulerSolverParameters>(params)
-                .SetSystem(the_system)
+                .SetGasPhase(gas_phase)
                 .SetReactions(reactions)
                 .Build();
   micm::Real time_step = 1.0;

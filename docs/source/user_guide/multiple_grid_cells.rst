@@ -42,9 +42,9 @@ After that, we'll use the ``micm`` namespace.
   :language: cpp
   :lines: 6-7
 
-To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
+To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a gas phase (:cpp:class:`micm::Phase`)
 and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these as
-well as a :cpp:class:`micm::Phase`.
+well as the gas phase.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp

@@ -64,7 +64,7 @@ After that, we'll use the ``micm`` namespace so that we don't have to repeat it 
     :language: cpp
     :lines: 16-17
 
-To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
+To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a gas phase (:cpp:class:`micm::Phase`)
 and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these.
 
 .. tab-set::
@@ -119,14 +119,14 @@ Initializing the state
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
-          :lines: 111-126
+          :lines: 111-125
 
 
 Finally, we are ready to pick a timestep and solve the system.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 129-151
+    :lines: 128-150
 
 
 This is the output:

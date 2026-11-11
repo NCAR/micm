@@ -102,13 +102,12 @@ int main()
                          .Build();
 
   auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
-  auto chemical_system = micm::System(gas_phase );
 
   std::vector<std::vector<Real>> results(n_threads);
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(chemical_system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions(reactions)
                     .Build();
 

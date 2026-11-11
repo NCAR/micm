@@ -79,7 +79,7 @@ void TestAlgebraicVariableStaysNonNegative(BuilderPolicy builder)
   constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
       "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
-  auto solver = builder.SetSystem(micm::System(gas_phase))
+  auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -185,7 +185,7 @@ void TestEquilibriumPlusConservation(BuilderPolicy builder)
   constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
       "mass_conservation", A_gas, { { A_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
-  auto solver = builder.SetSystem(micm::System(gas_phase))
+  auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetConstraints(std::move(constraints))
                     .SetReorderState(false)
@@ -290,7 +290,7 @@ void TestAllRosenbrockOrdersConstrained(BuilderFactory make_builder)
         "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, C_total));
 
     auto solver = make_builder(options)
-                      .SetSystem(micm::System(gas_phase))
+                      .SetGasPhase(gas_phase)
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)

@@ -79,7 +79,7 @@ Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solve
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 87-91
+  :lines: 86-90
 
 The empty angle brackets ``<>`` tell the compiler to use the default template paramters. The first two are most important and
 denote the ``MatrixPolicy`` and ``SparseMatrixPolicy`` to be used when we solve. By default, these are :cpp:class:`micm::Matrix`
@@ -92,7 +92,7 @@ Here, when setting the species, read the double as ``grid cell.species``.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 93-104
+  :lines: 92-103
 
 .. code-block:: bash
 
@@ -117,7 +117,7 @@ To create a vectorized solver, we must pass the appropriate templates as the tem
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 106-114
+  :lines: 105-113
 
 .. code-block:: bash
 
@@ -141,7 +141,7 @@ In fact, you can use the vectorized solver just as you would the regular solver,
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 127-145
+  :lines: 126-144
 
 .. code-block:: bash
 
@@ -191,7 +191,7 @@ using each ordering policy:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 136-152
+  :lines: 135-151
 
 Standard ordering is the default, and thus does not have to be specified as a template parameter.
 When creating vector-ordered matrices, specify the second template argument using
@@ -204,13 +204,13 @@ We created matrices of strings so the values can be set as ``block.column.row``:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 147-161
+  :lines: 146-160
 
 We can again see the effects of the ordering policy by accessing the underlying data vector directly:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 163-185
+  :lines: 162-179
 
 .. code-block:: bash
 

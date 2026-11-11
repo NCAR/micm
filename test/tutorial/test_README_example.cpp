@@ -14,7 +14,6 @@ int main(const int argc, const char *argv[])
 
   Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ foo, bar, baz } };
 
-  System chemical_system(gas_phase);
 
   Process r1 = ChemicalReactionBuilder()
                    .SetReactants({ foo })
@@ -34,7 +33,7 @@ int main(const int argc, const char *argv[])
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(chemical_system)
+                    .SetGasPhase(gas_phase)
                     .SetReactions(reactions)
                     .Build();
 

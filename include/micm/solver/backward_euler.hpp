@@ -2,27 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/constraint/constraint_set.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/backward_euler_temporary_variables.hpp>
-#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/matrix.hpp>
 #include <micm/util/types.hpp>
-
-#include <algorithm>
-#include <array>
-#include <cassert>
-#include <chrono>
-#include <cmath>
-#include <cstddef>
-#include <functional>
-#include <iostream>
-#include <limits>
-#include <string>
-#include <vector>
 
 namespace micm
 {

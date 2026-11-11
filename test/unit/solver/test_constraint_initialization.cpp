@@ -54,7 +54,7 @@ struct SimpleConstrainedSystem
         std::vector<StoichSpecies>{ { C, 1.0 } },
         { .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
 
-    return builder.SetSystem(System(gas_phase))
+    return builder.SetGasPhase(gas_phase)
         .SetReactions({ rxn })
         .SetConstraints(std::move(constraints))
         .SetReorderState(false)
@@ -81,7 +81,7 @@ auto BuildScaledLinearConstraintSolver(const RosenbrockSolverParameters& paramet
       LinearConstraint<DenseMatrix, SparseMatrix>("scaled_copy", Z, { { X, row_scale }, { Z, -row_scale } }, 0.0));
 
   return StandardBuilder(parameters)
-      .SetSystem(System(gas_phase))
+      .SetGasPhase(gas_phase)
       .SetConstraints(std::move(constraints))
       .SetReorderState(false)
       .Build();
@@ -249,7 +249,7 @@ TEST(ConstraintInitialization, ScaledConstraintRowsSolveIdenticallyThroughSolve)
       options.h_start_ = 1.0e-6;
     }
     auto solver = StandardBuilder(options)
-                      .SetSystem(System(gas_phase))
+                      .SetGasPhase(gas_phase)
                       .SetReactions({ rxn })
                       .SetConstraints(std::move(constraints))
                       .SetReorderState(false)
@@ -306,7 +306,7 @@ TEST(ConstraintInitialization, PureODESystemUnaffected)
     options.h_start_ = 1.0e-6;
   }
   auto solver = CpuSolverBuilder<RosenbrockSolverParameters>(options)
-                    .SetSystem(System(gas_phase))
+                    .SetGasPhase(gas_phase)
                     .SetReactions({ rxn })
                     .SetReorderState(false)
                     .Build();
@@ -452,7 +452,7 @@ auto BuildSquaredConstraintSolver(const RosenbrockSolverParameters& parameters)
       { .K_HLC_ref_ = 2.0, .delta_H_ = 0.0 }));
 
   return StandardBuilder(parameters)
-      .SetSystem(System(gas_phase))
+      .SetGasPhase(gas_phase)
       .SetConstraints(std::move(constraints))
       .SetReorderState(false)
       .Build();

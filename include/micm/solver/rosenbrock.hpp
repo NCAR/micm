@@ -12,25 +12,9 @@
 // https://doi.org/10.1016/S1352-2310(97)83212-8
 #pragma once
 
-#include <micm/constraint/constraint_set.hpp>
-#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>
-
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstddef>
-#include <functional>
-#include <limits>
-#include <string>
-#include <vector>
 
 namespace micm
 {
