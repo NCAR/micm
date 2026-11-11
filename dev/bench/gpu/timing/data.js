@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794440121562,
+  "lastUpdate": 1794440790923,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -2370,6 +2370,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 7758.82,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55209567+boulderdaze@users.noreply.github.com",
+            "name": "Jiwon Gim",
+            "username": "boulderdaze"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c2b13875f0f8e027bbcd5412803a6d261a90fa11",
+          "message": "Remove `System` class (#1121)\n\n* remove system and uses gas phase\n\n* add headers back\n\n* pin the ubuntu version for precision failure\n\n* lower the tolerance\n\n* add species duplicate check",
+          "timestamp": "2026-11-11T16:20:08-07:00",
+          "tree_id": "35d0279afeea86038bc43b67420c156b1f64b5f3",
+          "url": "https://github.com/NCAR/micm/commit/c2b13875f0f8e027bbcd5412803a6d261a90fa11"
+        },
+        "date": 1794440790313,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 102688.44,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 42379.79,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 20693.4,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 11197.43,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 7763.59,
             "unit": "ms"
           }
         ]
