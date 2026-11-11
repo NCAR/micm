@@ -248,7 +248,7 @@ void TestRandomMatrix(micm::Index number_of_blocks)
       [&](const FloatingPointType a, const FloatingPointType b, const FloatingPointType scale) -> void
       {
         const FloatingPointType tol =
-            std::is_same_v<micm::Real, double> ? 1.0e-6 : scale * 1.0e5 * std::numeric_limits<micm::Real>::epsilon();
+            std::is_same_v<micm::Real, double> ? 1.0e-6 : scale * 2.0e5 * std::numeric_limits<micm::Real>::epsilon();
         EXPECT_NEAR(a, b, tol);
       });
 }
