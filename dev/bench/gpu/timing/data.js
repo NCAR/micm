@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794502587276,
+  "lastUpdate": 1794503256503,
   "repoUrl": "https://github.com/NCAR/micm",
   "entries": {
     "Chapman Timing (GPU runner)": [
@@ -2468,6 +2468,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "vector128",
             "value": 7763.59,
+            "unit": "ms"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba2e8e6d17d386d81ffc7908660493f855f70911",
+          "message": "Auto-format code changes (#1122)\n\nAuto-format code using Clang-Format\n\nCo-authored-by: GitHub Actions <actions@github.com>",
+          "timestamp": "2026-11-12T09:42:48-07:00",
+          "tree_id": "d637a6618dd58790784b79af4465f388d07ab59a",
+          "url": "https://github.com/NCAR/micm/commit/ba2e8e6d17d386d81ffc7908660493f855f70911"
+        },
+        "date": 1794503255894,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "vector1",
+            "value": 102682.5,
+            "unit": "ms"
+          },
+          {
+            "name": "vector2",
+            "value": 42406.07,
+            "unit": "ms"
+          },
+          {
+            "name": "vector4",
+            "value": 20711.51,
+            "unit": "ms"
+          },
+          {
+            "name": "vector8",
+            "value": 11227.68,
+            "unit": "ms"
+          },
+          {
+            "name": "vector128",
+            "value": 7763.19,
             "unit": "ms"
           }
         ]
