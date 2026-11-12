@@ -98,8 +98,9 @@ void TestTerminatorAndRobertson(BuilderPolicy builder)
   micm::Real sum_initial_conc = 1.0;
 
   std::vector<micm::Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
-      "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
+  constraints.emplace_back(
+      micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
+          "mass_conservation", C, { { A, 1.0 }, { B, 1.0 }, { C, 1.0 } }, sum_initial_conc));
 
   // ---------------------------------------------------------------------------
   // Solver

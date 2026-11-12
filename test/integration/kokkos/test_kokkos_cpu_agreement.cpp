@@ -327,8 +327,7 @@ namespace
                            .SetPhase(gas_phase)
                            .Build();
 
-    auto solver =
-        builder.SetGasPhase(gas_phase).SetReactions({ r1, r2, r3 }).SetIgnoreUnusedSpecies(true).Build();
+    auto solver = builder.SetGasPhase(gas_phase).SetReactions({ r1, r2, r3 }).SetIgnoreUnusedSpecies(true).Build();
     auto state = solver.GetState(NUM_CELLS);
     state.SetRelativeTolerance(micm::Real{ std::is_same_v<micm::Real, double> ? 1.0e-8 : 1.0e-5 });
 
@@ -387,8 +386,9 @@ namespace
 
     const micm::Real total = 1.0e-6;
     std::vector<micm::Constraint<DenseMatrix, SparseMatrix>> constraints;
-    constraints.emplace_back(micm::LinearConstraint<DenseMatrix, SparseMatrix>(
-        "mass_conservation", c, { { a, 1.0 }, { b, 1.0 }, { c, 1.0 } }, total));
+    constraints.emplace_back(
+        micm::LinearConstraint<DenseMatrix, SparseMatrix>(
+            "mass_conservation", c, { { a, 1.0 }, { b, 1.0 }, { c, 1.0 } }, total));
 
     auto solver = builder.SetGasPhase(gas_phase)
                       .SetReactions({ rxn })

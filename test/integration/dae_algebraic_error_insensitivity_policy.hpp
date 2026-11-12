@@ -83,21 +83,24 @@ namespace
                             .Build();
 
     std::vector<micm::Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-    constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-        "eq1",
-        A_aq,
-        std::vector<micm::StoichSpecies>{ { A_gas, 1.0 } },
-        std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
-        { .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
-    constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-        "eq2",
-        B_aq,
-        std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
-        std::vector<micm::StoichSpecies>{ { B_aq, 1.0 } },
-        { .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
+    constraints.emplace_back(
+        micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+            "eq1",
+            A_aq,
+            std::vector<micm::StoichSpecies>{ { A_gas, 1.0 } },
+            std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
+            { .K_HLC_ref_ = K1, .delta_H_ = 0.0 }));
+    constraints.emplace_back(
+        micm::EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+            "eq2",
+            B_aq,
+            std::vector<micm::StoichSpecies>{ { A_aq, 1.0 } },
+            std::vector<micm::StoichSpecies>{ { B_aq, 1.0 } },
+            { .K_HLC_ref_ = K2, .delta_H_ = 0.0 }));
     // A_gas is explicitly set as the algebraic balance variable
-    constraints.emplace_back(micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
-        "mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
+    constraints.emplace_back(
+        micm::LinearConstraint<DenseMatrix, StdSparseMatrix>(
+            "mass", A_gas, { { A_aq, 1.0 }, { B_aq, 1.0 }, { P, 1.0 }, { A_gas, 1.0 } }, C_total));
 
     auto solver = builder.SetGasPhase(gas_phase)
                       .SetReactions({ rxn })

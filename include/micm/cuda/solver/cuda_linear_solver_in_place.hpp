@@ -52,7 +52,7 @@ namespace micm
         : CudaLinearSolverInPlace<MatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
-              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
+              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }) {};
 
     CudaLinearSolverInPlace(
         const SparseMatrixPolicy& matrix,

@@ -81,12 +81,13 @@ void TestNormalizedErrorIncludesAllVariables(SolverBuilderPolicy builder, micm::
   using DenseMatrix = SolverBuilderPolicy::DenseMatrixPolicyType;
   using SparseMatrix = SolverBuilderPolicy::SparseMatrixPolicyType;
   std::vector<micm::Constraint<DenseMatrix, SparseMatrix>> constraints;
-  constraints.emplace_back(micm::EquilibriumConstraint<DenseMatrix, SparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
-      std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
-      { .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
+  constraints.emplace_back(
+      micm::EquilibriumConstraint<DenseMatrix, SparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<micm::StoichSpecies>{ micm::StoichSpecies(B, 1.0) },
+          std::vector<micm::StoichSpecies>{ micm::StoichSpecies(C, 1.0) },
+          { .K_HLC_ref_ = 10.0, .delta_H_ = -2400.0 }));
 
   auto solver = builder.SetGasPhase(gas_phase)
                     .SetReactions({ reaction })

@@ -431,7 +431,6 @@ TEST(ExternalModelConstraints, AddExternalModelWithConstraints)
   micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
 
-
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetGasPhase(gas_phase)
@@ -462,7 +461,6 @@ TEST(ExternalModelConstraints, AddExternalModelProcessOnly)
   // No total_mass → constraints disabled
   StubAerosolWithConstraints aerosol(0.01);
 
-
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetGasPhase(gas_phase)
@@ -490,7 +488,6 @@ TEST(ExternalModelConstraints, DAESolveEnforcesConservation)
   micm::Real total = 1.0;
   micm::Real k = 0.1;
   StubAerosolWithConstraints aerosol(k, total);
-
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -595,12 +592,13 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
   // Built-in constraint: B <-> C equilibrium
   micm::Real K_eq = 5.0;
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      { K_eq, 0.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+          std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+          { K_eq, 0.0 }));
 
   // Process: A_GAS -> B
   micm::Real k_rxn = 0.05;
@@ -610,7 +608,6 @@ TEST(ExternalModelConstraints, CombinedBuiltInAndExternalConstraints)
                           .SetRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = k_rxn, .B_ = 0, .C_ = 0 })
                           .SetPhase(gas_phase)
                           .Build();
-
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -641,7 +638,6 @@ TEST(ExternalModelConstraints, AddExternalModelOnlyStandardRosenbrock)
 
   StubAerosolWithConstraints aerosol(0.01);
 
-
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // Add only processes (constraints are not enabled with standard Rosenbrock parameters)
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -663,7 +659,6 @@ TEST(ExternalModelConstraints, AddExternalModelConstraintsOnly)
 
   micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.01, total);
-
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -703,7 +698,6 @@ TEST(ExternalModelConstraints, MultiGridCell)
 
   micm::Real total = 1.0;
   StubAerosolWithConstraints aerosol(0.1, total);
-
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -1021,12 +1015,13 @@ TEST(ExternalModelConstraints, BuiltInVsExternalModelConstraintStepByStep)
 
   // Built-in constraint solver
   std::vector<Constraint<DenseMatrix, StdSparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
-      "B_C_eq",
-      C,
-      std::vector<micm::StoichSpecies>{ { B, 1.0 } },
-      std::vector<micm::StoichSpecies>{ { C, 1.0 } },
-      { K_EQ, 0.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, StdSparseMatrix>(
+          "B_C_eq",
+          C,
+          std::vector<micm::StoichSpecies>{ { B, 1.0 } },
+          std::vector<micm::StoichSpecies>{ { C, 1.0 } },
+          { K_EQ, 0.0 }));
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
   auto builtin_solver = micm::KokkosSolverBuilder<micm::RosenbrockSolverParameters>(options)
@@ -1121,7 +1116,6 @@ TEST(ExternalModelConstraints, MultiEquilibriumKineticVsComposedConstraints)
   auto C = micm::Species("C");
   auto D = micm::Species("D");
   micm::Phase gas_phase{ "gas", { A, B, C, D } };
-
 
   // ── Kinetic system ──
   micm::Process rxn_ab = micm::ChemicalReactionBuilder()
@@ -1264,7 +1258,6 @@ TEST(ExternalModelConstraints, ProcessJacobianElementInAlgebraicRowSurvivesFilte
   micm::Real total = 1.0;
   micm::Real k = 0.1;
   StubAerosolWithSolvent aerosol(k, total);
-
 
   auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 

@@ -47,12 +47,13 @@ struct SimpleConstrainedSystem
 
     // Equilibrium constraint: K_eq * B - C = 0, so C = K_eq * B
     std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
-    constraints.emplace_back(EquilibriumConstraint<DenseMatrix, SparseMatrix>(
-        "B_C_eq",
-        C,
-        std::vector<StoichSpecies>{ { B, 1.0 } },
-        std::vector<StoichSpecies>{ { C, 1.0 } },
-        { .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
+    constraints.emplace_back(
+        EquilibriumConstraint<DenseMatrix, SparseMatrix>(
+            "B_C_eq",
+            C,
+            std::vector<StoichSpecies>{ { B, 1.0 } },
+            std::vector<StoichSpecies>{ { C, 1.0 } },
+            { .K_HLC_ref_ = K_EQ, .delta_H_ = DELTA_H }));
 
     return builder.SetGasPhase(gas_phase)
         .SetReactions({ rxn })
@@ -240,8 +241,9 @@ TEST(ConstraintInitialization, ScaledConstraintRowsSolveIdenticallyThroughSolve)
                       .Build();
 
     std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
-    constraints.emplace_back(LinearConstraint<DenseMatrix, SparseMatrix>(
-        "mass", C, std::vector<StoichSpecies>{ { A, scale }, { B, scale }, { C, scale } }, scale * TOTAL));
+    constraints.emplace_back(
+        LinearConstraint<DenseMatrix, SparseMatrix>(
+            "mass", C, std::vector<StoichSpecies>{ { A, scale }, { B, scale }, { C, scale } }, scale * TOTAL));
 
     auto options = RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
     if constexpr (!std::is_same_v<micm::Real, double>)
@@ -444,12 +446,13 @@ auto BuildSquaredConstraintSolver(const RosenbrockSolverParameters& parameters)
   const Phase gas_phase{ "gas", std::vector<PhaseSpecies>{ B, C } };
 
   std::vector<Constraint<DenseMatrix, SparseMatrix>> constraints;
-  constraints.emplace_back(EquilibriumConstraint<DenseMatrix, SparseMatrix>(
-      "squared",
-      C,
-      std::vector<StoichSpecies>{ { B, 1.0 } },
-      std::vector<StoichSpecies>{ { C, 2.0 } },
-      { .K_HLC_ref_ = 2.0, .delta_H_ = 0.0 }));
+  constraints.emplace_back(
+      EquilibriumConstraint<DenseMatrix, SparseMatrix>(
+          "squared",
+          C,
+          std::vector<StoichSpecies>{ { B, 1.0 } },
+          std::vector<StoichSpecies>{ { C, 2.0 } },
+          { .K_HLC_ref_ = 2.0, .delta_H_ = 0.0 }));
 
   return StandardBuilder(parameters)
       .SetGasPhase(gas_phase)

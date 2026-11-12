@@ -21,8 +21,8 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/types.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <memory>
 
+#include <memory>
 #include <sstream>
 #include <tuple>
 #include <unordered_map>

@@ -413,9 +413,9 @@ void TestAnalyticalTroe(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-10,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1
@@ -440,14 +440,15 @@ void TestAnalyticalTroe(
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::TroeRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                            .k0_B_ = 1.6,
-                                                                            .k0_C_ = 3,
-                                                                            .kinf_A_ = 136,
-                                                                            .kinf_B_ = 5,
-                                                                            .kinf_C_ = 24,
-                                                                            .Fc_ = 0.9,
-                                                                            .N_ = 0.8 })
+                         .SetRateConstant(
+                             micm::TroeRateConstantParameters{ .k0_A_ = 1.2e-3,
+                                                               .k0_B_ = 1.6,
+                                                               .k0_C_ = 3,
+                                                               .kinf_A_ = 136,
+                                                               .kinf_B_ = 5,
+                                                               .kinf_C_ = 24,
+                                                               .Fc_ = 0.9,
+                                                               .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -483,9 +484,9 @@ void TestAnalyticalStiffTroe(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-5,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> B, k1
@@ -520,14 +521,15 @@ void TestAnalyticalStiffTroe(
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::TroeRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                            .k0_B_ = 1.6,
-                                                                            .k0_C_ = 3,
-                                                                            .kinf_A_ = 136,
-                                                                            .kinf_B_ = 5,
-                                                                            .kinf_C_ = 24,
-                                                                            .Fc_ = 0.9,
-                                                                            .N_ = 0.8 })
+                         .SetRateConstant(
+                             micm::TroeRateConstantParameters{ .k0_A_ = 1.2e-3,
+                                                               .k0_B_ = 1.6,
+                                                               .k0_C_ = 3,
+                                                               .kinf_A_ = 136,
+                                                               .kinf_B_ = 5,
+                                                               .kinf_C_ = 24,
+                                                               .Fc_ = 0.9,
+                                                               .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -577,9 +579,9 @@ void TestAnalyticalPhotolysis(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 2e-6,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1
@@ -639,9 +641,9 @@ void TestAnalyticalStiffPhotolysis(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 2e-5,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> B, k1
@@ -727,9 +729,9 @@ void TestAnalyticalTernaryChemicalActivation(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-08,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1
@@ -756,14 +758,15 @@ void TestAnalyticalTernaryChemicalActivation(
   micm::Process r2 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                                                 .k0_B_ = 1.6,
-                                                                                                 .k0_C_ = 3,
-                                                                                                 .kinf_A_ = 136,
-                                                                                                 .kinf_B_ = 5,
-                                                                                                 .kinf_C_ = 24,
-                                                                                                 .Fc_ = 0.9,
-                                                                                                 .N_ = 0.8 })
+                         .SetRateConstant(
+                             micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2e-3,
+                                                                                    .k0_B_ = 1.6,
+                                                                                    .k0_C_ = 3,
+                                                                                    .kinf_A_ = 136,
+                                                                                    .kinf_B_ = 5,
+                                                                                    .kinf_C_ = 24,
+                                                                                    .Fc_ = 0.9,
+                                                                                    .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -799,9 +802,9 @@ void TestAnalyticalStiffTernaryChemicalActivation(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-6,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> B, k1
@@ -838,14 +841,15 @@ void TestAnalyticalStiffTernaryChemicalActivation(
   micm::Process r3 = micm::ChemicalReactionBuilder()
                          .SetReactants({ b })
                          .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2e-3,
-                                                                                                 .k0_B_ = 1.6,
-                                                                                                 .k0_C_ = 3,
-                                                                                                 .kinf_A_ = 136,
-                                                                                                 .kinf_B_ = 5,
-                                                                                                 .kinf_C_ = 24,
-                                                                                                 .Fc_ = 0.9,
-                                                                                                 .N_ = 0.8 })
+                         .SetRateConstant(
+                             micm::TernaryChemicalActivationRateConstantParameters{ .k0_A_ = 1.2e-3,
+                                                                                    .k0_B_ = 1.6,
+                                                                                    .k0_C_ = 3,
+                                                                                    .kinf_A_ = 136,
+                                                                                    .kinf_B_ = 5,
+                                                                                    .kinf_C_ = 24,
+                                                                                    .Fc_ = 0.9,
+                                                                                    .N_ = 0.8 })
                          .SetPhase(gas_phase)
                          .Build();
 
@@ -895,9 +899,9 @@ void TestAnalyticalTunneling(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-8,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1
@@ -955,9 +959,9 @@ void TestAnalyticalStiffTunneling(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-6,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> B, k1
@@ -1038,9 +1042,9 @@ void TestAnalyticalArrhenius(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-9,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1
@@ -1097,9 +1101,9 @@ void TestAnalyticalStiffArrhenius(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-6,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> B, k1
@@ -1181,9 +1185,9 @@ void TestAnalyticalBranched(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-13,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1
@@ -1198,29 +1202,31 @@ void TestAnalyticalBranched(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a, b, c } };
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r1 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ b })
-                         .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r2 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ b })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetGasPhase(gas_phase).SetReactions(processes);
@@ -1268,9 +1274,9 @@ void TestAnalyticalStiffBranched(
     BuilderPolicy builder,
     micm::Real absolute_tolerances = 1e-6,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> B, k1
@@ -1288,41 +1294,44 @@ void TestAnalyticalStiffBranched(
 
   micm::Phase gas_phase{ "gas", std::vector<micm::PhaseSpecies>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a1 })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r1 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a1 })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r2 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ a2 })
-                         .SetProducts({ micm::StoichSpecies(b, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r2 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ a2 })
+          .SetProducts({ micm::StoichSpecies(b, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
-  micm::Process r3 = micm::ChemicalReactionBuilder()
-                         .SetReactants({ b })
-                         .SetProducts({ micm::StoichSpecies(c, 1) })
-                         .SetRateConstant(micm::BranchedRateConstantParameters{
-                             .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                             .X_ = 1e-4,
-                             .Y_ = 204.3,
-                             .a0_ = 1.0e-3,
-                             .n_ = 2 })
-                         .SetPhase(gas_phase)
-                         .Build();
+  micm::Process r3 =
+      micm::ChemicalReactionBuilder()
+          .SetReactants({ b })
+          .SetProducts({ micm::StoichSpecies(c, 1) })
+          .SetRateConstant(
+              micm::BranchedRateConstantParameters{ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
+                                                    .X_ = 1e-4,
+                                                    .Y_ = 204.3,
+                                                    .a0_ = 1.0e-3,
+                                                    .n_ = 2 })
+          .SetPhase(gas_phase)
+          .Build();
 
   micm::Process r4 = micm::ChemicalReactionBuilder()
                          .SetReactants({ a1 })
@@ -1384,9 +1393,9 @@ void TestAnalyticalRobertson(
     BuilderPolicy builder,
     micm::Real relative_tolerance = 1e-8,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A -> B, k1 = 0.04
@@ -1555,9 +1564,9 @@ void TestAnalyticalOregonator(
     micm::Index substeps_per_output = 1,
     micm::Real solver_relative_tolerance = 1e-9,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * This problem is described in
@@ -1812,9 +1821,9 @@ void TestAnalyticalHires(
     BuilderPolicy builder,
     micm::Real absolute_tolerance = 1e-8,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * This problem is described in
@@ -2028,9 +2037,9 @@ void TestAnalyticalE5(
     BuilderPolicy builder,
     micm::Real relative_tolerance = 1e-8,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * A1 -> A2 + A3,  k1 = 7.89e-10

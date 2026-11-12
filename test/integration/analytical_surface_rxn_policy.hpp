@@ -13,9 +13,9 @@ void TestAnalyticalSurfaceRxn(
     BuilderPolicy& builder,
     micm::Real tolerance = 1e-8,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const micm::Real mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]

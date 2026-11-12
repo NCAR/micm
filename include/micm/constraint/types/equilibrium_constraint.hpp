@@ -302,7 +302,8 @@ namespace micm
               const typename Vector<Conditions>::ConstViewType& conditions_view,
               const typename DenseMatrixPolicy::ViewType& state_param_view) {
             state_param_view.ForEachRow(
-                [=](const Conditions& cond, Real& K_eq) {
+                [=](const Conditions& cond, Real& K_eq)
+                {
                   K_eq = param.K_HLC_ref_ *
                          std::exp((param.delta_H_ / param.R_) * (1.0 / cond.temperature_ - 1.0 / param.T_ref_));
                 },

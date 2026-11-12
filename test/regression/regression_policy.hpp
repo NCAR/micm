@@ -105,9 +105,9 @@ void TestFlowTube(
     BuilderPolicy builder,
     const std::string& expected_results_path,
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& prepare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {},
+        [](typename BuilderPolicy::StatePolicyType& state) { },
     const std::function<void(typename BuilderPolicy::StatePolicyType&)>& postpare_for_solve =
-        [](typename BuilderPolicy::StatePolicyType& state) {})
+        [](typename BuilderPolicy::StatePolicyType& state) { })
 {
   /*
    * SOA1 ->                                , k1 = 0.01
